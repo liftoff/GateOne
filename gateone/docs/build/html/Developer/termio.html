@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>termio.py - Terminal Input/Output Module &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="utils.py - Supporting Functions" href="utils.html" />
+    <link rel="prev" title="terminal.py - A Pure Python Terminal Emulator" href="terminal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="utils.html" title="utils.py - Supporting Functions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="terminal.html" title="terminal.py - A Pure Python Terminal Emulator"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-termio">
+<span id="termio-py-terminal-input-output-module"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module<a class="headerlink" href="#module-termio" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="about-termio">
+<h2>About termio<a class="headerlink" href="#about-termio" title="Permalink to this headline">¶</a></h2>
+<p>This module provides a Multiplex class that can perform the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Fork a child process that opens a given terminal program.</li>
+<li>Read and write data to and from the child process.</li>
+<li>Log the output of the child process to a file and/or syslog.</li>
+</ul>
+</div></blockquote>
+<p>The Multiplex class is meant to be used in conjunction with a running Tornado
+IOLoop instance.  It can be instantiated from within your Tornado application
+like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">multiplexer</span> <span class="o">=</span> <span class="n">termio</span><span class="o">.</span><span class="n">Multiplex</span><span class="p">(</span>
+    <span class="s">&#39;nethack&#39;</span><span class="p">,</span>
+    <span class="n">tmpdir</span><span class="o">=</span><span class="s">&#39;/tmp&#39;</span><span class="p">,</span>
+    <span class="n">log_path</span><span class="o">=</span><span class="s">&#39;/var/log/myapp&#39;</span><span class="p">,</span>
+    <span class="n">user</span><span class="o">=</span><span class="s">&#39;bsmith@CORP&#39;</span><span class="p">,</span>
+    <span class="n">term_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">syslog</span><span class="o">=</span><span class="bp">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Then <em>multiplexer</em> can create and launch a new controlling terminal (tty)
+running the given command (e.g. 'nethack'):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">env</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;PATH&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;PATH&#39;</span><span class="p">],</span>
+    <span class="s">&#39;MYVAR&#39;</span><span class="p">:</span> <span class="s">&#39;foo&#39;</span>
+<span class="p">}</span>
+<span class="n">fd</span> <span class="o">=</span> <span class="n">multiplexer</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+<span class="c"># The fd is returned from create() in case you want more low-level control.</span>
+</pre></div>
+</div>
+<p>Input and output from the controlled program is asynchronous and gets handled
+via IOLoop.  It will automatically write all output from the terminal program to
+an instance of self.terminal_emulator (which defaults to Gate One's
+terminal.Terminal).  So if you want to perform an action whenever the running
+terminal application has output (like, say, sending a message to a client)
+you'll need to attach a callback:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">screen_update</span><span class="p">():</span>
+    <span class="s">&#39;Called when new output is ready to send to the client&#39;</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">multiplexer</span><span class="o">.</span><span class="n">dumplines</span><span class="p">()</span>
+    <span class="n">socket_or_something</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+<span class="n">multiplexer</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">multiplexer</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">]</span> <span class="o">=</span> <span class="n">screen_update</span>
+</pre></div>
+</div>
+<p>In this example, screen_update() will write() the output of
+multiplexer.dumplines() to <em>socket_or_something</em> whenever the terminal program
+has some sort of output.  You can also make calls directly to the terminal
+emulator (if you're using a custom one):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">screen_update</span><span class="p">():</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">multiplexer</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">my_custom_func</span><span class="p">()</span>
+    <span class="n">whatever</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Writing characters to the controlled terminal application is pretty
+straightforward:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">multiplexer</span><span class="o">.</span><span class="n">proc_write</span><span class="p">(</span><span class="s">&#39;some text&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Typically you'd pass in keystrokes or commands from your application to the
+underlying program this way and the screen/terminal emulator would get updated
+automatically.  If using Gate One's Terminal() you can also attach callbacks
+to perform further actions when more specific situations are encountered (e.g.
+when the window title is set via that respective escape sequence):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">set_title</span><span class="p">():</span>
+    <span class="s">&#39;Hypothetical title-setting function&#39;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Window title was just set to: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">multiplexer</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+<span class="n">multiplexer</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">multiplexer</span><span class="o">.</span><span class="n">CALLBACK_TITLE</span><span class="p">]</span> <span class="o">=</span> <span class="n">set_title</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="module-functions-and-classes">
+<h2>Module Functions and Classes<a class="headerlink" href="#module-functions-and-classes" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="termio.handle_special">
+<tt class="descclassname">termio.</tt><tt class="descname">handle_special</tt><big>(</big><em>e</em><big>)</big><a class="reference internal" href="../_modules/termio.html#handle_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.handle_special" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used in conjunction with codecs.register_error, will replace special ascii
+characters such as 0xDA and 0xc4 (which are used by ncurses) with their
+Unicode equivalents.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="termio.Multiplex">
+<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">Multiplex</tt><big>(</big><em>cmd=None</em>, <em>terminal_emulator=None</em>, <em>cps=5000</em>, <em>tmpdir='/tmp'</em>, <em>log_path=None</em>, <em>user=None</em>, <em>term_num=None</em>, <em>syslog=False</em>, <em>syslog_facility=24</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Multiplex class takes care of forking a child process and provides
+methods for reading/writing to it.  It also creates an instance of
+tornado.ioloop.IOLoop that listens for events on the spawned terminal
+application and updates self.proc[fd]['term'] with any changes.</p>
+<dl class="method">
+<dt id="termio.Multiplex.create">
+<tt class="descname">create</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new virtual terminal (tty) and executes self.cmd within it.
+Also sets up our read/write callback and attaches them to Tornado's
+IOLoop.</p>
+<dl class="docutils">
+<dt><em>cols</em></dt>
+<dd>The number of columns to emulate on the virtual terminal (width)</dd>
+<dt><em>rows</em></dt>
+<dd>The number of rows to emulate (height).</dd>
+<dt><em>env</em></dt>
+<dd>A dictionary of environment variables to set when executing self.cmd.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="termio.Multiplex.die">
+<tt class="descname">die</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.die"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.die" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets self.alive to False</p>
+<p>NOTE: This is actually important as it allows controlling processes to
+see if the multiplexer is still alive or not (so they don't have to
+enumerate the process table looking for a particular pid).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="termio.Multiplex.resize">
+<tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.resize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resizes the child process's terminal window to <em>rows</em> and <em>cols</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="termio.Multiplex.redraw">
+<tt class="descname">redraw</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.redraw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.redraw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the running terminal program to redraw the screen by executing
+a window resize event (using its current dimensions) and writing a
+ctrl-l.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="termio.Multiplex.proc_kill">
+<tt class="descname">proc_kill</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.proc_kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.proc_kill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kill the child process associated with the given file descriptor (fd).</p>
+<p>NOTE: If dtach is being used this only kills the dtach process.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="termio.Multiplex.term_write">
+<tt class="descname">term_write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.term_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.term_write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes <em>chars</em> to self.term and also takes care of logging to
+<em>self.log_path</em> (if set) and/or syslog (if <em>self.syslog</em> is True).</p>
+<p>NOTE: This kind of logging doesn't capture user keystrokes.  This is
+intentional as we don't want passwords winding up in the logs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="termio.Multiplex.proc_read">
+<tt class="descname">proc_read</tt><big>(</big><em>fd</em>, <em>event</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.proc_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.proc_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in the output of the process associated with <em>fd</em> and write it to
+self.term.</p>
+<p>This method will also keep an eye on the output rate of the underlying
+terminal application.  If it goes to high (which would gobble up CPU) it
+will engage a rate limiter.  So if someone thinks it would be funny to
+run 'top' with a refresh rate of 0.01 they'll really only be getting
+updates every ~2 seconds (and it won't bog down the server =).</p>
+<p>NOTE: This method is not meant to be called directly...  The IOLoop
+should be the one calling it when it detects an io_loop.READ event.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="termio.Multiplex.proc_write">
+<tt class="descname">proc_write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.proc_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.proc_write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes <em>chars</em> to the terminal process running on <em>fd</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="termio.Multiplex.dumplines">
+<tt class="descname">dumplines</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.dumplines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.dumplines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the terminal text lines (a list of lines, to be specific) and
+its scrollback buffer (which is also a list of lines) as a tuple,
+(scrollback, text).  If a line hasn't changed since the last dump then
+it will be replaced with an empty string (in the terminal text lines).</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a><ul>
+<li><a class="reference internal" href="#about-termio">About termio</a></li>
+<li><a class="reference internal" href="#module-functions-and-classes">Module Functions and Classes</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="terminal.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="utils.html"
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/termio.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="utils.html" title="utils.py - Supporting Functions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="terminal.html" title="terminal.py - A Pure Python Terminal Emulator"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,261 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>auth.py - Authentication Classes &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="gateone.py - Gate One&#39;s Main Script" href="gateone.html" />
+    <link rel="prev" title="Developer Documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gateone.html" title="gateone.py - Gate One&#39;s Main Script"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Developer Documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-auth">
+<span id="auth-py-authentication-classes"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">auth.py</span></tt> - Authentication Classes<a class="headerlink" href="#module-auth" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="authentication">
+<h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h2>
+<p>This module contains Gate One's authentication classes.  They map to Gate One's
+--auth configuration option like so:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="44%" />
+<col width="56%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>--auth=none</td>
+<td>NullAuthHandler</td>
+</tr>
+<tr><td>--auth=kerberos</td>
+<td>KerberosAuthHandler</td>
+</tr>
+<tr><td>--auth=google</td>
+<td>GoogleAuthHandler</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="none-or-anonymous">
+<h3>None or Anonymous<a class="headerlink" href="#none-or-anonymous" title="Permalink to this headline">¶</a></h3>
+<p>By default Gate One will not authenticate users.  This means that user sessions
+will be tied to their browser cookie and users will not be able to resume their
+sessions from another computer/browser.  Most useful for situations where
+session persistence and logging aren't important.</p>
+<p><em>All</em> users will show up as %anonymous using this authentication type.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The % is there to avoid name conflicts.</p>
+</div>
+</div>
+<div class="section" id="kerberos">
+<h3>Kerberos<a class="headerlink" href="#kerberos" title="Permalink to this headline">¶</a></h3>
+<p>Kerberos authentication utilizes GSSAPI for Single Sign-on (SSO) but will fall
+back to HTTP Basic authentication if GSSAPI auth fails.  This authentication
+type can be integrated into any Kerberos infrastructure including Windows
+Active Directory.</p>
+<p>It is great for both transparent authentication and being able to tie sessions
+and logs to specific users within your organization (compliance).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The sso.py module itself has extensive documentation on this authentication type.</p>
+</div>
+</div>
+<div class="section" id="google-authentication">
+<h3>Google Authentication<a class="headerlink" href="#google-authentication" title="Permalink to this headline">¶</a></h3>
+<p>If you want persistent user sessions but don't care to run your own
+authentication infrastructure this authentication type is for you.  Assuming,
+of course, that your Gate One server and clients will have access to the
+Internet.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This authentication type is perfect if you're using Chromebooks (Chrome OS devices).</p>
+</div>
+</div>
+</div>
+<div class="section" id="docstrings">
+<h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="auth.BaseAuthHandler">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">BaseAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#BaseAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.BaseAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>The base class for all Gate One authentication handlers.</p>
+<dl class="method">
+<dt id="auth.BaseAuthHandler.get_current_user">
+<tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/auth.html#BaseAuthHandler.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.BaseAuthHandler.get_current_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tornado standard method--implemented our way.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auth.BaseAuthHandler.user_login">
+<tt class="descname">user_login</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="../_modules/auth.html#BaseAuthHandler.user_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.BaseAuthHandler.user_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called immediately after a user authenticates successfully.  Saves
+session information in the user's directory.  Expects <em>user</em> to be a
+string containing the username or userPrincipalName. e.g. <a class="reference external" href="mailto:'user&#37;&#52;&#48;REALM">'user<span>&#64;</span>REALM</a>'
+or just 'someuser'.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auth.BaseAuthHandler.user_logout">
+<tt class="descname">user_logout</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="../_modules/auth.html#BaseAuthHandler.user_logout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.BaseAuthHandler.user_logout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called immediately after a user logs out.  Doesn't actually do
+anything.  Just potential future use at this point.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="auth.NullAuthHandler">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">NullAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#NullAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.NullAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A handler for when no authentication method is chosen (i.e. --auth=none).</p>
+<dl class="method">
+<dt id="auth.NullAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/auth.html#NullAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.NullAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the 'user' cookie with a new random session ID (<em>go_session</em>) and
+sets <em>go_upn</em> to '%anonymous'.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="auth.GoogleAuthHandler">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">GoogleAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#GoogleAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.GoogleAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Google authentication handler.</p>
+<dl class="method">
+<dt id="auth.GoogleAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#GoogleAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.GoogleAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the 'user' cookie with an appropriate <em>go_upn</em> and <em>go_session</em>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="auth.KerberosAuthHandler">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">KerberosAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#KerberosAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.KerberosAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles authenticating users via Kerberos/GSSAPI/SSO.</p>
+<dl class="method">
+<dt id="auth.KerberosAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/auth.html#KerberosAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.KerberosAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the user's request header for the proper Authorization data. If
+it checks out the user will be logged in via _on_auth().  If not, the
+browser will be redirected to login.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">auth.py</span></tt> - Authentication Classes</a><ul>
+<li><a class="reference internal" href="#authentication">Authentication</a><ul>
+<li><a class="reference internal" href="#none-or-anonymous">None or Anonymous</a></li>
+<li><a class="reference internal" href="#kerberos">Kerberos</a></li>
+<li><a class="reference internal" href="#google-authentication">Google Authentication</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Developer Documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="gateone.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">gateone.py</span></tt> - Gate One's Main Script</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/auth.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gateone.html" title="gateone.py - Gate One&#39;s Main Script"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Developer Documentation"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

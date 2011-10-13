@@ -1,0 +1,236 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>logviewer.py - Session Log Viewer &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="sso.py - A Tornado Kerberos Single Sign-On Module" href="sso.html" />
+    <link rel="prev" title="gateone.py - Gate One&#39;s Main Script" href="gateone.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sso.html" title="sso.py - A Tornado Kerberos Single Sign-On Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="gateone.html" title="gateone.py - Gate One&#39;s Main Script"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-logviewer">
+<span id="logviewer-py-session-log-viewer"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer<a class="headerlink" href="#module-logviewer" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="log-viewer">
+<span id="id1"></span><h2>Log Viewer<a class="headerlink" href="#log-viewer" title="Permalink to this headline">¶</a></h2>
+<p>Allows the user to play back a given log file like a video (default) or display
+it in a syslog-like format.  To view usage information, run it with the --help
+switch:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-red">root</span>&#64;host<span class="ansi-bold ansi-blue">:/opt/gateone $</span> ./logviewer.py --help
+Usage:  logviewer.py [options] &lt;log file&gt;
+
+Options:
+&nbsp;&nbsp;--version       show program's version number and exit
+&nbsp;&nbsp;-h, --help      show this help message and exit
+&nbsp;&nbsp;-f, --flat      Display the log line-by-line in a syslog-like format.
+&nbsp;&nbsp;-p, --playback  Play back the log in a video-like fashion. This is the
+                default view.
+&nbsp;&nbsp;--pretty        Preserve font and character renditions when displaying the
+                log in flat view (default).
+&nbsp;&nbsp;--raw           Display control characters and escape sequences when
+                viewing.
+</pre>
+<p>Here's an example of how to display a Gate One log (.golog) in a flat, greppable
+format:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-red">root</span>&#64;host<span class="ansi-bold ansi-blue">:/opt/gateone $</span> ./logviewer.py --flat
+Sep 09 21:07:14 Host/IP or SSH URL [localhost]: modern-host
+Sep 09 21:07:16 Port [22]:
+Sep 09 21:07:16 User: bsmith
+Sep 09 21:07:17 Connecting to: ssh://bsmith&#64;modern-host:22
+Sep 09 21:07:17
+Sep 09 21:07:17 bsmith&#64;modern-host's password:
+Sep 09 21:07:20 Welcome to Ubuntu 11.04 (GNU/Linux 2.6.38-11-generic x86_64)
+Sep 09 21:07:20
+Sep 09 21:07:20  * Documentation:  https://help.ubuntu.com/
+Sep 09 21:07:20
+Sep 09 21:07:20 Last login: Thu Sep 29 08:51:27 2011 from portarisk
+Sep 09 21:07:20 <span class="ansi-bold ansi-blue">bsmith</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> ls
+Sep 09 21:07:21 why_I_love_gate_one.txt&nbsp;&nbsp;to_dont_list.txt
+Sep 09 21:07:21 <span class="ansi-bold ansi-blue">bsmith</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span>
+</pre>
+</div>
+<div class="section" id="about-gate-one-s-log-format">
+<h2>About Gate One's Log Format<a class="headerlink" href="#about-gate-one-s-log-format" title="Permalink to this headline">¶</a></h2>
+<p>Gate One's log format (.golog) is a gzip-compressed unicode (UTF-8) text file
+consisting of time-based frames separated by the unicode character, U+F0F0F0.
+Each frame consists of JavaScript-style timestamp (because it is compact)
+followed by a colon and then the text characters of the frame.  A frame ends
+when a U+F0F0F0 character is encountered.</p>
+<p>Here are two example .golog frames demonstrating the format:</p>
+<div class="highlight-python"><pre>1317344834868:\x1b[H\x1b[2JHost/IP or SSH URL [localhost]: &lt;U+F0F0F&gt;1317344836086:\r\nPort [22]: &lt;U+F0F0F&gt;</pre>
+</div>
+<p>Gate One logs can be opened, decoded, and parsed in Python fairly easily:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">gzip</span>
+<span class="n">golog</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path_to_golog</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">golog</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">u&quot;</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span><span class="p">):</span>
+    <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">])</span> <span class="c"># First 13 chars is the timestamp</span>
+    <span class="c"># Timestames can be converted into datetime objects very simply:</span>
+    <span class="n">datetime_obj</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">frame_time</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">frame_text</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span> <span class="c"># This gets you the actual text minus the colon</span>
+    <span class="c"># Do something with the datetime_obj and the frame_text</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">U+F0F0F0 is from Private Use Area (PUA) 15 in the Unicode Character Set (UCS). It was chosen at random (mostly =) from PUA-15 because it is highly unlikely to be used in an actual terminal program where it could corrupt a session log.</p>
+</div>
+</div>
+<div class="section" id="class-docstrings">
+<h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="logviewer.playback_log">
+<tt class="descclassname">logviewer.</tt><tt class="descname">playback_log</tt><big>(</big><em>log_path</em>, <em>file_like</em>, <em>show_esc=False</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#playback_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.playback_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plays back the log file at <em>log_path</em> by way of timely output to <em>file_like</em>
+which is expected to be any file-like object with write() and flush()
+methods.</p>
+<p>If <em>show_esc</em> is True, escape sequences and control characters will be
+escaped so they can be seen in the output.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logviewer.escape_escape_seq">
+<tt class="descclassname">logviewer.</tt><tt class="descname">escape_escape_seq</tt><big>(</big><em>text</em>, <em>preserve_renditions=True</em>, <em>rstrip=True</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#escape_escape_seq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.escape_escape_seq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Escapes escape sequences so they don't muck with the terminal viewing <em>text</em>
+Also replaces special characters with unicode symbol equivalents (e.g. so
+you can see what they are without having them do anything to your running
+shell)</p>
+<p>If <em>preserve_renditions</em> is True, CSI escape sequences for renditions will
+be preserved as-is (e.g. font color, background, etc).</p>
+<p>If <em>rstrip</em> is true, trailing escape sequences and whitespace will be
+removed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logviewer.flatten_log">
+<tt class="descclassname">logviewer.</tt><tt class="descname">flatten_log</tt><big>(</big><em>log_path</em>, <em>preserve_renditions=True</em>, <em>show_esc=False</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#flatten_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.flatten_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a log file at <em>log_path</em>, return a list of log lines contained within.</p>
+<p>If <em>preserve_renditions</em> is True, CSI escape sequences for renditions will
+be preserved as-is (e.g. font color, background, etc).  This is to make the
+output appear as close to how it was originally displayed as possible.
+Besides that, it looks really nice =)</p>
+<p>If <em>show_esc</em> is True, escape sequences and control characters will be
+visible in the output.  Trailing whitespace and escape sequences will not be
+removed.</p>
+<p>NOTE: Converts our standard recording-based log format into something that
+can be used with grep and similar search/filter tools.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a><ul>
+<li><a class="reference internal" href="#log-viewer">Log Viewer</a></li>
+<li><a class="reference internal" href="#about-gate-one-s-log-format">About Gate One's Log Format</a></li>
+<li><a class="reference internal" href="#class-docstrings">Class Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="gateone.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">gateone.py</span></tt> - Gate One's Main Script</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sso.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/logviewer.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sso.html" title="sso.py - A Tornado Kerberos Single Sign-On Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="gateone.html" title="gateone.py - Gate One&#39;s Main Script"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

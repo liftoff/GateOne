@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>User Guide &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="next" title="Developer Documentation" href="../Developer/index.html" />
+    <link rel="prev" title="About Gate One" href="../About/index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../Developer/index.html" title="Developer Documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../About/index.html" title="About Gate One"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="user-guide">
+<h1>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="the-interface">
+<h2>The Interface<a class="headerlink" href="#the-interface" title="Permalink to this headline">¶</a></h2>
+<p>When you first connect to a Gate One server you should see something like this:</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_login.png" class="screenshot" src="../_images/gateone_login.png" />
+<p class="caption">The default login screen with the SSH plugin enabled.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The text zoom level was increased for all of these screenshots to make them easier to read.</p>
+</div>
+</div>
+<div class="section" id="detailed-interface-overview">
+<h2>Detailed Interface Overview<a class="headerlink" href="#detailed-interface-overview" title="Permalink to this headline">¶</a></h2>
+<p>Here's an overview of what each GUI element does:</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_login_explained.png" class="screenshot" src="../_images/gateone_login_explained.png" />
+<p class="caption">Gate One's interface, explained</p>
+</div>
+</div>
+<div class="section" id="keyboard-shortcuts">
+<h2>Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="60%" />
+<col width="40%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Function</th>
+<th class="head">Shortcut</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>View The Help</td>
+<td><tt class="kbd docutils literal"><span class="pre">Shift-F1</span></tt></td>
+</tr>
+<tr><td>Open Terminal</td>
+<td><tt class="kbd docutils literal"><span class="pre">Control-Alt-N</span></tt></td>
+</tr>
+<tr><td>Close Terminal</td>
+<td><tt class="kbd docutils literal"><span class="pre">Control-Alt-W</span></tt></td>
+</tr>
+<tr><td>Show Grid</td>
+<td><tt class="kbd docutils literal"><span class="pre">Control-Alt-G</span></tt></td>
+</tr>
+<tr><td>Switch to the terminal on the left</td>
+<td><tt class="kbd docutils literal"><span class="pre">Shift-LeftArrow</span></tt></td>
+</tr>
+<tr><td>Switch to the terminal on the right</td>
+<td><tt class="kbd docutils literal"><span class="pre">Shift-RightArrow</span></tt></td>
+</tr>
+<tr><td>Switch to the terminal above</td>
+<td><tt class="kbd docutils literal"><span class="pre">Shift-UpArrow</span></tt></td>
+</tr>
+<tr><td>Switch to the terminal below</td>
+<td><tt class="kbd docutils literal"><span class="pre">Shift-DownArrow</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="the-toolbar">
+<h2>The Toolbar<a class="headerlink" href="#the-toolbar" title="Permalink to this headline">¶</a></h2>
+<p>Gate One's toolbar consists of a number of icons at the right of the window.  These icons are the main source of interaction with Gate One.  It should also be noted that all of Gate One's icons are inline SVG graphics...  So they will scale with your font size and will change color based on your CSS theme.  Another nice feature of the toolbar is that it's trivial for plugins to add their own icons.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Why are the icons and title on the right and not the top?  Because these days monitors are much wider than they are tall.  In other words, vertical screen space is at a premium while there's plenty of room on the sides.</p>
+</div>
+<div class="section" id="close-terminal-and-new-terminal">
+<h3>Close Terminal and New Terminal<a class="headerlink" href="#close-terminal-and-new-terminal" title="Permalink to this headline">¶</a></h3>
+<p>These icons do precisely what you'd expect from a modern GUI:  The X icon closes the terminal in the current view while the + icon opens a new terminal.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you close the last open terminal a new one will be opened.</p>
+</div>
+</div>
+<div class="section" id="terminal-info">
+<h3>Terminal Info<a class="headerlink" href="#terminal-info" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-center">
+<img alt="../_images/gateone_infopanel.png" class="screenshot" src="../_images/gateone_infopanel.png" />
+<p class="caption">This is what you see when you click on the magnifying glass icon</p>
+</div>
+<p>Gate One's information panel is the place to get information about the current terminal.  By default, it will display the current terminal title, how long the terminal has been open, and the number of rows and columns.  It also presents some options to the user which are outlined below...</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">You can manually change the current terminal title by clicking on it.</p>
+</div>
+<div class="section" id="view-session-recording">
+<h4>View Session Recording<a class="headerlink" href="#view-session-recording" title="Permalink to this headline">¶</a></h4>
+<p>When this button is clicked it will open up the current session recording in a new browser tab.  This recording is self-contained and can be saved to your computer for playback later.  Everything needed to play back the recording is contained within the HTML file itself.  You can share it with friends, plop it into an iframe on a website, or just email it to someone.  It will even auto-scale itself (down) if necessary to fit within the current frame or window.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This kind of session recording is not the same as what gets logged on the server.  Though both can be played back in a similar fashion.</p>
+</div>
+</div>
+<div class="section" id="monitor-for-activity-inactivity">
+<h4>Monitor for Activity/Inactivity<a class="headerlink" href="#monitor-for-activity-inactivity" title="Permalink to this headline">¶</a></h4>
+<p>This feature allows you to monitor the current terminal for either activity (e.g. something changes) or inactivity (e.g. when the terminal stops changing).  When either of these events is triggered Gate One will play a sound and pop up an alert to notify you which terminal has passed the threshold for activity or inactivity.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">This feature is very handy for when you want to know when, say, a download is complete (inactivity: &quot;wget &lt;url&gt;&quot; finishes) or when someone hits your website (activity: a &quot;tail -f&quot; on the log suddenly has output).</p>
+</div>
+</div>
+<div class="section" id="ssh-plugin-duplicate-session">
+<h4>SSH Plugin: Duplicate Session<a class="headerlink" href="#ssh-plugin-duplicate-session" title="Permalink to this headline">¶</a></h4>
+<p>You'll see this option if the SSH plugin is enabled...  This button allows you to duplicate your current SSH session.  It will open a new SSH connection to the current server using the exact same SSH connect string (e.g. <a class="reference external" href="ssh://user&#64;host:22">ssh://user&#64;host:22</a>) that was used to connect originally.  Also, if possible, it will utilize the existing SSH tunnel for this connection which means you won't have to re-enter your password.  When this (awesome) feature is invoked you'll see a message indicating as such in the terminal:</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_second_session_no_password.png" class="screenshot" src="../_images/gateone_second_session_no_password.png" />
+<p class="caption">After duplicating an SSH session.  No password required!</p>
+</div>
+</div>
+</div>
+<div class="section" id="the-settings-panel">
+<h3>The Settings Panel<a class="headerlink" href="#the-settings-panel" title="Permalink to this headline">¶</a></h3>
+<div class="figure align-center">
+<img alt="../_images/gateone_settingspanel.png" class="screenshot" src="../_images/gateone_settingspanel.png" />
+<p class="caption">Gate One's Settings Panel</p>
+</div>
+<p>These options are detailed below...</p>
+<div class="section" id="css-scheme-theme">
+<h4>CSS Scheme (Theme)<a class="headerlink" href="#css-scheme-theme" title="Permalink to this headline">¶</a></h4>
+<p>This controls the look and feel of Gate One.  Right now there's only two options:  Black or White.  Future versions of Gate One will include more and eventually users will be able to change and customize CSS schemes on an ad-hoc basis, per-terminal.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">The CSS schemes can be edited; css_black.css and css_white.css are in &lt;path to gateone&gt;/templates.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The black scheme doesn't actually have a black background (it's #222)...  Why?  So the panels can have shadows which provides important contrast.  Essentially, it is easier on the eyes.</p>
+</div>
+</div>
+<div class="section" id="scrollback-buffer-lines">
+<h4>Scrollback Buffer Lines<a class="headerlink" href="#scrollback-buffer-lines" title="Permalink to this headline">¶</a></h4>
+<p>This option tells Gate One how many lines to keep in the scrollback buffer (in memory).  When you're typing or when a terminal is updating itself Gate One only updates the browser window with what falls within the terminals rows and columns.  Only after a timeout of 3.5 seconds does it re-attach the scrollback buffer.  When this happens the browser has to render all that text; the more there is the longer it takes.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">You don't have to wait for the 3.5 second timeout:  Just start scrolling and the timeout will be cancelled and the scrollback buffer will be immediately prepended to the current view.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Why the complexity?  The more text that is being rendered, the slower the browser will be able to update your terminal window.  If we updated the current number of rows + the number of lines in the scrollback buffer every time you pressed a key this would quickly bog down your browser and make Gate One considerably less responsive.</p>
+</div>
+</div>
+<div class="section" id="terminal-log-lines">
+<h4>Terminal Log Lines<a class="headerlink" href="#terminal-log-lines" title="Permalink to this headline">¶</a></h4>
+<p>Doesn't do anything...  This option <em>used</em> to control how many lines of terminal output were saved by your browser in localStorage/indexedDB.  Turns out this is slow as heck since JavaScript provides no (fast) mechanism to limit the size of such storage.  All this logic will soon be replaced by some simple AJAX calls that download the user's current terminal log from the Gate One server using log_viewer.py.</p>
+</div>
+<div class="section" id="playback-frames">
+<h4>Playback Frames<a class="headerlink" href="#playback-frames" title="Permalink to this headline">¶</a></h4>
+<p>This option controls how many frames of session playback will be kept in working memory.  The higher the number, the more memory it will use.  Also, the more terminals you have open, the higher the memory use as well.  Having said that, 200-500 frames per terminal shouldn't be of any concern to a modern computer.</p>
+</div>
+<div class="section" id="terminal-rows-and-terminal-columns">
+<h4>Terminal Rows and Terminal Columns<a class="headerlink" href="#terminal-rows-and-terminal-columns" title="Permalink to this headline">¶</a></h4>
+<p>By default these are blank which means Gate One will automatically figure out how many rows and columns will fit in a given terminal window.  If you set these, Gate One will force these values on all running terminal programs.  The ability to set this on a per-terminal basis is forthcoming.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Why would anyone bother?  Some legacy/poorly-written terminal programs only work properly in a terminal window of 24 rows and 80 columns.</p>
+</div>
+</div>
+<div class="section" id="edit-known-hosts">
+<h4>Edit Known Hosts<a class="headerlink" href="#edit-known-hosts" title="Permalink to this headline">¶</a></h4>
+<p>You'll see this button if the SSH plugin is enabled.  It allows the user to edit the equivalent of ~/.ssh/known_hosts.  This will be handy if some server you connect to on a regular basis ever changes its host key...  You'll need to delete the corresponding line.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Plans are in the works to provide line numbers in the textarea to make finding the appropriate host line easier.</p>
+</div>
+</div>
+</div>
+<div class="section" id="gate-one-s-grid">
+<h3>Gate One's Grid<a class="headerlink" href="#gate-one-s-grid" title="Permalink to this headline">¶</a></h3>
+<p>Gate One lays out terminals in a grid like so:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Terminal 1</td>
+<td>Terminal 2</td>
+</tr>
+<tr><td>Terminal 3</td>
+<td>Terminal 4</td>
+</tr>
+<tr><td>Terminal 5</td>
+<td>Terminal 6</td>
+</tr>
+<tr><td>So on</td>
+<td>And so on</td>
+</tr>
+</tbody>
+</table>
+<p>The grid view can be invoked by either clicking on the Grid icon (four squares) in the toolbar or via the Ctrl-Alt-G keyboard shortcut.  Here's what it looks like:</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_grid_view.png" class="screenshot" src="../_images/gateone_grid_view.png" />
+<p class="caption">The Grid View.  The mouse was moved over Terminal 1 in this example, demonstrating the mouseover effect.</p>
+</div>
+</div>
+<div class="section" id="the-bookmark-manager">
+<h3>The Bookmark Manager<a class="headerlink" href="#the-bookmark-manager" title="Permalink to this headline">¶</a></h3>
+<p>The first time you open the Bookmarks manager it will be empty:</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_bookmarks_empty.png" class="screenshot" src="../_images/gateone_bookmarks_empty.png" />
+<p class="caption">No bookmarks yet!</p>
+</div>
+<p>Bookmarks can be added by clicking on &quot;New&quot;:</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_new_bookmark1.png" class="screenshot" src="../_images/gateone_new_bookmark1.png" />
+<p class="caption">The New Bookmark Form.  NOTE: The text zoom level resulted in a graphical glitch in the notes area... Ignore that :)</p>
+</div>
+<p>Here's an example of the new bookmark form, filled out with a new SSH bookmark:</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_new_bookmark2.png" class="screenshot" src="../_images/gateone_new_bookmark2.png" />
+<p class="caption">SSH Bookmark to the Gate One Demo Server</p>
+</div>
+<p>After submitting the form (which doesn't actually submit anything to the Gate One server) we can see our first bookmark in the panel:</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_new_bookmark3.png" class="screenshot" src="../_images/gateone_new_bookmark3.png" />
+<p class="caption">Finally, a bookmark!</p>
+</div>
+<p>Here's what the panel will look like after you've added a number of bookmarks:</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_new_bookmark4.png" class="screenshot" src="../_images/gateone_new_bookmark4.png" />
+<p class="caption">In this example we have both SSH bookmarks and an HTTP bookmark.</p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Clicking on any of those tags will filter the current view to only show bookmarks that have been tagged as such.</p>
+</div>
+<p>Lastly, here's what happens when you click on an SSH bookmark:</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_opened_via_bookmark.png" class="screenshot" src="../_images/gateone_opened_via_bookmark.png" />
+<p class="caption">This bookmark was automatically opened in a new terminal.</p>
+</div>
+<p>In the example above, the <a class="reference external" href="ssh://">ssh://</a> URL was automatically entered for us.  All we had to do was enter our password.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">User Guide</a><ul>
+<li><a class="reference internal" href="#the-interface">The Interface</a></li>
+<li><a class="reference internal" href="#detailed-interface-overview">Detailed Interface Overview</a></li>
+<li><a class="reference internal" href="#keyboard-shortcuts">Keyboard Shortcuts</a></li>
+<li><a class="reference internal" href="#the-toolbar">The Toolbar</a><ul>
+<li><a class="reference internal" href="#close-terminal-and-new-terminal">Close Terminal and New Terminal</a></li>
+<li><a class="reference internal" href="#terminal-info">Terminal Info</a><ul>
+<li><a class="reference internal" href="#view-session-recording">View Session Recording</a></li>
+<li><a class="reference internal" href="#monitor-for-activity-inactivity">Monitor for Activity/Inactivity</a></li>
+<li><a class="reference internal" href="#ssh-plugin-duplicate-session">SSH Plugin: Duplicate Session</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-settings-panel">The Settings Panel</a><ul>
+<li><a class="reference internal" href="#css-scheme-theme">CSS Scheme (Theme)</a></li>
+<li><a class="reference internal" href="#scrollback-buffer-lines">Scrollback Buffer Lines</a></li>
+<li><a class="reference internal" href="#terminal-log-lines">Terminal Log Lines</a></li>
+<li><a class="reference internal" href="#playback-frames">Playback Frames</a></li>
+<li><a class="reference internal" href="#terminal-rows-and-terminal-columns">Terminal Rows and Terminal Columns</a></li>
+<li><a class="reference internal" href="#edit-known-hosts">Edit Known Hosts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#gate-one-s-grid">Gate One's Grid</a></li>
+<li><a class="reference internal" href="#the-bookmark-manager">The Bookmark Manager</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../About/index.html"
+                        title="previous chapter">About Gate One</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../Developer/index.html"
+                        title="next chapter">Developer Documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/UserGuide/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../Developer/index.html" title="Developer Documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../About/index.html" title="About Gate One"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

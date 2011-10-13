@@ -1,0 +1,1289 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gateone &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gateone</h1><div class="highlight"><pre>
+<span class="c">#</span>
+<span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
+<span class="c">#</span>
+<span class="c"># For license information see LICENSE.txt</span>
+
+<span class="c"># 1.0 TODO:</span>
+<span class="c"># * DOCUMENTATION!</span>
+<span class="c"># * Write a setup.py&#39; with init scripts to stop/start/restart Gate One safely.  Also make sure that .deb and .rpm packages safely restart Gate One without impacting running sessions.  The setup.py should also attempt to minify the .css and .js files.</span>
+
+<span class="c"># Meta</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.9&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+
+<span class="c"># NOTE: Docstring includes reStructuredText markup for use with Sphinx.</span>
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span><span class="se">\</span>
+<span class="s">.. _gateone.py:</span>
+
+<span class="s">Gate One</span>
+<span class="s">========</span>
+<span class="s">Gate One is a web-based terminal emulator written in Python using the Tornado</span>
+<span class="s">web framework.  This module runs the primary daemon process and acts as a</span>
+<span class="s">central controller for all running terminals and terminal programs.  It supports</span>
+<span class="s">numerous configuration options and can also be called with the --kill switch</span>
+<span class="s">to kill all running terminal programs (if using dtach--otherwise they die on</span>
+<span class="s">their own when gateone.py is stopped).</span>
+
+<span class="s">Dependencies</span>
+<span class="s">------------</span>
+<span class="s">Gate One requires Python 2.6+ but runs best with Python 2.7+.  It also depends</span>
+<span class="s">on the following 3rd party Python modules:</span>
+
+<span class="s"> * `Tornado &lt;http://www.tornadoweb.org/&gt;`_ 2.1+ - Non-blocking web server framework that powers FriendFeed.</span>
+
+<span class="s">The following modules are optional and can provide Gate One with additional</span>
+<span class="s">functionality:</span>
+
+<span class="s"> * `pyOpenSSL &lt;https://launchpad.net/pyopenssl&gt;`_ 0.10+ - OpenSSL wrapper for Python.  Only used to generate self-signed SSL keys and certificates.</span>
+<span class="s"> * `kerberos &lt;http://pypi.python.org/pypi/kerberos&gt;`_ 1.0+ - A high-level Kerberos interface for Python.  Only necessary if you plan to use the Kerberos authentication module.</span>
+
+<span class="s">On most platforms both the required and optional modules can be installed via one of these commands:</span>
+
+<span class="s">    .. ansi-block::</span>
+
+<span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@modern-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo pip install tornado pyopenssl kerberos</span>
+
+<span class="s">...or:</span>
+
+<span class="s">    .. ansi-block::</span>
+
+<span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@legacy-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo easy_install tornado pyopenssl kerberos</span>
+
+<span class="s">.. note:: The use of pip is recommended.  See http://www.pip-installer.org/en/latest/installing.html if you don&#39;t have it.</span>
+
+<span class="s">Settings</span>
+<span class="s">--------</span>
+<span class="s">All of Gate One&#39;s configurable options can be controlled either via command line</span>
+<span class="s">switches or by settings in the server.conf file (they match up 1-to-1).  If no</span>
+<span class="s">server.conf exists one will be created using defaults (i.e. when Gate One is run</span>
+<span class="s">for the first time).  Settings in the server.conf file use the following format::</span>
+
+<span class="s">    &lt;setting&gt; = &lt;value&gt;</span>
+
+<span class="s">Here&#39;s an example::</span>
+
+<span class="s">    address = &quot;0.0.0.0&quot; # Strings are surrounded by quotes</span>
+<span class="s">    port = 443 # Numbers don&#39;t need quotes</span>
+
+<span class="s">There are a few important differences between the configuration file and</span>
+<span class="s">command line switches in regards to boolean values (True/False).  A switch such</span>
+<span class="s">as --debug evaluates to &quot;debug = True&quot; and this is exactly how it would be</span>
+<span class="s">configured in server.conf::</span>
+
+<span class="s">    debug = True # Booleans don&#39;t need quotes either</span>
+
+<span class="s">.. note:: server.conf is case sensitive for &quot;True&quot;, &quot;False&quot; and &quot;None&quot;.</span>
+
+<span class="s">Running gateone.py with the --help switch will print the usage information as</span>
+<span class="s">well as descriptions of what each configurable option does:</span>
+
+<span class="s">.. ansi-block::</span>
+
+<span class="s">    </span><span class="se">\x1b</span><span class="s">[1;31mroot</span><span class="se">\x1b</span><span class="s">[0m@host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m ./gateone.py --help</span>
+<span class="s">    Usage: ./gateone.py [OPTIONS]</span>
+
+<span class="s">    Options:</span>
+<span class="s">      --help                           show this help information</span>
+<span class="s">      --log_file_max_size              max size of log files before rollover</span>
+<span class="s">      --log_file_num_backups           number of log files to keep</span>
+<span class="s">      --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)</span>
+<span class="s">      --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.</span>
+<span class="s">      --logging=info|warning|error|none Set the Python log level. If &#39;none&#39;, tornado won&#39;t touch the logging configuration.</span>
+<span class="s">      --address                        Run on the given address.</span>
+<span class="s">      --auth                           Authentication method to use.  Valid options are: none, kerberos, google</span>
+<span class="s">      --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.</span>
+<span class="s">      --command                        Run the given command when a user connects (e.g. &#39;nethack&#39;).</span>
+<span class="s">      --cookie_secret                  Use the given 45-character string for cookie encryption.</span>
+<span class="s">      --debug                          Enable debugging features such as auto-restarting when files are modified.</span>
+<span class="s">      --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).</span>
+<span class="s">      --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature =).</span>
+<span class="s">      --embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).</span>
+<span class="s">      --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.</span>
+<span class="s">      --kill                           Kill any running Gate One terminal processes including dtach&#39;d processes.</span>
+<span class="s">      --port                           Run on the given port.</span>
+<span class="s">      --session_dir                    Path to the location where session information will be stored.</span>
+<span class="s">      --session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/logs.  Default: Enabled</span>
+<span class="s">      --session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts &lt;num&gt;X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is &#39;5d&#39; (5 days).</span>
+<span class="s">      --sso_realm                      Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only relevant if Kerberos authentication is enabled.</span>
+<span class="s">      --sso_service                    Kerberos service (aka application) to use. Defaults to HTTP. Only relevant if Kerberos authentication is enabled.</span>
+<span class="s">      --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon</span>
+<span class="s">      --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.</span>
+<span class="s">      --user_dir                       Path to the location where user files will be stored.</span>
+
+<span class="s">.. note:: Some of these options (e.g. log_file_prefix) are inherent to the Tornado framework.  You won&#39;t find them anywhere in gateone.py.</span>
+
+<span class="s">File Paths</span>
+<span class="s">----------</span>
+<span class="s">Gate One stores its files, temporary session information, and persistent user</span>
+<span class="s">data in the following locations (Note: Many of these are configurable):</span>
+
+<span class="s">================= ==================================================================================</span>
+<span class="s">File/Directory      Description</span>
+<span class="s">================= ==================================================================================</span>
+<span class="s">gateone.py        Gate One&#39;s primary executable/script. Also, the file containing this documentation</span>
+<span class="s">auth.py           Authentication classes</span>
+<span class="s">logviewer.py      A utility to view Gate One session logs</span>
+<span class="s">server.conf       Gate One&#39;s configuration file</span>
+<span class="s">sso.py            A Kerberos Single Sign-on module for Tornado (used by auth.py)</span>
+<span class="s">terminal.py       A Pure Python terminal emulator module</span>
+<span class="s">termio.py         Terminal input/output control module</span>
+<span class="s">utils.py          Various supporting functions</span>
+<span class="s">docs/             Gate One documentation</span>
+<span class="s">static/           Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc)</span>
+<span class="s">templates/        Tornado template files such as index.html</span>
+<span class="s">tests/            Gate One-specific automated unit/acceptance tests</span>
+<span class="s">plugins/          Plugins go here in the form of ./plugins/&lt;plugin name&gt;/&lt;plugin files|directories&gt;</span>
+<span class="s">users/            Persistent user data in the form of ./users/&lt;username&gt;/&lt;user-specific files&gt;</span>
+<span class="s">users/&lt;user&gt;/logs This is where session logs get stored if session_logging is set.</span>
+<span class="s">/tmp/gateone      Temporary session data in the form of /tmp/gateone/&lt;session ID&gt;/&lt;files&gt;</span>
+<span class="s">================= ==================================================================================</span>
+
+<span class="s">Running</span>
+<span class="s">-------</span>
+<span class="s">Executing Gate One is as simple as:</span>
+
+<span class="s">.. ansi-block::</span>
+
+<span class="s">    </span><span class="se">\x1b</span><span class="s">[1;31mroot</span><span class="se">\x1b</span><span class="s">[0m@host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m ./gateone.py</span>
+
+<span class="s">NOTE: By default Gate One will run on port 443 which requires root on most</span>
+<span class="s">systems.  Use --port=&lt;something greater than 1024&gt; for non-root users.</span>
+
+<span class="s">Plugins</span>
+<span class="s">-------</span>
+<span class="s">Gate One includes support for any combination of the following types of plugins:</span>
+
+<span class="s"> * Python</span>
+<span class="s"> * JavaScript</span>
+<span class="s"> * CSS</span>
+
+<span class="s">Python plugins can integrate with Gate One in three ways:</span>
+
+<span class="s"> * Adding or overriding tornado.web.RequestHandlers (with a given regex).</span>
+<span class="s"> * Adding or overriding methods (aka &quot;commands&quot;) in TerminalWebSocket.</span>
+<span class="s"> * Adding special plugin-specific escape sequence handlers (see the plugin development documentation for details on what/how these are/work).</span>
+
+<span class="s">JavaScript plugins will be added to the &lt;body&gt; tag of Gate One&#39;s base index.html</span>
+<span class="s">template like so:</span>
+
+<span class="s">.. code-block:: html</span>
+
+<span class="s">    &lt;!-- Begin JS files from plugins --&gt;</span>
+<span class="s">    {</span><span class="si">% f</span><span class="s">or jsplugin in jsplugins %}</span>
+<span class="s">    &lt;script type=&quot;text/javascript&quot; src=&quot;{{jsplugin}}&quot;&gt;&lt;/script&gt;</span>
+<span class="s">    {</span><span class="si">% e</span><span class="s">nd %}</span>
+<span class="s">    &lt;!-- End JS files from plugins --&gt;</span>
+
+<span class="s">CSS plugins are similar to JavaScript but instead of being appended to the</span>
+<span class="s">&lt;body&gt; they are added to the &lt;head&gt;:</span>
+
+<span class="s">.. code-block:: html</span>
+
+<span class="s">    &lt;!-- Begin CSS files from plugins --&gt;</span>
+<span class="s">    {</span><span class="si">% f</span><span class="s">or cssplugin in cssplugins %}</span>
+<span class="s">    &lt;link rel=&quot;stylesheet&quot; href=&quot;{{cssplugin}}&quot; type=&quot;text/css&quot; media=&quot;screen&quot; /&gt;</span>
+<span class="s">    {</span><span class="si">% e</span><span class="s">nd %}</span>
+<span class="s">    &lt;!-- End CSS files from plugins --&gt;</span>
+
+<span class="s">There are also hooks throughout Gate One&#39;s code for plugins to add or override</span>
+<span class="s">Gate One&#39;s functionality.  Documentation on how to write plugins can be found in</span>
+<span class="s">the Plugin Development docs.  From the perspective of gateone.py, it performs</span>
+<span class="s">the following tasks in relation to plugins:</span>
+
+<span class="s"> * Imports Python plugins and connects their hooks.</span>
+<span class="s"> * Creates symbolic links inside ./static/ that point to each plugin&#39;s respective /static/ directory and serves them to clients.</span>
+<span class="s"> * Serves the index.html that includes plugins&#39; respective .js and .css files.</span>
+
+<span class="s">Class Docstrings</span>
+<span class="s">================</span>
+<span class="s">&#39;&#39;&#39;</span>
+
+<span class="c"># Standard library modules</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">platform</span> <span class="kn">import</span> <span class="n">uname</span>
+
+<span class="c"># Our own modules</span>
+<span class="kn">import</span> <span class="nn">termio</span>
+<span class="kn">from</span> <span class="nn">auth</span> <span class="kn">import</span> <span class="n">NullAuthHandler</span><span class="p">,</span> <span class="n">KerberosAuthHandler</span><span class="p">,</span> <span class="n">GoogleAuthHandler</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">noop</span><span class="p">,</span> <span class="n">str2bool</span><span class="p">,</span> <span class="n">generate_session_id</span><span class="p">,</span> <span class="n">cmd_var_swap</span><span class="p">,</span> <span class="n">mkdir_p</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">gen_self_signed_ssl</span><span class="p">,</span> <span class="n">killall</span><span class="p">,</span> <span class="n">get_plugins</span><span class="p">,</span> <span class="n">load_plugins</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">create_plugin_static_links</span><span class="p">,</span> <span class="n">merge_handlers</span><span class="p">,</span> <span class="n">none_fix</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">convert_to_timedelta</span><span class="p">,</span> <span class="n">kill_dtached_proc</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">process_opt_esc_sequence</span><span class="p">,</span> <span class="n">create_data_uri</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">FACILITIES</span><span class="p">,</span> <span class="n">string_to_syslog_facility</span>
+
+<span class="c"># Tornado modules (yeah, we use all this stuff)</span>
+<span class="kn">import</span> <span class="nn">tornado.httpserver</span>
+<span class="kn">import</span> <span class="nn">tornado.ioloop</span>
+<span class="kn">import</span> <span class="nn">tornado.options</span>
+<span class="kn">import</span> <span class="nn">tornado.web</span>
+<span class="kn">import</span> <span class="nn">tornado.auth</span>
+<span class="kn">import</span> <span class="nn">tornado.template</span>
+<span class="kn">from</span> <span class="nn">tornado.websocket</span> <span class="kn">import</span> <span class="n">WebSocketHandler</span>
+<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_encode</span><span class="p">,</span> <span class="n">json_decode</span>
+<span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">define</span><span class="p">,</span> <span class="n">options</span>
+
+<span class="c"># Globals</span>
+<span class="n">SESSIONS</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># We store the crux of most session info here</span>
+<span class="n">CMD</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Will be overwritten by options.command</span>
+<span class="n">TIMEOUT</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="c"># Gets overridden by options.session_timeout</span>
+<span class="n">GATEONE_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+<span class="n">PLUGINS</span> <span class="o">=</span> <span class="n">get_plugins</span><span class="p">(</span><span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&#39;/plugins&#39;</span><span class="p">)</span>
+<span class="n">PLUGIN_WS_CMDS</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># Gives plugins the ability to extend/enhance TerminalWebSocket</span>
+<span class="n">PLUGIN_HOOKS</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># Gives plugins the ability to hook into various things.</span>
+<span class="c"># Gate One registers a handler for for terminal.py&#39;s CALLBACK_OPT special escape</span>
+<span class="c"># sequence callback.  Whenever this escape sequence is encountered, Gate One</span>
+<span class="c"># will parse the sequence&#39;s contained characters looking for the following</span>
+<span class="c"># format:</span>
+<span class="c">#   &lt;plugin name&gt;|&lt;whatever&gt;</span>
+<span class="c"># The &lt;whatever&gt; part will be passed to any plugin matching &lt;plugin name&gt; if the</span>
+<span class="c"># plugin has &#39;Escape&#39;: &lt;function&gt; registered in its hooks.</span>
+<span class="n">PLUGIN_ESC_HANDLERS</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c"># Classes</span>
+<span class="k">class</span> <span class="nc">BaseHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.BaseHandler">[docs]</a><span class="sd">    A base handler that all Gate One RequestHandlers will inherit methods from.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Right now it&#39;s just the one...</span>
+    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tornado standard method--implemented our way.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseHandler.get_current_user"><a class="viewcode-back" href="../Developer/gateone.html#gateone.BaseHandler.get_current_user">[docs]</a>        <span class="n">user_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user_json</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_decode</span><span class="p">(</span><span class="n">user_json</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">MainHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span></div></div>
+<div class="viewcode-block" id="MainHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.MainHandler">[docs]</a><span class="sd">    Renders index.html which loads Gate One.</span>
+
+<span class="sd">    Will include the minified version of gateone.js if available as</span>
+<span class="sd">    gateone.min.js.</span>
+
+<span class="sd">    Will encode GATEONE_DIR/static/bell.ogg as a data:URI and put it as the</span>
+<span class="sd">    &lt;source&gt; of the &lt;audio&gt; tag inside the index.html template.  Gate One</span>
+<span class="sd">    administrators can replace bell.ogg with whatever they like but the file</span>
+<span class="sd">    size should be less than 32k when encoded to Base64.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO: Add the ability for users to define their own individual bells.</span>
+    <span class="nd">@tornado.web.authenticated</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">hostname</span> <span class="o">=</span> <span class="n">uname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">gateone_js</span> <span class="o">=</span> <span class="s">&quot;/static/gateone.js&quot;</span>
+        <span class="n">minified_js_abspath</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/static/gateone.min.js&quot;</span> <span class="o">%</span> <span class="n">GATEONE_DIR</span>
+        <span class="n">bell</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/static/bell.ogg&quot;</span> <span class="o">%</span> <span class="n">GATEONE_DIR</span>
+        <span class="n">bell_data_uri</span> <span class="o">=</span> <span class="n">create_data_uri</span><span class="p">(</span><span class="n">bell</span><span class="p">)</span>
+        <span class="c"># Use the minified version if it exists</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">minified_js_abspath</span><span class="p">):</span>
+            <span class="n">gateone_js</span> <span class="o">=</span> <span class="s">&quot;/static/gateone.min.js&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+            <span class="s">&quot;templates/index.html&quot;</span><span class="p">,</span>
+            <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span>
+            <span class="n">gateone_js</span><span class="o">=</span><span class="n">gateone_js</span><span class="p">,</span>
+            <span class="n">jsplugins</span><span class="o">=</span><span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">],</span>
+            <span class="n">cssplugins</span><span class="o">=</span><span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">],</span>
+            <span class="n">bell_data_uri</span><span class="o">=</span><span class="n">bell_data_uri</span>
+        <span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">StyleHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span></div>
+<div class="viewcode-block" id="StyleHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.StyleHandler">[docs]</a><span class="sd">    Serves up our CSS templates (e.g. the &#39;black&#39; or &#39;white&#39; schemes)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Hey, if unauthenticated clients want this they can have it!</span>
+    <span class="c">#@tornado.web.authenticated</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;container&quot;</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;prefix&quot;</span><span class="p">)</span>
+        <span class="n">scheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;scheme&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s">&#39;text/css&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+            <span class="s">&quot;templates/css_</span><span class="si">%s</span><span class="s">.css&quot;</span> <span class="o">%</span> <span class="n">scheme</span><span class="p">,</span> <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">TerminalWebSocket</span><span class="p">(</span><span class="n">WebSocketHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span></div>
+        <span class="n">WebSocketHandler</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commands</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;ping&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pong</span><span class="p">,</span>
+            <span class="s">&#39;authenticate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">authenticate</span><span class="p">,</span>
+            <span class="s">&#39;new_terminal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_terminal</span><span class="p">,</span>
+            <span class="s">&#39;set_terminal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_terminal</span><span class="p">,</span>
+            <span class="s">&#39;kill_terminal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kill_terminal</span><span class="p">,</span>
+            <span class="s">&#39;c&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">char_handler</span><span class="p">,</span> <span class="c"># Just &#39;c&#39; to keep the bandwidth down</span>
+            <span class="s">&#39;refresh&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">refresh_screen</span><span class="p">,</span>
+            <span class="c">#&#39;refresh_test&#39;: self.refresh_screen_testing,</span>
+            <span class="s">&#39;resize&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">resize</span><span class="p">,</span>
+            <span class="s">&#39;debug_terminal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_terminal</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">terms</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># So we can keep track and avoid sending unnecessary messages:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">titles</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Identical to the function of the same name in MainHandler.&quot;&quot;&quot;</span>
+        <span class="n">user_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user_json</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_decode</span><span class="p">(</span><span class="n">user_json</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called when a new WebSocket is opened.&quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s">&quot;WebSocket opened (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;go_upn&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called when we receive a message from the client.&quot;&quot;&quot;</span>
+        <span class="c"># This is super useful when debugging:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;message: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+        <span class="n">message_obj</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">message_obj</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="c"># JSON FTW!</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">message_obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="s">&quot;&#39;Error: Message bust be a JSON dict.&#39;&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="c"># We didn&#39;t get JSON</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="s">&quot;&#39;Error: We only accept JSON here.&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">message_obj</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">message_obj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span> <span class="c"># Plugins first so they can override behavior if they wish</span>
+                    <span class="n">PLUGIN_WS_CMDS</span><span class="p">[</span><span class="n">key</span><span class="p">](</span><span class="n">value</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span> <span class="c"># tws==TerminalWebSocket</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">[</span><span class="n">key</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">pass</span> <span class="c"># Ignore commands we don&#39;t understand</span>
+
+    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when the client terminates the connection.</span>
+
+<span class="sd">        NOTE: Normally self.refresh_screen() catches the disconnect first and</span>
+<span class="sd">        this won&#39;t be called.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s">&quot;WebSocket closed (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;go_upn&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">pong</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Responds to a client &#39;ping&#39; request...  Just returns the given</span>
+<span class="sd">        timestamp back to the client so it can measure round-trip time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+
+<span class="c"># TODO: Change this to encrypt the session ID so that it is stored in encrypted form on the client end.  Just like we do with cookies but for use with localStorage.  The encrypted value should actually be a JSON dict with a uniqe, random ID included to ensure that the encrypted data changes every time it is created (even though the session ID might not).</span>
+    <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Authenticates the client using the given session (which should be</span>
+<span class="sd">        settings[&#39;session&#39;]) and returns a list of all running terminals (if</span>
+<span class="sd">        any).  If no session is given (null) a new one will be created.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;authenticate(): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
+        <span class="c"># Make sure the client is authenticated if authentication is enabled</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;go_upn&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">user</span> <span class="o">==</span> <span class="s">&#39;%anonymous&#39;</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Unauthenticated WebSocket attempt.&quot;</span><span class="p">)</span>
+                    <span class="c"># In case this is a legitimate client that simply lost its</span>
+                    <span class="c"># cookie, tell it to re-auth by calling the appropriate</span>
+                    <span class="c"># action on the other side.</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Close the WebSocket</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="c"># Force them to authenticate</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Close the WebSocket</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Double-check there isn&#39;t a user set in the cookie (i.e. we have</span>
+            <span class="c"># recently changed Gate One&#39;s settings).  If there is, force it</span>
+            <span class="c"># back to %anonymous.</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;go_upn&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">user</span> <span class="o">!=</span> <span class="s">&#39;%anonymous&#39;</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Close the WebSocket</span>
+        <span class="k">if</span> <span class="s">&#39;session&#39;</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c"># Try to use the cookie session first</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;go_session&#39;</span><span class="p">]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c"># This generates a random 45-character string:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">generate_session_id</span><span class="p">()</span>
+        <span class="c"># This check is to make sure there&#39;s no existing session so we don&#39;t</span>
+        <span class="c"># accidentally clobber it.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">:</span>
+            <span class="c"># Old session is no good, start a new one:</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">terminals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>  <span class="c"># This skips the TidyThread...</span>
+                <span class="n">terminals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">term</span><span class="p">)</span> <span class="c"># Only terminals are integers in the dict</span>
+        <span class="c"># Check for any dtach&#39;d terminals we might have missed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;dtach&#39;</span><span class="p">]:</span>
+            <span class="n">session_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;session_dir&#39;</span><span class="p">]</span>
+            <span class="n">session_dir</span> <span class="o">=</span> <span class="n">session_dir</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_dir</span><span class="p">):</span>
+                <span class="n">mkdir_p</span><span class="p">(</span><span class="n">session_dir</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">session_dir</span><span class="p">,</span> <span class="mo">0700</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">session_dir</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;dtach:&#39;</span><span class="p">):</span>
+                    <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">term</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">terminals</span><span class="p">:</span>
+                        <span class="n">terminals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
+        <span class="n">terminals</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c"># Put them in order so folks don&#39;t get confused</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminals&#39;</span><span class="p">:</span> <span class="n">terminals</span><span class="p">}</span>
+        <span class="c"># TODO: Add a hook here for plugins to send their own messages when a</span>
+        <span class="c">#       given terminal is reconnected.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">new_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Starts up a new terminal associated with the user&#39;s session using</span>
+<span class="sd">        *settings* as the parameters.  If a terminal already exists with the</span>
+<span class="sd">        same number as *settings[term]* self.set_terminal() will be called</span>
+<span class="sd">        instead of starting a new terminal (so clients can resume their session</span>
+<span class="sd">        without having to worry about figuring out if a new terminal already</span>
+<span class="sd">        exists or not).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> new_terminal(): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;go_upn&#39;</span><span class="p">],</span> <span class="n">settings</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span> <span class="o">=</span> <span class="n">term</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;term&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="n">rows</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;cols&#39;</span><span class="p">]</span>
+        <span class="n">user_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">term</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">]:</span>
+            <span class="c"># Setup the requisite dict</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="s">&#39;multiplex&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">]:</span>
+            <span class="c"># Start up a new terminal</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;created&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="c"># NOTE: Not doing anything with &#39;created&#39;...  yet!</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;go_upn&#39;</span><span class="p">]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c"># No auth, use %anonymous (% is there to prevent conflicts)</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="s">r&#39;%anonymous&#39;</span> <span class="c"># Don&#39;t get on this guy&#39;s bad side</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd_var_swap</span><span class="p">(</span><span class="n">CMD</span><span class="p">,</span>   <span class="c"># Swap out variables like %USER% in CMD</span>
+                <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="c"># with their real-world values.</span>
+                <span class="n">user_dir</span><span class="o">=</span><span class="n">user_dir</span><span class="p">,</span>
+                <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+                <span class="n">time</span><span class="o">=</span><span class="n">now</span>
+            <span class="p">)</span>
+            <span class="n">resumed_dtach</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">session_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;session_dir&#39;</span><span class="p">]</span>
+            <span class="n">session_dir</span> <span class="o">=</span> <span class="n">session_dir</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
+            <span class="c"># Create the session dir if not already present</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_dir</span><span class="p">):</span>
+                <span class="n">mkdir_p</span><span class="p">(</span><span class="n">session_dir</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">session_dir</span><span class="p">,</span> <span class="mo">0700</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;dtach&#39;</span><span class="p">]:</span> <span class="c"># Wrap in dtach (love this tool!)</span>
+                <span class="n">dtach_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/dtach:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">session_dir</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dtach_path</span><span class="p">):</span>
+                    <span class="c"># Using &#39;none&#39; for the refresh because the EVIL termio</span>
+                    <span class="c"># likes to manage things like that on his own...</span>
+                    <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;dtach -a </span><span class="si">%s</span><span class="s"> -E -z -r none&quot;</span> <span class="o">%</span> <span class="n">dtach_path</span>
+                    <span class="n">resumed_dtach</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">else</span><span class="p">:</span> <span class="c"># No existing dtach session...  Make a new one</span>
+                    <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;dtach -c </span><span class="si">%s</span><span class="s"> -E -z -r none </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dtach_path</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+            <span class="n">log_path</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;session_logging&#39;</span><span class="p">]:</span>
+                <span class="n">log_dir</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">/logs&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+                <span class="c"># Create the log dir if not already present</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">log_dir</span><span class="p">):</span>
+                    <span class="n">mkdir_p</span><span class="p">(</span><span class="n">log_dir</span><span class="p">)</span>
+                <span class="n">log_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">log_dir</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y%m</span><span class="si">%d</span><span class="s">%H%M%S</span><span class="si">%f</span><span class="s">.golog&#39;</span><span class="p">))</span>
+            <span class="n">facility</span> <span class="o">=</span> <span class="n">string_to_syslog_facility</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;syslog_facility&#39;</span><span class="p">])</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">termio</span><span class="o">.</span><span class="n">Multiplex</span><span class="p">(</span>
+                <span class="n">cmd</span><span class="p">,</span>
+                <span class="n">tmpdir</span><span class="o">=</span><span class="n">session_dir</span><span class="p">,</span>
+                <span class="n">log_path</span><span class="o">=</span><span class="n">log_path</span><span class="p">,</span>
+                <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+                <span class="n">term_num</span><span class="o">=</span><span class="n">term</span><span class="p">,</span>
+                <span class="n">syslog</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;syslog_session_logging&#39;</span><span class="p">],</span>
+                <span class="n">syslog_facility</span><span class="o">=</span><span class="n">facility</span>
+            <span class="p">)</span>
+            <span class="c"># Set some environment variables so the programs we execute can use</span>
+            <span class="c"># them (very handy).  Allows for &quot;tight integration&quot; and &quot;synergy&quot;!</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;GO_TERM&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">term</span><span class="p">),</span>
+                <span class="s">&#39;GO_SESSION&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+                <span class="s">&#39;GO_SESSION_DIR&#39;</span><span class="p">:</span> <span class="n">session_dir</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="n">fd</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+            <span class="n">refresh</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refresh_screen</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 1 is CALLBACK_UPDATE</span>
+                <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">refresh</span>
+            <span class="n">restart</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">new_terminal</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 2 is CALLBACK_EXIT</span>
+                <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">restart</span>
+            <span class="n">termio_write</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span> <span class="c"># Write responses directly to the prog</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">proc_write</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 5 is CALLBACK_DSR</span>
+                <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">termio_write</span>
+            <span class="n">set_title</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 6 is CALLBACK_TITLE</span>
+                <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">set_title</span>
+            <span class="n">set_title</span><span class="p">()</span> <span class="c"># Set initial title</span>
+            <span class="n">bell</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bell</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 7 is CALLBACK_BELL</span>
+                <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">=</span> <span class="n">bell</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 8 is CALLBACK_OPT</span>
+                    <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">esc_opt_handler</span>
+            <span class="n">mode_handler</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode_handler</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 9 is CALLBACK_MODE</span>
+                    <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode_handler</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;dtach&#39;</span><span class="p">]:</span> <span class="c"># dtach sessions need a little extra love</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">redraw</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Terminal already exists</span>
+            <span class="k">if</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">alive</span><span class="p">:</span> <span class="c"># It&#39;s ALIVE!</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;term_exists&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+                <span class="c"># This resets the diff</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">prev_output</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">None</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">rows</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+                <span class="c"># TODO: Right here we need to change how the callbacks are handled so we can have multiple screen update callbacks for the same session (so a user could have two browsers open to the same session).  Not exactly a common use case but you never know!</span>
+                <span class="n">restart</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">new_terminal</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 2 is CALLBACK_EXIT</span>
+                    <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">restart</span>
+                <span class="n">refresh</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refresh_screen</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 1 is CALLBACK_UPDATE</span>
+                    <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">refresh</span>
+                <span class="n">set_title</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+                <span class="n">termio_write</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span> <span class="c"># Write responses directly to the prog</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">proc_write</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 5 is CALLBACK_DSR</span>
+                <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">termio_write</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 6 is CALLBACK_TITLE</span>
+                    <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">set_title</span>
+                <span class="n">set_title</span><span class="p">()</span> <span class="c"># Set the title</span>
+                <span class="n">bell</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bell</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 7 is CALLBACK_BELL</span>
+                    <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">=</span> <span class="n">bell</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 8 is CALLBACK_OPT</span>
+                    <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">esc_opt_handler</span>
+                <span class="n">mode_handler</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode_handler</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 9 is CALLBACK_MODE</span>
+                    <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode_handler</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_screen</span><span class="p">(</span><span class="n">term</span><span class="p">)</span> <span class="c"># Send a fresh screen to the client</span>
+            <span class="c"># NOTE: refresh_screen will also take care of cleaning things up if</span>
+            <span class="c">#       SESSIONS[self.session][term][&#39;multiplex&#39;].alive is False</span>
+        <span class="k">if</span> <span class="s">&#39;tidy_thread&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">]:</span>
+            <span class="c"># Start the keepalive thread so the session will time out if the</span>
+            <span class="c"># user disconnects for like a week (by default anyway =)</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;tidy_thread&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">TidyThread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;tidy_thread&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">kill_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Kills *term* and any associated processes&quot;&quot;&quot;</span>
+        <span class="c">#print(&quot;killing terminal: %s&quot; % term)</span>
+        <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">die</span><span class="p">()</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">proc_kill</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;dtach&#39;</span><span class="p">]:</span>
+                <span class="n">kill_dtached_proc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+            <span class="k">del</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">pass</span> <span class="c"># The EVIL termio has killed my child!  Wait, that&#39;s good...</span>
+                 <span class="c"># Because now I don&#39;t have to worry about it!</span>
+
+    <span class="k">def</span> <span class="nf">set_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets self.current_term = *term*&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span> <span class="o">=</span> <span class="n">term</span>
+
+    <span class="k">def</span> <span class="nf">set_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a message to the client telling it to set the window title of</span>
+<span class="sd">        *term* to...</span>
+<span class="sd">        SESSIONS[self.session][term][&#39;multiplex&#39;].proc[fd][&#39;term&#39;].title.</span>
+
+<span class="sd">        Example output:</span>
+
+<span class="sd">            {&#39;set_title&#39;: {&#39;term&#39;: 1, &#39;title&#39;: &quot;user@host&quot;}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#print(&quot;Got set_title on term: %s&quot; % term)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">title</span>
+        <span class="c"># Only send a title update if it actually changed</span>
+        <span class="k">if</span> <span class="n">term</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="p">:</span> <span class="c"># There&#39;s a first time for everything</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="p">[</span><span class="n">term</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="p">[</span><span class="n">term</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="p">[</span><span class="n">term</span><span class="p">]</span> <span class="o">=</span> <span class="n">title</span>
+            <span class="n">title_message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;set_title&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="n">title</span><span class="p">}}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">title_message</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">bell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a message to the client indicating that a bell was encountered in</span>
+<span class="sd">        the given terminal (*term*).  Example output:</span>
+
+<span class="sd">        {&#39;bell&#39;: {&#39;term&#39;: 1}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bell_message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">}}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">bell_message</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">mode_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">setting</span><span class="p">,</span> <span class="n">boolean</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handles mode settings that require an action on the client.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">setting</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;1&#39;</span><span class="p">]:</span> <span class="c"># Only support this mode right now</span>
+            <span class="k">if</span> <span class="n">boolean</span><span class="p">:</span>
+                <span class="c"># Tell client to enable application cursor mode</span>
+                <span class="n">mode_message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;set_mode&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="n">setting</span><span class="p">,</span>
+                    <span class="s">&#39;boolean&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                    <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span>
+                <span class="p">}}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">mode_message</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Tell client to disable application cursor mode</span>
+                <span class="n">mode_message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;set_mode&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="n">setting</span><span class="p">,</span>
+                    <span class="s">&#39;boolean&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                    <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span>
+                <span class="p">}}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">mode_message</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">refresh_screen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the whole terminal screen.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;tidy_thread&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keepalive</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+            <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dumplines</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="c"># Session died (i.e. command ended).</span>
+            <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">screen</span><span class="p">:</span>
+            <span class="n">multiplexer</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span>
+            <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;termupdate&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
+                    <span class="s">&#39;scrollback&#39;</span><span class="p">:</span> <span class="n">scrollback</span><span class="p">,</span>
+                    <span class="s">&#39;screen&#39;</span> <span class="p">:</span> <span class="n">screen</span><span class="p">,</span>
+                    <span class="s">&#39;ratelimiter&#39;</span><span class="p">:</span> <span class="n">multiplexer</span><span class="o">.</span><span class="n">ratelimiter_engaged</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">output_dict</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span> <span class="c"># Socket was just closed, no biggie</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s">&quot;WebSocket closed (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;go_upn&#39;</span><span class="p">])</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span> <span class="c"># 1 is CALLBACK_UPDATE</span>
+                    <span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">noop</span> <span class="c"># Stop trying to write</span>
+
+    <span class="k">def</span> <span class="nf">resize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resize_obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resize the terminal window to the rows/cols specified in *resize_obj*</span>
+
+<span class="sd">        Example *resize_obj*:</span>
+<span class="sd">            {&#39;rows&#39;: 24, &#39;cols&#39;: 80}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="n">resize_obj</span><span class="p">[</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">resize_obj</span><span class="p">[</span><span class="s">&#39;cols&#39;</span><span class="p">]</span>
+        <span class="n">term</span> <span class="o">=</span> <span class="n">resize_obj</span><span class="p">[</span><span class="s">&#39;term&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span> <span class="c"># 0 or negative numbers will crash</span>
+            <span class="c"># Fall back to a standard default:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="mi">24</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="mi">80</span>
+        <span class="c"># If the user already has a running session, set the new terminal size:</span>
+        <span class="k">try</span><span class="p">:</span> <span class="c"># TODO: Make this only resize a given terminal.  Let the client handle repeating the resize command for each.</span>
+            <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="c"># Skip the TidyThread</span>
+                    <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+                    <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="c"># Session doesn&#39;t exist yet, no biggie</span>
+            <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">char_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Writes *chars* (string) to the currently-selected terminal&quot;&quot;&quot;</span>
+        <span class="n">term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
+        <span class="k">if</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">alive</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">chars</span><span class="p">:</span>
+                    <span class="n">SESSIONS</span><span class="p">[</span> <span class="c"># Force an update</span>
+                        <span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ratelimit</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                    <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">proc_write</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">esc_opt_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes whatever function is registered matching the tuple returned by</span>
+<span class="sd">        process_opt_esc_sequence().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plugin_name</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="n">process_opt_esc_sequence</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">plugin_name</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">PLUGIN_ESC_HANDLERS</span><span class="p">[</span><span class="n">plugin_name</span><span class="p">](</span><span class="n">text</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;Got exception trying to execute plugin&#39;s optional ESC &quot;</span>
+                      <span class="s">&quot;sequence handler...&quot;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">debug_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prints the terminal&#39;s screen and renditions to stdout so they can be</span>
+<span class="sd">        examined more closely.</span>
+
+<span class="sd">        NOTE: Can only be called from a JavaScript console like so:</span>
+<span class="sd">                GateOne.ws.send(JSON.stringify({&#39;debug_terminal&#39;: *term*}));</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">screen</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">screen</span>
+        <span class="n">renditions</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">renditions</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">screen</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="p">)))</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">renditions</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+<span class="k">class</span> <span class="nc">RecordingHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="RecordingHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.RecordingHandler">[docs]</a><span class="sd">    Handles uploads of session recordings and returns them to the client in a</span>
+<span class="sd">    self-contained HTML file that will auto-start playback.</span>
+
+<span class="sd">    NOTE: The real crux of the code that handles this is in the template.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">recording</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;recording&quot;</span><span class="p">)</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;container&quot;</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;prefix&quot;</span><span class="p">)</span>
+        <span class="n">scheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;scheme&quot;</span><span class="p">)</span>
+        <span class="n">css_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;templates/css_</span><span class="si">%s</span><span class="s">.css&#39;</span> <span class="o">%</span> <span class="n">scheme</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">css</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="n">css_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+            <span class="s">&quot;templates/self_contained_recording.html&quot;</span><span class="p">,</span>
+            <span class="n">recording</span><span class="o">=</span><span class="n">recording</span><span class="p">,</span>
+            <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+            <span class="n">css</span><span class="o">=</span><span class="n">css</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">OpenLogHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span></div>
+<div class="viewcode-block" id="OpenLogHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.OpenLogHandler">[docs]</a><span class="sd">    Handles uploads of user logs and returns them to the client as a basic HTML</span>
+<span class="sd">    page.  Essentially, this works around the limitation of an HTML page being</span>
+<span class="sd">    unable to save itself =).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;log&quot;</span><span class="p">)</span>
+        <span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;container&quot;</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;prefix&quot;</span><span class="p">)</span>
+        <span class="n">scheme</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;scheme&quot;</span><span class="p">)</span>
+        <span class="n">css_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;templates/css_</span><span class="si">%s</span><span class="s">.css&#39;</span> <span class="o">%</span> <span class="n">scheme</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">css</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="n">css_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
+            <span class="s">&quot;templates/user_log.html&quot;</span><span class="p">,</span>
+            <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">,</span>
+            <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+            <span class="n">css</span><span class="o">=</span><span class="n">css</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">TidyThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span></div>
+<div class="viewcode-block" id="TidyThread"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TidyThread">[docs]</a><span class="sd">    Kills a user&#39;s termio session if the client hasn&#39;t updated the keepalive</span>
+<span class="sd">    within *TIMEOUT* (global).  Also, tidies up sessions, logs, and whatnot based</span>
+<span class="sd">    on Gate One&#39;s settings (when the time is right).</span>
+
+<span class="sd">    NOTE: This is necessary to prevent shells from running eternally in the</span>
+<span class="sd">    background.</span>
+
+<span class="sd">    *session* - 45-character string containing the user&#39;s session ID</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO: Get this cleaning up logs according to the user&#39;s settings</span>
+    <span class="c"># TODO: Add the aforementioned log cleanup settings :)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s">&quot;TidyThread-</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">session</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_keepalive</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">keepalive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datetime_obj</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TidyThread.keepalive"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TidyThread.keepalive">[docs]</a><span class="sd">        Resets the keepalive timer.  Typically called when the user performs a new action.</span>
+
+<span class="sd">        *datetime_obj* - A datetime object that will be used to measure *TIMEOUT* against.  Will end up defaulting to datetime.now() (if None) which is what you&#39;d want 99% of the time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">datetime_obj</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_keepalive</span> <span class="o">=</span> <span class="n">datetime_obj</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_keepalive</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">quit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span> <span class="o">=</span> <span class="bp">True</span></div>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
+                <span class="k">if</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_keepalive</span> <span class="o">+</span> <span class="n">TIMEOUT</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s">&quot;{session} timeout.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">session</span><span class="o">=</span><span class="n">session</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="c"># This loops through all the open terminals checking if each is alive</span>
+                <span class="n">all_dead</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">alive</span><span class="p">:</span>
+                            <span class="n">all_dead</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span> <span class="c"># Ignore TidyThread object</span>
+                        <span class="k">pass</span>
+                <span class="k">if</span> <span class="n">all_dead</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="c"># Keep this low or it will take that long for the process to end</span>
+                <span class="c"># when it receives a SIGTERM or Ctrl-c</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s">&quot;Exception encountered: {exception}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s">&quot;{session} received quit()...  &quot;</span>
+            <span class="s">&quot;Killing termio session.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c"># Clean up:</span>
+        <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">die</span><span class="p">()</span>
+                <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">proc_kill</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span> <span class="c"># Ignore the TidyThread (i.e. ourselves)</span>
+                <span class="k">pass</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="c"># Already killed... Great!</span>
+                <span class="k">pass</span>
+        <span class="k">del</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">]</span>
+
+<span class="k">class</span> <span class="nc">Application</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">Application</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span></div>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setup our Tornado application...  Everything in *settings* will wind up</span>
+<span class="sd">        in the Tornado settings dict so as to be accessible under self.settings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">global</span> <span class="n">PLUGIN_WS_CMDS</span>
+        <span class="k">global</span> <span class="n">PLUGIN_HOOKS</span>
+        <span class="k">global</span> <span class="n">PLUGIN_ESC_HANDLERS</span>
+        <span class="c"># Base settings for our Tornado app</span>
+        <span class="n">tornado_settings</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">cookie_secret</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cookie_secret&#39;</span><span class="p">],</span>
+            <span class="n">static_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">),</span>
+            <span class="n">gzip</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+            <span class="n">login_url</span><span class="o">=</span><span class="s">&quot;/auth&quot;</span>
+        <span class="p">)</span>
+        <span class="c"># Make sure all the provided settings wind up in self.settings</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">tornado_settings</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="c"># Setup the configured authentication type</span>
+        <span class="n">AuthHandler</span> <span class="o">=</span> <span class="n">NullAuthHandler</span> <span class="c"># Default</span>
+        <span class="k">if</span> <span class="s">&#39;auth&#39;</span> <span class="ow">in</span> <span class="n">settings</span> <span class="ow">and</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;kerberos&#39;</span> <span class="ow">and</span> <span class="n">KerberosAuthHandler</span><span class="p">:</span>
+                <span class="n">AuthHandler</span> <span class="o">=</span> <span class="n">KerberosAuthHandler</span>
+                <span class="n">tornado_settings</span><span class="p">[</span><span class="s">&#39;sso_realm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;sso_realm&quot;</span><span class="p">]</span>
+                <span class="n">tornado_settings</span><span class="p">[</span><span class="s">&#39;sso_service&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;sso_service&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;google&#39;</span><span class="p">:</span>
+                <span class="n">AuthHandler</span> <span class="o">=</span> <span class="n">GoogleAuthHandler</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Using </span><span class="si">%s</span><span class="s"> authentication&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;No authentication method configure. All users will be&quot;</span>
+                         <span class="s">&quot; %anonymous&quot;</span><span class="p">)</span>
+        <span class="c"># Setup our URL handlers</span>
+        <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">r&quot;/&quot;</span><span class="p">,</span> <span class="n">MainHandler</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">r&quot;/ws&quot;</span><span class="p">,</span> <span class="n">TerminalWebSocket</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">r&quot;/auth&quot;</span><span class="p">,</span> <span class="n">AuthHandler</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">r&quot;/style&quot;</span><span class="p">,</span> <span class="n">StyleHandler</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">r&quot;/recording&quot;</span><span class="p">,</span> <span class="n">RecordingHandler</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">r&quot;/openlog&quot;</span><span class="p">,</span> <span class="n">OpenLogHandler</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">r&quot;/docs/(.*)&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">StaticFileHandler</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s">&quot;path&quot;</span><span class="p">:</span> <span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&#39;/docs/build/html/&#39;</span><span class="p">,</span>
+                <span class="s">&quot;default_filename&quot;</span><span class="p">:</span> <span class="s">&quot;index.html&quot;</span>
+            <span class="p">})</span>
+        <span class="p">]</span>
+        <span class="c"># Load plugins and grab their hooks</span>
+        <span class="n">imported</span> <span class="o">=</span> <span class="n">load_plugins</span><span class="p">(</span><span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">imported</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">PLUGIN_HOOKS</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">plugin</span><span class="o">.</span><span class="n">__name__</span><span class="p">:</span> <span class="n">plugin</span><span class="o">.</span><span class="n">hooks</span><span class="p">})</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span> <span class="c"># No hooks--probably just a supporting .py file.</span>
+        <span class="c"># Connect the hooks</span>
+        <span class="k">for</span> <span class="n">plugin_name</span><span class="p">,</span> <span class="n">hooks</span> <span class="ow">in</span> <span class="n">PLUGIN_HOOKS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s">&#39;Web&#39;</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">:</span>
+                <span class="c"># Apply the plugin&#39;s Web handlers</span>
+                <span class="n">handlers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hooks</span><span class="p">[</span><span class="s">&#39;Web&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="s">&#39;WebSocket&#39;</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">:</span>
+                <span class="c"># Apply the plugin&#39;s WebSocket commands</span>
+                <span class="n">PLUGIN_WS_CMDS</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hooks</span><span class="p">[</span><span class="s">&#39;WebSocket&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="s">&#39;Escape&#39;</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">:</span>
+                <span class="c"># Apply the plugin&#39;s Escape handler</span>
+                <span class="n">PLUGIN_ESC_HANDLERS</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">plugin_name</span><span class="p">:</span> <span class="n">hooks</span><span class="p">[</span><span class="s">&#39;Escape&#39;</span><span class="p">]})</span>
+        <span class="c"># This removes duplicate handlers for the same regex, allowing plugins</span>
+        <span class="c"># to override defaults:</span>
+        <span class="n">handlers</span> <span class="o">=</span> <span class="n">merge_handlers</span><span class="p">(</span><span class="n">handlers</span><span class="p">)</span>
+        <span class="c"># Include JS-only and CSS-only plugins (for logging purposes)</span>
+        <span class="n">js_plugins</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]]</span>
+        <span class="n">css_plugins</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]]</span>
+        <span class="n">plugin_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">js_plugins</span> <span class="o">+</span> <span class="n">css_plugins</span><span class="p">))</span>
+        <span class="n">plugin_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c"># So there&#39;s consistent ordering</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Loaded plugins: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_list</span><span class="p">))</span>
+        <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handlers</span><span class="p">,</span> <span class="o">**</span><span class="n">tornado_settings</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c"># Simplify the auth option help message</span>
+    <span class="n">auths</span> <span class="o">=</span> <span class="s">&quot;none, google&quot;</span>
+    <span class="k">if</span> <span class="n">KerberosAuthHandler</span><span class="p">:</span>
+        <span class="n">auths</span> <span class="o">+=</span> <span class="s">&quot;, kerberos&quot;</span>
+    <span class="c"># Simplify the syslog_facility option help message</span>
+    <span class="n">facilities</span> <span class="o">=</span> <span class="n">FACILITIES</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">facilities</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;debug&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Enable debugging features such as auto-restarting when files are &quot;</span>
+             <span class="s">&quot;modified.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s">&quot;cookie_secret&quot;</span><span class="p">,</span> <span class="c"># 45 chars is, &quot;Good enough for me&quot; (cookie joke =)</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Use the given 45-character string for cookie encryption.&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s">&quot;command&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&quot;plugins/ssh/scripts/ssh_connect.py&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Run the given command when a user connects (e.g. &#39;nethack&#39;).&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s">&quot;address&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s">&quot;0.0.0.0&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Run on the given address.&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span><span class="s">&quot;port&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">443</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&quot;Run on the given port.&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="c"># Please only use this if Gate One is running behind something with SSL:</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;disable_ssl&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;If enabled, Gate One will run without SSL (generally not a good &quot;</span>
+             <span class="s">&quot;idea).&quot;</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;certificate&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s">&quot;certificate.pem&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Path to the SSL certificate.  Will be auto-generated if none is&quot;</span>
+             <span class="s">&quot; provided.&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;keyfile&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s">&quot;keyfile.pem&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Path to the SSL keyfile.  Will be auto-generated if none is&quot;</span>
+             <span class="s">&quot; provided.&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;user_dir&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&quot;/users&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Path to the location where user files will be stored.&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;session_dir&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s">&quot;/tmp/gateone&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Path to the location where session information will be stored.&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;session_logging&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;If enabled, logs of user sessions will be saved in &quot;</span>
+             <span class="s">&quot;&lt;user_dir&gt;/logs.  Default: Enabled&quot;</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span> <span class="c"># This is an easy way to support cetralized logging</span>
+        <span class="s">&quot;syslog_session_logging&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;If enabled, logs of user sessions will be written to syslog.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;syslog_facility&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s">&quot;daemon&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Syslog facility to use when logging to syslog (if &quot;</span>
+             <span class="s">&quot;syslog_session_logging is enabled).  Must be one of: </span><span class="si">%s</span><span class="s">.&quot;</span>
+             <span class="s">&quot;  Default: daemon&quot;</span> <span class="o">%</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">facilities</span><span class="p">),</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;session_timeout&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s">&quot;5d&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Amount of time that a session should be kept alive after the &quot;</span>
+        <span class="s">&quot;client has logged out.  Accepts &lt;num&gt;X where X could be one of s, m, h&quot;</span>
+        <span class="s">&quot;, or d for seconds, minutes, hours, and days.  Default is &#39;5d&#39; (5 days&quot;</span>
+        <span class="s">&quot;).&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;auth&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Authentication method to use.  Valid options are: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">auths</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;sso_realm&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Kerberos REALM (aka DOMAIN) to use when authenticating clients.&quot;</span>
+             <span class="s">&quot; Only relevant if Kerberos authentication is enabled.&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;sso_service&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s">&#39;HTTP&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Kerberos service (aka application) to use. Defaults to HTTP. &quot;</span>
+             <span class="s">&quot;Only relevant if Kerberos authentication is enabled.&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;embedded&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Run Gate One in Embedded Mode (no toolbar, only one terminal &quot;</span>
+             <span class="s">&quot;allowed, etc.  See docs).&quot;</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;dtach&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Wrap terminals with dtach. Allows sessions to be resumed even if &quot;</span>
+             <span class="s">&quot;Gate One is stopped and started (which is a sweet feature =).&quot;</span>
+    <span class="p">)</span>
+    <span class="n">define</span><span class="p">(</span>
+        <span class="s">&quot;kill&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Kill any running Gate One terminal processes including dtach&#39;d &quot;</span>
+             <span class="s">&quot;processes.&quot;</span>
+    <span class="p">)</span>
+    <span class="c"># TODO: Give plugins the ability to add their own define()s</span>
+    <span class="c"># TODO: Use the arguments passed to gateone.py to generate server.conf if it</span>
+    <span class="c">#       isn&#39;t already present.</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&quot;/server.conf&quot;</span><span class="p">):</span>
+        <span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parse_config_file</span><span class="p">(</span><span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&quot;/server.conf&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c"># Generate a default server.conf with a random cookie secret</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;No server.conf found.  A new one will be generated using &quot;</span>
+                     <span class="s">&quot;defaults.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">user_dir</span><span class="p">):</span> <span class="c"># Make our user_dir</span>
+            <span class="n">mkdir_p</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">user_dir</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">user_dir</span><span class="p">,</span> <span class="mo">0700</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">session_dir</span><span class="p">):</span> <span class="c"># Make our session_dir</span>
+            <span class="n">mkdir_p</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">session_dir</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">session_dir</span><span class="p">,</span> <span class="mo">0700</span><span class="p">)</span>
+        <span class="n">config_defaults</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;debug&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;cookie_secret&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">(),</span> <span class="c"># Works for so many things!</span>
+            <span class="s">&#39;port&#39;</span><span class="p">:</span> <span class="mi">443</span><span class="p">,</span>
+            <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;0.0.0.0&#39;</span><span class="p">,</span> <span class="c"># All addresses</span>
+            <span class="s">&#39;embedded&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;auth&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s">&#39;dtach&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="c"># NOTE: The next four options are specific to the Tornado framework</span>
+            <span class="s">&#39;log_file_max_size&#39;</span><span class="p">:</span> <span class="mi">100</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">,</span> <span class="c"># 100MB</span>
+            <span class="s">&#39;log_file_num_backups&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="c"># 1GB total max</span>
+            <span class="s">&#39;log_file_prefix&#39;</span><span class="p">:</span> <span class="s">&#39;/var/log/gateone/webserver.log&#39;</span><span class="p">,</span>
+            <span class="s">&#39;logging&#39;</span><span class="p">:</span> <span class="s">&#39;info&#39;</span><span class="p">,</span> <span class="c"># One of: info, warning, error, none</span>
+            <span class="s">&#39;user_dir&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">user_dir</span><span class="p">,</span>
+            <span class="s">&#39;session_dir&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">session_dir</span><span class="p">,</span>
+            <span class="s">&#39;session_logging&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">session_logging</span><span class="p">,</span>
+            <span class="s">&#39;syslog_session_logging&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">syslog_session_logging</span><span class="p">,</span>
+            <span class="s">&#39;syslog_facility&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">syslog_facility</span><span class="p">,</span>
+            <span class="s">&#39;session_timeout&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">session_timeout</span><span class="p">,</span>
+            <span class="s">&#39;keyfile&#39;</span><span class="p">:</span> <span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&quot;/keyfile.pem&quot;</span><span class="p">,</span>
+            <span class="s">&#39;certificate&#39;</span><span class="p">:</span> <span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&quot;/certificate.pem&quot;</span><span class="p">,</span>
+            <span class="s">&#39;command&#39;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&quot;/plugins/ssh/scripts/ssh_connect.py -S &quot;</span>
+                <span class="s">r&quot;&#39;/tmp/gateone/%SESSION%/</span><span class="si">%r</span><span class="s">@%h:%p&#39; -a &quot;</span>
+                <span class="s">&quot;&#39;-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts&#39;&quot;</span>
+            <span class="p">),</span>
+            <span class="s">&#39;sso_realm&#39;</span><span class="p">:</span> <span class="s">&#39;EXAMPLE.COM&#39;</span><span class="p">,</span>
+            <span class="s">&#39;sso_service&#39;</span><span class="p">:</span> <span class="s">&#39;HTTP&#39;</span>
+        <span class="p">}</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&quot;/server.conf&quot;</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config_defaults</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+                <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> = &quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parse_config_file</span><span class="p">(</span><span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&quot;/server.conf&quot;</span><span class="p">)</span>
+    <span class="c"># Create the log dir if not already present (NOTE: Assumes we&#39;re root)</span>
+    <span class="n">log_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">log_dir</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mkdir_p</span><span class="p">(</span><span class="n">log_dir</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[1;31mERROR:</span><span class="se">\x1b</span><span class="s">[0m Could not create </span><span class="si">%s</span><span class="s"> for &quot;</span>
+                  <span class="s">&quot;log_file_prefix: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">log_file_prefix</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;You probably want to change this option, run Gate One as &quot;</span>
+                  <span class="s">&quot;root, or create that directory and give the proper user &quot;</span>
+                  <span class="s">&quot;ownership of it.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parse_command_line</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">kill</span><span class="p">:</span>
+        <span class="c"># Kill all running dtach sessions (associated with Gate One anyway)</span>
+        <span class="n">killall</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">session_dir</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c"># Set our CMD variable to tell the multiplexer which command to execute</span>
+    <span class="k">global</span> <span class="n">CMD</span>
+    <span class="n">CMD</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">command</span>
+    <span class="c"># Set our global session timeout</span>
+    <span class="k">global</span> <span class="n">TIMEOUT</span>
+    <span class="n">TIMEOUT</span> <span class="o">=</span> <span class="n">convert_to_timedelta</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">session_timeout</span><span class="p">)</span>
+    <span class="c"># Define our Application settings</span>
+    <span class="n">app_settings</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;gateone_dir&#39;</span><span class="p">:</span> <span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="c"># Only here so plugins can reference it</span>
+        <span class="s">&#39;debug&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">debug</span><span class="p">,</span>
+        <span class="s">&#39;cookie_secret&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">cookie_secret</span><span class="p">,</span>
+        <span class="s">&#39;auth&#39;</span><span class="p">:</span> <span class="n">none_fix</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">auth</span><span class="p">),</span>
+        <span class="s">&#39;embedded&#39;</span><span class="p">:</span> <span class="n">str2bool</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">embedded</span><span class="p">),</span>
+        <span class="s">&#39;user_dir&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">user_dir</span><span class="p">,</span>
+        <span class="s">&#39;session_dir&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">session_dir</span><span class="p">,</span>
+        <span class="s">&#39;session_logging&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">session_logging</span><span class="p">,</span>
+        <span class="s">&#39;syslog_session_logging&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">syslog_session_logging</span><span class="p">,</span>
+        <span class="s">&#39;syslog_facility&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">syslog_facility</span><span class="p">,</span>
+        <span class="s">&#39;dtach&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">dtach</span><span class="p">,</span>
+        <span class="s">&#39;sso_realm&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">sso_realm</span><span class="p">,</span>
+        <span class="s">&#39;sso_service&#39;</span><span class="p">:</span> <span class="n">options</span><span class="o">.</span><span class="n">sso_service</span>
+    <span class="p">}</span>
+    <span class="c"># Check to make sure we have a certificate and keyfile and generate fresh</span>
+    <span class="c"># ones if not.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">keyfile</span><span class="p">):</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;No SSL private key found.  One will be generated.&quot;</span><span class="p">)</span>
+        <span class="n">gen_self_signed_ssl</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">certificate</span><span class="p">):</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;No SSL certificate found.  One will be generated.&quot;</span><span class="p">)</span>
+        <span class="n">gen_self_signed_ssl</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s">&quot;Listening on https://{address}:{port}/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">address</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c"># Setup static file links for plugins (if any)</span>
+    <span class="n">static_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">)</span>
+    <span class="n">plugin_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;plugins&quot;</span><span class="p">)</span>
+    <span class="n">create_plugin_static_links</span><span class="p">(</span><span class="n">static_dir</span><span class="p">,</span> <span class="n">plugin_dir</span><span class="p">)</span>
+    <span class="c"># Instantiate our Tornado web server</span>
+    <span class="n">ssl_options</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&quot;certfile&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s">&quot;certificate.pem&quot;</span><span class="p">),</span>
+        <span class="s">&quot;keyfile&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s">&quot;keyfile.pem&quot;</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">disable_ssl</span><span class="p">:</span>
+        <span class="n">ssl_options</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">http_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span>
+        <span class="n">Application</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">app_settings</span><span class="p">),</span> <span class="n">ssl_options</span><span class="o">=</span><span class="n">ssl_options</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span> <span class="c"># Start your engines!</span>
+        <span class="n">http_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
+        <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span> <span class="c"># ctrl-c</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Caught KeyboardInterrupt.  Killing sessions...&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threading</span><span class="o">.</span><span class="n">enumerate</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;TidyThread&#39;</span><span class="p">):</span>
+                <span class="n">t</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,416 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utils.py - Supporting Functions &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="gateone.js" href="js_gateone.html" />
+    <link rel="prev" title="termio.py - Terminal Input/Output Module" href="termio.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="js_gateone.html" title="gateone.js"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="termio.html" title="termio.py - Terminal Input/Output Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-utils">
+<span id="utils-py-supporting-functions"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h1>
+<p>Gate One utility functions and classes.</p>
+<dl class="exception">
+<dt id="utils.UnknownFacility">
+<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">UnknownFacility</tt><a class="reference internal" href="../_modules/utils.html#UnknownFacility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.UnknownFacility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised if string_to_syslog_facility() is given a string that doesn't match
+a known syslog facility.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="utils.MimeTypeFail">
+<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">MimeTypeFail</tt><a class="reference internal" href="../_modules/utils.html#MimeTypeFail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.MimeTypeFail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised by create_data_uri() if the mimetype of a file could not be guessed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.noop">
+<tt class="descclassname">utils.</tt><tt class="descname">noop</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/utils.html#noop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.noop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do nothing (i.e. &quot;No Operation&quot;)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.gen_self_signed_ssl">
+<tt class="descclassname">utils.</tt><tt class="descname">gen_self_signed_ssl</tt><big>(</big><em>notAfter=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#gen_self_signed_ssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.gen_self_signed_ssl" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method will generate a secure self-signed SSL key/certificate pair
+saving the result as 'certificate.pem' and 'keyfile.pem' in the current
+working directory.  By default the certificate will be valid for 10 years
+but this can be overridden by passing a valid timestamp via the <em>notAfter</em>
+argument.</p>
+<p>Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">gen_self_signed_ssl</span><span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">365</span><span class="p">)</span> <span class="c"># 1-year certificate</span>
+<span class="n">gen_self_signed_ssl</span><span class="p">()</span> <span class="c"># 10-year certificate</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.none_fix">
+<tt class="descclassname">utils.</tt><tt class="descname">none_fix</tt><big>(</big><em>val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#none_fix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.none_fix" title="Permalink to this definition">¶</a></dt>
+<dd><p>If <em>val</em> is a string meaning 'none', return None.  Otherwise just return
+<em>val</em> as-is.  Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">none_fix</span><span class="p">(</span><span class="s">&#39;none&#39;</span><span class="p">)</span>
+<span class="go">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">none_fix</span><span class="p">(</span><span class="s">&#39;0&#39;</span><span class="p">)</span>
+<span class="go">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">none_fix</span><span class="p">(</span><span class="s">&#39;whatever&#39;</span><span class="p">)</span>
+<span class="go">&#39;whatever&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.str2bool">
+<tt class="descclassname">utils.</tt><tt class="descname">str2bool</tt><big>(</big><em>val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#str2bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.str2bool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts strings like, 'false', 'true', '0', and '1' into their boolean
+equivalents.  If no logical match is found, return False.  Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">str2bool</span><span class="p">(</span><span class="s">&#39;false&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">str2bool</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">st2bool</span><span class="p">(</span><span class="s">&#39;whatever&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.generate_session_id">
+<tt class="descclassname">utils.</tt><tt class="descname">generate_session_id</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/utils.html#generate_session_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.generate_session_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a random, 45-character session ID.  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">generate_session_id</span><span class="p">()</span>
+<span class="go">&#39;NzY4YzFmNDdhMTM1NDg3Y2FkZmZkMWJmYjYzNjBjM2Y5O&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.mkdir_p">
+<tt class="descclassname">utils.</tt><tt class="descname">mkdir_p</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#mkdir_p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.mkdir_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pythonic version of &quot;mkdir -p&quot;.  Example equivalents:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">commands</span><span class="o">,</span> <span class="nn">utils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">mkdir_p</span><span class="p">(</span><span class="s">&#39;/tmp/test/testing&#39;</span><span class="p">)</span> <span class="c"># Does the same thing as below:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">commands</span><span class="o">.</span><span class="n">getoutput</span><span class="p">(</span><span class="s">&#39;mkdir -p /tmp/test/testing&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.cmd_var_swap">
+<tt class="descclassname">utils.</tt><tt class="descname">cmd_var_swap</tt><big>(</big><em>cmd</em>, <em>session=None</em>, <em>user_dir=None</em>, <em>user=None</em>, <em>time=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#cmd_var_swap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.cmd_var_swap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>cmd</em> with special inline variables swapped out for their respective
+argument values.  The special variables are as follows:</p>
+<blockquote>
+<div>%SESSION% - <em>session</em>
+%USERDIR% - <em>user_dir</em>
+%USER% - <em>user</em>
+%TIME% - <em>time</em></div></blockquote>
+<p>This allows for unique or user-specific values to be swapped into command
+line arguments like so:</p>
+<blockquote>
+<div>ssh_connect.py -M -S <a class="reference external" href="mailto:'/tmp/%SESSION%/%r&#37;&#52;&#48;%h">'/tmp/%SESSION%/%r<span>&#64;</span>%h</a>:%p'</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.kill_dtached_proc">
+<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kills the dtach session associated with the given <em>term</em> and all its
+sub-processes.  Requires <em>session</em> so it can figure out the right
+processess to kill.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.killall">
+<tt class="descclassname">utils.</tt><tt class="descname">killall</tt><big>(</big><em>session_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#killall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.killall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kills all running Gate One terminal processes including any detached dtach
+sessions.
+<em>session_dir</em> - The path to Gate One's session directory.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.create_plugin_static_links">
+<tt class="descclassname">utils.</tt><tt class="descname">create_plugin_static_links</tt><big>(</big><em>static_dir</em>, <em>plugin_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#create_plugin_static_links"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.create_plugin_static_links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates symbolic links for all plugins in the ./static/ directory.  The
+equivalent of:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-red">root</span>&#64;host<span class="ansi-bold ansi-blue">:~ $</span> ln -s *plugin_dir*/&lt;plugin&gt;/static *static_dir*/&lt;plugin&gt;
+</pre>
+<p>This is so plugins can reference files in their static directories using the
+following straightforward path:</p>
+<div class="highlight-python"><pre>https://&lt;gate one&gt;/static/&lt;plugin name&gt;/&lt;some file&gt;</pre>
+</div>
+<p>This function will also remove any dead links if a plugin is removed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.get_plugins">
+<tt class="descclassname">utils.</tt><tt class="descname">get_plugins</tt><big>(</big><em>plugin_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_plugins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds plugins' Python files to sys.path and returns a dictionary of
+JavaScript, CSS, and Python files contained in <em>plugin_dir</em> like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s">&#39;js&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="c"># NOTE: These would be be inside *plugin_dir*/static</span>
+        <span class="s">&#39;/static/happy_plugin/whatever.js&#39;</span><span class="p">,</span>
+        <span class="s">&#39;/static/ssh/ssh.js&#39;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s">&#39;css&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;/static/ssh/ssh.css&#39;</span><span class="p">],</span>
+    <span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="c"># NOTE: These will get added to sys.path</span>
+        <span class="s">&#39;happy_plugin&#39;</span><span class="p">,</span>
+        <span class="s">&#39;ssh&#39;</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>*.js files inside of <em>plugin_dir</em>/&lt;the plugin&gt;/static will get automatically
+added to Gate One's index.html like so:</p>
+<div class="highlight-html"><div class="highlight"><pre>{% for jsplugin in jsplugins %}
+    <span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;{{jsplugin}}&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+{% end %}
+</pre></div>
+</div>
+<p>*.css files will get added to the &lt;head&gt; like so:</p>
+<div class="highlight-html"><div class="highlight"><pre>{% for cssplugin in cssplugins %}
+    <span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">href=</span><span class="s">&quot;{{cssplugin}}&quot;</span> <span class="na">type=</span><span class="s">&quot;text/css&quot;</span> <span class="na">media=</span><span class="s">&quot;screen&quot;</span> <span class="nt">/&gt;</span>
+{% end %}
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.load_plugins">
+<tt class="descclassname">utils.</tt><tt class="descname">load_plugins</tt><big>(</big><em>plugins</em><big>)</big><a class="reference internal" href="../_modules/utils.html#load_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.load_plugins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of <em>plugins</em>, imports them.
+NOTE:  Assumes they're all in sys.path.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.merge_handlers">
+<tt class="descclassname">utils.</tt><tt class="descname">merge_handlers</tt><big>(</big><em>handlers</em><big>)</big><a class="reference internal" href="../_modules/utils.html#merge_handlers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.merge_handlers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a list of Tornado <em>handlers</em> like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">[</span>
+    <span class="p">(</span><span class="s">r&quot;/&quot;</span><span class="p">,</span> <span class="n">MainHandler</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">r&quot;/ws&quot;</span><span class="p">,</span> <span class="n">TerminalWebSocket</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">r&quot;/auth&quot;</span><span class="p">,</span> <span class="n">AuthHandler</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">r&quot;/style&quot;</span><span class="p">,</span> <span class="n">StyleHandler</span><span class="p">),</span>
+        <span class="o">...</span>
+    <span class="p">(</span><span class="s">r&quot;/style&quot;</span><span class="p">,</span> <span class="n">SomePluginHandler</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>...and returns a list with duplicate handlers removed; giving precedence to
+handlers with higher indexes.  This allows plugins to override Gate One's
+default handlers.  Given the above, this is what would be returned:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">[</span>
+    <span class="p">(</span><span class="s">r&quot;/&quot;</span><span class="p">,</span> <span class="n">MainHandler</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">r&quot;/ws&quot;</span><span class="p">,</span> <span class="n">TerminalWebSocket</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">r&quot;/auth&quot;</span><span class="p">,</span> <span class="n">AuthHandler</span><span class="p">),</span>
+        <span class="o">...</span>
+    <span class="p">(</span><span class="s">r&quot;/style&quot;</span><span class="p">,</span> <span class="n">SomePluginHandler</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>This example would replace the default &quot;/style&quot; handler with
+SomePluginHandler; overriding Gate One's default StyleHandler.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.convert_to_timedelta">
+<tt class="descclassname">utils.</tt><tt class="descname">convert_to_timedelta</tt><big>(</big><em>time_val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#convert_to_timedelta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.convert_to_timedelta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <em>time_val</em> (string) such as '5d', returns a timedelta object
+representing the given value (e.g. timedelta(days=5)).  Accepts the
+following '&lt;num&gt;&lt;char&gt;' formats:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="20%" />
+<col width="54%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Character</th>
+<th class="head">Meaning</th>
+<th class="head">Example</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>s</td>
+<td>Seconds</td>
+<td>'60s' -&gt; 60 Seconds</td>
+</tr>
+<tr><td>m</td>
+<td>Minutes</td>
+<td>'5m'  -&gt; 5 Minutes</td>
+</tr>
+<tr><td>h</td>
+<td>Hours</td>
+<td>'24h' -&gt; 24 Hours</td>
+</tr>
+<tr><td>d</td>
+<td>Days</td>
+<td>'7d'  -&gt; 7 Days</td>
+</tr>
+</tbody>
+</table>
+<p>Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">convert_to_timedelta</span><span class="p">(</span><span class="s">&#39;7d&#39;</span><span class="p">)</span>
+<span class="go">datetime.timedelta(7)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">convert_to_timedelta</span><span class="p">(</span><span class="s">&#39;24h&#39;</span><span class="p">)</span>
+<span class="go">datetime.timedelta(1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">convert_to_timedelta</span><span class="p">(</span><span class="s">&#39;60m&#39;</span><span class="p">)</span>
+<span class="go">datetime.timedelta(0, 3600)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">convert_to_timedelta</span><span class="p">(</span><span class="s">&#39;120s&#39;</span><span class="p">)</span>
+<span class="go">datetime.timedelta(0, 120)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.process_opt_esc_sequence">
+<tt class="descclassname">utils.</tt><tt class="descname">process_opt_esc_sequence</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/utils.html#process_opt_esc_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.process_opt_esc_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the <em>chars</em> passed from terminal.py by way of the special,
+optional escape sequence handler (e.g. '&lt;plugin&gt;|&lt;text&gt;') into a tuple of
+(&lt;plugin name&gt;, &lt;text&gt;).  Here's an example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">process_opt_esc_sequence</span><span class="p">(</span><span class="s">&#39;ssh|user@host:22&#39;</span><span class="p">)</span>
+<span class="go">(&#39;ssh&#39;, &#39;user@host:22&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.raw">
+<tt class="descclassname">utils.</tt><tt class="descname">raw</tt><big>(</big><em>text</em>, <em>replacement_dict=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>text</em> as a string with special characters replaced by visible
+equivalents using <em>replacement_dict</em>.  If <em>replacement_dict</em> is None or
+False the global REPLACEMENT_DICT will be used.  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">]0;Some xterm title&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="n">test</span><span class="p">))</span>
+<span class="go">&#39;^[]0;Some title^G&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.string_to_syslog_facility">
+<tt class="descclassname">utils.</tt><tt class="descname">string_to_syslog_facility</tt><big>(</big><em>facility</em><big>)</big><a class="reference internal" href="../_modules/utils.html#string_to_syslog_facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.string_to_syslog_facility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a string (<em>facility</em>) such as, &quot;daemon&quot; returns the numeric
+syslog.LOG_* equivalent.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.create_data_uri">
+<tt class="descclassname">utils.</tt><tt class="descname">create_data_uri</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="../_modules/utils.html#create_data_uri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.create_data_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a file at <em>filepath</em>, return that file as a data URI.</p>
+<p>Raises a MimeTypeFail exception if the mimetype could not be guessed.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="termio.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="js_gateone.html"
+                        title="next chapter">gateone.js</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/utils.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="js_gateone.html" title="gateone.js"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="termio.html" title="termio.py - Terminal Input/Output Module"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

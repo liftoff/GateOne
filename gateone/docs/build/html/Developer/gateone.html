@@ -1,0 +1,431 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gateone.py - Gate One&#39;s Main Script &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="logviewer.py - Session Log Viewer" href="logviewer.html" />
+    <link rel="prev" title="auth.py - Authentication Classes" href="auth.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="logviewer.html" title="logviewer.py - Session Log Viewer"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="auth.html" title="auth.py - Authentication Classes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-gateone">
+<span id="gateone-py-gate-one-s-main-script"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">gateone.py</span></tt> - Gate One's Main Script<a class="headerlink" href="#module-gateone" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="gate-one">
+<span id="gateone-py"></span><h2>Gate One<a class="headerlink" href="#gate-one" title="Permalink to this headline">¶</a></h2>
+<p>Gate One is a web-based terminal emulator written in Python using the Tornado
+web framework.  This module runs the primary daemon process and acts as a
+central controller for all running terminals and terminal programs.  It supports
+numerous configuration options and can also be called with the --kill switch
+to kill all running terminal programs (if using dtach--otherwise they die on
+their own when gateone.py is stopped).</p>
+<div class="section" id="dependencies">
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
+<p>Gate One requires Python 2.6+ but runs best with Python 2.7+.  It also depends
+on the following 3rd party Python modules:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="http://www.tornadoweb.org/">Tornado</a> 2.1+ - Non-blocking web server framework that powers FriendFeed.</li>
+</ul>
+</div></blockquote>
+<p>The following modules are optional and can provide Gate One with additional
+functionality:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="https://launchpad.net/pyopenssl">pyOpenSSL</a> 0.10+ - OpenSSL wrapper for Python.  Only used to generate self-signed SSL keys and certificates.</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/kerberos">kerberos</a> 1.0+ - A high-level Kerberos interface for Python.  Only necessary if you plan to use the Kerberos authentication module.</li>
+</ul>
+</div></blockquote>
+<p>On most platforms both the required and optional modules can be installed via one of these commands:</p>
+<blockquote>
+<div><pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> sudo pip install tornado pyopenssl kerberos
+</pre>
+</div></blockquote>
+<p>...or:</p>
+<blockquote>
+<div><pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;legacy-host<span class="ansi-bold ansi-blue">:~ $</span> sudo easy_install tornado pyopenssl kerberos
+</pre>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The use of pip is recommended.  See <a class="reference external" href="http://www.pip-installer.org/en/latest/installing.html">http://www.pip-installer.org/en/latest/installing.html</a> if you don't have it.</p>
+</div>
+</div>
+<div class="section" id="settings">
+<h3>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h3>
+<p>All of Gate One's configurable options can be controlled either via command line
+switches or by settings in the server.conf file (they match up 1-to-1).  If no
+server.conf exists one will be created using defaults (i.e. when Gate One is run
+for the first time).  Settings in the server.conf file use the following format:</p>
+<div class="highlight-python"><pre>&lt;setting&gt; = &lt;value&gt;</pre>
+</div>
+<p>Here's an example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">address</span> <span class="o">=</span> <span class="s">&quot;0.0.0.0&quot;</span> <span class="c"># Strings are surrounded by quotes</span>
+<span class="n">port</span> <span class="o">=</span> <span class="mi">443</span> <span class="c"># Numbers don&#39;t need quotes</span>
+</pre></div>
+</div>
+<p>There are a few important differences between the configuration file and
+command line switches in regards to boolean values (True/False).  A switch such
+as --debug evaluates to &quot;debug = True&quot; and this is exactly how it would be
+configured in server.conf:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">debug</span> <span class="o">=</span> <span class="bp">True</span> <span class="c"># Booleans don&#39;t need quotes either</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">server.conf is case sensitive for &quot;True&quot;, &quot;False&quot; and &quot;None&quot;.</p>
+</div>
+<p>Running gateone.py with the --help switch will print the usage information as
+well as descriptions of what each configurable option does:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-red">root</span>&#64;host<span class="ansi-bold ansi-blue">:~ $</span> ./gateone.py --help
+Usage: ./gateone.py [OPTIONS]
+
+Options:
+&nbsp;&nbsp;--help                           show this help information
+&nbsp;&nbsp;--log_file_max_size              max size of log files before rollover
+&nbsp;&nbsp;--log_file_num_backups           number of log files to keep
+&nbsp;&nbsp;--log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
+&nbsp;&nbsp;--log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
+&nbsp;&nbsp;--logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
+&nbsp;&nbsp;--address                        Run on the given address.
+&nbsp;&nbsp;--auth                           Authentication method to use.  Valid options are: none, kerberos, google
+&nbsp;&nbsp;--certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
+&nbsp;&nbsp;--command                        Run the given command when a user connects (e.g. 'nethack').
+&nbsp;&nbsp;--cookie_secret                  Use the given 45-character string for cookie encryption.
+&nbsp;&nbsp;--debug                          Enable debugging features such as auto-restarting when files are modified.
+&nbsp;&nbsp;--disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
+&nbsp;&nbsp;--dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature =).
+&nbsp;&nbsp;--embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
+&nbsp;&nbsp;--keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
+&nbsp;&nbsp;--kill                           Kill any running Gate One terminal processes including dtach'd processes.
+&nbsp;&nbsp;--port                           Run on the given port.
+&nbsp;&nbsp;--session_dir                    Path to the location where session information will be stored.
+&nbsp;&nbsp;--session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/logs.  Default: Enabled
+&nbsp;&nbsp;--session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts &lt;num&gt;X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is '5d' (5 days).
+&nbsp;&nbsp;--sso_realm                      Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only relevant if Kerberos authentication is enabled.
+&nbsp;&nbsp;--sso_service                    Kerberos service (aka application) to use. Defaults to HTTP. Only relevant if Kerberos authentication is enabled.
+&nbsp;&nbsp;--syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
+&nbsp;&nbsp;--syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
+&nbsp;&nbsp;--user_dir                       Path to the location where user files will be stored.
+</pre>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Some of these options (e.g. log_file_prefix) are inherent to the Tornado framework.  You won't find them anywhere in gateone.py.</p>
+</div>
+</div>
+<div class="section" id="file-paths">
+<h3>File Paths<a class="headerlink" href="#file-paths" title="Permalink to this headline">¶</a></h3>
+<p>Gate One stores its files, temporary session information, and persistent user
+data in the following locations (Note: Many of these are configurable):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">File/Directory</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>gateone.py</td>
+<td>Gate One's primary executable/script. Also, the file containing this documentation</td>
+</tr>
+<tr><td>auth.py</td>
+<td>Authentication classes</td>
+</tr>
+<tr><td>logviewer.py</td>
+<td>A utility to view Gate One session logs</td>
+</tr>
+<tr><td>server.conf</td>
+<td>Gate One's configuration file</td>
+</tr>
+<tr><td>sso.py</td>
+<td>A Kerberos Single Sign-on module for Tornado (used by auth.py)</td>
+</tr>
+<tr><td>terminal.py</td>
+<td>A Pure Python terminal emulator module</td>
+</tr>
+<tr><td>termio.py</td>
+<td>Terminal input/output control module</td>
+</tr>
+<tr><td>utils.py</td>
+<td>Various supporting functions</td>
+</tr>
+<tr><td>docs/</td>
+<td>Gate One documentation</td>
+</tr>
+<tr><td>static/</td>
+<td>Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc)</td>
+</tr>
+<tr><td>templates/</td>
+<td>Tornado template files such as index.html</td>
+</tr>
+<tr><td>tests/</td>
+<td>Gate One-specific automated unit/acceptance tests</td>
+</tr>
+<tr><td>plugins/</td>
+<td>Plugins go here in the form of ./plugins/&lt;plugin name&gt;/&lt;plugin files|directories&gt;</td>
+</tr>
+<tr><td>users/</td>
+<td>Persistent user data in the form of ./users/&lt;username&gt;/&lt;user-specific files&gt;</td>
+</tr>
+<tr><td>users/&lt;user&gt;/logs</td>
+<td>This is where session logs get stored if session_logging is set.</td>
+</tr>
+<tr><td>/tmp/gateone</td>
+<td>Temporary session data in the form of /tmp/gateone/&lt;session ID&gt;/&lt;files&gt;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="running">
+<h3>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h3>
+<p>Executing Gate One is as simple as:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-red">root</span>&#64;host<span class="ansi-bold ansi-blue">:~ $</span> ./gateone.py
+</pre>
+<p>NOTE: By default Gate One will run on port 443 which requires root on most
+systems.  Use --port=&lt;something greater than 1024&gt; for non-root users.</p>
+</div>
+<div class="section" id="plugins">
+<h3>Plugins<a class="headerlink" href="#plugins" title="Permalink to this headline">¶</a></h3>
+<p>Gate One includes support for any combination of the following types of plugins:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Python</li>
+<li>JavaScript</li>
+<li>CSS</li>
+</ul>
+</div></blockquote>
+<p>Python plugins can integrate with Gate One in three ways:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Adding or overriding tornado.web.RequestHandlers (with a given regex).</li>
+<li>Adding or overriding methods (aka &quot;commands&quot;) in TerminalWebSocket.</li>
+<li>Adding special plugin-specific escape sequence handlers (see the plugin development documentation for details on what/how these are/work).</li>
+</ul>
+</div></blockquote>
+<p>JavaScript plugins will be added to the &lt;body&gt; tag of Gate One's base index.html
+template like so:</p>
+<div class="highlight-html"><div class="highlight"><pre><span class="c">&lt;!-- Begin JS files from plugins --&gt;</span>
+{% for jsplugin in jsplugins %}
+<span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;{{jsplugin}}&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+{% end %}
+<span class="c">&lt;!-- End JS files from plugins --&gt;</span>
+</pre></div>
+</div>
+<p>CSS plugins are similar to JavaScript but instead of being appended to the
+&lt;body&gt; they are added to the &lt;head&gt;:</p>
+<div class="highlight-html"><div class="highlight"><pre><span class="c">&lt;!-- Begin CSS files from plugins --&gt;</span>
+{% for cssplugin in cssplugins %}
+<span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">href=</span><span class="s">&quot;{{cssplugin}}&quot;</span> <span class="na">type=</span><span class="s">&quot;text/css&quot;</span> <span class="na">media=</span><span class="s">&quot;screen&quot;</span> <span class="nt">/&gt;</span>
+{% end %}
+<span class="c">&lt;!-- End CSS files from plugins --&gt;</span>
+</pre></div>
+</div>
+<p>There are also hooks throughout Gate One's code for plugins to add or override
+Gate One's functionality.  Documentation on how to write plugins can be found in
+the Plugin Development docs.  From the perspective of gateone.py, it performs
+the following tasks in relation to plugins:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Imports Python plugins and connects their hooks.</li>
+<li>Creates symbolic links inside ./static/ that point to each plugin's respective /static/ directory and serves them to clients.</li>
+<li>Serves the index.html that includes plugins' respective .js and .css files.</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="class-docstrings">
+<h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gateone.BaseHandler">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A base handler that all Gate One RequestHandlers will inherit methods from.</p>
+<dl class="method">
+<dt id="gateone.BaseHandler.get_current_user">
+<tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#BaseHandler.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler.get_current_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tornado standard method--implemented our way.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.MainHandler">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">MainHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#MainHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.MainHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders index.html which loads Gate One.</p>
+<p>Will include the minified version of gateone.js if available as
+gateone.min.js.</p>
+<p>Will encode GATEONE_DIR/static/bell.ogg as a <a class="reference external" href="data:URI">data:URI</a> and put it as the
+&lt;source&gt; of the &lt;audio&gt; tag inside the index.html template.  Gate One
+administrators can replace bell.ogg with whatever they like but the file
+size should be less than 32k when encoded to Base64.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.StyleHandler">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">StyleHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#StyleHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.StyleHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serves up our CSS templates (e.g. the 'black' or 'white' schemes)</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.RecordingHandler">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">RecordingHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#RecordingHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.RecordingHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles uploads of session recordings and returns them to the client in a
+self-contained HTML file that will auto-start playback.</p>
+<p>NOTE: The real crux of the code that handles this is in the template.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.OpenLogHandler">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">OpenLogHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#OpenLogHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.OpenLogHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles uploads of user logs and returns them to the client as a basic HTML
+page.  Essentially, this works around the limitation of an HTML page being
+unable to save itself =).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.TidyThread">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">TidyThread</tt><big>(</big><em>session</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TidyThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TidyThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kills a user's termio session if the client hasn't updated the keepalive
+within <em>TIMEOUT</em> (global).  Also, tidies up sessions, logs, and whatnot based
+on Gate One's settings (when the time is right).</p>
+<p>NOTE: This is necessary to prevent shells from running eternally in the
+background.</p>
+<p><em>session</em> - 45-character string containing the user's session ID</p>
+<dl class="method">
+<dt id="gateone.TidyThread.keepalive">
+<tt class="descname">keepalive</tt><big>(</big><em>datetime_obj=None</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TidyThread.keepalive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TidyThread.keepalive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the keepalive timer.  Typically called when the user performs a new action.</p>
+<p><em>datetime_obj</em> - A datetime object that will be used to measure <em>TIMEOUT</em> against.  Will end up defaulting to datetime.now() (if None) which is what you'd want 99% of the time.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">gateone.py</span></tt> - Gate One's Main Script</a><ul>
+<li><a class="reference internal" href="#gate-one">Gate One</a><ul>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#settings">Settings</a></li>
+<li><a class="reference internal" href="#file-paths">File Paths</a></li>
+<li><a class="reference internal" href="#running">Running</a></li>
+<li><a class="reference internal" href="#plugins">Plugins</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#class-docstrings">Class Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="auth.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">auth.py</span></tt> - Authentication Classes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="logviewer.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/gateone.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="logviewer.html" title="logviewer.py - Session Log Viewer"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="auth.html" title="auth.py - Authentication Classes"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

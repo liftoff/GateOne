@@ -1,0 +1,74 @@
+.ansi-block {
+    background-color: #222;
+    color: #fff;
+    white-space: pre-line !important;
+    word-wrap: break-word;
+}
+
+.ansi-bold {
+    font-weight: bold;
+}
+
+.ansi-black {
+    color: #000000;
+}
+
+.ansi-red {
+    color: #b21717;
+}
+
+.ansi-green {
+    color: #17b217;
+}
+
+.ansi-yellow {
+    color: #b26717;
+}
+
+.ansi-blue {
+    color: #1717b2;
+}
+
+.ansi-magenta {
+    color: #b217b2;
+}
+
+.ansi-cyan {
+    color: #17b2b2;
+}
+
+.ansi-white {
+    color: #b2b2b2;
+}
+
+.ansi-black.ansi-bold {
+    color: #686868;
+}
+
+.ansi-red.ansi-bold {
+    color: #ff5454;
+}
+
+.ansi-green.ansi-bold {
+    color: #54ff54;
+}
+
+.ansi-yellow.ansi-bold {
+    color: #ffff54;
+}
+
+.ansi-blue.ansi-bold {
+    color: #5454ff;
+}
+
+.ansi-magenta.ansi-bold {
+    color: #ff54ff;
+}
+
+.ansi-cyan.ansi-bold {
+    color: #54ffff;
+}
+
+.ansi-white.ansi-bold {
+    color: #ffffff;
+}

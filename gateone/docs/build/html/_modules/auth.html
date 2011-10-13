@@ -1,0 +1,307 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>auth &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for auth</h1><div class="highlight"><pre>
+<span class="c">#</span>
+<span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
+<span class="c">#</span>
+
+<span class="c"># Meta</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.9&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">Authentication</span>
+<span class="s">==============</span>
+<span class="s">This module contains Gate One&#39;s authentication classes.  They map to Gate One&#39;s</span>
+<span class="s">--auth configuration option like so:</span>
+
+<span class="s">=============== ===================</span>
+<span class="s">--auth=none     NullAuthHandler</span>
+<span class="s">--auth=kerberos KerberosAuthHandler</span>
+<span class="s">--auth=google   GoogleAuthHandler</span>
+<span class="s">=============== ===================</span>
+
+<span class="s">None or Anonymous</span>
+<span class="s">-----------------</span>
+<span class="s">By default Gate One will not authenticate users.  This means that user sessions</span>
+<span class="s">will be tied to their browser cookie and users will not be able to resume their</span>
+<span class="s">sessions from another computer/browser.  Most useful for situations where</span>
+<span class="s">session persistence and logging aren&#39;t important.</span>
+
+<span class="s">*All* users will show up as %anonymous using this authentication type.</span>
+
+<span class="s">.. note:: The </span><span class="si">% i</span><span class="s">s there to avoid name conflicts.</span>
+
+<span class="s">Kerberos</span>
+<span class="s">--------</span>
+<span class="s">Kerberos authentication utilizes GSSAPI for Single Sign-on (SSO) but will fall</span>
+<span class="s">back to HTTP Basic authentication if GSSAPI auth fails.  This authentication</span>
+<span class="s">type can be integrated into any Kerberos infrastructure including Windows</span>
+<span class="s">Active Directory.</span>
+
+<span class="s">It is great for both transparent authentication and being able to tie sessions</span>
+<span class="s">and logs to specific users within your organization (compliance).</span>
+
+<span class="s">.. note:: The sso.py module itself has extensive documentation on this authentication type.</span>
+
+<span class="s">Google Authentication</span>
+<span class="s">---------------------</span>
+<span class="s">If you want persistent user sessions but don&#39;t care to run your own</span>
+<span class="s">authentication infrastructure this authentication type is for you.  Assuming,</span>
+<span class="s">of course, that your Gate One server and clients will have access to the</span>
+<span class="s">Internet.</span>
+
+<span class="s">.. note:: This authentication type is perfect if you&#39;re using Chromebooks (Chrome OS devices).</span>
+
+<span class="s">Docstrings</span>
+<span class="s">==========</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="c"># Import stdlib stuff</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="c"># Import our own stuff</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">generate_session_id</span>
+
+<span class="c"># 3rd party imports</span>
+<span class="kn">import</span> <span class="nn">tornado.web</span>
+<span class="kn">import</span> <span class="nn">tornado.auth</span>
+<span class="kn">import</span> <span class="nn">tornado.escape</span>
+
+<span class="k">class</span> <span class="nc">BaseAuthHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler">[docs]</a>    <span class="sd">&quot;&quot;&quot;The base class for all Gate One authentication handlers.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseAuthHandler.get_current_user"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler.get_current_user">[docs]</a>        <span class="sd">&quot;&quot;&quot;Tornado standard method--implemented our way.&quot;&quot;&quot;</span>
+        <span class="n">user_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user_json</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_decode</span><span class="p">(</span><span class="n">user_json</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">user_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span></div>
+<div class="viewcode-block" id="BaseAuthHandler.user_login"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler.user_login">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called immediately after a user authenticates successfully.  Saves</span>
+<span class="sd">        session information in the user&#39;s directory.  Expects *user* to be a</span>
+<span class="sd">        string containing the username or userPrincipalName. e.g. &#39;user@REALM&#39;</span>
+<span class="sd">        or just &#39;someuser&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
+        <span class="n">user_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">user</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">)</span>
+        <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mo">0700</span><span class="p">)</span>
+        <span class="n">session_file</span> <span class="o">=</span> <span class="n">user_dir</span> <span class="o">+</span> <span class="s">&#39;/session&#39;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_file</span><span class="p">):</span>
+            <span class="n">session_data</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">session_info</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_decode</span><span class="p">(</span><span class="n">session_data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="c"># Save it so we can keep track across multiple clients</span>
+                <span class="n">session_info</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s">&#39;go_upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span> <span class="c"># FYI: UPN == userPrincipalName</span>
+                    <span class="s">&#39;go_session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
+                <span class="p">}</span>
+                <span class="n">session_info_json</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">session_info_json</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">user_logout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span></div>
+<div class="viewcode-block" id="BaseAuthHandler.user_logout"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler.user_logout">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called immediately after a user logs out.  Doesn&#39;t actually do</span>
+<span class="sd">        anything.  Just potential future use at this point.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span> <span class="c"># Nothing here yet but someone might want to override it</span>
+
+<span class="k">class</span> <span class="nc">NullAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">):</span></div></div>
+<div class="viewcode-block" id="NullAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.NullAuthHandler">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A handler for when no authentication method is chosen (i.e. --auth=none).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NullAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.NullAuthHandler.get">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the &#39;user&#39; cookie with a new random session ID (*go_session*) and</span>
+<span class="sd">        sets *go_upn* to &#39;%anonymous&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># % is valid on the filesystem but invalid for an actual username.</span>
+        <span class="c"># This ensures we won&#39;t have a conflict at some point with an actual</span>
+        <span class="c"># user.</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="s">r&#39;%anonymous&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="c"># Takes care of the user&#39;s settings dir</span>
+        <span class="n">user_cookie</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;go_upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span>
+            <span class="s">&#39;go_session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">user_cookie</span><span class="p">))</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">GoogleAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">GoogleMixin</span><span class="p">):</span></div></div>
+<div class="viewcode-block" id="GoogleAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.GoogleAuthHandler">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Google authentication handler.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@tornado.web.asynchronous</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GoogleAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.GoogleAuthHandler.get">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the &#39;user&#39; cookie with an appropriate *go_upn* and *go_session*.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;openid.mode&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">(</span>
+            <span class="n">ax_attrs</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="s">&quot;email&quot;</span><span class="p">,</span><span class="s">&quot;language&quot;</span><span class="p">,</span><span class="s">&quot;username&quot;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span></div>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Just a continuation of the get() method (the final step where it</span>
+<span class="sd">        actually sets the cookie).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&quot;Google auth failed&quot;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;GoogleAuthLoginHandler user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
+        <span class="c"># NOTE: Google auth &#39;user&#39; will be a dict like so:</span>
+        <span class="c"># user: {</span>
+        <span class="c">#     &#39;locale&#39;: u&#39;en-us&#39;,</span>
+        <span class="c">#     &#39;first_name&#39;: u&#39;Dan&#39;,</span>
+        <span class="c">#     &#39;last_name&#39;: u&#39;McDougall&#39;,</span>
+        <span class="c">#     &#39;name&#39;: u&#39;Dan McDougall&#39;,</span>
+        <span class="c">#     &#39;email&#39;: u&#39;riskable@gmail.com&#39;}</span>
+        <span class="c"># Named these &#39;go_&lt;whatever&gt;&#39; since that is less likely to conflict with</span>
+        <span class="c"># anything in the future (should some auth mechanism start returning</span>
+        <span class="c"># session IDs of some sort).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="c"># This takes care of the user&#39;s settings dir</span>
+        <span class="n">user_cookie</span> <span class="o">=</span> <span class="p">{</span> <span class="c"># Don&#39;t need all that other stuff</span>
+            <span class="s">&#39;go_session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">(),</span>
+            <span class="s">&#39;go_upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">]</span> <span class="c"># Just an equivalent for standardization</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">user_cookie</span><span class="p">))</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
+
+<span class="c"># Add our KerberosAuthHandler if sso is available</span>
+<span class="n">KerberosAuthHandler</span> <span class="o">=</span> <span class="bp">None</span></div>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">sso</span> <span class="kn">import</span> <span class="n">KerberosAuthMixin</span>
+    <span class="k">class</span> <span class="nc">KerberosAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">,</span> <span class="n">KerberosAuthMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="KerberosAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.KerberosAuthHandler">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles authenticating users via Kerberos/GSSAPI/SSO.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KerberosAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.KerberosAuthHandler.get">[docs]</a>            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Checks the user&#39;s request header for the proper Authorization data. If</span>
+<span class="sd">            it checks out the user will be logged in via _on_auth().  If not, the</span>
+<span class="sd">            browser will be redirected to login.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">auth_header</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span></div>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&quot;Kerberos auth failed&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="c"># This takes care of the user&#39;s settings dir</span>
+            <span class="c"># TODO: Add some LDAP or local DB lookups here to add more detail to user objects</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;KerberosAuthHandler user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
+            <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span></div>
+    <span class="k">pass</span> <span class="c"># No SSO available.</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,849 @@
+#{{container}} {
+    position: relative;
+    overflow: hidden;
+    background-color: transparent;
+    top: 0;
+    bottom: 0;
+    padding: 0.1em;
+    z-index: 0;
+    font-size: 1em;
+/*     margin: 0.5em; */
+    font-family: monospace;
+/*     border: 2px solid #fff; */
+    /* WebKit */
+    -webkit-transition: all 1.0s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 1.0s ease-in-out;
+    /* Opera */
+    -o-transition: all 1.0s ease-in-out;
+    /* Future CSS3 standard */
+    transition: all 1.0s ease-in-out;
+}
+.about_gateone ul {
+    list-style-type: disc;
+    list-style-position: outside;
+    padding-left: 1.5em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+.about_gateone li:before {
+    content: "⎚ ";
+}
+.sectrans {
+    /* WebKit */
+    -webkit-transform-origin: top right;
+    -webkit-transition: all 1s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 1s ease-in-out;
+    -moz-transform-origin: top right;
+    /* Opera */
+    -o-transition: all 1s ease-in-out;
+    -o-transform-origin: top right;
+    /* Future CSS3 standard */
+    transform-origin: top right;
+    transition: all 1s ease-in-out;
+}
+.sectransform {
+    /* For only transform effects */
+    /* WebKit */
+    -webkit-transform-origin: top right;
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    /* Firefox */
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -moz-transform-origin: top right;
+    /* Opera */
+    -o-transition: -o-transform 1s ease-in-out;
+    -o-transform-origin: top right;
+    /* Future CSS3 standard */
+    transform-origin: top right;
+    transition: transform 1s ease-in-out;
+}
+.halfsectrans {
+    /* WebKit */
+    -webkit-transform-origin: top right;
+    -webkit-transition: all 0.5s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 0.5s ease-in-out;
+    -moz-transform-origin: top right;
+    /* Opera */
+    -o-transition: all 0.5s ease-in-out;
+    -o-transform-origin: top right;
+    /* Future CSS3 standard */
+    transform-origin: top right;
+    transition: all 0.5s ease-in-out;
+}
+#{{container}} textarea {
+    background-color: #fff;
+    outline: none;
+    resize: none;
+    font-family: 'DejaVuSansMonoBook', monospace;
+    font-size: 0.8em;
+}
+.{{prefix}}terminal {
+    background-color: #fff;
+    color: #000;
+    position:static;
+    float: left;
+    top: 0;
+    /* WebKit */
+    -webkit-transition: all 1.0s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 1.0s ease-in-out;
+    /* Opera */
+    -o-transition: all 1.0s ease-in-out;
+    /* Future CSS3 standard */
+    transition: all 1.0s ease-in-out;
+/*     text-shadow: 1px 1px 4px #000; */
+/*     padding: 0.3em; */
+/*    -moz-box-shadow:inset 0 0 1em #000000;
+    -webkit-box-shadow:inset 0 0 1em #000000;
+    box-shadow:inset 0 0 1em #000000;*/
+}
+.{{prefix}}terminal a {
+    color: maroon;
+}
+.{{prefix}}terminal a:visited {
+    color: maroon;
+}
+.{{prefix}}terminal pre {
+/*     font-family: 'DejaVuSansMonoBook', Dejavu Sans Mono, Lucidia Console, monospace; */
+    /*height: auto;*/ /* Needs to be 100% when scrollback is enabled */
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: absolute;
+    bottom: 0;
+}
+/* Foregrounds */
+#{{container}} span.f0 { color: #000; } /* Black (Used when the rendition is set to 39) */
+#{{container}} span.f1 { color: #AA0000; } /* Red */
+#{{container}} span.f2 { color: #00AA00; } /* Green */
+#{{container}} span.f3 { color: #856112; } /* Yellow */
+#{{container}} span.f4 { color: #1818B2; } /* Blue */
+#{{container}} span.f5 { color: #851685; } /* Magenta */
+#{{container}} span.f6 { color: #28A7A5; } /* Cyan */
+#{{container}} span.f7 { color: #B2B2B2; } /* White */
+/* Backgrounds */
+#{{container}} span.b0  { background-color: #fff; } /* Used when the rendition is set to 49 */
+#{{container}} span.b1  { background-color: #B21818; }
+#{{container}} span.b2  { background-color: #18B218; }
+#{{container}} span.b3  { background-color: #B26818; }
+#{{container}} span.b4  { background-color: #1818B2; }
+#{{container}} span.b5  { background-color: #B218B2; }
+#{{container}} span.b6  { background-color: #18B2B2; }
+#{{container}} span.b7  { background-color: #B2B2B2; }
+#{{container}} span.bold { font-weight: bold; }
+#{{container}} span.dim { opacity: 0.7; }
+@-webkit-keyframes blinker {  
+  from { opacity: 1.0; }
+  to { opacity: 0.0; }
+}
+@-moz-keyframes blinker {  
+  from { opacity: 1.0; }
+  to { opacity: 0.0; }
+}
+@keyframes blinker {  
+  from { opacity: 1.0; }
+  to { opacity: 0.0; }
+}
+#{{container}} span.blink {
+    -webkit-animation-name: blinker;  
+    -webkit-animation-iteration-count: infinite;  
+    -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    -webkit-animation-duration: 1s;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-name: blinker;
+    -moz-animation-duration: 1s;
+    -moz-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    animation-name: blinker;  
+    animation-iteration-count: infinite;  
+    animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    animation-duration: 1s;
+}
+#{{container}} span.fastblink {
+    -webkit-animation-name: blinker;  
+    -webkit-animation-iteration-count: infinite;  
+    -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    -webkit-animation-duration: 0.5s;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-name: blinker;
+    -moz-animation-duration: 0.5s;
+    -moz-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    animation-name: blinker;  
+    animation-iteration-count: infinite;  
+    animation-timing-function: cubic-bezier(1.0,0,0,1.0);
+    animation-duration: 0.5s;
+}
+#{{container}} span.underline { text-decoration: underline; }
+#{{container}} span.overline { text-decoration: overline; }
+#{{container}} span.italic { font-style: italic; }
+#{{container}} span.cursor { color: #fff; background-color: #000; }
+#{{container}} span.reverse { background-color: #aaa; color: #fff; }
+#{{container}} span.hidden { background-color: #fff; color: #fff; }
+#{{container}} span.strike { text-decoration: line-through; }
+#{{container}} span.frame { border: 1px; border-color: #bbb; border-style: solid; }
+#{{container}} span.encircle { border: 1px; border-color: #bbb; border-style: solid; border-radius: 1em; -moz-border-radius: 1em; }
+#{{container}} span.rightline { border-right: 1px; border-top: 0; border-bottom: 0; border-left: 0; border-color: #bbb; border-style: solid; }
+#{{container}} span.rightdoubleline { border-right: 1px; border-top: 0; border-bottom: 0; border-left: 0; border-color: #bbb; border-style: double; }
+#{{container}} span.leftline { border-left: 1px; border-top: 0; border-bottom: 0; border-right: 0; border-color: #bbb; border-style: solid; }
+#{{container}} span.leftdoubleline { border-left: 1px; border-top: 0; border-bottom: 0; border-right: 0; border-color: #bbb; border-style: double; }
+#{{prefix}}toolbar {
+    z-index:600;
+    position:absolute;
+    top:0;
+    right:0;
+    color: #000;
+    text-align: right;
+}
+.{{prefix}}toolbar {
+    float: right;
+    clear: both;
+    opacity: .75;
+/*     font-size: 2em; */
+/*     font-family: 'DejaVuSansMonoBook', Dejavu Sans Mono, Lucidia Console, monospace; */
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    padding-right: 1.8em;
+/*     line-height: 0.7em; */
+    /* WebKit */
+    -webkit-transition: -webkit-transform 1.0s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 1.0s ease-in-out;
+    /* Opera */
+    -o-transition: all 1.0s ease-in-out;
+    /* Future CSS3 standard */
+    transition: all 1.0s ease-in-out;
+}
+.{{prefix}}toolbar:hover {
+    opacity: 1;
+    cursor:pointer;
+}
+.{{prefix}}toolbar:target {
+    -webkit-transform:rotate(180deg);
+    -moz-transform:rotate(180deg);
+    -o-transform:rotate(180deg);
+}
+#{{prefix}}infocontainer {
+    /* WebKit */
+    -webkit-transition: all 2.0s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 2.0s ease-in-out;
+    /* Opera */
+    -o-transition: all 2.0s ease-in-out;
+    /* Future CSS3 standard */
+    transition: all 2.0s ease-in-out;
+    display: block;
+    position: absolute;
+    bottom: 50%;
+    right: 50%;
+    border: 1px #000 solid;
+    background-color: #fff;
+    z-index: 500;
+    padding: 0.5em;
+}
+#{{prefix}}noticecontainer {
+    display: block;
+    position: absolute;
+    bottom: 2em;
+    right: 0;
+/*     border: 1px #FFF solid; */
+    background-color: #fff;
+    z-index: 500;
+/*     padding: 2em; */
+}
+#{{prefix}}terminfo {
+    color: #000;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+#{{prefix}}sideinfo {
+    -webkit-transform: rotate(90deg);
+    -webkit-transform-origin: right bottom;
+    -moz-transform: rotate(90deg);
+    -moz-transform-origin: right bottom;
+    -o-transform: rotate(90deg);
+    -o-transform-origin: right bottom;
+    transform: rotate(90deg);
+    transform-origin: right bottom;
+    right: 2.2em;
+    bottom: 0;
+    color: black;
+    position: absolute;
+    font-family: Dejavu Sans, Verdana, sans-serif;
+    font-style: italic;
+    font-size: 1.3em;
+    opacity: 0.5;
+    font-weight: bold;
+/*     letter-spacing: .1em; */
+    margin-bottom: 0.5em;
+}
+#{{prefix}}notice {
+    /* WebKit */
+    -webkit-transition: all 5.0s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 5.0s ease-in-out;
+    /* Opera */
+    -o-transition: all 5.0s ease-in-out;
+    /* Future CSS3 standard */
+    transition: all 5.0s ease-in-out;
+    color: #000;
+    font-weight: bold;
+    font-size: 1.1em;
+    border: 1px #000 solid;
+    padding: 0.5em;
+    margin: 1em;
+}
+.{{prefix}}sidepanel {
+    /* WebKit */
+    -webkit-transition: -webkit-transform 1.0s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 1.0s ease-in-out;
+    /* Opera */
+    -o-transition: all 1.0s ease-in-out;
+    /* Future CSS3 standard */
+    transition: all 1.0s ease-in-out;
+}
+#{{prefix}}playbackControls {
+    padding: 0;
+    border: 0;
+}
+#{{prefix}}controlsContainer {
+    display: block;
+    position: absolute;
+    z-index: 100;
+    bottom: 0;
+    white-space: normal;
+    padding: 0;
+    border: 0;
+/*     width: 96%; */
+    left: 0;
+    right: 3em;
+}
+#{{prefix}}playPause {
+    float: left;
+    color: #000;
+    opacity: 0.7;
+    font-size: 1.4em;
+    margin-left: 0.2em;
+}
+#{{prefix}}progressBar {
+    background: #fff;
+    padding: 0;
+    margin: 0.1em;
+    border: 0;
+    width: 0%;
+    height: 0.4em;
+}
+#{{prefix}}progressBarContainer {
+    position: absolute;
+    bottom: 0;
+    right: 1em;
+    left: 1.2em;
+    margin-bottom: 0.4em;
+    background: #000;
+    border: 0;
+    opacity: 0.7;
+}
+#{{prefix}}clock {
+    float: right;
+    margin-right: 1.3em;
+    margin-top: -0.5em;
+    color: #000;
+    opacity: 0.7;
+    font-size: 0.7em;
+}
+.{{prefix}}panel {
+    position:absolute;
+    top:1em;
+    right:0;
+/*     bottom:2em; */
+    display: block;
+    background: #ccc; color: #000;
+    font-family: Dejavu Sans, Verdana, Arial, sans-serif;
+    /* border:1px solid #fff; */
+/*    border-left: 0.1em solid #fff;
+    border-top: 0.1em solid #fff;
+    border-bottom: 0.1em solid #fff;*/
+    /* TODO: Add the rest of the proprietary equivalents */
+/*    -moz-border-radius-topleft: 1em;
+    -webkit-border-top-left-radius: 1em;
+    -moz-border-radius-bottomleft: 1em;
+    -webkit-border-bottom-left-radius: 1em;*/
+/*    -moz-border-radius: 1em;
+    -webkit-border-radius: 1em;*/
+/*     width: 75%; */ /* Looks wierd with this enabled */
+    z-index: 700; /* Same as toolbar to stay above pasteText */
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0.25em;
+    font-size: 1em;
+    margin-right: 3.4em;
+    margin-top: 0.1em;
+    margin-bottom: 0.1em;
+    /* WebKit */
+    -webkit-transform: scale(0);
+    -webkit-transform-origin: top right;
+    -webkit-transition: all 0.5s ease-in-out;
+    /* Firefox */
+    -moz-transform: scale(0);
+    -moz-transition: all 0.5s ease-in-out;
+    -moz-transform-origin: top right;
+    /* Opera */
+    -o-transform: scale(0);
+    -o-transition: all 0.5s ease-in-out;
+    -o-transform-origin: top right;
+    /* Future CSS3 standard */
+    transform: scale(0);
+    transform-origin: top right;
+    transition: all 0.5s ease-in-out;
+    box-shadow: 0.2em 0.2em 0.5em #000;
+   /* Firefox 3.6+ */
+   background-image: -moz-linear-gradient(#eee, #999);
+   /* Safari 5.1+, Chrome 10+ */
+   background-image: -webkit-linear-gradient(#eee, #999);
+   /* Opera 11.10+ */
+   background-image: -o-linear-gradient(#eee, #999);
+   border: 0.1em #fff outset;
+}
+.{{prefix}}panel h2 {
+    font-size: 1.5em;
+    border-bottom: 0.1em #000 solid;
+    position: relative;
+    margin-bottom: 0.2em;
+}
+.{{prefix}}panel h3 {
+    font-size: 1.2em;
+    border-bottom: 0.1em #000 solid;
+    position: relative;
+    margin-bottom: 0.2em;
+}
+.{{prefix}}panel a {
+    color: #3169C3;
+    text-decoration: none;
+    font-weight: bold;
+}
+.{{prefix}}panel a:hover {
+    color: maroon;
+}
+.{{prefix}}panel a:visited {
+    color: #3169C3;
+}
+.{{prefix}}paneltable {
+    position: relative;
+    width: 35em;
+    background-color: #222;
+    color: #000;
+    padding-bottom: 0.5em;
+    margin-bottom: 0.2em;
+    border: 0.1em #000 solid;
+    -webkit-box-shadow: 2px 2px 4px #888;
+    -moz-box-shadow: 2px 2px 4px #888;
+    box-shadow: 2px 2px 4px #888;
+    /* Firefox 3.6+ */
+   background-image: -moz-linear-gradient(#fff, #ccc);
+   /* Safari 5.1+, Chrome 10+ */
+   background-image: -webkit-linear-gradient(#fff, #ccc);
+   /* Opera 11.10+ */
+   background-image: -o-linear-gradient(#fff, #ccc);
+   /* Standard */
+   background-image: linear-gradient(#fff, #ccc);
+}
+.{{prefix}}paneltablerow {
+    display: table-row;
+    padding-bottom: 0.3em;
+}
+.{{prefix}}paneltablecell {
+    display: table-cell;
+    padding-left: 1em;
+}
+.{{prefix}}panel_close_icon {
+    position: absolute;
+    opacity: .75;
+    right: 0;
+    top: 0;
+}
+.{{prefix}}panel_close_icon:hover {
+    opacity: 1;
+    cursor:pointer;
+}
+#{{prefix}}panel_bookmarks {
+    min-width: 50%;
+    min-height: 50%;
+}
+.{{prefix}}bookmark {
+    position: relative;
+    background-color: #222;
+    color: #000;
+    padding-bottom: 0.5em;
+    margin-bottom: 0.2em;
+    border: 0.1em #000 solid;
+    font-size: 0.9em;
+    -webkit-box-shadow: 2px 2px 4px #888;
+    -moz-box-shadow: 2px 2px 4px #888;
+    box-shadow: 2px 2px 4px #888;
+    /* Firefox 3.6+ */
+   background-image: -moz-linear-gradient(#fff, #ccc);
+   /* Safari 5.1+, Chrome 10+ */
+   background-image: -webkit-linear-gradient(#fff, #ccc);
+   /* Opera 11.10+ */
+   background-image: -o-linear-gradient(#fff, #ccc);
+/*    -moz-border-radius-topleft: 1em;
+    -webkit-border-top-left-radius: 1em;
+    -moz-border-radius-bottomleft: 1em;
+    -webkit-border-bottom-left-radius: 1em;*/
+}
+/*.{{prefix}}bookmark:hover {
+    background-color: maroon;
+}*/
+.{{prefix}}bookmark a {
+    color: #3169C3;
+    display: inline;
+    text-decoration: none;
+}
+.{{prefix}}bookmark a:hover {
+    color: #fff;
+    background-color: #3169C3;
+}
+.{{prefix}}bookmark a:visited {
+    color: #3169C3;
+}
+.{{prefix}}bookmark ul {
+    display: inline;
+    font-size: 0.8em;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+} 
+.{{prefix}}bookmark ul li {
+    margin-left: 0.1em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.1em;
+    list-style: none;
+    display: inline;
+    background-color: #333;
+    color: white;
+}
+.{{prefix}}bookmark ul li:hover {
+    color: #fff;
+    background-color: #3169C3;
+    cursor: pointer;
+}
+.{{prefix}}bookmark ul li.first {
+    margin-left: 0;
+    border-left: none;
+    list-style: none;
+    display: inline;
+    background-color: #333;
+    color: white;
+}
+#{{prefix}}bm_container {
+    width: 70%;
+    float: left;
+}
+#{{prefix}}bm_tagcloud {
+    width: 29%;
+    float: right;
+    display: block;
+    font-size: 0.8em;
+}
+#{{prefix}}bm_tagcloud_ul {
+    display: inline;
+}
+.{{prefix}}bm_tag {
+    margin: 0.2em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.1em;
+    list-style: none;
+    display: inline-block;
+    background-color: #333;
+    color: white;
+}
+.{{prefix}}bm_tag:hover {
+    color: #fff;
+    background-color: #3169C3;
+    cursor: pointer;
+}
+.{{prefix}}bm_controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    font-size: 0.6em;
+    text-transform: uppercase;
+}
+.{{prefix}}bm_controls a {
+    padding-left: 0.1em;
+    padding-right: 0.1em;
+}
+.{{prefix}}bm_controls a:hover {
+    color: #fff;
+    background-color: #CC0003;
+}
+.{{prefix}}bm_uri {
+    float: left;
+    padding-left: 0.2em;
+}
+.{{prefix}}bm_uri a:hover {
+    color: #fff;
+    background-color: #3169C3;
+}
+.{{prefix}}bm_url {
+    font-weight: bold;
+}
+.{{prefix}}bm_visited {
+    float: right;
+    clear: right;
+    padding: 0.2em;
+    background-color: #3169C3;
+    color: white;
+    font-size: 0.9em;
+}
+.{{prefix}}bm_visited:hover {
+    background-color: #000;
+    cursor: pointer;
+}
+#{{prefix}}bm_tags {
+    width: 100%;
+    position: relative;
+    float: left;
+    padding-bottom: 0.2em;
+    padding-top: 0.2em;
+    font-size: 0.9em;
+    border-bottom: 0.1em #000 solid;
+}
+#{{prefix}}bm_tags ul {
+    margin-left: 0;
+    padding-left: 0;
+    display: inline;
+}
+#{{prefix}}bm_tags ul li {
+    margin-right: -0.5em;
+    padding-left: 0.1em;
+    padding-right: 1.6em;
+    list-style: none;
+    display: inline;
+    background-color: #3169C3;
+    color: #fff;
+/*     vertical-align: middle; */
+/*     border-bottom-right-radius: 1em; */
+/*     border-top-right-radius: 1em; */
+}
+#{{prefix}}bm_tags ul li:hover {
+    background-color: #fff;
+    cursor: pointer;
+    color: #000;
+}
+#{{prefix}}bm_tags ul li:hover:after {
+    content: "X";
+    font-size: 1.4em;
+    bottom: 0.45em;
+    color: #3169C3;
+}
+#{{prefix}}bm_tags ul li:after {
+    font-size: 2em;
+    font-weight: bold;
+    content: "⚡";
+    line-height: 20%;
+    position: absolute;
+    bottom: 0.3em;
+    color: #DDD;
+}
+#{{prefix}}bm_tags ul li:last-child {
+    padding-right: 0.3em;
+}
+#{{prefix}}bm_tags ul li:last-child:hover:after {
+    content: "X";
+    font-size: 1.4em;
+    bottom: 0.45em;
+    color: #3169C3;
+}
+#{{prefix}}bm_tags ul li:last-child:after {
+    content: " ▶";
+    font-size: 1.5em;
+    margin-left: 0.3em;
+    color: #3169C3;
+    background-color: transparent;
+/*     padding-right: 0.1em; */
+    position: absolute;
+    bottom: 0.56em;
+}
+#{{prefix}}bm_display_opts {
+    width: 70%;
+    text-align: right;
+    font-size: 0.8em;
+    color: #3169C3;
+    padding-bottom: 0.2em;
+}
+.{{prefix}}bm_desc {
+    padding: 0.4em;
+}
+#{{prefix}}bm_sort_direction {
+    float: right;
+    margin-left: 0.5em;
+    -webkit-transition: -webkit-transform 0.5s ease-in-out;
+    -moz-transition: -webkit-transform 0.5s ease-in-out;
+    -o-transition: -webkit-transform 0.5s ease-in-out;
+/*     -webkit-transform: translate(0, 0.1em) rotate(180deg); */
+    cursor: pointer;
+}
+#{{prefix}}bm_sort_direction:hover {
+    color: #fff;
+}
+#{{prefix}}bm_search {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+#{{prefix}}bm_new {
+    float: left;
+    color: #3169C3;
+    font-size: 0.8em;
+    font-weight: bold;
+    cursor: pointer;
+}
+#{{prefix}}bm_new:hover {
+    background-color: #fff;
+}
+#{{container}} form { margin: 0 0 1em; }
+#{{container}} label {
+    display: block;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+    padding-top: 0.2em;
+}
+#{{container}} button, input.input-text, input.password, input.button, textarea {
+    font-family: DejaVu Sans, Verdana, sans-serif;
+}
+
+#{{container}} input.input-text, input.password, textarea {
+    display: block;
+    background: transparent;
+    margin: 0 0 0.5em;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    box-shadow: 0 1px 1px #fff;
+    font-family: DejaVu Sans, Verdana, sans-serif; 
+/*     font: 12px/18px Helvetica Neue, "Arial", Helvetica, Verdana, sans-serif; */
+/*     text-shadow: 0 0 1px #fff; */
+    color: #000;
+    position: relative;
+    z-index: 2;
+/*     line-height: 18px; */
+    font-size: 1em;
+}
+
+#{{container}} form input.input-text:focus, form textarea:focus {
+    outline: none;
+    border-color: #999;
+    color: #333;
+    padding: 2px 3px;
+    border: 2px solid #2daebf;
+}
+
+#{{container}} label.inlined {
+    padding: 0.2em 0 0.2em 0.4em;
+    font-weight: normal;
+    font-size: 1em;
+    font-family: DejaVu Sans, Verdana, sans-serif; 
+    color: #aaa;
+    -webkit-transition: color 0.15s linear;
+    -moz-transition: color 0.15s linear;
+    -o-transition: color 0.15s linear;
+    background: #fff;
+    width: 98%;
+    border-radius: 3px;
+    position: relative;
+    z-index: 1;
+}
+#{{container}} label.focus { color: #ccc; }
+#{{container}} label.has-text {
+    color: #fff;
+    -webkit-transition-duration: 0s;
+    -moz-transition-duration: 0s;
+    -o-transition-duration: 0s;
+}
+#{{container}} input.input-text-plain {
+    width: 98%;
+    background-color: #fff;
+    color: #000;
+    font-size: 1em;
+}
+#{{container}} textarea.input-text-plain {
+    width: 98%;
+    height: 5em;
+    background-color: #fff;
+    color: #000;
+}
+#{{container}} label.inlined + input.input-text {
+    margin-top: -1.6em;
+    font-weight: normal;
+    width: 98%;
+}
+#{{container}} label.inlined + textarea.input-text {
+    margin-top: -5.6em;
+    width: 98%;
+    height: 5em;
+}
+#{{container}} .medium {
+    height: 5em;
+}
+#{{container}} .button {
+    display: inline-block;
+    outline: none;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    padding: .2em 0.5em .25em;
+    margin-right: 0.25em;
+    text-shadow: 0 1px 1px rgba(0,0,0,.3);
+    border-radius: .5em;
+    box-shadow: 0 1px 2px rgba(0,0,0,.2);
+    font-weight: bold;
+    font-size: 1em;
+}
+#{{container}} .button:hover {
+    text-decoration: none;
+}
+#{{container}} .button:active {
+    position: relative;
+    top: 1px;
+}
+/* black buttons */
+#{{container}} .black {
+    color: #FFF;
+    border: solid 1px #333;
+    background: #333;
+    background: -webkit-gradient(linear, left top, left bottom, from(#666), to(#000));
+    background: -moz-linear-gradient(top,  #666,  #000);
+    background: -o-linear-gradient(top,  #666,  #000);
+    filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#666666', endColorstr='#000000');
+}
+#{{container}} .black:hover {
+    background: #000;
+    background: -webkit-gradient(linear, left top, left bottom, from(#444), to(#000));
+    background: -moz-linear-gradient(top,  #444,  #000);
+    background: -o-linear-gradient(top,  #444,  #000);
+    filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#444444', endColorstr='#000000');
+}
+#{{container}} .black:active {
+    color: #666;
+    background: -webkit-gradient(linear, left top, left bottom, from(#000), to(#444));
+    background: -moz-linear-gradient(top,  #000,  #444);
+    background: -o-linear-gradient(top,  #000,  #444);
+    filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#666666');
+}
+/* SVG Styling */
+.svgtext { letter-spacing:0px; text-anchor:middle; word-spacing:0px; text-align:center; color: #000; fill: #000; }
+.svgplugin { fill: #000; }
+.stop1 { stop-color: #636466; }
+.stop2 { stop-color: #464648; }
+.stop3 { stop-color: #5D5E60; }
+.stop4 { stop-color: #535355; }
+.panelstop1 { stop-color: #2A5BA6; } /* Note: Same by default in both black and white */
+.panelstop2 { stop-color: #2D61B4; }
+.panelstop3 { stop-color: #2E63B9; }
+.panelstop4 { stop-color: #3169C3; }

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="description" content="Gate One - User Log">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gate One - User Log</title>
+</head>
+<style>
+{{ css }}
+</style>
+
+<body>
+  <div id="{{ container }}" style="position:absolute; top:0; bottom:0; left: 0; right: 0;">
+    <div id="{{ prefix }}termwrapper" style="height:100%">
+      <div class="{{ prefix }}terminal" style="width:100%; height:100%;">
+        <pre id="term1_pre" style="height:100%; overflow:auto; position:relative">
+            {% raw log %}
+        </pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

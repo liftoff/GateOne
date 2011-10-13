@@ -1,0 +1,723 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>About Gate One &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="next" title="User Guide" href="../UserGuide/index.html" />
+    <link rel="prev" title="Gate One Documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../UserGuide/index.html" title="User Guide"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Gate One Documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="about-gate-one">
+<h1>About Gate One<a class="headerlink" href="#about-gate-one" title="Permalink to this headline">¶</a></h1>
+<p>Gate One is an open source, web-based terminal emulator with a powerful plugin system.  It comes bundled with a plugin that turns Gate One into an amazing SSH client but Gate One can actually be used to run <em>any</em> terminal application.  You can even embed Gate One into other applications to provide an interface into serial consoles, virtual servers, or anything you like.  It's a great supplement to any web-based administration interface.</p>
+<p>Gate One works in any browser that supports WebSockets.  No browser plugins required!</p>
+<div class="section" id="licensing">
+<h2>Licensing<a class="headerlink" href="#licensing" title="Permalink to this headline">¶</a></h2>
+<p>Gate One is released under a dual-license model.  You are free to choose the license that best meets your requirements:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The <a class="reference external" href="http://www.gnu.org/licenses/agpl.html">GNU Affero General Public License version 3 (AGPLv3)</a>.</li>
+<li>Gate One Commercial licensing.</li>
+</ul>
+</div></blockquote>
+<div class="section" id="open-source-license-requirements">
+<h3>Open Source License Requirements<a class="headerlink" href="#open-source-license-requirements" title="Permalink to this headline">¶</a></h3>
+<p>The <abbr title="GNU Affero General Public License version 3">AGPLv3</abbr> is similar to the <abbr title="GNU General Public License version 3">GPLv3</abbr> in that it requires that you publicly release the source code of your application if you distribute binaries that use Gate One.  However, it has an additional obligation:  You must make your source code available to everyone if your application is provided as Software-as-a-Service (SaaS) or it's part of an Application Service Provider solution.</p>
+<p>For example, if you're running Gate One on your server as part of a SaaS solution you must give away all of your source code.</p>
+<p>Here are some examples where Open Source licensing makes sense:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Pre-installing Gate One as part of an open source Linux distribution.</li>
+<li>Embedding Gate One into an open source application that is licensed under the AGPLv3 <em>or</em> the GPLv3 <a class="footnote-reference" href="#f1" id="id1">[1]</a>.</li>
+<li>Bundling Gate One with an open source appliance.</li>
+<li>Making Gate One available as part of an open source software repository.</li>
+</ul>
+</div></blockquote>
+<p><strong>Considerations:</strong> Unless you want your source code to be freely available to everyone you should opt for Gate One's Commercial License.</p>
+</div>
+<div class="section" id="gate-one-commercial-licensing">
+<h3>Gate One Commercial Licensing<a class="headerlink" href="#gate-one-commercial-licensing" title="Permalink to this headline">¶</a></h3>
+<p>The Commercial License offerings for Gate One are very flexible and afford businesses the flexibility to include Gate One as part of their products and services without any source code obligations.  It also provides licensees with a fully-supported solution and assurances.</p>
+<p>Here are some examples where commercial licensing is typically necessary:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Including Gate One in software sold to customers who install it on their own equipment.</li>
+<li>Selling software that requires the installation of Gate One.</li>
+<li>Selling hardware that comes with Gate One pre-installed.</li>
+<li>Bundling with or including Gate One in any product protected by patents whereby you do not wish to indemnify the end-user from all patent obligations related to the purchase or use of the product.</li>
+</ul>
+</div></blockquote>
+<p>If you merely install Gate One for production use in your business you do not need a commercial license.  For these situations, Liftoff Software offers a number of commercial support and assurance options.</p>
+<p>For more information on Gate One Commercial Licensing or support please visit our <a class="reference external" href="http://liftoffsoftware.com">website</a> (NOTE: Site may not be live yet).</p>
+</div>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>In order to use Gate One you'll need to install the Tornado framework.  You'll get additional functionality if you also install pyOpenSSL and the python-kerberos module.  All three can usually be taken care of in a single command:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> sudo pip install tornado pyopenssl kerberos
+</pre>
+<p>...or if you have an older operating system:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;legacy-host<span class="ansi-bold ansi-blue">:~ $</span> sudo easy_install tornado pyopenssl kerberos
+</pre>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The use of pip is recommended.  See <a class="reference external" href="http://www.pip-installer.org/en/latest/installing.html">http://www.pip-installer.org/en/latest/installing.html</a> if you don't have it.</p>
+</div>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Gate One can be installed via a number of methods, depending on which package you've got.  Assuming you've downloaded the appropriate Gate One package for your operating system to your home directory...</p>
+<div class="section" id="rpm-based-linux-distributions">
+<h3>RPM-based Linux Distributions<a class="headerlink" href="#rpm-based-linux-distributions" title="Permalink to this headline">¶</a></h3>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;redhat<span class="ansi-bold ansi-blue">:~ $</span> sudo rpm -Uvh gateone*.rpm
+</pre>
+</div>
+<div class="section" id="debian-based-linux-distributions">
+<h3>Debian-based Linux Distributions<a class="headerlink" href="#debian-based-linux-distributions" title="Permalink to this headline">¶</a></h3>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;ubuntu<span class="ansi-bold ansi-blue">:~ $</span> sudo dpkg -i gateone*.deb
+</pre>
+</div>
+<div class="section" id="from-source">
+<h3>From Source<a class="headerlink" href="#from-source" title="Permalink to this headline">¶</a></h3>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;whatever<span class="ansi-bold ansi-blue">:~ $</span> tar zxvf gateone*.tar.gz; cd gateone*; sudo python setup.py install
+</pre>
+<p>This translates to:  Extract; Change into the gateone* directory; Install.</p>
+</div>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>The first time you execute gateone.py it will create a default configuration file as /opt/gateone/server.conf:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">user_dir</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/users&quot;</span>
+<span class="n">log_file_num_backups</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">certificate</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/certificate.pem&quot;</span>
+<span class="n">sso_service</span> <span class="o">=</span> <span class="s">&quot;HTTP&quot;</span>
+<span class="n">dtach</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">embedded</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">session_logging</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">sso_realm</span> <span class="o">=</span> <span class="s">&quot;EXAMPLE.COM&quot;</span>
+<span class="n">auth</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">log_file_prefix</span> <span class="o">=</span> <span class="s">&quot;/var/log/gateone/webserver.log&quot;</span>
+<span class="n">log_file_max_size</span> <span class="o">=</span> <span class="mi">104857600</span>
+<span class="n">session_dir</span> <span class="o">=</span> <span class="s">&quot;/tmp/gateone&quot;</span>
+<span class="n">cookie_secret</span> <span class="o">=</span> <span class="s">&quot;A45CharacterStringGeneratedAtRandom012345678&quot;</span>
+<span class="n">syslog_session_logging</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">syslog_facility</span> <span class="o">=</span> <span class="s">&quot;daemon&quot;</span>
+<span class="n">address</span> <span class="o">=</span> <span class="s">&quot;0.0.0.0&quot;</span>
+<span class="n">debug</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">command</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/plugins/ssh/scripts/ssh_connect.py -S &#39;/tmp/gateone/%SESSION%/</span><span class="si">%r</span><span class="s">@%h:%p&#39; -a &#39;-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts&#39;&quot;</span>
+<span class="n">session_timeout</span> <span class="o">=</span> <span class="s">&quot;5d&quot;</span>
+<span class="n">keyfile</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/keyfile.pem&quot;</span>
+<span class="n">port</span> <span class="o">=</span> <span class="mi">443</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The order of these settings does not matter.</p>
+</div>
+<p>These options match up directly with Gate One's command line options which you can view at any time by executing &quot;gateone.py --help&quot;:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-red">root</span>&#64;host<span class="ansi-bold ansi-blue">:~ $</span> ./gateone.py --help
+Usage: ./gateone.py [OPTIONS]
+
+Options:
+&nbsp;&nbsp;--help                           show this help information
+&nbsp;&nbsp;--log_file_max_size              max size of log files before rollover
+&nbsp;&nbsp;--log_file_num_backups           number of log files to keep
+&nbsp;&nbsp;--log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
+&nbsp;&nbsp;--log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
+&nbsp;&nbsp;--logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
+&nbsp;&nbsp;--address                        Run on the given address.
+&nbsp;&nbsp;--auth                           Authentication method to use.  Valid options are: none, kerberos, google.
+&nbsp;&nbsp;--certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
+&nbsp;&nbsp;--command                        Run the given command when a user connects (e.g. 'nethack').
+&nbsp;&nbsp;--cookie_secret                  Use the given 45-character string for cookie encryption.
+&nbsp;&nbsp;--debug                          Enable debugging features such as auto-restarting when files are modified.
+&nbsp;&nbsp;--disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
+&nbsp;&nbsp;--dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature =).
+&nbsp;&nbsp;--embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
+&nbsp;&nbsp;--keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
+&nbsp;&nbsp;--kill                           Kill any running Gate One terminal processes including dtach'd processes.
+&nbsp;&nbsp;--port                           Run on the given port.
+&nbsp;&nbsp;--session_dir                    Path to the location where session information will be stored.
+&nbsp;&nbsp;--session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/logs.  Default: Enabled
+&nbsp;&nbsp;--session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts &lt;num&gt;X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is '5d' (5 days).
+&nbsp;&nbsp;--sso_realm                      Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only relevant if Kerberos authentication is enabled.
+&nbsp;&nbsp;--sso_service                    Kerberos service (aka application) to use. Defaults to HTTP. Only relevant if Kerberos authentication is enabled.
+&nbsp;&nbsp;--syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
+&nbsp;&nbsp;--syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
+&nbsp;&nbsp;--user_dir                       Path to the location where user files will be stored.
+</pre>
+<p>These options are detailed below in the format of:</p>
+<blockquote>
+<div><div class="line-block">
+<div class="line">Name</div>
+</div>
+<dl class="option">
+<dt id="cmdoption--command_line_option">
+<tt class="descname">--command_line_option</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--command_line_option" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><pre>Default value as it is defined in server.conf</pre>
+</div>
+<div class="line-block">
+<div class="line">Description</div>
+</div>
+</div></blockquote>
+<div class="section" id="log-file-max-size">
+<h3>log_file_max_size<a class="headerlink" href="#log-file-max-size" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--log_file_max_size">
+<tt class="descname">--log_file_max_size</tt><tt class="descclassname">=bytes</tt><a class="headerlink" href="#cmdoption--log_file_max_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">log_file_max_size</span> <span class="o">=</span> <span class="mi">104857600</span> <span class="c"># Which is the result of: 100 * 1024 * 1024</span>
+</pre></div>
+</div>
+<p>This defines the maximum size of Gate One's web server log file in bytes before it is automatically rotated.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Web server log settings don't apply to Gate One's user session logging features.</p>
+</div>
+</div>
+<div class="section" id="log-file-num-backups">
+<h3>log_file_num_backups<a class="headerlink" href="#log-file-num-backups" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--log_file_num_backups">
+<tt class="descname">--log_file_num_backups</tt><tt class="descclassname">=integer</tt><a class="headerlink" href="#cmdoption--log_file_num_backups" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">log_file_max_size</span> <span class="o">=</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p>The maximum number of backups to keep of Gate One's web server logs.</p>
+</div>
+<div class="section" id="log-file-prefix">
+<h3>log_file_prefix<a class="headerlink" href="#log-file-prefix" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--log_file_prefix">
+<tt class="descname">--log_file_prefix</tt><tt class="descclassname">=string (file path)</tt><a class="headerlink" href="#cmdoption--log_file_prefix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">log_file_prefix</span> <span class="o">=</span> <span class="s">&quot;/var/log/gateone/webserver.log&quot;</span>
+</pre></div>
+</div>
+<p>This is the path where Gate One's web server logs will be kept.  You'll get an error message if Gate One doesn't have permission to create the parent directory (if it doesn't exist) or if it can't write to files there.</p>
+</div>
+<div class="section" id="log-to-stderr">
+<h3>log_to_stderr<a class="headerlink" href="#log-to-stderr" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--log_to_stderr">
+<tt class="descname">--log_to_stderr</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--log_to_stderr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">log_file_prefix</span> <span class="o">=</span> <span class="bp">False</span>
+</pre></div>
+</div>
+<p>This option tells Gate One to send web server logs to stderr (instead of to the log file).</p>
+</div>
+<div class="section" id="logging">
+<h3>logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--logging">
+<tt class="descname">--logging</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--logging" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">logging</span> <span class="o">=</span> <span class="s">&quot;info&quot;</span>
+</pre></div>
+</div>
+<p>Specifies the log level of the web server logs.  The default is &quot;info&quot;.  Can be one of, &quot;info&quot;, &quot;warning&quot;, &quot;error&quot;, or &quot;none&quot;.</p>
+</div>
+<div class="section" id="address">
+<h3>address<a class="headerlink" href="#address" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--address">
+<tt class="descname">--address</tt><tt class="descclassname">=string (IP address)</tt><a class="headerlink" href="#cmdoption--address" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">address</span> <span class="o">=</span> <span class="s">&quot;0.0.0.0&quot;</span>
+</pre></div>
+</div>
+<p>The address that Gate One will listen for connections.  Default is &quot;0.0.0.0&quot; (all addresses).</p>
+</div>
+<div class="section" id="auth">
+<h3>auth<a class="headerlink" href="#auth" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--auth">
+<tt class="descname">--auth</tt><tt class="descclassname">=string (none|google|kerberos)</tt><a class="headerlink" href="#cmdoption--auth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">auth</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># NOTE: &quot;none&quot; (in quotes) also works.</span>
+</pre></div>
+</div>
+<p>Specifies how you want Gate One to authenticate clients.  One of, &quot;none&quot;, &quot;google&quot;, or &quot;kerberos&quot;.</p>
+</div>
+<div class="section" id="certificate">
+<h3>certificate<a class="headerlink" href="#certificate" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--certificate">
+<tt class="descname">--certificate</tt><tt class="descclassname">=string (file path)</tt><a class="headerlink" href="#cmdoption--certificate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">certificate</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/certificate.pem&quot;</span> <span class="c"># NOTE: The actual default is &quot;&lt;path to gateone&gt;/certificate.pem&quot;</span>
+</pre></div>
+</div>
+<p>The path to the SSL certificate Gate One will use in its web server.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The file must be in PEM format.</p>
+</div>
+</div>
+<div class="section" id="command">
+<h3>command<a class="headerlink" href="#command" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--command">
+<tt class="descname">--command</tt><tt class="descclassname">=string (program path)</tt><a class="headerlink" href="#cmdoption--command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">command</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/plugins/ssh/scripts/ssh_connect.py -S &#39;/tmp/gateone/%SESSION%/</span><span class="si">%r</span><span class="s">@%h:%p&#39; -a &#39;-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts&#39;&quot;</span>
+ <span class="c"># NOTE: The actual default is &quot;&lt;path to gateone&gt;/plugins/ssh/scripts/ssh_connect.py ...&quot;</span>
+</pre></div>
+</div>
+<p>This option specifies the command Gate One will run when a user connects or opens a new terminal.  The default is for Gate One to run the ssh_connect.py script.  Any interactive terminal application should work (e.g. 'nethack').</p>
+</div>
+<div class="section" id="cookie-secret">
+<h3>cookie_secret<a class="headerlink" href="#cookie-secret" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--cookie_secret">
+<tt class="descname">--cookie_secret</tt><tt class="descclassname">=string ([A-Za-z0-9])</tt><a class="headerlink" href="#cmdoption--cookie_secret" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">cookie_secret</span> <span class="o">=</span> <span class="s">&quot;A45CharacterStringGeneratedAtRandom012345678&quot;</span> <span class="c"># NOTE: Yours will be different ;)</span>
+</pre></div>
+</div>
+<p>This is a 45-character string that Gate One will use to encrypt the cookie stored at the client.  By default Gate One will generate one at random when it runs for the first time.  Only change this if you know what you're doing.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you change this string in the server.conf you'll need to restart Gate One for the change to take effect.</p>
+</div>
+<p><em>What happens if you change it?</em>  All users existing, unexpired sessions will need to be re-authenticated.  Not really a big deal since Gate One will restore everything the user was doing after the re-auth.  In most cases changing the cookie secret will be completely transparent to the user.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">You may have to change this key at a regular interval throughout the year depending on your compliance needs.  Every few months is probably not a bad idea regardless.</p>
+</div>
+</div>
+<div class="section" id="debug">
+<h3>debug<a class="headerlink" href="#debug" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--debug">
+<tt class="descname">--debug</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">debug</span> <span class="o">=</span> <span class="bp">False</span>
+</pre></div>
+</div>
+<p>Turns on debugging:  Runs Gate One in the foreground and logs all sorts of extra messages to stdout.</p>
+</div>
+<div class="section" id="disable-ssl">
+<h3>disable_ssl<a class="headerlink" href="#disable-ssl" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--disable_ssl">
+<tt class="descname">--disable_ssl</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--disable_ssl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">disable_ssl</span> <span class="o">=</span> <span class="bp">False</span>
+</pre></div>
+</div>
+<p>Disables SSL support in Gate One.  Generally not a good idea unless you know what you're doing.  There's really only two reasons why you'd want to do this:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Gate One will be running behind a proxy server that handles the SSL encryption.</li>
+<li>Gate One will only be connected to via localhost (kiosks, console devices, etc).</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="dtach">
+<h3>dtach<a class="headerlink" href="#dtach" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--dtach">
+<tt class="descname">--dtach</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--dtach" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dtach</span> <span class="o">=</span> <span class="bp">True</span>
+</pre></div>
+</div>
+<p>This feature is special:  It enables Gate One to be restarted (think: upgraded) without losing user's connected sessions.  This option is enabled by default.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you ever need to restart Gate One (and dtach support is enabled) users will be shown a message indicating that they have been disconnected and their browsers should automatically reconnect in 5 seconds.  A 5-second maintenance window ain't bad!</p>
+</div>
+</div>
+<div class="section" id="embedded">
+<h3>embedded<a class="headerlink" href="#embedded" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--embedded">
+<tt class="descname">--embedded</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--embedded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">embedded</span> <span class="o">=</span> <span class="bp">False</span>
+</pre></div>
+</div>
+<p>This option tells Gate One to run in embedded mode:  No interface icons will be shown to the user and certain features such as opening additional terminal windows will be disabled.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Doesn't actually do anything yet.  Should be available and working in the 1.0 release.</p>
+</div>
+</div>
+<div class="section" id="keyfile">
+<h3>keyfile<a class="headerlink" href="#keyfile" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--keyfile">
+<tt class="descname">--keyfile</tt><tt class="descclassname">=string (file path)</tt><a class="headerlink" href="#cmdoption--keyfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">keyfile</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/keyfile.pem&quot;</span> <span class="c"># NOTE: The actual default is &quot;&lt;path to gateone&gt;/keyfile.pem&quot;</span>
+</pre></div>
+</div>
+<p>The path to the SSL key file Gate One will use in its web server.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The file must be in PEM format.</p>
+</div>
+</div>
+<div class="section" id="kill">
+<h3>kill<a class="headerlink" href="#kill" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--kill">
+<tt class="descname">--kill</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--kill" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># It would be silly to set this in server.conf--but you could!  Gate One wouldn&#39;t start but hey, whatever floats your boat!</span>
+</pre></div>
+</div>
+<p>If running with dtach support, this will kill all user's running terminal applications.  Giving everyone a fresh start, as it were.</p>
+</div>
+<div class="section" id="port">
+<h3>port<a class="headerlink" href="#port" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--port">
+<tt class="descname">--port</tt><tt class="descclassname">=integer (1-65535)</tt><a class="headerlink" href="#cmdoption--port" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">port</span> <span class="o">=</span> <span class="mi">443</span>
+</pre></div>
+</div>
+<p>The port Gate One should listen for connections.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Gate One must run as root to utilize ports 1-1024.</p>
+</div>
+</div>
+<div class="section" id="session-dir">
+<h3>session_dir<a class="headerlink" href="#session-dir" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--session_dir">
+<tt class="descname">--session_dir</tt><tt class="descclassname">=string (file path)</tt><a class="headerlink" href="#cmdoption--session_dir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session_dir</span> <span class="o">=</span> <span class="s">&quot;/tmp/gateone&quot;</span>
+</pre></div>
+</div>
+<p>The path where Gate One should keep temporary user session information.  Defaults to /tmp/gateone (will be auto-created if not present).</p>
+</div>
+<div class="section" id="session-logging">
+<h3>session_logging<a class="headerlink" href="#session-logging" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--session_logging">
+<tt class="descname">--session_logging</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--session_logging" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session_logging</span> <span class="o">=</span> <span class="bp">True</span>
+</pre></div>
+</div>
+<p>This tells Gate One to enable server-side logging of user sessions.  These logs can be viewed or played back (like a video) using the <a class="reference internal" href="../Developer/logviewer.html#log-viewer"><em>Log Viewer</em></a> application.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Gate One stores logs of user sessions in the location specified in the <a class="reference internal" href="#user-dir"><em>user_dir</em></a> option.</p>
+</div>
+</div>
+<div class="section" id="session-timeout">
+<h3>session_timeout<a class="headerlink" href="#session-timeout" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--session_timeout">
+<tt class="descname">--session_timeout</tt><tt class="descclassname">=string (special: [0-9]+[smhd])</tt><a class="headerlink" href="#cmdoption--session_timeout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">session_timeout</span> <span class="o">=</span> <span class="s">&quot;5d&quot;</span>
+</pre></div>
+</div>
+<p>This setting controls how long Gate One will wait before force-killing a user's disconnected session (i.e. where the user hasn't used Gate One in, say, &quot;5d&quot;).  It accepts the following &lt;num&gt;&lt;character&gt; types:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="20%" />
+<col width="54%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Character</th>
+<th class="head">Meaning</th>
+<th class="head">Example</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>s</td>
+<td>Seconds</td>
+<td>'60s'&nbsp;➡ 60 Seconds</td>
+</tr>
+<tr><td>m</td>
+<td>Minutes</td>
+<td>'5m'&nbsp;&nbsp;➡ 5 Minutes</td>
+</tr>
+<tr><td>h</td>
+<td>Hours</td>
+<td>'24h'&nbsp;➡ 24 Hours</td>
+</tr>
+<tr><td>d</td>
+<td>Days</td>
+<td>'7d'&nbsp;&nbsp;&nbsp;➡ 7 Days</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Even if you're using --dtach all programs associated with the user's session will be terminated when it times out.</p>
+</div>
+</div>
+<div class="section" id="sso-realm">
+<h3>sso_realm<a class="headerlink" href="#sso-realm" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--sso_realm">
+<tt class="descname">--sso_realm</tt><tt class="descclassname">=string (Kerberos realm or Active Directory domain)</tt><a class="headerlink" href="#cmdoption--sso_realm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sso_realm</span> <span class="o">=</span> <span class="s">&quot;EXAMPLE.COM&quot;</span>
+</pre></div>
+</div>
+<p>If <tt class="xref py py-obj docutils literal"><span class="pre">auth</span> <span class="pre">=</span> <span class="pre">&quot;kerberos&quot;</span></tt>, tells Gate One which Kerberos realm or Active Directory domain to use when authenticating users.  Otherwise this setting will be ignored.</p>
+</div>
+<div class="section" id="sso-service">
+<h3>sso_service<a class="headerlink" href="#sso-service" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--sso_service">
+<tt class="descname">--sso_service</tt><tt class="descclassname">=string (kerberos service name)</tt><a class="headerlink" href="#cmdoption--sso_service" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sso_realm</span> <span class="o">=</span> <span class="s">&quot;HTTP&quot;</span>
+</pre></div>
+</div>
+<p>If <tt class="xref py py-obj docutils literal"><span class="pre">auth</span> <span class="pre">=</span> <span class="pre">&quot;kerberos&quot;</span></tt>, tells Gate One which Kerberos service to use when authenticating clients.  This is the 'service/' part of a servicePrincipalName (e.g. <strong>HTTP</strong>/somehost.example.com).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unless you <em>really</em> know what you're doing do not use anything other than HTTP (in all caps).</p>
+</div>
+</div>
+<div class="section" id="syslog-facility">
+<h3>syslog_facility<a class="headerlink" href="#syslog-facility" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--syslog_facility">
+<tt class="descname">--syslog_facility</tt><tt class="descclassname">=string (auth|cron|daemon|kern|local0|local1|local2|local3|local4|local5|local6|local7|lpr|mail|news|syslog|user|uucp)</tt><a class="headerlink" href="#cmdoption--syslog_facility" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">syslog_facility</span> <span class="o">=</span> <span class="s">&quot;daemon&quot;</span>
+</pre></div>
+</div>
+<p>if <tt class="xref py py-obj docutils literal"><span class="pre">syslog_session_logging</span> <span class="pre">=</span> <span class="pre">True</span></tt>, specifies the syslog facility that user session logs will use when syslog_session_logging is enabled.</p>
+</div>
+<div class="section" id="syslog-session-logging">
+<h3>syslog_session_logging<a class="headerlink" href="#syslog-session-logging" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--syslog_session_logging">
+<tt class="descname">--syslog_session_logging</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--syslog_session_logging" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">syslog_session_logging</span> <span class="o">=</span> <span class="bp">False</span>
+</pre></div>
+</div>
+<p>This option tells Gate One to send logs of user sessions to the host's syslog daemon.  Special characters and escape sequences will be sent as-is so it is up to the syslog daemon as to how to handle them.  In most cases you'll wind up with log lines that look like this:</p>
+<div class="highlight-python"><pre>Oct  1 19:18:22 gohost gateone: %anonymous 1: Connecting to: ssh://user@somehost:22
+Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]0;user@somehost#007
+Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]_;ssh|user@somehost:22#007</pre>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This option enables centralized logging if your syslog daemon is configurd to use a remote log host.</p>
+</div>
+</div>
+<div class="section" id="user-dir">
+<span id="id2"></span><h3>user_dir<a class="headerlink" href="#user-dir" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--user_dir">
+<tt class="descname">--user_dir</tt><tt class="descclassname">=string (file path)</tt><a class="headerlink" href="#cmdoption--user_dir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">user_dir</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/users&quot;</span> <span class="c"># NOTE: The actual default is &quot;&lt;path to gateone&gt;/users&quot;</span>
+</pre></div>
+</div>
+<p>Specifies the location where persistent user files will be kept.  Things like session logs, ssh files (known_hosts, keys, etc), and similar are stored here.</p>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="f1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>The GPLv3 and AGPLv3 each include clauses (in section 13 of each license) that together achieve a form of mutual compatibility.  See <a class="reference external" href="http://www.gnu.org/licenses/agpl.html#section13">AGPLv3 Section 13</a> and <a class="reference external" href="http://www.gnu.org/licenses/gpl.html#section13">GPLv3 Section 13</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">About Gate One</a><ul>
+<li><a class="reference internal" href="#licensing">Licensing</a><ul>
+<li><a class="reference internal" href="#open-source-license-requirements">Open Source License Requirements</a></li>
+<li><a class="reference internal" href="#gate-one-commercial-licensing">Gate One Commercial Licensing</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#installation">Installation</a><ul>
+<li><a class="reference internal" href="#rpm-based-linux-distributions">RPM-based Linux Distributions</a></li>
+<li><a class="reference internal" href="#debian-based-linux-distributions">Debian-based Linux Distributions</a></li>
+<li><a class="reference internal" href="#from-source">From Source</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li><a class="reference internal" href="#log-file-max-size">log_file_max_size</a></li>
+<li><a class="reference internal" href="#log-file-num-backups">log_file_num_backups</a></li>
+<li><a class="reference internal" href="#log-file-prefix">log_file_prefix</a></li>
+<li><a class="reference internal" href="#log-to-stderr">log_to_stderr</a></li>
+<li><a class="reference internal" href="#logging">logging</a></li>
+<li><a class="reference internal" href="#address">address</a></li>
+<li><a class="reference internal" href="#auth">auth</a></li>
+<li><a class="reference internal" href="#certificate">certificate</a></li>
+<li><a class="reference internal" href="#command">command</a></li>
+<li><a class="reference internal" href="#cookie-secret">cookie_secret</a></li>
+<li><a class="reference internal" href="#debug">debug</a></li>
+<li><a class="reference internal" href="#disable-ssl">disable_ssl</a></li>
+<li><a class="reference internal" href="#dtach">dtach</a></li>
+<li><a class="reference internal" href="#embedded">embedded</a></li>
+<li><a class="reference internal" href="#keyfile">keyfile</a></li>
+<li><a class="reference internal" href="#kill">kill</a></li>
+<li><a class="reference internal" href="#port">port</a></li>
+<li><a class="reference internal" href="#session-dir">session_dir</a></li>
+<li><a class="reference internal" href="#session-logging">session_logging</a></li>
+<li><a class="reference internal" href="#session-timeout">session_timeout</a></li>
+<li><a class="reference internal" href="#sso-realm">sso_realm</a></li>
+<li><a class="reference internal" href="#sso-service">sso_service</a></li>
+<li><a class="reference internal" href="#syslog-facility">syslog_facility</a></li>
+<li><a class="reference internal" href="#syslog-session-logging">syslog_session_logging</a></li>
+<li><a class="reference internal" href="#user-dir">user_dir</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../index.html"
+                        title="previous chapter">Gate One Documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../UserGuide/index.html"
+                        title="next chapter">User Guide</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/About/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../UserGuide/index.html" title="User Guide"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Gate One Documentation"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

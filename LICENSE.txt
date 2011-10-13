@@ -1,0 +1,18 @@
+COPYRIGHT NOTICE
+================
+Gate One and all bundled original code...
+
+    Copyright 2011 Liftoff Software Corporation
+
+Gate One is dual-licensed:  AGPLv3 or Proprietary.
+
+Unless you have been granted a license from Liftoff Software, Gate One and all
+bundled software--except where noted--is licensed under the GNU Affero General
+Public License version 3.  A copy of the AGPLv3 license should have been
+included with the Gate One software as AGPLv3.txt.  If not, a copy may be
+obtained by visiting:
+
+    http://www.gnu.org/licenses/agpl.html
+
+If the terms of the AGPLv3 license do not suit your needs, a proprietary
+license may be purchased from Liftoff Software:  http://liftoffsoftware.com/

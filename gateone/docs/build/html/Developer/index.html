@@ -1,0 +1,263 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Developer Documentation &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="next" title="auth.py - Authentication Classes" href="auth.html" />
+    <link rel="prev" title="User Guide" href="../UserGuide/index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="auth.html" title="auth.py - Authentication Classes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../UserGuide/index.html" title="User Guide"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="developer-documentation">
+<h1>Developer Documentation<a class="headerlink" href="#developer-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="python-code">
+<h2>Python Code<a class="headerlink" href="#python-code" title="Permalink to this headline">¶</a></h2>
+<p>Gate One consists of gateone.py and several supporting Python modules and scripts.  The documentation for each can be found below:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="auth.html"><tt class="docutils literal"><span class="pre">auth.py</span></tt> - Authentication Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="auth.html#authentication">Authentication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="auth.html#none-or-anonymous">None or Anonymous</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auth.html#google-authentication">Google Authentication</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="auth.html#docstrings">Docstrings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gateone.html"><tt class="docutils literal"><span class="pre">gateone.py</span></tt> - Gate One's Main Script</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gateone.html#gate-one">Gate One</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gateone.html#dependencies">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gateone.html#settings">Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gateone.html#file-paths">File Paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gateone.html#running">Running</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gateone.html#plugins">Plugins</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gateone.html#class-docstrings">Class Docstrings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="logviewer.html"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="logviewer.html#log-viewer">Log Viewer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logviewer.html#about-gate-one-s-log-format">About Gate One's Log Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logviewer.html#class-docstrings">Class Docstrings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sso.html"><tt class="docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sso.html#about-the-sso-module">About The SSO Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sso.html#class-docstrings">Class Docstrings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="terminal.html"><tt class="docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="terminal.html#about-this-module">About This Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="terminal.html#supported-emulation-types">Supported Emulation Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminal.html#what-terminal-doesn-t-do">What Terminal Doesn't Do</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminal.html#special-considerations">Special Considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminal.html#asynchronous-use">Asynchronous Use</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminal.html#using-terminal">Using Terminal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminal.html#about-the-scrollback-bufffer">About The Scrollback Bufffer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="terminal.html#class-docstrings">Class Docstrings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="termio.html"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="termio.html#about-termio">About termio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="termio.html#module-functions-and-classes">Module Functions and Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="javascript-code">
+<h2>JavaScript Code<a class="headerlink" href="#javascript-code" title="Permalink to this headline">¶</a></h2>
+<p>A large and very important part of Gate One is the client-side JavaScript that runs in the user's browser.  This consists of the following:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="js_gateone.html">gateone.js</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="js_gateone.html#gateone-base">GateOne.Base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="js_gateone.html#gateone">GateOne</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#properties">Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#functions">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="js_gateone.html#gateone-utils">GateOne.Utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#id1">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="js_gateone.html#gateone-net">GateOne.Net</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#id2">Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#id3">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="js_gateone.html#gateone-input">GateOne.Input</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#id4">Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#id5">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="js_gateone.html#gateone-visual">GateOne.Visual</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#id6">Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#id7">Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="js_gateone.html#gateone-terminal">GateOne.Terminal</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#id8">Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="js_gateone.html#id9">Functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="js_go_process.html">go_process.js</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="plugin-code">
+<h2>Plugin Code<a class="headerlink" href="#plugin-code" title="Permalink to this headline">¶</a></h2>
+<p>Gate One comes bundled with a number of plugins which can include any number of files in Python, JavaScript, or CSS (yes, you could have a CSS-only plugin!).  These included plugins are below:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="plugin_bookmarks.html">The Bookmarks Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_help.html">The Help Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_logging.html">The Logging Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_playback.html">The Playback Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_ssh.html">The SSH Plugin</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="developing-plugins">
+<h2>Developing Plugins<a class="headerlink" href="#developing-plugins" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Write documentation on how to write plugins.</p>
+</div>
+</div>
+<div class="section" id="embeddeding-gate-one-into-other-applications">
+<h2>Embeddeding Gate One Into Other Applications<a class="headerlink" href="#embeddeding-gate-one-into-other-applications" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">Write documentation on embedding Gate One into other applications.  Include details on how to make it hidden until a certain keystroke is entered.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Developer Documentation</a><ul>
+<li><a class="reference internal" href="#python-code">Python Code</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#javascript-code">JavaScript Code</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#plugin-code">Plugin Code</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#developing-plugins">Developing Plugins</a></li>
+<li><a class="reference internal" href="#embeddeding-gate-one-into-other-applications">Embeddeding Gate One Into Other Applications</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../UserGuide/index.html"
+                        title="previous chapter">User Guide</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="auth.html"
+                        title="next chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">auth.py</span></tt> - Authentication Classes</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="auth.html" title="auth.py - Authentication Classes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../UserGuide/index.html" title="User Guide"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,255 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sso.py - A Tornado Kerberos Single Sign-On Module &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="terminal.py - A Pure Python Terminal Emulator" href="terminal.html" />
+    <link rel="prev" title="logviewer.py - Session Log Viewer" href="logviewer.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="terminal.html" title="terminal.py - A Pure Python Terminal Emulator"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="logviewer.html" title="logviewer.py - Session Log Viewer"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-sso">
+<span id="sso-py-a-tornado-kerberos-single-sign-on-module"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module<a class="headerlink" href="#module-sso" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="about-the-sso-module">
+<h2>About The SSO Module<a class="headerlink" href="#about-the-sso-module" title="Permalink to this headline">¶</a></h2>
+<p>sso.py is a Tornado Single Sign-On (SSO) authentication module that implements
+GSSAPI authentication via python-kerberos (import kerberos).  If &quot;Negotiate&quot;
+authentication (GSSAPI SSO) fails it will gracefully fall back to &quot;Basic&quot; auth
+(authenticating a given username/password against your Kerberos realm).</p>
+<p>For this module to work you must add 'sso_realm' and 'sso_service' to your
+Tornado application's settings.  See the docstring of the KerberosAuthMixin for
+how to do this.</p>
+<p>This module should work with regular MIT Kerberos implementations as well as
+Active Directory (Heimdal is untested but should work fine).  If you're
+experiencing trouble it is recommended that you set debug=True in your
+application settings.  This will enable printing of Kerberos exception messages.</p>
+<p>Troubleshooting:</p>
+<p>If your browser asks you for a password (i.e. SSO failed) there's probably
+something wrong with your Kerberos configuration on either the client or the
+server (usually it's a problem with forward/reverse DNS resolution or an
+incorrect or missing service principal in your keytab).</p>
+<p>If you're using Active Directory, make sure that there's an HTTP
+servicePrincipalName (SPN) matching the FQDN of the host running your Tornado
+server.  For example:  <a class="reference external" href="mailto:HTTP/somehost&#46;somedomain&#46;com&#37;&#52;&#48;CORP&#46;MYCOMPANY&#46;COM">HTTP/somehost<span>&#46;</span>somedomain<span>&#46;</span>com<span>&#64;</span>CORP<span>&#46;</span>MYCOMPANY<span>&#46;</span>COM</a>
+You may also want a short hostname SPN: <a class="reference external" href="mailto:HTTP/somehost&#37;&#52;&#48;CORP&#46;MYCOMPANY&#46;COM">HTTP/somehost<span>&#64;</span>CORP<span>&#46;</span>MYCOMPANY<span>&#46;</span>COM</a></p>
+<p>Also make sure that the service principal is in upper case as most clients (
+web browsers) will auto-capitalize the principal when verifying the server.</p>
+<p>Here's some things to test in order to find problems with your Kerberos config:</p>
+<p>Try these from both the client and the server (NOTE: Assuming both are Unix):
+kinit -p &lt;<a class="reference external" href="mailto:user&#37;&#52;&#48;REALM">user<span>&#64;</span>REALM</a>&gt; # To verify you can authenticate via Kerberos (at all)
+nslookup &lt;server FQDN&gt; # To verify the IP address reverse maps properly (below)
+nslookup &lt;IP address that 'server FQDN' resolves to&gt;
+kvno HTTP/somehost.somedomain.com # To verify your service principal</p>
+<p>Remember: Kerberos is heavily dependent on DNS to verify the server and client
+are who they claim to be.</p>
+<p>I find that it is useful to get GSSAPI authentication working with OpenSSH first
+before I attempt to get a custom service principal working with other
+applications.  This is because SSH uses the HOST/ prinicipal which is often
+taken care of automatically via most Kerberos management tools (including AD).
+If you can get SSO working with SSH you can get SSO working with anything else.</p>
+</div>
+<div class="section" id="class-docstrings">
+<h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="sso.KerberosAuthMixin">
+<em class="property">class </em><tt class="descclassname">sso.</tt><tt class="descname">KerberosAuthMixin</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Authenticates users via Kerberos-based Single Sign-On.  Requires that you
+define 'sso_realm' and 'sso_service' in your Tornado Application settings.
+For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">settings</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">cookie_secret</span><span class="o">=</span><span class="s">&quot;iYR123qg4UUdsgf4CRung6BFUBhizAciid8oq1YfJR3gN&quot;</span><span class="p">,</span>
+    <span class="n">static_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s">&quot;static&quot;</span><span class="p">),</span>
+    <span class="n">gzip</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">login_url</span><span class="o">=</span><span class="s">&quot;/auth&quot;</span><span class="p">,</span>
+    <span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">sso_realm</span><span class="o">=</span><span class="s">&quot;EXAMPLE.COM&quot;</span><span class="p">,</span>
+    <span class="n">sso_service</span><span class="o">=</span><span class="s">&quot;HTTP&quot;</span> <span class="c"># Should pretty much always be HTTP</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>NOTE: If you're using 'HTTP' as the service it must be in all caps or it
+might not work with some browsers/clients (which auto-capitalize all
+services).</p>
+<p>To implement this mixin:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sso</span> <span class="kn">import</span> <span class="n">KerberosAuthMixin</span>
+<span class="k">class</span> <span class="nc">KerberosAuthHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">,</span> <span class="n">KerberosAuthMixin</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">auth_header</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&quot;Kerberos auth failed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;KerberosAuthHandler user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span> <span class="c"># To see what you get</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="c"># To redirect properly</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="sso.KerberosAuthMixin.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print out helpful error messages if the requisite settings aren't
+configured.</p>
+<p>NOTE: It won't hurt anything to override this method in your
+RequestHandler.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sso.KerberosAuthMixin.get_authenticated_user">
+<tt class="descname">get_authenticated_user</tt><big>(</big><em>callback</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.get_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.get_authenticated_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes the client's Authorization header and calls
+self.auth_negotiate() or self.auth_basic() depending on what headers
+were provided by the client.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sso.KerberosAuthMixin.auth_negotiate">
+<tt class="descname">auth_negotiate</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.auth_negotiate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.auth_negotiate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform Negotiate (GSSAPI/SSO) authentication via Kerberos.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sso.KerberosAuthMixin.auth_basic">
+<tt class="descname">auth_basic</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.auth_basic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.auth_basic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform Basic authentication using Kerberos against
+self.settings['sso_realm'].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sso.KerberosAuthMixin.authenticate_redirect">
+<tt class="descname">authenticate_redirect</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.authenticate_redirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.authenticate_redirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Informs the browser that this resource requires authentication (status
+code 401) which should prompt the browser to reply with credentials.</p>
+<p>The browser will be informed that we support both Negotiate (GSSAPI/SSO)
+and Basic auth.</p>
+<p>NOTE: I know this isn't technically a redirect but I wanted to make this
+process as close as possible to how things work in tornado.auth.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a><ul>
+<li><a class="reference internal" href="#about-the-sso-module">About The SSO Module</a></li>
+<li><a class="reference internal" href="#class-docstrings">Class Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="logviewer.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="terminal.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/sso.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="terminal.html" title="terminal.py - A Pure Python Terminal Emulator"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="logviewer.html" title="logviewer.py - Session Log Viewer"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>
