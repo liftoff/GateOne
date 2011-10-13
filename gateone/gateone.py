@@ -578,6 +578,10 @@ class TerminalWebSocket(WebSocketHandler):
                 mode_handler = partial(self.mode_handler, term)
                 SESSIONS[self.session][term][ # 9 is CALLBACK_MODE
                     'multiplex'].term.callbacks[9] = mode_handler
+            else:
+                # Tell the client this terminal is no more
+                message = {'term_ended': term}
+                self.write_message(json_encode(message))
             self.refresh_screen(term) # Send a fresh screen to the client
             # NOTE: refresh_screen will also take care of cleaning things up if
             #       SESSIONS[self.session][term]['multiplex'].alive is False

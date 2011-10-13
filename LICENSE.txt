@@ -16,3 +16,48 @@ obtained by visiting:
 
 If the terms of the AGPLv3 license do not suit your needs, a proprietary
 license may be purchased from Liftoff Software:  http://liftoffsoftware.com/
+
+Included 3rd party items and their licenses
+-------------------------------------------
+
+Specific files
+^^^^^^^^^^^^^^
+static/bell.ogg - Taken from KDE's default sound theme (KDE-Sys-App-Message.ogg)
+                  which is licensed under the GPLv2:
+
+                      http://www.gnu.org/licenses/gpl-2.0.html
+
+static/favicon.ico - A miniaturized version of KDE's Oxygen icon for the Konsole
+                     program.  The Oxygen icon library is released under the
+                     Creative Commons ShareAlike 3.0 license:
+
+                         http://creativecommons.org/licenses/by-sa/3.0/
+
+                     (Therefore favicon.ico is also licensed as such)
+
+SVG Icons (inline in gateone.js) were taken from GoSquared which released them
+under the, "free for you to use as you wish" license =).  See:
+
+    http://www.gosquared.com/liquidicity/archives/122
+
+Portional items
+^^^^^^^^^^^^^^^
+Portions of Gate One's JavaScript contain code taken from the excellent MochiKit
+library which is licensed under the MIT license:
+
+    http://www.opensource.org/licenses/mit-license.php
+
+The portions of code taken from MochiKit are explicitly indicated in gateone.js.
+
+
+NOTICE OF GOOD FAITH ATTRIBUTION
+--------------------------------
+If we failed to attribute or state the license of something included with Gate
+One please let us know so it can be corrected.
+
+
+It takes a village
+------------------
+Seriously, thanks to everyone who's ever contributed code, tutorials, or just
+straight-up knowledge and wisdom to the Internet.  Gate One wouldn't have
+happend if it weren't for the contributions of the many that came before.

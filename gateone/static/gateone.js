@@ -2266,6 +2266,7 @@ GateOne.Base.update(GateOne.Terminal, {
         // Register our actions
         go.Net.addAction('terminals', go.Terminal.reattachTerminalsAction);
         go.Net.addAction('termupdate', go.Terminal.updateTerminalAction);
+        go.Net.addAction('term_ended', go.Terminal.closeTerminal);
         go.Net.addAction('term_exists', go.Terminal.reconnectTerminalAction);
         go.Net.addAction('set_mode', go.Terminal.setModeAction); // For things like application cursor keys
         go.Net.addAction('metadata', go.Terminal.storeMetadata);
