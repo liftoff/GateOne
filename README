@@ -23,6 +23,8 @@ Gate One is an HTML5 web-based terminal emulator and SSH client.  Top features:
     * Keberos-based Single Sign-on support is included.  It even works with
       Active Directory.  Other authentication options are available as well.
 
+A demo video of Gate One can be found here: http://vimeo.com/24857127
+
 All documentation is in the "gateone/docs" directory.  The HTML documentation is
 pre-built and ready-to-read.
 
