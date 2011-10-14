@@ -8,9 +8,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>logviewer.py - Session Log Viewer &mdash; Gate One v0.9 documentation</title>
-    <link rel="stylesheet" href="../static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../static/ansi.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -20,9 +20,9 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../static/jquery.js"></script>
-    <script type="text/javascript" src="../static/underscore.js"></script>
-    <script type="text/javascript" src="../static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="sso.py - A Tornado Kerberos Single Sign-On Module" href="sso.html" />
@@ -126,7 +126,7 @@ when a U+F0F0F0 character is encountered.</p>
 <h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="logviewer.playback_log">
-<tt class="descclassname">logviewer.</tt><tt class="descname">playback_log</tt><big>(</big><em>log_path</em>, <em>file_like</em>, <em>show_esc=False</em><big>)</big><a class="reference internal" href="../modules/logviewer.html#playback_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.playback_log" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logviewer.</tt><tt class="descname">playback_log</tt><big>(</big><em>log_path</em>, <em>file_like</em>, <em>show_esc=False</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#playback_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.playback_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plays back the log file at <em>log_path</em> by way of timely output to <em>file_like</em>
 which is expected to be any file-like object with write() and flush()
 methods.</p>
@@ -136,7 +136,7 @@ escaped so they can be seen in the output.</p>
 
 <dl class="function">
 <dt id="logviewer.escape_escape_seq">
-<tt class="descclassname">logviewer.</tt><tt class="descname">escape_escape_seq</tt><big>(</big><em>text</em>, <em>preserve_renditions=True</em>, <em>rstrip=True</em><big>)</big><a class="reference internal" href="../modules/logviewer.html#escape_escape_seq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.escape_escape_seq" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logviewer.</tt><tt class="descname">escape_escape_seq</tt><big>(</big><em>text</em>, <em>preserve_renditions=True</em>, <em>rstrip=True</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#escape_escape_seq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.escape_escape_seq" title="Permalink to this definition">¶</a></dt>
 <dd><p>Escapes escape sequences so they don't muck with the terminal viewing <em>text</em>
 Also replaces special characters with unicode symbol equivalents (e.g. so
 you can see what they are without having them do anything to your running
@@ -149,7 +149,7 @@ removed.</p>
 
 <dl class="function">
 <dt id="logviewer.flatten_log">
-<tt class="descclassname">logviewer.</tt><tt class="descname">flatten_log</tt><big>(</big><em>log_path</em>, <em>preserve_renditions=True</em>, <em>show_esc=False</em><big>)</big><a class="reference internal" href="../modules/logviewer.html#flatten_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.flatten_log" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logviewer.</tt><tt class="descname">flatten_log</tt><big>(</big><em>log_path</em>, <em>preserve_renditions=True</em>, <em>show_esc=False</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#flatten_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.flatten_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a log file at <em>log_path</em>, return a list of log lines contained within.</p>
 <p>If <em>preserve_renditions</em> is True, CSI escape sequences for renditions will
 be preserved as-is (e.g. font color, background, etc).  This is to make the
@@ -189,7 +189,7 @@ can be used with grep and similar search/filter tools.</p>
                         title="next chapter"><tt class="docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="../sources/Developer/logviewer.txt"
+    <li><a href="../_sources/Developer/logviewer.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">

@@ -8,9 +8,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>User Guide &mdash; Gate One v0.9 documentation</title>
-    <link rel="stylesheet" href="../static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../static/ansi.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -20,9 +20,9 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../static/jquery.js"></script>
-    <script type="text/javascript" src="../static/underscore.js"></script>
-    <script type="text/javascript" src="../static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
     <link rel="next" title="Developer Documentation" href="../Developer/index.html" />
     <link rel="prev" title="About Gate One" href="../About/index.html" /> 
@@ -58,7 +58,7 @@
 <h2>The Interface<a class="headerlink" href="#the-interface" title="Permalink to this headline">¶</a></h2>
 <p>When you first connect to a Gate One server you should see something like this:</p>
 <div class="figure align-center">
-<img alt="../images/gateone_login.png" class="screenshot" src="../images/gateone_login.png" />
+<img alt="../_images/gateone_login.png" class="screenshot" src="../_images/gateone_login.png" />
 <p class="caption">The default login screen with the SSH plugin enabled.</p>
 </div>
 <div class="admonition note">
@@ -70,7 +70,7 @@
 <h2>Detailed Interface Overview<a class="headerlink" href="#detailed-interface-overview" title="Permalink to this headline">¶</a></h2>
 <p>Here's an overview of what each GUI element does:</p>
 <div class="figure align-center">
-<img alt="../images/gateone_login_explained.png" class="screenshot" src="../images/gateone_login_explained.png" />
+<img alt="../_images/gateone_login_explained.png" class="screenshot" src="../_images/gateone_login_explained.png" />
 <p class="caption">Gate One's interface, explained</p>
 </div>
 </div>
@@ -132,7 +132,7 @@
 <div class="section" id="terminal-info">
 <h3>Terminal Info<a class="headerlink" href="#terminal-info" title="Permalink to this headline">¶</a></h3>
 <div class="figure align-center">
-<img alt="../images/gateone_infopanel.png" class="screenshot" src="../images/gateone_infopanel.png" />
+<img alt="../_images/gateone_infopanel.png" class="screenshot" src="../_images/gateone_infopanel.png" />
 <p class="caption">This is what you see when you click on the magnifying glass icon</p>
 </div>
 <p>Gate One's information panel is the place to get information about the current terminal.  By default, it will display the current terminal title, how long the terminal has been open, and the number of rows and columns.  It also presents some options to the user which are outlined below...</p>
@@ -160,7 +160,7 @@
 <h4>SSH Plugin: Duplicate Session<a class="headerlink" href="#ssh-plugin-duplicate-session" title="Permalink to this headline">¶</a></h4>
 <p>You'll see this option if the SSH plugin is enabled...  This button allows you to duplicate your current SSH session.  It will open a new SSH connection to the current server using the exact same SSH connect string (e.g. <a class="reference external" href="ssh://user&#64;host:22">ssh://user&#64;host:22</a>) that was used to connect originally.  Also, if possible, it will utilize the existing SSH tunnel for this connection which means you won't have to re-enter your password.  When this (awesome) feature is invoked you'll see a message indicating as such in the terminal:</p>
 <div class="figure align-center">
-<img alt="../images/gateone_second_session_no_password.png" class="screenshot" src="../images/gateone_second_session_no_password.png" />
+<img alt="../_images/gateone_second_session_no_password.png" class="screenshot" src="../_images/gateone_second_session_no_password.png" />
 <p class="caption">After duplicating an SSH session.  No password required!</p>
 </div>
 </div>
@@ -168,7 +168,7 @@
 <div class="section" id="the-settings-panel">
 <h3>The Settings Panel<a class="headerlink" href="#the-settings-panel" title="Permalink to this headline">¶</a></h3>
 <div class="figure align-center">
-<img alt="../images/gateone_settingspanel.png" class="screenshot" src="../images/gateone_settingspanel.png" />
+<img alt="../_images/gateone_settingspanel.png" class="screenshot" src="../_images/gateone_settingspanel.png" />
 <p class="caption">Gate One's Settings Panel</p>
 </div>
 <p>These options are detailed below...</p>
@@ -246,7 +246,7 @@
 </table>
 <p>The grid view can be invoked by either clicking on the Grid icon (four squares) in the toolbar or via the Ctrl-Alt-G keyboard shortcut.  Here's what it looks like:</p>
 <div class="figure align-center">
-<img alt="../images/gateone_grid_view.png" class="screenshot" src="../images/gateone_grid_view.png" />
+<img alt="../_images/gateone_grid_view.png" class="screenshot" src="../_images/gateone_grid_view.png" />
 <p class="caption">The Grid View.  The mouse was moved over Terminal 1 in this example, demonstrating the mouseover effect.</p>
 </div>
 </div>
@@ -254,27 +254,27 @@
 <h3>The Bookmark Manager<a class="headerlink" href="#the-bookmark-manager" title="Permalink to this headline">¶</a></h3>
 <p>The first time you open the Bookmarks manager it will be empty:</p>
 <div class="figure align-center">
-<img alt="../images/gateone_bookmarks_empty.png" class="screenshot" src="../images/gateone_bookmarks_empty.png" />
+<img alt="../_images/gateone_bookmarks_empty.png" class="screenshot" src="../_images/gateone_bookmarks_empty.png" />
 <p class="caption">No bookmarks yet!</p>
 </div>
 <p>Bookmarks can be added by clicking on &quot;New&quot;:</p>
 <div class="figure align-center">
-<img alt="../images/gateone_new_bookmark1.png" class="screenshot" src="../images/gateone_new_bookmark1.png" />
+<img alt="../_images/gateone_new_bookmark1.png" class="screenshot" src="../_images/gateone_new_bookmark1.png" />
 <p class="caption">The New Bookmark Form.  NOTE: The text zoom level resulted in a graphical glitch in the notes area... Ignore that :)</p>
 </div>
 <p>Here's an example of the new bookmark form, filled out with a new SSH bookmark:</p>
 <div class="figure align-center">
-<img alt="../images/gateone_new_bookmark2.png" class="screenshot" src="../images/gateone_new_bookmark2.png" />
+<img alt="../_images/gateone_new_bookmark2.png" class="screenshot" src="../_images/gateone_new_bookmark2.png" />
 <p class="caption">SSH Bookmark to the Gate One Demo Server</p>
 </div>
 <p>After submitting the form (which doesn't actually submit anything to the Gate One server) we can see our first bookmark in the panel:</p>
 <div class="figure align-center">
-<img alt="../images/gateone_new_bookmark3.png" class="screenshot" src="../images/gateone_new_bookmark3.png" />
+<img alt="../_images/gateone_new_bookmark3.png" class="screenshot" src="../_images/gateone_new_bookmark3.png" />
 <p class="caption">Finally, a bookmark!</p>
 </div>
 <p>Here's what the panel will look like after you've added a number of bookmarks:</p>
 <div class="figure align-center">
-<img alt="../images/gateone_new_bookmark4.png" class="screenshot" src="../images/gateone_new_bookmark4.png" />
+<img alt="../_images/gateone_new_bookmark4.png" class="screenshot" src="../_images/gateone_new_bookmark4.png" />
 <p class="caption">In this example we have both SSH bookmarks and an HTTP bookmark.</p>
 </div>
 <div class="admonition tip">
@@ -283,7 +283,7 @@
 </div>
 <p>Lastly, here's what happens when you click on an SSH bookmark:</p>
 <div class="figure align-center">
-<img alt="../images/gateone_opened_via_bookmark.png" class="screenshot" src="../images/gateone_opened_via_bookmark.png" />
+<img alt="../_images/gateone_opened_via_bookmark.png" class="screenshot" src="../_images/gateone_opened_via_bookmark.png" />
 <p class="caption">This bookmark was automatically opened in a new terminal.</p>
 </div>
 <p>In the example above, the <a class="reference external" href="ssh://">ssh://</a> URL was automatically entered for us.  All we had to do was enter our password.</p>
@@ -336,7 +336,7 @@
                         title="next chapter">Developer Documentation</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="../sources/UserGuide/index.txt"
+    <li><a href="../_sources/UserGuide/index.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">

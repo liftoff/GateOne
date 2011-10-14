@@ -370,8 +370,7 @@ class TerminalWebSocket(WebSocketHandler):
             logging.info(
                 "WebSocket closed (%s)" % self.get_current_user()['go_upn'])
         else:
-            logging.info(
-                "WebSocket closed"
+            logging.info("WebSocket closed")
 
     def pong(self, timestamp):
         """

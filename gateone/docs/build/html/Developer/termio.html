@@ -8,9 +8,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>termio.py - Terminal Input/Output Module &mdash; Gate One v0.9 documentation</title>
-    <link rel="stylesheet" href="../static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../static/ansi.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -20,9 +20,9 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../static/jquery.js"></script>
-    <script type="text/javascript" src="../static/underscore.js"></script>
-    <script type="text/javascript" src="../static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="utils.py - Supporting Functions" href="utils.html" />
@@ -132,7 +132,7 @@ when the window title is set via that respective escape sequence):</p>
 <h2>Module Functions and Classes<a class="headerlink" href="#module-functions-and-classes" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="termio.handle_special">
-<tt class="descclassname">termio.</tt><tt class="descname">handle_special</tt><big>(</big><em>e</em><big>)</big><a class="reference internal" href="../modules/termio.html#handle_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.handle_special" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">termio.</tt><tt class="descname">handle_special</tt><big>(</big><em>e</em><big>)</big><a class="reference internal" href="../_modules/termio.html#handle_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.handle_special" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used in conjunction with codecs.register_error, will replace special ascii
 characters such as 0xDA and 0xc4 (which are used by ncurses) with their
 Unicode equivalents.</p>
@@ -140,14 +140,14 @@ Unicode equivalents.</p>
 
 <dl class="class">
 <dt id="termio.Multiplex">
-<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">Multiplex</tt><big>(</big><em>cmd=None</em>, <em>terminal_emulator=None</em>, <em>cps=5000</em>, <em>tmpdir='/tmp'</em>, <em>log_path=None</em>, <em>user=None</em>, <em>term_num=None</em>, <em>syslog=False</em>, <em>syslog_facility=24</em><big>)</big><a class="reference internal" href="../modules/termio.html#Multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">Multiplex</tt><big>(</big><em>cmd=None</em>, <em>terminal_emulator=None</em>, <em>cps=5000</em>, <em>tmpdir='/tmp'</em>, <em>log_path=None</em>, <em>user=None</em>, <em>term_num=None</em>, <em>syslog=False</em>, <em>syslog_facility=24</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex" title="Permalink to this definition">¶</a></dt>
 <dd><p>The Multiplex class takes care of forking a child process and provides
 methods for reading/writing to it.  It also creates an instance of
 tornado.ioloop.IOLoop that listens for events on the spawned terminal
 application and updates self.proc[fd]['term'] with any changes.</p>
 <dl class="method">
 <dt id="termio.Multiplex.create">
-<tt class="descname">create</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="reference internal" href="../modules/termio.html#Multiplex.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.create" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">create</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.create" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new virtual terminal (tty) and executes self.cmd within it.
 Also sets up our read/write callback and attaches them to Tornado's
 IOLoop.</p>
@@ -163,7 +163,7 @@ IOLoop.</p>
 
 <dl class="method">
 <dt id="termio.Multiplex.die">
-<tt class="descname">die</tt><big>(</big><big>)</big><a class="reference internal" href="../modules/termio.html#Multiplex.die"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.die" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">die</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.die"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.die" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets self.alive to False</p>
 <p>NOTE: This is actually important as it allows controlling processes to
 see if the multiplexer is still alive or not (so they don't have to
@@ -172,13 +172,13 @@ enumerate the process table looking for a particular pid).</p>
 
 <dl class="method">
 <dt id="termio.Multiplex.resize">
-<tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em><big>)</big><a class="reference internal" href="../modules/termio.html#Multiplex.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.resize" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.resize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resizes the child process's terminal window to <em>rows</em> and <em>cols</em></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="termio.Multiplex.redraw">
-<tt class="descname">redraw</tt><big>(</big><big>)</big><a class="reference internal" href="../modules/termio.html#Multiplex.redraw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.redraw" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">redraw</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.redraw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.redraw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tells the running terminal program to redraw the screen by executing
 a window resize event (using its current dimensions) and writing a
 ctrl-l.</p>
@@ -186,14 +186,14 @@ ctrl-l.</p>
 
 <dl class="method">
 <dt id="termio.Multiplex.proc_kill">
-<tt class="descname">proc_kill</tt><big>(</big><big>)</big><a class="reference internal" href="../modules/termio.html#Multiplex.proc_kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.proc_kill" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">proc_kill</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.proc_kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.proc_kill" title="Permalink to this definition">¶</a></dt>
 <dd><p>Kill the child process associated with the given file descriptor (fd).</p>
 <p>NOTE: If dtach is being used this only kills the dtach process.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="termio.Multiplex.term_write">
-<tt class="descname">term_write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../modules/termio.html#Multiplex.term_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.term_write" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">term_write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.term_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.term_write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes <em>chars</em> to self.term and also takes care of logging to
 <em>self.log_path</em> (if set) and/or syslog (if <em>self.syslog</em> is True).</p>
 <p>NOTE: This kind of logging doesn't capture user keystrokes.  This is
@@ -202,7 +202,7 @@ intentional as we don't want passwords winding up in the logs.</p>
 
 <dl class="method">
 <dt id="termio.Multiplex.proc_read">
-<tt class="descname">proc_read</tt><big>(</big><em>fd</em>, <em>event</em><big>)</big><a class="reference internal" href="../modules/termio.html#Multiplex.proc_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.proc_read" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">proc_read</tt><big>(</big><em>fd</em>, <em>event</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.proc_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.proc_read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read in the output of the process associated with <em>fd</em> and write it to
 self.term.</p>
 <p>This method will also keep an eye on the output rate of the underlying
@@ -216,13 +216,13 @@ should be the one calling it when it detects an io_loop.READ event.</p>
 
 <dl class="method">
 <dt id="termio.Multiplex.proc_write">
-<tt class="descname">proc_write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../modules/termio.html#Multiplex.proc_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.proc_write" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">proc_write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.proc_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.proc_write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes <em>chars</em> to the terminal process running on <em>fd</em>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="termio.Multiplex.dumplines">
-<tt class="descname">dumplines</tt><big>(</big><big>)</big><a class="reference internal" href="../modules/termio.html#Multiplex.dumplines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.dumplines" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dumplines</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.dumplines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.dumplines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the terminal text lines (a list of lines, to be specific) and
 its scrollback buffer (which is also a list of lines) as a tuple,
 (scrollback, text).  If a line hasn't changed since the last dump then
@@ -257,7 +257,7 @@ it will be replaced with an empty string (in the terminal text lines).</p>
                         title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="../sources/Developer/termio.txt"
+    <li><a href="../_sources/Developer/termio.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">

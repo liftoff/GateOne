@@ -8,9 +8,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>gateone.js &mdash; Gate One v0.9 documentation</title>
-    <link rel="stylesheet" href="../static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../static/ansi.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -20,9 +20,9 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../static/jquery.js"></script>
-    <script type="text/javascript" src="../static/underscore.js"></script>
-    <script type="text/javascript" src="../static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="go_process.js" href="js_go_process.html" />
@@ -1963,7 +1963,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dt id="GateOne.Visual.bellAction">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">bellAction</tt><big>(</big><em>bellObj</em><big>)</big><a class="headerlink" href="#GateOne.Visual.bellAction" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure align-right">
-<img alt="../images/gateone_bellaction.png" class="portional-screenshot" src="../images/gateone_bellaction.png" />
+<img alt="../_images/gateone_bellaction.png" class="portional-screenshot" src="../_images/gateone_bellaction.png" />
 </div>
 <p>Plays a bell sound and pops up a message indiciating which terminal the bell came from (visual bell is always enabled).  It takes a JavaScript object (<em>bellObj</em>) as an argument because it is meant to be registered as an action in <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt> as it is the Gate One server that tells us when a bell has been encountered.</p>
 <p>The format of <em>bellObj</em> is as simple as can be: <tt class="docutils literal"><span class="pre">{'term':</span> <span class="pre">1}</span></tt>.
@@ -2042,7 +2042,7 @@ The bell sound will be whatever <tt class="docutils literal"><span class="pre">&
 <dt id="GateOne.Visual.displayMessage">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">displayMessage</tt><big>(</big><em>message</em><span class="optional">[</span>, <em>timeout</em><span class="optional">[</span>, <em>removeTimeout</em><span class="optional">[</span>, <em>id</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.displayMessage" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure align-right">
-<img alt="../images/gateone_displaymessage.png" class="portional-screenshot" src="../images/gateone_displaymessage.png" />
+<img alt="../_images/gateone_displaymessage.png" class="portional-screenshot" src="../_images/gateone_displaymessage.png" />
 </div>
 <p>Displays <em>message</em> to the user via a transient pop-up DIV that will appear inside <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt>.  How long the message lasts can be controlled via <em>timeout</em> and <em>removeTimeout</em> (which default to 1000 and 5000, respectively).</p>
 <p>If <em>id</em> is given, it will be prefixed with <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.prefs.prefix</span></tt> and used as the DIV ID for the pop-up.  i.e. <tt class="docutils literal"><span class="pre">GateOne.prefs.prefix+id</span></tt>.  The default is <tt class="docutils literal"><span class="pre">GateOne.prefs.prefix+&quot;notice&quot;</span></tt>.</p>
@@ -2073,7 +2073,7 @@ The bell sound will be whatever <tt class="docutils literal"><span class="pre">&
 <dt id="GateOne.Visual.displayTermInfo">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">displayTermInfo</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Visual.displayTermInfo" title="Permalink to this definition">¶</a></dt>
 <dd><div class="figure align-right">
-<img alt="../images/gateone_displayterminfo.png" class="portional-screenshot" src="../images/gateone_displayterminfo.png" />
+<img alt="../_images/gateone_displayterminfo.png" class="portional-screenshot" src="../_images/gateone_displayterminfo.png" />
 </div>
 <p>Displays the terminal number and terminal title of the given <em>term</em> via a transient pop-up DIV that starts fading away after one second.</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">displayTermInfo</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
@@ -2629,7 +2629,7 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
                         title="next chapter">go_process.js</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="../sources/Developer/js_gateone.txt"
+    <li><a href="../_sources/Developer/js_gateone.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
