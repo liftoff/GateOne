@@ -8,9 +8,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>sso.py - A Tornado Kerberos Single Sign-On Module &mdash; Gate One v0.9 documentation</title>
-    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <link rel="stylesheet" href="../static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../static/ansi.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -20,9 +20,9 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
     <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="terminal.py - A Pure Python Terminal Emulator" href="terminal.html" />
@@ -98,7 +98,7 @@ If you can get SSO working with SSH you can get SSO working with anything else.<
 <h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="sso.KerberosAuthMixin">
-<em class="property">class </em><tt class="descclassname">sso.</tt><tt class="descname">KerberosAuthMixin</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">sso.</tt><tt class="descname">KerberosAuthMixin</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../modules/sso.html#KerberosAuthMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Authenticates users via Kerberos-based Single Sign-On.  Requires that you
 define 'sso_realm' and 'sso_service' in your Tornado Application settings.
 For example:</p>
@@ -141,7 +141,7 @@ services).</p>
 </div>
 <dl class="method">
 <dt id="sso.KerberosAuthMixin.initialize">
-<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.initialize" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../modules/sso.html#KerberosAuthMixin.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print out helpful error messages if the requisite settings aren't
 configured.</p>
 <p>NOTE: It won't hurt anything to override this method in your
@@ -150,7 +150,7 @@ RequestHandler.</p>
 
 <dl class="method">
 <dt id="sso.KerberosAuthMixin.get_authenticated_user">
-<tt class="descname">get_authenticated_user</tt><big>(</big><em>callback</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.get_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.get_authenticated_user" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_authenticated_user</tt><big>(</big><em>callback</em><big>)</big><a class="reference internal" href="../modules/sso.html#KerberosAuthMixin.get_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.get_authenticated_user" title="Permalink to this definition">¶</a></dt>
 <dd><p>Processes the client's Authorization header and calls
 self.auth_negotiate() or self.auth_basic() depending on what headers
 were provided by the client.</p>
@@ -158,20 +158,20 @@ were provided by the client.</p>
 
 <dl class="method">
 <dt id="sso.KerberosAuthMixin.auth_negotiate">
-<tt class="descname">auth_negotiate</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.auth_negotiate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.auth_negotiate" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">auth_negotiate</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../modules/sso.html#KerberosAuthMixin.auth_negotiate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.auth_negotiate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform Negotiate (GSSAPI/SSO) authentication via Kerberos.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sso.KerberosAuthMixin.auth_basic">
-<tt class="descname">auth_basic</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.auth_basic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.auth_basic" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">auth_basic</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../modules/sso.html#KerberosAuthMixin.auth_basic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.auth_basic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform Basic authentication using Kerberos against
 self.settings['sso_realm'].</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sso.KerberosAuthMixin.authenticate_redirect">
-<tt class="descname">authenticate_redirect</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.authenticate_redirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.authenticate_redirect" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">authenticate_redirect</tt><big>(</big><big>)</big><a class="reference internal" href="../modules/sso.html#KerberosAuthMixin.authenticate_redirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.authenticate_redirect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Informs the browser that this resource requires authentication (status
 code 401) which should prompt the browser to reply with credentials.</p>
 <p>The browser will be informed that we support both Negotiate (GSSAPI/SSO)
@@ -208,7 +208,7 @@ process as close as possible to how things work in tornado.auth.</p>
                         title="next chapter"><tt class="docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="../_sources/Developer/sso.txt"
+    <li><a href="../sources/Developer/sso.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">

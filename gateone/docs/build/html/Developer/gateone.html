@@ -8,9 +8,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>gateone.py - Gate One&#39;s Main Script &mdash; Gate One v0.9 documentation</title>
-    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <link rel="stylesheet" href="../static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../static/ansi.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -20,9 +20,9 @@
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
     <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="logviewer.py - Session Log Viewer" href="logviewer.html" />
@@ -289,11 +289,11 @@ the following tasks in relation to plugins:</p>
 <h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="gateone.BaseHandler">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../modules/gateone.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>A base handler that all Gate One RequestHandlers will inherit methods from.</p>
 <dl class="method">
 <dt id="gateone.BaseHandler.get_current_user">
-<tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#BaseHandler.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler.get_current_user" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="../modules/gateone.html#BaseHandler.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler.get_current_user" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tornado standard method--implemented our way.</p>
 </dd></dl>
 
@@ -301,7 +301,7 @@ the following tasks in relation to plugins:</p>
 
 <dl class="class">
 <dt id="gateone.MainHandler">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">MainHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#MainHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.MainHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">MainHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../modules/gateone.html#MainHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.MainHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Renders index.html which loads Gate One.</p>
 <p>Will include the minified version of gateone.js if available as
 gateone.min.js.</p>
@@ -313,13 +313,13 @@ size should be less than 32k when encoded to Base64.</p>
 
 <dl class="class">
 <dt id="gateone.StyleHandler">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">StyleHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#StyleHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.StyleHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">StyleHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../modules/gateone.html#StyleHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.StyleHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Serves up our CSS templates (e.g. the 'black' or 'white' schemes)</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="gateone.RecordingHandler">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">RecordingHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#RecordingHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.RecordingHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">RecordingHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../modules/gateone.html#RecordingHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.RecordingHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles uploads of session recordings and returns them to the client in a
 self-contained HTML file that will auto-start playback.</p>
 <p>NOTE: The real crux of the code that handles this is in the template.</p>
@@ -327,7 +327,7 @@ self-contained HTML file that will auto-start playback.</p>
 
 <dl class="class">
 <dt id="gateone.OpenLogHandler">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">OpenLogHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#OpenLogHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.OpenLogHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">OpenLogHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../modules/gateone.html#OpenLogHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.OpenLogHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles uploads of user logs and returns them to the client as a basic HTML
 page.  Essentially, this works around the limitation of an HTML page being
 unable to save itself =).</p>
@@ -335,7 +335,7 @@ unable to save itself =).</p>
 
 <dl class="class">
 <dt id="gateone.TidyThread">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">TidyThread</tt><big>(</big><em>session</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TidyThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TidyThread" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">TidyThread</tt><big>(</big><em>session</em><big>)</big><a class="reference internal" href="../modules/gateone.html#TidyThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TidyThread" title="Permalink to this definition">¶</a></dt>
 <dd><p>Kills a user's termio session if the client hasn't updated the keepalive
 within <em>TIMEOUT</em> (global).  Also, tidies up sessions, logs, and whatnot based
 on Gate One's settings (when the time is right).</p>
@@ -344,7 +344,7 @@ background.</p>
 <p><em>session</em> - 45-character string containing the user's session ID</p>
 <dl class="method">
 <dt id="gateone.TidyThread.keepalive">
-<tt class="descname">keepalive</tt><big>(</big><em>datetime_obj=None</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TidyThread.keepalive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TidyThread.keepalive" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">keepalive</tt><big>(</big><em>datetime_obj=None</em><big>)</big><a class="reference internal" href="../modules/gateone.html#TidyThread.keepalive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TidyThread.keepalive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resets the keepalive timer.  Typically called when the user performs a new action.</p>
 <p><em>datetime_obj</em> - A datetime object that will be used to measure <em>TIMEOUT</em> against.  Will end up defaulting to datetime.now() (if None) which is what you'd want 99% of the time.</p>
 </dd></dl>
@@ -384,7 +384,7 @@ background.</p>
                         title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="../_sources/Developer/gateone.txt"
+    <li><a href="../sources/Developer/gateone.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">

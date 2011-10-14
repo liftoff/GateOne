@@ -366,8 +366,12 @@ class TerminalWebSocket(WebSocketHandler):
         NOTE: Normally self.refresh_screen() catches the disconnect first and
         this won't be called.
         """
-        logging.info(
-            "WebSocket closed (%s)" % self.get_current_user()['go_upn'])
+        if 'go_upn' in self.get_current_user():
+            logging.info(
+                "WebSocket closed (%s)" % self.get_current_user()['go_upn'])
+        else:
+            logging.info(
+                "WebSocket closed"
 
     def pong(self, timestamp):
         """

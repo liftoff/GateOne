@@ -603,16 +603,18 @@ class Terminal(object):
 
 # TODO: put some logic in these save/restore functions to walk the current
 # rendition line to come up with a logical rendition for that exact spot.
-    def save_cursor_position(self):
+    def save_cursor_position(self, *args, **kwargs):
         """
         Saves the cursor position and current rendition settings to
         self.saved_cursorX, self.saved_cursorY, and self.saved_rendition
         """
+        # NOTE: args and kwargs are here to make sure we don't get an exception
+        #       when we're called via escape sequences.
         self.saved_cursorX = self.cursorX
         self.saved_cursorY = self.cursorY
         self.saved_rendition = self.renditions[self.cursorY][self.cursorX]
 
-    def restore_cursor_position(self):
+    def restore_cursor_position(self, *args, **kwargs):
         """
         Restores the cursor position and rendition settings from
         self.saved_cursorX, self.saved_cursorY, and self.saved_rendition (if

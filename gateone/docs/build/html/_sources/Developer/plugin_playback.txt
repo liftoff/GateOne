@@ -1,2 +1,0 @@
-The Playback Plugin
-===================
