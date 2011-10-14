@@ -347,7 +347,6 @@ class Multiplex:
         NOTE: This kind of logging doesn't capture user keystrokes.  This is
         intentional as we don't want passwords winding up in the logs.
         """
-        self.term.write(chars)
         # Write to the log too (if configured)
         if self.log_path:
             now = int(round(time.time() * 1000))
@@ -377,6 +376,7 @@ class Multiplex:
                         self.user, self.term_num, line))
             else:
                 self.syslog_buffer += chars
+        self.term.write(chars)
 
     def proc_read(self, fd, event):
         """
