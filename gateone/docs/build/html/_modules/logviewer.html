@@ -1,0 +1,387 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>logviewer &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for logviewer</h1><div class="highlight"><pre>
+<span class="c">#</span>
+<span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
+<span class="c">#</span>
+
+<span class="c"># Meta</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.9&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+
+<span class="c"># Import stdlib stuff</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">gzip</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
+
+<span class="c"># Import our own stuff</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">raw</span>
+
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">.. _log_viewer:</span>
+
+<span class="s">Log Viewer</span>
+<span class="s">==========</span>
+<span class="s">Allows the user to play back a given log file like a video (default) or display</span>
+<span class="s">it in a syslog-like format.  To view usage information, run it with the --help</span>
+<span class="s">switch:</span>
+
+<span class="s">.. ansi-block::</span>
+<span class="s">    </span><span class="se">\x1b</span><span class="s">[1;31mroot</span><span class="se">\x1b</span><span class="s">[0m@host</span><span class="se">\x1b</span><span class="s">[1;34m:/opt/gateone $</span><span class="se">\x1b</span><span class="s">[0m ./logviewer.py --help</span>
+<span class="s">    Usage:  logviewer.py [options] &lt;log file&gt;</span>
+
+<span class="s">    Options:</span>
+<span class="s">      --version       show program&#39;s version number and exit</span>
+<span class="s">      -h, --help      show this help message and exit</span>
+<span class="s">      -f, --flat      Display the log line-by-line in a syslog-like format.</span>
+<span class="s">      -p, --playback  Play back the log in a video-like fashion. This is the</span>
+<span class="s">                    default view.</span>
+<span class="s">      --pretty        Preserve font and character renditions when displaying the</span>
+<span class="s">                    log in flat view (default).</span>
+<span class="s">      --raw           Display control characters and escape sequences when</span>
+<span class="s">                    viewing.</span>
+
+<span class="s">Here&#39;s an example of how to display a Gate One log (.golog) in a flat, greppable</span>
+<span class="s">format:</span>
+
+<span class="s">.. ansi-block::</span>
+
+<span class="s">    </span><span class="se">\x1b</span><span class="s">[1;31mroot</span><span class="se">\x1b</span><span class="s">[0m@host</span><span class="se">\x1b</span><span class="s">[1;34m:/opt/gateone $</span><span class="se">\x1b</span><span class="s">[0m ./logviewer.py --flat</span>
+<span class="s">    Sep 09 21:07:14 Host/IP or SSH URL [localhost]: modern-host</span>
+<span class="s">    Sep 09 21:07:16 Port [22]:</span>
+<span class="s">    Sep 09 21:07:16 User: bsmith</span>
+<span class="s">    Sep 09 21:07:17 Connecting to: ssh://bsmith@modern-host:22</span>
+<span class="s">    Sep 09 21:07:17</span>
+<span class="s">    Sep 09 21:07:17 bsmith@modern-host&#39;s password:</span>
+<span class="s">    Sep 09 21:07:20 Welcome to Ubuntu 11.04 (GNU/Linux 2.6.38-11-generic x86_64)</span>
+<span class="s">    Sep 09 21:07:20</span>
+<span class="s">    Sep 09 21:07:20  * Documentation:  https://help.ubuntu.com/</span>
+<span class="s">    Sep 09 21:07:20</span>
+<span class="s">    Sep 09 21:07:20 Last login: Thu Sep 29 08:51:27 2011 from portarisk</span>
+<span class="s">    Sep 09 21:07:20 </span><span class="se">\x1b</span><span class="s">[1;34mbsmith</span><span class="se">\x1b</span><span class="s">[0m@modern-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m ls</span>
+<span class="s">    Sep 09 21:07:21 why_I_love_gate_one.txt  to_dont_list.txt</span>
+<span class="s">    Sep 09 21:07:21 </span><span class="se">\x1b</span><span class="s">[1;34mbsmith</span><span class="se">\x1b</span><span class="s">[0m@modern-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m</span>
+
+<span class="s">About Gate One&#39;s Log Format</span>
+<span class="s">===========================</span>
+<span class="s">Gate One&#39;s log format (.golog) is a gzip-compressed unicode (UTF-8) text file</span>
+<span class="s">consisting of time-based frames separated by the unicode character, U+F0F0F0.</span>
+<span class="s">Each frame consists of JavaScript-style timestamp (because it is compact)</span>
+<span class="s">followed by a colon and then the text characters of the frame.  A frame ends</span>
+<span class="s">when a U+F0F0F0 character is encountered.</span>
+
+<span class="s">Here are two example .golog frames demonstrating the format::</span>
+
+<span class="s">    1317344834868:</span><span class="se">\\</span><span class="s">x1b[H</span><span class="se">\\</span><span class="s">x1b[2JHost/IP or SSH URL [localhost]: &lt;U+F0F0F&gt;1317344836086:</span><span class="se">\\</span><span class="s">r</span><span class="se">\\</span><span class="s">nPort [22]: &lt;U+F0F0F&gt;</span>
+
+<span class="s">Gate One logs can be opened, decoded, and parsed in Python fairly easily::</span>
+
+<span class="s">    import gzip</span>
+<span class="s">    golog = gzip.open(path_to_golog).read().decode(&#39;utf-8&#39;)</span>
+<span class="s">    for frame in golog.split(u&quot;</span><span class="se">\U000f0f0f</span><span class="s">&quot;):</span>
+<span class="s">        frame_time = float(frame[:13]) # First 13 chars is the timestamp</span>
+<span class="s">        # Timestames can be converted into datetime objects very simply:</span>
+<span class="s">        datetime_obj = datetime.fromtimestamp(frame_time/1000)</span>
+<span class="s">        frame_text = frame[14:] # This gets you the actual text minus the colon</span>
+<span class="s">        # Do something with the datetime_obj and the frame_text</span>
+
+<span class="s">.. note:: U+F0F0F0 is from Private Use Area (PUA) 15 in the Unicode Character Set (UCS). It was chosen at random (mostly =) from PUA-15 because it is highly unlikely to be used in an actual terminal program where it could corrupt a session log.</span>
+
+<span class="s">Class Docstrings</span>
+<span class="s">================</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="c"># Globals</span>
+<span class="n">SEPARATOR</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="c"># The character used to separate frames in the log</span>
+
+<span class="c"># TODO: Support Fast forward/rewind/pause like Gate One itself.</span>
+
+<span class="k">def</span> <span class="nf">playback_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">file_like</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="playback_log"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.playback_log">[docs]</a><span class="sd">    Plays back the log file at *log_path* by way of timely output to *file_like*</span>
+<span class="sd">    which is expected to be any file-like object with write() and flush()</span>
+<span class="sd">    methods.</span>
+
+<span class="sd">    If *show_esc* is True, escape sequences and control characters will be</span>
+<span class="sd">    escaped so they can be seen in the output.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">prev_frame_time</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">log</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">)):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">])</span> <span class="c"># First 13 chars is the timestamp</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span> <span class="c"># Skips the colon</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c"># Write it out immediately</span>
+                <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="n">prev_frame_time</span> <span class="o">=</span> <span class="n">frame_time</span>
+            <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Wait until the time between the previous frame and now has passed</span>
+                <span class="n">wait_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">frame_time</span> <span class="o">-</span> <span class="n">prev_frame_time</span><span class="p">)</span><span class="o">/</span><span class="mf">1000.0</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="n">wait_time</span><span class="p">)</span> <span class="c"># frame times are in milliseconds</span>
+                <span class="n">prev_frame_time</span> <span class="o">=</span> <span class="n">frame_time</span>
+                <span class="k">if</span> <span class="n">show_esc</span><span class="p">:</span>
+                    <span class="n">frame</span> <span class="o">=</span> <span class="n">raw</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="n">file_like</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="c"># End of file.  No biggie.</span>
+            <span class="k">return</span>
+
+<span class="k">def</span> <span class="nf">escape_escape_seq</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">preserve_renditions</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span></div>
+<div class="viewcode-block" id="escape_escape_seq"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.escape_escape_seq">[docs]</a><span class="sd">    Escapes escape sequences so they don&#39;t muck with the terminal viewing *text*</span>
+<span class="sd">    Also replaces special characters with unicode symbol equivalents (e.g. so</span>
+<span class="sd">    you can see what they are without having them do anything to your running</span>
+<span class="sd">    shell)</span>
+
+<span class="sd">    If *preserve_renditions* is True, CSI escape sequences for renditions will</span>
+<span class="sd">    be preserved as-is (e.g. font color, background, etc).</span>
+
+<span class="sd">    If *rstrip* is true, trailing escape sequences and whitespace will be</span>
+<span class="sd">    removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">esc_sequence</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+        <span class="s">r&#39;\x1b(.*\x1b</span><span class="se">\\</span><span class="s">|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=]|[()# %*+].)&#39;</span><span class="p">)</span>
+    <span class="n">csi_sequence</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])&#39;</span><span class="p">)</span>
+    <span class="n">esc_rstrip</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;[ </span><span class="se">\t</span><span class="s">]+</span><span class="se">\x1b</span><span class="s">.+$&#39;</span><span class="p">)</span>
+    <span class="c">#replacement_map = {</span>
+        <span class="c">#0: u&#39;␀&#39;,</span>
+        <span class="c">#7: u&#39;␇&#39;,</span>
+        <span class="c">#9: u&#39;␉&#39;,</span>
+        <span class="c">#24: u&#39;␘&#39;,</span>
+    <span class="c">#}</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
+    <span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
+    <span class="c"># If this seems confusing it is because text parsing is a black art! ARRR!</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">esc_buffer</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">&#39;</span><span class="p">:</span>
+                <span class="n">esc_buffer</span> <span class="o">=</span> <span class="n">char</span>
+            <span class="c">#elif ord(char) in replacement_map:</span>
+                <span class="c">#out += replacement_map[ord(char)]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out</span> <span class="o">+=</span> <span class="n">raw</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">esc_buffer</span> <span class="o">+=</span> <span class="n">char</span>
+            <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s">u&#39;</span><span class="se">\x07</span><span class="s">&#39;</span> <span class="ow">or</span> <span class="n">esc_buffer</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b\\</span><span class="s">&#39;</span><span class="p">):</span> <span class="c"># Likely title</span>
+                <span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span> <span class="c"># Nobody wants to see your naked ESC sequence</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">esc_buffer</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\x1b\\</span><span class="s">&#39;</span><span class="p">):</span>
+                <span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span> <span class="c"># Ignore</span>
+                <span class="k">continue</span>
+            <span class="c"># Nobody wants to see plain ESC sequences in the buf...</span>
+            <span class="n">match_obj</span> <span class="o">=</span> <span class="n">esc_sequence</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">esc_buffer</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match_obj</span><span class="p">:</span>
+                <span class="n">seq_type</span> <span class="o">=</span> <span class="n">match_obj</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span> <span class="c"># Just when you thought you&#39;ve ESC&#39;d...</span>
+                <span class="k">continue</span>
+            <span class="c"># CSI ESC sequences...  These are worth a second look</span>
+            <span class="n">match_obj</span> <span class="o">=</span> <span class="n">csi_sequence</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">esc_buffer</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match_obj</span><span class="p">:</span>
+                <span class="n">csi_type</span> <span class="o">=</span> <span class="n">match_obj</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">csi_type</span> <span class="o">==</span> <span class="s">&#39;m&#39;</span> <span class="ow">and</span> <span class="n">preserve_renditions</span><span class="p">:</span> <span class="c"># mmmmmm!</span>
+                    <span class="n">out</span> <span class="o">+=</span> <span class="n">esc_buffer</span> <span class="c"># Ooh, naked viewing of pretty things!</span>
+                <span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span> <span class="c"># Make room for more!</span>
+                <span class="k">continue</span>
+    <span class="k">if</span> <span class="n">rstrip</span><span class="p">:</span>
+        <span class="c"># Remove trailing whitespace + trailing ESC sequences</span>
+        <span class="k">return</span> <span class="n">esc_rstrip</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c"># All these trailers better make for a good movie</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+<span class="k">def</span> <span class="nf">flatten_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">preserve_renditions</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span></div>
+<div class="viewcode-block" id="flatten_log"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.flatten_log">[docs]</a><span class="sd">    Given a log file at *log_path*, return a list of log lines contained within.</span>
+
+<span class="sd">    If *preserve_renditions* is True, CSI escape sequences for renditions will</span>
+<span class="sd">    be preserved as-is (e.g. font color, background, etc).  This is to make the</span>
+<span class="sd">    output appear as close to how it was originally displayed as possible.</span>
+<span class="sd">    Besides that, it looks really nice =)</span>
+
+<span class="sd">    If *show_esc* is True, escape sequences and control characters will be</span>
+<span class="sd">    visible in the output.  Trailing whitespace and escape sequences will not be</span>
+<span class="sd">    removed.</span>
+
+<span class="sd">    NOTE: Converts our standard recording-based log format into something that</span>
+<span class="sd">    can be used with grep and similar search/filter tools.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">gzip</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">lines</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">])</span> <span class="c"># First 13 chars is the timestamp</span>
+            <span class="c"># Convert to datetime object</span>
+            <span class="n">frame_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">frame_time</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]:</span> <span class="c"># Skips the colon</span>
+                <span class="n">frame_lines</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frame_lines</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fl</span><span class="p">):</span>
+                        <span class="c"># NOTE: Have to put a rendition reset (\x1b[m) at the</span>
+                        <span class="c"># start of each line in case the previous line didn&#39;t</span>
+                        <span class="c"># reset it on its own.</span>
+                        <span class="k">if</span> <span class="n">show_esc</span><span class="p">:</span>
+                            <span class="n">out</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="c"># Standard Unix log format</span>
+                                <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[m%b %m %H:%M:%S&#39;</span><span class="p">),</span>
+                                <span class="n">raw</span><span class="p">(</span><span class="n">fl</span><span class="p">))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">out</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="c"># Standard Unix log format</span>
+                                <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[m%b %m %H:%M:%S&#39;</span><span class="p">),</span>
+                                <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                            <span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">i</span><span class="p">:</span><span class="c"># Don&#39;t need this for the first empty line in a frame</span>
+                        <span class="n">out</span> <span class="o">+=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[m%b %m %H:%M:%S </span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">show_esc</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="ow">and</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">raw</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">escaped_frame</span> <span class="o">=</span> <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:],</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="ow">and</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">escaped_frame</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">escaped_frame</span><span class="p">:</span>
+                    <span class="c"># This is pretty much always going to be the first line</span>
+                    <span class="n">out</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="c"># Standard Unix log format</span>
+                        <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[m%b %m %H:%M:%S&#39;</span><span class="p">),</span>
+                        <span class="n">escaped_frame</span>
+                    <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">pass</span>
+            <span class="c"># End of file.  No biggie.</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Parse command line arguments and view the log in the specified format.&quot;&quot;&quot;</span></div>
+    <span class="n">usage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">%prog [options] &lt;log file&gt;&#39;</span><span class="p">)</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">(</span><span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">__version__</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">disable_interspersed_args</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-f&quot;</span><span class="p">,</span> <span class="s">&quot;--flat&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s">&quot;flat&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Display the log line-by-line in a syslog-like format.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;-p&quot;</span><span class="p">,</span> <span class="s">&quot;--playback&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s">&quot;playback&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s">&quot;store_false&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span><span class="s">&quot;Play back the log in a video-like fashion. This is the default &quot;</span>
+              <span class="s">&quot;view.&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;--pretty&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s">&quot;pretty&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span><span class="s">&quot;Preserve font and character renditions when displaying the log &quot;</span>
+              <span class="s">&quot;in flat view (default).&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&quot;--raw&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s">&quot;raw&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Display control characters and escape sequences when viewing.&quot;</span>
+    <span class="p">)</span>
+    <span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;ERROR: You must specify a log file to view.&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">log_path</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">flat</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">flatten_log</span><span class="p">(</span>
+            <span class="n">log_path</span><span class="p">,</span> <span class="n">preserve_renditions</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">pretty</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">playback_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

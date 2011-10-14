@@ -1,0 +1,627 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utils &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utils</h1><div class="highlight"><pre>
+<span class="c">#</span>
+<span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
+<span class="c">#</span>
+<span class="c"># For license information see LICENSE.txt</span>
+
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">Gate One utility functions and classes.</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="c"># Meta</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+
+<span class="c"># Import stdlib stuff</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">errno</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">syslog</span>
+<span class="kn">import</span> <span class="nn">mimetypes</span>
+<span class="kn">from</span> <span class="nn">commands</span> <span class="kn">import</span> <span class="n">getstatusoutput</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="c"># Globals</span>
+<span class="c"># This matches JUST the PIDs from the output of the pstree command</span>
+<span class="n">RE_PSTREE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\(([0-9]*)\)&#39;</span><span class="p">)</span>
+<span class="c"># This is used by the raw() function to show control characters</span>
+<span class="n">REPLACEMENT_DICT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s">u&#39;^@&#39;</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="s">u&#39;^A&#39;</span><span class="p">,</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="s">u&#39;^B&#39;</span><span class="p">,</span>
+    <span class="mi">3</span><span class="p">:</span> <span class="s">u&#39;^C&#39;</span><span class="p">,</span>
+    <span class="mi">4</span><span class="p">:</span> <span class="s">u&#39;^D&#39;</span><span class="p">,</span>
+    <span class="mi">5</span><span class="p">:</span> <span class="s">u&#39;^E&#39;</span><span class="p">,</span>
+    <span class="mi">6</span><span class="p">:</span> <span class="s">u&#39;^F&#39;</span><span class="p">,</span>
+    <span class="mi">7</span><span class="p">:</span> <span class="s">u&#39;^G&#39;</span><span class="p">,</span>
+    <span class="mi">8</span><span class="p">:</span> <span class="s">u&#39;^H&#39;</span><span class="p">,</span>
+    <span class="mi">9</span><span class="p">:</span> <span class="s">u&#39;^I&#39;</span><span class="p">,</span>
+    <span class="mi">10</span><span class="p">:</span> <span class="s">u&#39;^J&#39;</span><span class="p">,</span>
+    <span class="mi">11</span><span class="p">:</span> <span class="s">u&#39;^K&#39;</span><span class="p">,</span>
+    <span class="mi">12</span><span class="p">:</span> <span class="s">u&#39;^L&#39;</span><span class="p">,</span>
+    <span class="mi">13</span><span class="p">:</span> <span class="s">u&#39;^M&#39;</span><span class="p">,</span>
+    <span class="mi">14</span><span class="p">:</span> <span class="s">u&#39;^N&#39;</span><span class="p">,</span>
+    <span class="mi">15</span><span class="p">:</span> <span class="s">u&#39;^O&#39;</span><span class="p">,</span>
+    <span class="mi">16</span><span class="p">:</span> <span class="s">u&#39;^P&#39;</span><span class="p">,</span>
+    <span class="mi">17</span><span class="p">:</span> <span class="s">u&#39;^Q&#39;</span><span class="p">,</span>
+    <span class="mi">18</span><span class="p">:</span> <span class="s">u&#39;^R&#39;</span><span class="p">,</span>
+    <span class="mi">19</span><span class="p">:</span> <span class="s">u&#39;^S&#39;</span><span class="p">,</span>
+    <span class="mi">20</span><span class="p">:</span> <span class="s">u&#39;^T&#39;</span><span class="p">,</span>
+    <span class="mi">21</span><span class="p">:</span> <span class="s">u&#39;^U&#39;</span><span class="p">,</span>
+    <span class="mi">22</span><span class="p">:</span> <span class="s">u&#39;^V&#39;</span><span class="p">,</span>
+    <span class="mi">23</span><span class="p">:</span> <span class="s">u&#39;^W&#39;</span><span class="p">,</span>
+    <span class="mi">24</span><span class="p">:</span> <span class="s">u&#39;^X&#39;</span><span class="p">,</span>
+    <span class="mi">25</span><span class="p">:</span> <span class="s">u&#39;^Y&#39;</span><span class="p">,</span>
+    <span class="mi">26</span><span class="p">:</span> <span class="s">u&#39;^Z&#39;</span><span class="p">,</span>
+    <span class="mi">27</span><span class="p">:</span> <span class="s">u&#39;^[&#39;</span><span class="p">,</span>
+    <span class="mi">28</span><span class="p">:</span> <span class="s">u&#39;^</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span>
+    <span class="mi">29</span><span class="p">:</span> <span class="s">u&#39;^]&#39;</span><span class="p">,</span>
+    <span class="mi">30</span><span class="p">:</span> <span class="s">u&#39;^^&#39;</span><span class="p">,</span>
+    <span class="mi">31</span><span class="p">:</span> <span class="s">u&#39;^_&#39;</span><span class="p">,</span>
+    <span class="mi">127</span><span class="p">:</span> <span class="s">u&#39;^?&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="c"># Syslog string-to-int dict used by string_to_syslog_facility()</span>
+<span class="n">FACILITIES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;kern&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_KERN</span><span class="p">,</span>
+    <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_USER</span><span class="p">,</span>
+    <span class="s">&#39;mail&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_MAIL</span><span class="p">,</span>
+    <span class="s">&#39;daemon&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_DAEMON</span><span class="p">,</span>
+    <span class="s">&#39;auth&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_AUTH</span><span class="p">,</span>
+    <span class="s">&#39;syslog&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_SYSLOG</span><span class="p">,</span>
+    <span class="s">&#39;lpr&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_LPR</span><span class="p">,</span>
+    <span class="s">&#39;news&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_NEWS</span><span class="p">,</span>
+    <span class="s">&#39;uucp&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_UUCP</span><span class="p">,</span>
+    <span class="s">&#39;cron&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_CRON</span><span class="p">,</span>
+    <span class="s">&#39;local0&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_LOCAL0</span><span class="p">,</span>
+    <span class="s">&#39;local1&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_LOCAL1</span><span class="p">,</span>
+    <span class="s">&#39;local2&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_LOCAL2</span><span class="p">,</span>
+    <span class="s">&#39;local3&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_LOCAL3</span><span class="p">,</span>
+    <span class="s">&#39;local4&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_LOCAL4</span><span class="p">,</span>
+    <span class="s">&#39;local5&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_LOCAL5</span><span class="p">,</span>
+    <span class="s">&#39;local6&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_LOCAL6</span><span class="p">,</span>
+    <span class="s">&#39;local7&#39;</span><span class="p">:</span> <span class="n">syslog</span><span class="o">.</span><span class="n">LOG_LOCAL7</span>
+<span class="p">}</span>
+
+<span class="c"># Exceptions</span>
+<span class="k">class</span> <span class="nc">UnknownFacility</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="UnknownFacility"><a class="viewcode-back" href="../Developer/utils.html#utils.UnknownFacility">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if string_to_syslog_facility() is given a string that doesn&#39;t match</span>
+<span class="sd">    a known syslog facility.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">MimeTypeFail</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span></div>
+<div class="viewcode-block" id="MimeTypeFail"><a class="viewcode-back" href="../Developer/utils.html#utils.MimeTypeFail">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised by create_data_uri() if the mimetype of a file could not be guessed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="c"># Functions</span>
+<span class="k">def</span> <span class="nf">noop</span><span class="p">():</span></div>
+<div class="viewcode-block" id="noop"><a class="viewcode-back" href="../Developer/utils.html#utils.noop">[docs]</a>    <span class="s">&#39;Do nothing (i.e. &quot;No Operation&quot;)&#39;</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">gen_self_signed_ssl</span><span class="p">(</span><span class="n">notAfter</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></div>
+<div class="viewcode-block" id="gen_self_signed_ssl"><a class="viewcode-back" href="../Developer/utils.html#utils.gen_self_signed_ssl">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method will generate a secure self-signed SSL key/certificate pair</span>
+<span class="sd">    saving the result as &#39;certificate.pem&#39; and &#39;keyfile.pem&#39; in the current</span>
+<span class="sd">    working directory.  By default the certificate will be valid for 10 years</span>
+<span class="sd">    but this can be overridden by passing a valid timestamp via the *notAfter*</span>
+<span class="sd">    argument.</span>
+
+<span class="sd">    Examples::</span>
+
+<span class="sd">        gen_self_signed_ssl(60 * 60 * 24 * 365) # 1-year certificate</span>
+<span class="sd">        gen_self_signed_ssl() # 10-year certificate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">OpenSSL</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">random</span><span class="o">,</span> <span class="nn">sys</span>
+    <span class="n">pkey</span> <span class="o">=</span> <span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">PKey</span><span class="p">()</span>
+    <span class="n">pkey</span><span class="o">.</span><span class="n">generate_key</span><span class="p">(</span><span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">TYPE_RSA</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)</span>
+    <span class="c"># Save the key as &#39;keyfile.pem&#39;:</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;keyfile.pem&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">dump_privatekey</span><span class="p">(</span><span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">FILETYPE_PEM</span><span class="p">,</span> <span class="n">pkey</span><span class="p">))</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">cert</span> <span class="o">=</span> <span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">X509</span><span class="p">()</span>
+    <span class="n">cert</span><span class="o">.</span><span class="n">set_serial_number</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxint</span><span class="p">))</span>
+    <span class="n">cert</span><span class="o">.</span><span class="n">gmtime_adj_notBefore</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">notAfter</span><span class="p">:</span>
+        <span class="n">cert</span><span class="o">.</span><span class="n">gmtime_adj_notAfter</span><span class="p">(</span><span class="n">notAfter</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cert</span><span class="o">.</span><span class="n">gmtime_adj_notAfter</span><span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">3650</span><span class="p">)</span>
+    <span class="n">cert</span><span class="o">.</span><span class="n">get_subject</span><span class="p">()</span><span class="o">.</span><span class="n">CN</span> <span class="o">=</span> <span class="s">&#39;*&#39;</span>
+    <span class="n">cert</span><span class="o">.</span><span class="n">get_subject</span><span class="p">()</span><span class="o">.</span><span class="n">O</span> <span class="o">=</span> <span class="s">&#39;Gate One Certificate&#39;</span>
+    <span class="n">cert</span><span class="o">.</span><span class="n">get_issuer</span><span class="p">()</span><span class="o">.</span><span class="n">CN</span> <span class="o">=</span> <span class="s">&#39;Untrusted Authority&#39;</span>
+    <span class="n">cert</span><span class="o">.</span><span class="n">get_issuer</span><span class="p">()</span><span class="o">.</span><span class="n">O</span> <span class="o">=</span> <span class="s">&#39;Self-Signed&#39;</span>
+    <span class="n">cert</span><span class="o">.</span><span class="n">set_pubkey</span><span class="p">(</span><span class="n">pkey</span><span class="p">)</span>
+    <span class="n">cert</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">pkey</span><span class="p">,</span> <span class="s">&#39;md5&#39;</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;certificate.pem&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">dump_certificate</span><span class="p">(</span><span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">FILETYPE_PEM</span><span class="p">,</span> <span class="n">cert</span><span class="p">))</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">none_fix</span><span class="p">(</span><span class="n">val</span><span class="p">):</span></div>
+<div class="viewcode-block" id="none_fix"><a class="viewcode-back" href="../Developer/utils.html#utils.none_fix">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If *val* is a string meaning &#39;none&#39;, return None.  Otherwise just return</span>
+<span class="sd">    *val* as-is.  Examples::</span>
+
+<span class="sd">        &gt;&gt;&gt; import utils</span>
+<span class="sd">        &gt;&gt;&gt; utils.none_fix(&#39;none&#39;)</span>
+<span class="sd">        None</span>
+<span class="sd">        &gt;&gt;&gt; utils.none_fix(&#39;0&#39;)</span>
+<span class="sd">        None</span>
+<span class="sd">        &gt;&gt;&gt; utils.none_fix(&#39;whatever&#39;)</span>
+<span class="sd">        &#39;whatever&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">)</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;none&#39;</span><span class="p">,</span> <span class="s">&#39;0&#39;</span><span class="p">,</span> <span class="s">&#39;no&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+<span class="k">def</span> <span class="nf">str2bool</span><span class="p">(</span><span class="n">val</span><span class="p">):</span></div>
+<div class="viewcode-block" id="str2bool"><a class="viewcode-back" href="../Developer/utils.html#utils.str2bool">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts strings like, &#39;false&#39;, &#39;true&#39;, &#39;0&#39;, and &#39;1&#39; into their boolean</span>
+<span class="sd">    equivalents.  If no logical match is found, return False.  Examples::</span>
+
+<span class="sd">        &gt;&gt;&gt; import utils</span>
+<span class="sd">        &gt;&gt;&gt; utils.str2bool(&#39;false&#39;)</span>
+<span class="sd">        False</span>
+<span class="sd">        &gt;&gt;&gt; utils.str2bool(&#39;1&#39;)</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; utils.st2bool(&#39;whatever&#39;)</span>
+<span class="sd">        False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">)</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="s">&#39;true&#39;</span><span class="p">,</span> <span class="s">&#39;yes&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+<span class="k">def</span> <span class="nf">generate_session_id</span><span class="p">():</span></div>
+<div class="viewcode-block" id="generate_session_id"><a class="viewcode-back" href="../Developer/utils.html#utils.generate_session_id">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a random, 45-character session ID.  Example::</span>
+
+<span class="sd">        &gt;&gt;&gt; utils.generate_session_id()</span>
+<span class="sd">        &#39;NzY4YzFmNDdhMTM1NDg3Y2FkZmZkMWJmYjYzNjBjM2Y5O&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span> <span class="o">+</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">)[:</span><span class="mi">45</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">mkdir_p</span><span class="p">(</span><span class="n">path</span><span class="p">):</span></div>
+<div class="viewcode-block" id="mkdir_p"><a class="viewcode-back" href="../Developer/utils.html#utils.mkdir_p">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pythonic version of &quot;mkdir -p&quot;.  Example equivalents::</span>
+
+<span class="sd">        &gt;&gt;&gt; import commands, utils</span>
+<span class="sd">        &gt;&gt;&gt; utils.mkdir_p(&#39;/tmp/test/testing&#39;) # Does the same thing as below:</span>
+<span class="sd">        &gt;&gt;&gt; commands.getoutput(&#39;mkdir -p /tmp/test/testing&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span> <span class="c"># Python &gt;2.5</span>
+        <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EEXIST</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">raise</span>
+
+<span class="k">def</span> <span class="nf">cmd_var_swap</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></div>
+<div class="viewcode-block" id="cmd_var_swap"><a class="viewcode-back" href="../Developer/utils.html#utils.cmd_var_swap">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns *cmd* with special inline variables swapped out for their respective</span>
+<span class="sd">    argument values.  The special variables are as follows:</span>
+
+<span class="sd">        %SESSION% - *session*</span>
+<span class="sd">        %USERDIR% - *user_dir*</span>
+<span class="sd">        %USER% - *user*</span>
+<span class="sd">        %TIME% - *time*</span>
+
+<span class="sd">    This allows for unique or user-specific values to be swapped into command</span>
+<span class="sd">    line arguments like so:</span>
+
+<span class="sd">        ssh_connect.py -M -S &#39;/tmp/%SESSION%/%r@%h:%p&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">session</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">r&#39;%SESSION%&#39;</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">user_dir</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">r&#39;%USERDIR%&#39;</span><span class="p">,</span> <span class="n">user_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">r&#39;%USER%&#39;</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">time</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">r&#39;%TIME%&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">cmd</span>
+
+<span class="k">def</span> <span class="nf">kill_dtached_proc</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span></div>
+<div class="viewcode-block" id="kill_dtached_proc"><a class="viewcode-back" href="../Developer/utils.html#utils.kill_dtached_proc">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Kills the dtach session associated with the given *term* and all its</span>
+<span class="sd">    sub-processes.  Requires *session* so it can figure out the right</span>
+<span class="sd">    processess to kill.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s">&quot;ps -ef | &quot;</span>
+        <span class="s">&quot;grep </span><span class="si">%s</span><span class="s">/dtach:</span><span class="si">%s</span><span class="s"> | &quot;</span> <span class="c"># Limit to those matching our session/term combo</span>
+        <span class="s">&quot;grep &#39;dtach -c&#39; | &quot;</span> <span class="c"># Limit to the parent dtach process</span>
+        <span class="s">&quot;grep -v grep | &quot;</span> <span class="c"># Get rid of grep from the results (if present)</span>
+        <span class="s">&quot;awk &#39;{print $2}&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span> <span class="c"># Just the PID please</span>
+    <span class="p">)</span>
+    <span class="n">retcode</span><span class="p">,</span> <span class="n">pid</span> <span class="o">=</span> <span class="n">getstatusoutput</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pid</span><span class="p">:</span>
+        <span class="n">retcode</span><span class="p">,</span> <span class="n">pstree</span> <span class="o">=</span> <span class="n">getstatusoutput</span><span class="p">(</span><span class="s">&#39;pstree -p </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">pid</span><span class="p">)</span>
+        <span class="c"># pstree will look something like:</span>
+        <span class="c">#   dtach(19041)---python(19042)---ssh(19048)</span>
+        <span class="n">pids</span> <span class="o">=</span> <span class="n">RE_PSTREE</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">pstree</span><span class="p">)</span>
+        <span class="c"># pids will be something like [&#39;19041&#39;, &#39;19042&#39;, &#39;19048&#39;]</span>
+        <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">pids</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pid</span><span class="p">),</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="k">pass</span> <span class="c"># No biggie; child died with parent</span>
+
+<span class="k">def</span> <span class="nf">killall</span><span class="p">(</span><span class="n">session_dir</span><span class="p">):</span></div>
+<div class="viewcode-block" id="killall"><a class="viewcode-back" href="../Developer/utils.html#utils.killall">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Kills all running Gate One terminal processes including any detached dtach</span>
+<span class="sd">    sessions.</span>
+<span class="sd">    *session_dir* - The path to Gate One&#39;s session directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s">&quot;for i in `ls </span><span class="si">%s</span><span class="s">`; &quot;</span>
+        <span class="s">&quot;do ps -ef | grep $i | awk &#39;{print $2}&#39; | xargs kill; &quot;</span>
+        <span class="s">&quot;done&quot;</span>
+        <span class="o">%</span> <span class="n">session_dir</span>
+    <span class="p">)</span>
+    <span class="n">retcode</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">getstatusoutput</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;rm -rf </span><span class="si">%s</span><span class="s">/*&quot;</span> <span class="o">%</span> <span class="n">session_dir</span>
+    <span class="n">recode</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">getstatusoutput</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">create_plugin_static_links</span><span class="p">(</span><span class="n">static_dir</span><span class="p">,</span> <span class="n">plugin_dir</span><span class="p">):</span></div>
+<div class="viewcode-block" id="create_plugin_static_links"><a class="viewcode-back" href="../Developer/utils.html#utils.create_plugin_static_links">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates symbolic links for all plugins in the ./static/ directory.  The</span>
+<span class="sd">    equivalent of:</span>
+
+<span class="sd">    .. ansi-block::</span>
+
+<span class="sd">        \x1b[1;31mroot\x1b[0m@host\x1b[1;34m:~ $\x1b[0m ln -s *plugin_dir*/&lt;plugin&gt;/static *static_dir*/&lt;plugin&gt;</span>
+
+<span class="sd">    This is so plugins can reference files in their static directories using the</span>
+<span class="sd">    following straightforward path::</span>
+
+<span class="sd">        https://&lt;gate one&gt;/static/&lt;plugin name&gt;/&lt;some file&gt;</span>
+
+<span class="sd">    This function will also remove any dead links if a plugin is removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Clean up dead links before we do anything else</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;find -L &#39;</span><span class="si">%s</span><span class="s">&#39; -type l -delete&quot;</span> <span class="o">%</span> <span class="n">static_dir</span>
+    <span class="n">retcode</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">getstatusoutput</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">retcode</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="s">&quot;Error trying to clean up broken links in the static directory. &quot;</span>
+            <span class="s">&quot;Please check the permissions.</span><span class="se">\n\n</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">output</span>
+        <span class="p">)</span>
+    <span class="c"># Create symbolic links for each plugin&#39;s respective static directory</span>
+    <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">):</span>
+        <span class="n">plugin_name</span> <span class="o">=</span> <span class="n">directory</span>
+        <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> <span class="c"># Make absolute</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="s">&#39;static&#39;</span><span class="p">:</span>
+                <span class="n">abs_src_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="n">abs_dest_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">static_dir</span><span class="p">,</span> <span class="n">plugin_name</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">abs_src_path</span><span class="p">,</span> <span class="n">abs_dest_path</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                    <span class="k">pass</span> <span class="c"># Already exists</span>
+
+<span class="k">def</span> <span class="nf">get_plugins</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">):</span></div>
+<div class="viewcode-block" id="get_plugins"><a class="viewcode-back" href="../Developer/utils.html#utils.get_plugins">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds plugins&#39; Python files to sys.path and returns a dictionary of</span>
+<span class="sd">    JavaScript, CSS, and Python files contained in *plugin_dir* like so::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &#39;js&#39;: [ # NOTE: These would be be inside *plugin_dir*/static</span>
+<span class="sd">                &#39;/static/happy_plugin/whatever.js&#39;,</span>
+<span class="sd">                &#39;/static/ssh/ssh.js&#39;,</span>
+<span class="sd">            ],</span>
+<span class="sd">            &#39;css&#39;: [&#39;/static/ssh/ssh.css&#39;],</span>
+<span class="sd">            &#39;py&#39;: [ # NOTE: These will get added to sys.path</span>
+<span class="sd">                &#39;happy_plugin&#39;,</span>
+<span class="sd">                &#39;ssh&#39;</span>
+<span class="sd">            ],</span>
+<span class="sd">        }</span>
+
+<span class="sd">    \*.js files inside of *plugin_dir*/&lt;the plugin&gt;/static will get automatically</span>
+<span class="sd">    added to Gate One&#39;s index.html like so:</span>
+
+<span class="sd">    .. code-block:: html</span>
+
+<span class="sd">        {% for jsplugin in jsplugins %}</span>
+<span class="sd">            &lt;script type=&quot;text/javascript&quot; src=&quot;{{jsplugin}}&quot;&gt;&lt;/script&gt;</span>
+<span class="sd">        {% end %}</span>
+
+<span class="sd">    \*.css files will get added to the &lt;head&gt; like so:</span>
+
+<span class="sd">    .. code-block:: html</span>
+
+<span class="sd">        {% for cssplugin in cssplugins %}</span>
+<span class="sd">            &lt;link rel=&quot;stylesheet&quot; href=&quot;{{cssplugin}}&quot; type=&quot;text/css&quot; media=&quot;screen&quot; /&gt;</span>
+<span class="sd">        {% end %}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;js&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;css&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">):</span>
+        <span class="n">plugin</span> <span class="o">=</span> <span class="n">directory</span>
+        <span class="n">http_static_path</span> <span class="o">=</span> <span class="s">&#39;/static/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">plugin</span>
+        <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> <span class="c"># Make absolute</span>
+        <span class="n">plugin_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&quot;__init__.py&quot;</span> <span class="ow">in</span> <span class="n">plugin_files</span><span class="p">:</span>
+            <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span> <span class="c"># Just need the base</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c"># Look for .py files</span>
+            <span class="k">for</span> <span class="n">plugin_file</span> <span class="ow">in</span> <span class="n">plugin_files</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">plugin_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">):</span>
+                    <span class="n">plugin_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">plugin_file</span><span class="p">)</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+                    <span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">plugin_path</span><span class="p">)</span>
+                    <span class="n">basename</span> <span class="o">=</span> <span class="n">basename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">plugin_file</span> <span class="ow">in</span> <span class="n">plugin_files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">plugin_file</span> <span class="o">==</span> <span class="s">&#39;static&#39;</span><span class="p">:</span>
+                <span class="n">static_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">plugin_file</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">static_file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">static_dir</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">static_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.js&#39;</span><span class="p">):</span>
+                        <span class="n">http_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">http_static_path</span><span class="p">,</span> <span class="n">static_file</span><span class="p">)</span>
+                        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">http_path</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">static_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.css&#39;</span><span class="p">):</span>
+                        <span class="n">http_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">http_static_path</span><span class="p">,</span> <span class="n">static_file</span><span class="p">)</span>
+                        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">http_path</span><span class="p">)</span>
+    <span class="c"># Sort all plugins alphabetically so the order in which they&#39;re applied can</span>
+    <span class="c"># be controlled somewhat predictably</span>
+    <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">out_dict</span>
+
+<span class="k">def</span> <span class="nf">load_plugins</span><span class="p">(</span><span class="n">plugins</span><span class="p">):</span></div>
+<div class="viewcode-block" id="load_plugins"><a class="viewcode-back" href="../Developer/utils.html#utils.load_plugins">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a list of *plugins*, imports them.</span>
+<span class="sd">    NOTE:  Assumes they&#39;re all in sys.path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">plugins</span><span class="p">:</span>
+        <span class="n">imported</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">])</span>
+        <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imported</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out_list</span>
+
+<span class="k">def</span> <span class="nf">merge_handlers</span><span class="p">(</span><span class="n">handlers</span><span class="p">):</span></div>
+<div class="viewcode-block" id="merge_handlers"><a class="viewcode-back" href="../Developer/utils.html#utils.merge_handlers">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a list of Tornado *handlers* like this::</span>
+
+<span class="sd">        [</span>
+<span class="sd">            (r&quot;/&quot;, MainHandler),</span>
+<span class="sd">            (r&quot;/ws&quot;, TerminalWebSocket),</span>
+<span class="sd">            (r&quot;/auth&quot;, AuthHandler),</span>
+<span class="sd">            (r&quot;/style&quot;, StyleHandler),</span>
+<span class="sd">                ...</span>
+<span class="sd">            (r&quot;/style&quot;, SomePluginHandler),</span>
+<span class="sd">        ]</span>
+
+<span class="sd">    ...and returns a list with duplicate handlers removed; giving precedence to</span>
+<span class="sd">    handlers with higher indexes.  This allows plugins to override Gate One&#39;s</span>
+<span class="sd">    default handlers.  Given the above, this is what would be returned::</span>
+
+<span class="sd">        [</span>
+<span class="sd">            (r&quot;/&quot;, MainHandler),</span>
+<span class="sd">            (r&quot;/ws&quot;, TerminalWebSocket),</span>
+<span class="sd">            (r&quot;/auth&quot;, AuthHandler),</span>
+<span class="sd">                ...</span>
+<span class="sd">            (r&quot;/style&quot;, SomePluginHandler),</span>
+<span class="sd">        ]</span>
+
+<span class="sd">    This example would replace the default &quot;/style&quot; handler with</span>
+<span class="sd">    SomePluginHandler; overriding Gate One&#39;s default StyleHandler.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">regexes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">handlers</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">handler</span> <span class="ow">in</span> <span class="n">handlers</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">handler</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">regexes</span><span class="p">:</span>
+            <span class="n">regexes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+    <span class="n">out_list</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">out_list</span>
+
+<span class="c"># NOTE: This function has been released under the Apache 2.0 license.</span>
+<span class="c"># See: http://code.activestate.com/recipes/577894-convert-strings-like-5d-and-60s-to-timedelta-objec/</span>
+<span class="k">def</span> <span class="nf">convert_to_timedelta</span><span class="p">(</span><span class="n">time_val</span><span class="p">):</span></div>
+<div class="viewcode-block" id="convert_to_timedelta"><a class="viewcode-back" href="../Developer/utils.html#utils.convert_to_timedelta">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a *time_val* (string) such as &#39;5d&#39;, returns a timedelta object</span>
+<span class="sd">    representing the given value (e.g. timedelta(days=5)).  Accepts the</span>
+<span class="sd">    following &#39;&lt;num&gt;&lt;char&gt;&#39; formats:</span>
+
+<span class="sd">    =========   ======= ===================</span>
+<span class="sd">    Character   Meaning Example</span>
+<span class="sd">    =========   ======= ===================</span>
+<span class="sd">    s           Seconds &#39;60s&#39; -&gt; 60 Seconds</span>
+<span class="sd">    m           Minutes &#39;5m&#39;  -&gt; 5 Minutes</span>
+<span class="sd">    h           Hours   &#39;24h&#39; -&gt; 24 Hours</span>
+<span class="sd">    d           Days    &#39;7d&#39;  -&gt; 7 Days</span>
+<span class="sd">    =========   ======= ===================</span>
+
+<span class="sd">    Examples::</span>
+
+<span class="sd">        &gt;&gt;&gt; import utils</span>
+<span class="sd">        &gt;&gt;&gt; utils.convert_to_timedelta(&#39;7d&#39;)</span>
+<span class="sd">        datetime.timedelta(7)</span>
+<span class="sd">        &gt;&gt;&gt; utils.convert_to_timedelta(&#39;24h&#39;)</span>
+<span class="sd">        datetime.timedelta(1)</span>
+<span class="sd">        &gt;&gt;&gt; utils.convert_to_timedelta(&#39;60m&#39;)</span>
+<span class="sd">        datetime.timedelta(0, 3600)</span>
+<span class="sd">        &gt;&gt;&gt; utils.convert_to_timedelta(&#39;120s&#39;)</span>
+<span class="sd">        datetime.timedelta(0, 120)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_val</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">time_val</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;s&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">time_val</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;m&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">time_val</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;h&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">time_val</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;d&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">num</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">process_opt_esc_sequence</span><span class="p">(</span><span class="n">chars</span><span class="p">):</span></div>
+<div class="viewcode-block" id="process_opt_esc_sequence"><a class="viewcode-back" href="../Developer/utils.html#utils.process_opt_esc_sequence">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse the *chars* passed from terminal.py by way of the special,</span>
+<span class="sd">    optional escape sequence handler (e.g. &#39;&lt;plugin&gt;|&lt;text&gt;&#39;) into a tuple of</span>
+<span class="sd">    (&lt;plugin name&gt;, &lt;text&gt;).  Here&#39;s an example::</span>
+
+<span class="sd">        &gt;&gt;&gt; import utils</span>
+<span class="sd">        &gt;&gt;&gt; utils.process_opt_esc_sequence(&#39;ssh|user@host:22&#39;)</span>
+<span class="sd">        (&#39;ssh&#39;, &#39;user@host:22&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">plugin</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">plugin</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="n">chars</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">pass</span> <span class="c"># Something went horribly wrong!</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">replacement_dict</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></div>
+<div class="viewcode-block" id="raw"><a class="viewcode-back" href="../Developer/utils.html#utils.raw">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns *text* as a string with special characters replaced by visible</span>
+<span class="sd">    equivalents using *replacement_dict*.  If *replacement_dict* is None or</span>
+<span class="sd">    False the global REPLACEMENT_DICT will be used.  Example::</span>
+
+<span class="sd">        &gt;&gt;&gt; import utils</span>
+<span class="sd">        &gt;&gt;&gt; test = &#39;\\x1b]0;Some xterm title\x07&#39;</span>
+<span class="sd">        &gt;&gt;&gt; print(utils.raw(test))</span>
+<span class="sd">        &#39;^[]0;Some title^G&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">replacement_dict</span><span class="p">:</span>
+        <span class="n">replacement_dict</span> <span class="o">=</span> <span class="n">REPLACEMENT_DICT</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">charnum</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">charnum</span> <span class="ow">in</span> <span class="n">replacement_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">out</span> <span class="o">+=</span> <span class="n">replacement_dict</span><span class="p">[</span><span class="n">charnum</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">+=</span> <span class="n">char</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+<span class="k">def</span> <span class="nf">string_to_syslog_facility</span><span class="p">(</span><span class="n">facility</span><span class="p">):</span></div>
+<div class="viewcode-block" id="string_to_syslog_facility"><a class="viewcode-back" href="../Developer/utils.html#utils.string_to_syslog_facility">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a string (*facility*) such as, &quot;daemon&quot; returns the numeric</span>
+<span class="sd">    syslog.LOG_* equivalent.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">facility</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">FACILITIES</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">FACILITIES</span><span class="p">[</span><span class="n">facility</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UnknownFacility</span><span class="p">(</span>
+            <span class="s">&quot;</span><span class="si">%s</span><span class="s"> does not match a known syslog facility&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">facility</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">create_data_uri</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span></div>
+<div class="viewcode-block" id="create_data_uri"><a class="viewcode-back" href="../Developer/utils.html#utils.create_data_uri">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a file at *filepath*, return that file as a data URI.</span>
+
+<span class="sd">    Raises a MimeTypeFail exception if the mimetype could not be guessed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mimetype</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">filepath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mimetype</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MimeTypeFail</span><span class="p">(</span><span class="s">&quot;Could not guess mime type of: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">filepath</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">encoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">65000</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s">&quot;WARNING: Data URI &gt; 65,000 characters.  You&#39;re pushing it buddy!&quot;</span><span class="p">)</span>
+    <span class="n">data_uri</span> <span class="o">=</span> <span class="s">&quot;data:</span><span class="si">%s</span><span class="s">;base64,</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mimetype</span><span class="p">,</span> <span class="n">encoded</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data_uri</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

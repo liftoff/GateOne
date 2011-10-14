@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sso &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for sso</h1><div class="highlight"><pre>
+<span class="c">#</span>
+<span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
+<span class="c">#</span>
+
+<span class="c"># Meta</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">About The SSO Module</span>
+<span class="s">====================</span>
+<span class="s">sso.py is a Tornado Single Sign-On (SSO) authentication module that implements</span>
+<span class="s">GSSAPI authentication via python-kerberos (import kerberos).  If &quot;Negotiate&quot;</span>
+<span class="s">authentication (GSSAPI SSO) fails it will gracefully fall back to &quot;Basic&quot; auth</span>
+<span class="s">(authenticating a given username/password against your Kerberos realm).</span>
+
+<span class="s">For this module to work you must add &#39;sso_realm&#39; and &#39;sso_service&#39; to your</span>
+<span class="s">Tornado application&#39;s settings.  See the docstring of the KerberosAuthMixin for</span>
+<span class="s">how to do this.</span>
+
+<span class="s">This module should work with regular MIT Kerberos implementations as well as</span>
+<span class="s">Active Directory (Heimdal is untested but should work fine).  If you&#39;re</span>
+<span class="s">experiencing trouble it is recommended that you set debug=True in your</span>
+<span class="s">application settings.  This will enable printing of Kerberos exception messages.</span>
+
+<span class="s">Troubleshooting:</span>
+
+<span class="s">If your browser asks you for a password (i.e. SSO failed) there&#39;s probably</span>
+<span class="s">something wrong with your Kerberos configuration on either the client or the</span>
+<span class="s">server (usually it&#39;s a problem with forward/reverse DNS resolution or an</span>
+<span class="s">incorrect or missing service principal in your keytab).</span>
+
+<span class="s">If you&#39;re using Active Directory, make sure that there&#39;s an HTTP</span>
+<span class="s">servicePrincipalName (SPN) matching the FQDN of the host running your Tornado</span>
+<span class="s">server.  For example:  HTTP/somehost.somedomain.com@CORP.MYCOMPANY.COM</span>
+<span class="s">You may also want a short hostname SPN: HTTP/somehost@CORP.MYCOMPANY.COM</span>
+
+<span class="s">Also make sure that the service principal is in upper case as most clients (</span>
+<span class="s">web browsers) will auto-capitalize the principal when verifying the server.</span>
+
+<span class="s">Here&#39;s some things to test in order to find problems with your Kerberos config:</span>
+
+<span class="s">Try these from both the client and the server (NOTE: Assuming both are Unix):</span>
+<span class="s">kinit -p &lt;user@REALM&gt; # To verify you can authenticate via Kerberos (at all)</span>
+<span class="s">nslookup &lt;server FQDN&gt; # To verify the IP address reverse maps properly (below)</span>
+<span class="s">nslookup &lt;IP address that &#39;server FQDN&#39; resolves to&gt;</span>
+<span class="s">kvno HTTP/somehost.somedomain.com # To verify your service principal</span>
+
+<span class="s">Remember: Kerberos is heavily dependent on DNS to verify the server and client</span>
+<span class="s">are who they claim to be.</span>
+
+<span class="s">I find that it is useful to get GSSAPI authentication working with OpenSSH first</span>
+<span class="s">before I attempt to get a custom service principal working with other</span>
+<span class="s">applications.  This is because SSH uses the HOST/ prinicipal which is often</span>
+<span class="s">taken care of automatically via most Kerberos management tools (including AD).</span>
+<span class="s">If you can get SSO working with SSH you can get SSO working with anything else.</span>
+
+<span class="s">Class Docstrings</span>
+<span class="s">================</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="c"># Standard library modules</span>
+<span class="kn">import</span> <span class="nn">httplib</span><span class="o">,</span> <span class="nn">logging</span>
+
+<span class="c"># 3rd party modules</span>
+<span class="kn">import</span> <span class="nn">kerberos</span>
+<span class="kn">import</span> <span class="nn">tornado.httpserver</span>
+<span class="kn">import</span> <span class="nn">tornado.ioloop</span>
+<span class="kn">import</span> <span class="nn">tornado.web</span>
+<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">utf8</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="kn">import</span> <span class="n">b</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+
+<span class="c"># NOTE: For some reason if I set this as just an &#39;object&#39; it doesn&#39;t work.</span>
+<span class="k">class</span> <span class="nc">KerberosAuthMixin</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="KerberosAuthMixin"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Authenticates users via Kerberos-based Single Sign-On.  Requires that you</span>
+<span class="sd">    define &#39;sso_realm&#39; and &#39;sso_service&#39; in your Tornado Application settings.</span>
+<span class="sd">    For example::</span>
+
+<span class="sd">        settings = dict(</span>
+<span class="sd">            cookie_secret=&quot;iYR123qg4UUdsgf4CRung6BFUBhizAciid8oq1YfJR3gN&quot;,</span>
+<span class="sd">            static_path=os.path.join(os.path.dirname(__file__), &quot;static&quot;),</span>
+<span class="sd">            gzip=True,</span>
+<span class="sd">            login_url=&quot;/auth&quot;,</span>
+<span class="sd">            debug=True,</span>
+<span class="sd">            sso_realm=&quot;EXAMPLE.COM&quot;,</span>
+<span class="sd">            sso_service=&quot;HTTP&quot; # Should pretty much always be HTTP</span>
+<span class="sd">        )</span>
+
+<span class="sd">    NOTE: If you&#39;re using &#39;HTTP&#39; as the service it must be in all caps or it</span>
+<span class="sd">    might not work with some browsers/clients (which auto-capitalize all</span>
+<span class="sd">    services).</span>
+
+<span class="sd">    To implement this mixin::</span>
+
+<span class="sd">        from sso import KerberosAuthMixin</span>
+<span class="sd">        class KerberosAuthHandler(tornado.web.RequestHandler, KerberosAuthMixin):</span>
+
+<span class="sd">            def get(self):</span>
+<span class="sd">                auth_header = self.request.headers.get(&#39;Authorization&#39;)</span>
+<span class="sd">                if auth_header:</span>
+<span class="sd">                    self.get_authenticated_user(self._on_auth)</span>
+<span class="sd">                    return</span>
+<span class="sd">                self.authenticate_redirect()</span>
+
+<span class="sd">            def _on_auth(self, user):</span>
+<span class="sd">                if not user:</span>
+<span class="sd">                    raise tornado.web.HTTPError(500, &quot;Kerberos auth failed&quot;)</span>
+<span class="sd">                self.set_secure_cookie(&quot;user&quot;, tornado.escape.json_encode(user))</span>
+<span class="sd">                print(&quot;KerberosAuthHandler user: %s&quot; % user) # To see what you get</span>
+<span class="sd">                next_url = self.get_argument(&quot;next&quot;, None) # To redirect properly</span>
+<span class="sd">                if next_url:</span>
+<span class="sd">                    self.redirect(next_url)</span>
+<span class="sd">                else:</span>
+<span class="sd">                    self.redirect(&quot;/&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KerberosAuthMixin.initialize"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin.initialize">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print out helpful error messages if the requisite settings aren&#39;t</span>
+<span class="sd">        configured.</span>
+
+<span class="sd">        NOTE: It won&#39;t hurt anything to override this method in your</span>
+<span class="sd">        RequestHandler.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;sso_realm&quot;</span><span class="p">,</span> <span class="s">&quot;Kerberos/GSSAPI Single Sign-On&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;sso_service&quot;</span><span class="p">,</span> <span class="s">&quot;Kerberos/GSSAPI Single Sign-On&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span></div>
+<div class="viewcode-block" id="KerberosAuthMixin.get_authenticated_user"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin.get_authenticated_user">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Processes the client&#39;s Authorization header and calls</span>
+<span class="sd">        self.auth_negotiate() or self.auth_basic() depending on what headers</span>
+<span class="sd">        were provided by the client.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Negotiate&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_negotiate</span><span class="p">(</span><span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Basic &#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_basic</span><span class="p">(</span><span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">auth_negotiate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span></div>
+<div class="viewcode-block" id="KerberosAuthMixin.auth_negotiate"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin.auth_negotiate">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform Negotiate (GSSAPI/SSO) authentication via Kerberos.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">auth_str</span> <span class="o">=</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c"># Initialize Kerberos Context</span>
+        <span class="n">result</span><span class="p">,</span> <span class="n">context</span> <span class="o">=</span> <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerInit</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;sso_service&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&quot;Kerberos Init failed&quot;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerStep</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">auth_str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">gssstring</span> <span class="o">=</span> <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerResponse</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c"># Fall back to Basic auth</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auth_basic</span><span class="p">(</span><span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+        <span class="c"># NOTE: The user we get from Negotiate is a full UPN (e.g. user@REALM)</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerUserName</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;WWW-Authenticate&#39;</span><span class="p">,</span> <span class="s">&quot;Negotiate </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">gssstring</span><span class="p">)</span>
+        <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerClean</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">callback</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">auth_basic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span></div>
+<div class="viewcode-block" id="KerberosAuthMixin.auth_basic"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin.auth_basic">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform Basic authentication using Kerberos against</span>
+<span class="sd">        self.settings[&#39;sso_realm&#39;].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">auth_decoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodestring</span><span class="p">(</span><span class="n">auth_header</span><span class="p">[</span><span class="mi">6</span><span class="p">:])</span>
+        <span class="n">username</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="n">auth_decoded</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">kerberos</span><span class="o">.</span><span class="n">checkPassword</span><span class="p">(</span>
+                <span class="n">username</span><span class="p">,</span>
+                <span class="n">password</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;sso_service&#39;</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;sso_realm&#39;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="c"># Basic auth failed</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;debug&#39;</span><span class="p">]:</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="c"># Very useful for debugging Kerberos errors</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span>
+        <span class="c"># NOTE: Basic auth just gives us the username without the @REALM part</span>
+        <span class="c">#       so we have to add it:</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">@</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;sso_realm&#39;</span><span class="p">])</span>
+        <span class="n">callback</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">authenticate_redirect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="KerberosAuthMixin.authenticate_redirect"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin.authenticate_redirect">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Informs the browser that this resource requires authentication (status</span>
+<span class="sd">        code 401) which should prompt the browser to reply with credentials.</span>
+
+<span class="sd">        The browser will be informed that we support both Negotiate (GSSAPI/SSO)</span>
+<span class="sd">        and Basic auth.</span>
+
+<span class="sd">        NOTE: I know this isn&#39;t technically a redirect but I wanted to make this</span>
+<span class="sd">        process as close as possible to how things work in tornado.auth.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_headers_written</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Headers have already been written&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="mi">401</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s">&quot;WWW-Authenticate&quot;</span><span class="p">,</span> <span class="s">&quot;Negotiate&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span>
+            <span class="s">&quot;WWW-Authenticate&quot;</span><span class="p">,</span>
+            <span class="s">&#39;Basic realm=&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;sso_realm&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">False</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,599 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>termio &mdash; Gate One v0.9 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for termio</h1><div class="highlight"><pre>
+<span class="c">#</span>
+<span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
+<span class="c">#</span>
+
+<span class="c"># TODO: See if we can spin off termio.py into its own little program that sits between Gate One and ssh_connect.py.  That way we can take advantage of multiple cores/processors (for terminal-to-HTML processing).  There&#39;s no reason why we can&#39;t write something that does what dtach does.  Just need to redirect the fd of self.cmd to a unix domain socket and os.setsid() somewhere after forking (twice maybe?).</span>
+<span class="c"># TODO: Make the environment variables used before launching self.cmd configurable</span>
+
+<span class="c"># Meta</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.9&#39;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
+
+<span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">About termio</span>
+<span class="s">============</span>
+<span class="s">This module provides a Multiplex class that can perform the following:</span>
+
+<span class="s"> * Fork a child process that opens a given terminal program.</span>
+<span class="s"> * Read and write data to and from the child process.</span>
+<span class="s"> * Log the output of the child process to a file and/or syslog.</span>
+
+<span class="s">The Multiplex class is meant to be used in conjunction with a running Tornado</span>
+<span class="s">IOLoop instance.  It can be instantiated from within your Tornado application</span>
+<span class="s">like so::</span>
+
+<span class="s">    multiplexer = termio.Multiplex(</span>
+<span class="s">        &#39;nethack&#39;,</span>
+<span class="s">        tmpdir=&#39;/tmp&#39;,</span>
+<span class="s">        log_path=&#39;/var/log/myapp&#39;,</span>
+<span class="s">        user=&#39;bsmith@CORP&#39;,</span>
+<span class="s">        term_num=1,</span>
+<span class="s">        syslog=True</span>
+<span class="s">    )</span>
+
+<span class="s">Then *multiplexer* can create and launch a new controlling terminal (tty)</span>
+<span class="s">running the given command (e.g. &#39;nethack&#39;)::</span>
+
+<span class="s">    env = {</span>
+<span class="s">        &#39;PATH&#39;: os.environ[&#39;PATH&#39;],</span>
+<span class="s">        &#39;MYVAR&#39;: &#39;foo&#39;</span>
+<span class="s">    }</span>
+<span class="s">    fd = multiplexer.create(80, 24, env=env)</span>
+<span class="s">    # The fd is returned from create() in case you want more low-level control.</span>
+
+<span class="s">Input and output from the controlled program is asynchronous and gets handled</span>
+<span class="s">via IOLoop.  It will automatically write all output from the terminal program to</span>
+<span class="s">an instance of self.terminal_emulator (which defaults to Gate One&#39;s</span>
+<span class="s">terminal.Terminal).  So if you want to perform an action whenever the running</span>
+<span class="s">terminal application has output (like, say, sending a message to a client)</span>
+<span class="s">you&#39;ll need to attach a callback::</span>
+
+<span class="s">    def screen_update():</span>
+<span class="s">        &#39;Called when new output is ready to send to the client&#39;</span>
+<span class="s">        output = multiplexer.dumplines()</span>
+<span class="s">        socket_or_something.write(output)</span>
+<span class="s">    multiplexer.callbacks[multiplexer.CALLBACK_UPDATE] = screen_update</span>
+
+<span class="s">In this example, screen_update() will write() the output of</span>
+<span class="s">multiplexer.dumplines() to *socket_or_something* whenever the terminal program</span>
+<span class="s">has some sort of output.  You can also make calls directly to the terminal</span>
+<span class="s">emulator (if you&#39;re using a custom one)::</span>
+
+<span class="s">    def screen_update():</span>
+<span class="s">        output = multiplexer.term.my_custom_func()</span>
+<span class="s">        whatever.write(output)</span>
+
+<span class="s">Writing characters to the controlled terminal application is pretty</span>
+<span class="s">straightforward::</span>
+
+<span class="s">    multiplexer.proc_write(&#39;some text&#39;)</span>
+
+<span class="s">Typically you&#39;d pass in keystrokes or commands from your application to the</span>
+<span class="s">underlying program this way and the screen/terminal emulator would get updated</span>
+<span class="s">automatically.  If using Gate One&#39;s Terminal() you can also attach callbacks</span>
+<span class="s">to perform further actions when more specific situations are encountered (e.g.</span>
+<span class="s">when the window title is set via that respective escape sequence)::</span>
+
+<span class="s">    def set_title():</span>
+<span class="s">        &#39;Hypothetical title-setting function&#39;</span>
+<span class="s">        print(&quot;Window title was just set to: </span><span class="si">%s</span><span class="s">&quot; % multiplexer.term.title)</span>
+<span class="s">    multiplexer.term.callbacks[multiplexer.CALLBACK_TITLE] = set_title</span>
+
+<span class="s">Module Functions and Classes</span>
+<span class="s">============================</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="c"># Stdlib imports</span>
+<span class="kn">import</span> <span class="nn">signal</span><span class="o">,</span> <span class="nn">threading</span><span class="o">,</span> <span class="nn">fcntl</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">pty</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">termios</span><span class="o">,</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">io</span><span class="o">,</span> <span class="nn">codecs</span><span class="o">,</span> <span class="nn">gzip</span><span class="o">,</span> <span class="nn">syslog</span>
+<span class="kn">from</span> <span class="nn">tornado</span> <span class="kn">import</span> <span class="n">ioloop</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">izip</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span>
+
+<span class="c"># Import our own stuff</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">noop</span>
+
+<span class="c"># Globals</span>
+<span class="n">SEPARATOR</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="c"># The character used to separate frames in the log</span>
+<span class="c"># NOTE: That unicode character was carefully selected from only the finest</span>
+<span class="c"># of the PUA.  I hereby dub thee, &quot;U+F0F0F0, The Separator.&quot;</span>
+
+<span class="c"># Helper functions</span>
+<span class="k">def</span> <span class="nf">handle_special</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+<div class="viewcode-block" id="handle_special"><a class="viewcode-back" href="../Developer/termio.html#termio.handle_special">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Used in conjunction with codecs.register_error, will replace special ascii</span>
+<span class="sd">    characters such as 0xDA and 0xc4 (which are used by ncurses) with their</span>
+<span class="sd">    Unicode equivalents.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO: Fill this out with *all* the ascii characters &gt;127 from</span>
+    <span class="c">#       http://www.ascii-code.com/</span>
+    <span class="n">specials</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c"># NOTE: When $TERM is set to &quot;Linux&quot; these end up getting used by things</span>
+        <span class="c">#       like ncurses-based apps.  In other words, it makes a whole lot</span>
+        <span class="c">#       of ugly look pretty again.</span>
+        <span class="mh">0xda</span><span class="p">:</span> <span class="s">u&#39;┌&#39;</span><span class="p">,</span> <span class="c"># ACS_ULCORNER</span>
+        <span class="mh">0xc0</span><span class="p">:</span> <span class="s">u&#39;└&#39;</span><span class="p">,</span> <span class="c"># ACS_LLCORNER</span>
+        <span class="mh">0xbf</span><span class="p">:</span> <span class="s">u&#39;┐&#39;</span><span class="p">,</span> <span class="c"># ACS_URCORNER</span>
+        <span class="mh">0xd9</span><span class="p">:</span> <span class="s">u&#39;┘&#39;</span><span class="p">,</span> <span class="c"># ACS_LRCORNER</span>
+        <span class="mh">0xb4</span><span class="p">:</span> <span class="s">u&#39;├&#39;</span><span class="p">,</span> <span class="c"># ACS_RTEE</span>
+        <span class="mh">0xc3</span><span class="p">:</span> <span class="s">u&#39;┤&#39;</span><span class="p">,</span> <span class="c"># ACS_LTEE</span>
+        <span class="mh">0xc1</span><span class="p">:</span> <span class="s">u&#39;┴&#39;</span><span class="p">,</span> <span class="c"># ACS_BTEE</span>
+        <span class="mh">0xc2</span><span class="p">:</span> <span class="s">u&#39;┬&#39;</span><span class="p">,</span> <span class="c"># ACS_TTEE</span>
+        <span class="mh">0xc4</span><span class="p">:</span> <span class="s">u&#39;─&#39;</span><span class="p">,</span> <span class="c"># ACS_HLINE</span>
+        <span class="mh">0xb3</span><span class="p">:</span> <span class="s">u&#39;│&#39;</span><span class="p">,</span> <span class="c"># ACS_VLINE</span>
+        <span class="mh">0xc5</span><span class="p">:</span> <span class="s">u&#39;┼&#39;</span><span class="p">,</span> <span class="c"># ACS_PLUS</span>
+        <span class="mh">0x2d</span><span class="p">:</span> <span class="s">u&#39;&#39;</span><span class="p">,</span> <span class="c"># ACS_S1</span>
+        <span class="mh">0x5f</span><span class="p">:</span> <span class="s">u&#39;&#39;</span><span class="p">,</span> <span class="c"># ACS_S9</span>
+        <span class="mh">0xc5</span><span class="p">:</span> <span class="s">u&#39;◆&#39;</span><span class="p">,</span> <span class="c"># ACS_DIAMOND</span>
+        <span class="mh">0xb2</span><span class="p">:</span> <span class="s">u&#39;▒&#39;</span><span class="p">,</span> <span class="c"># ACS_CKBOARD</span>
+        <span class="mh">0xf8</span><span class="p">:</span> <span class="s">u&#39;°&#39;</span><span class="p">,</span> <span class="c"># ACS_DEGREE</span>
+        <span class="mh">0xf1</span><span class="p">:</span> <span class="s">u&#39;±&#39;</span><span class="p">,</span> <span class="c"># ACS_PLMINUS</span>
+        <span class="mh">0xf9</span><span class="p">:</span> <span class="s">u&#39;•&#39;</span><span class="p">,</span> <span class="c"># ACS_BULLET</span>
+        <span class="mh">0x3c</span><span class="p">:</span> <span class="s">u&#39;←&#39;</span><span class="p">,</span> <span class="c"># ACS_LARROW</span>
+        <span class="mh">0x3e</span><span class="p">:</span> <span class="s">u&#39;→&#39;</span><span class="p">,</span> <span class="c"># ACS_RARROW</span>
+        <span class="mh">0x76</span><span class="p">:</span> <span class="s">u&#39;↓&#39;</span><span class="p">,</span> <span class="c"># ACS_DARROW</span>
+        <span class="mh">0x5e</span><span class="p">:</span> <span class="s">u&#39;↑&#39;</span><span class="p">,</span> <span class="c"># ACS_UARROW</span>
+        <span class="mh">0xb0</span><span class="p">:</span> <span class="s">u&#39;⊞&#39;</span><span class="p">,</span> <span class="c"># ACS_BOARD</span>
+        <span class="mh">0x0f</span><span class="p">:</span> <span class="s">u&#39;⨂&#39;</span><span class="p">,</span> <span class="c"># ACS_LANTERN</span>
+        <span class="mh">0xdb</span><span class="p">:</span> <span class="s">u&#39;█&#39;</span><span class="p">,</span> <span class="c"># ACS_BLOCK</span>
+        <span class="mh">0x9d</span><span class="p">:</span> <span class="s">u&#39;Ø&#39;</span><span class="p">,</span> <span class="c"># Upper-case slashed zero (157)--using same as empty set</span>
+        <span class="mh">0xd8</span><span class="p">:</span> <span class="s">u&#39;Ø&#39;</span><span class="p">,</span> <span class="c"># Empty set (216)</span>
+<span class="c"># Note to self:  Why did I bother with these overly descriptive comments?  Ugh</span>
+<span class="c"># I&#39;ve been staring at obscure symbols far too much lately ⨀_⨀</span>
+        <span class="mh">0xc7</span><span class="p">:</span> <span class="s">u&#39;Ç&#39;</span><span class="p">,</span> <span class="c"># Latin capital letter C with cedilla</span>
+        <span class="mh">0xeb</span><span class="p">:</span> <span class="s">u&#39;ë&#39;</span><span class="p">,</span> <span class="c"># Latin small letter e with diaeresis</span>
+        <span class="mh">0x99</span><span class="p">:</span> <span class="s">u&#39;™&#39;</span><span class="p">,</span> <span class="c"># Trademark sign--in case you didn&#39;t know!</span>
+        <span class="mh">0xff</span><span class="p">:</span> <span class="s">u&#39;ÿ&#39;</span><span class="p">,</span> <span class="c"># Latin small letter y with diaeresis⬅So THATS what that is</span>
+        <span class="mh">0xa8</span><span class="p">:</span> <span class="s">u&#39;¨&#39;</span><span class="p">,</span> <span class="c"># Spacing diaeresis - umlaut</span>
+        <span class="mh">0xec</span><span class="p">:</span> <span class="s">u&#39;ì&#39;</span><span class="p">,</span> <span class="c"># Latin small letter i with grave... concern.</span>
+        <span class="mh">0xca</span><span class="p">:</span> <span class="s">u&#39;Ê&#39;</span><span class="p">,</span> <span class="c"># Latin capital letter E with circumflex</span>
+        <span class="mh">0x83</span><span class="p">:</span> <span class="s">u&#39;ƒ&#39;</span><span class="p">,</span> <span class="c"># Latin small letter f with hook</span>
+    <span class="p">}</span>
+    <span class="c"># I left this in its odd state so I could differentiate between the two</span>
+    <span class="c"># in the future.</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">(</span><span class="ne">UnicodeEncodeError</span><span class="p">,</span> <span class="ne">UnicodeTranslateError</span><span class="p">)):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">specials</span><span class="p">[</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">object</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="n">e</span><span class="o">.</span><span class="n">end</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">e</span><span class="o">.</span><span class="n">end</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">specials</span><span class="p">[</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">object</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="n">e</span><span class="o">.</span><span class="n">end</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">e</span><span class="o">.</span><span class="n">end</span>
+<span class="n">codecs</span><span class="o">.</span><span class="n">register_error</span><span class="p">(</span><span class="s">&#39;handle_special&#39;</span><span class="p">,</span> <span class="n">handle_special</span><span class="p">)</span></div>
+
+<span class="c"># Classes</span>
+<span class="k">class</span> <span class="nc">Multiplex</span><span class="p">:</span>
+<div class="viewcode-block" id="Multiplex"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex">[docs]</a>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Multiplex class takes care of forking a child process and provides</span>
+<span class="sd">    methods for reading/writing to it.  It also creates an instance of</span>
+<span class="sd">    tornado.ioloop.IOLoop that listens for events on the spawned terminal</span>
+<span class="sd">    application and updates self.proc[fd][&#39;term&#39;] with any changes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">CALLBACK_UPDATE</span> <span class="o">=</span> <span class="mi">1</span> <span class="c"># Screen update</span>
+    <span class="n">CALLBACK_EXIT</span> <span class="o">=</span> <span class="mi">2</span>   <span class="c"># When the underlying program exits</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">cmd</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">terminal_emulator</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="c"># Defaults to Gate One&#39;s terminal.Terminal</span>
+            <span class="n">cps</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+            <span class="n">tmpdir</span><span class="o">=</span><span class="s">&quot;/tmp&quot;</span><span class="p">,</span>
+            <span class="n">log_path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="c"># Only used by syslog output (to differentiate who&#39;s who)</span>
+            <span class="n">term_num</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="c"># Also only for syslog output for the same reason</span>
+            <span class="n">syslog</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+            <span class="n">syslog_facility</span><span class="o">=</span><span class="n">syslog</span><span class="o">.</span><span class="n">LOG_DAEMON</span><span class="p">):</span>
+        <span class="c"># NOTE: Commented this out because Death apparently moves too swiftly!</span>
+        <span class="c"># Elect for automatic child reaping (may Death take them kindly!)</span>
+        <span class="c">#signal.signal(signal.SIGCHLD, signal.SIG_IGN)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">terminal_emulator</span><span class="p">:</span>
+            <span class="c"># Why do this?  So you could use/write your own specialty emulator.</span>
+            <span class="c"># Whatever you use it just has to accept &#39;rows&#39; and &#39;cols&#39; as</span>
+            <span class="c"># keyword arguments in __init__()</span>
+            <span class="kn">from</span> <span class="nn">terminal</span> <span class="kn">import</span> <span class="n">Terminal</span> <span class="c"># Dynamic import to cut down on waste</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">terminal_emulator</span> <span class="o">=</span> <span class="n">Terminal</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">terminal_emulator</span> <span class="o">=</span> <span class="n">terminal_emulator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cps</span> <span class="o">=</span> <span class="n">cps</span> <span class="c"># Characters per second where the rate limiter kicks in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tmpdir</span> <span class="o">=</span> <span class="n">tmpdir</span> <span class="c"># Where to store things like pid files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_path</span> <span class="o">=</span> <span class="n">log_path</span> <span class="c"># Logs of the terminal output wind up here</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">syslog</span> <span class="o">=</span> <span class="n">syslog</span> <span class="c"># See &quot;if self.syslog:&quot; below</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">syslog_facility</span> <span class="o">=</span> <span class="n">syslog_facility</span> <span class="c"># Ditto</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span> <span class="c"># Used by the @synchronized decorator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span> <span class="o">=</span> <span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span> <span class="c"># Monitors child for activity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alive</span> <span class="o">=</span> <span class="bp">True</span> <span class="c"># Provides a quick way to see if we&#39;re still kickin&#39;</span>
+        <span class="c"># These three variables are used by the rate limiting function:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ratelimit</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skip</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="c"># Setup our callbacks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span> <span class="o">=</span> <span class="p">{</span> <span class="c"># Defaults do nothing which saves some conditionals</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">:</span> <span class="n">noop</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_EXIT</span><span class="p">:</span> <span class="n">noop</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="c"># Configure syslog logging</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term_num</span> <span class="o">=</span> <span class="n">term_num</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">syslog_buffer</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">syslog</span><span class="p">:</span> <span class="c"># Dynamic imports again because I&#39;m freaky and frugal</span>
+            <span class="kn">import</span> <span class="nn">syslog</span>
+            <span class="c"># Sets up syslog messages to show up like this:</span>
+            <span class="c">#   Sep 28 19:45:02 &lt;hostname&gt; gateone: &lt;log message&gt;</span>
+            <span class="n">syslog</span><span class="o">.</span><span class="n">openlog</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">syslog_facility</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Multiplex.create"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.create">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new virtual terminal (tty) and executes self.cmd within it.</span>
+<span class="sd">        Also sets up our read/write callback and attaches them to Tornado&#39;s</span>
+<span class="sd">        IOLoop.</span>
+
+<span class="sd">        *cols*</span>
+<span class="sd">            The number of columns to emulate on the virtual terminal (width)</span>
+<span class="sd">        *rows*</span>
+<span class="sd">            The number of rows to emulate (height).</span>
+<span class="sd">        *env*</span>
+<span class="sd">            A dictionary of environment variables to set when executing self.cmd.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pid</span><span class="p">,</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">pty</span><span class="o">.</span><span class="n">fork</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c"># We&#39;re inside the child process</span>
+            <span class="k">try</span><span class="p">:</span> <span class="c"># Enumerate our file descriptors</span>
+                <span class="n">fd_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s">&#39;/proc/self/fd&#39;</span><span class="p">)]</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="n">fd_list</span> <span class="o">=</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>
+    <span class="c"># Close all file descriptors other than stdin, stdout, and stderr (0, 1, 2)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">fd_list</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">]:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">env</span><span class="p">:</span>
+                <span class="n">env</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">env</span><span class="p">[</span><span class="s">&quot;COLUMNS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+            <span class="n">env</span><span class="p">[</span><span class="s">&quot;LINES&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+            <span class="n">env</span><span class="p">[</span><span class="s">&quot;TERM&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;xterm&quot;</span> <span class="c"># TODO: This needs to be configurable on-the-fly</span>
+            <span class="c">#env[&quot;PATH&quot;] = os.environ[&#39;PATH&#39;]</span>
+            <span class="c">#env[&quot;LANG&quot;] = os.environ[&#39;LANG&#39;]</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+            <span class="c"># This exit() ensures IOLoop doesn&#39;t freak out about a missing fd</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c"># We&#39;re inside this Python script</span>
+            <span class="n">fcntl</span><span class="o">.</span><span class="n">fcntl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">F_SETFL</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_NONBLOCK</span><span class="p">)</span>
+            <span class="c"># These two lines set the size of the terminal window:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;HHHH&quot;</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">fcntl</span><span class="o">.</span><span class="n">ioctl</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TIOCSWINSZ</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fd</span> <span class="o">=</span> <span class="n">fd</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="n">pid</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">terminal_emulator</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="c"># NOTE: io.open has a memory leak in Python 2.6 and below so we only</span>
+            <span class="c">#       use it for Python 2.7+.  Why use it at all?  It&#39;s faster,</span>
+            <span class="c">#       more memory efficient, and not deprecated.</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">7</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span>  <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span>
+                    <span class="s">&#39;rt&#39;</span><span class="p">,</span>
+                    <span class="n">buffering</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+                    <span class="n">newline</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span>
+                    <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="c"># TODO: Make this configurable</span>
+                    <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">errors</span><span class="o">=</span><span class="s">&#39;handle_special&#39;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+            <span class="c"># For Python &lt;= 2.6</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fdopen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+            <span class="c"># Tell our IOLoop instance to start watching the child</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">proc_read</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prev_output</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">rows</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="n">fd</span>
+
+    <span class="k">def</span> <span class="nf">die</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="Multiplex.die"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.die">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets self.alive to False</span>
+
+<span class="sd">        NOTE: This is actually important as it allows controlling processes to</span>
+<span class="sd">        see if the multiplexer is still alive or not (so they don&#39;t have to</span>
+<span class="sd">        enumerate the process table looking for a particular pid).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alive</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">resize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">):</span></div>
+<div class="viewcode-block" id="Multiplex.resize"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.resize">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resizes the child process&#39;s terminal window to *rows* and *cols*</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;HHHH&quot;</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">fcntl</span><span class="o">.</span><span class="n">ioctl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TIOCSWINSZ</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">redraw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="Multiplex.redraw"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.redraw">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tells the running terminal program to redraw the screen by executing</span>
+<span class="sd">        a window resize event (using its current dimensions) and writing a</span>
+<span class="sd">        ctrl-l.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;HHHH&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">fcntl</span><span class="o">.</span><span class="n">ioctl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TIOCSWINSZ</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proc_write</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x0c</span><span class="s">&#39;</span><span class="p">)</span> <span class="c"># ctrl-l</span>
+        <span class="c"># WINCH can mess things up quite a bit so I&#39;ve disabled it.</span>
+        <span class="c"># Leaving this here in case it ever becomes configurable (reference)</span>
+        <span class="c">#os.kill(self.proc[fd][&#39;pid&#39;], signal.SIGWINCH)</span>
+
+    <span class="k">def</span> <span class="nf">proc_kill</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="Multiplex.proc_kill"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.proc_kill">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kill the child process associated with the given file descriptor (fd).</span>
+
+<span class="sd">        NOTE: If dtach is being used this only kills the dtach process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Error trying to remove fd: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+            <span class="c"># Lots of trivial reasons why we could get these</span>
+            <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">term_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span></div>
+<div class="viewcode-block" id="Multiplex.term_write"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.term_write">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes *chars* to self.term and also takes care of logging to</span>
+<span class="sd">        *self.log_path* (if set) and/or syslog (if *self.syslog* is True).</span>
+
+<span class="sd">        NOTE: This kind of logging doesn&#39;t capture user keystrokes.  This is</span>
+<span class="sd">        intentional as we don&#39;t want passwords winding up in the logs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+        <span class="c"># Write to the log too (if configured)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_path</span><span class="p">:</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+            <span class="c"># NOTE: I&#39;m using an obscure unicode symbol in order to avoid</span>
+            <span class="c"># conflicts.  We need to do our best to ensure that we can</span>
+            <span class="c"># differentiate between terminal output and our log format...</span>
+            <span class="c"># This should do the trick because it is highly unlikely that</span>
+            <span class="c"># someone would be displaying this obscure unicode symbol on an</span>
+            <span class="c"># actual terminal unless they were using Gate One to view a</span>
+            <span class="c"># Gate One log file in vim or something =)</span>
+            <span class="c"># \U000f0f0f == U+F0F0F (Private Use Symbol)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="p">,</span> <span class="n">chars</span><span class="p">)</span>
+            <span class="n">log</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="c"># NOTE: Gate One&#39;s log format is special in that it can be used for both</span>
+        <span class="c"># playing back recorded sessions *or* generating syslog-like output.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">syslog</span><span class="p">:</span>
+            <span class="c"># Try and keep it as line-line as possible so we don&#39;t end up with</span>
+            <span class="c"># a log line per character.</span>
+            <span class="k">if</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">chars</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">syslog_buffer</span><span class="p">:</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">syslog_buffer</span> <span class="o">+</span> <span class="n">line</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">syslog_buffer</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+                    <span class="n">syslog</span><span class="o">.</span><span class="n">syslog</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_num</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">syslog_buffer</span> <span class="o">+=</span> <span class="n">chars</span>
+
+    <span class="k">def</span> <span class="nf">proc_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span></div>
+<div class="viewcode-block" id="Multiplex.proc_read"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.proc_read">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read in the output of the process associated with *fd* and write it to</span>
+<span class="sd">        self.term.</span>
+
+<span class="sd">        This method will also keep an eye on the output rate of the underlying</span>
+<span class="sd">        terminal application.  If it goes to high (which would gobble up CPU) it</span>
+<span class="sd">        will engage a rate limiter.  So if someone thinks it would be funny to</span>
+<span class="sd">        run &#39;top&#39; with a refresh rate of 0.01 they&#39;ll really only be getting</span>
+<span class="sd">        updates every ~2 seconds (and it won&#39;t bog down the server =).</span>
+
+<span class="sd">        NOTE: This method is not meant to be called directly...  The IOLoop</span>
+<span class="sd">        should be the one calling it when it detects an io_loop.READ event.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">event</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">updated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">65536</span><span class="p">)</span>
+                <span class="c">#updated = os.read(fd, 65536) # A lot slower than reader, why?</span>
+                <span class="n">ratelimit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratelimit</span>
+                <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="n">timediff</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+                <span class="n">rate_timediff</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="n">ratelimit</span>
+                <span class="n">characters</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
+                <span class="n">cps</span> <span class="o">=</span> <span class="n">characters</span><span class="o">/</span><span class="n">timediff</span> <span class="c"># Assumes 7 bits per char (ASCII)</span>
+                <span class="c"># The conditionals below drop the output of our fd if it&#39;s coming</span>
+                <span class="c"># in too fast.  Essentially, it is a rate limiter to prevent</span>
+                <span class="c"># really noisy/fast output console apps (say, &#39;top&#39; with a</span>
+                <span class="c"># refresh rate of 0.01) from causing this application to</span>
+                <span class="c"># gobble up all the system CPU trying to process the input.</span>
+                <span class="c"># Think of it like mplayer&#39;s &quot;-framedrop&quot; option that keeps</span>
+                <span class="c"># your video playing at the proper rate if the CPU runs out of</span>
+                <span class="c"># power to process video frames.</span>
+
+                <span class="c"># Only consider dropping if the rate is faster than self.cps:</span>
+                <span class="k">if</span> <span class="n">cps</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">cps</span><span class="p">:</span>
+                    <span class="c"># Don&#39;t start cutting frames unless this is a constant thing</span>
+                    <span class="k">if</span> <span class="n">rate_timediff</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+                        <span class="c"># TODO: Have this flash a message on the screen</span>
+                        <span class="c">#       indicating the rate limiter has been engaged.</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="n">check</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">ratelimit</span><span class="p">,</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="c"># Update once every other second or so</span>
+                        <span class="k">if</span> <span class="n">check</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">term_write</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">skip</span> <span class="o">=</span> <span class="bp">True</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">]()</span>
+                        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">skip</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">term_write</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">]()</span>
+                    <span class="c"># NOTE: This can result in odd output with too-fast apps</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">term_write</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">now</span> <span class="o">-</span> <span class="n">ratelimit</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="c"># Reset the rate limiter</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ratelimit</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">]()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c"># Should just be an exception from handle_special()</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;KeyError in proc_read(): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span> <span class="c"># So we know</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Got exception in proc_read: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="sb">`e`</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">die</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">proc_kill</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">traceback</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Got BIZARRO exception in proc_read (WTF?): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="sb">`e`</span><span class="p">)</span>
+                <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">die</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">proc_kill</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c"># Child died</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Apparently fd </span><span class="si">%s</span><span class="s"> just died.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">die</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">proc_kill</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_EXIT</span><span class="p">]()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">proc_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span></div>
+<div class="viewcode-block" id="Multiplex.proc_write"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.proc_write">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes *chars* to the terminal process running on *fd*.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># By creating a new writer with every execution of this function we</span>
+            <span class="c"># can avoid the memory leak in earlier versions of Python.  It is</span>
+            <span class="c"># slightly slower but, hey, now you have an excuse to upgrade!</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span>
+                <span class="s">&#39;wt&#39;</span><span class="p">,</span>
+                <span class="n">buffering</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+                <span class="n">newline</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span>
+                <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span>
+                <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span>
+            <span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="c">#os.write(self.fd, s) # This doesn&#39;t leak but it also doesn&#39;t support unicode</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">die</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">proc_kill</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;proc_write() exception: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">dumplines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+<div class="viewcode-block" id="Multiplex.dumplines"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.dumplines">[docs]</a>        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the terminal text lines (a list of lines, to be specific) and</span>
+<span class="sd">        its scrollback buffer (which is also a list of lines) as a tuple,</span>
+<span class="sd">        (scrollback, text).  If a line hasn&#39;t changed since the last dump then</span>
+<span class="sd">        it will be replaced with an empty string (in the terminal text lines).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">scrollback</span><span class="p">,</span> <span class="n">html</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">line1</span><span class="p">,</span> <span class="n">line2</span> <span class="ow">in</span> <span class="n">izip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_output</span><span class="p">,</span> <span class="n">html</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">line1</span> <span class="o">!=</span> <span class="n">line2</span><span class="p">:</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line2</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prev_output</span> <span class="o">=</span> <span class="n">html</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">scrollback</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+    </div>
+  </body>
+</html>

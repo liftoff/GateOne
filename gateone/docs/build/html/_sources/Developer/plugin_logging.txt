@@ -1,0 +1,2 @@
+The Logging Plugin
+==================
