@@ -169,7 +169,7 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
         # Named these 'go_<whatever>' since that is less likely to conflict with
         # anything in the future (should some auth mechanism start returning
         # session IDs of some sort).
-        self.user_login(user) # This takes care of the user's settings dir
+        self.user_login(user['email']) # Takes care of the user's settings dir
         user_cookie = { # Don't need all that other stuff
             'go_session': generate_session_id(),
             'go_upn': user['email'] # Just an equivalent for standardization
