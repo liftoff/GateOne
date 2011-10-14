@@ -1186,8 +1186,8 @@ def main():
     create_plugin_static_links(static_dir, plugin_dir)
     # Instantiate our Tornado web server
     ssl_options = {
-        "certfile": os.path.join(os.getcwd(), "certificate.pem"),
-        "keyfile": os.path.join(os.getcwd(), "keyfile.pem"),
+        "certfile": options.certificate,
+        "keyfile": options.keyfile
     }
     if options.disable_ssl:
         ssl_options = None
