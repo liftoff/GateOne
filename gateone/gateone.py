@@ -211,6 +211,7 @@ import time
 from functools import partial
 from datetime import datetime, timedelta
 from platform import uname
+from commands import getoutput
 
 # Our own modules
 import termio
@@ -1151,6 +1152,11 @@ def main():
     # Set our global session timeout
     global TIMEOUT
     TIMEOUT = convert_to_timedelta(options.session_timeout)
+
+    # Make sure dtach is available and if not, set dtach=False
+    result = getoutput('which dtach')
+    if not result:
+        options.dtach = False
     # Define our Application settings
     app_settings = {
         'gateone_dir': GATEONE_DIR, # Only here so plugins can reference it
