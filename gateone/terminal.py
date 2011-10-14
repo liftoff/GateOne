@@ -570,10 +570,15 @@ class Terminal(object):
     def _set_top_bottom(self, settings):
         """
         DECSTBM - Sets self.top_margin and self.bottom_margin using the provided
-        settings in the form of '<top_margin>;<bottom_margin>'
+        settings in the form of '<top_margin>;<bottom_margin>'.
+
+        NOTE: This also handles restore/set "DEC Private Mode Values"
         """
         # NOTE: Used by screen and vi so this needs to work and work well!
         if len(settings):
+            if settings.startswith('?'):
+                # This is a set/restore DEC PMV sequence
+                return # Ignore (until I figure out what this should do)
             top, bottom = settings.split(';')
             self.top_margin = max(0, int(top) - 1) # These are 0-based like self.cursor[XY]
             if bottom:
@@ -597,17 +602,23 @@ class Terminal(object):
         try:
             self.callbacks[self.CALLBACK_TITLE]()
         except TypeError as e:
-            print("Got TypeError on CALLBACK_TITLE...")
+            logging.error("Got TypeError on CALLBACK_TITLE...")
             print(repr(self.callbacks[self.CALLBACK_TITLE]))
             print(e)
 
 # TODO: put some logic in these save/restore functions to walk the current
 # rendition line to come up with a logical rendition for that exact spot.
-    def save_cursor_position(self, *args, **kwargs):
+    def save_cursor_position(self, mode=None):
         """
         Saves the cursor position and current rendition settings to
         self.saved_cursorX, self.saved_cursorY, and self.saved_rendition
+
+        NOTE: Also handles the set/restore "Private Mode Settings" sequence.
         """
+        if mode: # Set DEC private mode
+            # TODO: Need some logic here to save the current expanded mode
+            #       so we can restore it in _set_top_bottom().
+            self._set_expanded_mode(mode)
         # NOTE: args and kwargs are here to make sure we don't get an exception
         #       when we're called via escape sequences.
         self.saved_cursorX = self.cursorX
@@ -749,7 +760,13 @@ class Terminal(object):
                             if csi_type == 'm':
                                 self.rendition_set = True
                             # Call the matching CSI handler
-                            csi_handlers[csi_type](csi_values)
+                            try:
+                                csi_handlers[csi_type](csi_values)
+                            except ValueError:
+                                logging.error(
+                                    "CSI Handler Error: Type: %s, Values: %s" %
+                                    (csi_type, csi_values)
+                                )
                             self.prev_esc_buffer = self.esc_buffer
                             self.esc_buffer = ''
                             continue
@@ -758,7 +775,7 @@ class Terminal(object):
                         if self.esc_buffer.endswith('\x1b\\'):
                             self._osc_handler()
                         else:
-                            print(
+                            loggin.warning(
                                 "Warning: No ESC sequence handler for %s"
                                 % `self.esc_buffer`
                             )
@@ -1379,7 +1396,7 @@ class Terminal(object):
         try:
             clear_types[n]()
         except KeyError:
-            print("Error: Unsupported number for escape sequence J")
+            logging.error("Error: Unsupported number for escape sequence J")
         # Execute our callbacks
         try:
             self.callbacks[self.CALLBACK_CHANGED]()
@@ -1453,7 +1470,7 @@ class Terminal(object):
         try:
             clear_types[n]()
         except KeyError:
-            print("Error: Unsupported number for CSI escape sequence K")
+            logging.error("Error: Unsupported number for CSI escape sequence K")
         # Execute our callbacks
         try:
             self.callbacks[self.CALLBACK_CHANGED]()

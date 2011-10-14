@@ -649,7 +649,7 @@ class TerminalWebSocket(WebSocketHandler):
                 # Tell client to enable application cursor mode
                 mode_message = {'set_mode': {
                     'mode': setting,
-                    'boolean': True,
+                    'bool': True,
                     'term': term
                 }}
                 self.write_message(json_encode(mode_message))
@@ -657,7 +657,7 @@ class TerminalWebSocket(WebSocketHandler):
                 # Tell client to disable application cursor mode
                 mode_message = {'set_mode': {
                     'mode': setting,
-                    'boolean': False,
+                    'bool': False,
                     'term': term
                 }}
                 self.write_message(json_encode(mode_message))

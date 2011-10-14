@@ -153,6 +153,7 @@ def handle_special(e):
         0xec: u'ì', # Latin small letter i with grave... concern.
         0xca: u'Ê', # Latin capital letter E with circumflex
         0x83: u'ƒ', # Latin small letter f with hook
+        0xe2: u'â',
     }
     # I left this in its odd state so I could differentiate between the two
     # in the future.
@@ -372,6 +373,8 @@ class Multiplex:
                     if self.syslog_buffer:
                         line = self.syslog_buffer + line
                         self.syslog_buffer = ''
+                    # Sylog really doesn't like any fancy encodings
+                    line = line.encode('ascii', 'xmlcharrefreplace')
                     syslog.syslog("%s %s: %s" % (
                         self.user, self.term_num, line))
             else:
