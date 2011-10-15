@@ -508,4 +508,5 @@ class Multiplex:
             return (scrollback, output)
         except KeyError:
             return (None, None)
-        self.lock.release()
+        finally:
+            self.lock.release()
