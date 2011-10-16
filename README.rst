@@ -1,6 +1,5 @@
 About Gate One
 ==============
-
 Gate One is an HTML5 web-based terminal emulator and SSH client.  Top features:
 
     * No browser plugins required!
@@ -14,20 +13,24 @@ Gate One is an HTML5 web-based terminal emulator and SSH client.  Top features:
     * Similarly, supports server-side logging, recording, and video-like playback of user sessions.  It can even log to syslog to support whatever centralized logging system you want.
     * Keberos-based Single Sign-on support is included.  It even works with Active Directory.  Other authentication options are available as well.
 
-A demo video of Gate One can be found here: http://vimeo.com/24857127
+Documentation
+-------------
+The documentation for Gate One is now online:  http://liftoff.github.com/GateOne/
 
-All documentation is in the "gateone/docs" directory.  The HTML documentation is
-pre-built and ready-to-read.
+Also, all (this) documentation is in the "gateone/docs" directory.  The HTML form is pre-built and ready-to-read.
 
-IMPORTANT:  Gate One is currently IN BETA.  Some things may be incomplete or
-buggy.  Feel free to open new tickets in the issue tracker!
+Demo
+----
+There is no live demo of Gate One at the moment but you can view a video demo here: http://vimeo.com/24857127
 
-FYI:  Gate One was developed entirely by one guy in his spare time over the
-course of ~9 months.  It turned out pretty good so he's looking to start a
-business out of it.  What better way to create jobs than to start by creating
-one for yourself?   All feedback, tips, and advice is appreciated:
+Important Notes
+---------------
+Gate One is currently IN BETA.  Some things may be incomplete or buggy.  Feel free to open new tickets in the issue tracker!
+
+Origins
+-------
+FYI:  Gate One was developed entirely by one guy in his spare time over the course of ~9 months.  It turned out pretty good so he's looking to start a business out of it.  What better way to create jobs than to start by creating one for yourself?   All feedback, tips, and advice is appreciated:
 
     daniel.mcdougall@liftoffsoftware.com
 
-NOTE: http://liftoffsoftware.com/ hasn't been built yet so links pointing there
-will be dead for a while.
+NOTE: http://liftoffsoftware.com/ hasn't been built yet.  It redirects to a landing page for now.
