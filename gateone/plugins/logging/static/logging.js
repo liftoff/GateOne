@@ -50,6 +50,17 @@ GateOne.Base.update(GateOne.Logging, {
 //         }
 //         p.appendChild(infoPanelViewLog);
 //     },
+    setLevel: function(level) {
+        // Sets the log level to an integer if the given a string (e.g. "DEBUG").  Leaves it as-is if it's already a number.
+        var l = GateOne.Logging;
+        if (level === parseInt(level,10)) { // It's an integer, set it as-is
+            l.level = level;
+        } else { // It's a string, convert it first
+            levelStr = level;
+            level = l.levels[levelStr]; // Get integer
+            l.level = level;
+        }
+    },
     /** @id MochiKit.Logging.Logger.prototype.logToConsole */
     logToConsole: function (msg) {
         if (typeof(window) != "undefined" && window.console && window.console.log) {
@@ -329,7 +340,7 @@ GateOne.Base.update(GateOne.Logging, {
         };
         trans.oncomplete = function(e) {
             GateOne.Logging.logDebug('trimLogDB transaction complete');
-            
+
             callback();
         }
         cursorRequest.onerror = GateOne.Logging.onerror;
