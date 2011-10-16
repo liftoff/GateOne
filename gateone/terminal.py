@@ -775,7 +775,7 @@ class Terminal(object):
                         if self.esc_buffer.endswith('\x1b\\'):
                             self._osc_handler()
                         else:
-                            loggin.warning(
+                            logging.warning(
                                 "Warning: No ESC sequence handler for %s"
                                 % `self.esc_buffer`
                             )
