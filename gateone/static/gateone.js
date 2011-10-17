@@ -1412,6 +1412,9 @@ GateOne.Base.update(GateOne.Input, {
         } else { // Proceed as usual
             e.preventDefault();
         }
+        if (key.string == "KEY_UNKNOWN") {
+            return; // Without this, unknown keys end up sending a null character which isn't a good idea =)
+        }
         // Try using the keyTable first (so everything can be overridden)
         if (key.string in goIn.keyTable) {
             if (goIn.keyTable[key.string]) { // Not null
@@ -1464,7 +1467,7 @@ GateOne.Base.update(GateOne.Input, {
             buffer = goIn.bufferEscSeq,
             q = goIn.queue;
         e.preventDefault();
-        if (key.string == "KEY_SHIFT" || key.string == "KEY_ALT" || key.string == "KEY_CTRL" || key.string == "KEY_WINDOWS_LEFT" || key.string == "KEY_WINDOWS_RIGHT") {
+        if (key.string == "KEY_SHIFT" || key.string == "KEY_ALT" || key.string == "KEY_CTRL" || key.string == "KEY_WINDOWS_LEFT" || key.string == "KEY_WINDOWS_RIGHT" || key.string == "KEY_UNKNOWN") {
             return; // For some reason if you press any combo of these keys at the same time it occasionally will send the keystroke as the second key you press.  It's odd but this ensures we don't act upon such things.
         }
         logDebug("emulateKeyCombo() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
