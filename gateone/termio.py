@@ -359,7 +359,7 @@ class Multiplex:
             # actual terminal unless they were using Gate One to view a
             # Gate One log file in vim or something =)
             # \U000f0f0f == U+F0F0F (Private Use Symbol)
-            chars = unicode(chars,'utf_8','ignore')
+            chars = unicode(chars, 'ignore')
             output = u"%s:%s\U000f0f0f" % (now, chars)
             log = gzip.open(self.log_path, mode='a')
             log.write(output.encode("utf-8"))
