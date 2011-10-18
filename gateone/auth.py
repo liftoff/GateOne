@@ -214,3 +214,36 @@ try:
                 self.redirect("/")
 except ImportError:
     pass # No SSO available.
+
+# Add our PAMAuthHandler if it's available
+PAMAuthHandler = None
+try:
+    from authpam import PAMAuthMixin
+    class PAMAuthHandler(BaseAuthHandler, PAMAuthMixin):
+        """
+        Handles authenticating users via PAM.
+        """
+        def get(self):
+            """
+            Checks the user's request header for the proper Authorization data. If
+            it checks out the user will be logged in via _on_auth().  If not, the
+            browser will be redirected to login.
+            """
+            auth_header = self.request.headers.get('Authorization')
+            if auth_header:
+                self.get_authenticated_user(self._on_auth)
+                return
+            self.authenticate_redirect()
+
+        def _on_auth(self, user):
+            if not user:
+                raise tornado.web.HTTPError(500, "PAM auth failed")
+            self.user_login(user) # This takes care of the user's settings dir
+            logging.debug("PAMAuthHandler user: %s" % user)
+            next_url = self.get_argument("next", None)
+            if next_url:
+                self.redirect(next_url)
+            else:
+                self.redirect("/")
+except ImportError:
+    pass # No PAM auth available.

@@ -215,7 +215,7 @@ from commands import getoutput
 
 # Our own modules
 import termio
-from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
+from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler, PAMAuthHandler
 from utils import noop, str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
 from utils import create_plugin_static_links, merge_handlers, none_fix
@@ -902,6 +902,10 @@ class Application(tornado.web.Application):
                 AuthHandler = KerberosAuthHandler
                 tornado_settings['sso_realm'] = settings["sso_realm"]
                 tornado_settings['sso_service'] = settings["sso_service"]
+            elif settings['auth'] == 'pam' and PAMAuthHandler:
+                AuthHandler = PAMAuthHandler
+                tornado_settings['pam_realm'] = settings["pam_realm"]
+                tornado_settings['pam_service'] = settings["pam_service"]
             elif settings['auth'] == 'google':
                 AuthHandler = GoogleAuthHandler
             logging.info("Using %s authentication" % settings['auth'])
@@ -955,6 +959,8 @@ def main():
     auths = "none, google"
     if KerberosAuthHandler:
         auths += ", kerberos"
+    if PAMAuthHandler:
+        auths += ", pam"
     # Simplify the syslog_facility option help message
     facilities = FACILITIES.keys()
     facilities.sort()
@@ -1061,6 +1067,19 @@ def main():
         type=str
     )
     define(
+        "pam_realm",
+        default=None,
+        help="Basic auth REALM to use when authenticating clients.",
+        type=str
+    )
+    define(
+        "pam_service",
+        default='login',
+        help="PAM service to use. Defaults to login. "
+             "Only relevant if PAM authentication is enabled.",
+        type=str
+    )
+    define(
         "embedded",
         default=False,
         help="Run Gate One in Embedded Mode (no toolbar, only one terminal "
@@ -1119,7 +1138,9 @@ def main():
                 "'-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'"
             ),
             'sso_realm': 'EXAMPLE.COM',
-            'sso_service': 'HTTP'
+            'sso_service': 'HTTP',
+            'pam_realm': 'EXAMPLE.COM',
+            'pam_service': 'login'
         }
         config = open(GATEONE_DIR + "/server.conf", "w")
         for key, value in config_defaults.items():
@@ -1171,7 +1192,9 @@ def main():
         'syslog_facility': options.syslog_facility,
         'dtach': options.dtach,
         'sso_realm': options.sso_realm,
-        'sso_service': options.sso_service
+        'sso_service': options.sso_service,
+        'pam_realm': options.pam_realm,
+        'pam_service': options.pam_service
     }
     # Check to make sure we have a certificate and keyfile and generate fresh
     # ones if not.
