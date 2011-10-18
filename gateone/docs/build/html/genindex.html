@@ -105,12 +105,12 @@
     <dd><dl>
       <dt><a href="About/index.html#cmdoption--log_file_max_size">command line option</a></dt>
   </dl></dd>
-</dl></td>
-  <td style="width: 33%" valign="top"><dl>
     <dt>--log_file_num_backups=integer</dt>
     <dd><dl>
       <dt><a href="About/index.html#cmdoption--log_file_num_backups">command line option</a></dt>
   </dl></dd>
+</dl></td>
+  <td style="width: 33%" valign="top"><dl>
     <dt>--log_file_prefix=string (file path)</dt>
     <dd><dl>
       <dt><a href="About/index.html#cmdoption--log_file_prefix">command line option</a></dt>
@@ -122,6 +122,14 @@
     <dt>--logging</dt>
     <dd><dl>
       <dt><a href="About/index.html#cmdoption--logging">command line option</a></dt>
+  </dl></dd>
+    <dt>--pam_realm=string (hostname)</dt>
+    <dd><dl>
+      <dt><a href="About/index.html#cmdoption--pam_realm">command line option</a></dt>
+  </dl></dd>
+    <dt>--pam_service=string</dt>
+    <dd><dl>
+      <dt><a href="About/index.html#cmdoption--pam_service">command line option</a></dt>
   </dl></dd>
     <dt>--port=integer (1-65535)</dt>
     <dd><dl>
@@ -218,6 +226,8 @@
       <dt><a href="About/index.html#cmdoption--log_file_prefix">--log_file_prefix=string (file path)</a></dt>
       <dt><a href="About/index.html#cmdoption--log_to_stderr">--log_to_stderr</a></dt>
       <dt><a href="About/index.html#cmdoption--logging">--logging</a></dt>
+      <dt><a href="About/index.html#cmdoption--pam_realm">--pam_realm=string (hostname)</a></dt>
+      <dt><a href="About/index.html#cmdoption--pam_service">--pam_service=string</a></dt>
       <dt><a href="About/index.html#cmdoption--port">--port=integer (1-65535)</a></dt>
       <dt><a href="About/index.html#cmdoption--session_dir">--session_dir=string (file path)</a></dt>
       <dt><a href="About/index.html#cmdoption--session_logging">--session_logging</a></dt>
@@ -424,6 +434,7 @@
     <dd><dl>
       <dt><a href="Developer/auth.html#auth.KerberosAuthHandler.get">(auth.KerberosAuthHandler method)</a></dt>
       <dt><a href="Developer/auth.html#auth.NullAuthHandler.get">(auth.NullAuthHandler method)</a></dt>
+      <dt><a href="Developer/auth.html#auth.PAMAuthHandler.get">(auth.PAMAuthHandler method)</a></dt>
   </dl></dd>
     <dt><a href="Developer/sso.html#sso.KerberosAuthMixin.get_authenticated_user">get_authenticated_user() (sso.KerberosAuthMixin method)</a></dt>
     <dt><a href="Developer/auth.html#auth.BaseAuthHandler.get_current_user">get_current_user() (auth.BaseAuthHandler method)</a></dt>
@@ -514,11 +525,12 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
+    <dt><a href="Developer/auth.html#auth.PAMAuthHandler">PAMAuthHandler (class in auth)</a></dt>
     <dt><a href="Developer/logviewer.html#logviewer.playback_log">playback_log() (in module logviewer)</a></dt>
     <dt><a href="Developer/termio.html#termio.Multiplex.proc_kill">proc_kill() (termio.Multiplex method)</a></dt>
-    <dt><a href="Developer/termio.html#termio.Multiplex.proc_read">proc_read() (termio.Multiplex method)</a></dt>
 </dl></td>
   <td style="width: 33%" valign="top"><dl>
+    <dt><a href="Developer/termio.html#termio.Multiplex.proc_read">proc_read() (termio.Multiplex method)</a></dt>
     <dt><a href="Developer/termio.html#termio.Multiplex.proc_write">proc_write() (termio.Multiplex method)</a></dt>
     <dt><a href="Developer/utils.html#utils.process_opt_esc_sequence">process_opt_esc_sequence() (in module utils)</a></dt>
 </dl></td>

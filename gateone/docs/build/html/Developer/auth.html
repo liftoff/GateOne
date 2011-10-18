@@ -176,9 +176,23 @@ sets <em>go_upn</em> to '%anonymous'.</p>
 <dl class="method">
 <dt id="auth.KerberosAuthHandler.get">
 <tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/auth.html#KerberosAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.KerberosAuthHandler.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks the user's request header for the proper Authorization data. If
-it checks out the user will be logged in via _on_auth().  If not, the
-browser will be redirected to login.</p>
+<dd><p>Checks the user's request header for the proper Authorization data.
+If it checks out the user will be logged in via _on_auth().  If not,
+the browser will be redirected to login.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="auth.PAMAuthHandler">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">PAMAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#auth.PAMAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles authenticating users via PAM.</p>
+<dl class="method">
+<dt id="auth.PAMAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><big>)</big><a class="headerlink" href="#auth.PAMAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the user's request header for the proper Authorization data.
+If it checks out the user will be logged in via _on_auth().  If not,
+the browser will be redirected to login.</p>
 </dd></dl>
 
 </dd></dl>

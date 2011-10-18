@@ -190,9 +190,9 @@ try:
         """
         def get(self):
             """
-            Checks the user's request header for the proper Authorization data. If
-            it checks out the user will be logged in via _on_auth().  If not, the
-            browser will be redirected to login.
+            Checks the user's request header for the proper Authorization data.
+            If it checks out the user will be logged in via _on_auth().  If not,
+            the browser will be redirected to login.
             """
             auth_header = self.request.headers.get('Authorization')
             if auth_header:
@@ -224,9 +224,9 @@ try:
         """
         def get(self):
             """
-            Checks the user's request header for the proper Authorization data. If
-            it checks out the user will be logged in via _on_auth().  If not, the
-            browser will be redirected to login.
+            Checks the user's request header for the proper Authorization data.
+            If it checks out the user will be logged in via _on_auth().  If not,
+            the browser will be redirected to login.
             """
             auth_header = self.request.headers.get('Authorization')
             if auth_header:

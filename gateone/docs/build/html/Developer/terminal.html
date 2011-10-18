@@ -258,9 +258,10 @@ self.callbacks[self.CALLBACK_TITLE]()</p>
 
 <dl class="method">
 <dt id="terminal.Terminal.save_cursor_position">
-<tt class="descname">save_cursor_position</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.save_cursor_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.save_cursor_position" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">save_cursor_position</tt><big>(</big><em>mode=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.save_cursor_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.save_cursor_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the cursor position and current rendition settings to
 self.saved_cursorX, self.saved_cursorY, and self.saved_rendition</p>
+<p>NOTE: Also handles the set/restore &quot;Private Mode Settings&quot; sequence.</p>
 </dd></dl>
 
 <dl class="method">
@@ -608,7 +609,7 @@ quick glance of what is being displayed (when debugging).</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="sso.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="termio.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>

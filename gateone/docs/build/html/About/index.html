@@ -187,6 +187,8 @@ Options:
 &nbsp;&nbsp;--embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
 &nbsp;&nbsp;--keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
 &nbsp;&nbsp;--kill                           Kill any running Gate One terminal processes including dtach'd processes.
+&nbsp;&nbsp;--pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
+&nbsp;&nbsp;--pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
 &nbsp;&nbsp;--port                           Run on the given port.
 &nbsp;&nbsp;--session_dir                    Path to the location where session information will be stored.
 &nbsp;&nbsp;--session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/logs.  Default: Enabled
@@ -441,6 +443,30 @@ Options:
 </div>
 <p>If running with dtach support, this will kill all user's running terminal applications.  Giving everyone a fresh start, as it were.</p>
 </div>
+<div class="section" id="pam-realm">
+<h3>pam_realm<a class="headerlink" href="#pam-realm" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--pam_realm">
+<tt class="descname">--pam_realm</tt><tt class="descclassname">=string (hostname)</tt><a class="headerlink" href="#cmdoption--pam_realm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sso_realm</span> <span class="o">=</span> <span class="s">&quot;somehost&quot;</span>
+</pre></div>
+</div>
+<p>If <tt class="xref py py-obj docutils literal"><span class="pre">auth</span> <span class="pre">=</span> <span class="pre">&quot;pam&quot;</span></tt>, tells Gate One which how to present BASIC auth to the user (essentially, the login dialog will say, &quot;REALM: &lt;pam_realm&gt;&quot;).  Also, the user's directory will be created in <tt class="xref py py-obj docutils literal"><span class="pre">user_dir</span></tt> as user&#64;&lt;pam_realm&gt;.</p>
+</div>
+<div class="section" id="pam-service">
+<h3>pam_service<a class="headerlink" href="#pam-service" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--pam_service">
+<tt class="descname">--pam_service</tt><tt class="descclassname">=string</tt><a class="headerlink" href="#cmdoption--pam_service" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pam_service</span> <span class="o">=</span> <span class="s">&quot;login&quot;</span>
+</pre></div>
+</div>
+<p>If <tt class="xref py py-obj docutils literal"><span class="pre">auth</span> <span class="pre">=</span> <span class="pre">&quot;pam&quot;</span></tt>, tells Gate One which PAM service to use when authenticating clients.  Defaults to 'login' which is typically controlled by <tt class="xref py py-obj docutils literal"><span class="pre">/etc/pam.d/login</span></tt>.</p>
+</div>
 <div class="section" id="port">
 <h3>port<a class="headerlink" href="#port" title="Permalink to this headline">¶</a></h3>
 <dl class="option">
@@ -654,6 +680,8 @@ Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]_;ssh|user@somehost:22#007</p
 <li><a class="reference internal" href="#embedded">embedded</a></li>
 <li><a class="reference internal" href="#keyfile">keyfile</a></li>
 <li><a class="reference internal" href="#kill">kill</a></li>
+<li><a class="reference internal" href="#pam-realm">pam_realm</a></li>
+<li><a class="reference internal" href="#pam-service">pam_service</a></li>
 <li><a class="reference internal" href="#port">port</a></li>
 <li><a class="reference internal" href="#session-dir">session_dir</a></li>
 <li><a class="reference internal" href="#session-logging">session_logging</a></li>

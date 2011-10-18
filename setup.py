@@ -37,6 +37,7 @@ gateone_files=[ # Start with the basics...
         'gateone/terminal.py',
         'gateone/termio.py',
         'gateone/utils.py',
+        'README.rst'
     ])
 ]
 static_files = walk_data_files('gateone/static')

@@ -100,10 +100,12 @@ well as descriptions of what each configurable option does:
       --cookie_secret                  Use the given 45-character string for cookie encryption.
       --debug                          Enable debugging features such as auto-restarting when files are modified.
       --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
-      --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature =).
+      --dtach                          Wrap terminals with dtach.  Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature =).
       --embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
       --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
       --kill                           Kill any running Gate One terminal processes including dtach'd processes.
+      --pam_realm                      Basic auth REALM to display when authenticating clients.  Default to hostname.  Only relevant if PAM authentication is enabled.
+      --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
       --port                           Run on the given port.
       --session_dir                    Path to the location where session information will be stored.
       --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/logs.  Default: Enabled
@@ -1068,14 +1070,18 @@ def main():
     )
     define(
         "pam_realm",
-        default=None,
-        help="Basic auth REALM to use when authenticating clients.",
+        default=uname()[1], # Defaults to hostname
+        help="Basic auth REALM to display when authenticating clients.  "
+        "Default: hostname.  "
+        "Only relevant if PAM authentication is enabled.",
+        # NOTE: This is only used to show the user a REALM at the basic auth
+        #       prompt and as the name in the GATEONE_DIR+'/users' directory
         type=str
     )
     define(
         "pam_service",
         default='login',
-        help="PAM service to use. Defaults to login. "
+        help="PAM service to use.  Defaults to 'login'. "
              "Only relevant if PAM authentication is enabled.",
         type=str
     )
@@ -1139,7 +1145,7 @@ def main():
             ),
             'sso_realm': 'EXAMPLE.COM',
             'sso_service': 'HTTP',
-            'pam_realm': 'EXAMPLE.COM',
+            'pam_realm': uname()[1],
             'pam_service': 'login'
         }
         config = open(GATEONE_DIR + "/server.conf", "w")
@@ -1173,7 +1179,6 @@ def main():
     # Set our global session timeout
     global TIMEOUT
     TIMEOUT = convert_to_timedelta(options.session_timeout)
-
     # Make sure dtach is available and if not, set dtach=False
     result = getoutput('which dtach')
     if not result:

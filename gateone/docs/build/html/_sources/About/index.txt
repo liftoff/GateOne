@@ -142,6 +142,8 @@ These options match up directly with Gate One's command line options which you c
       --embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
       --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
       --kill                           Kill any running Gate One terminal processes including dtach'd processes.
+      --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
+      --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
       --port                           Run on the given port.
       --session_dir                    Path to the location where session information will be stored.
       --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/logs.  Default: Enabled
@@ -343,6 +345,26 @@ kill
     # It would be silly to set this in server.conf--but you could!  Gate One wouldn't start but hey, whatever floats your boat!
 
 If running with dtach support, this will kill all user's running terminal applications.  Giving everyone a fresh start, as it were.
+
+pam_realm
+---------
+.. option:: --pam_realm=string (hostname)
+
+::
+
+    sso_realm = "somehost"
+
+If `auth = "pam"`, tells Gate One which how to present BASIC auth to the user (essentially, the login dialog will say, "REALM: <pam_realm>").  Also, the user's directory will be created in `user_dir` as user@<pam_realm>.
+
+pam_service
+-----------
+.. option:: --pam_service=string
+
+::
+
+    pam_service = "login"
+
+If `auth = "pam"`, tells Gate One which PAM service to use when authenticating clients.  Defaults to 'login' which is typically controlled by `/etc/pam.d/login`.
 
 port
 ----
