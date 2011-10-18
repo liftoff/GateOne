@@ -63,7 +63,7 @@ Class Docstrings
 """
 
 # Standard library modules
-import httplib, logging
+import httplib, logging, base64
 
 # 3rd party modules
 import kerberos
@@ -72,7 +72,6 @@ import tornado.ioloop
 import tornado.web
 from tornado.escape import utf8
 from tornado.util import b
-import base64
 
 # NOTE: For some reason if I set this as just an 'object' it doesn't work.
 class KerberosAuthMixin(tornado.web.RequestHandler):

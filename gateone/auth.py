@@ -158,7 +158,6 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
         """
         if not user:
             raise tornado.web.HTTPError(500, "Google auth failed")
-        print("GoogleAuthLoginHandler user: %s" % user)
         # NOTE: Google auth 'user' will be a dict like so:
         # user: {
         #     'locale': u'en-us',
