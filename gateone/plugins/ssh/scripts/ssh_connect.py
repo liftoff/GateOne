@@ -20,6 +20,9 @@ import os, sys, errno, readline, re, tempfile
 from subprocess import Popen, PIPE
 from optparse import OptionParser
 
+# Import 3rd party stuff
+from tornado.options import options
+
 # Globals
 re_host = re.compile(r'ssh://')
 
@@ -40,6 +43,7 @@ def connect_ssh(
         password=None,
         env=None,
         socket=None,
+        sshfp=False,
         additional_args=None):
     """
     Starts an interactive SSH session to the given host as the given user on the
@@ -71,6 +75,8 @@ def connect_ssh(
         "-p", port,
         "-l", user,
     ]
+    if sshfp:
+        args.append("-oVerifyHostKeyDNS=yes")
     if socket:
         # Only set Master mode if we don't have a socket for this session.
         # This allows us to duplicate a session without having to code
@@ -188,22 +194,31 @@ if __name__ == "__main__":
               "mode and 'man ssh')."),
         metavar="'<filepath>'"
     )
+    parser.add_option("--sshfp",
+        dest="sshfp",
+        default=False,
+        help=("Enable the use of SSHFP in verifying host keys. See:  "
+              "http://en.wikipedia.org/wiki/SSHFP#SSHFP")
+    )
     (options, args) = parser.parse_args()
     try:
         if len(args) == 1:
             (user, host, port, password) = parse_ssh_url(args[0])
             connect_ssh(user, host, port,
                 password=password,
+                sshfp=options.sshfp,
                 additional_args=options.additional_args,
                 socket=options.socket
             )
         elif len(args) == 2: # No port given, assume 22
             connect_ssh(args[0], args[1], '22',
+                sshfp=options.sshfp,
                 additional_args=options.additional_args,
                 socket=options.socket
             )
         elif len(args) == 3:
             connect_ssh(args[0], args[1], args[2],
+                sshfp=options.sshfp,
                 additional_args=options.additional_args,
                 socket=options.socket
             )
@@ -231,6 +246,7 @@ if __name__ == "__main__":
         print("\x1b]_;ssh|%s@%s:%s\007" % (user, host, port))
         connect_ssh(user, host, port,
             password=password,
+            sshfp=options.sshfp,
             additional_args=options.additional_args,
             socket=options.socket
         )

@@ -23,6 +23,7 @@ from gateone import BaseHandler
 # Tornado stuff
 import tornado.web
 from tornado.escape import json_encode, json_decode
+from tornado.options import define
 
 # Helper functions
 # TODO: make execute_command() a user-configurable option...  So it will automatically run whatever command(s) the user likes via a back-end channel whenever they connect to a given server.  Maybe even differentiate between when they connect and when they start up a master or slave channel.
@@ -114,6 +115,14 @@ def opt_esc_handler(text, tws):
     """
     message = {'sshjs_connect': text}
     tws.write_message(json_encode(message))
+
+# Define a new option for gateone.py to use
+define(
+    "sshfp",
+    default=False,
+    help="Enable the use of SSHFP in verifying host keys. See:  "
+         "http://en.wikipedia.org/wiki/SSHFP#SSHFP"
+)
 
 hooks = {
     'Web': [(r"/ssh", KnownHostsHandler)],

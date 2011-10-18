@@ -927,13 +927,6 @@ class Application(tornado.web.Application):
                 "default_filename": "index.html"
             })
         ]
-        # Load plugins and grab their hooks
-        imported = load_plugins(PLUGINS['py'])
-        for plugin in imported:
-            try:
-                PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
-            except AttributeError:
-                pass # No hooks--probably just a supporting .py file.
         # Connect the hooks
         for plugin_name, hooks in PLUGIN_HOOKS.items():
             if 'Web' in hooks:
@@ -978,7 +971,9 @@ def main():
         type=str
     )
     define("command",
-        default=GATEONE_DIR + "plugins/ssh/scripts/ssh_connect.py",
+        default=GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
+                r"'/tmp/gateone/%SESSION%/%r@%h:%p' -a "
+                "'-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'",
         help="Run the given command when a user connects (e.g. 'nethack').",
         type=str
     )
@@ -1103,7 +1098,14 @@ def main():
         help="Kill any running Gate One terminal processes including dtach'd "
              "processes."
     )
-    # TODO: Give plugins the ability to add their own define()s
+    # Before we do anythong else, load plugins and assign their hooks.  This
+    # allows plugins to add their own define() statements/options.
+    imported = load_plugins(PLUGINS['py'])
+    for plugin in imported:
+        try:
+            PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
+        except AttributeError:
+            pass # No hooks--probably just a supporting .py file.
     # TODO: Use the arguments passed to gateone.py to generate server.conf if it
     #       isn't already present.
     if os.path.exists(GATEONE_DIR + "/server.conf"):
@@ -1117,37 +1119,19 @@ def main():
         if not os.path.exists(options.session_dir): # Make our session_dir
             mkdir_p(options.session_dir)
             os.chmod(options.session_dir, 0700)
-        config_defaults = {
-            'debug': False,
-            'cookie_secret': generate_session_id(), # Works for so many things!
-            'port': 443,
-            'address': '0.0.0.0', # All addresses
-            'embedded': False,
-            'auth': None,
-            'dtach': True,
-            # NOTE: The next four options are specific to the Tornado framework
-            'log_file_max_size': 100 * 1024 * 1024, # 100MB
-            'log_file_num_backups': 10, # 1GB total max
-            'log_file_prefix': '/var/log/gateone/webserver.log',
-            'logging': 'info', # One of: info, warning, error, none
-            'user_dir': options.user_dir,
-            'session_dir': options.session_dir,
-            'session_logging': options.session_logging,
-            'syslog_session_logging': options.syslog_session_logging,
-            'syslog_facility': options.syslog_facility,
-            'session_timeout': options.session_timeout,
-            'keyfile': GATEONE_DIR + "/keyfile.pem",
-            'certificate': GATEONE_DIR + "/certificate.pem",
-            'command': (
-                GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
-                r"'/tmp/gateone/%SESSION%/%r@%h:%p' -a "
-                "'-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'"
-            ),
-            'sso_realm': 'EXAMPLE.COM',
-            'sso_service': 'HTTP',
-            'pam_realm': uname()[1],
-            'pam_service': 'login'
-        }
+        config_defaults = {}
+        for key, value in options.items():
+            config_defaults.update({key: value.default})
+        # A few config defaults need special handling
+        del config_defaults['kill'] # This shouldn't be in server.conf
+        del config_defaults['help'] # Neither should this
+        config_defaults.update({'cookie_secret': generate_session_id()})
+        # NOTE: The next four options are specific to the Tornado framework
+        config_defaults.update({'log_file_max_size': 100 * 1024 * 1024}) # 100MB
+        config_defaults.update({'log_file_num_backups': 10})
+        config_defaults.update({'log_to_stderr': False})
+        config_defaults.update(
+            {'log_file_prefix': '/var/log/gateone/webserver.log'})
         config = open(GATEONE_DIR + "/server.conf", "w")
         for key, value in config_defaults.items():
             if isinstance(value, basestring):
