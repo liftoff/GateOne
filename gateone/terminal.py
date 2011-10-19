@@ -1772,14 +1772,10 @@ class Terminal(object):
         Note: This places <span class="cursor">(current character)</span> around
         the cursor location.
         """
-        start = time.time()
         results = self.__spanify_screen()
         scrollback = []
         if self.scrollback_buf:
             scrollback = self.__spanify_screen()
-        end = time.time()
-        elapsed = end - start
-        print('It took %0.2fms to dump_html()' % (elapsed*1000.0))
         # Empty the scrollback buffer:
         self.init_scrollback()
         return (scrollback, results)
