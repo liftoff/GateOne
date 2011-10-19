@@ -203,7 +203,6 @@ class Multiplex:
         self.log_path = log_path # Logs of the terminal output wind up here
         self.syslog = syslog # See "if self.syslog:" below
         self.syslog_facility = syslog_facility # Ditto
-        self.lock = threading.RLock() # Used by the @synchronized decorator
         self.io_loop = ioloop.IOLoop.instance() # Monitors child for activity
         self.alive = True # Provides a quick way to see if we're still kickin'
         # These three variables are used by the rate limiting function:
@@ -270,22 +269,6 @@ class Multiplex:
             self.pid = pid
             self.term = self.terminal_emulator(rows=rows, cols=cols)
             self.time = time.time()
-            # NOTE: io.open has a memory leak in Python 2.6 and below so we only
-            #       use it for Python 2.7+.  Why use it at all?  It's faster,
-            #       more memory efficient, and not deprecated.
-            if sys.version_info[0] == 2 and sys.version_info[1] >= 7:
-                self.reader =  io.open(
-                    self.fd,
-                    'rt',
-                    buffering=1024,
-                    newline="",
-                    encoding='UTF-8', # TODO: Make this configurable
-                    closefd=False,
-                    errors='handle_special'
-                )
-            else:
-            # For Python <= 2.6
-                self.reader = os.fdopen(self.fd, 'r')
             # Tell our IOLoop instance to start watching the child
             self.io_loop.add_handler(
                 self.fd, self.proc_read, self.io_loop.READ)
@@ -332,7 +315,7 @@ class Multiplex:
         try:
             self.io_loop.remove_handler(self.fd)
         except KeyError:
-            print("Error trying to remove fd: %s" % self.fd)
+            logging.error("Error trying to remove fd: %s" % self.fd)
         try:
             os.kill(self.pid, signal.SIGTERM)
             os.wait()
@@ -361,9 +344,8 @@ class Multiplex:
             # \U000f0f0f == U+F0F0F (Private Use Symbol)
             chars = unicode(chars)
             output = u"%s:%s\U000f0f0f" % (now, chars)
-            log = gzip.open(self.log_path, mode='a')
-            log.write(output.encode("utf-8"))
-            log.close()
+            with gzip.open(self.log_path, mode='a') as log:
+                log.write(output.encode("utf-8"))
         # NOTE: Gate One's log format is special in that it can be used for both
         # playing back recorded sessions *or* generating syslog-like output.
         if self.syslog:
@@ -381,6 +363,7 @@ class Multiplex:
             else:
                 self.syslog_buffer += chars
         self.term.write(chars)
+        self.io_loop.add_callback(self.callbacks[self.CALLBACK_UPDATE])
 
     def proc_read(self, fd, event):
         """
@@ -396,10 +379,18 @@ class Multiplex:
         NOTE: This method is not meant to be called directly...  The IOLoop
         should be the one calling it when it detects an io_loop.READ event.
         """
-        self.lock.acquire()
         if event == self.io_loop.READ:
             try:
-                updated = self.reader.read(65536)
+                with io.open(
+                        self.fd,
+                        'rt',
+                        buffering=65536,
+                        newline="",
+                        encoding='UTF-8', # TODO: Make this configurable
+                        closefd=False,
+                        errors='handle_special'
+                    ) as reader:
+                    updated = reader.read(65536)
                 #updated = os.read(fd, 65536) # A lot slower than reader, why?
                 ratelimit = self.ratelimit
                 now = time.time()
@@ -428,19 +419,17 @@ class Multiplex:
                         if check % 2 == 0 and not self.skip:
                             self.term_write(updated)
                             self.skip = True
-                            self.callbacks[self.CALLBACK_UPDATE]()
+
                         elif self.skip:
                             self.skip = False
                     else:
                         self.term_write(updated)
-                        self.callbacks[self.CALLBACK_UPDATE]()
                     # NOTE: This can result in odd output with too-fast apps
                 else:
                     self.term_write(updated)
                 if now - ratelimit > 1:
                     # Reset the rate limiter
                     self.ratelimit = time.time()
-                self.callbacks[self.CALLBACK_UPDATE]()
                 self.time = time.time()
             except KeyError as e:
                 # Should just be an exception from handle_special()
@@ -460,34 +449,31 @@ class Multiplex:
             self.die()
             self.proc_kill()
             self.callbacks[self.CALLBACK_EXIT]()
-        self.lock.release()
 
     def proc_write(self, chars):
         """
         Writes *chars* to the terminal process running on *fd*.
         """
-        self.lock.acquire()
         try:
-            # By creating a new writer with every execution of this function we
-            # can avoid the memory leak in earlier versions of Python.  It is
-            # slightly slower but, hey, now you have an excuse to upgrade!
-            writer = io.open(
+        # By creating a new writer with every execution of this function we
+        # can avoid the memory leak in earlier versions of Python.  It is
+        # slightly slower but, hey, now you have an excuse to upgrade!
+            with io.open(
                 self.fd,
                 'wt',
-                buffering=1024,
+                buffering=65536,
                 newline="",
                 encoding='UTF-8',
                 closefd=False
-            )
-            writer.write(chars)
-            writer.flush()
-            #os.write(self.fd, s) # This doesn't leak but it also doesn't support unicode
+            ) as writer:
+                writer.write(chars)
+            # This doesn't leak but it also doesn't support unicode:
+            #os.write(self.fd, s)
         except (IOError, OSError):
             self.die()
             self.proc_kill()
         except Exception as e:
             logging.error("proc_write() exception: %s" % e)
-        self.lock.release()
 
     def dumplines(self):
         """
@@ -496,7 +482,6 @@ class Multiplex:
         (scrollback, text).  If a line hasn't changed since the last dump then
         it will be replaced with an empty string (in the terminal text lines).
         """
-        self.lock.acquire()
         try:
             output = []
             scrollback, html = self.term.dump_html()
@@ -509,6 +494,3 @@ class Multiplex:
             return (scrollback, output)
         except KeyError:
             return (None, None)
-        finally:
-            self.lock.release()
-

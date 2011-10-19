@@ -120,7 +120,7 @@ def opt_esc_handler(text, tws):
 define(
     "sshfp",
     default=False,
-    help="Enable the use of SSHFP in verifying host keys. See:  "
+    help="Enable the use of SSHFP in verifying host keys.  See:  "
          "http://en.wikipedia.org/wiki/SSHFP#SSHFP"
 )
 
@@ -130,4 +130,5 @@ hooks = {
         'sshjs_get_connect_string': get_connect_string
     },
     'Escape': opt_esc_handler,
+    'Defines': None,
 }
