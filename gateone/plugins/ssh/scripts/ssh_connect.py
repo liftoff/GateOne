@@ -84,7 +84,7 @@ def connect_ssh(
         "-l", user,
     ]
     if sshfp:
-        args.append("-oVerifyHostKeyDNS=yes")
+        args.insert(3, "-oVerifyHostKeyDNS=yes")
     if socket:
         # Only set Master mode if we don't have a socket for this session.
         # This allows us to duplicate a session without having to code
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     )
     parser.add_option("--sshfp",
         dest="sshfp",
-        default=False,
+        default=True,
         help=("Enable the use of SSHFP in verifying host keys. See:  "
               "http://en.wikipedia.org/wiki/SSHFP#SSHFP")
     )

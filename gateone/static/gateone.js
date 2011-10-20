@@ -1005,10 +1005,22 @@ GateOne.Base.update(GateOne.Input, {
             GateOne.Net.sendChars();
         }
         goDiv.onmousedown = function(e) {
+            // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
+            var m = go.Input.mouse(e);
             // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
             // However, we only want this when the user is actually bringing up the context menu because
             // having it enabled slows down screen updates by a non-trivial amount.
-            goDiv.contentEditable = true;
+            if (m.button.middle) {
+                var selectedText = u.getSelText();
+                if (selectedText.length) {
+                    // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
+                    e.preventDefault();
+                    go.Input.queue(selectedText);
+                    go.Net.sendChars();
+                }
+            } else {
+                goDiv.contentEditable = true;
+            }
         }
         goDiv.onmouseup = function(e) {
             // Once the user is done pasting (or clicking), set it back to false for speed

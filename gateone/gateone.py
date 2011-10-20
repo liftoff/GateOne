@@ -823,6 +823,7 @@ class TidyThread(threading.Thread):
         self.last_keepalive = datetime.now()
         self.session = session
         self.quitting = False
+        self.doublecheck = True
 
     def keepalive(self, datetime_obj=None):
         """
@@ -855,12 +856,21 @@ class TidyThread(threading.Thread):
                     try:
                         if SESSIONS[session][term]['multiplex'].alive:
                             all_dead = False
+                            # Added a doublecheck value here because there's a
+                            # gap between when the last terminal is closed and
+                            # when a new one starts up.  Occasionally this would
+                            # cause the user's connection to be killed (due to
+                            # there being no active terminal associated with it)
+                            self.doublecheck = True
                     except TypeError: # Ignore TidyThread object
                         pass
                 if all_dead:
-                    self.quitting = True
+                    if not self.doublecheck:
+                        self.quitting = True
+                    else:
+                        self.doublecheck = False
                 # Keep this low or it will take that long for the process to end
-                # when it receives a SIGTERM or Ctrl-c
+                # when we receive a SIGTERM or Ctrl-c
                 time.sleep(2)
             except Exception as e:
                 logging.info(

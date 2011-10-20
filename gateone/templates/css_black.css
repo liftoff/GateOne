@@ -115,29 +115,29 @@
 }
 /* Foregrounds */
 #{{container}} span.f0 { color: #5C5C5C; } /* Black */
-#{{container}} span.f0.b1 { color: #000; background-color: #B21818; }
-#{{container}} span.f0.b2 { color: #000; background-color: #18B218; }
-#{{container}} span.f0.b3 { color: #000; background-color: #FFFF00; }
-#{{container}} span.f0.b4 { color: #000; background-color: #1818B2; }
-#{{container}} span.f0.b5 { color: #000; background-color: #B218B2; }
-#{{container}} span.f0.b6 { color: #000; background-color: #18B2B2; }
-#{{container}} span.f0.b7 { color: #000; background-color: #B2B2B2; }
+#{{container}} span.f0.b1 { color: #000; background-color: #B21818; } /* Black on Red */
+#{{container}} span.f0.b2 { color: #000; background-color: #00E40C; } /* Black on Green */
+#{{container}} span.f0.b3 { color: #000; background-color: #FFFF00; } /* Black on Yellow */
+#{{container}} span.f0.b4 { color: #000; background-color: #1818B2; } /* Black on Blue */
+#{{container}} span.f0.b5 { color: #000; background-color: #B218B2; } /* Black on Magenta */
+#{{container}} span.f0.b6 { color: #000; background-color: #18B2B2; } /* Black on Cyan */
+#{{container}} span.f0.b7 { color: #000; background-color: #B2B2B2; } /* Black on White */
 #{{container}} span.f1 { color: #D6292C; } /* Red */
 #{{container}} span.f2 { color: #13A110; } /* Green */
-#{{container}} span.f3 { color: #BDC000; } /* Yellow */
+#{{container}} span.f3 { color: #E9E900; } /* Yellow */
 #{{container}} span.f4 { color: #1B4CFF; } /* Blue */
 #{{container}} span.f5 { color: #E01DC6; } /* Magenta */
 #{{container}} span.f6 { color: #28A7A5; } /* Cyan */
 #{{container}} span.f7 { color: #eee; } /* White */
 /* Backgrounds */
-#{{container}} span.b0  { background-color: #222; } /* Used when the rendition is set to 49 */
-#{{container}} span.b1  { background-color: #B21818; }
-#{{container}} span.b2  { background-color: #18B218; }
-#{{container}} span.b3  { background-color: #FFFF00; }
-#{{container}} span.b4  { background-color: #1818B2; }
-#{{container}} span.b5  { background-color: #B218B2; }
-#{{container}} span.b6  { background-color: #18B2B2; }
-#{{container}} span.b7  { background-color: #B2B2B2; }
+#{{container}} span.b0  { background-color: #222; } /* Black (used when the rendition is set to 49) */
+#{{container}} span.b1  { background-color: #B21818; } /* Red */
+#{{container}} span.b2  { background-color: #00E40C; } /* Green */
+#{{container}} span.b3  { background-color: #FFFF00; } /* Yellow */
+#{{container}} span.b4  { background-color: #1818B2; } /* Blue */
+#{{container}} span.b5  { background-color: #B218B2; } /* Magenta */
+#{{container}} span.b6  { background-color: #18B2B2; } /* Cyan */
+#{{container}} span.b7  { background-color: #B2B2B2; } /* White */
 /* Reversed Foregrounds */
 #{{container}} span.reverse { color: #000; background-color: #ccc; } /* Black on White */
 #{{container}} span.reverse.f0 { color: #000; background-color: #ccc; } /* Black */
@@ -151,43 +151,43 @@
 /* Other text properties */
 #{{container}} span.bold { font-weight: bold; }
 #{{container}} span.dim { opacity: 0.7; }
-@-webkit-keyframes blinker {  
+@-webkit-keyframes blinker {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
 }
-@-moz-keyframes blinker {  
+@-moz-keyframes blinker {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
 }
-@keyframes blinker {  
+@keyframes blinker {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
 }
 #{{container}} span.blink {
-    -webkit-animation-name: blinker;  
-    -webkit-animation-iteration-count: infinite;  
+    -webkit-animation-name: blinker;
+    -webkit-animation-iteration-count: infinite;
     -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
     -webkit-animation-duration: 1s;
     -moz-animation-iteration-count: infinite;
     -moz-animation-name: blinker;
     -moz-animation-duration: 1s;
     -moz-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
-    animation-name: blinker;  
-    animation-iteration-count: infinite;  
+    animation-name: blinker;
+    animation-iteration-count: infinite;
     animation-timing-function: cubic-bezier(1.0,0,0,1.0);
     animation-duration: 1s;
 }
 #{{container}} span.fastblink {
-    -webkit-animation-name: blinker;  
-    -webkit-animation-iteration-count: infinite;  
+    -webkit-animation-name: blinker;
+    -webkit-animation-iteration-count: infinite;
     -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
     -webkit-animation-duration: 0.5s;
     -moz-animation-iteration-count: infinite;
     -moz-animation-name: blinker;
     -moz-animation-duration: 0.5s;
     -moz-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
-    animation-name: blinker;  
-    animation-iteration-count: infinite;  
+    animation-name: blinker;
+    animation-iteration-count: infinite;
     animation-timing-function: cubic-bezier(1.0,0,0,1.0);
     animation-duration: 0.5s;
 }
@@ -530,7 +530,7 @@
     position: absolute;
     bottom: 0;
     right: 0;
-} 
+}
 .{{prefix}}bookmark ul li {
     margin-left: 0.1em;
     padding-left: 0.2em;
@@ -743,7 +743,7 @@
     border: 1px solid #bbb;
     border-radius: 2px;
     box-shadow: 0 1px 1px #fff;
-    font-family: DejaVu Sans, Verdana, sans-serif; 
+    font-family: DejaVu Sans, Verdana, sans-serif;
 /*     font: 12px/18px Helvetica Neue, "Arial", Helvetica, Verdana, sans-serif; */
 /*     text-shadow: 0 0 1px #fff; */
     color: #000;
@@ -765,7 +765,7 @@
     padding: 0.2em 0 0.2em 0.4em;
     font-weight: normal;
     font-size: 1em;
-    font-family: DejaVu Sans, Verdana, sans-serif; 
+    font-family: DejaVu Sans, Verdana, sans-serif;
     color: #aaa;
     -webkit-transition: color 0.15s linear;
     -moz-transition: color 0.15s linear;

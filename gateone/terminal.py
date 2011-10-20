@@ -291,7 +291,7 @@ class Terminal(object):
         self.prev_esc_buffer = '' # Special: So we can differentiate between
                                   # certain circumstances.
         self.show_cursor = True
-        self.last_rendition = None
+        self.last_rendition = [0]
         self.init_screen()
         self.init_renditions()
         self.G0_charset = 'B'
@@ -312,9 +312,9 @@ class Terminal(object):
             self.ASCII_XON: self._xon,
             self.ASCII_CAN: self._cancel_esc_sequence,
             self.ASCII_XOFF: self._xoff,
-            self.ASCII_ESC: self._sub_esc_sequence,
+            #self.ASCII_ESC: self._sub_esc_sequence,
             self.ASCII_ESC: self._escape,
-            self.ASCII_CSI: self._set_rendition,
+            self.ASCII_CSI: self._csi,
         }
         # TODO: Finish these:
         self.esc_handlers = {
@@ -534,7 +534,7 @@ class Terminal(object):
         elif rows > self.rows: # Add rows at the bottom
             for i in xrange(rows - self.rows):
                 line = [u' ' for a in xrange(cols)]
-                renditions = [None for a in xrange(self.cols)]
+                renditions = [[0] for a in xrange(self.cols)]
                 self.screen.append(line)
                 self.renditions.append(renditions)
         self.rows = rows
@@ -554,7 +554,7 @@ class Terminal(object):
             for i in xrange(self.rows):
                 for j in xrange(cols - self.cols):
                     self.screen[i].append(u' ')
-                    self.renditions[i].append(None)
+                    self.renditions[i].append([0])
         self.cols = cols
 
         # Fix the cursor location:
@@ -718,6 +718,12 @@ class Terminal(object):
         the cursor as it does so.  If *chars* is not unicode, it will be
         converted to unicode before being stored in self.screen.
         """
+        # TODO: See how much faster this could be if it were all inside of one
+        # giant function instead of having it call all the little ones.  It
+        # surely wouldn't be as neat but I bet all these function calls add up.
+        # NOTE: This is the slowest function in all of Gate One.  All
+        # suggestions on how to speed it up are welcome!
+
         # Speedups (don't want dots in loops if they can be avoided)
         specials = self.specials
         esc_handlers = self.esc_handlers
@@ -780,7 +786,7 @@ class Terminal(object):
                             )
                             self.esc_buffer = ''
                     continue # We're done here
-                # TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
+# TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
                 if self.local_echo:
                     changed = True
                     if self.cursorX >= self.cols:
@@ -796,6 +802,8 @@ class Terminal(object):
                         # browser bug.
                         #self.screen[self.cursorY].append(unicode(char))
                         #self.renditions[self.cursorY].append([])
+                        # To try it just uncomment the above two lines and
+                        # comment out the self._newline() and self.cusorX lines
                     if self.G0_charset == '0':
                         self.screen[self.cursorY][self.cursorX] = self.charsets[
                             '0'][charnum]
@@ -815,6 +823,254 @@ class Terminal(object):
                 self.callbacks[self.CALLBACK_CURSOR_POS]()
             except TypeError:
                 pass
+
+# TODO: This is a work in progress...  Testing how much things get sped up by
+# replacing all the function calls with inline code.  It is real ugly and hard
+# to follow but it might just be significantly faster.
+    #def write(self, chars):
+        #"""
+        #Write *chars* to the terminal at the current cursor position advancing
+        #the cursor as it does so.  If *chars* is not unicode, it will be
+        #converted to unicode before being stored in self.screen.
+        #"""
+        ## NOTE: This is the rewrite of write()...  A work in progress.  Notes
+        ## are sprinked throughout the function indicating what needs to be done.
+
+        ## Speedups (don't want dots in loops if they can be avoided)
+        #start = time.time()
+        #specials = self.specials
+        #esc_handlers = self.esc_handlers
+        #csi_handlers = self.csi_handlers
+        #RE_ESC_SEQ = self.RE_ESC_SEQ
+        #RE_CSI_ESC_SEQ = self.RE_CSI_ESC_SEQ
+        #cursor_right = self.cursor_right
+        #changed = False
+        #ASCII_NUL = 0     # Null
+        #ASCII_BEL = 7     # Bell (BEL)
+        #ASCII_BS = 8      # Backspace
+        #ASCII_HT = 9      # Horizontal Tab
+        #ASCII_LF = 10     # Line Feed
+        #ASCII_VT = 11     # Vertical Tab
+        #ASCII_FF = 12     # Form Feed
+        #ASCII_CR = 13     # Carriage Return
+        #ASCII_XON = 17    # Resume Transmission
+        #ASCII_XOFF = 19   # Stop Transmission or Ignore Characters
+        #ASCII_CAN = 24    # Cancel Escape Sequence
+        #ASCII_SUB = 26    # Substitute: Cancel Escape Sequence and replace with ?
+        #ASCII_ESC = 27    # Escape
+        #ASCII_CSI = 155   # Control Sequence Introducer (that nothing uses)
+        #ASCII_HTS = 210   # Horizontal Tab Stop (HTS)
+        #specials = [
+            #ASCII_NUL,
+            #ASCII_BEL,
+            #ASCII_BS,
+            #ASCII_HT,
+            #ASCII_LF,
+            #ASCII_VT,
+            #ASCII_FF,
+            #ASCII_CR,
+            #ASCII_XON,
+            #ASCII_CAN,
+            #ASCII_XOFF,
+            #ASCII_ESC,
+            #ASCII_CSI
+        #]
+        ## Commented this out because even if logging isn't set to debug, these
+        ## logging.whatever() lines do still eat some CPU
+        ##logging.debug('handling chars: %s' % `chars`)
+
+        ## Looping over the characters individually is actually pretty quick as
+        ## is demonstrated by the __spanify_screen() function.
+        #for char in chars:
+            #charnum = ord(char)
+            #if charnum in specials:
+                #if charnum == ASCII_NUL:
+                    #pass # Ignore the null character
+                #elif charnum == ASCII_BEL:
+                    #if not self.esc_buffer:
+                        #try: # We're not in the middle of an esc sequence
+                            #self.callbacks[self.CALLBACK_BELL]()
+                        #except TypeError:
+                            #pass
+                    #else: # We're (likely) setting a title
+                        ## Add the bell char so we don't lose it
+                        #self.esc_buffer += '\x07'
+                        #self._osc_handler()
+                #elif charnum == ASCII_BS:
+                    #self.renditions[self.cursorY][self.cursorX] = None
+                    #self.cursor_left(1)
+                #elif charnum == ASCII_HT:
+                    #next_tabstop = self.cols -1
+                    #for tabstop in self.tabstops:
+                        #if tabstop > self.cursorX:
+                            #next_tabstop = tabstop
+                            #break
+                    #self.cursorX = next_tabstop
+                #elif charnum in [ASCII_LF, ASCII_VT, ASCII_FF]:
+                    #self.cursorY += 1
+                    #if self.cursorY > self.bottom_margin:
+                        #self.scroll_up()
+                        #self.cursorY = self.bottom_margin
+                        #self.clear_line()
+                #elif charnum == ASCII_CR:
+                    #self.cursorX = 0
+                #elif charnum == ASCII_XON:
+                    #self.ignore = False
+                #elif charnum == ASCII_XOFF:
+                    #self.ignore = True
+                #elif charnum == ASCII_CAN:
+                    #self.esc_buffer = ''
+                #elif charnum == ASCII_ESC:
+                    #buf = self.esc_buffer
+                    #if buf.startswith('\x1bP') or buf.startswith('\x1b]'):
+                        ## CSRs and OSCs are special
+                        #self.esc_buffer += '\x1b'
+                    #else:
+                        ## Get rid of whatever's there since we obviously didn't
+                        ## know what to do with it
+                        #self.esc_buffer = '\x1b'
+                #elif charnum == ASCII_CSI:
+                    #self.esc_buffer = '\x1b['
+            #elif not self.ignore:
+                ## Now handle the regular characters and escape sequences
+                #if self.esc_buffer: # We've got an escape sequence going on...
+                    #try:
+                        #self.esc_buffer += char
+                        ## First try to handle non-CSI ESC sequences (the basics)
+                        #match_obj = RE_ESC_SEQ.match(self.esc_buffer)
+                        #if match_obj:
+                            #seq_type = match_obj.group(1) # '\x1bA' -> 'A'
+                            #if len(seq_type) == 1: # Single-character sequnces
+                                #seq_type = seq_type[1]
+                            #else: # Multi-character stuff like '\x1b)B'
+                                #seq_type = seq_type[1]
+                                #arg = seq_type[1:]
+                            #if seq_type == 'c':
+                                #self.clear_screen()
+                            #elif seq_type == 'E':
+                                #if self.cursorY < self.rows -1:
+                                    #self.cursorY += 1
+                            #elif seq_type == 'H':
+                                #if self.cursorX not in self.tabstops:
+                                    #for tabstop in self.tabstops:
+                                        #if self.cursorX > tabstop:
+                                            #self.tabstops.append(self.cursorX)
+                                            #self.tabstops.sort()
+                                            #break
+                            #elif seq_type in 'IM':
+                                #self.cursorX = 0
+                                #self.cursorY -= 1
+                                #if self.cursorY < self.top_margin:
+                                    #self.scroll_down()
+                                    #self.cursorY = self.top_margin
+                            #elif seq_type == '(':
+                                #self.G0_charset = arg
+                            #elif seq_type == ')':
+                                #self.G1_charset = arg
+                            #elif seq_type == '7':
+                                #if arg: # Set DEC private mode
+                ## TODO: Need some logic here to save the current expanded mode
+                ##       so we can restore it in _set_top_bottom().
+                                    #self._set_expanded_mode(mode)
+        ## NOTE: args and kwargs are here to make sure we don't get an exception
+        ##       when we're called via escape sequences.
+                                #self.saved_cursorX = self.cursorX
+                                #self.saved_cursorY = self.cursorY
+                                #self.saved_rendition = self.renditions[
+                                        #self.cursorY][self.cursorX]
+                            #elif seq_type == '8':
+                                #if self.saved_cursorX and self.saved_cursorY:
+                                    #self.cursorX = self.saved_cursorX
+                                    #self.cursorY = self.saved_cursorY
+                                    #self.renditions[
+                                        #self.cursorY][
+                                            #self.cursorX] = self.saved_rendition
+                            #elif seq_type == '6':
+                                #esc_cursor_pos = '\x1b%s;%sR' % (
+                                    #self.cursorY, self.cursorX)
+                                #try:
+                                    #self.callbacks[self.CALLBACK_DSR](
+                                        #esc_cursor_pos)
+                                #except TypeError:
+                                    #pass
+                            #elif seq_type == '5':
+                                #response = "\x1b[0n"
+                                #try:
+                                    #self.callbacks[self.CALLBACK_DSR](response)
+                                #except TypeError:
+                                    #pass
+                            #self.prev_esc_buffer = self.esc_buffer
+                            #self.esc_buffer = '' # All done with this one
+                            #continue
+                        ## Next try to handle CSI ESC sequences
+                        #match_obj = RE_CSI_ESC_SEQ.match(self.esc_buffer)
+                        #if match_obj:
+                            #csi_values = match_obj.group(1) # e.g. '0;1;37'
+                            #csi_type = match_obj.group(2) # e.g. 'm'
+                            ##logging.debug(
+                                ##'CSI: %s, %s' % (csi_type, csi_values))
+                            ## Call the matching CSI handler
+                            #try:
+                                #csi_handlers[csi_type](csi_values)
+                            #except ValueError:
+                                #logging.error(
+                                    #"CSI Handler Error: Type: %s, Values: %s" %
+                                    #(csi_type, csi_values)
+                                #)
+                            #self.prev_esc_buffer = self.esc_buffer
+                            #self.esc_buffer = ''
+                            #continue
+                    #except KeyError:
+                        ## No handler for this, try some alternatives
+                        #if self.esc_buffer.endswith('\x1b\\'):
+                            #self._osc_handler()
+                        #else:
+                            #logging.warning(
+                                #"Warning: No ESC sequence handler for %s"
+                                #% `self.esc_buffer`
+                            #)
+                            #self.esc_buffer = ''
+                    #continue # We're done here
+## TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
+                #if self.local_echo:
+                    #changed = True
+                    #if self.cursorX >= self.cols:
+                        ## Start a newline but NOTE: Not really the best way to
+                        ## handle this because it means copying and pasting lines
+                        ## will end up broken into pieces of size=self.cols
+                        #self._newline()
+                        #self.cursorX = 0
+                        ## This actually works but until I figure out a way to
+                        ## get the browser to properly wrap the line without
+                        ## freaking out whenever someone clicks on the page it
+                        ## will have to stay commented.  NOTE: This might be a
+                        ## browser bug.
+                        ##self.screen[self.cursorY].append(unicode(char))
+                        ##self.renditions[self.cursorY].append([])
+                        ## To try it just uncomment the above two lines and
+                        ## comment out the self._newline() and self.cusorX lines
+                    #if self.G0_charset == '0':
+                        #self.screen[self.cursorY][self.cursorX] = self.charsets[
+                            #'0'][charnum]
+                    #else:
+                        #self.renditions[self.cursorY][
+                            #self.cursorX] = self.last_rendition
+                        #self.screen[self.cursorY][self.cursorX] = unicode(char)
+                    #self.prev_esc_buffer = ''
+                    #cursor_right()
+        #if changed:
+            ## Execute our callbacks
+            #try:
+                #self.callbacks[self.CALLBACK_CHANGED]()
+            #except TypeError:
+                #pass
+            #try:
+                #self.callbacks[self.CALLBACK_CURSOR_POS]()
+            #except TypeError:
+                #pass
+        #end = time.time()
+        #elapsed = end - start
+        #print('It took %0.2fms to write()' % (elapsed*1000.0))
 
     def flush(self):
         """
@@ -843,7 +1099,7 @@ class Terminal(object):
             self.scrollback_renditions.append(style)
             # Insert a new empty rendition as well:
             self.renditions.insert(
-                self.bottom_margin, [None for a in xrange(self.cols)])
+                self.bottom_margin, [[0] for a in xrange(self.cols)])
         # Execute our callback indicating lines have been updated
         try:
             self.callbacks[self.CALLBACK_CHANGED]()
@@ -869,7 +1125,7 @@ class Terminal(object):
             style = self.renditions.pop(self.bottom_margin)
             # Insert a new empty one:
             self.renditions.insert(
-                self.top_margin, [None for a in xrange(self.cols)])
+                self.top_margin, [[0] for a in xrange(self.cols)])
         # Execute our callback indicating lines have been updated
         try:
             self.callbacks[self.CALLBACK_CHANGED]()
@@ -892,7 +1148,7 @@ class Terminal(object):
         empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
         self.screen.insert(self.cursorY, empty_line) # Insert at cursor
         # Insert a new empty rendition as well:
-        self.renditions.insert(self.cursorY, [None for a in xrange(self.cols)])
+        self.renditions.insert(self.cursorY, [[0] for a in xrange(self.cols)])
 
     def _backspace(self):
         """Execute a backspace (\x08)"""
@@ -985,6 +1241,12 @@ class Terminal(object):
             # Get rid of whatever's there since we obviously didn't know what to
             # do with it
             self.esc_buffer = '\x1b'
+
+    def _csi(self):
+        """
+        Starts a CSI sequence.
+        """
+        self.esc_buffer = '\x1b['
 
     def _string_terminator(self):
         """
@@ -1189,7 +1451,7 @@ class Terminal(object):
                 self.screen[self.cursorY].pop(self.cursorX)
                 self.screen[self.cursorY].append(u' ')
                 self.renditions[self.cursorY].pop(self.cursorX)
-                self.renditions[self.cursorY].append(None)
+                self.renditions[self.cursorY].append([0])
             except IndexError:
                 # At edge of screen, ignore
                 pass
@@ -1207,7 +1469,7 @@ class Terminal(object):
         n = min(n, distance)
         for i in xrange(n):
             self.screen[self.cursorY][self.cursorX+i] = u' '
-            self.renditions[self.cursorY][self.cursorX+i] = None
+            self.renditions[self.cursorY][self.cursorX+i] = [0]
 
     def cursor_left(self, n=1):
         """ESCnD CUB (Cursor Back)"""
@@ -1351,7 +1613,7 @@ class Terminal(object):
            [u' ' for a in xrange(self.cols)] for a in self.screen[self.cursorY:]
         ]
         self.renditions[self.cursorY:] = [
-           [None for a in xrange(self.cols)] for a in self.screen[self.cursorY:]
+           [[0] for a in xrange(self.cols)] for a in self.screen[self.cursorY:]
         ]
         self.cursorX = 0
 
@@ -1363,7 +1625,7 @@ class Terminal(object):
            [u' ' for a in xrange(self.cols)] for a in self.screen[:self.cursorY]
         ]
         self.renditions[:self.cursorY+1] = [
-           [None for a in xrange(self.cols)] for a in self.screen[:self.cursorY]
+           [[0] for a in xrange(self.cols)] for a in self.screen[:self.cursorY]
         ]
         self.cursorX = 0
         self.cursorY = 0
@@ -1437,7 +1699,7 @@ class Terminal(object):
         Clears the entire line (Esc[2K).
         """
         self.screen[self.cursorY] = [u' ' for a in xrange(self.cols)]
-        self.renditions[self.cursorY] = [None for a in xrange(self.cols)]
+        self.renditions[self.cursorY] = [[0] for a in xrange(self.cols)]
         self.cursorX = 0
 
     def clear_line_from_cursor(self, n):
@@ -1547,20 +1809,36 @@ class Terminal(object):
         # TODO: Make this whole thing faster (or prove it isn't possible).
         cursorY = self.cursorY
         cursorX = self.cursorX
+        #logging.debug("Setting rendition: %s at %s, %s" % (n, cursorY, cursorX))
         if cursorX >= self.cols: # We're at the end of the row
             if len(self.renditions[cursorY]) <= cursorX:
                 # Make it all longer
-                self.renditions[cursorY].append(None) # Make it longer
+                #logging.debug("Making line %s longer" % self.cursorY)
+                self.renditions[cursorY].append([0]) # Make it longer
                 self.screen[cursorY].append('\x00') # This needs to match
         if cursorY >= self.rows:
+            # This should never happen
+            logging.error("cursorY >= self.rows!")
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
             self.last_rendition = [0]
             self.renditions[cursorY][cursorX] = [0]
             return # No need for further processing; save some CPU
+        cur_spot = self.renditions[cursorY][cursorX]
         # Convert the string (e.g. '0;1;32') to a list (e.g. [0,1,32]
         new_renditions = [int(a) for a in n.split(';') if a != '']
-        self.last_rendition = self.__reduce_renditions(new_renditions)
+        out_renditions = []
+        for rend in new_renditions:
+            if rend == 0:
+                out_renditions = [0]
+            else:
+                out_renditions.append(rend)
+        if out_renditions == [0]:
+            self.last_rendition = out_renditions
+            return
+        new_renditions = out_renditions
+        self.last_rendition = self.__reduce_renditions(
+            self.last_rendition + new_renditions)
 
     def __opt_handler(self, chars):
         """
@@ -1601,6 +1879,7 @@ class Terminal(object):
         cursorY = self.cursorY
         spancount = 0
         current_classes = []
+        prev_rendition = None
         foregrounds = ('f0','f1','f2','f3','f4','f5','f6','f7')
         backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
         for linecount, line_rendition in enumerate(izip(screen, renditions)):
@@ -1609,20 +1888,23 @@ class Terminal(object):
             outline = ""
             charcount = 0
             for char, rend in izip(line, rendition):
+                changed = True
                 if char in "<>": # Have to convert lt/gt to HTML entities
                     char = char.replace('<', '&lt;')
                     char = char.replace('>', '&gt;')
-                if rend != None:
+                if rend == prev_rendition:
+                    # Shortcut...  So we can skip all the logic below
+                    changed = False
+                else:
+                    prev_rendition = rend
+                if changed and rend != None:
                     classes = imap(rendition_classes.get, rend)
-                    same_as_before = True
                     for _class in classes:
-                        if _class not in current_classes:
+                        if _class and _class not in current_classes:
                             # Something changed...  Start a new span
-                            same_as_before = False
                             if spancount:
                                 outline += "</span>"
                                 spancount -= 1
-                                current_classes = []
                             if 'reset' in _class:
                                 if _class == 'reset':
                                     current_classes = []
@@ -1658,7 +1940,7 @@ class Terminal(object):
                                     backgrounds
                                     ]
                                 current_classes.append(_class)
-                    if current_classes and not same_as_before:
+                    if current_classes:
                         outline += '<span class="%s">' % " ".join(current_classes)
                         spancount += 1
                 if linecount == cursorY and charcount == cursorX: # Cursor position
@@ -1671,7 +1953,7 @@ class Terminal(object):
                 charcount += 1
             results.append(outline)
         for whatever in xrange(spancount): # Bit of cleanup to be safe
-            outline += "</span>"
+            results[-1] += "</span>"
         return results
 
     def __spanify_scrollback(self):
@@ -1686,22 +1968,26 @@ class Terminal(object):
         rendition_classes = RENDITION_CLASSES
         spancount = 0
         current_classes = []
+        prev_rendition = None
         foregrounds = ('f0','f1','f2','f3','f4','f5','f6','f7')
         backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
         for line, rendition in izip(screen, renditions):
             outline = ""
-            charcount = 0
             for char, rend in izip(line, rendition):
+                changed = True
                 if char in "<>": # Have to convert lt/gt to HTML entities
                     char = char.replace('<', '&lt;')
                     char = char.replace('>', '&gt;')
-                if rend != None:
+                if rend == prev_rendition:
+                    # Shortcut...  So we can skip all the logic below
+                    changed = False
+                else:
+                    prev_rendition = rend
+                if changed and rend != None:
                     classes = imap(rendition_classes.get, rend)
-                    same_as_before = True
                     for _class in classes:
-                        if _class not in current_classes:
+                        if _class and _class not in current_classes:
                             # Something changed...  Start a new span
-                            same_as_before = False
                             if spancount:
                                 outline += "</span>"
                                 spancount -= 1
@@ -1741,14 +2027,13 @@ class Terminal(object):
                                     backgrounds
                                     ]
                                 current_classes.append(_class)
-                    if current_classes and not same_as_before:
+                    if current_classes:
                         outline += '<span class="%s">' % " ".join(current_classes)
                         spancount += 1
                 outline += char
-                charcount += 1
             results.append(outline)
         for whatever in xrange(spancount): # Bit of cleanup to be safe
-            outline += "</span>"
+            results[-1] += "</span>"
         return results
 
     def dump_html(self):
@@ -1758,10 +2043,13 @@ class Terminal(object):
         Note: This places <span class="cursor">(current character)</span> around
         the cursor location.
         """
+        # NOTE: On my laptop this function will take about 30ms to complete
+        # a full-screen 'top' refresh on a 57x209 screen.
+        # In other words, it is pretty fast...  Not much optimization necessary
         results = self.__spanify_screen()
         scrollback = []
         if self.scrollback_buf:
-            scrollback = self.__spanify_screen()
+            scrollback = self.__spanify_scrollback()
         # Empty the scrollback buffer:
         self.init_scrollback()
         return (scrollback, results)

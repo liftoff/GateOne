@@ -314,8 +314,10 @@ class Multiplex:
         """
         try:
             self.io_loop.remove_handler(self.fd)
-        except KeyError:
-            logging.error("Error trying to remove fd: %s" % self.fd)
+        except KeyError, IOError:
+            # This can happen when the fd is removed by the underlying process
+            # before the next cycle of the IOLoop.  Not really a problem.
+            pass
         try:
             os.kill(self.pid, signal.SIGTERM)
             os.wait()
@@ -344,8 +346,9 @@ class Multiplex:
             # \U000f0f0f == U+F0F0F (Private Use Symbol)
             chars = unicode(chars)
             output = u"%s:%s\U000f0f0f" % (now, chars)
-            with gzip.open(self.log_path, mode='a') as log:
-                log.write(output.encode("utf-8"))
+            log = gzip.open(self.log_path, mode='a')
+            log.write(output.encode("utf-8"))
+            log.close()
         # NOTE: Gate One's log format is special in that it can be used for both
         # playing back recorded sessions *or* generating syslog-like output.
         if self.syslog:
