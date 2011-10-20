@@ -1461,6 +1461,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     emulateKeyCombo: function(e) {
         // This method translates ctrl/alt/meta key combos such as ctrl-c into their string equivalents.
+        // NOTE: This differs from registerShortcut in that it handles sending keystrokes to the server.  registerShortcut is meant for client-side actions that call JavaScript (though, you certainly *could* send keystrokes via registerShortcut via JavaScript =)
         var go = GateOne,
             goIn = go.Input,
             key = goIn.key(e),
@@ -1472,8 +1473,8 @@ GateOne.Base.update(GateOne.Input, {
             return; // For some reason if you press any combo of these keys at the same time it occasionally will send the keystroke as the second key you press.  It's odd but this ensures we don't act upon such things.
         }
         logDebug("emulateKeyCombo() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
-        // TODO: Finish/fix this
-        if (modifiers.ctrl && !modifiers.alt) {
+        // Handle ctrl-<key> and ctrl-shift-<key> combos
+        if (modifiers.ctrl && !modifiers.alt && !modifiers.meta) {
             if (goIn.keyTable[key.string]) {
                 if (!modifiers.shift) {
                     if (goIn.keyTable[key.string]['ctrl']) {
@@ -1490,8 +1491,60 @@ GateOne.Base.update(GateOne.Input, {
                 else if (key.code >= 65 && key.code <= 90) q(String.fromCharCode(key.code - 64)); // More Ctrl-[a-z]
             }
         }
-        if (modifiers.alt) {
-            if (key.string >= 'KEY_BACKSPACE') buffer(String.fromCharCode(127)); // ESC<delete>
+        // Handle alt-<key> and alt-shift-<key> combos
+        if (modifiers.alt && !modifiers.ctrl && !modifiers.meta) {
+            if (goIn.keyTable[key.string]) {
+                if (!modifiers.shift) {
+                    if (goIn.keyTable[key.string]['alt']) {
+                        q(goIn.keyTable[key.string]['alt']);
+                    }
+                } else {
+                    if (goIn.keyTable[key.string]['alt-shift']) {
+                        q(goIn.keyTable[key.string]['alt-shift']);
+                    }
+                }
+            }
+        }
+        // Handle ctrl-alt-<key> and ctrl-alt-shift-<key> combos
+        if (modifiers.alt && modifiers.ctrl && !modifiers.meta) {
+            if (goIn.keyTable[key.string]) {
+                if (!modifiers.shift) {
+                    if (goIn.keyTable[key.string]['ctrl-alt']) {
+                        q(goIn.keyTable[key.string]['ctrl-alt']);
+                    }
+                    // According to my research, AltGr is the same as sending ctrl-alt (in browsers anyway).  If this is incorrect please post it as an issue on Github!
+                    if (goIn.keyTable[key.string]['altgr']) {
+                        q(goIn.keyTable[key.string]['altgr']);
+                    }
+                } else {
+                    if (goIn.keyTable[key.string]['ctrl-alt-shift']) {
+                        q(goIn.keyTable[key.string]['ctrl-alt-shift']);
+                    }
+                    if (goIn.keyTable[key.string]['altgr-shift']) {
+                        q(goIn.keyTable[key.string]['altgr-shift']);
+                    }
+                }
+            }
+        }
+        // Handle ctrl-alt-meta-<key> and ctrl-alt-meta-shift-<key> combos
+        if (modifiers.alt && modifiers.ctrl && modifiers.meta) {
+            if (goIn.keyTable[key.string]) {
+                if (!modifiers.shift) {
+                    if (goIn.keyTable[key.string]['ctrl-alt-meta']) {
+                        q(goIn.keyTable[key.string]['ctrl-alt-meta']);
+                    }
+                    if (goIn.keyTable[key.string]['altgr-meta']) {
+                        q(goIn.keyTable[key.string]['altgr-meta']);
+                    }
+                } else {
+                    if (goIn.keyTable[key.string]['ctrl-alt-meta-shift']) {
+                        q(goIn.keyTable[key.string]['ctrl-alt-meta-shift']);
+                    }
+                    if (goIn.keyTable[key.string]['altgr-meta-shift']) {
+                        q(goIn.keyTable[key.string]['altgr-meta-shift']);
+                    }
+                }
+            }
         }
     }
 });
