@@ -1336,6 +1336,7 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_NUM_PAD_7': {'default': '7'},
         'KEY_NUM_PAD_8': {'default': '8'},
         'KEY_NUM_PAD_9': {'default': '9'},
+        'KEY_NUM_PAD_0': {'default': '0'},
         'KEY_NUM_LOCK': null, // TODO: Double-check that NumLock isn't supposed to send some sort of wacky ESC sequence
         'KEY_SCROLL_LOCK': {'default': ESC+"[26~", 'xterm': ESC+"O2Q"}, // Same as F14
         'KEY_SEMICOLON': {'default': ';', 'shift': ":"},
