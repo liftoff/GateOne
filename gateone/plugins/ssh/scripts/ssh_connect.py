@@ -16,7 +16,7 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
-import os, sys, errno, readline, re, tempfile
+import os, sys, errno, readline, re, tempfile, base64, binascii, struct
 from subprocess import Popen, PIPE
 from optparse import OptionParser
 
@@ -35,6 +35,14 @@ def mkdir_p(path):
         if exc.errno == errno.EEXIST:
             pass
         else: raise
+
+def short_hash(to_shorten):
+    """
+    Converts *to_shorten* into a really short hash depenendent on the length of
+    *to_shorten*.  The result will be safe for use as a file name.
+    """
+    packed = struct.pack('i', binascii.crc32(to_shorten))
+    return base64.urlsafe_b64encode(packed).replace('=', '')
 
 def connect_ssh(
         user,
@@ -85,6 +93,14 @@ def connect_ssh(
         socket_path = socket.replace(r'%r', user) # Replace just like ssh does
         socket_path = socket_path.replace(r'%h', host)
         socket_path = socket_path.replace(r'%p', port)
+        # The %SHORT_SOCKET% replacement is special: It replaces the equivalent
+        # of ssh's %r@%h:%p with a shortened hash of the same value.  For
+        # example: user@somehost:22 would become 'ud6U2Q'.  This is to avoid the
+        # potential of a really long FQDN (%h) resulting in a "ControlPath too
+        # long" error with the ssh command.
+        user_at_host_port = "%s@%s:%s" % (user, host, port)
+        hashed = short_hash(user_at_host_port)
+        socket_path = socket_path.replace(r'%SHORT_SOCKET%', hashed)
         if not os.path.exists(socket_path):
             args.insert(0, "-M")
         else:
@@ -93,6 +109,7 @@ def connect_ssh(
                 "NOTE: Existing ssh session detected for ssh://%s@%s:%s;"
                 " utilizing existing tunnel." % (user, host, port)
             )
+        socket = socket.replace(r'%SHORT_SOCKET%', hashed)
         socket_arg = "-S%s" % socket
         # Also make sure the base directory exists
         basedir = os.path.split(socket)[0]

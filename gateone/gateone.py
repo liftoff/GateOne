@@ -221,7 +221,7 @@ from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler, PAMAut
 from utils import noop, str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
 from utils import create_plugin_static_links, merge_handlers, none_fix
-from utils import convert_to_timedelta, kill_dtached_proc
+from utils import convert_to_timedelta, kill_dtached_proc, short_hash
 from utils import process_opt_esc_sequence, create_data_uri
 from utils import FACILITIES, string_to_syslog_facility
 
@@ -338,8 +338,11 @@ class TerminalWebSocket(WebSocketHandler):
 
     def open(self):
         """Called when a new WebSocket is opened."""
-        logging.info(
-            "WebSocket opened (%s)" % self.get_current_user()['go_upn'])
+        if 'go_upn' in self.get_current_user():
+            logging.info(
+                "WebSocket opened (%s)." % self.get_current_user()['go_upn'])
+        else:
+            logging.info("WebSocket opened (unknown user).")
 
     def on_message(self, message):
         """Called when we receive a message from the client."""
@@ -371,9 +374,9 @@ class TerminalWebSocket(WebSocketHandler):
         """
         if 'go_upn' in self.get_current_user():
             logging.info(
-                "WebSocket closed (%s)" % self.get_current_user()['go_upn'])
+                "WebSocket closed (%s)." % self.get_current_user()['go_upn'])
         else:
-            logging.info("WebSocket closed")
+            logging.info("WebSocket closed (unknown user).")
 
     def pong(self, timestamp):
         """
@@ -481,6 +484,7 @@ class TerminalWebSocket(WebSocketHandler):
                 user = r'%anonymous' # Don't get on this guy's bad side
             cmd = cmd_var_swap(CMD,   # Swap out variables like %USER% in CMD
                 session=self.session, # with their real-world values.
+                session_hash=short_hash(self.session),
                 user_dir=user_dir,
                 user=user,
                 time=now
@@ -972,7 +976,7 @@ def main():
     )
     define("command",
         default=GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
-                r"'/tmp/gateone/%SESSION%/%r@%h:%p' -a "
+                r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' -a "
                 "'-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'",
         help="Run the given command when a user connects (e.g. 'nethack').",
         type=str
@@ -1166,6 +1170,8 @@ def main():
     # Make sure dtach is available and if not, set dtach=False
     result = getoutput('which dtach')
     if not result:
+        logging.warning(
+            "dtach command not found.  dtach support has been disabled.")
         options.dtach = False
     # Define our Application settings
     app_settings = {

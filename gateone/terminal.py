@@ -291,7 +291,7 @@ class Terminal(object):
         self.prev_esc_buffer = '' # Special: So we can differentiate between
                                   # certain circumstances.
         self.show_cursor = True
-        self.rendition_set = False
+        self.last_rendition = None
         self.init_screen()
         self.init_renditions()
         self.G0_charset = 'B'
@@ -477,7 +477,7 @@ class Terminal(object):
         for the dimenions.
         """
         self.renditions = [
-            [None for a in xrange(self.cols)] for b in xrange(self.rows)
+            [[0] for a in xrange(self.cols)] for b in xrange(self.rows)
         ]
 
     def init_scrollback(self):
@@ -726,6 +726,9 @@ class Terminal(object):
         RE_CSI_ESC_SEQ = self.RE_CSI_ESC_SEQ
         cursor_right = self.cursor_right
         changed = False
+        # Commented this out because even if logging isn't set to debug, these
+        # logging.whatever() lines do still eat some CPU
+        #logging.debug('handling chars: %s' % `chars`)
         for char in chars:
             charnum = ord(char)
             if charnum in specials:
@@ -740,6 +743,7 @@ class Terminal(object):
                         if match_obj:
                             seq_type = match_obj.group(1) # '\x1bA' -> 'A'
                             # Call the matching ESC handler
+                            #logging.debug('ESC seq: %s' % seq_type)
                             if len(seq_type) == 1: # Single-character sequnces
                                 esc_handlers[seq_type]()
                             else: # Multi-character stuff like '\x1b)B'
@@ -752,8 +756,8 @@ class Terminal(object):
                         if match_obj:
                             csi_values = match_obj.group(1) # e.g. '0;1;37'
                             csi_type = match_obj.group(2) # e.g. 'm'
-                            if csi_type == 'm':
-                                self.rendition_set = True
+                            #logging.debug(
+                                #'CSI: %s, %s' % (csi_type, csi_values))
                             # Call the matching CSI handler
                             try:
                                 csi_handlers[csi_type](csi_values)
@@ -792,17 +796,15 @@ class Terminal(object):
                         # browser bug.
                         #self.screen[self.cursorY].append(unicode(char))
                         #self.renditions[self.cursorY].append([])
-                    if not self.rendition_set:
-                        # If no rendition was just set on this position empty it
-                        self.renditions[self.cursorY][self.cursorX] = None
                     if self.G0_charset == '0':
                         self.screen[self.cursorY][self.cursorX] = self.charsets[
                             '0'][charnum]
                     else:
+                        self.renditions[self.cursorY][
+                            self.cursorX] = self.last_rendition
                         self.screen[self.cursorY][self.cursorX] = unicode(char)
                     self.prev_esc_buffer = ''
                     cursor_right()
-                self.rendition_set = False
         if changed:
             # Execute our callbacks
             try:
@@ -894,6 +896,7 @@ class Terminal(object):
 
     def _backspace(self):
         """Execute a backspace (\x08)"""
+        self.renditions[self.cursorY][self.cursorX] = None
         self.cursor_left(1)
 
     def _horizontal_tab(self):
@@ -904,7 +907,6 @@ class Terminal(object):
                 next_tabstop = tabstop
                 break
         self.cursorX = next_tabstop
-        self.rendition_set = False
 
     def _set_tabstop(self):
         """Sets a tabstop at the current position of self.cursorX."""
@@ -940,14 +942,12 @@ class Terminal(object):
             self.scroll_up()
             self.cursorY = self.bottom_margin
             self.clear_line()
-        self.rendition_set = False
 
     def _carriage_return(self):
         """
         Execute carriage return (set self.cursorX to 0)
         """
         self.cursorX = 0
-        self.rendition_set = False
 
     def _xon(self):
         """
@@ -1146,7 +1146,6 @@ class Terminal(object):
             self.cursorX = self.alt_cursorX
             self.cursorY = self.alt_cursorY
         self.alternate_screen_buffer(alt)
-        self.rendition_set = False
 
     def show_hide_cursor(self, boolean):
         """self.show_cursor = boolean"""
@@ -1212,33 +1211,34 @@ class Terminal(object):
 
     def cursor_left(self, n=1):
         """ESCnD CUB (Cursor Back)"""
+        # Commented out to save CPU (and the others below too)
+        #logging.debug('cursor_left(%s)' % n)
         n = int(n)
         self.cursorX = max(0, self.cursorX - n)
         try:
             self.callbacks[self.CALLBACK_CURSOR_POS]()
         except TypeError:
             pass
-        self.rendition_set = False
 
     def cursor_right(self, n=1):
         """ESCnC CUF (Cursor Forward)"""
+        #logging.debug('cursor_right(%s)' % n)
         if not n:
             n = 1
         n = int(n)
-        self.cursorX += 1
+        self.cursorX += n
         try:
             self.callbacks[self.CALLBACK_CURSOR_POS]()
         except TypeError:
             pass
-        self.rendition_set = False
 
     def cursor_up(self, n=1):
         """ESCnA CUU (Cursor Up)"""
+        #logging.debug('cursor_up(%s)' % n)
         if not n:
             n = 1
         n = int(n)
         self.cursorY = max(0, self.cursorY - n)
-        self.rendition_set = False
         try:
             self.callbacks[self.CALLBACK_CURSOR_POS]()
         except TypeError:
@@ -1246,11 +1246,11 @@ class Terminal(object):
 
     def cursor_down(self, n=1):
         """ESCnB CUD (Cursor Down)"""
+        #logging.debug('cursor_down(%s)' % n)
         if not n:
             n = 1
         n = int(n)
         self.cursorY = min(self.rows, self.cursorY + n)
-        self.rendition_set = False
         try:
             self.callbacks[self.CALLBACK_CURSOR_POS]()
         except TypeError:
@@ -1263,7 +1263,6 @@ class Terminal(object):
         n = int(n)
         self.cursorY = min(self.rows, self.cursorY + n)
         self.cursorX = 0
-        self.rendition_set = False
         try:
             self.callbacks[self.CALLBACK_CURSOR_POS]()
         except TypeError:
@@ -1276,7 +1275,6 @@ class Terminal(object):
         n = int(n)
         self.cursorY = max(0, self.cursorY - n)
         self.cursorX = 0
-        self.rendition_set = False
         try:
             self.callbacks[self.CALLBACK_CURSOR_POS]()
         except TypeError:
@@ -1288,7 +1286,6 @@ class Terminal(object):
             n = 1
         n = int(n)
         self.cursorX = n - 1 # -1 because cols is 0-based
-        self.rendition_set = False
         try:
             self.callbacks[self.CALLBACK_CURSOR_POS]()
         except TypeError:
@@ -1325,7 +1322,6 @@ class Terminal(object):
         col = max(0, col - 1)
         self.cursorY = row
         self.cursorX = col
-        self.rendition_set = False
         try:
             self.callbacks[self.CALLBACK_CURSOR_POS]()
         except TypeError:
@@ -1337,7 +1333,6 @@ class Terminal(object):
         """
         n = int(n)
         self.cursorY = n - 1
-        self.rendition_set = False
 
     def clear_screen(self):
         """
@@ -1347,7 +1342,6 @@ class Terminal(object):
         self.init_renditions()
         self.cursorX = 0
         self.cursorY = 0
-        self.rendition_set = False
 
     def clear_screen_from_cursor_down(self):
         """
@@ -1360,7 +1354,6 @@ class Terminal(object):
            [None for a in xrange(self.cols)] for a in self.screen[self.cursorY:]
         ]
         self.cursorX = 0
-        self.rendition_set = False
 
     def clear_screen_from_cursor_up(self):
         """
@@ -1374,7 +1367,6 @@ class Terminal(object):
         ]
         self.cursorX = 0
         self.cursorY = 0
-        self.rendition_set = False
 
     def clear_screen_from_cursor(self, n):
         """
@@ -1447,7 +1439,6 @@ class Terminal(object):
         self.screen[self.cursorY] = [u' ' for a in xrange(self.cols)]
         self.renditions[self.cursorY] = [None for a in xrange(self.cols)]
         self.cursorX = 0
-        self.rendition_set = False
 
     def clear_line_from_cursor(self, n):
         """
@@ -1520,6 +1511,7 @@ class Terminal(object):
             [0, 1, 36, 36] -> [0, 1, 36]
             [0, 30, 42, 30, 42] -> [0, 30, 42]
             [36, 32, 44, 42] -> [32, 42]
+            [36, 35] -> [35]
         """
         out_renditions = []
         foreground = None
@@ -1563,20 +1555,12 @@ class Terminal(object):
         if cursorY >= self.rows:
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
+            self.last_rendition = [0]
             self.renditions[cursorY][cursorX] = [0]
             return # No need for further processing; save some CPU
         # Convert the string (e.g. '0;1;32') to a list (e.g. [0,1,32]
         new_renditions = [int(a) for a in n.split(';') if a != '']
-        if self.renditions[cursorY][cursorX] == new_renditions:
-            return # Nothing left to do
-        if self.renditions[cursorY][cursorX]:
-            # Existing rendition for this spot... Tack it on the end
-            self.renditions[cursorY][cursorX] += new_renditions
-            # Remove duplicates and unnecessary renditions
-            self.renditions[cursorY][cursorX] = self.__reduce_renditions(
-                self.renditions[cursorY][cursorX])
-        else:
-            self.renditions[cursorY][cursorX] = self.__reduce_renditions(new_renditions)
+        self.last_rendition = self.__reduce_renditions(new_renditions)
 
     def __opt_handler(self, chars):
         """
@@ -1638,6 +1622,7 @@ class Terminal(object):
                             if spancount:
                                 outline += "</span>"
                                 spancount -= 1
+                                current_classes = []
                             if 'reset' in _class:
                                 if _class == 'reset':
                                     current_classes = []
@@ -1720,6 +1705,7 @@ class Terminal(object):
                             if spancount:
                                 outline += "</span>"
                                 spancount -= 1
+                                current_classes = []
                             if 'reset' in _class:
                                 if _class == 'reset':
                                     current_classes = []

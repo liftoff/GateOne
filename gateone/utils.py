@@ -18,6 +18,8 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 import os
 import signal
 import sys
+import random
+import time
 import re
 import errno
 import base64
@@ -25,6 +27,8 @@ import uuid
 import logging
 import syslog
 import mimetypes
+import struct
+import binascii
 from commands import getstatusoutput
 from datetime import datetime, timedelta
 
@@ -121,7 +125,14 @@ def gen_self_signed_ssl(notAfter=None):
         gen_self_signed_ssl(60 * 60 * 24 * 365) # 1-year certificate
         gen_self_signed_ssl() # 10-year certificate
     """
-    import OpenSSL, time, random, sys
+    try:
+        import OpenSSL
+    except ImportError:
+        logging.error(
+            "ERROR: You do not have pyOpenSSL installed.  Either install "
+            "pyOpenSSL (sudo pip install pyopenssl) or generate a PEM-formatted"
+            " SSL keyfile and certificate then point to their respective "
+            "locations in server.conf.")
     pkey = OpenSSL.crypto.PKey()
     pkey.generate_key(OpenSSL.crypto.TYPE_RSA, 2048)
     # Save the key as 'keyfile.pem':
@@ -207,12 +218,14 @@ def mkdir_p(path):
             pass
         else: raise
 
-def cmd_var_swap(cmd, session=None, user_dir=None, user=None, time=None):
+def cmd_var_swap(cmd,
+        session=None, session_hash=None, user_dir=None, user=None, time=None):
     """
     Returns *cmd* with special inline variables swapped out for their respective
     argument values.  The special variables are as follows:
 
         %SESSION% - *session*
+        %SESSION_HASH% - *session_hash*
         %USERDIR% - *user_dir*
         %USER% - *user*
         %TIME% - *time*
@@ -220,10 +233,15 @@ def cmd_var_swap(cmd, session=None, user_dir=None, user=None, time=None):
     This allows for unique or user-specific values to be swapped into command
     line arguments like so:
 
-        ssh_connect.py -M -S '/tmp/%SESSION%/%r@%h:%p'
+        ssh_connect.py -M -S '/tmp/gateone/%SESSION%/%r@%L:%p'
+
+    The values passed into this function can be whatever you like.  They don't
+    necessarily have to match their intended values.
     """
     if session:
         cmd = cmd.replace(r'%SESSION%', session)
+    if session_hash:
+        cmd = cmd.replace(r'%SESSION_HASH%', session)
     if user_dir:
         cmd = cmd.replace(r'%USERDIR%', user_dir)
     if user:
@@ -231,6 +249,14 @@ def cmd_var_swap(cmd, session=None, user_dir=None, user=None, time=None):
     if time:
         cmd = cmd.replace(r'%TIME%', str(time))
     return cmd
+
+def short_hash(to_shorten):
+    """
+    Converts *to_shorten* into a really short hash depenendent on the length of
+    *to_shorten*.  The result will be safe for use as a file name.
+    """
+    packed = struct.pack('i', binascii.crc32(to_shorten))
+    return base64.urlsafe_b64encode(packed).replace('=', '')
 
 def kill_dtached_proc(session, term):
     """
