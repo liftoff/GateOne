@@ -338,7 +338,8 @@ class TerminalWebSocket(WebSocketHandler):
 
     def open(self):
         """Called when a new WebSocket is opened."""
-        if 'go_upn' in self.get_current_user():
+        go_upn = self.get_current_user()
+        if go_upn:
             logging.info(
                 "WebSocket opened (%s)." % self.get_current_user()['go_upn'])
         else:
@@ -372,7 +373,8 @@ class TerminalWebSocket(WebSocketHandler):
         NOTE: Normally self.refresh_screen() catches the disconnect first and
         this won't be called.
         """
-        if 'go_upn' in self.get_current_user():
+        go_upn = self.get_current_user()
+        if go_upn:
             logging.info(
                 "WebSocket closed (%s)." % self.get_current_user()['go_upn'])
         else:
@@ -415,7 +417,9 @@ class TerminalWebSocket(WebSocketHandler):
             # Double-check there isn't a user set in the cookie (i.e. we have
             # recently changed Gate One's settings).  If there is, force it
             # back to %anonymous.
-            user = self.get_current_user()['go_upn']
+            user = self.get_current_user()
+            if user:
+                user = user['go_upn']
             if user != '%anonymous':
                 message = {'reauthenticate': True}
                 self.write_message(json_encode(message))
@@ -986,7 +990,7 @@ def main():
     )
     define("command",
         default=GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
-                r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' -a "
+                r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp -a "
                 "'-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'",
         help="Run the given command when a user connects (e.g. 'nethack').",
         type=str

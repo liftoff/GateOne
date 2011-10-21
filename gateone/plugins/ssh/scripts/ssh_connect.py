@@ -213,7 +213,8 @@ if __name__ == "__main__":
     )
     parser.add_option("--sshfp",
         dest="sshfp",
-        default=True,
+        default=False,
+        action="store_true",
         help=("Enable the use of SSHFP in verifying host keys. See:  "
               "http://en.wikipedia.org/wiki/SSHFP#SSHFP")
     )
