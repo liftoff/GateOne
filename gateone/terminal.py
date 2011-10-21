@@ -353,7 +353,7 @@ class Terminal(object):
             'G': self.cursor_horizontal_absolute,
             'H': self.cursor_position,
             'L': self.insert_line,
-            #'M': self.delete_line, # TODO
+            'M': self.delete_line,
             #'b': self.repeat_last_char, # TODO
             'c': self._csi_device_status_report, # Device status report (DSR)
             'g': self.__ignore, # TODO: Tab clear
@@ -1140,7 +1140,7 @@ class Terminal(object):
 
     def insert_line(self, n):
         """
-        Inserts a line at the current cursor position.
+        Inserts *n* lines at the current cursor position.
         """
         line = self.screen.pop(self.bottom_margin) # Remove the bottom line
         # Remove bottom line's style information as well:
@@ -1149,6 +1149,22 @@ class Terminal(object):
         self.screen.insert(self.cursorY, empty_line) # Insert at cursor
         # Insert a new empty rendition as well:
         self.renditions.insert(self.cursorY, [[0] for a in xrange(self.cols)])
+
+    def delete_line(self, n):
+        """
+        Deletes *n* lines at the current cursor position.
+        """
+        line = self.screen.pop(self.cursorY) # Remove the line at the cursor
+        # Remove the line's style information as well:
+        style = self.renditions.pop(self.cursorY)
+        # Now add an empty line and empty set of renditions to the bottom of the
+        # view
+        empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+        # Add it to the bottom of the view:
+        self.screen.insert(self.bottom_margin, empty_line) # Insert at bottom
+        # Insert a new empty rendition as well:
+        self.renditions.insert(
+            self.bottom_margin, [[0] for a in xrange(self.cols)])
 
     def _backspace(self):
         """Execute a backspace (\x08)"""
