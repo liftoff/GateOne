@@ -75,7 +75,7 @@
     background-color: #fff;
     outline: none;
     resize: none;
-    font-family: 'DejaVuSansMonoBook', monospace;
+    font-family: monospace;
     font-size: 0.8em;
 }
 .{{prefix}}terminal {
@@ -105,7 +105,7 @@
     color: #90A3C5;
 }
 .{{prefix}}terminal pre {
-/*     font-family: 'DejaVuSansMonoBook', Dejavu Sans Mono, Lucidia Console, monospace; */
+    font-family: monospace;
     /*height: auto;*/ /* Needs to be 100% when scrollback is enabled */
     width: 100%;
     overflow-y: auto;
@@ -215,12 +215,9 @@
     float: right;
     clear: both;
     opacity: .75;
-/*     font-size: 2em; */
-/*     font-family: 'DejaVuSansMonoBook', Dejavu Sans Mono, Lucidia Console, monospace; */
     padding-top: 0.5em;
     padding-bottom: 0.5em;
     padding-right: 1.8em;
-/*     line-height: 0.7em; */
     /* WebKit */
     -webkit-transition: -webkit-transform 1.0s ease-in-out;
     /* Firefox */
@@ -375,7 +372,7 @@
 /*     bottom:2em; */
     display: block;
     background: #ccc; color: #000;
-    font-family: Dejavu Sans, Verdana, Arial, sans-serif;
+    font-family: DejaVu Sans, Verdana, Arial, sans-serif;
     /* border:1px solid #fff; */
 /*    border-left: 0.1em solid #fff;
     border-top: 0.1em solid #fff;

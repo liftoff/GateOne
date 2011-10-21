@@ -7,9 +7,7 @@
     padding: 0.1em;
     z-index: 0;
     font-size: 1em;
-/*     margin: 0.5em; */
     font-family: monospace;
-/*     border: 2px solid #fff; */
     /* WebKit */
     -webkit-transition: all 1.0s ease-in-out;
     /* Firefox */
@@ -76,7 +74,7 @@
     background-color: #fff;
     outline: none;
     resize: none;
-    font-family: 'DejaVuSansMonoBook', monospace;
+    font-family: monospace;
     font-size: 0.8em;
 }
 .{{prefix}}terminal {
@@ -106,7 +104,7 @@
     color: maroon;
 }
 .{{prefix}}terminal pre {
-/*     font-family: 'DejaVuSansMonoBook', Dejavu Sans Mono, Lucidia Console, monospace; */
+    font-family: monospace;
     /*height: auto;*/ /* Needs to be 100% when scrollback is enabled */
     width: 100%;
     overflow-y: auto;
@@ -134,43 +132,43 @@
 #{{container}} span.b7  { background-color: #B2B2B2; }
 #{{container}} span.bold { font-weight: bold; }
 #{{container}} span.dim { opacity: 0.7; }
-@-webkit-keyframes blinker {  
+@-webkit-keyframes blinker {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
 }
-@-moz-keyframes blinker {  
+@-moz-keyframes blinker {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
 }
-@keyframes blinker {  
+@keyframes blinker {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
 }
 #{{container}} span.blink {
-    -webkit-animation-name: blinker;  
-    -webkit-animation-iteration-count: infinite;  
+    -webkit-animation-name: blinker;
+    -webkit-animation-iteration-count: infinite;
     -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
     -webkit-animation-duration: 1s;
     -moz-animation-iteration-count: infinite;
     -moz-animation-name: blinker;
     -moz-animation-duration: 1s;
     -moz-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
-    animation-name: blinker;  
-    animation-iteration-count: infinite;  
+    animation-name: blinker;
+    animation-iteration-count: infinite;
     animation-timing-function: cubic-bezier(1.0,0,0,1.0);
     animation-duration: 1s;
 }
 #{{container}} span.fastblink {
-    -webkit-animation-name: blinker;  
-    -webkit-animation-iteration-count: infinite;  
+    -webkit-animation-name: blinker;
+    -webkit-animation-iteration-count: infinite;
     -webkit-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
     -webkit-animation-duration: 0.5s;
     -moz-animation-iteration-count: infinite;
     -moz-animation-name: blinker;
     -moz-animation-duration: 0.5s;
     -moz-animation-timing-function: cubic-bezier(1.0,0,0,1.0);
-    animation-name: blinker;  
-    animation-iteration-count: infinite;  
+    animation-name: blinker;
+    animation-iteration-count: infinite;
     animation-timing-function: cubic-bezier(1.0,0,0,1.0);
     animation-duration: 0.5s;
 }
@@ -199,12 +197,9 @@
     float: right;
     clear: both;
     opacity: .75;
-/*     font-size: 2em; */
-/*     font-family: 'DejaVuSansMonoBook', Dejavu Sans Mono, Lucidia Console, monospace; */
     padding-top: 0.5em;
     padding-bottom: 0.5em;
     padding-right: 1.8em;
-/*     line-height: 0.7em; */
     /* WebKit */
     -webkit-transition: -webkit-transform 1.0s ease-in-out;
     /* Firefox */
@@ -359,7 +354,7 @@
 /*     bottom:2em; */
     display: block;
     background: #ccc; color: #000;
-    font-family: Dejavu Sans, Verdana, Arial, sans-serif;
+    font-family: DejaVu Sans, Verdana, Arial, sans-serif;
     /* border:1px solid #fff; */
 /*    border-left: 0.1em solid #fff;
     border-top: 0.1em solid #fff;
@@ -513,7 +508,7 @@
     position: absolute;
     bottom: 0;
     right: 0;
-} 
+}
 .{{prefix}}bookmark ul li {
     margin-left: 0.1em;
     padding-left: 0.2em;
@@ -726,7 +721,7 @@
     border: 1px solid #bbb;
     border-radius: 2px;
     box-shadow: 0 1px 1px #fff;
-    font-family: DejaVu Sans, Verdana, sans-serif; 
+    font-family: DejaVu Sans, Verdana, sans-serif;
 /*     font: 12px/18px Helvetica Neue, "Arial", Helvetica, Verdana, sans-serif; */
 /*     text-shadow: 0 0 1px #fff; */
     color: #000;
@@ -748,7 +743,7 @@
     padding: 0.2em 0 0.2em 0.4em;
     font-weight: normal;
     font-size: 1em;
-    font-family: DejaVu Sans, Verdana, sans-serif; 
+    font-family: DejaVu Sans, Verdana, sans-serif;
     color: #aaa;
     -webkit-transition: color 0.15s linear;
     -moz-transition: color 0.15s linear;
