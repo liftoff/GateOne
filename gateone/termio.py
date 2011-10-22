@@ -321,7 +321,7 @@ class Multiplex:
         try:
             os.kill(self.pid, signal.SIGTERM)
             os.wait()
-        except (IOError, OSError):
+        except OSError:
             # Lots of trivial reasons why we could get these
             pass
 
@@ -387,7 +387,7 @@ class Multiplex:
                 with io.open(
                         self.fd,
                         'rt',
-                        buffering=65536,
+                        buffering=1024,
                         newline="",
                         encoding='UTF-8', # TODO: Make this configurable
                         closefd=False,
@@ -413,7 +413,7 @@ class Multiplex:
                 # Only consider dropping if the rate is faster than self.cps:
                 if cps > self.cps:
                     # Don't start cutting frames unless this is a constant thing
-                    if rate_timediff > 5:
+                    if rate_timediff > 3:
                         # TODO: Have this flash a message on the screen
                         #       indicating the rate limiter has been engaged.
                         self.ratelimiter_engaged = True
@@ -422,7 +422,6 @@ class Multiplex:
                         if check % 2 == 0 and not self.skip:
                             self.term_write(updated)
                             self.skip = True
-
                         elif self.skip:
                             self.skip = False
                     else:
@@ -464,7 +463,7 @@ class Multiplex:
             with io.open(
                 self.fd,
                 'wt',
-                buffering=65536,
+                buffering=1024,
                 newline="",
                 encoding='UTF-8',
                 closefd=False

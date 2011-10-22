@@ -140,6 +140,7 @@ from itertools import imap, izip
 import copy
 
 # Globals
+
 # These are for HTML output:
 RENDITION_CLASSES = defaultdict(lambda: None, {
     0: 'reset', # Special: Return everything to defaults
@@ -170,23 +171,26 @@ RENDITION_CLASSES = defaultdict(lambda: None, {
     27: 'reversereset',
     28: 'hiddenreset',
     29: 'strikethroughreset',
-    30: 'f0',
-    31: 'f1',
-    32: 'f2',
-    33: 'f3',
-    34: 'f4',
-    35: 'f5',
-    36: 'f6',
-    37: 'f7',
-    39: 'foregroundreset', # Special: Set FG to default
-    40: 'b0',
-    41: 'b1',
-    42: 'b2',
-    43: 'b3',
-    44: 'b4',
-    45: 'b5',
-    46: 'b6',
-    47: 'b7',
+    # Foregrounds
+    30: 'f0', # Black
+    31: 'f1', # Red
+    32: 'f2', # Green
+    33: 'f3', # Yellow
+    34: 'f4', # Blue
+    35: 'f5', # Magenta
+    36: 'f6', # Cyan
+    37: 'f7', # White
+    38: '', # 256-color support uses this like so: \x1b[38;5;<color num>sm
+    # Backgrounds
+    40: 'b0', # Black
+    41: 'b1', # Red
+    42: 'b2', # Green
+    43: 'b3', # Yellow
+    44: 'b4', # Blue
+    45: 'b5', # Magenta
+    46: 'b6', # Cyan
+    47: 'b7', # White
+    48: '', # 256-color support uses this like so: \x1b[48;5;<color num>sm
     49: 'backgroundreset', # Special: Set BG to default
     51: 'frame',
     52: 'encircle',
@@ -194,8 +198,32 @@ RENDITION_CLASSES = defaultdict(lambda: None, {
     60: 'rightline',
     61: 'rightdoubleline',
     62: 'leftline',
-    63: 'leftdoubleline'
+    63: 'leftdoubleline',
+    # aixterm colors (aka '16 color support').  They're supposed to be 'bright'
+    # versions of the first 8 colors (hence the 'b').
+    # 'Bright' Foregrounds
+    90: 'bf0', # Bright black (whatever that is =)
+    91: 'bf1', # Bright red
+    92: 'bf2', # Bright green
+    93: 'bf3', # Bright yellow
+    94: 'bf4', # Bright blue
+    95: 'bf5', # Bright magenta
+    96: 'bf6', # Bright cyan
+    97: 'bf7', # Bright white
+    # 'Bright' Backgrounds
+    100: 'bb0', # Bright black
+    101: 'bb1', # Bright red
+    102: 'bb2', # Bright green
+    103: 'bb3', # Bright yellow
+    104: 'bb4', # Bright blue
+    105: 'bb5', # Bright magenta
+    106: 'bb6', # Bright cyan
+    107: 'bb7' # Bright white
 })
+# Generate the dict of 256-color (xterm) foregrounds and backgrounds
+for i in xrange(256):
+    RENDITION_CLASSES[(i+1000)] = "fx%s" % i
+    RENDITION_CLASSES[(i+10000)] = "bx%s" % i
 
 # TODO List:
 #
@@ -1295,6 +1323,10 @@ class Terminal(object):
             self.__opt_handler(text)
             self.esc_buffer = ''
             return
+        # At this point we've encountered something unusual
+        logging.warning("Warning: No ESC sequence handler for %s" %
+            `self.esc_buffer`)
+        self.esc_buffer = ''
 
     def _bell(self):
         """
@@ -1799,8 +1831,16 @@ class Terminal(object):
                 if rend not in out_renditions:
                     out_renditions.append(rend)
             elif rend > 29 and rend < 40:
+                # Regular 8-color foregrounds
                 foreground = rend
             elif rend > 39 and rend < 50:
+                # Regular 8-color backgrounds
+                background = rend
+            elif rend > 91 and rend < 98:
+                # 'Bright' (16-color) foregrounds
+                foreground = rend
+            elif rend > 99 and rend < 108:
+                # 'Bright' (16-color) backgrounds
                 background = rend
             else:
                 out_renditions.append(rend)
@@ -1834,15 +1874,42 @@ class Terminal(object):
                 self.screen[cursorY].append('\x00') # This needs to match
         if cursorY >= self.rows:
             # This should never happen
-            logging.error("cursorY >= self.rows!")
+            logging.error("cursorY >= self.rows! This should not happen! Bug!")
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
             self.last_rendition = [0]
             self.renditions[cursorY][cursorX] = [0]
             return # No need for further processing; save some CPU
-        cur_spot = self.renditions[cursorY][cursorX]
         # Convert the string (e.g. '0;1;32') to a list (e.g. [0,1,32]
         new_renditions = [int(a) for a in n.split(';') if a != '']
+        found_256 = None
+        foreground = False
+        background = False
+        for i, rend in enumerate(new_renditions):
+            if rend in [38,48]:
+                found_256 = i
+                if rend == 38:
+                    foreground = True
+                elif rend == 48:
+                    background = True
+                break
+        if found_256 != None:
+            # Pop out the 38/48 and the subsequent 5
+            new_renditions.pop(found_256)
+            new_renditions.pop(found_256)
+            # Now increase the actual color by 1000 so it doesn't conflict
+            try:
+                if foreground:
+                    new_renditions[found_256] += 1000
+                elif background:
+                    new_renditions[found_256] += 10000
+            except IndexError:
+                # NOTE: This exception check is temporary!  I got an IndexError
+                # here a few times when testing but I can't seem to reproduce it
+                # now that I'm watching for it (figures!).  Hopefully I'll find
+                # whatever bug is causing this and then I can get rid of this
+                # silly check.
+                print("WFT?  new_renditions: %s, found_256: %s" % (new_renditions, found_256))
         out_renditions = []
         for rend in new_renditions:
             if rend == 0:
@@ -1979,8 +2046,8 @@ class Terminal(object):
         location of the cursor (just a tiny bit faster).
         """
         results = []
-        screen = self.screen
-        renditions = self.renditions
+        screen = self.scrollback_buf
+        renditions = self.scrollback_renditions
         rendition_classes = RENDITION_CLASSES
         spancount = 0
         current_classes = []
@@ -2007,7 +2074,6 @@ class Terminal(object):
                             if spancount:
                                 outline += "</span>"
                                 spancount -= 1
-                                current_classes = []
                             if 'reset' in _class:
                                 if _class == 'reset':
                                     current_classes = []
