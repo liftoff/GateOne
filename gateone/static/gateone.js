@@ -1093,12 +1093,13 @@ GateOne.Base.update(GateOne.Input, {
         45: 'KEY_INSERT',
         46: 'KEY_DELETE',
         59: 'KEY_SEMICOLON', // weird, for Safari and IE only
+        61: 'KEY_EQUALS_SIGN', // Strange: In Firefox this is 61, in Chrome it is 187
         91: 'KEY_WINDOWS_LEFT',
         92: 'KEY_WINDOWS_RIGHT',
         93: 'KEY_SELECT',
         106: 'KEY_NUM_PAD_ASTERISK',
         107: 'KEY_NUM_PAD_PLUS_SIGN',
-        109: 'KEY_NUM_PAD_HYPHEN-MINUS',
+        109: 'KEY_NUM_PAD_HYPHEN-MINUS', // Strange: Firefox has this the regular hyphen key (i.e. not the one on the num pad)
         110: 'KEY_NUM_PAD_FULL_STOP',
         111: 'KEY_NUM_PAD_SOLIDUS',
         144: 'KEY_NUM_LOCK',
@@ -1335,7 +1336,8 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_SELECT': String.fromCharCode(93),
         'KEY_NUM_PAD_ASTERISK': {'default': '*', 'appmode': ESC+"Oj"},
         'KEY_NUM_PAD_PLUS_SIGN': {'default': '+', 'appmode': ESC+"Ok"},
-        'KEY_NUM_PAD_HYPHEN-MINUS': {'default': '-', 'appmode': ESC+"Om"},
+// NOTE: The regular hyphen key shows up as a num pad hyphen in Firefox 7; hence the shift option below.
+        'KEY_NUM_PAD_HYPHEN-MINUS': {'default': '-', 'shift': '_', 'appmode': ESC+"Om"},
         'KEY_NUM_PAD_FULL_STOP': {'default': '.'},
         'KEY_NUM_PAD_SOLIDUS': {'default': '/', 'appmode': ESC+"Oo"},
 // NOTE: NUM_PAD numbers are only sent when num lock is on.  Otherwise the num pad acts as Home/Up Arrow/PgUp/etc etc
