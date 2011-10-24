@@ -115,14 +115,14 @@
 }
 /* NOTE: I've only done the black-on-whatever permutation because it seems to be the only special permutation that makes a difference.  If anyone feels we need such fine-tuning of *all* foreground/background combinations please submit a ticket to the issue tracker (and be prepared to hear complaints about repetitive stress injuries!) */
 /* 8-color Foregrounds */
-#{{container}} span.f0 { color: #5C5C5C; } /* Black */
-#{{container}} span.f1 { color: #D6292C; } /* Red */
-#{{container}} span.f2 { color: #13A110; } /* Green */
-#{{container}} span.f3 { color: #E9E900; } /* Yellow */
-#{{container}} span.f4 { color: #1B4CFF; } /* Blue */
-#{{container}} span.f5 { color: #E01DC6; } /* Magenta */
-#{{container}} span.f6 { color: #28A7A5; } /* Cyan */
-#{{container}} span.f7 { color: #eee; } /* White */
+#{{container}} span.f0 { color: #000; } /* Black */
+#{{container}} span.f1 { color: #A00; } /* Red */
+#{{container}} span.f2 { color: #0A0; } /* Green */
+#{{container}} span.f3 { color: #A50; } /* Yellow */
+#{{container}} span.f4 { color: #00A; } /* Blue */
+#{{container}} span.f5 { color: #A0A; } /* Magenta */
+#{{container}} span.f6 { color: #0AA; } /* Cyan */
+#{{container}} span.f7 { color: #AAA; } /* White */
 /* 8-color Foregrounds on 8-color Backgrounds */
 #{{container}} span.f0.b0 { color: #000; background-color: #222; } /* Black on Black */
 #{{container}} span.f0.b1 { color: #000; background-color: #B21818; } /* Black on Red */
@@ -161,14 +161,14 @@
 #{{container}} span.reverse.f6 { color: #000; background-color: #28A7A5; } /* Cyan on Black */
 #{{container}} span.reverse.f7 { color: #000; background-color: #eee; } /* White on Black */
 /* 16-color ('Bright') Foregrounds */
-#{{container}} span.bf0 { color: #5C5C5C; } /* Bright Black!  I never knew thee existed! */
-#{{container}} span.bf1 { color: #D6292C; } /* Bright Red */
-#{{container}} span.bf2 { color: #13A110; } /* Bright Green */
-#{{container}} span.bf3 { color: #E9E900; } /* Bright Yellow */
-#{{container}} span.bf4 { color: #1B4CFF; } /* Bright Blue */
-#{{container}} span.bf5 { color: #E01DC6; } /* Bright Magenta */
-#{{container}} span.bf6 { color: #28A7A5; } /* Bright Cyan */
-#{{container}} span.bf7 { color: #eee; } /* Bright White (use this on dentures) */
+#{{container}} span.bf0 { color: #555; } /* Bright Black!  I never knew thee existed! */
+#{{container}} span.bf1 { color: #F55; } /* Bright Red */
+#{{container}} span.bf2 { color: #5F5; } /* Bright Green */
+#{{container}} span.bf3 { color: #FF5; } /* Bright Yellow */
+#{{container}} span.bf4 { color: #55F; } /* Bright Blue */
+#{{container}} span.bf5 { color: #F5F; } /* Bright Magenta */
+#{{container}} span.bf6 { color: #5FF; } /* Bright Cyan */
+#{{container}} span.bf7 { color: #FFF; } /* Bright White (use this on dentures) */
 #{{container}} span.bf0.bb1 { color: #000; background-color: #B21818; } /* Bright Black on Bright Red */
 #{{container}} span.bf0.bb2 { color: #000; background-color: #00E40C; } /* Bright Black on Bright Green */
 #{{container}} span.bf0.bb3 { color: #000; background-color: #FFFF00; } /* Bright Black on Bright Yellow */
