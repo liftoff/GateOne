@@ -1,0 +1,208 @@
+# Portuguese (Portugal) translations for PROJECT.
+# Copyright (C) 2011 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2011-10-22 22:16-0400\n"
+"PO-Revision-Date: 2011-10-22 20:12-0400\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: pt_PT <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 0.9.6\n"
+
+#: gateone/gateone.py:639
+#, python-format
+msgid "WebSocket opened (%s)."
+msgstr ""
+
+#: gateone/gateone.py:641
+msgid "WebSocket opened (unknown user)."
+msgstr ""
+
+#: gateone/gateone.py:651
+msgid "'Error: Message bust be a JSON dict.'"
+msgstr ""
+
+#: gateone/gateone.py:653
+msgid "'Error: We only accept JSON here.'"
+msgstr ""
+
+#: gateone/gateone.py:674
+#, python-format
+msgid "WebSocket closed (%s)."
+msgstr ""
+
+#: gateone/gateone.py:676
+msgid "WebSocket closed (unknown user)."
+msgstr ""
+
+#: gateone/gateone.py:699
+msgid "Unauthenticated WebSocket attempt."
+msgstr ""
+
+#: gateone/gateone.py:993
+#, python-format
+msgid "WebSocket closed (%s)"
+msgstr ""
+
+#: gateone/gateone.py:1045
+msgid "Got exception trying to execute plugin's optional ESC sequence handler..."
+msgstr ""
+
+#: gateone/gateone.py:1179
+msgid "Exception encountered: {exception}"
+msgstr ""
+
+#: gateone/gateone.py:1184
+msgid "{session} received quit()...  Killing termio session."
+msgstr ""
+
+#: gateone/gateone.py:1290
+msgid "Enable debugging features such as auto-restarting when files are modified."
+msgstr ""
+"Ativar a depuração recursos como auto-reiniciar quando os arquivos são "
+"modificados."
+
+#: gateone/gateone.py:1295
+msgid "Use the given 45-character string for cookie encryption."
+msgstr ""
+
+#: gateone/gateone.py:1302
+msgid "Run the given command when a user connects (e.g. '/bin/login')."
+msgstr ""
+
+#: gateone/gateone.py:1308
+msgid "Run on the given address."
+msgstr ""
+
+#: gateone/gateone.py:1310
+msgid "Run on the given port."
+msgstr ""
+
+#: gateone/gateone.py:1315
+msgid "If enabled, Gate One will run without SSL (generally not a good idea)."
+msgstr ""
+
+#: gateone/gateone.py:1321
+msgid "Path to the SSL certificate.  Will be auto-generated if none is provided."
+msgstr ""
+
+#: gateone/gateone.py:1328
+msgid "Path to the SSL keyfile.  Will be auto-generated if none is provided."
+msgstr ""
+
+#: gateone/gateone.py:1335
+msgid "Path to the location where user files will be stored."
+msgstr ""
+
+#: gateone/gateone.py:1341
+msgid "Path to the location where session information will be stored."
+msgstr ""
+
+#: gateone/gateone.py:1347
+msgid ""
+"If enabled, logs of user sessions will be saved in <user_dir>/logs.  "
+"Default: Enabled"
+msgstr ""
+
+#: gateone/gateone.py:1353
+msgid "If enabled, logs of user sessions will be written to syslog."
+msgstr ""
+
+#: gateone/gateone.py:1360
+#, python-format
+msgid ""
+"Syslog facility to use when logging to syslog (if syslog_session_logging "
+"is enabled).  Must be one of: %s.  Default: daemon, "
+msgstr ""
+
+#: gateone/gateone.py:1366
+msgid ""
+"Amount of time that a session should be kept alive after the client has "
+"logged out.  Accepts <num>X where X could be one of s, m, h, or d for "
+"seconds, minutes, hours, and days.  Default is '5d' (5 days)."
+msgstr ""
+
+#: gateone/gateone.py:1375
+#, python-format
+msgid "Authentication method to use.  Valid options are: %s"
+msgstr ""
+
+#: gateone/gateone.py:1381
+msgid ""
+"Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only "
+"relevant if Kerberos authentication is enabled."
+msgstr ""
+
+#: gateone/gateone.py:1388
+msgid ""
+"Kerberos service (aka application) to use. Defaults to HTTP. Only "
+"relevant if Kerberos authentication is enabled."
+msgstr ""
+
+#: gateone/gateone.py:1395
+msgid ""
+"Basic auth REALM to display when authenticating clients.  Default: "
+"hostname.  Only relevant if PAM authentication is enabled."
+msgstr ""
+
+#: gateone/gateone.py:1405
+msgid ""
+"PAM service to use.  Defaults to 'login'. Only relevant if PAM "
+"authentication is enabled."
+msgstr ""
+
+#: gateone/gateone.py:1412
+msgid ""
+"Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, "
+"etc.  See docs)."
+msgstr ""
+
+#: gateone/gateone.py:1418
+msgid ""
+"Wrap terminals with dtach. Allows sessions to be resumed even if Gate One"
+" is stopped and started (which is a sweet feature)."
+msgstr ""
+
+#: gateone/gateone.py:1424
+msgid "Kill any running Gate One terminal processes including dtach'd processes."
+msgstr ""
+
+#: gateone/gateone.py:1430
+#, python-format
+msgid ""
+"The locale (e.g. pt_PT) Gate One should use for translations.  If not "
+"provided, will default to $LANG (which is '%s' in your current shell)."
+msgstr ""
+
+#: gateone/gateone.py:1480
+msgid "Test test test"
+msgstr "Testes testes testes"
+
+#: gateone/gateone.py:1488
+#, python-format
+msgid "[1;31mERROR:[0m Could not create %s for log_file_prefix: %s"
+msgstr ""
+
+#: gateone/gateone.py:1489
+msgid ""
+"You probably want to change this option, run Gate One as root, or create "
+"that directory and give the proper user ownership of it."
+msgstr ""
+
+#: gateone/gateone.py:1494
+msgid "No server.conf found.  A new one was generated using defaults."
+msgstr ""
+
+#: gateone/gateone.py:1510
+msgid "dtach command not found.  dtach support has been disabled."
+msgstr ""
+

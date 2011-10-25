@@ -1,0 +1,1 @@
+// Nothing to see here.  The default layout in gateone.js is the en_US layout =)

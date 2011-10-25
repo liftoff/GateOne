@@ -1,0 +1,299 @@
+# Translations template for PROJECT.
+# Copyright (C) 2011 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2011-10-25 08:52-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 0.9.6\n"
+
+#: gateone/auth.py:92
+#, python-format
+msgid "Creating user directory: %s"
+msgstr ""
+
+#: gateone/auth.py:163
+msgid "Google auth failed"
+msgstr ""
+
+#: gateone/auth.py:208
+msgid "Kerberos auth failed"
+msgstr ""
+
+#: gateone/auth.py:211
+#, python-format
+msgid "KerberosAuthHandler user: %s"
+msgstr ""
+
+#: gateone/auth.py:242
+msgid "PAM auth failed"
+msgstr ""
+
+#: gateone/auth.py:244
+#, python-format
+msgid "PAMAuthHandler user: %s"
+msgstr ""
+
+#: gateone/gateone.py:640
+#, python-format
+msgid "templates/themes/%s.css was not found"
+msgstr ""
+
+#: gateone/gateone.py:650
+#, python-format
+msgid "templates/term_colors/%s.css was not found"
+msgstr ""
+
+#: gateone/gateone.py:683
+#, python-format
+msgid "WebSocket opened (%s)."
+msgstr ""
+
+#: gateone/gateone.py:685
+msgid "WebSocket opened (unknown user)."
+msgstr ""
+
+#: gateone/gateone.py:695
+msgid "'Error: Message bust be a JSON dict.'"
+msgstr ""
+
+#: gateone/gateone.py:697
+msgid "'Error: We only accept JSON here.'"
+msgstr ""
+
+#: gateone/gateone.py:718
+#, python-format
+msgid "WebSocket closed (%s)."
+msgstr ""
+
+#: gateone/gateone.py:720
+msgid "WebSocket closed (unknown user)."
+msgstr ""
+
+#: gateone/gateone.py:743
+msgid "Unauthenticated WebSocket attempt."
+msgstr ""
+
+#: gateone/gateone.py:1037
+#, python-format
+msgid "WebSocket closed (%s)"
+msgstr ""
+
+#: gateone/gateone.py:1089
+msgid "Got exception trying to execute plugin's optional ESC sequence handler..."
+msgstr ""
+
+#: gateone/gateone.py:1223
+msgid "Exception encountered: {exception}"
+msgstr ""
+
+#: gateone/gateone.py:1228
+msgid "{session} received quit()...  Killing termio session."
+msgstr ""
+
+#: gateone/gateone.py:1273
+#, python-format
+msgid "Using %s authenticationauth"
+msgstr ""
+
+#: gateone/gateone.py:1275
+msgid "No authentication method configured. All users will be %anonymous"
+msgstr ""
+
+#: gateone/gateone.py:1309
+#, python-format
+msgid "Loaded plugins: %s, "
+msgstr ""
+
+#: gateone/gateone.py:1334
+msgid "Enable debugging features such as auto-restarting when files are modified."
+msgstr ""
+
+#: gateone/gateone.py:1339
+msgid "Use the given 45-character string for cookie encryption."
+msgstr ""
+
+#: gateone/gateone.py:1346
+msgid "Run the given command when a user connects (e.g. '/bin/login')."
+msgstr ""
+
+#: gateone/gateone.py:1352
+msgid "Run on the given address."
+msgstr ""
+
+#: gateone/gateone.py:1354
+msgid "Run on the given port."
+msgstr ""
+
+#: gateone/gateone.py:1359
+msgid "If enabled, Gate One will run without SSL (generally not a good idea)."
+msgstr ""
+
+#: gateone/gateone.py:1365
+msgid "Path to the SSL certificate.  Will be auto-generated if none is provided."
+msgstr ""
+
+#: gateone/gateone.py:1372
+msgid "Path to the SSL keyfile.  Will be auto-generated if none is provided."
+msgstr ""
+
+#: gateone/gateone.py:1379
+msgid "Path to the location where user files will be stored."
+msgstr ""
+
+#: gateone/gateone.py:1385
+msgid "Path to the location where session information will be stored."
+msgstr ""
+
+#: gateone/gateone.py:1391
+msgid ""
+"If enabled, logs of user sessions will be saved in <user_dir>/logs.  "
+"Default: Enabled"
+msgstr ""
+
+#: gateone/gateone.py:1397
+msgid "If enabled, logs of user sessions will be written to syslog."
+msgstr ""
+
+#: gateone/gateone.py:1404
+#, python-format
+msgid ""
+"Syslog facility to use when logging to syslog (if syslog_session_logging "
+"is enabled).  Must be one of: %s.  Default: daemon, "
+msgstr ""
+
+#: gateone/gateone.py:1410
+msgid ""
+"Amount of time that a session should be kept alive after the client has "
+"logged out.  Accepts <num>X where X could be one of s, m, h, or d for "
+"seconds, minutes, hours, and days.  Default is '5d' (5 days)."
+msgstr ""
+
+#: gateone/gateone.py:1419
+#, python-format
+msgid "Authentication method to use.  Valid options are: %s"
+msgstr ""
+
+#: gateone/gateone.py:1425
+msgid ""
+"Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only "
+"relevant if Kerberos authentication is enabled."
+msgstr ""
+
+#: gateone/gateone.py:1432
+msgid ""
+"Kerberos service (aka application) to use. Defaults to HTTP. Only "
+"relevant if Kerberos authentication is enabled."
+msgstr ""
+
+#: gateone/gateone.py:1439
+msgid ""
+"Basic auth REALM to display when authenticating clients.  Default: "
+"hostname.  Only relevant if PAM authentication is enabled."
+msgstr ""
+
+#: gateone/gateone.py:1449
+msgid ""
+"PAM service to use.  Defaults to 'login'. Only relevant if PAM "
+"authentication is enabled."
+msgstr ""
+
+#: gateone/gateone.py:1456
+msgid ""
+"Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, "
+"etc.  See docs)."
+msgstr ""
+
+#: gateone/gateone.py:1462
+msgid ""
+"Wrap terminals with dtach. Allows sessions to be resumed even if Gate One"
+" is stopped and started (which is a sweet feature)."
+msgstr ""
+
+#: gateone/gateone.py:1468
+msgid "Kill any running Gate One terminal processes including dtach'd processes."
+msgstr ""
+
+#: gateone/gateone.py:1474
+#, python-format
+msgid ""
+"The locale (e.g. pt_PT) Gate One should use for translations.  If not "
+"provided, will default to $LANG (which is '%s' in your current shell)."
+msgstr ""
+
+#: gateone/gateone.py:1531
+#, python-format
+msgid "[1;31mERROR:[0m Could not create %s for log_file_prefix: %s"
+msgstr ""
+
+#: gateone/gateone.py:1532
+msgid ""
+"You probably want to change this option, run Gate One as root, or create "
+"that directory and give the proper user ownership of it."
+msgstr ""
+
+#: gateone/gateone.py:1537
+msgid "No server.conf found.  A new one was generated using defaults."
+msgstr ""
+
+#: gateone/gateone.py:1553
+msgid "dtach command not found.  dtach support has been disabled."
+msgstr ""
+
+#: gateone/gateone.py:1577
+msgid "No SSL private key found.  One will be generated."
+msgstr ""
+
+#: gateone/gateone.py:1580
+msgid "No SSL certificate found.  One will be generated."
+msgstr ""
+
+#: gateone/gateone.py:1583
+msgid "Listening on https://{address}:{port}/"
+msgstr ""
+
+#: gateone/gateone.py:1604
+msgid "Caught KeyboardInterrupt.  Killing sessions..."
+msgstr ""
+
+#: gateone/terminal.py:633
+msgid "Got TypeError on CALLBACK_TITLE..."
+msgstr ""
+
+#: gateone/terminal.py:806
+#, python-format
+msgid "CSI Handler Error: Type: %s, Values: %s"
+msgstr ""
+
+#: gateone/terminal.py:816 gateone/terminal.py:1332
+#, python-format
+msgid "Warning: No ESC sequence handler for %s"
+msgstr ""
+
+#: gateone/terminal.py:1707
+msgid "Error: Unsupported number for escape sequence J"
+msgstr ""
+
+#: gateone/terminal.py:1780
+msgid "Error: Unsupported number for CSI escape sequence K"
+msgstr ""
+
+#: gateone/terminal.py:1883
+msgid "cursorY >= self.rows! This should not happen! Bug!"
+msgstr ""
+
+#: gateone/terminal.py:1920
+#, python-format
+msgid "WFT?  new_renditions: %s, found_256: %s"
+msgstr ""
+
