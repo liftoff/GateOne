@@ -173,7 +173,7 @@
     z-index:600;
     position:absolute;
     top:0;
-    right:0;
+    right:1.8em;
     color: #000;
     text-align: right;
 }
@@ -183,7 +183,7 @@
     opacity: .75;
     padding-top: 0.5em;
     padding-bottom: 0.5em;
-    padding-right: 1.8em;
+/*     padding-right: 1.8em; */
     /* WebKit */
     -webkit-transition: -webkit-transform 1.0s ease-in-out;
     /* Firefox */
