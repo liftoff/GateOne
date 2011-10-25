@@ -235,6 +235,20 @@ import tornado.template
 from tornado.websocket import WebSocketHandler
 from tornado.escape import json_encode, json_decode
 from tornado.options import define, options
+from tornado import locale
+
+tornado.options.enable_pretty_logging()
+
+# Setup the locale functions before anything else
+locale.set_default_locale('en_US')
+user_locale = None # Replaced with the actual user locale object in __main__
+def _(string):
+    """
+    Wraps user_locale.translate so we can .encode('UTF-8') when writing to
+    stdout.  This function will get overridden by the regular translate()
+    function in __main__
+    """
+    return user_locale.translate(string).encode('UTF-8')
 
 # Globals
 SESSIONS = {} # We store the crux of most session info here
@@ -252,6 +266,11 @@ PLUGIN_HOOKS = {} # Gives plugins the ability to hook into various things.
 # The <whatever> part will be passed to any plugin matching <plugin name> if the
 # plugin has 'Escape': <function> registered in its hooks.
 PLUGIN_ESC_HANDLERS = {}
+
+# Secondary locale setup
+locale_dir = os.path.join(GATEONE_DIR, 'i18n')
+locale.load_gettext_translations(locale_dir, 'gateone')
+# NOTE: The locale gets set in __main__
 
 # A HUGE thank you to Micah Elliott (http://MicahElliott.com) for posting these
 # values here: https://gist.github.com/719710
@@ -565,29 +584,71 @@ class MainHandler(BaseHandler):
 
 class StyleHandler(BaseHandler):
     """
-    Serves up our CSS templates (e.g. the 'black' or 'white' schemes)
+    Serves up our CSS templates (themes, colors, etc) and enumerates what's
+    available depending on the given arguments:
+
+    If 'enumerate' is given, returna  JSON-encoded object containing lists of
+    our themes/colors in the form of:
+
+        {'themes': themes, 'colors': colors}
+
+    NOTE: The .css part of filenames will be stripped when sent to the client.
+
+    If 'theme' or 'colors' are provided (along with the requisite 'container'
+    and 'prefix' arguments), returns the content of the requested CSS file.
     """
     # Hey, if unauthenticated clients want this they can have it!
     #@tornado.web.authenticated
     def get(self):
-        container = self.get_argument("container")
-        prefix = self.get_argument("prefix")
-        scheme = self.get_argument("scheme", None)
-        # Setup our 256-color support CSS:
-        colors_256 = ""
-        for i in xrange(256):
-            fg = "#%s span.fx%s {color: #%s;}" % (container, i, COLORS_256[i])
-            bg = "#%s span.bx%s {background-color: #%s;} " % (
-                container, i, COLORS_256[i])
-            colors_256 += "%s %s" % (fg, bg)
-        colors_256 += "\n"
-        self.set_header ('Content-Type', 'text/css')
-        self.render(
-            "templates/css_%s.css" % scheme,
-            container=container,
-            prefix=prefix,
-            colors_256=colors_256
-        )
+        enum = self.get_argument("enumerate", None)
+        if enum:
+            themes = os.listdir(os.path.join(GATEONE_DIR, 'templates/themes'))
+            themes = [a.replace('.css', '') for a in themes]
+            colors = os.listdir(
+                os.path.join(GATEONE_DIR, 'templates/term_colors'))
+            colors = [a.replace('.css', '') for a in colors]
+            self.set_header ('Content-Type', 'application/json')
+            message = {'themes': themes, 'colors': colors}
+            self.write(json_encode(message))
+            self.finish()
+        else:
+            container = self.get_argument("container")
+            prefix = self.get_argument("prefix")
+            theme = self.get_argument("theme", None)
+            colors = self.get_argument("colors", None)
+            # Setup our 256-color support CSS:
+            colors_256 = ""
+            for i in xrange(256):
+                fg = "#%s span.fx%s {color: #%s;}" % (
+                    container, i, COLORS_256[i])
+                bg = "#%s span.bx%s {background-color: #%s;} " % (
+                    container, i, COLORS_256[i])
+                colors_256 += "%s %s" % (fg, bg)
+            colors_256 += "\n"
+            self.set_header ('Content-Type', 'text/css')
+            if theme:
+                try:
+                    self.render(
+                        "templates/themes/%s.css" % theme,
+                        container=container,
+                        prefix=prefix,
+                        colors_256=colors_256
+                    )
+                except IOError:
+                    # Given theme was not found
+                    logging.error(
+                        _("templates/themes/%s.css was not found" % theme))
+            elif colors:
+                try:
+                    self.render(
+                        "templates/term_colors/%s.css" % colors,
+                        container=container,
+                        prefix=prefix
+                    )
+                except IOError:
+                    # Given theme was not found
+                    logging.error(_(
+                        "templates/term_colors/%s.css was not found" % colors))
 
 class TerminalWebSocket(WebSocketHandler):
     def __init__(self, application, request):
@@ -619,9 +680,9 @@ class TerminalWebSocket(WebSocketHandler):
         go_upn = self.get_current_user()
         if go_upn:
             logging.info(
-                "WebSocket opened (%s)." % self.get_current_user()['go_upn'])
+                _("WebSocket opened (%s).") % self.get_current_user()['go_upn'])
         else:
-            logging.info("WebSocket opened (unknown user).")
+            logging.info(_("WebSocket opened (unknown user)."))
 
     def on_message(self, message):
         """Called when we receive a message from the client."""
@@ -631,9 +692,9 @@ class TerminalWebSocket(WebSocketHandler):
         try:
             message_obj = json_decode(message) # JSON FTW!
             if not isinstance(message_obj, dict):
-                self.write_message("'Error: Message bust be a JSON dict.'")
+                self.write_message(_("'Error: Message bust be a JSON dict.'"))
         except ValueError: # We didn't get JSON
-            self.write_message("'Error: We only accept JSON here.'")
+            self.write_message(_("'Error: We only accept JSON here.'"))
         if message_obj:
             for key, value in message_obj.items():
                 try: # Plugins first so they can override behavior if they wish
@@ -654,9 +715,9 @@ class TerminalWebSocket(WebSocketHandler):
         go_upn = self.get_current_user()
         if go_upn:
             logging.info(
-                "WebSocket closed (%s)." % self.get_current_user()['go_upn'])
+                _("WebSocket closed (%s).") % self.get_current_user()['go_upn'])
         else:
-            logging.info("WebSocket closed (unknown user).")
+            logging.info(_("WebSocket closed (unknown user)."))
 
     def pong(self, timestamp):
         """
@@ -679,7 +740,7 @@ class TerminalWebSocket(WebSocketHandler):
             try:
                 user = self.get_current_user()['go_upn']
                 if user == '%anonymous':
-                    logging.error("Unauthenticated WebSocket attempt.")
+                    logging.error(_("Unauthenticated WebSocket attempt."))
                     # In case this is a legitimate client that simply lost its
                     # cookie, tell it to re-auth by calling the appropriate
                     # action on the other side.
@@ -973,7 +1034,7 @@ class TerminalWebSocket(WebSocketHandler):
                 self.write_message(json_encode(output_dict))
             except IOError: # Socket was just closed, no biggie
                 logging.info(
-                    "WebSocket closed (%s)" % self.get_current_user()['go_upn'])
+                 _("WebSocket closed (%s)") % self.get_current_user()['go_upn'])
                 SESSIONS[self.session][term][ # 1 is CALLBACK_UPDATE
                     'multiplex'].callbacks[1] = noop # Stop trying to write
 
@@ -1025,8 +1086,9 @@ class TerminalWebSocket(WebSocketHandler):
             try:
                 PLUGIN_ESC_HANDLERS[plugin_name](text, tws=self)
             except Exception as e:
-                print("Got exception trying to execute plugin's optional ESC "
-                      "sequence handler...")
+                logging.error(_(
+                    "Got exception trying to execute plugin's optional ESC "
+                    "sequence handler..."))
                 print(e)
 
     def debug_terminal(self, term):
@@ -1054,8 +1116,8 @@ class RecordingHandler(BaseHandler):
         recording = self.get_argument("recording")
         container = self.get_argument("container")
         prefix = self.get_argument("prefix")
-        scheme = self.get_argument("scheme")
-        css_file = open('templates/css_%s.css' % scheme).read()
+        theme = self.get_argument("theme")
+        css_file = open('templates/css_%s.css' % theme).read()
         css = tornado.template.Template(css_file)
         self.render(
             "templates/self_contained_recording.html",
@@ -1075,8 +1137,8 @@ class OpenLogHandler(BaseHandler):
         log = self.get_argument("log")
         container = self.get_argument("container")
         prefix = self.get_argument("prefix")
-        scheme = self.get_argument("scheme")
-        css_file = open('templates/css_%s.css' % scheme).read()
+        theme = self.get_argument("theme")
+        css_file = open('templates/css_%s.css' % theme).read()
         css = tornado.template.Template(css_file)
         self.render(
             "templates/user_log.html",
@@ -1157,14 +1219,14 @@ class TidyThread(threading.Thread):
                 # when we receive a SIGTERM or Ctrl-c
                 time.sleep(2)
             except Exception as e:
-                logging.info(
+                logging.info(_(
                     "Exception encountered: {exception}".format(exception=e)
-                )
+                ))
                 self.quitting = True
-        logging.info(
+        logging.info(_(
             "{session} received quit()...  "
             "Killing termio session.".format(session=self.session)
-        )
+        ))
         # Clean up:
         for term in SESSIONS[session].keys():
             try:
@@ -1208,10 +1270,10 @@ class Application(tornado.web.Application):
                 tornado_settings['pam_service'] = settings["pam_service"]
             elif settings['auth'] == 'google':
                 AuthHandler = GoogleAuthHandler
-            logging.info("Using %s authentication" % settings['auth'])
+            logging.info(_("Using %s authentication" % settings['auth']))
         else:
-            logging.info("No authentication method configure. All users will be"
-                         " %anonymous")
+            logging.info(_("No authentication method configured. All users will "
+                         "be %anonymous"))
         # Setup our URL handlers
         handlers = [
             (r"/", MainHandler),
@@ -1244,10 +1306,19 @@ class Application(tornado.web.Application):
         css_plugins = [a.split('/')[2] for a in PLUGINS['css']]
         plugin_list = list(set(PLUGINS['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
-        logging.info("Loaded plugins: %s" % ", ".join(plugin_list))
+        logging.info(_("Loaded plugins: %s" % ", ".join(plugin_list)))
         tornado.web.Application.__init__(self, handlers, **tornado_settings)
 
 def main():
+    global _
+    global user_locale
+    # Default to using the shell's LANG variable as the locale
+    try:
+        default_locale = os.environ['LANG'].split('.')[0]
+    except KeyError: # $LANG isn't set
+        default_locale = "en_US"
+    user_locale = locale.get(default_locale)
+    # NOTE: The locale setting above is only for the --help messages.
     # Simplify the auth option help message
     auths = "none, google"
     if KerberosAuthHandler:
@@ -1260,113 +1331,114 @@ def main():
     define(
         "debug",
         default=False,
-        help="Enable debugging features such as auto-restarting when files are "
-             "modified."
+        help=_("Enable debugging features such as auto-restarting when files "
+               "are modified.")
     )
     define("cookie_secret", # 45 chars is, "Good enough for me" (cookie joke =)
         default=None,
-        help="Use the given 45-character string for cookie encryption.",
+        help=_("Use the given 45-character string for cookie encryption."),
         type=str
     )
     define("command",
         default=GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
                 r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp -a "
                 "'-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'",
-        help="Run the given command when a user connects (e.g. 'nethack').",
+        help=_("Run the given command when a user connects (e.g. '/bin/login')."
+               ),
         type=str
     )
     define("address",
         default="0.0.0.0",
-        help="Run on the given address.",
+        help=_("Run on the given address."),
         type=str)
-    define("port", default=443, help="Run on the given port.", type=int)
+    define("port", default=443, help=_("Run on the given port."), type=int)
     # Please only use this if Gate One is running behind something with SSL:
     define(
         "disable_ssl",
         default=False,
-        help="If enabled, Gate One will run without SSL (generally not a good "
-             "idea)."
+        help=_("If enabled, Gate One will run without SSL (generally not a "
+               "good idea).")
     )
     define(
         "certificate",
         default="certificate.pem",
-        help="Path to the SSL certificate.  Will be auto-generated if none is"
-             " provided.",
+        help=_("Path to the SSL certificate.  Will be auto-generated if none is"
+               " provided."),
         type=str
     )
     define(
         "keyfile",
         default="keyfile.pem",
-        help="Path to the SSL keyfile.  Will be auto-generated if none is"
-             " provided.",
+        help=_("Path to the SSL keyfile.  Will be auto-generated if none is"
+               " provided."),
         type=str
     )
     define(
         "user_dir",
         default=GATEONE_DIR + "/users",
-        help="Path to the location where user files will be stored.",
+        help=_("Path to the location where user files will be stored."),
         type=str
     )
     define(
         "session_dir",
         default="/tmp/gateone",
-        help="Path to the location where session information will be stored.",
+        help=_("Path to the location where session information will be stored."),
         type=str
     )
     define(
         "session_logging",
         default=True,
-        help="If enabled, logs of user sessions will be saved in "
-             "<user_dir>/logs.  Default: Enabled"
+        help=_("If enabled, logs of user sessions will be saved in "
+               "<user_dir>/logs.  Default: Enabled")
     )
     define( # This is an easy way to support cetralized logging
         "syslog_session_logging",
         default=False,
-        help="If enabled, logs of user sessions will be written to syslog."
+        help=_("If enabled, logs of user sessions will be written to syslog.")
     )
     define(
         "syslog_facility",
         default="daemon",
-        help="Syslog facility to use when logging to syslog (if "
+        help=_("Syslog facility to use when logging to syslog (if "
              "syslog_session_logging is enabled).  Must be one of: %s."
-             "  Default: daemon" % ", ".join(facilities),
+             "  Default: daemon" % ", ".join(facilities)),
         type=str
     )
     define(
         "session_timeout",
         default="5d",
-        help="Amount of time that a session should be kept alive after the "
+        help=_("Amount of time that a session should be kept alive after the "
         "client has logged out.  Accepts <num>X where X could be one of s, m, h"
         ", or d for seconds, minutes, hours, and days.  Default is '5d' (5 days"
-        ").",
+        ")."),
         type=str
     )
     define(
         "auth",
         default=None,
-        help="Authentication method to use.  Valid options are: %s" % auths,
+        help=_("Authentication method to use.  Valid options are: %s" % auths),
         type=str
     )
     define(
         "sso_realm",
         default=None,
-        help="Kerberos REALM (aka DOMAIN) to use when authenticating clients."
-             " Only relevant if Kerberos authentication is enabled.",
+        help=_("Kerberos REALM (aka DOMAIN) to use when authenticating clients."
+               " Only relevant if Kerberos authentication is enabled."),
         type=str
     )
     define(
         "sso_service",
         default='HTTP',
-        help="Kerberos service (aka application) to use. Defaults to HTTP. "
-             "Only relevant if Kerberos authentication is enabled.",
+        help=_("Kerberos service (aka application) to use. Defaults to HTTP. "
+               "Only relevant if Kerberos authentication is enabled."),
         type=str
     )
     define(
         "pam_realm",
         default=uname()[1], # Defaults to hostname
-        help="Basic auth REALM to display when authenticating clients.  "
+        help=_("Basic auth REALM to display when authenticating clients.  "
         "Default: hostname.  "
-        "Only relevant if PAM authentication is enabled.",
+        "Only relevant if PAM authentication is enabled."),
         # NOTE: This is only used to show the user a REALM at the basic auth
         #       prompt and as the name in the GATEONE_DIR+'/users' directory
         type=str
@@ -1374,43 +1446,50 @@ def main():
     define(
         "pam_service",
         default='login',
-        help="PAM service to use.  Defaults to 'login'. "
-             "Only relevant if PAM authentication is enabled.",
+        help=_("PAM service to use.  Defaults to 'login'. "
+               "Only relevant if PAM authentication is enabled."),
         type=str
     )
     define(
         "embedded",
         default=False,
-        help="Run Gate One in Embedded Mode (no toolbar, only one terminal "
-             "allowed, etc.  See docs)."
+        help=_("Run Gate One in Embedded Mode (no toolbar, only one terminal "
+               "allowed, etc.  See docs).")
     )
     define(
         "dtach",
         default=True,
-        help="Wrap terminals with dtach. Allows sessions to be resumed even if "
-             "Gate One is stopped and started (which is a sweet feature =)."
+        help=_("Wrap terminals with dtach. Allows sessions to be resumed even "
+               "if Gate One is stopped and started (which is a sweet feature).")
     )
     define(
         "kill",
         default=False,
-        help="Kill any running Gate One terminal processes including dtach'd "
-             "processes."
+        help=_("Kill any running Gate One terminal processes including dtach'd "
+               "processes.")
+    )
+    define(
+        "locale",
+        default=default_locale,
+        help=_("The locale (e.g. pt_PT) Gate One should use for translations."
+             "  If not provided, will default to $LANG (which is '%s' in your "
+             "current shell).") % os.environ['LANG'].split('.')[0],
+        type=str
     )
     # Before we do anythong else, load plugins and assign their hooks.  This
     # allows plugins to add their own define() statements/options.
     imported = load_plugins(PLUGINS['py'])
+    new_conf = False # Used below to tell the user that a server.conf was
+                     # generated in their chosen language.
     for plugin in imported:
         try:
             PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
         except AttributeError:
             pass # No hooks--probably just a supporting .py file.
-    # TODO: Use the arguments passed to gateone.py to generate server.conf if it
-    #       isn't already present.
     if os.path.exists(GATEONE_DIR + "/server.conf"):
         tornado.options.parse_config_file(GATEONE_DIR + "/server.conf")
     else: # Generate a default server.conf with a random cookie secret
-        logging.info("No server.conf found.  A new one will be generated using "
-                     "defaults.")
+        new_conf = True
         if not os.path.exists(options.user_dir): # Make our user_dir
             mkdir_p(options.user_dir)
             os.chmod(options.user_dir, 0700)
@@ -1438,19 +1517,25 @@ def main():
                 config.write('%s = %s\n' % (key, value))
         config.close()
         tornado.options.parse_config_file(GATEONE_DIR + "/server.conf")
+    tornado.options.parse_command_line()
+    # Re-do the locale in case the user supplied something as --locale
+    user_locale = locale.get(options.locale)
+    _ = user_locale.translate # Also replaces our wrapper so no more .encode()
     # Create the log dir if not already present (NOTE: Assumes we're root)
     log_dir = os.path.split(options.log_file_prefix)[0]
     if not os.path.exists(log_dir):
         try:
             mkdir_p(log_dir)
         except OSError:
-            print("\x1b[1;31mERROR:\x1b[0m Could not create %s for "
-                  "log_file_prefix: %s" % (log_dir, options.log_file_prefix))
-            print("You probably want to change this option, run Gate One as "
-                  "root, or create that directory and give the proper user "
-                  "ownership of it.")
+            logging.error(_("\x1b[1;31mERROR:\x1b[0m Could not create %s for "
+                  "log_file_prefix: %s" % (log_dir, options.log_file_prefix)))
+            logging.error(_("You probably want to change this option, run Gate "
+                  "One as root, or create that directory and give the proper "
+                  "user ownership of it."))
             sys.exit(1)
-    tornado.options.parse_command_line()
+    if new_conf:
+        logging.info(_("No server.conf found.  A new one was generated using "
+                     "defaults."))
     if options.kill:
         # Kill all running dtach sessions (associated with Gate One anyway)
         killall(options.session_dir)
@@ -1465,7 +1550,7 @@ def main():
     result = getoutput('which dtach')
     if not result:
         logging.warning(
-            "dtach command not found.  dtach support has been disabled.")
+            _("dtach command not found.  dtach support has been disabled."))
         options.dtach = False
     # Define our Application settings
     app_settings = {
@@ -1483,20 +1568,21 @@ def main():
         'sso_realm': options.sso_realm,
         'sso_service': options.sso_service,
         'pam_realm': options.pam_realm,
-        'pam_service': options.pam_service
+        'pam_service': options.pam_service,
+        'locale': options.locale
     }
     # Check to make sure we have a certificate and keyfile and generate fresh
     # ones if not.
     if not os.path.exists(options.keyfile):
-        logging.info("No SSL private key found.  One will be generated.")
+        logging.info(_("No SSL private key found.  One will be generated."))
         gen_self_signed_ssl()
     if not os.path.exists(options.certificate):
-        logging.info("No SSL certificate found.  One will be generated.")
+        logging.info(_("No SSL certificate found.  One will be generated."))
         gen_self_signed_ssl()
-    logging.info(
+    logging.info(_(
         "Listening on https://{address}:{port}/".format(
             address=options.address, port=options.port
-        )
+        ))
     )
     # Setup static file links for plugins (if any)
     static_dir = os.path.join(GATEONE_DIR, "static")
@@ -1515,7 +1601,7 @@ def main():
         http_server.listen(options.port, options.address)
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
-        logging.info("Caught KeyboardInterrupt.  Killing sessions...")
+        logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
         for t in threading.enumerate():
             if t.getName().startswith('TidyThread'):
                 t.quit()

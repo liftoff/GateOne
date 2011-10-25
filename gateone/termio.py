@@ -97,6 +97,9 @@ from subprocess import Popen
 
 # Import our own stuff
 from utils import noop
+from utils import get_translation
+
+_ = get_translation()
 
 # Globals
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log

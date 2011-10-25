@@ -133,11 +133,16 @@ Class Docstrings
 ================
 """
 
-# Imports
+# Import stdlib stuff
 import re, time, logging
 from collections import defaultdict
 from itertools import imap, izip
 import copy
+
+# Import our own stuff
+from utils import get_translation
+
+_ = get_translation()
 
 # Globals
 
@@ -625,9 +630,9 @@ class Terminal(object):
         try:
             self.callbacks[self.CALLBACK_TITLE]()
         except TypeError as e:
-            logging.error("Got TypeError on CALLBACK_TITLE...")
-            print(repr(self.callbacks[self.CALLBACK_TITLE]))
-            print(e)
+            logging.error(_("Got TypeError on CALLBACK_TITLE..."))
+            logging.error(repr(self.callbacks[self.CALLBACK_TITLE]))
+            logging.error(e)
 
 # TODO: put some logic in these save/restore functions to walk the current
 # rendition line to come up with a logical rendition for that exact spot.
@@ -796,10 +801,10 @@ class Terminal(object):
                             try:
                                 csi_handlers[csi_type](csi_values)
                             except ValueError:
-                                logging.error(
+                                logging.error(_(
                                     "CSI Handler Error: Type: %s, Values: %s" %
                                     (csi_type, csi_values)
-                                )
+                                ))
                             self.prev_esc_buffer = self.esc_buffer
                             self.esc_buffer = ''
                             continue
@@ -808,10 +813,10 @@ class Terminal(object):
                         if self.esc_buffer.endswith('\x1b\\'):
                             self._osc_handler()
                         else:
-                            logging.warning(
+                            logging.warning(_(
                                 "Warning: No ESC sequence handler for %s"
                                 % `self.esc_buffer`
-                            )
+                            ))
                             self.esc_buffer = ''
                     continue # We're done here
 # TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
@@ -1324,8 +1329,8 @@ class Terminal(object):
             self.esc_buffer = ''
             return
         # At this point we've encountered something unusual
-        logging.warning("Warning: No ESC sequence handler for %s" %
-            `self.esc_buffer`)
+        logging.warning(_("Warning: No ESC sequence handler for %s" %
+            `self.esc_buffer`))
         self.esc_buffer = ''
 
     def _bell(self):
@@ -1699,7 +1704,7 @@ class Terminal(object):
         try:
             clear_types[n]()
         except KeyError:
-            logging.error("Error: Unsupported number for escape sequence J")
+            logging.error(_("Error: Unsupported number for escape sequence J"))
         # Execute our callbacks
         try:
             self.callbacks[self.CALLBACK_CHANGED]()
@@ -1772,7 +1777,8 @@ class Terminal(object):
         try:
             clear_types[n]()
         except KeyError:
-            logging.error("Error: Unsupported number for CSI escape sequence K")
+            logging.error(_(
+                "Error: Unsupported number for CSI escape sequence K"))
         # Execute our callbacks
         try:
             self.callbacks[self.CALLBACK_CHANGED]()
@@ -1874,7 +1880,8 @@ class Terminal(object):
                 self.screen[cursorY].append('\x00') # This needs to match
         if cursorY >= self.rows:
             # This should never happen
-            logging.error("cursorY >= self.rows! This should not happen! Bug!")
+            logging.error(_(
+                "cursorY >= self.rows! This should not happen! Bug!"))
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
             self.last_rendition = [0]
@@ -1909,7 +1916,8 @@ class Terminal(object):
                 # now that I'm watching for it (figures!).  Hopefully I'll find
                 # whatever bug is causing this and then I can get rid of this
                 # silly check.
-                print("WFT?  new_renditions: %s, found_256: %s" % (new_renditions, found_256))
+                logging.error(_("WFT?  new_renditions: %s, found_256: %s"
+                    % (new_renditions, found_256)))
         out_renditions = []
         for rend in new_renditions:
             if rend == 0:

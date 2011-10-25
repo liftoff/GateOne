@@ -13,7 +13,6 @@ time, mark, audio, video {
   border: 0;
   font-size: 1em;
   text-rendering: optimizeLegibility;
-  font-family: monospace;
 }
 html, body { min-height:100%; }
 body {

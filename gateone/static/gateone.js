@@ -168,7 +168,9 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     rows: null, // Override the automatically calculated value (null means fill the window)
     cols: null, // Ditto
     prefix: 'go_', // What to prefix all GateOne elements with (in case you need to avoid a name conflict)
-    scheme: 'black', // The color scheme to use by default (e.g. 'black' or 'white')
+    theme: 'black', // The theme to use by default (e.g. 'black', 'white', etc)
+    colors: 'default', // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
+    fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
     autoConnectURL: null, // This is a URL that will be automatically connected to whenever a terminal is loaded. TODO: Move this to the ssh plugin.
     embedded: false // In embedded mode we have no toolbar and only one terminal is allowed
 };
@@ -209,15 +211,22 @@ GateOne.Base.update(GateOne, {
             prefsPanelH2 = u.createElement('h2'),
             prefsPanelForm = u.createElement('form', {'id': prefix+'prefs_form', 'name': prefix+'prefs_form'}),
             prefsPanelStyleRow1 = u.createElement('div', {'class': prefix+'paneltablerow'}),
+            prefsPanelStyleRow2 = u.createElement('div', {'class': prefix+'paneltablerow'}),
+            prefsPanelStyleRow3 = u.createElement('div', {'class': prefix+'paneltablerow'}),
             prefsPanelRow1 = u.createElement('div', {'class': prefix+'paneltablerow'}),
             prefsPanelRow2 = u.createElement('div', {'class': prefix+'paneltablerow'}),
             prefsPanelRow3 = u.createElement('div', {'class': prefix+'paneltablerow'}),
             prefsPanelRow4 = u.createElement('div', {'class': prefix+'paneltablerow'}),
             prefsPanelRow5 = u.createElement('div', {'class': prefix+'paneltablerow'}),
-            tableDiv = u.createElement('div', {'class': prefix+'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            hr = u.createElement('hr', {'style': {'width': '100%', 'margin-top': '0.5em', 'margin-bottom': '0.5em'}}),
+            tableDiv = u.createElement('div', {'id': prefix+'prefs_tablediv1', 'class': prefix+'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'class': prefix+'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            prefsPanelStyleSchemeLabel = u.createElement('span', {'id': prefix+'prefs_scheme_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
-            prefsPanelStyleScheme = u.createElement('select', {'id': prefix+'prefs_scheme', 'name': prefix+'prefs_scheme', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelThemeLabel = u.createElement('span', {'id': prefix+'prefs_theme_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelTheme = u.createElement('select', {'id': prefix+'prefs_theme', 'name': prefix+'prefs_theme', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelColorsLabel = u.createElement('span', {'id': prefix+'prefs_colors_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelColors = u.createElement('select', {'id': prefix+'prefs_colors', 'name': prefix+'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelFontSizeLabel = u.createElement('span', {'id': prefix+'prefs_fontsize_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelFontSize = u.createElement('input', {'id': prefix+'prefs_fontsize', 'name': prefix+'prefs_fontsize', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelScrollbackLabel = u.createElement('span', {'id': prefix+'prefs_scrollback_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
             prefsPanelScrollback = u.createElement('input', {'id': prefix+'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelLogLinesLabel = u.createElement('span', {'id': prefix+'prefs_loglines_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
@@ -233,22 +242,49 @@ GateOne.Base.update(GateOne, {
             toolbar = u.createElement('div', {'id': prefix+'toolbar'}),
             toolbarIconPrefs = u.createElement('div', {'id': prefix+'icon_prefs', 'class': prefix+'toolbar', 'title': "Preferences"}),
             panels = document.getElementsByClassName('panel'),
-            sideinfo = u.createElement('div', {'id': prefix+'sideinfo'});
+            sideinfo = u.createElement('div', {'id': prefix+'sideinfo'}),
+            themeList = [], // Gets filled out below
+            colorsList = [],
+            enumerateCSS = function(jsonObj) {
+                // Meant to be called from the xhrGet() below
+                var decoded = JSON.parse(jsonObj),
+                    themesList = decoded['themes'],
+                    colorsList = decoded['colors'],
+                    prefsThemeSelect = u.getNode('#'+prefix+'prefs_theme'),
+                    prefsColorsSelect = u.getNode('#'+prefix+'prefs_colors');
+                prefsThemeSelect.options.length = 0;
+                prefsColorsSelect.options.length = 0;
+                for (var i in themesList) {
+                    prefsThemeSelect.add(new Option(themesList[i], themesList[i]), null);
+                    if (go.prefs.theme == themesList[i]) {
+                        prefsThemeSelect.selectedIndex = i;
+                    }
+                }
+                for (var i in colorsList) {
+                    prefsColorsSelect.add(new Option(colorsList[i], colorsList[i]), null);
+                    if (go.prefs.colors == colorsList[i]) {
+                        prefsColorsSelect.selectedIndex = i;
+                    }
+                }
+            },
+            updateCSSfunc = function() { u.xhrGet('/style?enumerate=True', enumerateCSS) };
         // Create our prefs panel
         toolbarIconPrefs.innerHTML = GateOne.Icons.prefs;
         prefsPanelH2.innerHTML = "Preferences";
         prefsPanel.appendChild(prefsPanelH2);
-        prefsPanelStyleScheme.add(new Option("black", "black"), null);
-        prefsPanelStyleScheme.add(new Option("white", "white"), null);
-        if (go.prefs.scheme == "black") {
-            prefsPanelStyleScheme.selectedIndex = 0;
-        } else {
-            prefsPanelStyleScheme.selectedIndex = 1;
-        }
-        prefsPanelStyleSchemeLabel.innerHTML = "<b>CSS Scheme:</b> ";
-        prefsPanelStyleRow1.appendChild(prefsPanelStyleSchemeLabel);
-        prefsPanelStyleRow1.appendChild(prefsPanelStyleScheme);
+        prefsPanelThemeLabel.innerHTML = "<b>Theme:</b> ";
+        prefsPanelColorsLabel.innerHTML = "<b>Color Scheme:</b> ";
+        prefsPanelFontSizeLabel.innerHTML = "<b>Font Size:</b> ";
+        prefsPanelFontSize.value = go.prefs.fontSize;
+        prefsPanelStyleRow1.appendChild(prefsPanelThemeLabel);
+        prefsPanelStyleRow1.appendChild(prefsPanelTheme);
+        prefsPanelStyleRow2.appendChild(prefsPanelColorsLabel);
+        prefsPanelStyleRow2.appendChild(prefsPanelColors);
+        prefsPanelStyleRow3.appendChild(prefsPanelFontSizeLabel);
+        prefsPanelStyleRow3.appendChild(prefsPanelFontSize);
         tableDiv.appendChild(prefsPanelStyleRow1);
+        tableDiv.appendChild(prefsPanelStyleRow2);
+        tableDiv.appendChild(prefsPanelStyleRow3);
         prefsPanelScrollbackLabel.innerHTML = "<b>Scrollback Buffer Lines:</b> ";
         prefsPanelScrollback.value = go.prefs.scrollback;
         prefsPanelLogLinesLabel.innerHTML = "<b>Terminal Log Lines:</b> ";
@@ -279,24 +315,32 @@ GateOne.Base.update(GateOne, {
         prefsPanelSave.innerHTML = "Save";
         prefsPanelForm.appendChild(prefsPanelSave);
         prefsPanel.appendChild(prefsPanelForm);
+        prefsPanel.appendChild(hr);
         go.Visual.applyTransform(prefsPanel, 'scale(0)');
         if (!go.prefs.embedded) {
             goDiv.appendChild(prefsPanel); // Doesn't really matter where it goes
         }
         prefsPanelForm.onsubmit = function(e) {
             e.preventDefault(); // Don't actually submit
-            var scheme = u.getNode('#'+prefix+'prefs_scheme').value,
+            var theme = u.getNode('#'+prefix+'prefs_theme').value,
+                colors = u.getNode('#'+prefix+'prefs_colors').value,
+                fontSize = u.getNode('#'+prefix+'prefs_fontsize').value,
                 scrollbackValue = u.getNode('#'+prefix+'prefs_scrollback').value,
                 logLinesValue = u.getNode('#'+prefix+'prefs_loglines').value,
                 playbackValue = u.getNode('#'+prefix+'prefs_playback').value,
                 rowsValue = u.getNode('#'+prefix+'prefs_rows').value,
                 colsValue = u.getNode('#'+prefix+'prefs_cols').value;
             // Grab the form values and set them in prefs
-            if (scheme != go.prefs.scheme) {
-                // Start using the new CSS scheme
-                u.loadCSS(scheme);
+            if (theme != go.prefs.theme || colors != go.prefs.colors) {
+                // Start using the new CSS theme and colors
+                u.loadCSS({'theme': theme, 'colors': colors});
                 // Save the user's choice
-                go.prefs.scheme = scheme;
+                go.prefs.theme = theme;
+                go.prefs.colors = colors;
+            }
+            if (fontSize) {
+                go.prefs.fontSize = fontSize;
+                goDiv.style['font-size'] = fontSize;
             }
             if (scrollbackValue) {
                 go.prefs.scrollback = parseInt(scrollbackValue);
@@ -336,6 +380,10 @@ GateOne.Base.update(GateOne, {
                 'right': 0
             });
         }
+        // Set the font according to the user's prefs
+        if (go.prefs.fontSize) {
+            goDiv.style['font-size'] = go.prefs.fontSize;
+        }
         // Create the (empty) toolbar
         toolbar.appendChild(toolbarIconPrefs); // The only default toolbar icon is the preferences
         goDiv.appendChild(toolbar);
@@ -343,8 +391,8 @@ GateOne.Base.update(GateOne, {
             go.Visual.togglePanel('#'+go.prefs.prefix+'panel_prefs');
         }
         toolbarIconPrefs.onclick = showPrefs;
-        // Load our CSS scheme
-        u.loadCSS(go.prefs.scheme);
+        // Load our CSS theme
+        u.loadCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
         go.Visual.updateDimensions();
         var grid = go.Visual.createGrid(go.prefs.prefix+'termwrapper');
         goDiv.appendChild(grid);
@@ -471,6 +519,11 @@ GateOne.Base.update(GateOne, {
                 moduleObj.postInit();
             }
         })
+        // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to refresh the page when the server has new CSS files).
+        if (!go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']) {
+            go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs'] = {};
+        }
+        go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']['updateCSS'] = updateCSSfunc;
         // Start capturing keyboard input
         go.Input.capture();
     }
@@ -708,27 +761,48 @@ GateOne.Base.update(GateOne.Utils, {
             }
         }
     },
-    loadCSS: function(scheme) {
-        // Loads the GateOne CSS for the given scheme
-        if (!scheme) {
-            scheme = "black";
-        }
-        var cssNode = document.createElement('link'),
-            container = GateOne.prefs.goDiv.split('#')[1];
-        cssNode.type = 'text/css';
-        cssNode.rel = 'stylesheet';
-        cssNode.href = '/style?scheme='+scheme+'&container='+container+'&prefix='+GateOne.prefs.prefix;
-        cssNode.media = 'screen';
-        cssNode.title = 'GateOneCSS';
-        document.getElementsByTagName("head")[0].appendChild(cssNode);
-        var i, a, main;
-        for(i=0; (a = document.getElementsByTagName("link")[i]); i++) {
-            if(a.getAttribute("rel").indexOf("style") != -1 && a.getAttribute("title")) {
-//                 a.disabled = true;
-                if(a.getAttribute("title") == "GateOneCSS") a.disabled = false;
+    loadCSS: function(schemeObj) {
+        // Loads the GateOne CSS for the given *schemeObj* which should be in the form of:
+        //     {'theme': 'black'} or {'colors': 'gnome-terminal'} or an object containing both.
+        // If *schemeObj* is not provided, will load the defaults.
+        if (!schemeObj) {
+            schemeObj = {
+                'theme': "black",
+                'colors': "defaut"
             }
         }
-//         setActiveStyleSheet('GateOneCSS');
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            container = GateOne.prefs.goDiv.split('#')[1],
+            theme = schemeObj['theme'],
+            colors = schemeObj['colors'];
+        if (theme) {
+            var themeNode = document.createElement('link'),
+                existing = u.getNode('#'+prefix+'css_theme');
+            if (existing) {
+                u.removeElement(existing);
+            }
+            themeNode.type = 'text/css';
+            themeNode.rel = 'stylesheet';
+            themeNode.href = '/style?theme='+theme+'&container='+container+'&prefix='+prefix;
+            themeNode.id = prefix+'css_theme';
+            themeNode.media = 'screen';
+            document.getElementsByTagName("head")[0].appendChild(themeNode);
+        }
+        if (colors) {
+            var colorsNode = document.createElement('link'),
+                existing = u.getNode('#'+prefix+'css_colors');
+            if (existing) {
+                u.removeElement(existing);
+            }
+            colorsNode.type = 'text/css';
+            colorsNode.rel = 'stylesheet';
+            colorsNode.href = '/style?colors='+colors+'&container='+container+'&prefix='+prefix;
+            colorsNode.id = prefix+'css_colors';
+            colorsNode.media = 'screen';
+            document.getElementsByTagName("head")[0].appendChild(colorsNode);
+        }
     },
     loadScript: function(url){
         // Imports the given JS URL
@@ -742,7 +816,9 @@ GateOne.Base.update(GateOne.Utils, {
         // TODO: Add a hook here for plugins to take advantage of.
         var prefs = GateOne.prefs,
             userPrefs = { // These are all the things that are user-specific
-                'scheme': prefs['scheme'],
+                'theme': prefs['theme'],
+                'colors': prefs['colors'],
+                'fontSize': prefs['fontSize'],
                 'logLevel': prefs['logLevel'],
                 'logLines': prefs['logLines'],
                 'scrollback': prefs['scrollback'],
@@ -1006,12 +1082,12 @@ GateOne.Base.update(GateOne.Input, {
         }
         goDiv.onmousedown = function(e) {
             // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
-            var m = go.Input.mouse(e);
+            var m = go.Input.mouse(e),
+                selectedText = u.getSelText();
             // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
             // However, we only want this when the user is actually bringing up the context menu because
             // having it enabled slows down screen updates by a non-trivial amount.
             if (m.button.middle) {
-                var selectedText = u.getSelText();
                 if (selectedText.length) {
                     // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
                     e.preventDefault();
@@ -1019,7 +1095,16 @@ GateOne.Base.update(GateOne.Input, {
                     go.Net.sendChars();
                 }
             } else {
-                goDiv.contentEditable = true;
+                var panels = document.getElementsByClassName(go.prefs.prefix+'panel'),
+                    visiblePanel = false;
+                for (var i in u.toArray(panels)) {
+                    if (panels[i].style['transform'] != 'scale(0)') {
+                        visiblePanel = true;
+                    }
+                }
+                if (!visiblePanel) {
+                    goDiv.contentEditable = true;
+                }
             }
         }
         goDiv.onmouseup = function(e) {
@@ -1255,13 +1340,16 @@ GateOne.Base.update(GateOne.Input, {
         // Keys that need special handling.  'default' means vt100/vt220 (for the most part).  These can get overridden by plugins or the user (GUI forthcoming)
         // If a key isn't listed here (e.g. KEY_TAB) then the String.fromKeyCode() will be used to send the character to the server.
         // NOTE: If a key is set to null that means it won't send anything to the server onKeyDown (at all).
-        'KEY_2': {'default': "2", 'shift': "@", 'ctrl': String.fromCharCode(0)},
-        'KEY_3': {'default': "3", 'shift': "#", 'ctrl': ESC},
-        'KEY_4': {'default': "4", 'shift': "$", 'ctrl': String.fromCharCode(28)},
-        'KEY_5': {'default': "5", 'shift': "%", 'ctrl': String.fromCharCode(29)},
-        'KEY_6': {'default': "6", 'shift': "^", 'ctrl': String.fromCharCode(30)},
-        'KEY_7': {'default': "7", 'shift': "&", 'ctrl': String.fromCharCode(31)},
-        'KEY_8': {'default': "8", 'shift': "*", 'ctrl': String.fromCharCode(32)},
+        'KEY_1': {'default': "1", 'shift': "!", 'alt': ESC+"1", 'ctrl': "1"},
+        'KEY_2': {'default': "2", 'shift': "@", 'alt': ESC+"2", 'ctrl': String.fromCharCode(0)},
+        'KEY_3': {'default': "3", 'shift': "#", 'alt': ESC+"3", 'ctrl': ESC},
+        'KEY_4': {'default': "4", 'shift': "$", 'alt': ESC+"4", 'ctrl': String.fromCharCode(28)},
+        'KEY_5': {'default': "5", 'shift': "%", 'alt': ESC+"5", 'ctrl': String.fromCharCode(29)},
+        'KEY_6': {'default': "6", 'shift': "^", 'alt': ESC+"6", 'ctrl': String.fromCharCode(30)},
+        'KEY_7': {'default': "7", 'shift': "&", 'alt': ESC+"7", 'ctrl': String.fromCharCode(31)},
+        'KEY_8': {'default': "8", 'shift': "*", 'alt': ESC+"8", 'ctrl': String.fromCharCode(32)},
+        'KEY_9': {'default': "9", 'shift': "(", 'alt': ESC+"9", 'ctrl': "9"},
+        'KEY_0': {'default': "0", 'shift': ")", 'alt': ESC+"0", 'ctrl': "0"},
         'KEY_F1': {'default': ESC+"OP", 'alt': ESC+"O3P"}, // NOTE to self: xterm/vt100/vt220, for 'linux' (and possibly others) use [[A, [[B, [[C, [[D, and [[E
         'KEY_F2': {'default': ESC+"OQ", 'alt': ESC+"O3Q"},
         'KEY_F3': {'default': ESC+"OR", 'alt': ESC+"O3R"},
@@ -1353,17 +1441,17 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_NUM_PAD_0': {'default': '0'},
         'KEY_NUM_LOCK': null, // TODO: Double-check that NumLock isn't supposed to send some sort of wacky ESC sequence
         'KEY_SCROLL_LOCK': {'default': ESC+"[26~", 'xterm': ESC+"O2Q"}, // Same as F14
-        'KEY_SEMICOLON': {'default': ';', 'shift': ":"},
-        'KEY_EQUALS_SIGN': {'default': '=', 'shift': "+"},
-        'KEY_COMMA': {'default': ',', 'shift': "<"},
-        'KEY_HYPHEN-MINUS': {'default': '-', 'shift': "_"},
-        'KEY_FULL_STOP': {'default': '.', 'shift': ">"},
-        'KEY_SOLIDUS': {'default': '/', 'shift': "?", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
-        'KEY_GRAVE_ACCENT':  {'default': '`', 'shift': "~", 'ctrl-shift': String.fromCharCode(30)},
-        'KEY_LEFT_SQUARE_BRACKET':  {'default': '[', 'shift': "{", 'ctrl': ESC},
-        'KEY_REVERSE_SOLIDUS':  {'default': '\\', 'shift': "|", 'ctrl': String.fromCharCode(28)},
-        'KEY_RIGHT_SQUARE_BRACKET':  {'default': ']', 'shift': "}", 'ctrl': String.fromCharCode(29)},
-        'KEY_APOSTROPHE': {'default': "'", 'shift': '"'}
+        'KEY_SEMICOLON': {'default': ';', 'shift': ":", 'alt': ESC+";"},
+        'KEY_EQUALS_SIGN': {'default': '=', 'shift': "+", 'alt': ESC+"="},
+        'KEY_COMMA': {'default': ',', 'shift': "<", 'alt': ESC+","},
+        'KEY_HYPHEN-MINUS': {'default': '-', 'shift': "_", 'alt': ESC+"-"},
+        'KEY_FULL_STOP': {'default': '.', 'shift': ">", 'alt': ESC+"."},
+        'KEY_SOLIDUS': {'default': '/', 'shift': "?", 'alt': ESC+"/", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
+        'KEY_GRAVE_ACCENT':  {'default': '`', 'shift': "~", 'alt': ESC+"`", 'ctrl-shift': String.fromCharCode(30)},
+        'KEY_LEFT_SQUARE_BRACKET':  {'default': '[', 'shift': "{", 'alt': ESC+"[", 'ctrl': ESC},
+        'KEY_REVERSE_SOLIDUS':  {'default': '\\', 'shift': "|", 'alt': ESC+"\\", 'ctrl': String.fromCharCode(28)},
+        'KEY_RIGHT_SQUARE_BRACKET':  {'default': ']', 'shift': "}", 'alt': ESC+"]", 'ctrl': String.fromCharCode(29)},
+        'KEY_APOSTROPHE': {'default': "'", 'shift': '"', 'alt': ESC+"'"}
     },
     registerShortcut: function (keyString, shortcutObj) {
         // Used to register a shortcut.  The point being to prevent one shortcut being clobbered by another if they happen have the same base key.
@@ -1517,6 +1605,13 @@ GateOne.Base.update(GateOne.Input, {
                         q(goIn.keyTable[key.string]['alt-shift']);
                     }
                 }
+            } else if (key.code >= 65 && key.code <= 90) {
+                // Basic Alt-<key> combos are pretty straightforward (upper-case)
+                if (!modifiers.shift) {
+                    q(ESC+String.fromCharCode(key.code+32));
+                } else {
+                    q(ESC+String.fromCharCode(key.code));
+                }
             }
         }
         // Handle ctrl-alt-<key> and ctrl-alt-shift-<key> combos
@@ -1600,6 +1695,7 @@ GateOne.Base.module(GateOne, 'Visual', '0.9', ['Base', 'Net', 'Utils']);
 GateOne.Visual.scrollbackToggle = false;
 GateOne.Visual.gridView = false;
 GateOne.Visual.goDimensions = {};
+GateOne.Visual.panelToggleCallbacks = {'in': {}, 'out': {}};
 GateOne.Base.update(GateOne.Visual, {
     // Functions for manipulating views and displaying things
     init: function() {
@@ -1697,32 +1793,49 @@ GateOne.Base.update(GateOne.Visual, {
         // Toggles the given *panel* in or out of view.
         // If other panels are open at the time, they will be closed.
         // If *panel* evaluates to false, close all open panels
+        // This function also has some callbacks that can be hooked into:
+        //      * When the panel is toggled out of view: GateOne.Visual.panelToggleCallbacks['out']['panelName'] = {'myreference': somefunc()}
+        //      * When the panel is toggled into view: GateOne.Visual.panelToggleCallbacks['in']['panelName'] = {'myreference': somefunc()}
+        //
+        // Say you wanted to call a function whenever the preferences panel was toggled into view:
+        //      GateOne.Visual.panelToggleCallbacks['in']['#'+go.prefs.prefix+'panel_prefs']['updateOptions'] = myFunction;
+        // Then whenever the preferences panel was toggled into view, myfunction() would be called.
         var v = GateOne.Visual,
-            panel = GateOne.Utils.getNode(panel);
+            u = GateOne.Utils,
+            panelID = panel,
+            panel = u.getNode(panel),
+            origState = panel.style['transform'],
             panels = document.getElementsByClassName(GateOne.prefs.prefix+'panel'),
             term = localStorage['selectedTerminal'],
-            title = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'term'+term).title;
-        if (!panel) {
-            // No panel means we scale them all out
-            v.applyTransform(panels, 'scale(0)');
-            v.panelToggle = false;
-            v.lastPanel = null;
-            return; // All done here
+            title = u.getNode('#'+GateOne.prefs.prefix+'term'+term).title;
+        // Start by scaling all panels out
+        for (var i in u.toArray(panels)) {
+            if (u.getNode(panels[i]).style['transform'] != 'scale(0)') {
+                v.applyTransform(panels[i], 'scale(0)');
+                // Call any registered callbacks for all of these panels:
+                if (v.panelToggleCallbacks['out']['#'+panels[i].id]) {
+                    for (var ref in v.panelToggleCallbacks['out']['#'+panels[i].id]) {
+                        if (typeof(v.panelToggleCallbacks['out']['#'+panels[i].id][ref]) == "function") {
+                            v.panelToggleCallbacks['out']['#'+panels[i].id][ref]();
+                        }
+                    }
+                }
+            }
         }
-        // Update the info panel with the current panel's info
-        if (v.lastPanel != panel) {
-            v.panelToggle = false;
-        }
-        if (v.panelToggle) { // Scale out *all* panels--even this one
-            v.applyTransform(panels, 'scale(0)');
-            v.panelToggle = false;
-        } else {
-            // First we need to scale out any existing panels
-            v.applyTransform(panels, 'scale(0)');
+        if (origState != 'scale(1)') {
             v.applyTransform(panel, 'scale(1)');
-            v.panelToggle = true;
+        } else {
+            // Send it away
+            v.applyTransform(panel, 'scale(0)');
         }
-        v.lastPanel = panel;
+        // Call any registered callbacks for all of these panels:
+        if (v.panelToggleCallbacks['in']['#'+panel.id]) {
+            for (var ref in v.panelToggleCallbacks['in']['#'+panel.id]) {
+                if (typeof(v.panelToggleCallbacks['in']['#'+panel.id][ref]) == "function") {
+                    v.panelToggleCallbacks['in']['#'+panel.id][ref]();
+                }
+            }
+        }
     },
     displayTermInfo: function(term) {
         // Displays the given term's information as a psuedo tooltip that eventually fades away

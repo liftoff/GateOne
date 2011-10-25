@@ -68,6 +68,9 @@ from utils import mkdir_p, generate_session_id
 import tornado.web
 import tornado.auth
 import tornado.escape
+from utils import get_translation
+
+_ = get_translation()
 
 class BaseAuthHandler(tornado.web.RequestHandler):
     """The base class for all Gate One authentication handlers."""
@@ -86,7 +89,7 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         """
         # Make a directory to store this user's settings/files/logs/etc
         user_dir = self.settings['user_dir'] + "/" + user
-        logging.info("Creating user directory: %s" % user_dir)
+        logging.info(_("Creating user directory: %s" % user_dir))
         mkdir_p(user_dir)
         os.chmod(user_dir, 0700)
         session_file = user_dir + '/session'
@@ -157,7 +160,7 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
         actually sets the cookie).
         """
         if not user:
-            raise tornado.web.HTTPError(500, "Google auth failed")
+            raise tornado.web.HTTPError(500, _("Google auth failed"))
         # NOTE: Google auth 'user' will be a dict like so:
         # user: {
         #     'locale': u'en-us',
@@ -202,10 +205,10 @@ try:
 
         def _on_auth(self, user):
             if not user:
-                raise tornado.web.HTTPError(500, "Kerberos auth failed")
+                raise tornado.web.HTTPError(500, _("Kerberos auth failed"))
             self.user_login(user) # This takes care of the user's settings dir
             # TODO: Add some LDAP or local DB lookups here to add more detail to user objects
-            logging.debug("KerberosAuthHandler user: %s" % user)
+            logging.debug(_("KerberosAuthHandler user: %s" % user))
             next_url = self.get_argument("next", None)
             if next_url:
                 self.redirect(next_url)
@@ -236,9 +239,9 @@ try:
 
         def _on_auth(self, user):
             if not user:
-                raise tornado.web.HTTPError(500, "PAM auth failed")
+                raise tornado.web.HTTPError(500, _("PAM auth failed"))
             self.user_login(user) # This takes care of the user's settings dir
-            logging.debug("PAMAuthHandler user: %s" % user)
+            logging.debug(_("PAMAuthHandler user: %s" % user))
             next_url = self.get_argument("next", None)
             if next_url:
                 self.redirect(next_url)

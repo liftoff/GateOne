@@ -19,6 +19,9 @@ import logging
 
 # Our stuff
 from gateone import BaseHandler
+from utils import get_translation
+
+_ = get_translation()
 
 # Tornado stuff
 import tornado.web
@@ -116,19 +119,10 @@ def opt_esc_handler(text, tws):
     message = {'sshjs_connect': text}
     tws.write_message(json_encode(message))
 
-# Define a new option for gateone.py to use
-define(
-    "sshfp",
-    default=False,
-    help="Enable the use of SSHFP in verifying host keys.  See:  "
-         "http://en.wikipedia.org/wiki/SSHFP#SSHFP"
-)
-
 hooks = {
     'Web': [(r"/ssh", KnownHostsHandler)],
     'WebSocket': {
         'sshjs_get_connect_string': get_connect_string
     },
     'Escape': opt_esc_handler,
-    'Defines': None,
 }

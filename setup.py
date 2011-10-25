@@ -37,7 +37,8 @@ gateone_files=[ # Start with the basics...
         'gateone/terminal.py',
         'gateone/termio.py',
         'gateone/utils.py',
-        'README.rst'
+        'README.rst',
+        'babel_gateone.cfg'
     ])
 ]
 static_files = walk_data_files('gateone/static')
@@ -45,6 +46,7 @@ template_files = walk_data_files('gateone/templates')
 docs_files = walk_data_files('gateone/docs')
 plugin_files = walk_data_files('gateone/plugins')
 test_files = walk_data_files('gateone/tests')
+i18n_files = walk_data_files('gateone/i18n')
 # Put it all together
 data_files = (
     gateone_files +
@@ -52,7 +54,8 @@ data_files = (
     template_files +
     docs_files +
     plugin_files +
-    test_files
+    test_files +
+    i18n_files
 )
 
 setup(

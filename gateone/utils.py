@@ -32,6 +32,9 @@ import binascii
 from commands import getstatusoutput
 from datetime import datetime, timedelta
 
+# Import 3rd party stuff
+from tornado import locale
+
 # Globals
 # This matches JUST the PIDs from the output of the pstree command
 RE_PSTREE = re.compile(r'\(([0-9]*)\)')
@@ -108,9 +111,33 @@ class MimeTypeFail(Exception):
     pass
 
 # Functions
-def noop():
+def noop(*args, **kwargs):
     'Do nothing (i.e. "No Operation")'
     pass
+
+def get_translation():
+    """
+    Looks inside GATEONE_DIR/server.conf to determine the configured locale and
+    returns a matching locale.get_translation function.  Meant to be used like
+    this:
+
+        >>> from utils import get_translation
+        >>> _ = get_translation()
+    """
+    gateone_dir = os.path.dirname(os.path.abspath(__file__))
+    server_conf = os.path.join(gateone_dir, 'server.conf')
+    try:
+        with open(server_conf) as f:
+            for line in f:
+                if line.startswith('locale'):
+                    locale_str = line.split('=')[1].strip()
+                    locale_str = locale_str.strip('"').strip("'")
+                    break
+    except IOError: # server.conf doesn't exist (yet).
+        # Fall back to os.environ['LANG']
+        locale_str = os.environ['LANG'].split('.')[0]
+    user_locale = locale.get(locale_str)
+    return user_locale.translate
 
 def gen_self_signed_ssl(notAfter=None):
     """
