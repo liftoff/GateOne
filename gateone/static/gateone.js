@@ -221,21 +221,21 @@ GateOne.Base.update(GateOne, {
             hr = u.createElement('hr', {'style': {'width': '100%', 'margin-top': '0.5em', 'margin-bottom': '0.5em'}}),
             tableDiv = u.createElement('div', {'id': prefix+'prefs_tablediv1', 'class': prefix+'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'class': prefix+'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            prefsPanelThemeLabel = u.createElement('span', {'id': prefix+'prefs_theme_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelThemeLabel = u.createElement('span', {'id': prefix+'prefs_theme_label', 'class': prefix+'paneltablelabel'}),
             prefsPanelTheme = u.createElement('select', {'id': prefix+'prefs_theme', 'name': prefix+'prefs_theme', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelColorsLabel = u.createElement('span', {'id': prefix+'prefs_colors_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelColorsLabel = u.createElement('span', {'id': prefix+'prefs_colors_label', 'class': prefix+'paneltablelabel'}),
             prefsPanelColors = u.createElement('select', {'id': prefix+'prefs_colors', 'name': prefix+'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelFontSizeLabel = u.createElement('span', {'id': prefix+'prefs_fontsize_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelFontSizeLabel = u.createElement('span', {'id': prefix+'prefs_fontsize_label', 'class': prefix+'paneltablelabel'}),
             prefsPanelFontSize = u.createElement('input', {'id': prefix+'prefs_fontsize', 'name': prefix+'prefs_fontsize', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelScrollbackLabel = u.createElement('span', {'id': prefix+'prefs_scrollback_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelScrollbackLabel = u.createElement('span', {'id': prefix+'prefs_scrollback_label', 'class': prefix+'paneltablelabel'}),
             prefsPanelScrollback = u.createElement('input', {'id': prefix+'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelLogLinesLabel = u.createElement('span', {'id': prefix+'prefs_loglines_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelLogLinesLabel = u.createElement('span', {'id': prefix+'prefs_loglines_label', 'class': prefix+'paneltablelabel'}),
             prefsPanelLogLines = u.createElement('input', {'id': prefix+'prefs_loglines', 'name': prefix+'prefs_loglines', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelPlaybackLabel = u.createElement('span', {'id': prefix+'prefs_playback_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelPlaybackLabel = u.createElement('span', {'id': prefix+'prefs_playback_label', 'class': prefix+'paneltablelabel'}),
             prefsPanelPlayback = u.createElement('input', {'id': prefix+'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelRowsLabel = u.createElement('span', {'id': prefix+'prefs_rows_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelRowsLabel = u.createElement('span', {'id': prefix+'prefs_rows_label', 'class': prefix+'paneltablelabel'}),
             prefsPanelRows = u.createElement('input', {'id': prefix+'prefs_rows', 'name': prefix+'prefs_rows', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelColsLabel = u.createElement('span', {'id': prefix+'prefs_cols_label', 'style': {'display': 'table-cell', 'float': 'left'}}),
+            prefsPanelColsLabel = u.createElement('span', {'id': prefix+'prefs_cols_label', 'class': prefix+'paneltablelabel'}),
             prefsPanelCols = u.createElement('input', {'id': prefix+'prefs_cols', 'name': prefix+'prefs_cols', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelSave = u.createElement('button', {'id': prefix+'prefs_save', 'type': 'submit', 'value': 'Save', 'class': 'button black', 'style': {'float': 'right'}}),
             noticeContainer = u.createElement('div', {'id': prefix+'noticecontainer', 'style': {'margin-right': '2em', 'background': 'transparent'}}),
@@ -267,7 +267,7 @@ GateOne.Base.update(GateOne, {
                     }
                 }
             },
-            updateCSSfunc = function() { u.xhrGet('/style?enumerate=True', enumerateCSS) };
+            updateCSSfunc = function() { u.xhrGet(go.prefs.url + 'style?enumerate=True', enumerateCSS) };
         // Create our prefs panel
         toolbarIconPrefs.innerHTML = GateOne.Icons.prefs;
         prefsPanelH2.innerHTML = "Preferences";
@@ -340,7 +340,7 @@ GateOne.Base.update(GateOne, {
             }
             if (fontSize) {
                 go.prefs.fontSize = fontSize;
-                goDiv.style['font-size'] = fontSize;
+                goDiv.style['fontSize'] = fontSize;
             }
             if (scrollbackValue) {
                 go.prefs.scrollback = parseInt(scrollbackValue);
@@ -382,7 +382,7 @@ GateOne.Base.update(GateOne, {
         }
         // Set the font according to the user's prefs
         if (go.prefs.fontSize) {
-            goDiv.style['font-size'] = go.prefs.fontSize;
+            goDiv.style['fontSize'] = go.prefs.fontSize;
         }
         // Create the (empty) toolbar
         toolbar.appendChild(toolbarIconPrefs); // The only default toolbar icon is the preferences
@@ -526,6 +526,7 @@ GateOne.Base.update(GateOne, {
         go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']['updateCSS'] = updateCSSfunc;
         // Start capturing keyboard input
         go.Input.capture();
+        goDiv.contentEditable = true;
     }
 });
 
@@ -1058,6 +1059,7 @@ GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since som
 // Why did I code it this way?  If the user is unaware of this feature when they enter fullscreen mode, they might panic and hit F11 a bunch of times and it's likely they'll break out of fullscreen mode as an instinct :).  The message indicating the behavior will probably help too :D
 GateOne.Input.F11 = false;
 GateOne.Input.F11timer = null;
+GateOne.Input.handledKeystroke = false;
 GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.  They will end up looking like this:
 // 'KEY_N': [{'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'}]
 GateOne.Base.update(GateOne.Input, {
@@ -1070,8 +1072,10 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
         goDiv.onkeydown = go.Input.onKeyDown;
         goDiv.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
+        goDiv.onkeypress = go.Input.emulateKeyFallback;
         goDiv.focus();
         goDiv.onpaste = function(e) {
+            // TODO: Add a pop-up message that tells Firefox users how to grant Gate One access to the clipboard
             // Grab the text being pasted
             var contents = e.clipboardData.getData('Text');
             // Don't actually paste the text where the user clicked
@@ -1117,11 +1121,12 @@ GateOne.Base.update(GateOne.Input, {
         var go = GateOne,
             u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv);
-        goDiv.contentEditable = false; // This needs to be turned off or it might capture paste events (which is really annoying when you're trying to edit a form)
+//         goDiv.contentEditable = false; // This needs to be turned off or it might capture paste events (which is really annoying when you're trying to edit a form)
         goDiv.onpaste = null;
         goDiv.tabIndex = null;
         goDiv.onkeydown = null;
         goDiv.onkeyup = null;
+        goDiv.onkeypress = null;
         goDiv.onmousedown = null;
         goDiv.onmouseup = null;
     },
@@ -1199,7 +1204,8 @@ GateOne.Base.update(GateOne.Input, {
         219: 'KEY_LEFT_SQUARE_BRACKET',
         220: 'KEY_REVERSE_SOLIDUS',
         221: 'KEY_RIGHT_SQUARE_BRACKET',
-        222: 'KEY_APOSTROPHE'
+        222: 'KEY_APOSTROPHE',
+        229: 'KEY_COMPOSE' // NOTE: Firefox doesn't register a key code for the compose key!
         // undefined: 'KEY_UNKNOWN'
     },
     specialMacKeys: { // Note: Copied from MochiKit.Signal
@@ -1293,6 +1299,7 @@ GateOne.Base.update(GateOne.Input, {
             modifiers = goIn.modifiers(e);
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
             goIn.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
+            return true; // Save some CPU
         }
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA") {
             return; // Let the browser handle it if the user is editing something
@@ -1338,18 +1345,17 @@ GateOne.Base.update(GateOne.Input, {
     // TODO: Remove the 'xterm' values and instead make an xterm-specific keyTable that only contains the difference.  Then change the logic in the keypress functions to first check for overridden values before falling back to the default keyTable.
     keyTable: {
         // Keys that need special handling.  'default' means vt100/vt220 (for the most part).  These can get overridden by plugins or the user (GUI forthcoming)
-        // If a key isn't listed here (e.g. KEY_TAB) then the String.fromKeyCode() will be used to send the character to the server.
         // NOTE: If a key is set to null that means it won't send anything to the server onKeyDown (at all).
-        'KEY_1': {'default': "1", 'shift': "!", 'alt': ESC+"1", 'ctrl': "1"},
-        'KEY_2': {'default': "2", 'shift': "@", 'alt': ESC+"2", 'ctrl': String.fromCharCode(0)},
-        'KEY_3': {'default': "3", 'shift': "#", 'alt': ESC+"3", 'ctrl': ESC},
-        'KEY_4': {'default': "4", 'shift': "$", 'alt': ESC+"4", 'ctrl': String.fromCharCode(28)},
-        'KEY_5': {'default': "5", 'shift': "%", 'alt': ESC+"5", 'ctrl': String.fromCharCode(29)},
-        'KEY_6': {'default': "6", 'shift': "^", 'alt': ESC+"6", 'ctrl': String.fromCharCode(30)},
-        'KEY_7': {'default': "7", 'shift': "&", 'alt': ESC+"7", 'ctrl': String.fromCharCode(31)},
-        'KEY_8': {'default': "8", 'shift': "*", 'alt': ESC+"8", 'ctrl': String.fromCharCode(32)},
-        'KEY_9': {'default': "9", 'shift': "(", 'alt': ESC+"9", 'ctrl': "9"},
-        'KEY_0': {'default': "0", 'shift': ")", 'alt': ESC+"0", 'ctrl': "0"},
+        'KEY_1': {'alt': ESC+"1", 'ctrl': "1"},
+        'KEY_2': {'alt': ESC+"2", 'ctrl': String.fromCharCode(0)},
+        'KEY_3': {'alt': ESC+"3", 'ctrl': ESC},
+        'KEY_4': {'alt': ESC+"4", 'ctrl': String.fromCharCode(28)},
+        'KEY_5': {'alt': ESC+"5", 'ctrl': String.fromCharCode(29)},
+        'KEY_6': {'alt': ESC+"6", 'ctrl': String.fromCharCode(30)},
+        'KEY_7': {'alt': ESC+"7", 'ctrl': String.fromCharCode(31)},
+        'KEY_8': {'alt': ESC+"8", 'ctrl': String.fromCharCode(32)},
+        'KEY_9': {'alt': ESC+"9", 'ctrl': "9"},
+        'KEY_0': {'alt': ESC+"0", 'ctrl': "0"},
         'KEY_F1': {'default': ESC+"OP", 'alt': ESC+"O3P"}, // NOTE to self: xterm/vt100/vt220, for 'linux' (and possibly others) use [[A, [[B, [[C, [[D, and [[E
         'KEY_F2': {'default': ESC+"OQ", 'alt': ESC+"O3Q"},
         'KEY_F3': {'default': ESC+"OR", 'alt': ESC+"O3R"},
@@ -1407,51 +1413,41 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_PAUSE': {'default': ESC+"[28~", 'xterm': ESC+"O2R"}, // Same as F15
         'KEY_CAPS_LOCK': null,
         'KEY_ESCAPE': {'default': ESC},
-        'KEY_SPACEBAR': {'default': " ", 'shift': " ", 'ctrl': String.fromCharCode(0)}, // NOTE: Do we *really* need to have an appmode option for this?
-        'KEY_PAGE_UP': {'default': ESC+"[5~"}, // ^[[5~
-        'KEY_PAGE_DOWN': {'default': ESC+"[6~"}, // ^[[6~
-        'KEY_END': {'default': ESC+"[4~"},
-        'KEY_HOME': {'default': ESC+"[1~"},
-        'KEY_ARROW_LEFT': {'default': ESC+"[D", 'appmode': ESC+"OD"},
-        'KEY_ARROW_UP': {'default': ESC+"[A", 'appmode': ESC+"OA"},
-        'KEY_ARROW_RIGHT': {'default': ESC+"[C", 'appmode': ESC+"OC"},
-        'KEY_ARROW_DOWN': {'default': ESC+"[B", 'appmode': ESC+"OB"},
+        'KEY_TAB': {'default': String.fromCharCode(9), 'shift': ESC+"[Z"},
+        'KEY_SPACEBAR': {'ctrl': String.fromCharCode(0)}, // NOTE: Do we *really* need to have an appmode option for this?
+        'KEY_PAGE_UP': {'default': ESC+"[5~", 'alt': ESC+"[5;3~"}, // ^[[5~
+        'KEY_PAGE_DOWN': {'default': ESC+"[6~", 'alt': ESC+"[6;3~"}, // ^[[6~
+        'KEY_END': {'default': ESC+"[F", 'meta': ESC+"[1;1F", 'shift': ESC+"[1;2F", 'alt': ESC+"[1;3F", 'alt-shift': ESC+"[1;4F", 'ctrl': ESC+"[1;5F", 'ctrl-shift': ESC+"[1;6F"},
+        'KEY_HOME': {'default': ESC+"[H", 'meta': ESC+"[1;1H", 'shift': ESC+"[1;2H", 'alt': ESC+"[1;3H", 'alt-shift': ESC+"[1;4H", 'ctrl': ESC+"[1;5H", 'ctrl-shift': ESC+"[1;6H"},
+        'KEY_ARROW_LEFT': {'default': ESC+"[D", 'alt': ESC+"[1;3D", 'ctrl': ESC+"[1;5D", 'appmode': ESC+"OD"},
+        'KEY_ARROW_UP': {'default': ESC+"[A", 'alt': ESC+"[1;3A", 'ctrl': ESC+"[1;5A", 'appmode': ESC+"OA"},
+        'KEY_ARROW_RIGHT': {'default': ESC+"[C", 'alt': ESC+"[1;3C", 'ctrl': ESC+"[1;5C", 'appmode': ESC+"OC"},
+        'KEY_ARROW_DOWN': {'default': ESC+"[B", 'alt': ESC+"[1;3B", 'ctrl': ESC+"[1;5B", 'appmode': ESC+"OB"},
         'KEY_PRINT_SCREEN': {'default': ESC+"[25~", 'xterm': ESC+"O2P"}, // Same as F13
-        'KEY_INSERT': {'default': ESC+"[2~"},
-        'KEY_DELETE': {'default': ESC+"[3~", 'ctrl': ESC+"[3;5~"},
+        'KEY_INSERT': {'default': ESC+"[2~", 'meta': ESC+"[2;1~", 'alt': ESC+"[2;3~", 'alt-shift': ESC+"[2;4~"},
+        'KEY_DELETE': {'default': ESC+"[3~", 'shift': ESC+"[3;2~", 'alt': ESC+"[3;3~", 'alt-shift': ESC+"[3;4~", 'ctrl': ESC+"[3;5~"},
         'KEY_WINDOWS_LEFT': null,
         'KEY_WINDOWS_RIGHT': null,
         'KEY_SELECT': String.fromCharCode(93),
-        'KEY_NUM_PAD_ASTERISK': {'default': '*', 'appmode': ESC+"Oj"},
-        'KEY_NUM_PAD_PLUS_SIGN': {'default': '+', 'appmode': ESC+"Ok"},
-// NOTE: The regular hyphen key shows up as a num pad hyphen in Firefox 7; hence the shift option below.
-        'KEY_NUM_PAD_HYPHEN-MINUS': {'default': '-', 'shift': '_', 'appmode': ESC+"Om"},
-        'KEY_NUM_PAD_FULL_STOP': {'default': '.'},
-        'KEY_NUM_PAD_SOLIDUS': {'default': '/', 'appmode': ESC+"Oo"},
-// NOTE: NUM_PAD numbers are only sent when num lock is on.  Otherwise the num pad acts as Home/Up Arrow/PgUp/etc etc
-        'KEY_NUM_PAD_1': {'default': '1'},
-        'KEY_NUM_PAD_2': {'default': '2'},
-        'KEY_NUM_PAD_3': {'default': '3'},
-        'KEY_NUM_PAD_4': {'default': '4'},
-        'KEY_NUM_PAD_5': {'default': '5'},
-        'KEY_NUM_PAD_6': {'default': '6'},
-        'KEY_NUM_PAD_7': {'default': '7'},
-        'KEY_NUM_PAD_8': {'default': '8'},
-        'KEY_NUM_PAD_9': {'default': '9'},
-        'KEY_NUM_PAD_0': {'default': '0'},
+        'KEY_NUM_PAD_ASTERISK': {'alt': ESC+"*", 'appmode': ESC+"Oj"},
+        'KEY_NUM_PAD_PLUS_SIGN': {'alt': ESC+"+", 'appmode': ESC+"Ok"},
+// NOTE: The regular hyphen key shows up as a num pad hyphen in Firefox 7
+        'KEY_NUM_PAD_HYPHEN-MINUS': {'alt': ESC+"-", 'appmode': ESC+"Om"},
+        'KEY_NUM_PAD_FULL_STOP': {'alt': ESC+"."},
+        'KEY_NUM_PAD_SOLIDUS': {'alt': ESC+"/", 'appmode': ESC+"Oo"},
         'KEY_NUM_LOCK': null, // TODO: Double-check that NumLock isn't supposed to send some sort of wacky ESC sequence
         'KEY_SCROLL_LOCK': {'default': ESC+"[26~", 'xterm': ESC+"O2Q"}, // Same as F14
-        'KEY_SEMICOLON': {'default': ';', 'shift': ":", 'alt': ESC+";"},
-        'KEY_EQUALS_SIGN': {'default': '=', 'shift': "+", 'alt': ESC+"="},
-        'KEY_COMMA': {'default': ',', 'shift': "<", 'alt': ESC+","},
-        'KEY_HYPHEN-MINUS': {'default': '-', 'shift': "_", 'alt': ESC+"-"},
-        'KEY_FULL_STOP': {'default': '.', 'shift': ">", 'alt': ESC+"."},
-        'KEY_SOLIDUS': {'default': '/', 'shift': "?", 'alt': ESC+"/", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
-        'KEY_GRAVE_ACCENT':  {'default': '`', 'shift': "~", 'alt': ESC+"`", 'ctrl-shift': String.fromCharCode(30)},
-        'KEY_LEFT_SQUARE_BRACKET':  {'default': '[', 'shift': "{", 'alt': ESC+"[", 'ctrl': ESC},
-        'KEY_REVERSE_SOLIDUS':  {'default': '\\', 'shift': "|", 'alt': ESC+"\\", 'ctrl': String.fromCharCode(28)},
-        'KEY_RIGHT_SQUARE_BRACKET':  {'default': ']', 'shift': "}", 'alt': ESC+"]", 'ctrl': String.fromCharCode(29)},
-        'KEY_APOSTROPHE': {'default': "'", 'shift': '"', 'alt': ESC+"'"}
+        'KEY_SEMICOLON': {'alt': ESC+";", 'alt-shift': ESC+":"},
+        'KEY_EQUALS_SIGN': {'alt': ESC+"=", 'alt-shift': ESC+"+"},
+        'KEY_COMMA': {'alt': ESC+",", 'alt-shift': ESC+"<"},
+        'KEY_HYPHEN-MINUS': {'alt': ESC+"-", 'alt-shift': ESC+"_"},
+        'KEY_FULL_STOP': {'alt': ESC+".", 'alt-shift': ESC+">"},
+        'KEY_SOLIDUS': {'alt': ESC+"/", 'alt-shift': ESC+"?", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
+        'KEY_GRAVE_ACCENT':  {'alt': ESC+"`", 'alt-shift': ESC+"~", 'ctrl-shift': String.fromCharCode(30)},
+        'KEY_LEFT_SQUARE_BRACKET':  {'alt': ESC+"[", 'alt-shift': ESC+"{", 'ctrl': ESC},
+        'KEY_REVERSE_SOLIDUS':  {'alt': ESC+"\\", 'alt-shift': ESC+"|", 'ctrl': String.fromCharCode(28)},
+        'KEY_RIGHT_SQUARE_BRACKET':  {'alt': ESC+"]", 'alt-shift': ESC+"}", 'ctrl': String.fromCharCode(29)},
+        'KEY_APOSTROPHE': {'alt': ESC+"'", 'alt-shift': ESC+'"'}
     },
     registerShortcut: function (keyString, shortcutObj) {
         // Used to register a shortcut.  The point being to prevent one shortcut being clobbered by another if they happen have the same base key.
@@ -1486,16 +1482,18 @@ GateOne.Base.update(GateOne.Input, {
         // If *skipF11check* is not undefined (or null), the F11 (fullscreen check) logic will be skipped.
         // NOTE: Shift+key also winds up being handled by this function.
         var go = GateOne,
+            u = go.Utils,
             v = go.Visual,
             goIn = go.Input,
-            noop = go.Utils.noop,
+            noop = u.noop,
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
             buffer = goIn.bufferEscSeq,
-            q = goIn.queue,
+            q = function(char) {e.preventDefault(); goIn.queue(char); goIn.handledKeystroke = true;},
             term = localStorage['selectedTerminal'],
             keyString = String.fromCharCode(key.code);
-        logDebug("emulateKey() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
+        logDebug("emulateKey() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers) + ", event items: " + u.items(e));
+        goIn.handledKeystroke = false;
         // Need some special logic for the F11 key since it controls fullscreen mode and without it, users could get stuck in fullscreen mode.
         if (!modifiers.shift && goIn.F11 == true && !skipF11check) { // This is the *second* time F11 was pressed within 0.750 seconds.
             goIn.F11 = false;
@@ -1512,8 +1510,6 @@ GateOne.Base.update(GateOne.Input, {
             }, 750);
             GateOne.Visual.displayMessage("NOTE: Rapidly pressing F11 twice will enable/disable fullscreen mode.");
             return;
-        } else { // Proceed as usual
-            e.preventDefault();
         }
         if (key.string == "KEY_UNKNOWN") {
             return; // Without this, unknown keys end up sending a null character which isn't a good idea =)
@@ -1521,16 +1517,17 @@ GateOne.Base.update(GateOne.Input, {
         // Try using the keyTable first (so everything can be overridden)
         if (key.string in goIn.keyTable) {
             if (goIn.keyTable[key.string]) { // Not null
+                var mode = go.terminals[term]['mode'];
                 if (!modifiers.shift) { // Non-modified keypress
                     if (key.string == 'KEY_BACKSPACE') {
                         // So we can switch between ^? and ^H
                         q(go.terminals[term]['backspace']);
                     } else {
-                        var mode = go.terminals[term]['mode'];
                         if (goIn.keyTable[key.string][mode]) {
                             q(goIn.keyTable[key.string][mode]);
-                        } else { // Nothing special set for this mode so use the default
-                            q(goIn.keyTable[key.string]['default']);
+                        } else if (goIn.keyTable[key.string]["default"]) {
+                            // Fall back to using default
+                            q(goIn.keyTable[key.string]["default"]);
                         }
                     }
                 } else { // Shift was held down
@@ -1538,27 +1535,11 @@ GateOne.Base.update(GateOne.Input, {
                         q(goIn.keyTable[key.string]['shift']);
                     } else if (goIn.keyTable[key.string][mode]) { // Fall back to the mode's non-shift value
                         q(goIn.keyTable[key.string][mode]);
-                    } else { // Nothing special set for this mode so use the default
-                        q(goIn.keyTable[key.string]['default']);
                     }
                 }
             } else {
                 return; // Don't continue (null means null!)
             }
-        } else { // For everything else the default code converted into a string will (hopefully) work
-            if (!modifiers.shift) { // onkeydown always returns capital letters so we have toLowerCase:
-                var character = keyString.toLowerCase();
-            } else { // Shift is down
-                var character = keyString,
-                // The number row keys are a bit special so we have to convert them manually:
-                    numrow = ['`','1','2','3','4','5','6','7','8','9','0','-','='],
-                    numrowShift = ['~','!','@','#','$','%','^','&','*','(',')','_','+'];
-                if (character in numrow) {
-                    var i = numrow.indexOf(character),
-                        character = numrowShift[i];
-                }
-            }
-            q(character);
         }
     },
     emulateKeyCombo: function(e) {
@@ -1569,12 +1550,12 @@ GateOne.Base.update(GateOne.Input, {
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
             buffer = goIn.bufferEscSeq,
-            q = goIn.queue;
-        e.preventDefault();
+            q = function(char) {e.preventDefault(); goIn.queue(char); goIn.handledKeystroke = true;};
         if (key.string == "KEY_SHIFT" || key.string == "KEY_ALT" || key.string == "KEY_CTRL" || key.string == "KEY_WINDOWS_LEFT" || key.string == "KEY_WINDOWS_RIGHT" || key.string == "KEY_UNKNOWN") {
             return; // For some reason if you press any combo of these keys at the same time it occasionally will send the keystroke as the second key you press.  It's odd but this ensures we don't act upon such things.
         }
         logDebug("emulateKeyCombo() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
+        goIn.handledKeystroke = false;
         // Handle ctrl-<key> and ctrl-shift-<key> combos
         if (modifiers.ctrl && !modifiers.alt && !modifiers.meta) {
             if (goIn.keyTable[key.string]) {
@@ -1611,6 +1592,25 @@ GateOne.Base.update(GateOne.Input, {
                     q(ESC+String.fromCharCode(key.code+32));
                 } else {
                     q(ESC+String.fromCharCode(key.code));
+                }
+            }
+        }
+        // Handle meta-<key> and meta-shift-<key> combos
+        if (!modifiers.alt && !modifiers.ctrl && modifiers.meta) {
+            if (goIn.keyTable[key.string]) {
+                if (!modifiers.shift) {
+                    if (goIn.keyTable[key.string]['meta']) {
+                        q(goIn.keyTable[key.string]['meta']);
+                    }
+                } else {
+                    if (goIn.keyTable[key.string]['meta-shift']) {
+                        q(goIn.keyTable[key.string]['meta-shift']);
+                    } else {
+                        // Fall back to just the meta (ignore the shift)
+                        if (goIn.keyTable[key.string]['shift']) {
+                            q(goIn.keyTable[key.string]['shift']);
+                        }
+                    }
                 }
             }
         }
@@ -1654,6 +1654,22 @@ GateOne.Base.update(GateOne.Input, {
                     }
                 }
             }
+        }
+    },
+    emulateKeyFallback: function(e) {
+        // Meant to be attached to (GateOne.prefs.goDiv).onkeypress, will queue the (character) result of a keypress event if an unknown modifier key is held.
+        // Without this, 3rd and 5th level keystroke events (i.e. the stuff you get when you hold down various combinations of AltGr+<key>) would not work.
+        logDebug("emulateKeyFallback() charCode: " + e.charCode + ", keyCode: " + e.keyCode);
+        var go = GateOne,
+            goIn = go.Input,
+            q = function(char) {e.preventDefault(); goIn.queue(char); goIn.handledKeystroke = false;};
+        if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA") {
+            return; // Let the browser handle it if the user is editing something
+            // NOTE: Doesn't actually work so well so we have GateOne.Input.disableCapture() as a fallback :)
+        }
+        if (!goIn.handledKeystroke) {
+            q(String.fromCharCode(e.charCode));
+            go.Net.sendChars();
         }
     }
 });
@@ -2261,7 +2277,7 @@ GateOne.Base.update(GateOne.Terminal, {
             infoPanelMonitorActivityLabel = u.createElement('span'),
             infoPanelMonitorInactivity = u.createElement('input', {'id': prefix+'monitor_inactivity', 'type': 'checkbox', 'name': 'monitor_inactivity', 'value': 'monitor_inactivity', 'style': {'margin-right': '0.5em'}}),
             infoPanelMonitorInactivityLabel = u.createElement('span'),
-            infoPanelInactivityInterval = u.createElement('input', {'id': prefix+'inactivity_interval', 'name': prefix+'inactivity_interval', 'size': 3, 'value': 10, 'style': {'margin-right': '0.5em', 'text-align': 'right'}}),
+            infoPanelInactivityInterval = u.createElement('input', {'id': prefix+'inactivity_interval', 'name': prefix+'inactivity_interval', 'size': 3, 'value': 10, 'style': {'margin-right': '0.5em', 'text-align': 'right', 'width': '4em'}}),
             infoPanelInactivityIntervalLabel = u.createElement('span'),
             goDiv = u.getNode(go.prefs.goDiv),
             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),

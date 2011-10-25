@@ -182,7 +182,7 @@ GateOne.Base.update(GateOne.Playback, {
         // NOTE: The server just returns the same data wrapped in a easy-to-use template
             form = go.Utils.createElement('form', {
                 'method': 'post',
-                'action': '/recording',
+                'action': go.prefs.url + 'recording',
                 'target': '_blank'
             }),
             recordingField = go.Utils.createElement('textarea', {'name': 'recording'}),

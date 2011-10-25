@@ -7,11 +7,11 @@ var document = window.document; // Have to do this because we're sandboxed
 // TODO: Investigate moving *all* the log storage to the server.  I had intended to have the server support logging regardless but the overhead associated with keeping logs on the client end is quite high.  It would probably provide a better overall user experience if the logs were stored on the server with the client having the ability to request the on demand.
 
 // Set the indexedDB variable as a global (within sandbox) attached to the right indexedDB implementation
-indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB;
-if ('webkitIndexedDB' in window) {
-    window.IDBTransaction = window.webkitIDBTransaction;
-    window.IDBKeyRange = window.webkitIDBKeyRange;
-}
+// indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB;
+// if ('webkitIndexedDB' in window) {
+//     window.IDBTransaction = window.webkitIDBTransaction;
+//     window.IDBKeyRange = window.webkitIDBKeyRange;
+// }
 
 // Tunable logging prefs
 GateOne.prefs.logLevel = 'INFO';
@@ -107,9 +107,19 @@ GateOne.Base.update(GateOne.Logging, {
         logArray = logArray.join('\n');
         localStorage.setItem('log', logArray);
     },
-    log: function(msg, level) {
-        // *level* can be a string or an integer.
-        // if *level* is null (as opposed to undefined), level info will not be included in the log
+    log: function(msg, level, destination) {
+        /*
+        Logs the given *msg* using all of the functions in GateOne.Logging.destinations after being prepended with the date and a string indicating the log level (e.g. "692011-10-25 10:04:28 INFO <msg>") *if* *level* is determined to be greater than the value of GateOne.Logging.level.  If the given *level* is not greater than GateOne.Logging.level *msg* will be discarded (noop).
+
+        *level* can be provided as a string, an integer, null, or be left undefined:
+
+             If an integer, an attempt will be made to convert it to a string using GateOne.Logging.levels but if this fails it will use "lvl:<integer>" as the level string.
+             If a string, an attempt will be made to obtain an integer value using GateOne.Logging.levels otherwise GateOne.Logging.level will be used (to determine whether or not the message should actually be logged).
+             If undefined, the level will be set to GateOne.Logging.level.
+             If null (as opposed to undefined), level info will not be included in the log message.
+
+        If *destination* is given (must be a function) it will be used to log messages like so: destination(message).  The usual conversion of *msg* to *message* will apply.
+        */
         var l = GateOne.Logging,
             now = new Date(),
             message = "";
@@ -117,10 +127,18 @@ GateOne.Base.update(GateOne.Logging, {
             level = l.level;
         }
         if (level === parseInt(level,10)) { // It's an integer
-            levelStr = l.levels[level]; // Get string
-        } else { // It's a string
+            if (l.levels[level]) {
+                levelStr = l.levels[level]; // Get string
+            } else {
+                levelStr = "lvl:" + level;
+            }
+        } else if (typeof(level) == "string") { // It's a string
             levelStr = level;
-            level = l.levels[levelStr]; // Get integer
+            if (l.levels[levelStr]) {
+                level = l.levels[levelStr]; // Get integer
+            } else {
+                level = l.level;
+            }
         }
         if (level == null) {
             message = l.dateFormatter(now) + " " + msg;
@@ -128,8 +146,12 @@ GateOne.Base.update(GateOne.Logging, {
             message = l.dateFormatter(now) + ' ' + levelStr + " " + msg;
         }
         if (message) {
-            for (dest in l.destinations) {
-                l.destinations[dest](message);
+            if (!destination) {
+                for (var dest in l.destinations) {
+                    l.destinations[dest](message);
+                }
+            } else {
+                destination(message);
             }
         }
     },
@@ -171,6 +193,10 @@ GateOne.Base.update(GateOne.Logging, {
     addDestination: function(name, dest) {
         // Creates a new log destination named, *name* that calls function *dest* like so:
         //     dest(<log message>)
+        //
+        // Example:
+        //     GateOne.Logging.addDestination('screen', GateOne.Visual.displayMessage);
+        // NOTE: The above example is kind of fun.  Try it!
         GateOne.Logging.destinations[name] = dest;
     },
     removeDestination: function(name) {
@@ -363,7 +389,7 @@ GateOne.Base.update(GateOne.Logging, {
         var go = GateOne,
             form = go.Utils.createElement('form', {
                 'method': 'post',
-                'action': '/openlog',
+                'action': go.prefs.url + 'openlog',
                 'target': '_blank'
             }),
             logField = go.Utils.createElement('textarea', {'name': 'log'}),
@@ -389,6 +415,7 @@ GateOne.Base.update(GateOne.Logging, {
 
 GateOne.Logging.destinations = { // Default to console logging.
     'console': GateOne.Logging.logToConsole, // Can be added to or replaced/removed
+    // If anyone has any cool ideas for log destinations please let us know!
 }
 
 // Initialize the logger immediately upon loading of the module (before init())
@@ -396,6 +423,6 @@ if (typeof(GateOne.Logging.level) == 'string') {
     // Convert to integer
     GateOne.Logging.level = GateOne.Logging.levels[GateOne.Logging.level];
 }
-GateOne.Logging.openDB();
+// GateOne.Logging.openDB();
 
 })(window);

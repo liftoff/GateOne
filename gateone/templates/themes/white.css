@@ -244,11 +244,11 @@
     -o-transform-origin: right bottom;
     transform: rotate(90deg);
     transform-origin: right bottom;
-    right: 2.2em;
+    right: 2em;
     bottom: 0;
     color: black;
     position: absolute;
-    font-family: Dejavu Sans, Verdana, sans-serif;
+    font-family: sans-serif;
     font-style: italic;
     font-size: 1.3em;
     opacity: 0.5;
@@ -334,11 +334,11 @@
 .{{prefix}}panel {
     position:absolute;
     top:1em;
-    right:0;
+    right:3.4em;
 /*     bottom:2em; */
     display: block;
     background: #ccc; color: #000;
-    font-family: DejaVu Sans, Verdana, Arial, sans-serif;
+    font-family: sans-serif;
     /* border:1px solid #fff; */
 /*    border-left: 0.1em solid #fff;
     border-top: 0.1em solid #fff;
@@ -356,7 +356,7 @@
     overflow-y: auto;
     padding: 0.25em;
     font-size: 1em;
-    margin-right: 3.4em;
+/*     margin-right: 3.4em; */
     margin-top: 0.1em;
     margin-bottom: 0.1em;
     /* WebKit */
@@ -430,6 +430,15 @@
 .{{prefix}}paneltablerow {
     display: table-row;
     padding-bottom: 0.3em;
+}
+.{{prefix}}paneltablerow select, input {
+/*     width: 100%; */
+    text-align: right;
+    margin-right: 0.5em;
+}
+.{{prefix}}paneltablelabel {
+    display: table-cell;
+    width: 75%;
 }
 .{{prefix}}paneltablecell {
     display: table-cell;
@@ -661,9 +670,9 @@
     float: right;
     margin-left: 0.5em;
     -webkit-transition: -webkit-transform 0.5s ease-in-out;
-    -moz-transition: -webkit-transform 0.5s ease-in-out;
-    -o-transition: -webkit-transform 0.5s ease-in-out;
-/*     -webkit-transform: translate(0, 0.1em) rotate(180deg); */
+    -moz-transition: -moz-transform 0.5s ease-in-out;
+    -o-transition: -o-transform 0.5s ease-in-out;
+    transition: transform 0.5s ease-in-out;
     cursor: pointer;
 }
 #{{prefix}}bm_sort_direction:hover {
@@ -673,6 +682,7 @@
     position: absolute;
     bottom: 0;
     right: 0;
+    width: 10em;
 }
 #{{prefix}}bm_new {
     float: left;
@@ -694,7 +704,7 @@
     padding-top: 0.2em;
 }
 #{{container}} button, input.input-text, input.password, input.button, textarea {
-    font-family: DejaVu Sans, Verdana, sans-serif;
+    font-family: sans-serif;
 }
 
 #{{container}} input.input-text, input.password, textarea {
@@ -705,7 +715,7 @@
     border: 1px solid #bbb;
     border-radius: 2px;
     box-shadow: 0 1px 1px #fff;
-    font-family: DejaVu Sans, Verdana, sans-serif;
+    font-family: sans-serif;
 /*     font: 12px/18px Helvetica Neue, "Arial", Helvetica, Verdana, sans-serif; */
 /*     text-shadow: 0 0 1px #fff; */
     color: #000;
@@ -727,7 +737,7 @@
     padding: 0.2em 0 0.2em 0.4em;
     font-weight: normal;
     font-size: 1em;
-    font-family: DejaVu Sans, Verdana, sans-serif;
+    font-family: sans-serif;
     color: #aaa;
     -webkit-transition: color 0.15s linear;
     -moz-transition: color 0.15s linear;
