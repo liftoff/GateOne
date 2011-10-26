@@ -1668,9 +1668,20 @@ GateOne.Base.update(GateOne.Input, {
             // NOTE: Doesn't actually work so well so we have GateOne.Input.disableCapture() as a fallback :)
         }
         if (!goIn.handledKeystroke) {
-            q(String.fromCharCode(e.charCode));
-            go.Net.sendChars();
+            if (e.charCode != 0) {
+                q(String.fromCharCode(e.charCode));
+                go.Net.sendChars();
+            }
         }
+    },
+    openPasteArea: function() {
+        // Opens up a textarea where users can paste text into the terminal
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            goDiv = u.getNode(go.prefs.goDiv),
+            pasteArea = u.createElement('textarea', {'id': prefix+'pastearea', 'rows': '24', 'cols': '80'});
+        goDiv.appendChild(pasteArea);
     }
 });
 // Expand GateOne.Input.specialKeys to be more complete:

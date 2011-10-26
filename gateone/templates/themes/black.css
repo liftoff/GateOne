@@ -242,6 +242,15 @@
     font-weight: bold;
     font-size: 1.1em;
 }
+#{{prefix}}pastearea {
+    font-family: monospace;
+    display: block;
+    position: absolute;
+    width: 50%;
+    height: 25%;
+    bottom: 2em;
+    right: 5em;
+}
 #{{prefix}}sideinfo {
     -webkit-transform: rotate(90deg);
     -webkit-transform-origin: right bottom;
@@ -358,7 +367,7 @@
 /*    -moz-border-radius: 1em;
     -webkit-border-radius: 1em;*/
 /*     width: 75%; */ /* Looks wierd with this enabled */
-    z-index: 700; /* Same as toolbar to stay above pasteText */
+    z-index: 700; /* Same as toolbar */
     overflow-x: hidden;
     overflow-y: auto;
     padding: 0.25em;

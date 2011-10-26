@@ -235,6 +235,10 @@
     font-weight: bold;
     font-size: 1.1em;
 }
+#{{prefix}}pastearea {
+    color: #fff;
+    font-family: monospace;
+}
 #{{prefix}}sideinfo {
     -webkit-transform: rotate(90deg);
     -webkit-transform-origin: right bottom;
