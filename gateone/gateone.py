@@ -1473,7 +1473,7 @@ def main():
         default=default_locale,
         help=_("The locale (e.g. pt_PT) Gate One should use for translations."
              "  If not provided, will default to $LANG (which is '%s' in your "
-             "current shell), or POSIX if not set.") % os.environ.get('LANG', 'not set').split('.')[0],
+             "current shell), or en_US if not set.") % os.environ.get('LANG', 'not set').split('.')[0],
         type=str
     )
     # Before we do anythong else, load plugins and assign their hooks.  This
