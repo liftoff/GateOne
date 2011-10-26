@@ -127,6 +127,7 @@ def get_translation():
     gateone_dir = os.path.dirname(os.path.abspath(__file__))
     server_conf = os.path.join(gateone_dir, 'server.conf')
     try:
+	locale_str = os.environ.get('LANG', 'POSIX').split('.')[0]
         with open(server_conf) as f:
             for line in f:
                 if line.startswith('locale'):
@@ -135,7 +136,8 @@ def get_translation():
                     break
     except IOError: # server.conf doesn't exist (yet).
         # Fall back to os.environ['LANG']
-        locale_str = os.environ['LANG'].split('.')[0]
+	# Already set above
+	pass
     user_locale = locale.get(locale_str)
     return user_locale.translate
 
