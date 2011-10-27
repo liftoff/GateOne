@@ -570,6 +570,7 @@ class MainHandler(BaseHandler):
         minified_js_abspath = "%s/static/gateone.min.js" % GATEONE_DIR
         bell = "%s/static/bell.ogg" % GATEONE_DIR
         bell_data_uri = create_data_uri(bell)
+        js_init = self.settings['js_init']
         # Use the minified version if it exists
         if os.path.exists(minified_js_abspath):
             gateone_js = "/static/gateone.min.js"
@@ -579,6 +580,7 @@ class MainHandler(BaseHandler):
             gateone_js=gateone_js,
             jsplugins=PLUGINS['js'],
             cssplugins=PLUGINS['css'],
+            js_init=js_init,
             bell_data_uri=bell_data_uri
         )
 
@@ -1476,6 +1478,14 @@ def main():
              "current shell), or POSIX if not set.") % os.environ.get('LANG', 'not set').split('.')[0],
         type=str
     )
+    define("js_init",
+        default="",
+        help=_("A JavaScript object (string) that will be used when running "
+               "GateOne.init() inside index.html.  "
+               "Example: --js_init=\"{scheme: 'white'}\" would result in "
+               "GateOne.init({scheme: 'white'})"),
+        type=str
+    )
     # Before we do anythong else, load plugins and assign their hooks.  This
     # allows plugins to add their own define() statements/options.
     imported = load_plugins(PLUGINS['py'])
@@ -1559,6 +1569,7 @@ def main():
         'cookie_secret': options.cookie_secret,
         'auth': none_fix(options.auth),
         'embedded': str2bool(options.embedded),
+        'js_init': options.js_init,
         'user_dir': options.user_dir,
         'session_dir': options.session_dir,
         'session_logging': options.session_logging,

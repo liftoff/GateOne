@@ -1956,7 +1956,8 @@ GateOne.Base.update(GateOne.Visual, {
         // If *term* is given, only disable scrollback for that terminal
         logDebug('enableScrollback(' + term + ')');
         var go = GateOne,
-            u = go.Utils;
+            u = go.Utils,
+            textTransforms = go.Terminal.textTransforms;
         if (term) {
             if (!go.terminals[term]) { // The terminal was just closed
                 return; // We're done here
@@ -1972,7 +1973,7 @@ GateOne.Base.update(GateOne.Visual, {
             }
             var replacement_text = '<pre id="'+go.prefs.prefix+'term' + term + '_pre" style="height: 100%">' + go.terminals[term]['scrollback'].join('\n') + '\n' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
 //             var replacement_text = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + go.terminals[term]['scrollback'].join('\n') + '\n' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
-            go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term});
+            go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term, 'textTransforms': textTransforms});
             if (go.terminals[term]['scrollbackTimer']) {
                 clearTimeout(go.terminals[term]['scrollbackTimer']);
             }
@@ -1983,7 +1984,7 @@ GateOne.Base.update(GateOne.Visual, {
                 var termID = termObj.id.split(go.prefs.prefix+'term')[1],
                     replacement_text = '<pre id="' + termObj.id + '_pre" style="height: 100%">' + go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
 //                     replacement_text = '<pre id="' + termObj.id + '_pre">' + go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
-                    go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': termID});
+                    go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': termID, 'textTransforms': textTransforms});
                 if (go.terminals[termID]['scrollbackTimer']) {
                     clearTimeout(go.terminals[termID]['scrollbackTimer']);
                 }
@@ -1997,15 +1998,16 @@ GateOne.Base.update(GateOne.Visual, {
         // If *term* is given, only disable scrollback for that terminal
         var go = GateOne,
             u = go.Utils,
-            terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal'));
+            terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal')),
+            textTransforms = go.Terminal.textTransforms;
         if (term) {
             var replacement_text = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
-            go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term});
+            go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term, 'textTransforms': textTransforms});
         } else {
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(go.prefs.prefix+'term')[1],
                     replacement_text = '<pre id="' + termObj.id + '_pre">' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
-                go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': termID});
+                go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': termID, 'textTransforms': textTransforms});
             });
         }
         go.Visual.scrollbackToggle = false;
@@ -2258,6 +2260,7 @@ GateOne.Base.module(GateOne, "Terminal", "0.9", ['Base', 'Utils', 'Visual']);
 GateOne.Terminal.newTermCallbacks = [];
 // All defined closeTermCallbacks are executed whenever a terminal is closed just like newTermCallbacks:  callback(<term number>)
 GateOne.Terminal.closeTermCallbacks = [];
+GateOne.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into clickable links).  Use registerTextTransform() to add new ones.
 GateOne.Base.update(GateOne.Terminal, {
     init: function() {
         var go = GateOne,
@@ -2500,7 +2503,8 @@ GateOne.Base.update(GateOne.Terminal, {
             scrollback = terminalObj['scrollback'],
             termTitle = u.getNode('#' + go.prefs.prefix + 'term' + term).title;
             rateLimiter = termObj['ratelimiter'],  // TODO: Make this display an icon or message indicating it has been engaged
-            reScrollback = u.partial(go.Visual.enableScrollback, localStorage['selectedTerminal']);
+            reScrollback = u.partial(go.Visual.enableScrollback, localStorage['selectedTerminal']),
+            textTransforms = go.Terminal.textTransforms;
 // NOTE: Keeping this for future reference...  Gate One will be using the Web Worker for most of the processing in this function soon.
 //         log('prevBuffer: ' + prevBuffer);
 //         t.termUpdatesWorker.postMessage({
@@ -2610,7 +2614,7 @@ GateOne.Base.update(GateOne.Terminal, {
         if (screen) {
             // Do a full-screen updated in-place
             var replacement_text = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + screen.join('\n') + '\n\n</pre>';
-            t.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term});
+            t.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term, 'textTransforms': textTransforms});
             if (go.Playback) {
                 // Add the screen to the session recording
                 var frameObj = {'screen': replacement_text, 'time': new Date()};
@@ -2863,6 +2867,23 @@ GateOne.Base.update(GateOne.Terminal, {
         //     {'mode': '1', 'term': '1', 'bool': true}
         logDebug("setModeAction modeObj: " + GateOne.Utils.items(modeObj));
         GateOne.Terminal.modes[modeObj.mode](modeObj.term, modeObj.bool);
+    },
+    registerTextTransform: function(name, pattern, newString) {
+        // Adds a new or replaces an existing text transformation to GateOne.Terminal.textTransforms using *pattern* and *newString* with the given *name*.  Example:
+        //      var pattern = /(\bIM\d{9,10}\b)/g,
+        //          newString = "<a href='https://support.company.com/tracker?ticket=$1' target='new'>$1</a>";
+        //      GateOne.Terminal.registerTextTransform("ticketIDs", pattern, newString);
+        // Would linkify text matching that pattern in the terminal.
+        // For example, if you typed "Ticket number: IM123456789" into a terminal it would be transformed thusly:
+        //      "Ticket number: <a href='https://support.company.com/tracker?ticket=IM123456789' target='new'>IM123456789</a>"
+        //
+        // NOTE: *name* is only used for reference purposes in the textTransforms object.
+        if (typeof(pattern) == "object") {
+            pattern = pattern.toString(); // Have to convert it to a string so we can pass it to the Web Worker so Firefox won't freak out
+        }
+        GateOne.Terminal.textTransforms[name] = {};
+        GateOne.Terminal.textTransforms[name]['pattern'] = pattern;
+        GateOne.Terminal.textTransforms[name]['newString'] = newString;
     }
 });
 
