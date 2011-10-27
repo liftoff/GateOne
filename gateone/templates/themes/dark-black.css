@@ -70,7 +70,8 @@
     transition: all 0.5s ease-in-out;
 }
 #{{container}} textarea {
-    background-color: #fff;
+    background-color: #000;
+    color: #fff;
     outline: none;
     resize: none;
     font-family: monospace;
@@ -78,7 +79,7 @@
 }
 .{{prefix}}terminal {
     background-color: #000; /* Black - dark black! */
-    color: #eee;
+    color: #fff;
     position:static;
     float: left;
     top: 0;
@@ -334,7 +335,7 @@
     top:1em;
     right:3.4em;
     display: block;
-    background: #ccc; color: #000;
+    background: #000; color: #fff;
     font-family: sans-serif;
     z-index: 700; /* Same as toolbar */
     overflow-x: hidden;
@@ -359,13 +360,7 @@
     transform: scale(0);
     transform-origin: top right;
     transition: all 0.5s ease-in-out;
-   /* Firefox 3.6+ */
-   background-image: -moz-linear-gradient(#eee, #999);
-   /* Safari 5.1+, Chrome 10+ */
-   background-image: -webkit-linear-gradient(#eee, #999);
-   /* Opera 11.10+ */
-   background-image: -o-linear-gradient(#eee, #999);
-   border: 0.1em #fff outset;
+    border: 0.1em #fff outset;
 }
 .{{prefix}}panel h2 {
     font-size: 1.5em;
@@ -393,19 +388,11 @@
 .{{prefix}}paneltable {
     position: relative;
     width: 35em;
-    background-color: #222;
-    color: #000;
+    background-color: #000;
+    color: #fff;
     padding-bottom: 0.5em;
     margin-bottom: 0.2em;
-    border: 0.1em #000 solid;
-    /* Firefox 3.6+ */
-   background-image: -moz-linear-gradient(#fff, #ccc);
-   /* Safari 5.1+, Chrome 10+ */
-   background-image: -webkit-linear-gradient(#fff, #ccc);
-   /* Opera 11.10+ */
-   background-image: -o-linear-gradient(#fff, #ccc);
-    /* Standard */
-   background-image: linear-gradient(#fff, #ccc);
+    border: 0.1em #fff solid;
 }
 .{{prefix}}paneltablerow {
     display: table-row;
@@ -414,6 +401,8 @@
 .{{prefix}}paneltablerow select, input {
     text-align: right;
     margin-right: 0.5em;
+    background-color: #000;
+    color: #fff;
 }
 .{{prefix}}paneltablelabel {
     display: table-cell;
@@ -439,18 +428,18 @@
 }
 .{{prefix}}bookmark {
     position: relative;
-    background-color: #222;
-    color: #000;
+    background-color: #000;
+    color: #fff;
     padding-bottom: 0.5em;
     margin-bottom: 0.2em;
     border: 0.1em #000 solid;
     font-size: 0.9em;
     /* Firefox 3.6+ */
-   background-image: -moz-linear-gradient(#fff, #ccc);
+   background-image: -moz-linear-gradient(#000, #222);
    /* Safari 5.1+, Chrome 10+ */
-   background-image: -webkit-linear-gradient(#fff, #ccc);
+   background-image: -webkit-linear-gradient(#000, #222);
    /* Opera 11.10+ */
-   background-image: -o-linear-gradient(#fff, #ccc);
+   background-image: -o-linear-gradient(#000, #222);
 }
 .{{prefix}}bookmark a {
     color: #3169C3;
@@ -680,7 +669,8 @@
     border: 1px solid #bbb;
     border-radius: 2px;
     font-family: sans-serif;
-    color: #000;
+    color: #fff;
+    background-color: #000;
     position: relative;
     z-index: 2;
     font-size: 1em;
@@ -688,8 +678,9 @@
 
 #{{container}} form input.input-text:focus, form textarea:focus {
     outline: none;
-    border-color: #999;
-    color: #333;
+    border-color: #fff;
+    color: #fff;
+    background-color: #000;
     padding: 2px 3px;
     border: 2px solid #2daebf;
 }
@@ -699,11 +690,11 @@
     font-weight: normal;
     font-size: 1em;
     font-family: sans-serif;
-    color: #aaa;
+    color: #fff;
     -webkit-transition: color 0.15s linear;
     -moz-transition: color 0.15s linear;
     -o-transition: color 0.15s linear;
-    background: #fff;
+    background-color: #000;
     width: 98%;
     border-radius: 3px;
     position: relative;
@@ -718,15 +709,15 @@
 }
 #{{container}} input.input-text-plain {
     width: 98%;
-    background-color: #fff;
-    color: #000;
+    background-color: #000;
+    color: #fff;
     font-size: 1em;
 }
 #{{container}} textarea.input-text-plain {
     width: 98%;
     height: 5em;
-    background-color: #fff;
-    color: #000;
+    background-color: #000;
+    color: #fff;
 }
 #{{container}} label.inlined + input.input-text {
     margin-top: -1.6em;
@@ -763,12 +754,12 @@
 /* black buttons */
 #{{container}} .black {
     color: #FFF;
-    border: solid 1px #333;
-    background: #333;
-    background: -webkit-gradient(linear, left top, left bottom, from(#666), to(#000));
-    background: -moz-linear-gradient(top,  #666,  #000);
-    background: -o-linear-gradient(top,  #666,  #000);
-    filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#666666', endColorstr='#000000');
+    border: solid 1px #000;
+    background: #000;
+    background: -webkit-gradient(linear, left top, left bottom, from(#222), to(#000));
+    background: -moz-linear-gradient(top,  #222,  #000);
+    background: -o-linear-gradient(top,  #222,  #000);
+    filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#222222', endColorstr='#000000');
 }
 #{{container}} .black:hover {
     background: #222;
@@ -782,7 +773,7 @@
     background: -webkit-gradient(linear, left top, left bottom, from(#000), to(#444));
     background: -moz-linear-gradient(top,  #000,  #444);
     background: -o-linear-gradient(top,  #000,  #444);
-    filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#666666');
+    filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#222222');
 }
 /* SVG Styling */
 .svgtext { letter-spacing:0px; text-anchor:middle; word-spacing:0px; text-align:center; color: #FFF; fill: #fff; }

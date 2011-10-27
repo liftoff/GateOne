@@ -193,7 +193,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
         if (existingPanel) {
             // Remove everything first
             while (existingPanel.childNodes.length >= 1 ) {
-                existingPanel.removeChild(existingPanel.firstChild);   
+                existingPanel.removeChild(existingPanel.firstChild);
             }
             // Fade it in nicely
             bmHeader.style.opacity = 0;
@@ -205,7 +205,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmPanel.appendChild(bmHeader);
             u.getNode(go.prefs.goDiv).appendChild(bmPanel);
         }
-        
+
         u.getNode('#'+go.prefs.prefix+'bm_sort_direction').onclick = go.Bookmarks.toggleSortOrder;
     },
     openBookmark: function(URL) {
@@ -409,9 +409,9 @@ GateOne.Base.update(GateOne.Bookmarks, {
         }, 500);
         // Set our onchange event to remove the inline label once the user has started typing
         u.toArray(document.getElementsByClassName('input-text')).forEach(function(node) {
-            node.onfocus = function(e) {
-                this.style['background-color'] = '#fff';
-            };
+//             node.onfocus = function(e) {
+//                 this.style['background-color'] = '#fff';
+//             };
             node.onblur = function(e) {
                 if (!this.value) { // Show label again if field is empty
                     this.style['background-color'] = 'transparent';
