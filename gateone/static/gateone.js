@@ -172,7 +172,8 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     colors: 'default', // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
     fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
     autoConnectURL: null, // This is a URL that will be automatically connected to whenever a terminal is loaded. TODO: Move this to the ssh plugin.
-    embedded: false // In embedded mode we have no toolbar and only one terminal is allowed
+    embedded: false, // In embedded mode we have no toolbar and only one terminal is allowed
+    disableTermTransitions: false // Disabled the sliding animation on terminals to make switching faster
 };
 // Icons (so we can use them in more than one place or replace them all by applying a theme)
 GateOne.Icons = {};
@@ -213,6 +214,7 @@ GateOne.Base.update(GateOne, {
             prefsPanelStyleRow1 = u.createElement('div', {'class': prefix+'paneltablerow'}),
             prefsPanelStyleRow2 = u.createElement('div', {'class': prefix+'paneltablerow'}),
             prefsPanelStyleRow3 = u.createElement('div', {'class': prefix+'paneltablerow'}),
+            prefsPanelStyleRow4 = u.createElement('div', {'class': prefix+'paneltablerow'}),
             prefsPanelRow1 = u.createElement('div', {'class': prefix+'paneltablerow'}),
             prefsPanelRow2 = u.createElement('div', {'class': prefix+'paneltablerow'}),
             prefsPanelRow3 = u.createElement('div', {'class': prefix+'paneltablerow'}),
@@ -227,6 +229,8 @@ GateOne.Base.update(GateOne, {
             prefsPanelColors = u.createElement('select', {'id': prefix+'prefs_colors', 'name': prefix+'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
             prefsPanelFontSizeLabel = u.createElement('span', {'id': prefix+'prefs_fontsize_label', 'class': prefix+'paneltablelabel'}),
             prefsPanelFontSize = u.createElement('input', {'id': prefix+'prefs_fontsize', 'name': prefix+'prefs_fontsize', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelDisableTermTransitionsLabel = u.createElement('span', {'id': prefix+'prefs_disabletermtrans_label', 'class': prefix+'paneltablelabel'}),
+            prefsPanelDisableTermTransitions = u.createElement('input', {'id': prefix+'prefs_disabletermtrans', 'name': prefix+'prefs_disabletermtrans', 'value': 'disabletermtrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelScrollbackLabel = u.createElement('span', {'id': prefix+'prefs_scrollback_label', 'class': prefix+'paneltablelabel'}),
             prefsPanelScrollback = u.createElement('input', {'id': prefix+'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelLogLinesLabel = u.createElement('span', {'id': prefix+'prefs_loglines_label', 'class': prefix+'paneltablelabel'}),
@@ -242,7 +246,7 @@ GateOne.Base.update(GateOne, {
             toolbar = u.createElement('div', {'id': prefix+'toolbar'}),
             toolbarIconPrefs = u.createElement('div', {'id': prefix+'icon_prefs', 'class': prefix+'toolbar', 'title': "Preferences"}),
             panels = document.getElementsByClassName('panel'),
-            sideinfo = u.createElement('div', {'id': prefix+'sideinfo'}),
+            sideinfo = u.createElement('div', {'id': prefix+'sideinfo', 'class': prefix+'sideinfo'}),
             themeList = [], // Gets filled out below
             colorsList = [],
             enumerateCSS = function(jsonObj) {
@@ -275,6 +279,7 @@ GateOne.Base.update(GateOne, {
         prefsPanelThemeLabel.innerHTML = "<b>Theme:</b> ";
         prefsPanelColorsLabel.innerHTML = "<b>Color Scheme:</b> ";
         prefsPanelFontSizeLabel.innerHTML = "<b>Font Size:</b> ";
+        prefsPanelDisableTermTransitionsLabel.innerHTML = "<b>Disable Terminal Slide Effect:</b> ";
         prefsPanelFontSize.value = go.prefs.fontSize;
         prefsPanelStyleRow1.appendChild(prefsPanelThemeLabel);
         prefsPanelStyleRow1.appendChild(prefsPanelTheme);
@@ -282,9 +287,12 @@ GateOne.Base.update(GateOne, {
         prefsPanelStyleRow2.appendChild(prefsPanelColors);
         prefsPanelStyleRow3.appendChild(prefsPanelFontSizeLabel);
         prefsPanelStyleRow3.appendChild(prefsPanelFontSize);
+        prefsPanelStyleRow4.appendChild(prefsPanelDisableTermTransitionsLabel);
+        prefsPanelStyleRow4.appendChild(prefsPanelDisableTermTransitions);
         tableDiv.appendChild(prefsPanelStyleRow1);
         tableDiv.appendChild(prefsPanelStyleRow2);
         tableDiv.appendChild(prefsPanelStyleRow3);
+        tableDiv.appendChild(prefsPanelStyleRow4);
         prefsPanelScrollbackLabel.innerHTML = "<b>Scrollback Buffer Lines:</b> ";
         prefsPanelScrollback.value = go.prefs.scrollback;
         prefsPanelLogLinesLabel.innerHTML = "<b>Terminal Log Lines:</b> ";
@@ -329,7 +337,8 @@ GateOne.Base.update(GateOne, {
                 logLinesValue = u.getNode('#'+prefix+'prefs_loglines').value,
                 playbackValue = u.getNode('#'+prefix+'prefs_playback').value,
                 rowsValue = u.getNode('#'+prefix+'prefs_rows').value,
-                colsValue = u.getNode('#'+prefix+'prefs_cols').value;
+                colsValue = u.getNode('#'+prefix+'prefs_cols').value,
+                disableTermTransitions = u.getNode('#'+prefix+'prefs_disabletermtrans').checked;
             // Grab the form values and set them in prefs
             if (theme != go.prefs.theme || colors != go.prefs.colors) {
                 // Start using the new CSS theme and colors
@@ -361,8 +370,19 @@ GateOne.Base.update(GateOne, {
             } else {
                 go.prefs.cols = null;
             }
+            if (disableTermTransitions) {
+                var newStyle = u.createElement('style', {'id': prefix+'disable_term_transitions'});
+                newStyle.innerHTML = "." + prefix + "terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+                u.getNode(goDiv).appendChild(newStyle);
+            } else {
+                u.removeElement('#'+prefix+'disable_term_transitions');
+            }
             u.savePrefs();
-            go.Net.sendDimensions(); // In case the user changed the rows/cols
+            // In case the user changed the rows/cols or the font/size changed:
+            setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
+                go.Visual.updateDimensions();
+                go.Net.sendDimensions();
+            }, 3000);
         }
         // Apply user-specified dimension styles and settings
         go.Visual.applyStyle(goDiv, go.prefs.style);
@@ -383,6 +403,12 @@ GateOne.Base.update(GateOne, {
         // Set the font according to the user's prefs
         if (go.prefs.fontSize) {
             goDiv.style['fontSize'] = go.prefs.fontSize;
+        }
+        // Disable terminal transitions if the user wants
+        if (go.prefs.disableTermTransitions) {
+            var newStyle = u.createElement('style', {'id': prefix+'disable_term_transitions'});
+            newStyle.innerHTML = "." + prefix + "terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+            u.getNode(goDiv).appendChild(newStyle);
         }
         // Create the (empty) toolbar
         toolbar.appendChild(toolbarIconPrefs); // The only default toolbar icon is the preferences
@@ -825,7 +851,8 @@ GateOne.Base.update(GateOne.Utils, {
                 'scrollback': prefs['scrollback'],
                 'playbackFrames': prefs['playbackFrames'],
                 'rows': prefs['rows'],
-                'cols': prefs['cols']
+                'cols': prefs['cols'],
+                'disableTermTransitions': prefs['disableTermTransitions']
             };
         localStorage['prefs'] = JSON.stringify(userPrefs);
         GateOne.Visual.displayMessage("Preferences have been saved.");

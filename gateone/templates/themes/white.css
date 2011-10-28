@@ -1,9 +1,11 @@
 #{{container}} {
-    position: relative;
+    position: absolute;
     overflow: hidden;
     background-color: transparent;
     top: 0;
     bottom: 0;
+    left: 0;
+    right: 0;
     padding: 0.1em;
     z-index: 0;
     font-size: 1em;
@@ -18,8 +20,7 @@
     transition: all 1.0s ease-in-out;
 }
 .about_gateone ul {
-    list-style-type: disc;
-    list-style-position: outside;
+    list-style-type: none;
     padding-left: 1.5em;
     padding-top: 0.5em;
     padding-bottom: 0.5em;
@@ -225,10 +226,8 @@
     position: absolute;
     bottom: 2em;
     right: 0;
-/*     border: 1px #FFF solid; */
     background-color: #fff;
     z-index: 500;
-/*     padding: 2em; */
 }
 #{{prefix}}terminfo {
     color: #000;
@@ -236,10 +235,15 @@
     font-size: 1.1em;
 }
 #{{prefix}}pastearea {
-    color: #fff;
     font-family: monospace;
+    display: block;
+    position: absolute;
+    width: 50%;
+    height: 25%;
+    bottom: 2em;
+    right: 5em;
 }
-#{{prefix}}sideinfo {
+.{{prefix}}sideinfo {
     -webkit-transform: rotate(90deg);
     -webkit-transform-origin: right bottom;
     -moz-transform: rotate(90deg);

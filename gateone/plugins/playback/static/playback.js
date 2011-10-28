@@ -182,17 +182,20 @@ GateOne.Base.update(GateOne.Playback, {
         // NOTE: The server just returns the same data wrapped in a easy-to-use template
             form = go.Utils.createElement('form', {
                 'method': 'post',
-                'action': go.prefs.url + 'recording',
+                'action': go.prefs.url + 'recording?r=' + new Date().getTime(),
                 'target': '_blank'
             }),
             recordingField = go.Utils.createElement('textarea', {'name': 'recording'}),
-            schemeField = go.Utils.createElement('input', {'name': 'scheme'}),
+            themeField = go.Utils.createElement('input', {'name': 'theme'}),
+            colorsField = go.Utils.createElement('input', {'name': 'colors'}),
             containerField = go.Utils.createElement('input', {'name': 'container'}),
             prefixField = go.Utils.createElement('input', {'name': 'prefix'});
         recordingField.value = recording;
         form.appendChild(recordingField);
-        schemeField.value = go.prefs.scheme;
-        form.appendChild(schemeField);
+        themeField.value = go.prefs.theme;
+        form.appendChild(themeField);
+        colorsField.value = go.prefs.colors;
+        form.appendChild(colorsField);
         containerField.value = go.prefs.goDiv.split('#')[1];
         form.appendChild(containerField);
         prefixField.value = go.prefs.prefix;

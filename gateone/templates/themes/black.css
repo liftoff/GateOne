@@ -1,15 +1,15 @@
 #{{container}} {
-    position: relative;
+    position: absolute;
     overflow: hidden;
     background-color: transparent;
     top: 0;
     bottom: 0;
+    left: 0;
+    right: 0;
     padding: 0.1em;
     z-index: 0;
     font-size: 1em;
-/*     margin: 0.5em; */
     font-family: monospace;
-/*     border: 2px solid #fff; */
     /* WebKit */
     -webkit-transition: all 1.0s ease-in-out;
     /* Firefox */
@@ -232,10 +232,8 @@
     position: absolute;
     bottom: 2em;
     right: 0;
-/*     border: 1px #FFF solid; */
     background-color: #000;
     z-index: 500;
-/*     padding: 2em; */
 }
 #{{prefix}}terminfo {
     color: #fff;
@@ -251,7 +249,7 @@
     bottom: 2em;
     right: 5em;
 }
-#{{prefix}}sideinfo {
+.{{prefix}}sideinfo {
     -webkit-transform: rotate(90deg);
     -webkit-transform-origin: right bottom;
     -moz-transform: rotate(90deg);

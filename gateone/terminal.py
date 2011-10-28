@@ -2042,7 +2042,8 @@ class Terminal(object):
                 else:
                     outline += char
                 charcount += 1
-            results.append(outline)
+            # rstrip() is here to save some bandwidth
+            results.append(outline.rstrip())
         for whatever in xrange(spancount): # Bit of cleanup to be safe
             results[-1] += "</span>"
         return results
@@ -2121,7 +2122,8 @@ class Terminal(object):
                         outline += '<span class="%s">' % " ".join(current_classes)
                         spancount += 1
                 outline += char
-            results.append(outline)
+            # rstrip() is here to save some bandwidth
+            results.append(outline.rstrip())
         for whatever in xrange(spancount): # Bit of cleanup to be safe
             results[-1] += "</span>"
         return results

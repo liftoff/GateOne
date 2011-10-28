@@ -1,9 +1,11 @@
 #{{container}} {
-    position: relative;
+    position: absolute;
     overflow: hidden;
     background-color: transparent;
     top: 0;
     bottom: 0;
+    left: 0;
+    right: 0;
     padding: 0.1em;
     z-index: 0;
     font-size: 1em;
@@ -236,7 +238,7 @@
     bottom: 2em;
     right: 5em;
 }
-#{{prefix}}sideinfo {
+.{{prefix}}sideinfo {
     -webkit-transform: rotate(90deg);
     -webkit-transform-origin: right bottom;
     -moz-transform: rotate(90deg);

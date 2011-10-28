@@ -1107,28 +1107,6 @@ class TerminalWebSocket(WebSocketHandler):
             print("%s:%s" % (i, "".join(line)))
             print(renditions[i])
 
-class RecordingHandler(BaseHandler):
-    """
-    Handles uploads of session recordings and returns them to the client in a
-    self-contained HTML file that will auto-start playback.
-
-    NOTE: The real crux of the code that handles this is in the template.
-    """
-    def post(self):
-        recording = self.get_argument("recording")
-        container = self.get_argument("container")
-        prefix = self.get_argument("prefix")
-        theme = self.get_argument("theme")
-        css_file = open('templates/css_%s.css' % theme).read()
-        css = tornado.template.Template(css_file)
-        self.render(
-            "templates/self_contained_recording.html",
-            recording=recording,
-            container=container,
-            prefix=prefix,
-            css=css.generate(container=container, prefix=prefix)
-        )
-
 class OpenLogHandler(BaseHandler):
     """
     Handles uploads of user logs and returns them to the client as a basic HTML
@@ -1282,7 +1260,6 @@ class Application(tornado.web.Application):
             (r"/ws", TerminalWebSocket),
             (r"/auth", AuthHandler),
             (r"/style", StyleHandler),
-            (r"/recording", RecordingHandler),
             (r"/openlog", OpenLogHandler),
             (r"/docs/(.*)", tornado.web.StaticFileHandler, {
                 "path": GATEONE_DIR + '/docs/build/html/',
