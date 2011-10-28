@@ -35,12 +35,35 @@ var processScreen = function(terminalObj, prevBuffer, jsonDoc, termTitle, scroll
         incoming_scrollback = jsonDoc['scrollback'],
         scrollback = terminalObj['scrollback'],
         rateLimiter = jsonDoc['ratelimiter'];  // TODO: Make this display an icon or message indicating it has been engaged
+    if (!scrollback.length) {
+        if (prevBuffer) {
+            scrollback = prevBuffer.split('\n');
+        } else {
+            scrollback = [];
+        }
+    }
+    if (incoming_scrollback.length) {
+        scrollback = scrollback.concat(incoming_scrollback);
+    }
     // Now trim the array to match the go.prefs['scrollback'] setting
     if (scrollback.length > scrollbackMax) {
         scrollback.reverse();
         scrollback.length = scrollbackMax; // I love that Array().length isn't just a read-only value =)
         scrollback.reverse(); // Put it back in the proper order
     }
+    terminalObj['scrollback'] = scrollback;
+    count = 0;
+    termObj['screen'].forEach(function(line) {
+        if (line.length) {
+            screen.push(line);
+        } else {
+            // Line is unchanged
+            screen.push(terminalObj['prevScreen'][count]);
+        }
+        count += 1;
+    });
+    terminalObj['prevScreen'] = screen;
+    terminalObj['screen'] = screen;
     return {'scrollback': scrollback, 'logLines': logLines, 'log': consoleLog}
 }
 self.addEventListener('message', function(e) {

@@ -2706,6 +2706,142 @@ GateOne.Base.update(GateOne.Terminal, {
             }
         }
     },
+    // The following is a work-in-progress to get more stuff inside updateTerminalAction offloaded to the termUpdatesWorker
+    updateTerminalActionTest: function(termObj) {
+        // Replaces the contents of the terminal div with the lines in termObj
+        // Also updates the Playback controls if the Playback module is loaded
+        var go = GateOne,
+            u = go.Utils,
+            t = go.Terminal,
+            v = go.Visual,
+            count = 0,
+            tempLines = [],
+            lastLine = null,
+            lastNewLine = null,
+            term = termObj['term'],
+            screen = [],
+            incoming_scrollback = termObj['scrollback'],
+            prevBuffer = localStorage["scrollback" + term],
+            terminalObj = go.terminals[term],
+            scrollback = terminalObj['scrollback'],
+            termTitle = u.getNode('#' + go.prefs.prefix + 'term' + term).title;
+            rateLimiter = termObj['ratelimiter'],  // TODO: Make this display an icon or message indicating it has been engaged
+            reScrollback = u.partial(go.Visual.enableScrollback, localStorage['selectedTerminal']),
+            textTransforms = go.Terminal.textTransforms;
+// NOTE: Keeping this for future reference...  Gate One will be using the Web Worker for most of the processing in this function soon.
+//         log('prevBuffer: ' + prevBuffer);
+        t.termUpdatesWorker.postMessage({
+                'cmds': ['processScreen'],
+                'terminalObj': terminalObj,
+                'prevBuffer': prevBuffer,
+                'termObj': termObj,
+                'termTitle': termTitle,
+                'scrollbackMax': go.prefs['scrollback']
+        });
+//         logDebug('GateOne.Utils.updateTerminalAction() termObj: ' + u.items(termObj));
+        if (!scrollback.length) {
+            if (prevBuffer) {
+                scrollback = prevBuffer.split('\n');
+            } else {
+                scrollback = [];
+            }
+        }
+        if (incoming_scrollback.length) {
+            scrollback = scrollback.concat(incoming_scrollback);
+        }
+        // Now trim the array to match the go.prefs['scrollback'] setting
+        if (scrollback.length > go.prefs['scrollback']) {
+            scrollback.reverse();
+            scrollback.length = go.prefs['scrollback']; // I love that Array().length isn't just a read-only value =)
+            scrollback.reverse(); // Put it back in the proper order
+        }
+        terminalObj['scrollback'] = scrollback;
+        if (incoming_scrollback.length) {
+            // Save the scrollback buffer in localStorage for retrieval if the user reloads
+            try {
+                localStorage.setItem("scrollback" + term, scrollback.join('\n'));
+            } catch (e) {
+                if (e == QUOTA_EXCEEDED_ERR) {
+                    logError('Quota exceeded!');
+                }
+            }
+        }
+
+        count = 0;
+        termObj['screen'].forEach(function(line) {
+            if (line.length) {
+                screen.push(line);
+            } else {
+                // Line is unchanged
+                screen.push(terminalObj['prevScreen'][count]);
+            }
+            count += 1;
+        });
+        terminalObj['prevScreen'] = screen;
+        terminalObj['screen'] = screen;
+        if (screen) {
+            // Do a full-screen updated in-place
+            var replacement_text = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + screen.join('\n') + '\n\n</pre>';
+            t.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term, 'textTransforms': textTransforms});
+            if (go.Playback) {
+                // Add the screen to the session recording
+                var frameObj = {'screen': replacement_text, 'time': new Date()};
+                terminalObj['playbackFrames'] = terminalObj['playbackFrames'].concat(frameObj);
+                // Trim the array to match the go.prefs['playbackFrames'] setting
+                if (terminalObj['playbackFrames'].length > go.prefs['playbackFrames']) {
+                    terminalObj['playbackFrames'].reverse();
+                    terminalObj['playbackFrames'].length = go.prefs['playbackFrames'];
+                    terminalObj['playbackFrames'].reverse(); // Put it back in the proper order
+                }
+                if (!go.Playback.clockUpdater) { // Get the clock updating
+                    go.Playback.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
+                }
+                // Reset the playback frame to be current
+                go.Playback.currentFrame = terminalObj['playbackFrames'].length - 1;
+            }
+            if (terminalObj['scrollbackTimer']) {
+                clearTimeout(terminalObj['scrollbackTimer']);
+            }
+            // This timeout re-adds the scrollback buffer after 3.5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
+            terminalObj['scrollbackTimer'] = setTimeout(reScrollback, 3500); // 3.5 seconds is just past the default 'top' refresh rate
+            // TODO: Implement the regex actions/notifications prefs here
+            if (terminalObj['inactivityTimer']) {
+                clearTimeout(terminalObj['inactivityTimer']);
+                var inactivity = u.partial(t.notifyInactivity, termTitle);
+                terminalObj['inactivityTimer'] = setTimeout(inactivity, terminalObj['inactivityTimeout']);
+            }
+            if (terminalObj['activityNotify']) {
+                if (!terminalObj['lastNotifyTime']) {
+                    // Setup a minimum delay between activity notifications so we're not spamming the user
+                    terminalObj['lastNotifyTime'] = new Date();
+                    t.notifyActivity(termTitle);
+                } else {
+                    var then = new Date(terminalObj['lastNotifyTime']),
+                        now = new Date();
+                    then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
+                    if (now > then) {
+                        terminalObj['lastNotifyTime'] = new Date(); // Reset
+                        t.notifyActivity(termTitle);
+                    }
+                }
+            }
+        }
+        terminalObj['scrollbackVisible'] = false;
+        var termPre = u.getNode('#'+go.prefs.prefix+'term' + term + '_pre');
+        // This fixes the position of the terminal:
+        if (termPre) {
+            u.scrollToBottom(termPre);
+        }
+        if (go.Playback) {
+            if (term == localStorage['selectedTerminal']) {
+                currentFrame = terminalObj['playbackFrames'].length - 1; // Reset playback
+                u.getNode('#'+go.prefs.prefix+'progressBar').style.width = '100%';
+                if (!go.Playback.clockUpdater) { // Get the clock updating again if it was stopped
+                    go.Playback.clockUpdater = setInterval('updateClock()', 1);
+                }
+            }
+        }
+    },
     notifyInactivity: function(term) {
         // Notifies the user of inactivity in *term*
         var message = "Inactivity in terminal: " + term;
