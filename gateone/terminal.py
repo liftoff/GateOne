@@ -2043,7 +2043,13 @@ class Terminal(object):
                     outline += char
                 charcount += 1
             # rstrip() is here to save some bandwidth
-            results.append(outline.rstrip())
+            outline = outline.rstrip()
+            if outline:
+                results.append(outline)
+            else:
+                results.append(None) # 'null' is shorter than > 4 spaces
+            # NOTE: The client has been programmed to treat None (aka null in
+            #       JavaScript) as blank lines.
         for whatever in xrange(spancount): # Bit of cleanup to be safe
             results[-1] += "</span>"
         return results
@@ -2052,8 +2058,9 @@ class Terminal(object):
         """
         Spanifies everything inside *screen* using *renditions*.  This differs
         from __spanify_screen() in that it doesn't apply any logic to detect the
-        location of the cursor (just a tiny bit faster).
+        location of the cursor (to make it just a tiny bit faster).
         """
+        # NOTE: See the comments in __spanify_screen() for details on this logic
         results = []
         screen = self.scrollback_buf
         renditions = self.scrollback_renditions
@@ -2067,11 +2074,10 @@ class Terminal(object):
             outline = ""
             for char, rend in izip(line, rendition):
                 changed = True
-                if char in "<>": # Have to convert lt/gt to HTML entities
+                if char in "<>":
                     char = char.replace('<', '&lt;')
                     char = char.replace('>', '&gt;')
                 if rend == prev_rendition:
-                    # Shortcut...  So we can skip all the logic below
                     changed = False
                 else:
                     prev_rendition = rend
@@ -2079,7 +2085,6 @@ class Terminal(object):
                     classes = imap(rendition_classes.get, rend)
                     for _class in classes:
                         if _class and _class not in current_classes:
-                            # Something changed...  Start a new span
                             if spancount:
                                 outline += "</span>"
                                 spancount -= 1
@@ -2089,7 +2094,6 @@ class Terminal(object):
                                 else:
                                     reset_class = _class.split('reset')[0]
                                     if reset_class == 'foreground':
-                                        # Remove any foreground classes
                                         [current_classes.pop(i) for i, a in
                                         enumerate(current_classes) if a in
                                         foregrounds
@@ -2103,8 +2107,6 @@ class Terminal(object):
                                         try:
                                             current_classes.remove(reset_class)
                                         except ValueError:
-                                            # Trying to reset something that was
-                                            # never set.  Ignore
                                             pass
                             else:
                                 if _class in foregrounds:
@@ -2122,8 +2124,11 @@ class Terminal(object):
                         outline += '<span class="%s">' % " ".join(current_classes)
                         spancount += 1
                 outline += char
-            # rstrip() is here to save some bandwidth
-            results.append(outline.rstrip())
+            outline = outline.rstrip()
+            if outline:
+                results.append(outline)
+            else:
+                results.append(None)
         for whatever in xrange(spancount): # Bit of cleanup to be safe
             results[-1] += "</span>"
         return results

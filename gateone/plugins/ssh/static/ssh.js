@@ -57,7 +57,7 @@ GateOne.Base.update(GateOne.SSH, {
     handleConnect: function(connectString) {
         // Handles the 'sshjs_connect' action which should provide an SSH *connectString* in the form of user@host:port
         // The *connectString* will be stored in GateOne.terminals[term]['sshConnectString'] which is meant to be used in duplicating terminals (because you can't rely on the title).
-        logInfo('sshjs_connect: ' + connectString);
+        logDebug('sshjs_connect: ' + connectString);
         var term = localStorage['selectedTerminal'];
         GateOne.terminals[term]['sshConnectString'] = connectString;
     },
@@ -163,7 +163,7 @@ GateOne.Base.update(GateOne.SSH, {
         if (existingPanel) {
             // Remove everything first
             while (existingPanel.childNodes.length >= 1 ) {
-                existingPanel.removeChild(existingPanel.firstChild);   
+                existingPanel.removeChild(existingPanel.firstChild);
             }
             sshHeader.style.opacity = 0;
             existingPanel.appendChild(form);

@@ -307,7 +307,7 @@ class Multiplex:
         self.proc_write(u'\x0c') # ctrl-l
         # WINCH can mess things up quite a bit so I've disabled it.
         # Leaving this here in case it ever becomes configurable (reference)
-        #os.kill(self.proc[fd]['pid'], signal.SIGWINCH)
+        #os.kill(self.pid, signal.SIGWINCH)
 
     def proc_kill(self):
         """
@@ -480,22 +480,26 @@ class Multiplex:
         except Exception as e:
             logging.error("proc_write() exception: %s" % e)
 
-    def dumplines(self):
+    def dumplines(self, full=False):
         """
         Returns the terminal text lines (a list of lines, to be specific) and
         its scrollback buffer (which is also a list of lines) as a tuple,
         (scrollback, text).  If a line hasn't changed since the last dump then
         it will be replaced with an empty string (in the terminal text lines).
+
+        If *full*, will return the entire screen (not just the diff).
         """
         try:
             output = []
             scrollback, html = self.term.dump_html()
-            for line1, line2 in izip(self.prev_output, html):
-                if line1 != line2:
-                    output.append(line2)
-                else:
-                    output.append('')
+            if not full:
+                for line1, line2 in izip(self.prev_output, html):
+                    if line1 != line2:
+                        output.append(line2)
+                    else:
+                        output.append('')
+                html = output
             self.prev_output = html
-            return (scrollback, output)
+            return (scrollback, html)
         except KeyError:
             return (None, None)

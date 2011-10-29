@@ -900,8 +900,9 @@ class TerminalWebSocket(WebSocketHandler):
             mode_handler = partial(self.mode_handler, term)
             SESSIONS[self.session][term][ # 9 is CALLBACK_MODE
                     'multiplex'].term.callbacks[9] = mode_handler
-            if self.settings['dtach']: # dtach sessions need a little extra love
+            if resumed_dtach: # dtach sessions need a little extra love
                 SESSIONS[self.session][term]['multiplex'].redraw()
+            self.refresh_screen(term, True) # Send a fresh screen to the client
         else:
             # Terminal already exists
             if SESSIONS[self.session][term]['multiplex'].alive: # It's ALIVE!
@@ -933,11 +934,11 @@ class TerminalWebSocket(WebSocketHandler):
                 mode_handler = partial(self.mode_handler, term)
                 SESSIONS[self.session][term][ # 9 is CALLBACK_MODE
                     'multiplex'].term.callbacks[9] = mode_handler
+                self.refresh_screen(term, True) # Send a fresh screen
             else:
                 # Tell the client this terminal is no more
                 message = {'term_ended': term}
                 self.write_message(json_encode(message))
-            self.refresh_screen(term) # Send a fresh screen to the client
             # NOTE: refresh_screen will also take care of cleaning things up if
             #       SESSIONS[self.session][term]['multiplex'].alive is False
         if 'tidy_thread' not in SESSIONS[self.session]:
@@ -1014,16 +1015,22 @@ class TerminalWebSocket(WebSocketHandler):
                 }}
                 self.write_message(json_encode(mode_message))
 
-    def refresh_screen(self, term):
-        """Returns the whole terminal screen."""
+    def refresh_screen(self, term, full=False):
+        """
+        Writes the state of the given terminal's screen and scrollback buffer to
+        the client.
+        If *full*, send the whole screen (not just the difference).
+        """
         try:
             SESSIONS[self.session]['tidy_thread'].keepalive(datetime.now())
-            scrollback, screen = SESSIONS[
-                self.session][term]['multiplex'].dumplines()
+            multiplexer = SESSIONS[self.session][term]['multiplex']
+            if full:
+                scrollback, screen = multiplexer.dumplines(full=True)
+            else:
+                scrollback, screen = multiplexer.dumplines()
         except KeyError: # Session died (i.e. command ended).
             scrollback, screen = None, None
         if screen:
-            multiplexer = SESSIONS[self.session][term]['multiplex']
             output_dict = {
                 'termupdate': {
                     'term': term,

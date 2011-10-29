@@ -1026,7 +1026,6 @@ GateOne.Base.update(GateOne.Net, {
             setTimeout(function () {
                 var session = localStorage.getItem(go.prefs.prefix+"session"),
                     prefs = {'session': session};
-                go.Net.ping(); // Check latency
                 go.ws.send(JSON.stringify({'authenticate': prefs}));
                 // Autoconnect if autoConnectURL is specified
                 if (go.prefs.autoConnectURL) {
@@ -1035,6 +1034,9 @@ GateOne.Base.update(GateOne.Net, {
                         GateOne.Net.sendChars();
                     }, 500);
                 }
+                setTimeout(function() {
+                    go.Net.ping(); // Check latency (after things have calmed down a bit =)
+                }, 1000);
             }, 1000);
         }
         go.ws.onclose = function() {
@@ -1444,8 +1446,8 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_SPACEBAR': {'ctrl': String.fromCharCode(0)}, // NOTE: Do we *really* need to have an appmode option for this?
         'KEY_PAGE_UP': {'default': ESC+"[5~", 'alt': ESC+"[5;3~"}, // ^[[5~
         'KEY_PAGE_DOWN': {'default': ESC+"[6~", 'alt': ESC+"[6;3~"}, // ^[[6~
-        'KEY_END': {'default': ESC+"[F", 'meta': ESC+"[1;1F", 'shift': ESC+"[1;2F", 'alt': ESC+"[1;3F", 'alt-shift': ESC+"[1;4F", 'ctrl': ESC+"[1;5F", 'ctrl-shift': ESC+"[1;6F"},
-        'KEY_HOME': {'default': ESC+"[H", 'meta': ESC+"[1;1H", 'shift': ESC+"[1;2H", 'alt': ESC+"[1;3H", 'alt-shift': ESC+"[1;4H", 'ctrl': ESC+"[1;5H", 'ctrl-shift': ESC+"[1;6H"},
+        'KEY_END': {'default': ESC+"[F", 'meta': ESC+"[1;1F", 'shift': ESC+"[1;2F", 'alt': ESC+"[1;3F", 'alt-shift': ESC+"[1;4F", 'ctrl': ESC+"[1;5F", 'ctrl-shift': ESC+"[1;6F", 'appmode': ESC+"OF"},
+        'KEY_HOME': {'default': ESC+"[H", 'meta': ESC+"[1;1H", 'shift': ESC+"[1;2H", 'alt': ESC+"[1;3H", 'alt-shift': ESC+"[1;4H", 'ctrl': ESC+"[1;5H", 'ctrl-shift': ESC+"[1;6H", 'appmode': ESC+"OH"},
         'KEY_ARROW_LEFT': {'default': ESC+"[D", 'alt': ESC+"[1;3D", 'ctrl': ESC+"[1;5D", 'appmode': ESC+"OD"},
         'KEY_ARROW_UP': {'default': ESC+"[A", 'alt': ESC+"[1;3A", 'ctrl': ESC+"[1;5A", 'appmode': ESC+"OA"},
         'KEY_ARROW_RIGHT': {'default': ESC+"[C", 'alt': ESC+"[1;3C", 'ctrl': ESC+"[1;5C", 'appmode': ESC+"OC"},
@@ -1983,8 +1985,7 @@ GateOne.Base.update(GateOne.Visual, {
         // If *term* is given, only disable scrollback for that terminal
         logDebug('enableScrollback(' + term + ')');
         var go = GateOne,
-            u = go.Utils,
-            textTransforms = go.Terminal.textTransforms;
+            u = go.Utils;
         if (term) {
             if (!go.terminals[term]) { // The terminal was just closed
                 return; // We're done here
@@ -1998,24 +1999,26 @@ GateOne.Base.update(GateOne.Visual, {
                 }, 3500);
                 return;
             }
-            var replacement_text = '<pre id="'+go.prefs.prefix+'term' + term + '_pre" style="height: 100%">' + go.terminals[term]['scrollback'].join('\n') + '\n' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
-//             var replacement_text = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + go.terminals[term]['scrollback'].join('\n') + '\n' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
-            go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term, 'textTransforms': textTransforms});
+            var replacement_html = '<pre id="'+go.prefs.prefix+'term' + term + '_pre" style="height: 100%">' + go.terminals[term]['scrollback'].join('\n') + '\n' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
+            u.getNode('#' + go.prefs.prefix + 'term' + term).innerHTML = replacement_html;
             if (go.terminals[term]['scrollbackTimer']) {
                 clearTimeout(go.terminals[term]['scrollbackTimer']);
             }
             go.terminals[term]['scrollbackVisible'] = true;
+            var termPre = u.getNode('#'+go.prefs.prefix+'term' + term + '_pre');
+            u.scrollToBottom(termPre);
         } else {
             var terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal'));
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(go.prefs.prefix+'term')[1],
-                    replacement_text = '<pre id="' + termObj.id + '_pre" style="height: 100%">' + go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
-//                     replacement_text = '<pre id="' + termObj.id + '_pre">' + go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
-                    go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': termID, 'textTransforms': textTransforms});
+                    replacement_html = '<pre id="' + termObj.id + '_pre" style="height: 100%">' + go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
+                    u.getNode('#' + go.prefs.prefix + 'term' + term).innerHTML = replacement_html;
                 if (go.terminals[termID]['scrollbackTimer']) {
                     clearTimeout(go.terminals[termID]['scrollbackTimer']);
                 }
                 go.terminals[termID]['scrollbackVisible'] = true;
+                var termPre = u.getNode('#'+go.prefs.prefix+'term' + termID + '_pre');
+                u.scrollToBottom(termPre);
             });
         }
         go.Visual.scrollbackToggle = true;
@@ -2028,13 +2031,13 @@ GateOne.Base.update(GateOne.Visual, {
             terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal')),
             textTransforms = go.Terminal.textTransforms;
         if (term) {
-            var replacement_text = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
-            go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term, 'textTransforms': textTransforms});
+            var replacement_html = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
+            u.getNode('#' + go.prefs.prefix + 'term' + term).innerHTML = replacement_html;
         } else {
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(go.prefs.prefix+'term')[1],
-                    replacement_text = '<pre id="' + termObj.id + '_pre">' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
-                go.Terminal.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': termID, 'textTransforms': textTransforms});
+                    replacement_html = '<pre id="' + termObj.id + '_pre">' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
+                u.getNode('#' + go.prefs.prefix + 'term' + term).innerHTML = replacement_html;
             });
         }
         go.Visual.scrollbackToggle = false;
@@ -2059,7 +2062,7 @@ GateOne.Base.update(GateOne.Visual, {
             u = go.Utils,
             v = go.Visual,
             termObj = u.getNode('#'+go.prefs.prefix+'term' + term),
-            displayText = termObj.id.split(go.prefs.prefix+'term')[1] + ": " + termObj.title,
+            displayText = "",
             count = 0,
             wPX = 0,
             hPX = 0,
@@ -2068,6 +2071,11 @@ GateOne.Base.update(GateOne.Visual, {
             rightAdjust = 0,
             bottomAdjust = 0,
             reScrollback = u.partial(v.enableScrollback, term);
+        if (termObj) {
+            displayText = termObj.id.split(go.prefs.prefix+'term')[1] + ": " + termObj.title;
+        } else {
+            return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
+        }
         if (style['padding-right']) {
             rightAdjust = parseInt(style['padding-right'].split('px')[0]);
         }
@@ -2282,8 +2290,10 @@ GateOne.Base.update(GateOne.Visual, {
     }
 });
 GateOne.Base.module(GateOne, "Terminal", "0.9", ['Base', 'Utils', 'Visual']);
+// All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
+// Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
+GateOne.Terminal.updateTermCallbacks = [];
 // All defined newTermCallbacks are executed whenever a new terminal is created like so: callback(<term number>)
-// Plugins can register newTermCallbacks by simply doing a push():  GateOne.Terminal.newTermCallbacks.push(myFunc);
 GateOne.Terminal.newTermCallbacks = [];
 // All defined closeTermCallbacks are executed whenever a terminal is closed just like newTermCallbacks:  callback(<term number>)
 GateOne.Terminal.closeTermCallbacks = [];
@@ -2430,7 +2440,7 @@ GateOne.Base.update(GateOne.Terminal, {
             go.Input.disableCapture();
             titleEdit.onblur = finishEditing;
             titleEdit.onkeypress = function(e) {
-                if (go.Input.key(e).code == 13) {
+                if (go.Input.key(e).code == 13) { // Enter key
                     finishEditing(e);
                 }
             }
@@ -2461,43 +2471,98 @@ GateOne.Base.update(GateOne.Terminal, {
         toolbar.insertBefore(toolbarClose, toolbarNewTerm);
         // Setup the text processing web worker
         t.termUpdatesWorker = new Worker('/static/go_process.js');
-        t.termUpdatesWorker.addEventListener('message', function(e) {
+        var termUpdateFromWorker = function(e) {
             var data = e.data,
-                scrollback = data.scrollback,
-//                 logLines = data.logLines,
                 term = data.term,
-                text = data.text,
-                consoleLog = data.log;
-            if (text) {
+                screen = data.screen,
+                scrollback = data.scrollback,
+                screen_html = "",
+                consoleLog = data.log, // Only used when debugging
+                screenUpdate = false,
+                terminalObj = {},
+                reScrollback = u.partial(go.Visual.enableScrollback, term);
+            if (term) { terminalObj = go.terminals[term] } else { logError("No terminal object?!?") };
+            if (screen) {
                 try {
-                    u.getNode('#'+GateOne.prefs.prefix+'term' + term).innerHTML = text;
-                    var termPre = u.getNode('#'+prefix+'term' + term + '_pre');
-                    u.scrollToBottom(termPre);
+                    terminalObj['screen'] = screen;
+                    var termContainer = u.getNode('#'+prefix+'term' + term);
+                    screen_html = '<pre id="'+prefix+'term' + term + '_pre">' + screen.join('\n') + '\n\n</pre>';
+                    termContainer.innerHTML = screen_html;
+                    screenUpdate = true;
                 } catch (e) { // Likely the terminal just closed
                     u.noop(); // Just ignore it.
                 }
             }
             if (scrollback) {
+                terminalObj['scrollback'] = scrollback;
                 try {
-                    // Save the scrollback buffer in localStorage for retrieval if the user reloads try {
+                    // Save the scrollback buffer in localStorage for retrieval if the user reloads
                     localStorage.setItem("scrollback" + term, scrollback.join('\n'));
                 } catch (e) {
-                    if (e == QUOTA_EXCEEDED_ERR) {
-                        logError('Quota exceeded!');
-                    }
+                    logError(e);
                 }
             }
-//             if (logLines) {
-//                 logStorage(logLines);
-//             }
             if (consoleLog) {
                 console.log(consoleLog);
             }
-        }, false);
-        // Initialize localStorage if it doesn't exist
-//         if (!localStorage['log']) {
-//             localStorage['log'] = "";
-//         }
+            if (screenUpdate) {
+                // TODO here:  go.Playback stuff
+                // Take care of the activity/inactivity notifications
+                if (terminalObj['inactivityTimer']) {
+                    clearTimeout(terminalObj['inactivityTimer']);
+                    var inactivity = u.partial(t.notifyInactivity, termTitle);
+                    terminalObj['inactivityTimer'] = setTimeout(inactivity, terminalObj['inactivityTimeout']);
+                }
+                if (terminalObj['activityNotify']) {
+                    if (!terminalObj['lastNotifyTime']) {
+                        // Setup a minimum delay between activity notifications so we're not spamming the user
+                        terminalObj['lastNotifyTime'] = new Date();
+                        t.notifyActivity(termTitle);
+                    } else {
+                        var then = new Date(terminalObj['lastNotifyTime']),
+                            now = new Date();
+                        then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
+                        if (now > then) {
+                            terminalObj['lastNotifyTime'] = new Date(); // Reset
+                            t.notifyActivity(termTitle);
+                        }
+                    }
+                }
+                if (terminalObj['scrollbackTimer']) {
+                    clearTimeout(terminalObj['scrollbackTimer']);
+                }
+                // This timeout re-adds the scrollback buffer after 3.5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
+                terminalObj['scrollbackTimer'] = setTimeout(reScrollback, 3500); // 3.5 seconds is just past the default 'top' refresh rate
+                // Excute any registered callbacks
+                if (go.Terminal.updateTermCallbacks.length) {
+                    go.Terminal.updateTermCallbacks.forEach(function(callback) {
+                        callback(term);
+                    });
+                }
+            }
+            if (go.Playback) {
+                // Add the screen to the session recording
+                var frameObj = {'screen': screen_html, 'time': new Date()};
+                // Session storage has been disabled because it is too slow to re-parse the JSON every screen update.  I'm hoping that we can use sessionStorage like this in the future with some sort of workaround but it might not be possible.
+//                 var existingFrames = sessionStorage.getItem("playbackFrames" + term);
+//                 if (existingFrames) {
+//                     terminalObj['playbackFrames'] = JSON.parse(existingFrames);
+//                 }
+                terminalObj['playbackFrames'] = terminalObj['playbackFrames'].concat(frameObj);
+                // Trim the array to match the go.prefs['playbackFrames'] setting
+                if (terminalObj['playbackFrames'].length > go.prefs['playbackFrames']) {
+                    terminalObj['playbackFrames'].reverse();
+                    terminalObj['playbackFrames'].length = go.prefs['playbackFrames'];
+                    terminalObj['playbackFrames'].reverse(); // Put it back in the proper order
+                }
+                if (!go.Playback.clockUpdater) { // Get the clock updating
+                    go.Playback.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
+                }
+                // Reset the playback frame to be current
+                go.Playback.currentFrame = terminalObj['playbackFrames'].length - 1;
+            }
+        }
+        t.termUpdatesWorker.addEventListener('message', termUpdateFromWorker, false);
         // Register our keyboard shortcuts
         // Ctrl-Alt-N to create a new terminal
         go.Input.registerShortcut('KEY_N', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'});
@@ -2511,335 +2576,29 @@ GateOne.Base.update(GateOne.Terminal, {
         go.Net.addAction('set_mode', go.Terminal.setModeAction); // For things like application cursor keys
         go.Net.addAction('metadata', go.Terminal.storeMetadata);
     },
-    updateTerminalAction: function(termObj) {
-        // Replaces the contents of the terminal div with the lines in termObj
-        // Also updates the Playback controls if the Playback module is loaded
+    updateTerminalAction: function(termUpdateObj) {
+        // Replaces the contents of the terminal div with the lines in *termUpdateObj*.
         var go = GateOne,
             u = go.Utils,
             t = go.Terminal,
             v = go.Visual,
-            count = 0,
-            tempLines = [],
-            lastLine = null,
-            lastNewLine = null,
-            term = termObj['term'],
-            screen = [],
-            incoming_scrollback = termObj['scrollback'],
-            prevBuffer = localStorage["scrollback" + term],
+            term = termUpdateObj['term'],
+            prevScrollback = localStorage["scrollback" + term],
             terminalObj = go.terminals[term],
-            scrollback = terminalObj['scrollback'],
-            termTitle = u.getNode('#' + go.prefs.prefix + 'term' + term).title;
-            rateLimiter = termObj['ratelimiter'],  // TODO: Make this display an icon or message indicating it has been engaged
-            reScrollback = u.partial(go.Visual.enableScrollback, localStorage['selectedTerminal']),
+            termTitle = u.getNode('#' + go.prefs.prefix + 'term' + term).title,
             textTransforms = go.Terminal.textTransforms;
-// NOTE: Keeping this for future reference...  Gate One will be using the Web Worker for most of the processing in this function soon.
-//         log('prevBuffer: ' + prevBuffer);
-//         t.termUpdatesWorker.postMessage({
-//                 'cmds': ['processScreen'],
-//                 'terminalObj': terminalObj,
-//                 'prevBuffer': prevBuffer,
-//                 'termObj': termObj,
-//                 'termTitle': termTitle,
-//                 'scrollbackMax': go.prefs['scrollback']
-//         });
-//         logDebug('GateOne.Utils.updateTerminalAction() termObj: ' + u.items(termObj));
-        if (!scrollback.length) {
-            if (prevBuffer) {
-                scrollback = prevBuffer.split('\n');
-            } else {
-                scrollback = [];
-            }
-        }
-        if (incoming_scrollback.length) {
-            scrollback = scrollback.concat(incoming_scrollback);
-        }
-        // Now trim the array to match the go.prefs['scrollback'] setting
-        if (scrollback.length > go.prefs['scrollback']) {
-            scrollback.reverse();
-            scrollback.length = go.prefs['scrollback']; // I love that Array().length isn't just a read-only value =)
-            scrollback.reverse(); // Put it back in the proper order
-        }
-        terminalObj['scrollback'] = scrollback;
-        if (incoming_scrollback.length) {
-            // Save the scrollback buffer in localStorage for retrieval if the user reloads
-            try {
-                localStorage.setItem("scrollback" + term, scrollback.join('\n'));
-            } catch (e) {
-                if (e == QUOTA_EXCEEDED_ERR) {
-                    logError('Quota exceeded!');
-                }
-            }
-        }
-// IMPORTANT NOTE: Client-side logging has been disabled (maybe permanently) due to bad performance.  Basically, JavaScript has no mechanism to *append* a single line of text to any sort of persistent storage that isn't ridiculously slow to keep tidy (i.e. to limit the amount of storage being taken up by logs).  Back-end logging will likely be replacing this moving forward--hopefully in a way that's transparent to the client.
-// FYI:  If we use indexedDB to store the logs, lines will be stored nice and fast (async) in an append-like fashion.  However, if we want to make sure that our logging DB doesn't take up all 5MB of our client-side storage space we need to loop over the entire DB every time we write to it to remove the oldest entries.  It is incredibly slow and inefficient...  and it ruins the user experience by making things choppy and gobbling up system resources.
-        // Reset the localStorageTimer to keep things smooth for the user
-//         if (go.Logging.localStorageTimer) {
-//             clearTimeout(go.Logging.localStorageTimer);
-//             go.Logging.localStorageTimer = setTimeout(go.Logging.processLogQueue, 500);
-//         }
-        // Figure out the difference between the current screen and the new one (for logging)
-//         if (terminalObj['screen'].length) {
-//             terminalObj['screen'].forEach(function(line) {
-//                 // Find the last line that isn't blank
-//                 if (typeof(line) != 'undefined' && line.trim()) {
-//                     lastLine = count;
-//                 }
-//                 count += 1;
-//             });
-//         } else {
-//             lastLine = 1000;
-//         }
-        // Assemble the entire screen from what the server sent us (lines that haven't changed don't get sent)
-        count = 0;
-        termObj['screen'].forEach(function(line) {
-            if (line.length) {
-                screen.push(line);
-            } else {
-                // Line is unchanged
-                screen.push(terminalObj['prevScreen'][count]);
-            }
-            count += 1;
-        });
-        terminalObj['prevScreen'] = screen;
-//         count = 0;
-//         screen.forEach(function(line) {
-//             if (typeof(line) != 'undefined' && line.trim()) {
-//                 lastNewLine = count;
-//             }
-//             count += 1;
-//         });
-//         if (lastLine < lastNewLine) {
-//             // Screen isn't full yet but we're still adding new lines
-//             var screenDiff = screen.slice(lastLine, lastNewLine);
-//             // Format the lines
-//             screenDiff.forEach(function(line) {
-//                 line = line.replace('<span class="cursor"> </span>', '');
-//                 line = term + ':' + termTitle + ': ' + line;
-//                 tempLines.push(line);
-//             });
-//             // Log the new line(s)
-// //             go.Logging.logToDB(tempLines);
-//             go.Logging.logStorage(tempLines);
-//         } else if (incoming_scrollback.length) {
-//             var logLines = [];
-//             if (incoming_scrollback.length > screen.length) {
-//                 // A whole lotta screen just scrolled by, add the extra lines
-//                 logLines = incoming_scrollback.slice(screen.length-1, incoming_scrollback.length);
-//                 logLines = logLines.concat(screen);
-//             } else {
-//                 logLines = screen.slice(screen.length - incoming_scrollback.length - 1, screen.length - 1);
-//             }
-//             logLines.forEach(function(line) {
-//                 line = line.replace('<span class="cursor"> </span>', '');
-//                 tempLines.push(term + ':' + termTitle + ': ' + line);
-//             });
-//             // Log the new line(s)
-// //             go.Logging.logToDB(tempLines);
-//             go.Logging.logStorage(tempLines);
-//         }
-        terminalObj['screen'] = screen;
+//         logDebug('GateOne.Utils.updateTerminalActionTest() termUpdateObj: ' + u.items(termUpdateObj));
         if (screen) {
-            // Do a full-screen updated in-place
-            var replacement_text = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + screen.join('\n') + '\n\n</pre>';
-            t.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term, 'textTransforms': textTransforms});
-            if (go.Playback) {
-                // Add the screen to the session recording
-                var frameObj = {'screen': replacement_text, 'time': new Date()};
-                // Session storage has been disabled because it is too slow to re-parse the JSON every screen update.  I'm hoping that we can use sessionStorage like this in the future with some sort of workaround but it might not be possible.
-        //         var existingFrames = sessionStorage.getItem("playbackFrames" + term);
-        //         if (existingFrames) {
-        //             terminalObj['playbackFrames'] = JSON.parse(existingFrames);
-        //         }
-                terminalObj['playbackFrames'] = terminalObj['playbackFrames'].concat(frameObj);
-                // Trim the array to match the go.prefs['playbackFrames'] setting
-                if (terminalObj['playbackFrames'].length > go.prefs['playbackFrames']) {
-                    terminalObj['playbackFrames'].reverse();
-                    terminalObj['playbackFrames'].length = go.prefs['playbackFrames'];
-                    terminalObj['playbackFrames'].reverse(); // Put it back in the proper order
-                }
-                if (!go.Playback.clockUpdater) { // Get the clock updating
-                    go.Playback.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
-                }
-                // Reset the playback frame to be current
-                go.Playback.currentFrame = terminalObj['playbackFrames'].length - 1;
-            }
-            if (terminalObj['scrollbackTimer']) {
-                clearTimeout(terminalObj['scrollbackTimer']);
-            }
-            // This timeout re-adds the scrollback buffer after 3.5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
-            terminalObj['scrollbackTimer'] = setTimeout(reScrollback, 3500); // 3.5 seconds is just past the default 'top' refresh rate
-            // TODO: Implement the regex actions/notifications prefs here
-            if (terminalObj['inactivityTimer']) {
-                clearTimeout(terminalObj['inactivityTimer']);
-                var inactivity = u.partial(t.notifyInactivity, termTitle);
-                terminalObj['inactivityTimer'] = setTimeout(inactivity, terminalObj['inactivityTimeout']);
-            }
-            if (terminalObj['activityNotify']) {
-                if (!terminalObj['lastNotifyTime']) {
-                    // Setup a minimum delay between activity notifications so we're not spamming the user
-                    terminalObj['lastNotifyTime'] = new Date();
-                    t.notifyActivity(termTitle);
-                } else {
-                    var then = new Date(terminalObj['lastNotifyTime']),
-                        now = new Date();
-                    then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
-                    if (now > then) {
-                        terminalObj['lastNotifyTime'] = new Date(); // Reset
-                        t.notifyActivity(termTitle);
-                    }
-                }
-            }
-        }
-        terminalObj['scrollbackVisible'] = false;
-        var termPre = u.getNode('#'+go.prefs.prefix+'term' + term + '_pre');
-        // This fixes the position of the terminal:
-        if (termPre) {
-            u.scrollToBottom(termPre);
-        }
-        if (go.Playback) {
-            if (term == localStorage['selectedTerminal']) {
-                currentFrame = terminalObj['playbackFrames'].length - 1; // Reset playback
-                u.getNode('#'+go.prefs.prefix+'progressBar').style.width = '100%';
-                if (!go.Playback.clockUpdater) { // Get the clock updating again if it was stopped
-                    go.Playback.clockUpdater = setInterval('updateClock()', 1);
-                }
-            }
-        }
-    },
-    // The following is a work-in-progress to get more stuff inside updateTerminalAction offloaded to the termUpdatesWorker
-    updateTerminalActionTest: function(termObj) {
-        // Replaces the contents of the terminal div with the lines in termObj
-        // Also updates the Playback controls if the Playback module is loaded
-        var go = GateOne,
-            u = go.Utils,
-            t = go.Terminal,
-            v = go.Visual,
-            count = 0,
-            tempLines = [],
-            lastLine = null,
-            lastNewLine = null,
-            term = termObj['term'],
-            screen = [],
-            incoming_scrollback = termObj['scrollback'],
-            prevBuffer = localStorage["scrollback" + term],
-            terminalObj = go.terminals[term],
-            scrollback = terminalObj['scrollback'],
-            termTitle = u.getNode('#' + go.prefs.prefix + 'term' + term).title;
-            rateLimiter = termObj['ratelimiter'],  // TODO: Make this display an icon or message indicating it has been engaged
-            reScrollback = u.partial(go.Visual.enableScrollback, localStorage['selectedTerminal']),
-            textTransforms = go.Terminal.textTransforms;
-// NOTE: Keeping this for future reference...  Gate One will be using the Web Worker for most of the processing in this function soon.
-//         log('prevBuffer: ' + prevBuffer);
-        t.termUpdatesWorker.postMessage({
+            // Offload processing of the incoming screen to the Web Worker
+            t.termUpdatesWorker.postMessage({
                 'cmds': ['processScreen'],
                 'terminalObj': terminalObj,
-                'prevBuffer': prevBuffer,
-                'termObj': termObj,
+                'termUpdateObj': termUpdateObj,
+                'prevScrollback': prevScrollback,
                 'termTitle': termTitle,
-                'scrollbackMax': go.prefs['scrollback']
-        });
-//         logDebug('GateOne.Utils.updateTerminalAction() termObj: ' + u.items(termObj));
-        if (!scrollback.length) {
-            if (prevBuffer) {
-                scrollback = prevBuffer.split('\n');
-            } else {
-                scrollback = [];
-            }
-        }
-        if (incoming_scrollback.length) {
-            scrollback = scrollback.concat(incoming_scrollback);
-        }
-        // Now trim the array to match the go.prefs['scrollback'] setting
-        if (scrollback.length > go.prefs['scrollback']) {
-            scrollback.reverse();
-            scrollback.length = go.prefs['scrollback']; // I love that Array().length isn't just a read-only value =)
-            scrollback.reverse(); // Put it back in the proper order
-        }
-        terminalObj['scrollback'] = scrollback;
-        if (incoming_scrollback.length) {
-            // Save the scrollback buffer in localStorage for retrieval if the user reloads
-            try {
-                localStorage.setItem("scrollback" + term, scrollback.join('\n'));
-            } catch (e) {
-                if (e == QUOTA_EXCEEDED_ERR) {
-                    logError('Quota exceeded!');
-                }
-            }
-        }
-
-        count = 0;
-        termObj['screen'].forEach(function(line) {
-            if (line.length) {
-                screen.push(line);
-            } else {
-                // Line is unchanged
-                screen.push(terminalObj['prevScreen'][count]);
-            }
-            count += 1;
-        });
-        terminalObj['prevScreen'] = screen;
-        terminalObj['screen'] = screen;
-        if (screen) {
-            // Do a full-screen updated in-place
-            var replacement_text = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + screen.join('\n') + '\n\n</pre>';
-            t.termUpdatesWorker.postMessage({'cmds': ['linkify'], 'text': replacement_text, 'term': term, 'textTransforms': textTransforms});
-            if (go.Playback) {
-                // Add the screen to the session recording
-                var frameObj = {'screen': replacement_text, 'time': new Date()};
-                terminalObj['playbackFrames'] = terminalObj['playbackFrames'].concat(frameObj);
-                // Trim the array to match the go.prefs['playbackFrames'] setting
-                if (terminalObj['playbackFrames'].length > go.prefs['playbackFrames']) {
-                    terminalObj['playbackFrames'].reverse();
-                    terminalObj['playbackFrames'].length = go.prefs['playbackFrames'];
-                    terminalObj['playbackFrames'].reverse(); // Put it back in the proper order
-                }
-                if (!go.Playback.clockUpdater) { // Get the clock updating
-                    go.Playback.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
-                }
-                // Reset the playback frame to be current
-                go.Playback.currentFrame = terminalObj['playbackFrames'].length - 1;
-            }
-            if (terminalObj['scrollbackTimer']) {
-                clearTimeout(terminalObj['scrollbackTimer']);
-            }
-            // This timeout re-adds the scrollback buffer after 3.5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
-            terminalObj['scrollbackTimer'] = setTimeout(reScrollback, 3500); // 3.5 seconds is just past the default 'top' refresh rate
-            // TODO: Implement the regex actions/notifications prefs here
-            if (terminalObj['inactivityTimer']) {
-                clearTimeout(terminalObj['inactivityTimer']);
-                var inactivity = u.partial(t.notifyInactivity, termTitle);
-                terminalObj['inactivityTimer'] = setTimeout(inactivity, terminalObj['inactivityTimeout']);
-            }
-            if (terminalObj['activityNotify']) {
-                if (!terminalObj['lastNotifyTime']) {
-                    // Setup a minimum delay between activity notifications so we're not spamming the user
-                    terminalObj['lastNotifyTime'] = new Date();
-                    t.notifyActivity(termTitle);
-                } else {
-                    var then = new Date(terminalObj['lastNotifyTime']),
-                        now = new Date();
-                    then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
-                    if (now > then) {
-                        terminalObj['lastNotifyTime'] = new Date(); // Reset
-                        t.notifyActivity(termTitle);
-                    }
-                }
-            }
-        }
-        terminalObj['scrollbackVisible'] = false;
-        var termPre = u.getNode('#'+go.prefs.prefix+'term' + term + '_pre');
-        // This fixes the position of the terminal:
-        if (termPre) {
-            u.scrollToBottom(termPre);
-        }
-        if (go.Playback) {
-            if (term == localStorage['selectedTerminal']) {
-                currentFrame = terminalObj['playbackFrames'].length - 1; // Reset playback
-                u.getNode('#'+go.prefs.prefix+'progressBar').style.width = '100%';
-                if (!go.Playback.clockUpdater) { // Get the clock updating again if it was stopped
-                    go.Playback.clockUpdater = setInterval('updateClock()', 1);
-                }
-            }
+                'prefs': go.prefs,
+                'textTransforms': textTransforms
+            });
         }
     },
     notifyInactivity: function(term) {
@@ -2866,7 +2625,7 @@ GateOne.Base.update(GateOne.Terminal, {
             currentTerm = null,
             termUndefined = false,
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
-            prevBuffer = localStorage.getItem("scrollback" + term);
+            prevScrollback = localStorage.getItem("scrollback" + term);
         if (term) {
             currentTerm = go.prefs.prefix+'term' + term;
             t.lastTermNumber = term;
@@ -2893,8 +2652,8 @@ GateOne.Base.update(GateOne.Terminal, {
             // Fill out prevScreen with spaces
             go.terminals[term]['prevScreen'].push(' ');
         }
-        if (prevBuffer) {
-            go.terminals[term]['scrollback'] = prevBuffer.split('\n');
+        if (prevScrollback) {
+            go.terminals[term]['scrollback'] = prevScrollback.split('\n');
         }
         // Add the terminal div to the grid
         var terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': go.prefs.prefix+'terminal'}),
@@ -3007,7 +2766,12 @@ GateOne.Base.update(GateOne.Terminal, {
             go.Terminal.lastTermNumber = 0; // Reset to 0
             go.Terminal.newTerminal();
         }
-        go.Net.sendDimensions(); // Sets this globally for the user's session
+        // In case the user changed the rows/cols or the font/size changed:
+        setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
+            go.Visual.updateDimensions();
+            go.Net.sendDimensions();
+        }, 1500);
+//         go.Net.sendDimensions(); // Sets this globally for the user's session
     },
     modes: {
         // Various functions that will be called when a matching mode is set.

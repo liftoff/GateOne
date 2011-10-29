@@ -18,26 +18,27 @@ var linkify = function(text, pattern, newString) {
     return text.replace(pattern, newString);
 };
 // NOTE: This function is a work in progress...  When I'm done it should make Gate One even more responsive.
-var processScreen = function(terminalObj, prevBuffer, jsonDoc, termTitle, scrollbackMax) {
-    // Figure out the difference between the current screen and the new one (for logging)
+var processScreen = function(terminalObj, termUpdateObj, prevScrollback, termTitle, prefs, textTransforms) {
+    // Do all the necessary client-side processing of the terminal screen and scrollback buffer.  The idea being that a web worker doing this stuff should make Gate One more responsive (at the client).
     // terminalObj: go.terminals[term]
-    // prevBuffer: localStorage['scrollback' + term]
-    // jsonDoc: JSON object given to us from the server
+    // termUpdateObj: The object containing the terminal screen/scrollback provided by the server
+    // prevScrollback: localStorage['scrollback' + term]
     // termTitle: u.getNode('#' + go.prefs.prefix + 'term' + term).title (since we can't query the DOM from within a Worker)
-    // scrollbackMax: GateOne.prefs['scrollback']
+    // prefs: GateOne.prefs
+    // textTransforms: Textual transformations that will be passed to linkify()
     var count = 0,
-        logLines = [],
-        tempLines = [],
-        lastLine = null,
-        lastNewLine = null,
-        term = jsonDoc['term'],
-        screen = jsonDoc['screen'], // Used when a refresh is requested or the entire screen changed
-        incoming_scrollback = jsonDoc['scrollback'],
+        term = termUpdateObj['term'],
+        screen = [],
+        incoming_scrollback = termUpdateObj['scrollback'],
         scrollback = terminalObj['scrollback'],
-        rateLimiter = jsonDoc['ratelimiter'];  // TODO: Make this display an icon or message indicating it has been engaged
+        rateLimiter = termUpdateObj['ratelimiter'],
+        outputObj = {'term': term},
+        screen_html = '',
+        scrollback_html = '';
+    // If there's no scrollback buffer, try filling it with what was preserved in localStorage
     if (!scrollback.length) {
-        if (prevBuffer) {
-            scrollback = prevBuffer.split('\n');
+        if (prevScrollback) {
+            scrollback = prevScrollback.split('\n');
         } else {
             scrollback = [];
         }
@@ -46,37 +47,48 @@ var processScreen = function(terminalObj, prevBuffer, jsonDoc, termTitle, scroll
         scrollback = scrollback.concat(incoming_scrollback);
     }
     // Now trim the array to match the go.prefs['scrollback'] setting
-    if (scrollback.length > scrollbackMax) {
+    if (scrollback.length > prefs.scrollback) {
         scrollback.reverse();
-        scrollback.length = scrollbackMax; // I love that Array().length isn't just a read-only value =)
+        scrollback.length = prefs.scrollback; // I love that Array().length isn't just a read-only value =)
         scrollback.reverse(); // Put it back in the proper order
     }
-    terminalObj['scrollback'] = scrollback;
-    count = 0;
-    termObj['screen'].forEach(function(line) {
-        if (line.length) {
+    // Assemble the entire screen from what the server sent us (lines that haven't changed get sent as null)
+    termUpdateObj['screen'].forEach(function(line) {
+        if (line == null) {
+            screen.push(""); // An empty string will do
+        } else if (line.length) {
+            // Linkify and transform the text inside the screen before we push it
+            line = linkify(line);
+            for (var trans in textTransforms) {
+                // Have to convert the regex to a string and use eval since Firefox can't seem to pass regexp objects to Web Workers.
+                var pattern = eval(textTransforms[trans]['pattern']),
+                    newString = textTransforms[trans]['newString'];
+                line = linkify(line, pattern, newString);
+            }
+            // Regular line, push it.  Push it real good
             screen.push(line);
         } else {
-            // Line is unchanged
-            screen.push(terminalObj['prevScreen'][count]);
+            // Line is unchanged.  Use the previous one
+            screen.push(terminalObj['screen'][count]);
         }
         count += 1;
     });
-    terminalObj['prevScreen'] = screen;
-    terminalObj['screen'] = screen;
-    return {'scrollback': scrollback, 'logLines': logLines, 'log': consoleLog}
+    outputObj['screen'] = screen;
+    outputObj['scrollback'] = scrollback;
+    outputObj['log'] = consoleLog.join('\n');
+    return outputObj
 }
 self.addEventListener('message', function(e) {
     var data = e.data,
+        term = data.term,
         cmds = data.cmds,
         text = data.text,
-        textTransforms = data.textTransforms,
         terminalObj = data.terminalObj,
-        prevBuffer = data.prevBuffer,
-        jsonDoc = data.jsonDoc,
+        termUpdateObj = data.termUpdateObj,
+        prevScrollback = data.prevScrollback,
         termTitle = data.termTitle,
-        scrollbackMax= data.scrollbackMax,
-        term = data.term,
+        prefs= data.prefs,
+        textTransforms = data.textTransforms,
         result = null;
     if (cmds) {
         cmds.forEach(function(cmd) {
@@ -94,8 +106,7 @@ self.addEventListener('message', function(e) {
                     }
                     break;
                 case 'processScreen':
-                    term = jsonDoc['term'];
-                    result = processScreen(terminalObj, prevBuffer, jsonDoc, termTitle, scrollbackMax);
+                    result = processScreen(terminalObj, termUpdateObj, prevScrollback, termTitle, prefs, textTransforms);
                     break;
                 default:
                     self.postMessage('Unknown command: ' + cmds);
