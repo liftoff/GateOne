@@ -268,11 +268,6 @@ class Multiplex:
             # These two lines set the size of the terminal window:
             s = struct.pack("HHHH", rows, cols, 0, 0)
             fcntl.ioctl(fd, termios.TIOCSWINSZ, s)
-            # Set the terminal to *not* translate newlines into /r/n
-            # For whatever reason this isn't working...
-            #new = termios.tcgetattr(1)
-            #new[3] = new[3] & ~termios.ONLCR
-            #termios.tcsetattr(fd, termios.TCSADRAIN, new)
             self.fd = fd
             self.pid = pid
             self.term = self.terminal_emulator(rows=rows, cols=cols)
@@ -395,17 +390,17 @@ class Multiplex:
             try:
                 with io.open(
                         self.fd,
-                        'rt',
-                        buffering=32768,
-                        newline="",
-                        encoding='UTF-8', # TODO: Make this configurable
+                        'rb',
+                        #buffering=32768,
+                        #newline="",
+                        #encoding='UTF-8', # TODO: Make this configurable
                         closefd=False,
-                        errors='handle_special'
+                        #errors='handle_special'
                     ) as reader:
                     # Any more than this and things can get slow:
-                    #updated = bytearray(32768)
-                    #reader.readinto(updated)
-                    updated = reader.read(32768)
+                    updated = bytearray(32768)
+                    reader.readinto(updated)
+                    #updated = reader.read(32768)
                     #print("Type of updated: %s" % type(updated))
                 #print("updated: %s" % `updated`)
                 #updated = os.read(fd, 65536) # A lot slower than reader, why?

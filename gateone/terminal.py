@@ -484,7 +484,7 @@ class Terminal(object):
         self.saved_cursorY = 0
         self.saved_rendition = [None]
         self.application_keys = False
-        self.png = ''
+        self.png = bytearray()
 
     def init_screen(self):
         """
@@ -771,26 +771,26 @@ class Terminal(object):
         # Commented this out because even if logging isn't set to debug, these
         # logging.whatever() lines do still eat some CPU
         #logging.debug('handling chars: %s' % `chars`)
-        logging.debug('type of chars: %s' % type(chars))
-        for char in chars:
-            charnum = ord(char)
+        for byte in chars:
+            #charnum = ord(char)
             #charnum = byte
+            char = unichr(byte)
             #print("char: %s" % `char`)
             if self.png and not self.esc_buffer:
-                self.png.append(char)
-                if len(self.png) == 4 and self.png != '\x89PNG':
+                self.png.append(byte)
+                if len(self.png) == 4 and self.png != b'\x89PNG':
                     print("Not a PNG")
                     # Not a PNG.  Place the preserved chars onto the screen
                     for char in self.png:
                         self.renditions[self.cursorY][
                             self.cursorX] = self.last_rendition
-                        self.screen[self.cursorY][self.cursorX] = unichr(char)
+                        self.screen[self.cursorY][self.cursorX] = char
                         cursor_right()
                 elif self.png.endswith('IEND\xaeB`\x82'): # PNGs all end like this
                     self._png_test() # Let it take care of things
                 continue # No further processing necessary
-            if charnum in specials:
-                specials[charnum]()
+            if byte in specials:
+                specials[byte]()
             elif not self.ignore:
                 # Now handle the regular characters and escape sequences
                 if self.esc_buffer: # We've got an escape sequence going on...
@@ -1322,18 +1322,18 @@ class Terminal(object):
         sets self.png to 'Ë' which will tell self.write() to put all characters
         into a bufer until the 'IEND\xaeB`\x82' sequence is encountered.
         """
-        #print("png_test() len(self.png): %s" % len(self.png))
+        print("png_test() len(self.png): %s" % len(self.png))
         if not self.png:
             # Starting a new PNG file (potentially)
-            self.png = "\x89"
+            self.png = bytearray(b"\x89")
         else:
             # Remove the extra \r's that the terminal adds:
             self.png = self.png.replace('\r\n', '\n')
-            open('/tmp/test.png', 'wb').write(self.png)
+            open('/tmp/test.png', 'w').write(self.png)
             encoded = base64.b64encode(self.png).replace('\n', '')
             data_uri = "data:image/png;base64,%s" % encoded
             #print("PNG: %s" % data_uri)
-            self.png = "" # Empty it out
+            self.png = bytearray() # Empty it out
             self.screen[self.cursorY][self.cursorX] = data_uri
             self.cursorX += 1
 
