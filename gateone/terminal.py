@@ -134,7 +134,7 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import re, time, logging
+import re, time, logging, base64
 from collections import defaultdict
 from itertools import imap, izip
 import copy
@@ -254,6 +254,7 @@ class Terminal(object):
     ASCII_ESC = 27    # Escape
     ASCII_CSI = 155   # Control Sequence Introducer (that nothing uses)
     ASCII_HTS = 210   # Horizontal Tab Stop (HTS)
+    ASCII_E = 137     # Latin small letter e with umlaut (starts PNG files)
 
     charsets = {'0': { # Line drawing mode
             95: u' ',
@@ -348,6 +349,7 @@ class Terminal(object):
             #self.ASCII_ESC: self._sub_esc_sequence,
             self.ASCII_ESC: self._escape,
             self.ASCII_CSI: self._csi,
+            self.ASCII_E: self._png_test,
         }
         # TODO: Finish these:
         self.esc_handlers = {
@@ -482,6 +484,7 @@ class Terminal(object):
         self.saved_cursorY = 0
         self.saved_rendition = [None]
         self.application_keys = False
+        self.png = ''
 
     def init_screen(self):
         """
@@ -768,8 +771,24 @@ class Terminal(object):
         # Commented this out because even if logging isn't set to debug, these
         # logging.whatever() lines do still eat some CPU
         #logging.debug('handling chars: %s' % `chars`)
+        logging.debug('type of chars: %s' % type(chars))
         for char in chars:
             charnum = ord(char)
+            #charnum = byte
+            #print("char: %s" % `char`)
+            if self.png and not self.esc_buffer:
+                self.png.append(char)
+                if len(self.png) == 4 and self.png != '\x89PNG':
+                    print("Not a PNG")
+                    # Not a PNG.  Place the preserved chars onto the screen
+                    for char in self.png:
+                        self.renditions[self.cursorY][
+                            self.cursorX] = self.last_rendition
+                        self.screen[self.cursorY][self.cursorX] = unichr(char)
+                        cursor_right()
+                elif self.png.endswith('IEND\xaeB`\x82'): # PNGs all end like this
+                    self._png_test() # Let it take care of things
+                continue # No further processing necessary
             if charnum in specials:
                 specials[charnum]()
             elif not self.ignore:
@@ -843,7 +862,7 @@ class Terminal(object):
                     else:
                         self.renditions[self.cursorY][
                             self.cursorX] = self.last_rendition
-                        self.screen[self.cursorY][self.cursorX] = unicode(char)
+                        self.screen[self.cursorY][self.cursorX] = char
                     self.prev_esc_buffer = ''
                     cursor_right()
         if changed:
@@ -1296,6 +1315,27 @@ class Terminal(object):
         Starts a CSI sequence.
         """
         self.esc_buffer = '\x1b['
+
+    def _png_test(self):
+        """
+        Starts looking at the intput to see if this is a PNG file.  If it is,
+        sets self.png to 'Ë' which will tell self.write() to put all characters
+        into a bufer until the 'IEND\xaeB`\x82' sequence is encountered.
+        """
+        #print("png_test() len(self.png): %s" % len(self.png))
+        if not self.png:
+            # Starting a new PNG file (potentially)
+            self.png = "\x89"
+        else:
+            # Remove the extra \r's that the terminal adds:
+            self.png = self.png.replace('\r\n', '\n')
+            open('/tmp/test.png', 'wb').write(self.png)
+            encoded = base64.b64encode(self.png).replace('\n', '')
+            data_uri = "data:image/png;base64,%s" % encoded
+            #print("PNG: %s" % data_uri)
+            self.png = "" # Empty it out
+            self.screen[self.cursorY][self.cursorX] = data_uri
+            self.cursorX += 1
 
     def _string_terminator(self):
         """
@@ -1979,6 +2019,10 @@ class Terminal(object):
             outline = ""
             charcount = 0
             for char, rend in izip(line, rendition):
+                if len(char) > 1: # Special stuff =)
+                    # Obviously, not really a single character
+                    outline += '\n<img src="%s">\n' % char
+                    continue
                 changed = True
                 if char in "<>": # Have to convert lt/gt to HTML entities
                     char = char.replace('<', '&lt;')

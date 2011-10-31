@@ -268,6 +268,11 @@ class Multiplex:
             # These two lines set the size of the terminal window:
             s = struct.pack("HHHH", rows, cols, 0, 0)
             fcntl.ioctl(fd, termios.TIOCSWINSZ, s)
+            # Set the terminal to *not* translate newlines into /r/n
+            # For whatever reason this isn't working...
+            #new = termios.tcgetattr(1)
+            #new[3] = new[3] & ~termios.ONLCR
+            #termios.tcsetattr(fd, termios.TCSADRAIN, new)
             self.fd = fd
             self.pid = pid
             self.term = self.terminal_emulator(rows=rows, cols=cols)
@@ -336,6 +341,7 @@ class Multiplex:
         NOTE: This kind of logging doesn't capture user keystrokes.  This is
         intentional as we don't want passwords winding up in the logs.
         """
+        #print("termio type of chars: %s" % type(chars))
         # Write to the log too (if configured)
         if self.log_path:
             now = int(round(time.time() * 1000))
@@ -347,8 +353,8 @@ class Multiplex:
             # actual terminal unless they were using Gate One to view a
             # Gate One log file in vim or something =)
             # \U000f0f0f == U+F0F0F (Private Use Symbol)
-            chars = unicode(chars)
-            output = u"%s:%s\U000f0f0f" % (now, chars)
+            #output = chars.decode("utf-8")
+            output = u"%s:%s\U000f0f0f" % (now, chars.decode('utf-8', errors="ignore"))
             log = gzip.open(self.log_path, mode='a')
             log.write(output.encode("utf-8"))
             log.close()
@@ -390,13 +396,18 @@ class Multiplex:
                 with io.open(
                         self.fd,
                         'rt',
-                        buffering=1024,
+                        buffering=32768,
                         newline="",
                         encoding='UTF-8', # TODO: Make this configurable
                         closefd=False,
                         errors='handle_special'
                     ) as reader:
-                    updated = reader.read(65536)
+                    # Any more than this and things can get slow:
+                    #updated = bytearray(32768)
+                    #reader.readinto(updated)
+                    updated = reader.read(32768)
+                    #print("Type of updated: %s" % type(updated))
+                #print("updated: %s" % `updated`)
                 #updated = os.read(fd, 65536) # A lot slower than reader, why?
                 ratelimit = self.ratelimit
                 now = time.time()
@@ -425,6 +436,7 @@ class Multiplex:
                         if check % 2 == 0 and not self.skip:
                             self.term_write(updated)
                             self.skip = True
+
                         elif self.skip:
                             self.skip = False
                     else:
