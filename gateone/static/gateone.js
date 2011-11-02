@@ -1752,6 +1752,8 @@ GateOne.Visual.scrollbackToggle = false;
 GateOne.Visual.gridView = false;
 GateOne.Visual.goDimensions = {};
 GateOne.Visual.panelToggleCallbacks = {'in': {}, 'out': {}};
+GateOne.Visual.lastMessage = '';
+GateOne.Visual.sinceLastMessage = new Date();
 GateOne.Base.update(GateOne.Visual, {
     // Functions for manipulating views and displaying things
     init: function() {
@@ -1928,7 +1930,15 @@ GateOne.Base.update(GateOne.Visual, {
         }
         var go = GateOne,
             u = go.Utils,
+            now = new Date(),
+            timeDiff = now - go.Visual.sinceLastMessage,
             notice = u.createElement('div', {'id': go.prefs.prefix+id});
+        if (message == go.Visual.lastMessage) {
+            // Only display messages every two seconds if they repeat so we don't spam the user.
+            if (timeDiff < 2000) {
+                return;
+            }
+        }
         if (!timeout) {
             timeout = 1000;
         }
@@ -1943,6 +1953,8 @@ GateOne.Base.update(GateOne.Visual, {
                 u.removeElement(notice);
             }, timeout+removeTimeout);
         }, timeout);
+        go.Visual.lastMessage = message;
+        go.Visual.sinceLastMessage = new Date();
     },
     setTitleAction: function(titleObj) {
         // Sets the title of titleObj['term'] to titleObj['title']

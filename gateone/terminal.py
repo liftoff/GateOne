@@ -720,14 +720,16 @@ class Terminal(object):
         Handles Device Control String sequences.  Still haven't figured out if
         these really need to be implemented.
         """
-        print("TODO: Handle this DCS: %s" % string)
+        pass
+        #print("TODO: Handle this DCS: %s" % string)
 
     def _set_line_params(self, param):
         """
         This function handles the control sequences that set double and single
         line heights and widths.  NOTE: Not actually implemented yet!
         """
-        print("TODO: Handle this line height setting: %s" % param)
+        pass
+        #print("TODO: Handle this line height setting: %s" % param)
 
     def set_G0_charset(self, char):
         """
@@ -908,9 +910,13 @@ class Terminal(object):
                         self.screen[self.cursorY][self.cursorX] = self.charsets[
                             '0'][charnum]
                     else:
-                        self.renditions[self.cursorY][
-                            self.cursorX] = self.last_rendition
-                        self.screen[self.cursorY][self.cursorX] = char
+                        try:
+                            self.renditions[self.cursorY][
+                                self.cursorX] = self.last_rendition
+                            self.screen[self.cursorY][self.cursorX] = char
+                        except IndexError:
+                            # This can happen when escape sequences go haywire
+                            pass
                     self.prev_esc_buffer = ''
                     cursor_right()
         if changed:
@@ -1268,7 +1274,10 @@ class Terminal(object):
 
     def _backspace(self):
         """Execute a backspace (\x08)"""
-        self.renditions[self.cursorY][self.cursorX] = None
+        try:
+            self.renditions[self.cursorY][self.cursorX] = None
+        except IndexError:
+            pass # At the edge, no biggie
         self.cursor_left(1)
 
     def _horizontal_tab(self):
@@ -2084,12 +2093,18 @@ class Terminal(object):
                         # Probably too big to send to browser as a data URI.
                         if im: # Resize it...
                             # 640x480 should come in <32k for most stuff
-                            im.thumbnail((640, 480), Image.ANTIALIAS)
-                            f = StringIO.StringIO()
-                            im.save(f, im.format)
-                            f.seek(0)
-                            # Convert back to bytearray
-                            image_data = bytearray(f.read())
+                            try:
+                                im.thumbnail((640, 480), Image.ANTIALIAS)
+                                f = StringIO.StringIO()
+                                im.save(f, im.format)
+                                f.seek(0)
+                                # Convert back to bytearray
+                                image_data = bytearray(f.read())
+                            except IOError:
+                                # Sometimes PIL will throw this if it can't read
+                                # the image.
+                                outline += "<i>Problem displaying this image</i>"
+                                continue
                         else: # Generic error
                             outline += "<i>Problem displaying this image</i>"
                             continue

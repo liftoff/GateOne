@@ -454,8 +454,8 @@ class Multiplex:
                 logging.debug("KeyError in proc_read(): %s" % e) # So we know
             except (IOError, OSError) as e:
                 logging.error("Got exception in proc_read: %s" % `e`)
-                self.die()
-                self.proc_kill()
+                #self.die()
+                #self.proc_kill()
             except Exception as e:
                 import traceback
                 logging.error("Got BIZARRO exception in proc_read (WTF?): %s" % `e`)
