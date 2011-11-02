@@ -89,6 +89,7 @@ Module Functions and Classes
 # Stdlib imports
 import signal, threading, fcntl, os, pty, re, sys, time, termios, struct
 import io, codecs, gzip, syslog
+from datetime import timedelta
 from tornado import ioloop
 from functools import partial
 from itertools import izip
@@ -240,6 +241,7 @@ class Multiplex:
         *env*
             A dictionary of environment variables to set when executing self.cmd.
         """
+        logging.debug("rows: %s, cols: %s, env: %s" % (rows, cols, env))
         pid, fd = pty.fork()
         if pid == 0: # We're inside the child process
             try: # Enumerate our file descriptors
@@ -276,6 +278,7 @@ class Multiplex:
             self.io_loop.add_handler(
                 self.fd, self.proc_read, self.io_loop.READ)
             self.prev_output = [None for a in xrange(rows-1)]
+            logging.debug('termios settings: %s' % termios.tcgetattr(self.fd))
             return fd
 
     def die(self):
@@ -349,7 +352,8 @@ class Multiplex:
             # Gate One log file in vim or something =)
             # \U000f0f0f == U+F0F0F (Private Use Symbol)
             #output = chars.decode("utf-8")
-            output = u"%s:%s\U000f0f0f" % (now, chars.decode('utf-8', errors="ignore"))
+            output = unicode(chars.decode('utf-8', errors="ignore"))
+            output = u"%s:%s\U000f0f0f" % (now, output)
             log = gzip.open(self.log_path, mode='a')
             log.write(output.encode("utf-8"))
             log.close()
@@ -391,58 +395,60 @@ class Multiplex:
                 with io.open(
                         self.fd,
                         'rb',
-                        #buffering=32768,
-                        #newline="",
-                        #encoding='UTF-8', # TODO: Make this configurable
                         closefd=False,
-                        #errors='handle_special'
                     ) as reader:
-                    # Any more than this and things can get slow:
-                    updated = bytearray(32768)
+                    # This needs to be huge to handle big images
+                    updated = bytearray(1048568)
                     reader.readinto(updated)
-                    #updated = reader.read(32768)
-                    #print("Type of updated: %s" % type(updated))
-                #print("updated: %s" % `updated`)
+                    updated = updated.rstrip('\x00') # Remove excess null chars
+                self.term_write(updated)
                 #updated = os.read(fd, 65536) # A lot slower than reader, why?
-                ratelimit = self.ratelimit
-                now = time.time()
-                timediff = now - self.time
-                rate_timediff = now - ratelimit
-                characters = len(updated)
-                cps = characters/timediff # Assumes 7 bits per char (ASCII)
-                # The conditionals below drop the output of our fd if it's coming
-                # in too fast.  Essentially, it is a rate limiter to prevent
-                # really noisy/fast output console apps (say, 'top' with a
-                # refresh rate of 0.01) from causing this application to
-                # gobble up all the system CPU trying to process the input.
-                # Think of it like mplayer's "-framedrop" option that keeps
-                # your video playing at the proper rate if the CPU runs out of
-                # power to process video frames.
+                #delay_write = timedelta(milliseconds=50)
+                #term_write = partial(self.term_write, updated)
+                #self.io_loop.add_callback(term_write)
+                #self.last_timeout = self.io_loop.add_timeout(
+                    #delay_write, term_write)
+                #ratelimit = self.ratelimit
+                #now = time.time()
+                #timediff = now - self.time
+                #print("timediff: %s" % timediff)
+                #rate_timediff = now - ratelimit
+                #characters = len(updated)
+                #cps = characters/timediff # Assumes 7 bits per char (ASCII)
+                #print("cps: %s" % cps)
+                ## The conditionals below drop the output of our fd if it's coming
+                ## in too fast.  Essentially, it is a rate limiter to prevent
+                ## really noisy/fast output console apps (say, 'top' with a
+                ## refresh rate of 0.01) from causing this application to
+                ## gobble up all the system CPU trying to process the input.
+                ## Think of it like mplayer's "-framedrop" option that keeps
+                ## your video playing at the proper rate if the CPU runs out of
+                ## power to process video frames.
 
-                # Only consider dropping if the rate is faster than self.cps:
-                if cps > self.cps:
-                    # Don't start cutting frames unless this is a constant thing
-                    if rate_timediff > 3:
-                        # TODO: Have this flash a message on the screen
-                        #       indicating the rate limiter has been engaged.
-                        self.ratelimiter_engaged = True
-                        check = divmod(now - ratelimit, 2)[0]
-                        # Update once every other second or so
-                        if check % 2 == 0 and not self.skip:
-                            self.term_write(updated)
-                            self.skip = True
-
-                        elif self.skip:
-                            self.skip = False
-                    else:
-                        self.term_write(updated)
-                    # NOTE: This can result in odd output with too-fast apps
-                else:
-                    self.term_write(updated)
-                if now - ratelimit > 1:
-                    # Reset the rate limiter
-                    self.ratelimit = time.time()
-                self.time = time.time()
+                ## Only consider dropping if the rate is faster than self.cps:
+                #if cps > self.cps:
+                    ## Don't start cutting frames unless this is a constant thing
+                    #if rate_timediff > 3:
+                        ## TODO: Have this flash a message on the screen
+                        ##       indicating the rate limiter has been engaged.
+                        #self.ratelimiter_engaged = True
+                        #print("Rate limiter engaged")
+                        #check = divmod(now - ratelimit, 2)[0]
+                        ## Update once every other second or so
+                        #if check % 2 == 0 and not self.skip:
+                            #self.term_write(updated)
+                            #self.skip = True
+                        #elif self.skip:
+                            #self.skip = False
+                    #else:
+                        #self.term_write(updated)
+                    ## NOTE: This can result in odd output with too-fast apps
+                #else:
+                    #self.term_write(updated)
+                #if now - ratelimit > 1:
+                    ## Reset the rate limiter
+                    #self.ratelimit = time.time()
+                #self.time = time.time()
             except KeyError as e:
                 # Should just be an exception from handle_special()
                 logging.debug("KeyError in proc_read(): %s" % e) # So we know

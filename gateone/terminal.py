@@ -134,13 +134,25 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import re, time, logging, base64
+import re, time, logging, base64, copy, StringIO
 from collections import defaultdict
 from itertools import imap, izip
-import copy
 
 # Import our own stuff
 from utils import get_translation
+
+# Import 3rd party stuff
+try:
+    # We need PIL to detect image types and get their dimensions.  Without the
+    # dimenions, the browser will render the terminal screen much slower than
+    # normal.  Without PIL images will be displayed simply as:
+    #   <i>Image file</i>
+    from PIL import Image
+except ImportError:
+    Image = None
+    logging.warning(
+        "Could not import the Python Imaging Library (PIL) "
+        "so images will not be displayed in the terminal")
 
 _ = get_translation()
 
@@ -254,7 +266,6 @@ class Terminal(object):
     ASCII_ESC = 27    # Escape
     ASCII_CSI = 155   # Control Sequence Introducer (that nothing uses)
     ASCII_HTS = 210   # Horizontal Tab Stop (HTS)
-    ASCII_E = 137     # Latin small letter e with umlaut (starts PNG files)
 
     charsets = {'0': { # Line drawing mode
             95: u' ',
@@ -305,6 +316,7 @@ class Terminal(object):
     # NOTE: CALLBACK_OPT must accept 'chars' as either the first argument or as
     #       a keyword argument.
     CALLBACK_MODE = 9  # Called when the terminal mode changes (e.g. DECCKM)
+    CALLBACK_RESET = 10 # Called when a terminal reset (^[[!p) is encountered
 
     RE_CSI_ESC_SEQ = re.compile(r'\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])')
     RE_ESC_SEQ = re.compile(r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=]|[()# %*+].)')
@@ -319,7 +331,6 @@ class Terminal(object):
         self.scrollback_buf = []
         self.scrollback_renditions = []
         self.title = "Gate One"
-        self.ignore = False
         self.local_echo = True
         self.esc_buffer = '' # For holding escape sequences as they're typed.
         self.prev_esc_buffer = '' # Special: So we can differentiate between
@@ -349,7 +360,6 @@ class Terminal(object):
             #self.ASCII_ESC: self._sub_esc_sequence,
             self.ASCII_ESC: self._escape,
             self.ASCII_CSI: self._csi,
-            self.ASCII_E: self._png_test,
         }
         # TODO: Finish these:
         self.esc_handlers = {
@@ -466,7 +476,8 @@ class Terminal(object):
             self.CALLBACK_TITLE: None,
             self.CALLBACK_BELL: None,
             self.CALLBACK_OPT: None,
-            self.CALLBACK_MODE: None
+            self.CALLBACK_MODE: None,
+            self.CALLBACK_RESET: None,
         }
         self.leds = {
             1: False,
@@ -474,6 +485,22 @@ class Terminal(object):
             3: False,
             4: False
         }
+        png_header = re.compile('.*\x89PNG\r')
+        png_whole = re.compile('\x89PNG\r.+IEND\xaeB`\x82', re.DOTALL)
+        # NOTE: Only matching JFIF and Exif JPEGs because "\xff\xd8" is too
+        # ambiguous.
+        jpeg_header = re.compile('.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
+        jpeg_whole = re.compile(
+            '\xff\xd8\xff.+JFIF\x00.+\xff\xd9(?!\xff)|\xff\xd8\xff.+Exif\x00.+\xff\xd9(?!\xff)', re.DOTALL)
+        self.magic = {
+            # Dict for magic "numbers" so we can tell when a particular type of
+            # file begins and ends (so we can capture it in binary form and
+            # later dump it out via dump_html())
+            # The format is 'beginning': 'whole'
+            png_header: png_whole,
+            jpeg_header: jpeg_whole,
+        }
+        self.matched_header = None
         # These are for saving self.screen and self.renditions so we can support
         # an "alternate buffer"
         self.alt_screen = None
@@ -484,7 +511,7 @@ class Terminal(object):
         self.saved_cursorY = 0
         self.saved_rendition = [None]
         self.application_keys = False
-        self.png = bytearray()
+        self.image = bytearray()
 
     def init_screen(self):
         """
@@ -525,16 +552,18 @@ class Terminal(object):
 
     def terminal_reset(self, *args, **kwargs):
         """
-        Resets the terminal back to an empty screen with all defaults.
+        Resets the terminal back to an empty screen with all defaults.  Calls
+        self.CALLBACKS[CALLBACK_RESET]() when finished.
         """
+        logging.debug('terminal_reset(%s)' % args)
         self.leds = {
             1: False,
             2: False,
             3: False,
             4: False
         }
+        self.local_echo = True
         self.title = "Gate One"
-        self.ignore = False
         self.esc_buffer = ''
         self.prev_esc_buffer = ''
         self.show_cursor = True
@@ -553,6 +582,10 @@ class Terminal(object):
         self.init_screen()
         self.init_renditions()
         self.init_scrollback()
+        try:
+            self.callbacks[self.CALLBACK_RESET]()
+        except TypeError:
+            pass
 
     def __ignore(self, *args, **kwargs):
         """Do nothing"""
@@ -748,11 +781,14 @@ class Terminal(object):
         """
         self.G1_charset = char
 
-    def write(self, chars):
+    def write(self, chars, special_checks=True):
         """
         Write *chars* to the terminal at the current cursor position advancing
         the cursor as it does so.  If *chars* is not unicode, it will be
         converted to unicode before being stored in self.screen.
+
+        if *special_checks* is True (default), Gate One will perform checks for
+        special things like image files coming in via *chars*.
         """
         # TODO: See how much faster this could be if it were all inside of one
         # giant function instead of having it call all the little ones.  It
@@ -767,31 +803,43 @@ class Terminal(object):
         RE_ESC_SEQ = self.RE_ESC_SEQ
         RE_CSI_ESC_SEQ = self.RE_CSI_ESC_SEQ
         cursor_right = self.cursor_right
+        magic = self.magic
         changed = False
-        # Commented this out because even if logging isn't set to debug, these
-        # logging.whatever() lines do still eat some CPU
-        #logging.debug('handling chars: %s' % `chars`)
-        for byte in chars:
-            #charnum = ord(char)
-            #charnum = byte
-            char = unichr(byte)
-            #print("char: %s" % `char`)
-            if self.png and not self.esc_buffer:
-                self.png.append(byte)
-                if len(self.png) == 4 and self.png != b'\x89PNG':
-                    print("Not a PNG")
-                    # Not a PNG.  Place the preserved chars onto the screen
-                    for char in self.png:
-                        self.renditions[self.cursorY][
-                            self.cursorX] = self.last_rendition
-                        self.screen[self.cursorY][self.cursorX] = char
-                        cursor_right()
-                elif self.png.endswith('IEND\xaeB`\x82'): # PNGs all end like this
-                    self._png_test() # Let it take care of things
-                continue # No further processing necessary
-            if byte in specials:
-                specials[byte]()
-            elif not self.ignore:
+        logging.debug('handling chars: %s' % `chars`)
+        if special_checks and isinstance(chars, bytearray):
+            # NOTE: Special checks are limited to PNGs and JPEGs right now
+            before_chars = bytearray()
+            after_chars = bytearray()
+            image_captured = False
+            for magic_header in magic.keys():
+                if magic_header.match(chars):
+                    self.matched_header = magic_header
+            if self.image or self.matched_header:
+                self.image.extend(chars)
+                match = magic[self.matched_header].match(self.image)
+                if match:
+                    logging.debug("Matched image format.  Capturing...")
+                    before_chars, after_chars = magic[
+                            self.matched_header].split(self.image)
+                    # Eliminate anything before the match
+                    self.image = match.group()
+                    self._capture_image(self.image)
+                    self.image = bytearray() # Empty it out
+                    self.matched_header = None # Ditto
+                    image_captured = True
+                if before_chars:
+                    self.write(before_chars, special_checks=False)
+                if after_chars:
+                    self.write(after_chars, special_checks=False)
+                return
+        if isinstance(chars, bytearray):
+            # Have to convert to unicode
+            chars = unicode(chars.decode('utf-8', errors="ignore"))
+        for char in chars:
+            charnum = ord(char)
+            if charnum in specials:
+                specials[charnum]()
+            else:
                 # Now handle the regular characters and escape sequences
                 if self.esc_buffer: # We've got an escape sequence going on...
                     try:
@@ -1277,13 +1325,15 @@ class Terminal(object):
         """
         Handle XON character (stop ignoring)
         """
-        self.ignore = False
+        logging.debug('_xon()')
+        self.local_echo = True
 
     def _xoff(self):
         """
         Handle XOFF character (start ignoring)
         """
-        self.ignore = True
+        logging.debug('_xoff()')
+        self.local_echo = False
 
     def _cancel_esc_sequence(self):
         """Cancels any escape sequence currently in progress."""
@@ -1316,26 +1366,23 @@ class Terminal(object):
         """
         self.esc_buffer = '\x1b['
 
-    def _png_test(self):
+    def _capture_image(self, image_data):
         """
         Starts looking at the intput to see if this is a PNG file.  If it is,
-        sets self.png to 'Ë' which will tell self.write() to put all characters
+        sets self.image to 'Ë' which will tell self.write() to put all characters
         into a bufer until the 'IEND\xaeB`\x82' sequence is encountered.
         """
-        print("png_test() len(self.png): %s" % len(self.png))
-        if not self.png:
-            # Starting a new PNG file (potentially)
-            self.png = bytearray(b"\x89")
-        else:
-            # Remove the extra \r's that the terminal adds:
-            self.png = self.png.replace('\r\n', '\n')
-            open('/tmp/test.png', 'w').write(self.png)
-            encoded = base64.b64encode(self.png).replace('\n', '')
-            data_uri = "data:image/png;base64,%s" % encoded
-            #print("PNG: %s" % data_uri)
-            self.png = bytearray() # Empty it out
-            self.screen[self.cursorY][self.cursorX] = data_uri
-            self.cursorX += 1
+        logging.debug("_capture_image() len(self.image): %s" % len(image_data))
+        # Remove the extra \r's that the terminal adds:
+        image_data = self.image.replace('\r\n', '\n')
+        self.cursorY = self.rows - 1 # Move to the end of the screen
+        # NOTE: If we don't move to the end of the screen the image can end up
+        # partially above the visible screen (since it will rest on the current
+        # row).
+        self.cursorX = 0
+        self.screen[self.cursorY][self.cursorX] = image_data
+        self._newline()
+        self._newline()
 
     def _string_terminator(self):
         """
@@ -2021,7 +2068,37 @@ class Terminal(object):
             for char, rend in izip(line, rendition):
                 if len(char) > 1: # Special stuff =)
                     # Obviously, not really a single character
-                    outline += '\n<img src="%s">\n' % char
+                    if not Image: # Can't use images in the terminal
+                        outline += "<i>Image file</i>"
+                        continue # Can't do anything else
+                    image_data = char
+                    # PIL likes file objects
+                    i = StringIO.StringIO(image_data)
+                    try:
+                        im = Image.open(i)
+                    except IOError:
+                        # i.e. PIL couldn't identify the file
+                        outline += "<i>Image file</i>"
+                        continue # Can't do anything else
+                    if len(image_data) > 50000: # TODO: Make this adjustable
+                        # Probably too big to send to browser as a data URI.
+                        if im: # Resize it...
+                            # 640x480 should come in <32k for most stuff
+                            im.thumbnail((640, 480), Image.ANTIALIAS)
+                            f = StringIO.StringIO()
+                            im.save(f, im.format)
+                            f.seek(0)
+                            # Convert back to bytearray
+                            image_data = bytearray(f.read())
+                        else: # Generic error
+                            outline += "<i>Problem displaying this image</i>"
+                            continue
+                    # Need to encode base64 to create a data URI
+                    encoded = base64.b64encode(image_data).replace('\n', '')
+                    data_uri = "data:image/%s;base64,%s" % (
+                        im.format.lower(), encoded)
+                    outline += '\n<img src="%s" width="%s" height="%s">\n' % (
+                        data_uri, im.size[0], im.size[1])
                     continue
                 changed = True
                 if char in "<>": # Have to convert lt/gt to HTML entities
@@ -2117,6 +2194,40 @@ class Terminal(object):
         for line, rendition in izip(screen, renditions):
             outline = ""
             for char, rend in izip(line, rendition):
+                if len(char) > 1: # Special stuff =)
+                    # Obviously, not really a single character
+                    if not Image: # Can't use images in the terminal
+                        outline += "<i>Image file</i>"
+                        continue # Can't do anything else
+                    image_data = char
+                    # PIL likes file objects
+                    i = StringIO.StringIO(image_data)
+                    try:
+                        im = Image.open(i)
+                    except IOError:
+                        # i.e. PIL couldn't identify the file
+                        outline += "<i>Image file</i>"
+                        continue # Can't do anything else
+                    if len(image_data) > 50000: # TODO: Make this adjustable
+                        # Probably too big to send to browser as a data URI.
+                        if im: # Resize it...
+                            # 640x480 should come in <32k for most stuff
+                            im.thumbnail((640, 480), Image.ANTIALIAS)
+                            f = StringIO.StringIO()
+                            im.save(f, im.format)
+                            f.seek(0)
+                            # Convert back to bytearray
+                            image_data = bytearray(f.read())
+                        else: # Generic error
+                            outline += "<i>Problem displaying this image</i>"
+                            continue
+                    # Need to encode base64 to create a data URI
+                    encoded = base64.b64encode(image_data).replace('\n', '')
+                    data_uri = "data:image/%s;base64,%s" % (
+                        im.format.lower(), encoded)
+                    outline += '\n<img src="%s" width="%s" height="%s">\n' % (
+                        data_uri, im.size[0], im.size[1])
+                    continue
                 changed = True
                 if char in "<>":
                     char = char.replace('<', '&lt;')

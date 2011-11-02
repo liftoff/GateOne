@@ -1434,7 +1434,7 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_F47': {'default': ESC+"[23;6~"},
         'KEY_F48': {'default': ESC+"[24;6~"},
         'KEY_ENTER': {'default': String.fromCharCode(13), 'ctrl': String.fromCharCode(13)},
-        'KEY_BACKSPACE': {'default': String.fromCharCode(127)}, // ^?. Will be changable to ^H eventually.
+        'KEY_BACKSPACE': {'default': String.fromCharCode(127), 'alt': ESC+String.fromCharCode(8)}, // Default is ^?. Will be changable to ^H eventually.
         'KEY_NUM_PAD_CLEAR': String.fromCharCode(12), // Not sure if this will do anything
         'KEY_SHIFT': null,
         'KEY_CTRL': null,
@@ -2485,9 +2485,15 @@ GateOne.Base.update(GateOne.Terminal, {
             if (screen) {
                 try {
                     terminalObj['screen'] = screen;
-                    var termContainer = u.getNode('#'+prefix+'term' + term);
-                    screen_html = '<pre id="'+prefix+'term' + term + '_pre">' + screen.join('\n') + '\n\n</pre>';
-                    termContainer.innerHTML = screen_html;
+                    var termContainer = u.getNode('#'+prefix+'term' + term),
+                        existingPre = u.getNode('#'+prefix+'term' + term + '_pre'),
+                        termPre = u.createElement('pre', {'id': prefix+'term' + term + '_pre'});
+                    termPre.innerHTML = screen.join('\n') + '\n\n';
+                    if (existingPre) {
+                        termContainer.replaceChild(termPre, existingPre);
+                    } else {
+                        termContainer.appendChild(termPre);
+                    }
                     screenUpdate = true;
                 } catch (e) { // Likely the terminal just closed
                     u.noop(); // Just ignore it.
@@ -2811,6 +2817,13 @@ GateOne.Base.update(GateOne.Terminal, {
         GateOne.Terminal.textTransforms[name] = {};
         GateOne.Terminal.textTransforms[name]['pattern'] = pattern;
         GateOne.Terminal.textTransforms[name]['newString'] = newString;
+    },
+    resetTerminalAction: function(term) {
+        // Clears the screen and the scrollback buffer (in memory and in localStorage)
+        logDebug("resetTerminalAction term: " + term);
+        GateOne.terminals[term]['scrollback'] = [];
+        GateOne.terminals[term]['screen'] = [];
+        localStorage["scrollback" + term] = '';
     }
 });
 

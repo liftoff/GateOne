@@ -814,6 +814,7 @@ class TerminalWebSocket(WebSocketHandler):
         self.rows = rows = settings['rows']
         self.cols = cols = settings['cols']
         user_dir = self.settings['user_dir']
+        needs_full_refresh = False # Used to track if we need a full screen dump to the client (since TidyThread needs to be running before that)
         if term not in SESSIONS[self.session]:
             # Setup the requisite dict
             SESSIONS[self.session][term] = {}
@@ -874,9 +875,9 @@ class TerminalWebSocket(WebSocketHandler):
             env = {
                 'GO_TERM': str(term),
                 'GO_SESSION': self.session,
-                'GO_SESSION_DIR': session_dir,
+                'GO_SESSION_DIR': session_dir
             }
-            fd = SESSIONS[self.session][term]['multiplex'].create(
+            SESSIONS[self.session][term]['multiplex'].create(
                 rows, cols, env=env)
             refresh = partial(self.refresh_screen, term)
             SESSIONS[self.session][term][ # 1 is CALLBACK_UPDATE
@@ -900,9 +901,11 @@ class TerminalWebSocket(WebSocketHandler):
             mode_handler = partial(self.mode_handler, term)
             SESSIONS[self.session][term][ # 9 is CALLBACK_MODE
                     'multiplex'].term.callbacks[9] = mode_handler
+            reset_term = partial(self.reset_terminal, term)
+            SESSIONS[self.session][term][ # 10 is CALLBACK_RESET
+                'multiplex'].term.callbacks[10] = reset_term
             if resumed_dtach: # dtach sessions need a little extra love
                 SESSIONS[self.session][term]['multiplex'].redraw()
-            self.refresh_screen(term, True) # Send a fresh screen to the client
         else:
             # Terminal already exists
             if SESSIONS[self.session][term]['multiplex'].alive: # It's ALIVE!
@@ -934,18 +937,22 @@ class TerminalWebSocket(WebSocketHandler):
                 mode_handler = partial(self.mode_handler, term)
                 SESSIONS[self.session][term][ # 9 is CALLBACK_MODE
                     'multiplex'].term.callbacks[9] = mode_handler
-                self.refresh_screen(term, True) # Send a fresh screen
+                reset_term = partial(self.reset_terminal, term)
+                SESSIONS[self.session][term][ # 10 is CALLBACK_RESET
+                    'multiplex'].term.callbacks[10] = reset_term
             else:
                 # Tell the client this terminal is no more
                 message = {'term_ended': term}
                 self.write_message(json_encode(message))
-            # NOTE: refresh_screen will also take care of cleaning things up if
-            #       SESSIONS[self.session][term]['multiplex'].alive is False
+                return
         if 'tidy_thread' not in SESSIONS[self.session]:
             # Start the keepalive thread so the session will time out if the
             # user disconnects for like a week (by default anyway =)
             SESSIONS[self.session]['tidy_thread'] = TidyThread(self.session)
             SESSIONS[self.session]['tidy_thread'].start()
+        # NOTE: refresh_screen will also take care of cleaning things up if
+        #       SESSIONS[self.session][term]['multiplex'].alive is False
+        self.refresh_screen(term, True) # Send a fresh screen to the client
 
     def kill_terminal(self, term):
         """Kills *term* and any associated processes"""
@@ -964,6 +971,14 @@ class TerminalWebSocket(WebSocketHandler):
     def set_terminal(self, term):
         """Sets self.current_term = *term*"""
         self.current_term = term
+
+    def reset_terminal(self, term):
+        """
+        Tells the client to reset the terminal (clear the screen and remove
+        scrollback).
+        """
+        message = {'reset_terminal': term}
+        self.write_message(json_encode(message))
 
     def set_title(self, term):
         """
@@ -1028,7 +1043,7 @@ class TerminalWebSocket(WebSocketHandler):
                 scrollback, screen = multiplexer.dumplines(full=True)
             else:
                 scrollback, screen = multiplexer.dumplines()
-        except KeyError: # Session died (i.e. command ended).
+        except KeyError as e: # Session died (i.e. command ended).
             scrollback, screen = None, None
         if screen:
             output_dict = {
