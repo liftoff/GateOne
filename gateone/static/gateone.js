@@ -743,15 +743,15 @@ GateOne.Base.update(GateOne.Utils, {
         //      {'w': <width in px>, 'h': <height in px>}
         var node = GateOne.Utils.getNode(elem),
             sizingDiv = document.createElement("pre");
-        sizingDiv.innerHTML = "██\n██"; // Fill it with two characters, a newline, and two characters.
+        sizingDiv.innerHTML = "█"; // Fill it with a single character
         // We need two lines so we can factor in the line height and character spacing (if it has been messed with).
         // Set the attributes of our copy to reflect a minimal-size block element
         sizingDiv.style.display = 'block';
         sizingDiv.style.position = 'absolute';
         sizingDiv.style.top = '0';
         sizingDiv.style.left = '0';
-        sizingDiv.style.margin = '0';
-        sizingDiv.style.padding = '0';
+//         sizingDiv.style.margin = '0';
+//         sizingDiv.style.padding = '0';
         sizingDiv.style.width = 'auto';
         sizingDiv.style.height = 'auto';
 //         sizingDiv.style.fontSize = GateOne.prefs.fontSize;
@@ -761,8 +761,8 @@ GateOne.Base.update(GateOne.Utils, {
             nodeWidth = sizingDiv.getClientRects()[0].width;
         nodeHeight = parseInt(nodeHeight);
         nodeWidth = parseInt(nodeWidth);
-        nodeHeight = Math.floor(nodeHeight/2);
-        nodeWidth = Math.floor(nodeWidth/2);
+//         nodeHeight = Math.floor(nodeHeight/2);
+//         nodeWidth = Math.floor(nodeWidth/2);
         node.removeChild(sizingDiv);
         return {'w': nodeWidth, 'h': nodeHeight};
     },

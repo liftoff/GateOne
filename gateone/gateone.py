@@ -1071,8 +1071,8 @@ class TerminalWebSocket(WebSocketHandler):
         the client.
         If *full*, send the whole screen (not just the difference).
         """
-        logging.debug(
-            "refresh_screen (full=%s) on %s" % (full, self.callback_id))
+        #logging.debug(
+            #"refresh_screen (full=%s) on %s" % (full, self.callback_id))
         try:
             SESSIONS[self.session]['tidy_thread'].keepalive(datetime.now())
             m = multiplexer = SESSIONS[self.session][term]['multiplex']
