@@ -66,7 +66,7 @@ for the first time).  Settings in the server.conf file use the following format:
 
 Here's an example::
 
-    address = "0.0.0.0" # Strings are surrounded by quotes
+    address = "127.0.0.1;::1;10.1.1.4" # Strings are surrounded by quotes
     port = 443 # Numbers don't need quotes
 
 There are a few important differences between the configuration file and
@@ -93,7 +93,7 @@ well as descriptions of what each configurable option does:
       --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
       --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
       --logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
-      --address                        Run on the given address.
+      --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as the separator (e.g. --address='127.0.0.1;::1;10.1.1.2;fe70::222:fcff:fc2a:3c2a')
       --auth                           Authentication method to use.  Valid options are: none, kerberos, google
       --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
       --command                        Run the given command when a user connects (e.g. 'nethack').
@@ -1109,7 +1109,8 @@ class TerminalWebSocket(WebSocketHandler):
         """
         Resize the terminal window to the rows/cols specified in *resize_obj*
 
-        Example *resize_obj*:
+        Example *resize_obj*::
+
             {'rows': 24, 'cols': 80}
         """
         self.rows = resize_obj['rows']
@@ -1164,7 +1165,10 @@ class TerminalWebSocket(WebSocketHandler):
         examined more closely.
 
         NOTE: Can only be called from a JavaScript console like so:
-                GateOne.ws.send(JSON.stringify({'debug_terminal': *term*}));
+
+        .. code-block:: javascript
+
+            GateOne.ws.send(JSON.stringify({'debug_terminal': *term*}));
         """
         screen = SESSIONS[self.session][term]['multiplex'].term.screen
         renditions = SESSIONS[self.session][term]['multiplex'].term.renditions
@@ -1213,7 +1217,9 @@ class CallbackThread(threading.Thread):
         self.callbacks = {}
 
     def register_callback(self, identifier, callback):
-        """Stores the given *callback* as self.callbacks[*identifier*]"""
+        """
+        Stores the given *callback* as self.callbacks[*identifier*]
+        """
         self.callbacks.update({identifier: callback})
 
     def unregister_callbacks(self, callback_id):
@@ -1228,7 +1234,9 @@ class CallbackThread(threading.Thread):
     def call_callback(self, identifier, args):
         """
         Calls the callback function associated with *identifier* using the given
-        *args* like so:  self.callbacks[*identifier*](*args)
+        *args* like so::
+
+            self.callbacks[*identifier*](*args*)
         """
         if not args:
             self.callbacks[identifier]()
@@ -1462,7 +1470,7 @@ def main():
         default="",
         help=_("Run on the given address.  Default is all addresses (IPv6 "
                "included).  Multiple address can be specified using a semicolon"
-               "as the separator (e.g. --address="
+               " as the separator (e.g. --address="
                "'127.0.0.1;::1;10.1.1.2;fe70::222:fcff:fc2a:3c2a')"),
         type=str)
     define("port", default=443, help=_("Run on the given port."), type=int)

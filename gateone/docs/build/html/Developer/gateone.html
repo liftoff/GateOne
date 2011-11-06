@@ -3,14 +3,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>gateone.py - Gate One&#39;s Main Script &mdash; Gate One v0.9 documentation</title>
+    <title>gateone.py - Gate One&#39;s Main Script &mdash; Gate One 0.9 documentation</title>
+    
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -23,7 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="logviewer.py - Session Log Viewer" href="logviewer.html" />
     <link rel="prev" title="auth.py - Authentication Classes" href="auth.html" /> 
@@ -107,7 +110,7 @@ for the first time).  Settings in the server.conf file use the following format:
 <div class="highlight-python"><pre>&lt;setting&gt; = &lt;value&gt;</pre>
 </div>
 <p>Here's an example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">address</span> <span class="o">=</span> <span class="s">&quot;0.0.0.0&quot;</span> <span class="c"># Strings are surrounded by quotes</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">address</span> <span class="o">=</span> <span class="s">&quot;127.0.0.1;::1;10.1.1.4&quot;</span> <span class="c"># Strings are surrounded by quotes</span>
 <span class="n">port</span> <span class="o">=</span> <span class="mi">443</span> <span class="c"># Numbers don&#39;t need quotes</span>
 </pre></div>
 </div>
@@ -135,7 +138,7 @@ Options:
 &nbsp;&nbsp;--log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
 &nbsp;&nbsp;--log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
 &nbsp;&nbsp;--logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
-&nbsp;&nbsp;--address                        Run on the given address.
+&nbsp;&nbsp;--address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as the separator (e.g. --address='127.0.0.1;::1;10.1.1.2;fe70::222:fcff:fc2a:3c2a')
 &nbsp;&nbsp;--auth                           Authentication method to use.  Valid options are: none, kerberos, google
 &nbsp;&nbsp;--certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
 &nbsp;&nbsp;--command                        Run the given command when a user connects (e.g. 'nethack').
@@ -173,57 +176,57 @@ data in the following locations (Note: Many of these are configurable):</p>
 <col width="83%" />
 </colgroup>
 <thead valign="bottom">
-<tr><th class="head">File/Directory</th>
+<tr class="row-odd"><th class="head">File/Directory</th>
 <th class="head">Description</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr><td>gateone.py</td>
+<tr class="row-even"><td>gateone.py</td>
 <td>Gate One's primary executable/script. Also, the file containing this documentation</td>
 </tr>
-<tr><td>auth.py</td>
+<tr class="row-odd"><td>auth.py</td>
 <td>Authentication classes</td>
 </tr>
-<tr><td>logviewer.py</td>
+<tr class="row-even"><td>logviewer.py</td>
 <td>A utility to view Gate One session logs</td>
 </tr>
-<tr><td>server.conf</td>
+<tr class="row-odd"><td>server.conf</td>
 <td>Gate One's configuration file</td>
 </tr>
-<tr><td>sso.py</td>
+<tr class="row-even"><td>sso.py</td>
 <td>A Kerberos Single Sign-on module for Tornado (used by auth.py)</td>
 </tr>
-<tr><td>terminal.py</td>
+<tr class="row-odd"><td>terminal.py</td>
 <td>A Pure Python terminal emulator module</td>
 </tr>
-<tr><td>termio.py</td>
+<tr class="row-even"><td>termio.py</td>
 <td>Terminal input/output control module</td>
 </tr>
-<tr><td>utils.py</td>
+<tr class="row-odd"><td>utils.py</td>
 <td>Various supporting functions</td>
 </tr>
-<tr><td>docs/</td>
+<tr class="row-even"><td>docs/</td>
 <td>Gate One documentation</td>
 </tr>
-<tr><td>static/</td>
+<tr class="row-odd"><td>static/</td>
 <td>Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc)</td>
 </tr>
-<tr><td>templates/</td>
+<tr class="row-even"><td>templates/</td>
 <td>Tornado template files such as index.html</td>
 </tr>
-<tr><td>tests/</td>
+<tr class="row-odd"><td>tests/</td>
 <td>Gate One-specific automated unit/acceptance tests</td>
 </tr>
-<tr><td>plugins/</td>
+<tr class="row-even"><td>plugins/</td>
 <td>Plugins go here in the form of ./plugins/&lt;plugin name&gt;/&lt;plugin files|directories&gt;</td>
 </tr>
-<tr><td>users/</td>
+<tr class="row-odd"><td>users/</td>
 <td>Persistent user data in the form of ./users/&lt;username&gt;/&lt;user-specific files&gt;</td>
 </tr>
-<tr><td>users/&lt;user&gt;/logs</td>
+<tr class="row-even"><td>users/&lt;user&gt;/logs</td>
 <td>This is where session logs get stored if session_logging is set.</td>
 </tr>
-<tr><td>/tmp/gateone</td>
+<tr class="row-odd"><td>/tmp/gateone</td>
 <td>Temporary session data in the form of /tmp/gateone/&lt;session ID&gt;/&lt;files&gt;</td>
 </tr>
 </tbody>
@@ -289,6 +292,17 @@ the following tasks in relation to plugins:</p>
 </div>
 <div class="section" id="class-docstrings">
 <h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="gateone.call_callback">
+<tt class="descclassname">gateone.</tt><tt class="descname">call_callback</tt><big>(</big><em>queue</em>, <em>identifier</em>, <em>*args</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#call_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.call_callback" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Given an <em>identifier</em> (string), pushes that string to <em>queue</em> as:</dt>
+<dd>obj = (identifier, args)</dd>
+</dl>
+<p>This should result in the associated callback being called by the
+CallbackThread.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="gateone.BaseHandler">
 <em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler" title="Permalink to this definition">¶</a></dt>
@@ -316,15 +330,15 @@ size should be less than 32k when encoded to Base64.</p>
 <dl class="class">
 <dt id="gateone.StyleHandler">
 <em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">StyleHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#StyleHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.StyleHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Serves up our CSS templates (e.g. the 'black' or 'white' schemes)</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="gateone.RecordingHandler">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">RecordingHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#RecordingHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.RecordingHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles uploads of session recordings and returns them to the client in a
-self-contained HTML file that will auto-start playback.</p>
-<p>NOTE: The real crux of the code that handles this is in the template.</p>
+<dd><p>Serves up our CSS templates (themes, colors, etc) and enumerates what's
+available depending on the given arguments:</p>
+<p>If 'enumerate' is given, returna  JSON-encoded object containing lists of
+our themes/colors in the form of:</p>
+<blockquote>
+<div>{'themes': themes, 'colors': colors}</div></blockquote>
+<p>NOTE: The .css part of filenames will be stripped when sent to the client.</p>
+<p>If 'theme' or 'colors' are provided (along with the requisite 'container'
+and 'prefix' arguments), returns the content of the requested CSS file.</p>
 </dd></dl>
 
 <dl class="class">
@@ -333,6 +347,33 @@ self-contained HTML file that will auto-start playback.</p>
 <dd><p>Handles uploads of user logs and returns them to the client as a basic HTML
 page.  Essentially, this works around the limitation of an HTML page being
 unable to save itself =).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.CallbackThread">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">CallbackThread</tt><big>(</big><em>name</em>, <em>queue</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#CallbackThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.CallbackThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Listens for events in a Queue() and calls any matching/registered callbacks.</p>
+<dl class="method">
+<dt id="gateone.CallbackThread.register_callback">
+<tt class="descname">register_callback</tt><big>(</big><em>identifier</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#CallbackThread.register_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.CallbackThread.register_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the given <em>callback</em> as self.callbacks[<em>identifier</em>]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.CallbackThread.unregister_callbacks">
+<tt class="descname">unregister_callbacks</tt><big>(</big><em>callback_id</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#CallbackThread.unregister_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.CallbackThread.unregister_callbacks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all registered callbacks associated with <em>callback_id</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.CallbackThread.call_callback">
+<tt class="descname">call_callback</tt><big>(</big><em>identifier</em>, <em>args</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#CallbackThread.call_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.CallbackThread.call_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the callback function associated with <em>identifier</em> using the given
+<em>args</em> like so:</p>
+<div class="highlight-python"><pre>self.callbacks[*identifier*](*args*)</pre>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -380,7 +421,7 @@ background.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="auth.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">auth.py</span></tt> - Authentication Classes</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">auth.py</span></tt> - Authentication Classes</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="logviewer.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>
@@ -427,7 +468,7 @@ background.</p>
     </div>
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
   </body>
 </html>

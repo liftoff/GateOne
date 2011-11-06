@@ -3,14 +3,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>terminal.py - A Pure Python Terminal Emulator &mdash; Gate One v0.9 documentation</title>
+    <title>terminal.py - A Pure Python Terminal Emulator &mdash; Gate One 0.9 documentation</title>
+    
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -23,7 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="termio.py - Terminal Input/Output Module" href="termio.html" />
     <link rel="prev" title="sso.py - A Tornado Kerberos Single Sign-On Module" href="sso.html" /> 
@@ -114,39 +117,39 @@ encountered.  Here are the events and their callbacks:</p>
 <col width="72%" />
 </colgroup>
 <thead valign="bottom">
-<tr><th class="head">Callback</th>
+<tr class="row-odd"><th class="head">Callback</th>
 <th class="head">Called when...</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr><td>Terminal.CALLBACK_SCROLL_UP</td>
+<tr class="row-even"><td>CALLBACK_SCROLL_UP</td>
 <td>The terminal is scrolled up (back).</td>
 </tr>
-<tr><td>Terminal.CALLBACK_CHANGED</td>
+<tr class="row-odd"><td>CALLBACK_CHANGED</td>
 <td>The screen is changed/updated.</td>
 </tr>
-<tr><td>Terminal.CALLBACK_CURSOR_POS</td>
+<tr class="row-even"><td>CALLBACK_CURSOR_POS</td>
 <td>The cursor position changes.</td>
 </tr>
-<tr><td>Terminal.CALLBACK_DSR</td>
+<tr class="row-odd"><td>CALLBACK_DSR</td>
 <td>A Device Status Report (DSR) is requested (via the DSR escape sequence).</td>
 </tr>
-<tr><td>Terminal.CALLBACK_TITLE</td>
+<tr class="row-even"><td>CALLBACK_TITLE</td>
 <td>The terminal title changes (xterm-style)</td>
 </tr>
-<tr><td>Terminal.CALLBACK_BELL</td>
+<tr class="row-odd"><td>CALLBACK_BELL</td>
 <td>The bell character (^G) is encountered.</td>
 </tr>
-<tr><td>Terminal.CALLBACK_OPT</td>
+<tr class="row-even"><td>CALLBACK_OPT</td>
 <td>The special optional escape sequence is encountered.</td>
 </tr>
-<tr><td>Terminal.CALLBACK_MODE</td>
+<tr class="row-odd"><td>CALLBACK_MODE</td>
 <td>The terminal mode setting changes (e.g. use alternate screen buffer).</td>
 </tr>
 </tbody>
 </table>
-<p>Note that Terminal.CALLBACK_DSR is special in that it in most cases it will be called with arguments.  See the code for examples of how and when this happens.</p>
-<p>Also, in most cases it is unwise to override Terminal.CALLBACK_MODE since this method is primarily meant for internal use within the Terminal class.</p>
+<p>Note that CALLBACK_DSR is special in that it in most cases it will be called with arguments.  See the code for examples of how and when this happens.</p>
+<p>Also, in most cases it is unwise to override CALLBACK_MODE since this method is primarily meant for internal use within the Terminal class.</p>
 </div>
 <div class="section" id="using-terminal">
 <h3>Using Terminal<a class="headerlink" href="#using-terminal" title="Permalink to this headline">¶</a></h3>
@@ -203,10 +206,21 @@ function itself.</p>
 </div>
 <div class="section" id="class-docstrings">
 <h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="terminal.handle_special">
+<tt class="descclassname">terminal.</tt><tt class="descname">handle_special</tt><big>(</big><em>e</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#handle_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.handle_special" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used in conjunction with codecs.register_error, will replace special ascii
+characters such as 0xDA and 0xc4 (which are used by ncurses) with their
+Unicode equivalents.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="terminal.Terminal">
 <em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">Terminal</tt><big>(</big><em>rows=24</em>, <em>cols=80</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminal controller class.</p>
+<p>Initializes the terminal by calling self.initialize(rows, cols).  This
+is so we can have an equivalent function inside of a
+multiprocessing.Manager (which overrides __init__()).</p>
 <dl class="method">
 <dt id="terminal.Terminal.init_screen">
 <tt class="descname">init_screen</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.init_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.init_screen" title="Permalink to this definition">¶</a></dt>
@@ -231,9 +245,44 @@ for the dimenions.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="terminal.Terminal.add_callback">
+<tt class="descname">add_callback</tt><big>(</big><em>event</em>, <em>callback</em>, <em>identifier=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.add_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.add_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attaches the given <em>callback</em> to the given <em>event</em>.  If given,
+<em>identifier</em> can be used to reference this callback leter (e.g. when you
+want to remove it).  Otherwise an identifier will be generated
+automatically.  If the given <em>identifier</em> is already attached to a
+callback at the given event, that callback will be replaced with
+<em>callback</em>.</p>
+<p><em>event</em> - The numeric ID of the event you're attaching <em>callback</em> to.
+<em>callback</em> - The function you're attaching to the <em>event</em>.
+<em>identifier</em> - A string or number to be used as a reference point should you wish to remove or update this callback later.</p>
+<p>Returns the identifier of the callback.  to Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">term</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">somefunc</span><span class="p">():</span> <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">id</span> <span class="o">=</span> <span class="s">&quot;myref&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">CALLBACK_BELL</span><span class="p">,</span> <span class="n">somefunc</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>NOTE: This allows us to attach callbacks when __init__() has ben
+overridden (e.g. multiprocessing.BaseManager).  It also allows the
+controlling program to have multiple callbacks for the same event.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.remove_callback">
+<tt class="descname">remove_callback</tt><big>(</big><em>event</em>, <em>identifier</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.remove_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.remove_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the callback referenced by <em>identifier</em> that is attached to the
+given <em>event</em>.  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">term</span><span class="o">.</span><span class="n">remove_callback</span><span class="p">(</span><span class="n">CALLBACK_BELL</span><span class="p">,</span> <span class="s">&quot;myref&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="terminal.Terminal.terminal_reset">
 <tt class="descname">terminal_reset</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.terminal_reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.terminal_reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resets the terminal back to an empty screen with all defaults.</p>
+<dd><p>Resets the terminal back to an empty screen with all defaults.  Calls
+self.callbacks[CALLBACK_RESET]() when finished.</p>
 </dd></dl>
 
 <dl class="method">
@@ -253,7 +302,13 @@ needed.</p>
 <dt id="terminal.Terminal.set_title">
 <tt class="descname">set_title</tt><big>(</big><em>title</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.set_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.set_title" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets self.title to <em>title</em> and executes
-self.callbacks[self.CALLBACK_TITLE]()</p>
+self.callbacks[CALLBACK_TITLE]()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.get_title">
+<tt class="descname">get_title</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.get_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.get_title" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns self.title</p>
 </dd></dl>
 
 <dl class="method">
@@ -326,10 +381,12 @@ H    Swedish
 
 <dl class="method">
 <dt id="terminal.Terminal.write">
-<tt class="descname">write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.write" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">write</tt><big>(</big><em>chars</em>, <em>special_checks=True</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write <em>chars</em> to the terminal at the current cursor position advancing
 the cursor as it does so.  If <em>chars</em> is not unicode, it will be
 converted to unicode before being stored in self.screen.</p>
+<p>if <em>special_checks</em> is True (default), Gate One will perform checks for
+special things like image files coming in via <em>chars</em>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -359,8 +416,14 @@ scrolling the screen.</p>
 
 <dl class="method">
 <dt id="terminal.Terminal.insert_line">
-<tt class="descname">insert_line</tt><big>(</big><em>n</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.insert_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.insert_line" title="Permalink to this definition">¶</a></dt>
-<dd><p>Inserts a line at the current cursor position.</p>
+<tt class="descname">insert_line</tt><big>(</big><em>n=1</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.insert_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.insert_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inserts <em>n</em> lines at the current cursor position.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.delete_line">
+<tt class="descname">delete_line</tt><big>(</big><em>n=1</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.delete_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.delete_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes <em>n</em> lines at the current cursor position.</p>
 </dd></dl>
 
 <dl class="method">
@@ -483,7 +546,7 @@ DCH has no effect outside the scrolling margins.</p>
 <dl class="method">
 <dt id="terminal.Terminal.clear_screen_from_cursor_down">
 <tt class="descname">clear_screen_from_cursor_down</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.clear_screen_from_cursor_down"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.clear_screen_from_cursor_down" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clears the screen from the cursor down (Esc[J or Esc[0J).</p>
+<dd><p>Clears the screen from the cursor down (ESC[J or ESC[0J).</p>
 </dd></dl>
 
 <dl class="method">
@@ -496,11 +559,31 @@ DCH has no effect outside the scrolling margins.</p>
 <dt id="terminal.Terminal.clear_screen_from_cursor">
 <tt class="descname">clear_screen_from_cursor</tt><big>(</big><em>n</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.clear_screen_from_cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.clear_screen_from_cursor" title="Permalink to this definition">¶</a></dt>
 <dd><p>CSI*n*J ED (Erase Data).  This escape sequence uses the following rules:</p>
-<div class="highlight-python"><pre>Esc[J   Clear screen from cursor down   ED0
-Esc[0J  Clear screen from cursor down   ED0
-Esc[1J  Clear screen from cursor up     ED1
-Esc[2J  Clear entire screen             ED2</pre>
-</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="76%" />
+<col width="8%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Esc[J</td>
+<td>Clear screen from cursor down</td>
+<td>ED0</td>
+</tr>
+<tr class="row-even"><td>Esc[0J</td>
+<td>Clear screen from cursor down</td>
+<td>ED0</td>
+</tr>
+<tr class="row-odd"><td>Esc[1J</td>
+<td>Clear screen from cursor up</td>
+<td>ED1</td>
+</tr>
+<tr class="row-even"><td>Esc[2J</td>
+<td>Clear entire screen</td>
+<td>ED2</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -609,7 +692,7 @@ quick glance of what is being displayed (when debugging).</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="sso.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="termio.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>
@@ -656,7 +739,7 @@ quick glance of what is being displayed (when debugging).</p>
     </div>
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
   </body>
 </html>

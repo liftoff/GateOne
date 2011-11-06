@@ -3,14 +3,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>logviewer &mdash; Gate One v0.9 documentation</title>
+    <title>logviewer &mdash; Gate One 0.9 documentation</title>
+    
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -23,7 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
   <body>
@@ -47,6 +50,8 @@
           <div class="body">
             
   <h1>Source code for logviewer</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="c">#</span>
 <span class="c">#       Copyright 2011 Liftoff Software Corporation</span>
 <span class="c">#</span>
@@ -145,9 +150,9 @@
 
 <span class="c"># TODO: Support Fast forward/rewind/pause like Gate One itself.</span>
 
-<span class="k">def</span> <span class="nf">playback_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">file_like</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="playback_log"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.playback_log">[docs]</a><span class="k">def</span> <span class="nf">playback_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">file_like</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<div class="viewcode-block" id="playback_log"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.playback_log">[docs]</a><span class="sd">    Plays back the log file at *log_path* by way of timely output to *file_like*</span>
+<span class="sd">    Plays back the log file at *log_path* by way of timely output to *file_like*</span>
 <span class="sd">    which is expected to be any file-like object with write() and flush()</span>
 <span class="sd">    methods.</span>
 
@@ -176,10 +181,10 @@
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="c"># End of file.  No biggie.</span>
             <span class="k">return</span>
-
-<span class="k">def</span> <span class="nf">escape_escape_seq</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">preserve_renditions</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span></div>
-<div class="viewcode-block" id="escape_escape_seq"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.escape_escape_seq">[docs]</a><span class="sd">    Escapes escape sequences so they don&#39;t muck with the terminal viewing *text*</span>
+</div>
+<div class="viewcode-block" id="escape_escape_seq"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.escape_escape_seq">[docs]</a><span class="k">def</span> <span class="nf">escape_escape_seq</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">preserve_renditions</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Escapes escape sequences so they don&#39;t muck with the terminal viewing *text*</span>
 <span class="sd">    Also replaces special characters with unicode symbol equivalents (e.g. so</span>
 <span class="sd">    you can see what they are without having them do anything to your running</span>
 <span class="sd">    shell)</span>
@@ -238,10 +243,10 @@
         <span class="k">return</span> <span class="n">esc_rstrip</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span> <span class="c"># All these trailers better make for a good movie</span>
         <span class="k">return</span> <span class="n">out</span>
-
-<span class="k">def</span> <span class="nf">flatten_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">preserve_renditions</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span></div>
-<div class="viewcode-block" id="flatten_log"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.flatten_log">[docs]</a><span class="sd">    Given a log file at *log_path*, return a list of log lines contained within.</span>
+</div>
+<div class="viewcode-block" id="flatten_log"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.flatten_log">[docs]</a><span class="k">def</span> <span class="nf">flatten_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">preserve_renditions</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a log file at *log_path*, return a list of log lines contained within.</span>
 
 <span class="sd">    If *preserve_renditions* is True, CSI escape sequences for renditions will</span>
 <span class="sd">    be preserved as-is (e.g. font color, background, etc).  This is to make the</span>
@@ -298,9 +303,9 @@
             <span class="k">pass</span>
             <span class="c"># End of file.  No biggie.</span>
     <span class="k">return</span> <span class="n">out</span>
-
+</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Parse command line arguments and view the log in the specified format.&quot;&quot;&quot;</span></div>
+    <span class="sd">&quot;&quot;&quot;Parse command line arguments and view the log in the specified format.&quot;&quot;&quot;</span>
     <span class="n">usage</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">%prog [options] &lt;log file&gt;&#39;</span><span class="p">)</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">(</span><span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">__version__</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">disable_interspersed_args</span><span class="p">()</span>
@@ -381,7 +386,7 @@
     </div>
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
   </body>
 </html>

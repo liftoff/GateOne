@@ -3,14 +3,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>auth.py - Authentication Classes &mdash; Gate One v0.9 documentation</title>
+    <title>auth.py - Authentication Classes &mdash; Gate One 0.9 documentation</title>
+    
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -23,7 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="gateone.py - Gate One&#39;s Main Script" href="gateone.html" />
     <link rel="prev" title="Developer Documentation" href="index.html" /> 
@@ -66,13 +69,13 @@
 <col width="56%" />
 </colgroup>
 <tbody valign="top">
-<tr><td>--auth=none</td>
+<tr class="row-odd"><td>--auth=none</td>
 <td>NullAuthHandler</td>
 </tr>
-<tr><td>--auth=kerberos</td>
+<tr class="row-even"><td>--auth=kerberos</td>
 <td>KerberosAuthHandler</td>
 </tr>
-<tr><td>--auth=google</td>
+<tr class="row-odd"><td>--auth=google</td>
 <td>GoogleAuthHandler</td>
 </tr>
 </tbody>
@@ -185,11 +188,11 @@ the browser will be redirected to login.</p>
 
 <dl class="class">
 <dt id="auth.PAMAuthHandler">
-<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">PAMAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#auth.PAMAuthHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">PAMAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#PAMAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.PAMAuthHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles authenticating users via PAM.</p>
 <dl class="method">
 <dt id="auth.PAMAuthHandler.get">
-<tt class="descname">get</tt><big>(</big><big>)</big><a class="headerlink" href="#auth.PAMAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/auth.html#PAMAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.PAMAuthHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks the user's request header for the proper Authorization data.
 If it checks out the user will be logged in via _on_auth().  If not,
 the browser will be redirected to login.</p>
@@ -269,7 +272,7 @@ the browser will be redirected to login.</p>
     </div>
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
   </body>
 </html>

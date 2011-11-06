@@ -1775,7 +1775,7 @@ class Terminal(object):
 
     def clear_screen_from_cursor_down(self):
         """
-        Clears the screen from the cursor down (Esc[J or Esc[0J).
+        Clears the screen from the cursor down (ESC[J or ESC[0J).
         """
         self.screen[self.cursorY:] = [
            [u' ' for a in xrange(self.cols)] for a in self.screen[self.cursorY:]
@@ -1800,12 +1800,14 @@ class Terminal(object):
 
     def clear_screen_from_cursor(self, n):
         """
-        CSI*n*J ED (Erase Data).  This escape sequence uses the following rules::
+        CSI*n*J ED (Erase Data).  This escape sequence uses the following rules:
 
+            ======  =============================   ===
             Esc[J   Clear screen from cursor down   ED0
             Esc[0J  Clear screen from cursor down   ED0
             Esc[1J  Clear screen from cursor up     ED1
             Esc[2J  Clear entire screen             ED2
+            ======  =============================   ===
         """
         try:
             n = int(n)

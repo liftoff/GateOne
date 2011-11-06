@@ -3,14 +3,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>utils.py - Supporting Functions &mdash; Gate One v0.9 documentation</title>
+    <title>utils.py - Supporting Functions &mdash; Gate One 0.9 documentation</title>
+    
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -23,7 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="gateone.js" href="js_gateone.html" />
     <link rel="prev" title="termio.py - Terminal Input/Output Module" href="termio.html" /> 
@@ -72,8 +75,20 @@ a known syslog facility.</p>
 
 <dl class="function">
 <dt id="utils.noop">
-<tt class="descclassname">utils.</tt><tt class="descname">noop</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/utils.html#noop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.noop" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">noop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/utils.html#noop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.noop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Do nothing (i.e. &quot;No Operation&quot;)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.get_translation">
+<tt class="descclassname">utils.</tt><tt class="descname">get_translation</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/utils.html#get_translation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_translation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks inside GATEONE_DIR/server.conf to determine the configured locale and
+returns a matching locale.get_translation function.  Meant to be used like
+this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -128,7 +143,8 @@ equivalents.  If no logical match is found, return False.  Examples:</p>
 <tt class="descclassname">utils.</tt><tt class="descname">generate_session_id</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/utils.html#generate_session_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.generate_session_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a random, 45-character session ID.  Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">generate_session_id</span><span class="p">()</span>
-<span class="go">&#39;NzY4YzFmNDdhMTM1NDg3Y2FkZmZkMWJmYjYzNjBjM2Y5O&#39;</span>
+<span class="go">&quot;NzY4YzFmNDdhMTM1NDg3Y2FkZmZkMWJmYjYzNjBjM2Y5O&quot;</span>
+<span class="go">&gt;&gt;&gt;</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -146,18 +162,28 @@ equivalents.  If no logical match is found, return False.  Examples:</p>
 
 <dl class="function">
 <dt id="utils.cmd_var_swap">
-<tt class="descclassname">utils.</tt><tt class="descname">cmd_var_swap</tt><big>(</big><em>cmd</em>, <em>session=None</em>, <em>user_dir=None</em>, <em>user=None</em>, <em>time=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#cmd_var_swap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.cmd_var_swap" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">cmd_var_swap</tt><big>(</big><em>cmd</em>, <em>session=None</em>, <em>session_hash=None</em>, <em>user_dir=None</em>, <em>user=None</em>, <em>time=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#cmd_var_swap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.cmd_var_swap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <em>cmd</em> with special inline variables swapped out for their respective
 argument values.  The special variables are as follows:</p>
 <blockquote>
 <div>%SESSION% - <em>session</em>
+%SESSION_HASH% - <em>session_hash</em>
 %USERDIR% - <em>user_dir</em>
 %USER% - <em>user</em>
 %TIME% - <em>time</em></div></blockquote>
 <p>This allows for unique or user-specific values to be swapped into command
 line arguments like so:</p>
 <blockquote>
-<div>ssh_connect.py -M -S <a class="reference external" href="mailto:'/tmp/%SESSION%/%r&#37;&#52;&#48;%h">'/tmp/%SESSION%/%r<span>&#64;</span>%h</a>:%p'</div></blockquote>
+<div>ssh_connect.py -M -S <a class="reference external" href="mailto:'/tmp/gateone/%SESSION%/%r&#37;&#52;&#48;%L">'/tmp/gateone/%SESSION%/%r<span>&#64;</span>%L</a>:%p'</div></blockquote>
+<p>The values passed into this function can be whatever you like.  They don't
+necessarily have to match their intended values.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.short_hash">
+<tt class="descclassname">utils.</tt><tt class="descname">short_hash</tt><big>(</big><em>to_shorten</em><big>)</big><a class="reference internal" href="../_modules/utils.html#short_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.short_hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts <em>to_shorten</em> into a really short hash depenendent on the length of
+<em>to_shorten</em>.  The result will be safe for use as a file name.</p>
 </dd></dl>
 
 <dl class="function">
@@ -274,25 +300,25 @@ following '&lt;num&gt;&lt;char&gt;' formats:</p>
 <col width="54%" />
 </colgroup>
 <thead valign="bottom">
-<tr><th class="head">Character</th>
+<tr class="row-odd"><th class="head">Character</th>
 <th class="head">Meaning</th>
 <th class="head">Example</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr><td>s</td>
+<tr class="row-even"><td>s</td>
 <td>Seconds</td>
 <td>'60s' -&gt; 60 Seconds</td>
 </tr>
-<tr><td>m</td>
+<tr class="row-odd"><td>m</td>
 <td>Minutes</td>
 <td>'5m'  -&gt; 5 Minutes</td>
 </tr>
-<tr><td>h</td>
+<tr class="row-even"><td>h</td>
 <td>Hours</td>
 <td>'24h' -&gt; 24 Hours</td>
 </tr>
-<tr><td>d</td>
+<tr class="row-odd"><td>d</td>
 <td>Days</td>
 <td>'7d'  -&gt; 7 Days</td>
 </tr>
@@ -410,7 +436,7 @@ syslog.LOG_* equivalent.</p>
     </div>
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
   </body>
 </html>

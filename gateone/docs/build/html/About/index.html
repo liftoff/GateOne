@@ -3,14 +3,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>About Gate One &mdash; Gate One v0.9 documentation</title>
+    <title>About Gate One &mdash; Gate One 0.9 documentation</title>
+    
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -23,7 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="next" title="User Guide" href="../UserGuide/index.html" />
     <link rel="prev" title="Gate One Documentation" href="../index.html" /> 
   </head>
@@ -152,7 +155,7 @@
 <span class="n">cookie_secret</span> <span class="o">=</span> <span class="s">&quot;A45CharacterStringGeneratedAtRandom012345678&quot;</span>
 <span class="n">syslog_session_logging</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="n">syslog_facility</span> <span class="o">=</span> <span class="s">&quot;daemon&quot;</span>
-<span class="n">address</span> <span class="o">=</span> <span class="s">&quot;0.0.0.0&quot;</span>
+<span class="n">address</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
 <span class="n">debug</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="n">command</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/plugins/ssh/scripts/ssh_connect.py -S &#39;/tmp/gateone/%SESSION%/</span><span class="si">%r</span><span class="s">@%h:%p&#39; -a &#39;-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts&#39;&quot;</span>
 <span class="n">session_timeout</span> <span class="o">=</span> <span class="s">&quot;5d&quot;</span>
@@ -176,7 +179,7 @@ Options:
 &nbsp;&nbsp;--log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
 &nbsp;&nbsp;--log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
 &nbsp;&nbsp;--logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
-&nbsp;&nbsp;--address                        Run on the given address.
+&nbsp;&nbsp;--address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as the separator (e.g. --address='127.0.0.1;::1;10.1.1.2;fe70::222:fcff:fc2a:3c2a')
 &nbsp;&nbsp;--auth                           Authentication method to use.  Valid options are: none, kerberos, google.
 &nbsp;&nbsp;--certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
 &nbsp;&nbsp;--command                        Run the given command when a user connects (e.g. 'nethack').
@@ -283,7 +286,7 @@ Options:
 <h3>address<a class="headerlink" href="#address" title="Permalink to this headline">¶</a></h3>
 <dl class="option">
 <dt id="cmdoption--address">
-<tt class="descname">--address</tt><tt class="descclassname">=string (IP address)</tt><a class="headerlink" href="#cmdoption--address" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">--address</tt><tt class="descclassname">=string (IPv4 or IPv6 addresses separated by semicolons)</tt><a class="headerlink" href="#cmdoption--address" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <div class="highlight-python"><div class="highlight"><pre><span class="n">address</span> <span class="o">=</span> <span class="s">&quot;0.0.0.0&quot;</span>
@@ -530,25 +533,25 @@ Options:
 <col width="54%" />
 </colgroup>
 <thead valign="bottom">
-<tr><th class="head">Character</th>
+<tr class="row-odd"><th class="head">Character</th>
 <th class="head">Meaning</th>
 <th class="head">Example</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr><td>s</td>
+<tr class="row-even"><td>s</td>
 <td>Seconds</td>
 <td>'60s'&nbsp;➡ 60 Seconds</td>
 </tr>
-<tr><td>m</td>
+<tr class="row-odd"><td>m</td>
 <td>Minutes</td>
 <td>'5m'&nbsp;&nbsp;➡ 5 Minutes</td>
 </tr>
-<tr><td>h</td>
+<tr class="row-even"><td>h</td>
 <td>Hours</td>
 <td>'24h'&nbsp;➡ 24 Hours</td>
 </tr>
-<tr><td>d</td>
+<tr class="row-odd"><td>d</td>
 <td>Days</td>
 <td>'7d'&nbsp;&nbsp;&nbsp;➡ 7 Days</td>
 </tr>
@@ -745,7 +748,7 @@ Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]_;ssh|user@somehost:22#007</p
     </div>
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
   </body>
 </html>

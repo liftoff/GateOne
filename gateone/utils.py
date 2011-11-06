@@ -224,11 +224,13 @@ def str2bool(val):
 
 def generate_session_id():
     """
-    Returns a random, 45-character session ID.  Example::
+    Returns a random, 45-character session ID.  Example:
+
+    .. code-block:: python
 
         >>> utils.generate_session_id()
-        'NzY4YzFmNDdhMTM1NDg3Y2FkZmZkMWJmYjYzNjBjM2Y5O'
-
+        "NzY4YzFmNDdhMTM1NDg3Y2FkZmZkMWJmYjYzNjBjM2Y5O"
+        >>>
     """
     return base64.b64encode(uuid.uuid4().hex + uuid.uuid4().hex)[:45]
 

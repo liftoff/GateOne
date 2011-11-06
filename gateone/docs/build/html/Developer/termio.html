@@ -3,14 +3,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>termio.py - Terminal Input/Output Module &mdash; Gate One v0.9 documentation</title>
+    <title>termio.py - Terminal Input/Output Module &mdash; Gate One 0.9 documentation</title>
+    
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -23,7 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Gate One v0.9 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="utils.py - Supporting Functions" href="utils.html" />
     <link rel="prev" title="terminal.py - A Pure Python Terminal Emulator" href="terminal.html" /> 
@@ -130,14 +133,6 @@ when the window title is set via that respective escape sequence):</p>
 </div>
 <div class="section" id="module-functions-and-classes">
 <h2>Module Functions and Classes<a class="headerlink" href="#module-functions-and-classes" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="termio.handle_special">
-<tt class="descclassname">termio.</tt><tt class="descname">handle_special</tt><big>(</big><em>e</em><big>)</big><a class="reference internal" href="../_modules/termio.html#handle_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.handle_special" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used in conjunction with codecs.register_error, will replace special ascii
-characters such as 0xDA and 0xc4 (which are used by ncurses) with their
-Unicode equivalents.</p>
-</dd></dl>
-
 <dl class="class">
 <dt id="termio.Multiplex">
 <em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">Multiplex</tt><big>(</big><em>cmd=None</em>, <em>terminal_emulator=None</em>, <em>cps=5000</em>, <em>tmpdir='/tmp'</em>, <em>log_path=None</em>, <em>user=None</em>, <em>term_num=None</em>, <em>syslog=False</em>, <em>syslog_facility=24</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex" title="Permalink to this definition">¶</a></dt>
@@ -145,6 +140,40 @@ Unicode equivalents.</p>
 methods for reading/writing to it.  It also creates an instance of
 tornado.ioloop.IOLoop that listens for events on the spawned terminal
 application and updates self.proc[fd]['term'] with any changes.</p>
+<dl class="method">
+<dt id="termio.Multiplex.add_callback">
+<tt class="descname">add_callback</tt><big>(</big><em>event</em>, <em>callback</em>, <em>identifier=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.add_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.add_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attaches the given <em>callback</em> to the given <em>event</em>.  If given,
+<em>identifier</em> can be used to reference this callback leter (e.g. when you
+want to remove it).  Otherwise an identifier will be generated
+automatically.  If the given <em>identifier</em> is already attached to a
+callback at the given event, that callback will be replaced with
+<em>callback</em>.</p>
+<p><em>event</em> - The numeric ID of the event you're attaching <em>callback</em> to.
+<em>callback</em> - The function you're attaching to the <em>event</em>.
+<em>identifier</em> - A string or number to be used as a reference point should you wish to remove or update this callback later.</p>
+<p>Returns the identifier of the callback.  to Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">somefunc</span><span class="p">():</span> <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">id</span> <span class="o">=</span> <span class="s">&quot;myref&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">,</span> <span class="n">somefunc</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>NOTE: This allows us to attach callbacks when __init__() has ben
+overridden (e.g. multiprocessing.BaseManager).  It also allows the
+controlling program to have multiple callbacks for the same event.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="termio.Multiplex.remove_callback">
+<tt class="descname">remove_callback</tt><big>(</big><em>event</em>, <em>identifier</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.remove_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.remove_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the callback referenced by <em>identifier</em> that is attached to the
+given <em>event</em>.  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">remove_callback</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">CALLBACK_BELL</span><span class="p">,</span> <span class="s">&quot;myref&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="method">
 <dt id="termio.Multiplex.create">
 <tt class="descname">create</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.create" title="Permalink to this definition">¶</a></dt>
@@ -217,16 +246,17 @@ should be the one calling it when it detects an io_loop.READ event.</p>
 <dl class="method">
 <dt id="termio.Multiplex.proc_write">
 <tt class="descname">proc_write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.proc_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.proc_write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes <em>chars</em> to the terminal process running on <em>fd</em>.</p>
+<dd><p>Adds _buffer_write(<em>chars</em>) to the IOLoop callback queue.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="termio.Multiplex.dumplines">
-<tt class="descname">dumplines</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.dumplines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.dumplines" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dumplines</tt><big>(</big><em>full=False</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Multiplex.dumplines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex.dumplines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the terminal text lines (a list of lines, to be specific) and
 its scrollback buffer (which is also a list of lines) as a tuple,
 (scrollback, text).  If a line hasn't changed since the last dump then
 it will be replaced with an empty string (in the terminal text lines).</p>
+<p>If <em>full</em>, will return the entire screen (not just the diff).</p>
 </dd></dl>
 
 </dd></dl>
@@ -254,7 +284,7 @@ it will be replaced with an empty string (in the terminal text lines).</p>
                         title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="utils.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/termio.txt"
@@ -298,7 +328,7 @@ it will be replaced with an empty string (in the terminal text lines).</p>
     </div>
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.8.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
   </body>
 </html>
