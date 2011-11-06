@@ -252,7 +252,13 @@ def _(string):
     return user_locale.translate(string).encode('UTF-8')
 
 def call_callback(queue, identifier, *args):
-    logging.debug("call_callback identifier: %s, args: %s" % (identifier, args))
+    """
+    Given an *identifier* (string), pushes that string to *queue* as:
+        obj = (identifier, args)
+
+    This should result in the associated callback being called by the
+    CallbackThread.
+    """
     obj = (identifier, args)
     queue.put(obj)
 
