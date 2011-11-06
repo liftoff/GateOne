@@ -4,10 +4,11 @@ Developer Documentation
 Python Code
 -----------
 Gate One consists of gateone.py and several supporting Python modules and scripts.  The documentation for each can be found below:
-    
+
 .. toctree::
 
     auth.rst
+    authpam.rst
     gateone.rst
     logviewer.rst
     sso.rst
