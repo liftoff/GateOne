@@ -1041,7 +1041,7 @@ class Terminal(object):
         cursor_right = self.cursor_right
         magic = self.magic
         changed = False
-        #logging.debug('handling chars: %s' % `chars`)
+        logging.debug('handling chars: %s' % `chars`)
         if special_checks and isinstance(chars, bytearray):
             # NOTE: Special checks are limited to PNGs and JPEGs right now
             before_chars = bytearray()
@@ -1240,33 +1240,43 @@ class Terminal(object):
         except TypeError:
             pass
 
-    def insert_line(self, n):
+    def insert_line(self, n=1):
         """
         Inserts *n* lines at the current cursor position.
         """
-        line = self.screen.pop(self.bottom_margin) # Remove the bottom line
-        # Remove bottom line's style information as well:
-        style = self.renditions.pop(self.bottom_margin)
-        empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
-        self.screen.insert(self.cursorY, empty_line) # Insert at cursor
-        # Insert a new empty rendition as well:
-        self.renditions.insert(self.cursorY, [[0] for a in xrange(self.cols)])
+        #logging.debug("insert_line(%s)" % n)
+        if not n: # Takes care of an empty string
+            n = 1
+        n = int(n)
+        for i in xrange(n):
+            line = self.screen.pop(self.bottom_margin) # Remove the bottom line
+            # Remove bottom line's style information as well:
+            style = self.renditions.pop(self.bottom_margin)
+            empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            self.screen.insert(self.cursorY, empty_line) # Insert at cursor
+            # Insert a new empty rendition as well:
+            self.renditions.insert(self.cursorY, [[0] for a in xrange(self.cols)])
 
-    def delete_line(self, n):
+    def delete_line(self, n=1):
         """
         Deletes *n* lines at the current cursor position.
         """
-        line = self.screen.pop(self.cursorY) # Remove the line at the cursor
-        # Remove the line's style information as well:
-        style = self.renditions.pop(self.cursorY)
-        # Now add an empty line and empty set of renditions to the bottom of the
-        # view
-        empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
-        # Add it to the bottom of the view:
-        self.screen.insert(self.bottom_margin, empty_line) # Insert at bottom
-        # Insert a new empty rendition as well:
-        self.renditions.insert(
-            self.bottom_margin, [[0] for a in xrange(self.cols)])
+        #logging.debug("delete_line(%s)" % n)
+        if not n: # Takes care of an empty string
+            n = 1
+        n = int(n)
+        for i in xrange(n):
+            line = self.screen.pop(self.cursorY) # Remove the line at the cursor
+            # Remove the line's style information as well:
+            style = self.renditions.pop(self.cursorY)
+            # Now add an empty line and empty set of renditions to the bottom of the
+            # view
+            empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            # Add it to the bottom of the view:
+            self.screen.insert(self.bottom_margin, empty_line) # Insert at bottom
+            # Insert a new empty rendition as well:
+            self.renditions.insert(
+                self.bottom_margin, [[0] for a in xrange(self.cols)])
 
     def _backspace(self):
         """Execute a backspace (\x08)"""
