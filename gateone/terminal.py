@@ -2009,7 +2009,6 @@ class Terminal(object):
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
             self.last_rendition = [0]
-            self.renditions[cursorY][cursorX] = [0]
             return # No need for further processing; save some CPU
         # Convert the string (e.g. '0;1;32') to a list (e.g. [0,1,32]
         new_renditions = [int(a) for a in n.split(';') if a != '']
