@@ -66,19 +66,19 @@ encountered.  Here are the events and their callbacks:
 ============================    ========================================================================
 Callback                        Called when...
 ============================    ========================================================================
-Terminal.CALLBACK_SCROLL_UP     The terminal is scrolled up (back).
-Terminal.CALLBACK_CHANGED       The screen is changed/updated.
-Terminal.CALLBACK_CURSOR_POS    The cursor position changes.
-Terminal.CALLBACK_DSR           A Device Status Report (DSR) is requested (via the DSR escape sequence).
-Terminal.CALLBACK_TITLE         The terminal title changes (xterm-style)
-Terminal.CALLBACK_BELL          The bell character (^G) is encountered.
-Terminal.CALLBACK_OPT           The special optional escape sequence is encountered.
-Terminal.CALLBACK_MODE          The terminal mode setting changes (e.g. use alternate screen buffer).
+CALLBACK_SCROLL_UP              The terminal is scrolled up (back).
+CALLBACK_CHANGED                The screen is changed/updated.
+CALLBACK_CURSOR_POS             The cursor position changes.
+CALLBACK_DSR                    A Device Status Report (DSR) is requested (via the DSR escape sequence).
+CALLBACK_TITLE                  The terminal title changes (xterm-style)
+CALLBACK_BELL                   The bell character (^G) is encountered.
+CALLBACK_OPT                    The special optional escape sequence is encountered.
+CALLBACK_MODE                   The terminal mode setting changes (e.g. use alternate screen buffer).
 ============================    ========================================================================
 
-Note that Terminal.CALLBACK_DSR is special in that it in most cases it will be called with arguments.  See the code for examples of how and when this happens.
+Note that CALLBACK_DSR is special in that it in most cases it will be called with arguments.  See the code for examples of how and when this happens.
 
-Also, in most cases it is unwise to override Terminal.CALLBACK_MODE since this method is primarily meant for internal use within the Terminal class.
+Also, in most cases it is unwise to override CALLBACK_MODE since this method is primarily meant for internal use within the Terminal class.
 
 Using Terminal
 --------------
@@ -134,7 +134,7 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import re, time, logging, base64, copy, StringIO
+import re, time, logging, base64, copy, StringIO, codecs
 from collections import defaultdict
 from itertools import imap, izip
 
@@ -157,6 +157,21 @@ except ImportError:
 _ = get_translation()
 
 # Globals
+CALLBACK_SCROLL_UP = 1    # Called after a scroll up event (new line)
+CALLBACK_CHANGED = 2      # Called after the screen is updated
+CALLBACK_CURSOR_POS = 3   # Called after the cursor position is updated
+# <waives hand in air> You are not concerned with the number 4
+CALLBACK_DSR = 5          # Called when a DSR requires a response
+# NOTE: CALLBACK_DSR must accept 'response' as either the first argument or
+#       as a keyword argument.
+CALLBACK_TITLE = 6        # Called when the terminal sets the window title
+CALLBACK_BELL = 7         # Called after ASCII_BEL is encountered.
+CALLBACK_OPT = 8 # Called when we encounter the optional ESC sequence
+# NOTE: CALLBACK_OPT must accept 'chars' as either the first argument or as
+#       a keyword argument.
+CALLBACK_MODE = 9 # Called when the terminal mode changes (e.g. DECCKM)
+CALLBACK_RESET = 10 # Called when a terminal reset (^[[!p) is encountered
+CALLBACK_LEDS = 11 # Called when the state of the LEDs changes
 
 # These are for HTML output:
 RENDITION_CLASSES = defaultdict(lambda: None, {
@@ -242,6 +257,185 @@ for i in xrange(256):
     RENDITION_CLASSES[(i+1000)] = "fx%s" % i
     RENDITION_CLASSES[(i+10000)] = "bx%s" % i
 
+def handle_special(e):
+    """
+    Used in conjunction with codecs.register_error, will replace special ascii
+    characters such as 0xDA and 0xc4 (which are used by ncurses) with their
+    Unicode equivalents.
+    """
+    # TODO: Get this using curses special characters when appropriate
+    curses_specials = {
+        # NOTE: When $TERM is set to "Linux" these end up getting used by things
+        #       like ncurses-based apps.  In other words, it makes a whole lot
+        #       of ugly look pretty again.
+        0xda: u'┌', # ACS_ULCORNER
+        0xc0: u'└', # ACS_LLCORNER
+        0xbf: u'┐', # ACS_URCORNER
+        0xd9: u'┘', # ACS_LRCORNER
+        0xb4: u'├', # ACS_RTEE
+        0xc3: u'┤', # ACS_LTEE
+        0xc1: u'┴', # ACS_BTEE
+        0xc2: u'┬', # ACS_TTEE
+        0xc4: u'─', # ACS_HLINE
+        0xb3: u'│', # ACS_VLINE
+        0xc5: u'┼', # ACS_PLUS
+        0x2d: u'', # ACS_S1
+        0x5f: u'', # ACS_S9
+        0xc5: u'◆', # ACS_DIAMOND
+        0xb2: u'▒', # ACS_CKBOARD
+        0xf8: u'°', # ACS_DEGREE
+        0xf1: u'±', # ACS_PLMINUS
+        0xf9: u'•', # ACS_BULLET
+        0x3c: u'←', # ACS_LARROW
+        0x3e: u'→', # ACS_RARROW
+        0x76: u'↓', # ACS_DARROW
+        0x5e: u'↑', # ACS_UARROW
+        0xb0: u'⊞', # ACS_BOARD
+        0x0f: u'⨂', # ACS_LANTERN
+        0xdb: u'█', # ACS_BLOCK
+    }
+    specials = {
+# Note to self:  Why did I bother with these overly descriptive comments?  Ugh
+# I've been staring at obscure symbols far too much lately ⨀_⨀
+        128: u'€', # Euro sign
+        129: u' ', # Unknown (Using non-breaking spaces for all unknowns)
+        130: u'‚', # Single low-9 quotation mark
+        131: u'ƒ', # Latin small letter f with hook
+        132: u'„', # Double low-9 quotation mark
+        133: u'…', # Horizontal ellipsis
+        134: u'†', # Dagger
+        135: u'‡', # Double dagger
+        136: u'ˆ', # Modifier letter circumflex accent
+        137: u'‰', # Per mille sign
+        138: u'Š', # Latin capital letter S with caron
+        139: u'‹', # Single left-pointing angle quotation
+        140: u'Œ', # Latin capital ligature OE
+        141: u' ', # Unknown
+        142: u'Ž', #  Latin captial letter Z with caron
+        143: u' ', # Unknown
+        144: u' ', # Unknown
+        145: u'‘', # Left single quotation mark
+        146: u'’', # Right single quotation mark
+        147: u'“', # Left double quotation mark
+        148: u'”', # Right double quotation mark
+        149: u'•', # Bullet
+        150: u'–', # En dash
+        151: u'—', # Em dash
+        152: u'˜', # Small tilde
+        153: u'™', # Trade mark sign
+        154: u'š', # Latin small letter S with caron
+        155: u'›', #  Single right-pointing angle quotation mark
+        156: u'œ', # Latin small ligature oe
+        157: u'Ø', # Upper-case slashed zero--using same as empty set (216)
+        158: u'ž', # Latin small letter z with caron
+        159: u'Ÿ', # Latin capital letter Y with diaeresis
+        160: u' ', # Non-breaking space
+        161: u'¡', # Inverted exclamation mark
+        162: u'¢', # Cent sign
+        163: u'£', # Pound sign
+        164: u'¤', # Currency sign
+        165: u'¥', # Yen sign
+        166: u'¦', # Pipe, Broken vertical bar
+        167: u'§', # Section sign
+        168: u'¨', # Spacing diaeresis - umlaut
+        169: u'©', # Copyright sign
+        170: u'ª', # Feminine ordinal indicator
+        171: u'«', # Left double angle quotes
+        172: u'¬', # Not sign
+        173: u"\u00AD", # Soft hyphen
+        174: u'®', # Registered trade mark sign
+        175: u'¯', # Spacing macron - overline
+        176: u'°', # Degree sign
+        177: u'±', # Plus-or-minus sign
+        178: u'²', # Superscript two - squared
+        179: u'³', # Superscript three - cubed
+        180: u'´', # Acute accent - spacing acute
+        181: u'µ', # Micro sign
+        182: u'¶', # Pilcrow sign - paragraph sign
+        183: u'·', # Middle dot - Georgian comma
+        184: u'¸', # Spacing cedilla
+        185: u'¹', # Superscript one
+        186: u'º', # Masculine ordinal indicator
+        187: u'»', # Right double angle quotes
+        188: u'¼', # Fraction one quarter
+        189: u'½', # Fraction one half
+        190: u'¾', # Fraction three quarters
+        191: u'¿', # Inverted question mark
+        192: u'À', # Latin capital letter A with grave
+        193: u'Á', # Latin capital letter A with acute
+        194: u'Â', # Latin capital letter A with circumflex
+        195: u'Ã', # Latin capital letter A with tilde
+        196: u'Ä', # Latin capital letter A with diaeresis
+        197: u'Å', # Latin capital letter A with ring above
+        198: u'Æ', # Latin capital letter AE
+        199: u'Ç', # Latin capital letter C with cedilla
+        200: u'È', # Latin capital letter E with grave
+        201: u'É', # Latin capital letter E with acute
+        202: u'Ê', # Latin capital letter E with circumflex
+        203: u'Ë', # Latin capital letter E with diaeresis
+        204: u'Ì', # Latin capital letter I with grave
+        205: u'Í', # Latin capital letter I with acute
+        206: u'Î', # Latin capital letter I with circumflex
+        207: u'Ï', # Latin capital letter I with diaeresis
+        208: u'Ð', # Latin capital letter ETH
+        209: u'Ñ', # Latin capital letter N with tilde
+        210: u'Ò', # Latin capital letter O with grave
+        211: u'Ó', # Latin capital letter O with acute
+        212: u'Ô', # Latin capital letter O with circumflex
+        213: u'Õ', # Latin capital letter O with tilde
+        214: u'Ö', # Latin capital letter O with diaeresis
+        215: u'×', # Multiplication sign
+        216: u'Ø', # Latin capital letter O with slash (aka "empty set")
+        217: u'Ù', # Latin capital letter U with grave
+        218: u'Ú', # Latin capital letter U with acute
+        219: u'Û', # Latin capital letter U with circumflex
+        220: u'Ü', # Latin capital letter U with diaeresis
+        221: u'Ý', # Latin capital letter Y with acute
+        222: u'Þ', # Latin capital letter THORN
+        223: u'ß', # Latin small letter sharp s - ess-zed
+        224: u'à', # Latin small letter a with grave
+        225: u'á', # Latin small letter a with acute
+        226: u'â', # Latin small letter a with circumflex
+        227: u'ã', # Latin small letter a with tilde
+        228: u'ä', # Latin small letter a with diaeresis
+        229: u'å', # Latin small letter a with ring above
+        230: u'æ', # Latin small letter ae
+        231: u'ç', # Latin small letter c with cedilla
+        232: u'è', # Latin small letter e with grave
+        233: u'é', # Latin small letter e with acute
+        234: u'ê', # Latin small letter e with circumflex
+        235: u'ë', # Latin small letter e with diaeresis
+        236: u'ì', # Latin small letter i with grave
+        237: u'í', # Latin small letter i with acute
+        238: u'î', # Latin small letter i with circumflex
+        239: u'ï', # Latin small letter i with diaeresis
+        240: u'ð', # Latin small letter eth
+        241: u'ñ', # Latin small letter n with tilde
+        242: u'ò', # Latin small letter o with grave
+        243: u'ó', # Latin small letter o with acute
+        244: u'ô', # Latin small letter o with circumflex
+        245: u'õ', # Latin small letter o with tilde
+        246: u'ö', # Latin small letter o with diaeresis
+        247: u'÷', # Division sign
+        248: u'ø', # Latin small letter o with slash
+        249: u'ù', # Latin small letter u with grave
+        250: u'ú', # Latin small letter u with acute
+        251: u'û', # Latin small letter u with circumflex
+        252: u'ü', # Latin small letter u with diaeresis
+        253: u'ý', # Latin small letter y with acute
+        254: u'þ', # Latin small letter thorn
+        255: u'ÿ', # Latin small letter y with diaeresis
+    }
+    # I left this in its odd state so I could differentiate between the two
+    # in the future.
+    if isinstance(e, (UnicodeEncodeError, UnicodeTranslateError)):
+        s = [u'%s' % specials[ord(c)] for c in e.object[e.start:e.end]]
+        return ''.join(s), e.end
+    else:
+        s = [u'%s' % specials[ord(c)] for c in e.object[e.start:e.end]]
+        return ''.join(s), e.end
+codecs.register_error('handle_special', handle_special)
+
 # TODO List:
 #
 #   * Needs tests!
@@ -303,29 +497,22 @@ class Terminal(object):
         }
     }
 
-    CALLBACK_SCROLL_UP = 1    # Called after a scroll up event (new line)
-    CALLBACK_CHANGED = 2      # Called after the screen is updated
-    CALLBACK_CURSOR_POS = 3   # Called after the cursor position is updated
-    # <waives hand in air> You are not concerned with the number 4
-    CALLBACK_DSR = 5          # Called when a DSR requires a response
-    # NOTE: CALLBACK_DSR must accept 'response' as either the first argument or
-    #       as a keyword argument.
-    CALLBACK_TITLE = 6        # Called when the terminal sets the window title
-    CALLBACK_BELL = 7         # Called after ASCII_BEL is encountered.
-    CALLBACK_OPT = 8   # Called when we encounter the optional ESC sequence
-    # NOTE: CALLBACK_OPT must accept 'chars' as either the first argument or as
-    #       a keyword argument.
-    CALLBACK_MODE = 9  # Called when the terminal mode changes (e.g. DECCKM)
-    CALLBACK_RESET = 10 # Called when a terminal reset (^[[!p) is encountered
-
     RE_CSI_ESC_SEQ = re.compile(r'\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])')
-    RE_ESC_SEQ = re.compile(r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=]|[()# %*+].)')
+    RE_ESC_SEQ = re.compile(r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=<>]|[()# %*+].)')
     RE_TITLE_SEQ = re.compile(r'\x1b\][0-2]\;(.*)(\x07|\x1b\\)')
     # The below regex is used to match our optional (non-standard) handler
     RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.*)(\x07|\x1b\\)')
     RE_NUMBERS = re.compile('\d*') # Matches any number
 
     def __init__(self, rows=24, cols=80):
+        """
+        Initializes the terminal by calling self.initialize(rows, cols).  This
+        is so we can have an equivalent function inside of a
+        multiprocessing.Manager (which overrides __init__()).
+        """
+        self.initialize(rows, cols)
+
+    def initialize(self, rows=24, cols=80):
         self.cols = cols
         self.rows = rows
         self.scrollback_buf = []
@@ -469,15 +656,16 @@ class Terminal(object):
             '1061': self.__ignore, # Set Sun/PC keyboard emulation of VT220 keyboard
         }
         self.callbacks = {
-            self.CALLBACK_SCROLL_UP: None,
-            self.CALLBACK_CHANGED: None,
-            self.CALLBACK_CURSOR_POS: None,
-            self.CALLBACK_DSR: None,
-            self.CALLBACK_TITLE: None,
-            self.CALLBACK_BELL: None,
-            self.CALLBACK_OPT: None,
-            self.CALLBACK_MODE: None,
-            self.CALLBACK_RESET: None,
+            CALLBACK_SCROLL_UP: {},
+            CALLBACK_CHANGED: {},
+            CALLBACK_CURSOR_POS: {},
+            CALLBACK_DSR: {},
+            CALLBACK_TITLE: {},
+            CALLBACK_BELL: {},
+            CALLBACK_OPT: {},
+            CALLBACK_MODE: {},
+            CALLBACK_RESET: {},
+            CALLBACK_LEDS: {},
         }
         self.leds = {
             1: False,
@@ -550,10 +738,49 @@ class Terminal(object):
         self.scrollback_buf = []
         self.scrollback_renditions = []
 
+    def add_callback(self, event, callback, identifier=None):
+        """
+        Attaches the given *callback* to the given *event*.  If given,
+        *identifier* can be used to reference this callback leter (e.g. when you
+        want to remove it).  Otherwise an identifier will be generated
+        automatically.  If the given *identifier* is already attached to a
+        callback at the given event, that callback will be replaced with
+        *callback*.
+
+        *event* - The numeric ID of the event you're attaching *callback* to.
+        *callback* - The function you're attaching to the *event*.
+        *identifier* - A string or number to be used as a reference point should you wish to remove or update this callback later.
+
+        Returns the identifier of the callback.  to Example:
+
+            >>> term = Terminal()
+            >>> def somefunc(): pass
+            >>> id = "myref"
+            >>> ref = term.add_callback(CALLBACK_BELL, somefunc, id)
+
+        NOTE: This allows us to attach callbacks when __init__() has ben
+        overridden (e.g. multiprocessing.BaseManager).  It also allows the
+        controlling program to have multiple callbacks for the same event.
+        """
+        if not identifier:
+            identifier = callback.__hash__()
+        self.callbacks[event][identifier] = callback
+        return identifier
+
+    def remove_callback(self, event, identifier):
+        """
+        Removes the callback referenced by *identifier* that is attached to the
+        given *event*.  Example:
+
+            >>> term.remove_callback(CALLBACK_BELL, "myref")
+
+        """
+        del self.callbacks[event][identifier]
+
     def terminal_reset(self, *args, **kwargs):
         """
         Resets the terminal back to an empty screen with all defaults.  Calls
-        self.CALLBACKS[CALLBACK_RESET]() when finished.
+        self.callbacks[CALLBACK_RESET]() when finished.
         """
         logging.debug('terminal_reset(%s)' % args)
         self.leds = {
@@ -583,7 +810,7 @@ class Terminal(object):
         self.init_renditions()
         self.init_scrollback()
         try:
-            self.callbacks[self.CALLBACK_RESET]()
+            self.callbacks[CALLBACK_RESET]()
         except TypeError:
             pass
 
@@ -596,6 +823,7 @@ class Terminal(object):
         Resizes the terminal window, adding or removing rows or columns as
         needed.
         """
+        logging.debug("resize(%s, %s)" % (rows, cols))
         if rows < self.rows: # Remove rows from the top
             for i in xrange(self.rows - rows):
                 self.screen.pop(0)
@@ -660,15 +888,20 @@ class Terminal(object):
     def set_title(self, title):
         """
         Sets self.title to *title* and executes
-        self.callbacks[self.CALLBACK_TITLE]()
+        self.callbacks[CALLBACK_TITLE]()
         """
         self.title = title
         try:
-            self.callbacks[self.CALLBACK_TITLE]()
+            for callback in self.callbacks[CALLBACK_TITLE].values():
+                callback()
         except TypeError as e:
             logging.error(_("Got TypeError on CALLBACK_TITLE..."))
-            logging.error(repr(self.callbacks[self.CALLBACK_TITLE]))
+            logging.error(repr(self.callbacks[CALLBACK_TITLE]))
             logging.error(e)
+
+    def get_title(self):
+        """Returns self.title"""
+        return self.title
 
 # TODO: put some logic in these save/restore functions to walk the current
 # rendition line to come up with a logical rendition for that exact spot.
@@ -706,11 +939,12 @@ class Terminal(object):
         '\x1b<self.cursorY>;<self.cursorX>R'.  Also executes CALLBACK_DSR with
         the same output as the first argument.  Example:
 
-            self.callbacks[self.CALLBACK_DSR]('\x1b20;123R')
+            self.callbacks[CALLBACK_DSR]('\x1b20;123R')
         """
         esc_cursor_pos = '\x1b%s;%sR' % (self.cursorY, self.cursorX)
         try:
-            self.callbacks[self.CALLBACK_DSR](esc_cursor_pos)
+            for callback in self.callbacks[CALLBACK_DSR].values():
+                callback(esc_cursor_pos)
         except TypeError:
             pass
         return esc_cursor_pos
@@ -807,7 +1041,7 @@ class Terminal(object):
         cursor_right = self.cursor_right
         magic = self.magic
         changed = False
-        logging.debug('handling chars: %s' % `chars`)
+        #logging.debug('handling chars: %s' % `chars`)
         if special_checks and isinstance(chars, bytearray):
             # NOTE: Special checks are limited to PNGs and JPEGs right now
             before_chars = bytearray()
@@ -836,7 +1070,8 @@ class Terminal(object):
                 return
         if isinstance(chars, bytearray):
             # Have to convert to unicode
-            chars = unicode(chars.decode('utf-8', errors="ignore"))
+            #chars = unicode(chars.decode('utf-8', errors="ignore"))
+            chars = unicode(chars.decode('utf-8', errors="handle_special"))
         for char in chars:
             charnum = ord(char)
             if charnum in specials:
@@ -870,10 +1105,12 @@ class Terminal(object):
                             try:
                                 csi_handlers[csi_type](csi_values)
                             except ValueError:
-                                logging.error(_(
-                                    "CSI Handler Error: Type: %s, Values: %s" %
-                                    (csi_type, csi_values)
-                                ))
+                                # Commented this out because it can be super noisy
+                                #logging.error(_(
+                                    #"CSI Handler Error: Type: %s, Values: %s" %
+                                    #(csi_type, csi_values)
+                                #))
+                                pass
                             self.prev_esc_buffer = self.esc_buffer
                             self.esc_buffer = ''
                             continue
@@ -882,10 +1119,11 @@ class Terminal(object):
                         if self.esc_buffer.endswith('\x1b\\'):
                             self._osc_handler()
                         else:
-                            logging.warning(_(
-                                "Warning: No ESC sequence handler for %s"
-                                % `self.esc_buffer`
-                            ))
+                            # Commented this out because it can be super noisy
+                            #logging.warning(_(
+                                #"Warning: No ESC sequence handler for %s"
+                                #% `self.esc_buffer`
+                            #))
                             self.esc_buffer = ''
                     continue # We're done here
 # TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
@@ -922,261 +1160,15 @@ class Terminal(object):
         if changed:
             # Execute our callbacks
             try:
-                self.callbacks[self.CALLBACK_CHANGED]()
+                for callback in self.callbacks[CALLBACK_CHANGED].values():
+                    callback()
             except TypeError:
                 pass
             try:
-                self.callbacks[self.CALLBACK_CURSOR_POS]()
+                for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                    callback()
             except TypeError:
                 pass
-
-# TODO: This is a work in progress...  Testing how much things get sped up by
-# replacing all the function calls with inline code.  It is real ugly and hard
-# to follow but it might just be significantly faster.
-    #def write(self, chars):
-        #"""
-        #Write *chars* to the terminal at the current cursor position advancing
-        #the cursor as it does so.  If *chars* is not unicode, it will be
-        #converted to unicode before being stored in self.screen.
-        #"""
-        ## NOTE: This is the rewrite of write()...  A work in progress.  Notes
-        ## are sprinked throughout the function indicating what needs to be done.
-
-        ## Speedups (don't want dots in loops if they can be avoided)
-        #start = time.time()
-        #specials = self.specials
-        #esc_handlers = self.esc_handlers
-        #csi_handlers = self.csi_handlers
-        #RE_ESC_SEQ = self.RE_ESC_SEQ
-        #RE_CSI_ESC_SEQ = self.RE_CSI_ESC_SEQ
-        #cursor_right = self.cursor_right
-        #changed = False
-        #ASCII_NUL = 0     # Null
-        #ASCII_BEL = 7     # Bell (BEL)
-        #ASCII_BS = 8      # Backspace
-        #ASCII_HT = 9      # Horizontal Tab
-        #ASCII_LF = 10     # Line Feed
-        #ASCII_VT = 11     # Vertical Tab
-        #ASCII_FF = 12     # Form Feed
-        #ASCII_CR = 13     # Carriage Return
-        #ASCII_XON = 17    # Resume Transmission
-        #ASCII_XOFF = 19   # Stop Transmission or Ignore Characters
-        #ASCII_CAN = 24    # Cancel Escape Sequence
-        #ASCII_SUB = 26    # Substitute: Cancel Escape Sequence and replace with ?
-        #ASCII_ESC = 27    # Escape
-        #ASCII_CSI = 155   # Control Sequence Introducer (that nothing uses)
-        #ASCII_HTS = 210   # Horizontal Tab Stop (HTS)
-        #specials = [
-            #ASCII_NUL,
-            #ASCII_BEL,
-            #ASCII_BS,
-            #ASCII_HT,
-            #ASCII_LF,
-            #ASCII_VT,
-            #ASCII_FF,
-            #ASCII_CR,
-            #ASCII_XON,
-            #ASCII_CAN,
-            #ASCII_XOFF,
-            #ASCII_ESC,
-            #ASCII_CSI
-        #]
-        ## Commented this out because even if logging isn't set to debug, these
-        ## logging.whatever() lines do still eat some CPU
-        ##logging.debug('handling chars: %s' % `chars`)
-
-        ## Looping over the characters individually is actually pretty quick as
-        ## is demonstrated by the __spanify_screen() function.
-        #for char in chars:
-            #charnum = ord(char)
-            #if charnum in specials:
-                #if charnum == ASCII_NUL:
-                    #pass # Ignore the null character
-                #elif charnum == ASCII_BEL:
-                    #if not self.esc_buffer:
-                        #try: # We're not in the middle of an esc sequence
-                            #self.callbacks[self.CALLBACK_BELL]()
-                        #except TypeError:
-                            #pass
-                    #else: # We're (likely) setting a title
-                        ## Add the bell char so we don't lose it
-                        #self.esc_buffer += '\x07'
-                        #self._osc_handler()
-                #elif charnum == ASCII_BS:
-                    #self.renditions[self.cursorY][self.cursorX] = None
-                    #self.cursor_left(1)
-                #elif charnum == ASCII_HT:
-                    #next_tabstop = self.cols -1
-                    #for tabstop in self.tabstops:
-                        #if tabstop > self.cursorX:
-                            #next_tabstop = tabstop
-                            #break
-                    #self.cursorX = next_tabstop
-                #elif charnum in [ASCII_LF, ASCII_VT, ASCII_FF]:
-                    #self.cursorY += 1
-                    #if self.cursorY > self.bottom_margin:
-                        #self.scroll_up()
-                        #self.cursorY = self.bottom_margin
-                        #self.clear_line()
-                #elif charnum == ASCII_CR:
-                    #self.cursorX = 0
-                #elif charnum == ASCII_XON:
-                    #self.ignore = False
-                #elif charnum == ASCII_XOFF:
-                    #self.ignore = True
-                #elif charnum == ASCII_CAN:
-                    #self.esc_buffer = ''
-                #elif charnum == ASCII_ESC:
-                    #buf = self.esc_buffer
-                    #if buf.startswith('\x1bP') or buf.startswith('\x1b]'):
-                        ## CSRs and OSCs are special
-                        #self.esc_buffer += '\x1b'
-                    #else:
-                        ## Get rid of whatever's there since we obviously didn't
-                        ## know what to do with it
-                        #self.esc_buffer = '\x1b'
-                #elif charnum == ASCII_CSI:
-                    #self.esc_buffer = '\x1b['
-            #elif not self.ignore:
-                ## Now handle the regular characters and escape sequences
-                #if self.esc_buffer: # We've got an escape sequence going on...
-                    #try:
-                        #self.esc_buffer += char
-                        ## First try to handle non-CSI ESC sequences (the basics)
-                        #match_obj = RE_ESC_SEQ.match(self.esc_buffer)
-                        #if match_obj:
-                            #seq_type = match_obj.group(1) # '\x1bA' -> 'A'
-                            #if len(seq_type) == 1: # Single-character sequnces
-                                #seq_type = seq_type[1]
-                            #else: # Multi-character stuff like '\x1b)B'
-                                #seq_type = seq_type[1]
-                                #arg = seq_type[1:]
-                            #if seq_type == 'c':
-                                #self.clear_screen()
-                            #elif seq_type == 'E':
-                                #if self.cursorY < self.rows -1:
-                                    #self.cursorY += 1
-                            #elif seq_type == 'H':
-                                #if self.cursorX not in self.tabstops:
-                                    #for tabstop in self.tabstops:
-                                        #if self.cursorX > tabstop:
-                                            #self.tabstops.append(self.cursorX)
-                                            #self.tabstops.sort()
-                                            #break
-                            #elif seq_type in 'IM':
-                                #self.cursorX = 0
-                                #self.cursorY -= 1
-                                #if self.cursorY < self.top_margin:
-                                    #self.scroll_down()
-                                    #self.cursorY = self.top_margin
-                            #elif seq_type == '(':
-                                #self.G0_charset = arg
-                            #elif seq_type == ')':
-                                #self.G1_charset = arg
-                            #elif seq_type == '7':
-                                #if arg: # Set DEC private mode
-                ## TODO: Need some logic here to save the current expanded mode
-                ##       so we can restore it in _set_top_bottom().
-                                    #self._set_expanded_mode(mode)
-        ## NOTE: args and kwargs are here to make sure we don't get an exception
-        ##       when we're called via escape sequences.
-                                #self.saved_cursorX = self.cursorX
-                                #self.saved_cursorY = self.cursorY
-                                #self.saved_rendition = self.renditions[
-                                        #self.cursorY][self.cursorX]
-                            #elif seq_type == '8':
-                                #if self.saved_cursorX and self.saved_cursorY:
-                                    #self.cursorX = self.saved_cursorX
-                                    #self.cursorY = self.saved_cursorY
-                                    #self.renditions[
-                                        #self.cursorY][
-                                            #self.cursorX] = self.saved_rendition
-                            #elif seq_type == '6':
-                                #esc_cursor_pos = '\x1b%s;%sR' % (
-                                    #self.cursorY, self.cursorX)
-                                #try:
-                                    #self.callbacks[self.CALLBACK_DSR](
-                                        #esc_cursor_pos)
-                                #except TypeError:
-                                    #pass
-                            #elif seq_type == '5':
-                                #response = "\x1b[0n"
-                                #try:
-                                    #self.callbacks[self.CALLBACK_DSR](response)
-                                #except TypeError:
-                                    #pass
-                            #self.prev_esc_buffer = self.esc_buffer
-                            #self.esc_buffer = '' # All done with this one
-                            #continue
-                        ## Next try to handle CSI ESC sequences
-                        #match_obj = RE_CSI_ESC_SEQ.match(self.esc_buffer)
-                        #if match_obj:
-                            #csi_values = match_obj.group(1) # e.g. '0;1;37'
-                            #csi_type = match_obj.group(2) # e.g. 'm'
-                            ##logging.debug(
-                                ##'CSI: %s, %s' % (csi_type, csi_values))
-                            ## Call the matching CSI handler
-                            #try:
-                                #csi_handlers[csi_type](csi_values)
-                            #except ValueError:
-                                #logging.error(
-                                    #"CSI Handler Error: Type: %s, Values: %s" %
-                                    #(csi_type, csi_values)
-                                #)
-                            #self.prev_esc_buffer = self.esc_buffer
-                            #self.esc_buffer = ''
-                            #continue
-                    #except KeyError:
-                        ## No handler for this, try some alternatives
-                        #if self.esc_buffer.endswith('\x1b\\'):
-                            #self._osc_handler()
-                        #else:
-                            #logging.warning(
-                                #"Warning: No ESC sequence handler for %s"
-                                #% `self.esc_buffer`
-                            #)
-                            #self.esc_buffer = ''
-                    #continue # We're done here
-## TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
-                #if self.local_echo:
-                    #changed = True
-                    #if self.cursorX >= self.cols:
-                        ## Start a newline but NOTE: Not really the best way to
-                        ## handle this because it means copying and pasting lines
-                        ## will end up broken into pieces of size=self.cols
-                        #self._newline()
-                        #self.cursorX = 0
-                        ## This actually works but until I figure out a way to
-                        ## get the browser to properly wrap the line without
-                        ## freaking out whenever someone clicks on the page it
-                        ## will have to stay commented.  NOTE: This might be a
-                        ## browser bug.
-                        ##self.screen[self.cursorY].append(unicode(char))
-                        ##self.renditions[self.cursorY].append([])
-                        ## To try it just uncomment the above two lines and
-                        ## comment out the self._newline() and self.cusorX lines
-                    #if self.G0_charset == '0':
-                        #self.screen[self.cursorY][self.cursorX] = self.charsets[
-                            #'0'][charnum]
-                    #else:
-                        #self.renditions[self.cursorY][
-                            #self.cursorX] = self.last_rendition
-                        #self.screen[self.cursorY][self.cursorX] = unicode(char)
-                    #self.prev_esc_buffer = ''
-                    #cursor_right()
-        #if changed:
-            ## Execute our callbacks
-            #try:
-                #self.callbacks[self.CALLBACK_CHANGED]()
-            #except TypeError:
-                #pass
-            #try:
-                #self.callbacks[self.CALLBACK_CURSOR_POS]()
-            #except TypeError:
-                #pass
-        #end = time.time()
-        #elapsed = end - start
-        #print('It took %0.2fms to write()' % (elapsed*1000.0))
 
     def flush(self):
         """
@@ -1208,12 +1200,14 @@ class Terminal(object):
                 self.bottom_margin, [[0] for a in xrange(self.cols)])
         # Execute our callback indicating lines have been updated
         try:
-            self.callbacks[self.CALLBACK_CHANGED]()
+            for callback in self.callbacks[CALLBACK_CHANGED].values():
+                callback()
         except TypeError:
             pass
         # Execute our callback to scroll up the screen
         try:
-            self.callbacks[self.CALLBACK_SCROLL_UP]()
+            for callback in self.callbacks[CALLBACK_SCROLL_UP].values():
+                callback()
         except TypeError:
             pass
 
@@ -1234,13 +1228,15 @@ class Terminal(object):
                 self.top_margin, [[0] for a in xrange(self.cols)])
         # Execute our callback indicating lines have been updated
         try:
-            self.callbacks[self.CALLBACK_CHANGED]()
+            for callback in self.callbacks[CALLBACK_CHANGED].values():
+                callback()
         except TypeError:
             pass
 
         # Execute our callback to scroll up the screen
         try:
-            self.callbacks[self.CALLBACK_SCROLL_UP]()
+            for callback in self.callbacks[CALLBACK_SCROLL_UP].values():
+                callback()
         except TypeError:
             pass
 
@@ -1425,13 +1421,13 @@ class Terminal(object):
             self.esc_buffer = ''
             return
         # At this point we've encountered something unusual
-        logging.warning(_("Warning: No ESC sequence handler for %s" %
-            `self.esc_buffer`))
+        #logging.warning(_("Warning: No ESC sequence handler for %s" %
+            #`self.esc_buffer`))
         self.esc_buffer = ''
 
     def _bell(self):
         """
-        Handle bell character and execute self.CALLBACKS[CALLBACK_BELL]() if we
+        Handle bell character and execute self.callbacks[CALLBACK_BELL]() if we
         are not in the middle of an escape sequence.  If we *are* in the middle
         of an escape sequence, call self._osc_handler() since we can be nearly
         certain that we're simply terminating an OSC sequence.
@@ -1443,7 +1439,8 @@ class Terminal(object):
         #       title (everything between \x1b]0;...\x07).
         if not self.esc_buffer: # We're not in the middle of an esc sequence
             try:
-                self.callbacks[self.CALLBACK_BELL]()
+                for callback in self.callbacks[CALLBACK_BELL].values():
+                    callback()
             except TypeError:
                 pass
         else: # We're (likely) setting a title
@@ -1453,11 +1450,12 @@ class Terminal(object):
     def _device_status_report(self):
         """
         Returns '\x1b[0n' (terminal OK) and executes
-        self.callbacks[self.CALLBACK_DSR]("\x1b[0n").
+        self.callbacks[CALLBACK_DSR]("\x1b[0n").
         """
         response = "\x1b[0n"
         try:
-            self.callbacks[self.CALLBACK_DSR](response)
+            for callback in self.callbacks[CALLBACK_DSR].values():
+                callback(response)
         except TypeError:
             pass
         return response
@@ -1469,7 +1467,8 @@ class Terminal(object):
         """
         response = "\x1b[1;2c"
         try:
-            self.callbacks[self.CALLBACK_DSR](response)
+            for callback in self.callbacks[CALLBACK_DSR].values():
+                callback(response)
         except TypeError:
             pass
         return response
@@ -1498,7 +1497,8 @@ class Terminal(object):
             except (KeyError, TypeError):
                 pass # Unsupported expanded mode
         try:
-            self.callbacks[self.CALLBACK_MODE](setting, True)
+            for callback in self.callbacks[CALLBACK_MODE].values():
+                callback(setting, True)
         except TypeError:
             pass
 
@@ -1514,7 +1514,8 @@ class Terminal(object):
             except (KeyError, TypeError):
                 pass # Unsupported expanded mode
         try:
-            self.callbacks[self.CALLBACK_MODE](setting, False)
+            for callback in self.callbacks[CALLBACK_MODE].values():
+                callback(setting, False)
         except TypeError:
             pass
 
@@ -1627,7 +1628,8 @@ class Terminal(object):
         n = int(n)
         self.cursorX = max(0, self.cursorX - n)
         try:
-            self.callbacks[self.CALLBACK_CURSOR_POS]()
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
         except TypeError:
             pass
 
@@ -1639,7 +1641,8 @@ class Terminal(object):
         n = int(n)
         self.cursorX += n
         try:
-            self.callbacks[self.CALLBACK_CURSOR_POS]()
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
         except TypeError:
             pass
 
@@ -1651,7 +1654,8 @@ class Terminal(object):
         n = int(n)
         self.cursorY = max(0, self.cursorY - n)
         try:
-            self.callbacks[self.CALLBACK_CURSOR_POS]()
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
         except TypeError:
             pass
 
@@ -1663,7 +1667,8 @@ class Terminal(object):
         n = int(n)
         self.cursorY = min(self.rows, self.cursorY + n)
         try:
-            self.callbacks[self.CALLBACK_CURSOR_POS]()
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
         except TypeError:
             pass
 
@@ -1675,7 +1680,8 @@ class Terminal(object):
         self.cursorY = min(self.rows, self.cursorY + n)
         self.cursorX = 0
         try:
-            self.callbacks[self.CALLBACK_CURSOR_POS]()
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
         except TypeError:
             pass
 
@@ -1687,7 +1693,8 @@ class Terminal(object):
         self.cursorY = max(0, self.cursorY - n)
         self.cursorX = 0
         try:
-            self.callbacks[self.CALLBACK_CURSOR_POS]()
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
         except TypeError:
             pass
 
@@ -1698,7 +1705,8 @@ class Terminal(object):
         n = int(n)
         self.cursorX = n - 1 # -1 because cols is 0-based
         try:
-            self.callbacks[self.CALLBACK_CURSOR_POS]()
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
         except TypeError:
             pass
 
@@ -1734,7 +1742,8 @@ class Terminal(object):
         self.cursorY = row
         self.cursorX = col
         try:
-            self.callbacks[self.CALLBACK_CURSOR_POS]()
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
         except TypeError:
             pass
 
@@ -1803,11 +1812,13 @@ class Terminal(object):
             logging.error(_("Error: Unsupported number for escape sequence J"))
         # Execute our callbacks
         try:
-            self.callbacks[self.CALLBACK_CHANGED]()
+            for callback in self.callbacks[CALLBACK_CHANGED].values():
+                callback()
         except TypeError:
             pass
         try:
-            self.callbacks[self.CALLBACK_CURSOR_POS]()
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
         except TypeError:
             pass
 
@@ -1877,11 +1888,13 @@ class Terminal(object):
                 "Error: Unsupported number for CSI escape sequence K"))
         # Execute our callbacks
         try:
-            self.callbacks[self.CALLBACK_CHANGED]()
+            for callback in self.callbacks[CALLBACK_CHANGED].values():
+                callback()
         except TypeError:
             pass
         try:
-            self.callbacks[self.CALLBACK_CURSOR_POS]()
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
         except TypeError:
             pass
 
@@ -1906,6 +1919,11 @@ class Terminal(object):
                 self.leds[4] = False
             else:
                 self.leds[state] = True
+        try:
+            for callback in self.callbacks[CALLBACK_LEDS].values():
+                callback()
+        except TypeError:
+            pass
 
     def __reduce_renditions(self, renditions):
         """
@@ -2030,8 +2048,8 @@ class Terminal(object):
     def __opt_handler(self, chars):
         """
         Optional special escape sequence handler for sequences matching
-        RE_OPT_SEQ.  If self.CALLBACK_OPT is defined it will be called like so:
-            self.CALLBACKS[self.CALLBACK_OPT](chars)
+        RE_OPT_SEQ.  If CALLBACK_OPT is defined it will be called like so:
+            self.callbacks[CALLBACK_OPT](chars)
 
         Applications can use this escape sequence to define whatever special
         handlers they like.  It works like this: If an escape sequence is
@@ -2046,7 +2064,8 @@ class Terminal(object):
         communication amongst ssh_connect.py, ssh.js, and ssh.py).
         """
         try:
-            self.callbacks[self.CALLBACK_OPT](chars)
+            for callback in self.callbacks[CALLBACK_OPT].values():
+                callback(chars)
         except TypeError as e:
             # High likelyhood that nothing is defined.  No biggie.
             pass

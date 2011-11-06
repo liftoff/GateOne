@@ -214,9 +214,10 @@ from functools import partial
 from datetime import datetime, timedelta
 from platform import uname
 from commands import getoutput
+from multiprocessing import Queue, Process
 
 # Our own modules
-import termio
+import termio, terminal
 from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler, PAMAuthHandler
 from utils import noop, str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
@@ -249,6 +250,11 @@ def _(string):
     function in __main__
     """
     return user_locale.translate(string).encode('UTF-8')
+
+def call_callback(queue, identifier, *args):
+    logging.debug("call_callback identifier: %s, args: %s" % (identifier, args))
+    obj = (identifier, args)
+    queue.put(obj)
 
 # Globals
 SESSIONS = {} # We store the crux of most session info here
@@ -714,6 +720,11 @@ class TerminalWebSocket(WebSocketHandler):
         NOTE: Normally self.refresh_screen() catches the disconnect first and
         this won't be called.
         """
+        # Shut down the callbacks associated with this user
+        name = "CallbackThread.%s" % self.session
+        for t in threading.enumerate():
+            if t.getName().startswith(name):
+                t.quit()
         go_upn = self.get_current_user()
         if go_upn:
             logging.info(
@@ -879,77 +890,88 @@ class TerminalWebSocket(WebSocketHandler):
             }
             SESSIONS[self.session][term]['multiplex'].create(
                 rows, cols, env=env)
-            refresh = partial(self.refresh_screen, term)
-            SESSIONS[self.session][term][ # 1 is CALLBACK_UPDATE
-                'multiplex'].callbacks[1] = refresh
-            restart = partial(self.new_terminal, settings)
-            SESSIONS[self.session][term][ # 2 is CALLBACK_EXIT
-                'multiplex'].callbacks[2] = restart
-            termio_write = SESSIONS[ # Write responses directly to the prog
-                self.session][term]['multiplex'].proc_write
-            SESSIONS[self.session][term][ # 5 is CALLBACK_DSR
-                'multiplex'].term.callbacks[5] = termio_write
-            set_title = partial(self.set_title, term)
-            SESSIONS[self.session][term][ # 6 is CALLBACK_TITLE
-                'multiplex'].term.callbacks[6] = set_title
-            set_title() # Set initial title
-            bell = partial(self.bell, term)
-            SESSIONS[self.session][term][ # 7 is CALLBACK_BELL
-                'multiplex'].term.callbacks[7] = bell
-            SESSIONS[self.session][term][ # 8 is CALLBACK_OPT
-                    'multiplex'].term.callbacks[8] = self.esc_opt_handler
-            mode_handler = partial(self.mode_handler, term)
-            SESSIONS[self.session][term][ # 9 is CALLBACK_MODE
-                    'multiplex'].term.callbacks[9] = mode_handler
-            reset_term = partial(self.reset_terminal, term)
-            SESSIONS[self.session][term][ # 10 is CALLBACK_RESET
-                'multiplex'].term.callbacks[10] = reset_term
             if resumed_dtach: # dtach sessions need a little extra love
                 SESSIONS[self.session][term]['multiplex'].redraw()
         else:
             # Terminal already exists
             if SESSIONS[self.session][term]['multiplex'].alive: # It's ALIVE!
+                SESSIONS[self.session][term]['multiplex'].resize(rows, cols)
                 message = {'term_exists': term}
                 self.write_message(json_encode(message))
-                # This resets the diff
+                # This resets the screen diff
                 SESSIONS[self.session][term]['multiplex'].prev_output = [
                     None for a in xrange(rows-1)]
-                # TODO: Right here we need to change how the callbacks are handled so we can have multiple screen update callbacks for the same session (so a user could have two browsers open to the same session).  Not exactly a common use case but you never know!
-                restart = partial(self.new_terminal, settings)
-                SESSIONS[self.session][term][ # 2 is CALLBACK_EXIT
-                    'multiplex'].callbacks[2] = restart
-                refresh = partial(self.refresh_screen, term)
-                SESSIONS[self.session][term][ # 1 is CALLBACK_UPDATE
-                    'multiplex'].callbacks[1] = refresh
-                set_title = partial(self.set_title, term)
-                termio_write = SESSIONS[ # Write responses directly to the prog
-                    self.session][term]['multiplex'].proc_write
-                SESSIONS[self.session][term][ # 5 is CALLBACK_DSR
-                'multiplex'].term.callbacks[5] = termio_write
-                SESSIONS[self.session][term][ # 6 is CALLBACK_TITLE
-                    'multiplex'].term.callbacks[6] = set_title
-                set_title() # Set the title
-                bell = partial(self.bell, term)
-                SESSIONS[self.session][term][ # 7 is CALLBACK_BELL
-                    'multiplex'].term.callbacks[7] = bell
-                SESSIONS[self.session][term][ # 8 is CALLBACK_OPT
-                    'multiplex'].term.callbacks[8] = self.esc_opt_handler
-                mode_handler = partial(self.mode_handler, term)
-                SESSIONS[self.session][term][ # 9 is CALLBACK_MODE
-                    'multiplex'].term.callbacks[9] = mode_handler
-                reset_term = partial(self.reset_terminal, term)
-                SESSIONS[self.session][term][ # 10 is CALLBACK_RESET
-                    'multiplex'].term.callbacks[10] = reset_term
             else:
                 # Tell the client this terminal is no more
                 message = {'term_ended': term}
                 self.write_message(json_encode(message))
                 return
+        # Setup callbacks so that everything gets called when it should
+        self.callback_id = callback_id = "%s;%s;%s" % (
+            self.session, self.request.host, self.request.remote_ip)
+        # NOTE: request.host is the FQDN or IP the user entered to open Gate One
+        # so if you want to have multiple browsers open to the same user session
+        # from the same IP just use an alternate hostname/IP for the URL.
+        # Setup the termio callbacks
+        refresh = partial(self.refresh_screen, term)
+        multiplex = SESSIONS[self.session][term]['multiplex']
+        multiplex.add_callback(multiplex.CALLBACK_UPDATE, refresh, callback_id)
+        restart = partial(self.new_terminal, settings)
+        multiplex.add_callback(multiplex.CALLBACK_EXIT, restart, callback_id)
+        # Setup the terminal emulator callbacks
+        term_emulator = multiplex.term
+        thread_id = 'CallbackThread.%s.%s' % (self.session, term)
+        if thread_id not in SESSIONS[self.session]:
+            # NOTE: We need this funky thread/queue setup because the
+            # multiprocessing module doesn't like to pickle instance methods.
+            queue = multiplex.term_manager.Queue()
+
+            SESSIONS[self.session][thread_id] = CallbackThread(
+                thread_id, queue)
+            SESSIONS[self.session][thread_id].start()
+        queue = SESSIONS[self.session][thread_id].queue
+        set_title = partial(self.set_title, term)
+        callback_name = "set_title.%s" % callback_id
+        SESSIONS[self.session][thread_id].register_callback(
+            callback_name, set_title)
+        safe_callback = partial(call_callback, queue, callback_name)
+        term_emulator.add_callback(
+            terminal.CALLBACK_TITLE, safe_callback, callback_id)
+        set_title() # Set initial title
+        bell = partial(self.bell, term)
+        callback_name = "bell.%s" % callback_id
+        SESSIONS[self.session][thread_id].register_callback(
+            callback_name, bell)
+        safe_callback = partial(call_callback, queue, callback_name)
+        term_emulator.add_callback(
+            terminal.CALLBACK_BELL, safe_callback, callback_id)
+        callback_name = "esc_opt_handler.%s" % callback_id
+        SESSIONS[self.session][thread_id].register_callback(
+            callback_name, self.esc_opt_handler)
+        safe_callback = partial(call_callback, queue, callback_name)
+        term_emulator.add_callback(
+            terminal.CALLBACK_OPT, safe_callback, callback_id)
+        mode_handler = partial(self.mode_handler, term)
+        callback_name = "mode_handler.%s" % callback_id
+        SESSIONS[self.session][thread_id].register_callback(
+            callback_name, mode_handler)
+        safe_callback = partial(call_callback, queue, callback_name)
+        term_emulator.add_callback(
+            terminal.CALLBACK_MODE, safe_callback, callback_id)
+        reset_term = partial(self.reset_terminal, term)
+        callback_name = "reset_term.%s" % callback_id
+        SESSIONS[self.session][thread_id].register_callback(
+            callback_name, reset_term)
+        safe_callback = partial(call_callback, queue, callback_name)
+        term_emulator.add_callback(
+            terminal.CALLBACK_RESET, safe_callback, callback_id)
         if 'tidy_thread' not in SESSIONS[self.session]:
             # Start the keepalive thread so the session will time out if the
             # user disconnects for like a week (by default anyway =)
             SESSIONS[self.session]['tidy_thread'] = TidyThread(self.session)
             SESSIONS[self.session]['tidy_thread'].start()
+        if self.settings['debug']:
+            tornado.autoreload.add_reload_hook(multiplex.proc_kill)
         # NOTE: refresh_screen will also take care of cleaning things up if
         #       SESSIONS[self.session][term]['multiplex'].alive is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
@@ -963,6 +985,12 @@ class TerminalWebSocket(WebSocketHandler):
             SESSIONS[self.session][term]['multiplex'].proc_kill()
             if self.settings['dtach']:
                 kill_dtached_proc(self.session, term)
+            thread_id = 'CallbackThread.%s.%s' % (self.session, term)
+            SESSIONS[self.session][thread_id].quit()
+            #name = "CallbackThread-%s" % self.session
+            #for t in threading.enumerate():
+                #if t.getName() == name:
+                    #t.unregister_callbacks(self.callback_id)
             del SESSIONS[self.session][term]
         except KeyError as e:
             pass # The EVIL termio has killed my child!  Wait, that's good...
@@ -990,8 +1018,9 @@ class TerminalWebSocket(WebSocketHandler):
 
             {'set_title': {'term': 1, 'title': "user@host"}}
         """
+        logging.debug("set_title(%s)" % term)
         #print("Got set_title on term: %s" % term)
-        title = SESSIONS[self.session][term]['multiplex'].term.title
+        title = SESSIONS[self.session][term]['multiplex'].term.get_title()
         # Only send a title update if it actually changed
         if term not in self.titles: # There's a first time for everything
             self.titles[term] = ""
@@ -1036,9 +1065,16 @@ class TerminalWebSocket(WebSocketHandler):
         the client.
         If *full*, send the whole screen (not just the difference).
         """
+        logging.debug(
+            "refresh_screen (full=%s) on %s" % (full, self.callback_id))
         try:
             SESSIONS[self.session]['tidy_thread'].keepalive(datetime.now())
-            multiplexer = SESSIONS[self.session][term]['multiplex']
+            m = multiplexer = SESSIONS[self.session][term]['multiplex']
+
+            if len(m.callbacks[m.CALLBACK_UPDATE].keys()) > 1:
+                # The screen diff algorithm won't work if there's more than one
+                # client attached to the same multiplexer.
+                full = True
             if full:
                 scrollback, screen = multiplexer.dumplines(full=True)
             else:
@@ -1059,8 +1095,9 @@ class TerminalWebSocket(WebSocketHandler):
             except IOError: # Socket was just closed, no biggie
                 logging.info(
                  _("WebSocket closed (%s)") % self.get_current_user()['go_upn'])
-                SESSIONS[self.session][term][ # 1 is CALLBACK_UPDATE
-                    'multiplex'].callbacks[1] = noop # Stop trying to write
+                multiplex = SESSIONS[self.session][term]['multiplex']
+                multiplex.remove_callback( # Stop trying to write
+                    multiplex.CALLBACK_UPDATE, self.callback_id)
 
     def resize(self, resize_obj):
         """
@@ -1072,7 +1109,7 @@ class TerminalWebSocket(WebSocketHandler):
         self.rows = resize_obj['rows']
         self.cols = resize_obj['cols']
         term = resize_obj['term']
-        if self.rows < 2 or self.cols < 2: # 0 or negative numbers will crash
+        if self.rows < 2 or self.cols < 2:
             # Fall back to a standard default:
             self.rows = 24
             self.cols = 80
@@ -1150,6 +1187,73 @@ class OpenLogHandler(BaseHandler):
             css=css.generate(container=container, prefix=prefix)
         )
 
+# Thread classes
+class CallbackThread(threading.Thread):
+    """
+    Listens for events in a Queue() and calls any matching/registered callbacks.
+    """
+    # NOTE: I know this CallbackThread/register_callback() stuff seems overly
+    # complex and it is...  But this was the simplest thing I could come up with
+    # to get callbacks working with multiprocessing.  If you have a better way
+    # please submit a patch!
+    def __init__(self, name, queue):
+        threading.Thread.__init__(
+            self,
+            name=name
+        )
+        self.name = name
+        self.queue = queue
+        self.quitting = False
+        self.callbacks = {}
+
+    def register_callback(self, identifier, callback):
+        """Stores the given *callback* as self.callbacks[*identifier*]"""
+        self.callbacks.update({identifier: callback})
+
+    def unregister_callbacks(self, callback_id):
+        """
+        Removes all registered callbacks associated with *callback_id*
+        """
+        for identifier in self.callbacks.keys():
+            if callback_id in identifier:
+                logging.debug("deleting self.callbacks[%s]" % identifier)
+                del self.callbacks[identifier]
+
+    def call_callback(self, identifier, args):
+        """
+        Calls the callback function associated with *identifier* using the given
+        *args* like so:  self.callbacks[*identifier*](*args)
+        """
+        if not args:
+            self.callbacks[identifier]()
+        else:
+            self.callbacks[identifier](*args)
+
+    def quit(self):
+        try:
+            self.queue.put('quit')
+        except IOError:
+            # The term emulator has already shut down.  Not a big deal
+            pass
+        self.quitting = True
+
+    def run(self):
+        while not self.quitting:
+            try:
+                obj = self.queue.get()
+                identifier = obj[0]
+                args = obj[1]
+                if identifier != 'quit':
+                    self.call_callback(identifier, args)
+            except Exception as e:
+                if len("%s" % e): # Throws empty exceptions at quitting time.
+                    logging.error("Error in CallbackThread: %s" % e)
+                self.quitting = True
+        logging.info(_(
+            "CallbackThread.{name} received quit()...  ".format(
+                name=self.name)
+        ))
+
 class TidyThread(threading.Thread):
     """
     Kills a user's termio session if the client hasn't updated the keepalive
@@ -1161,7 +1265,7 @@ class TidyThread(threading.Thread):
 
     *session* - 45-character string containing the user's session ID
     """
-    # TODO: Get this cleaning up logs according to the user's settings
+    # TODO: Get this cleaning up logs according to configured settings
     # TODO: Add the aforementioned log cleanup settings :)
     def __init__(self, session):
         threading.Thread.__init__(
@@ -1226,7 +1330,7 @@ class TidyThread(threading.Thread):
                 ))
                 self.quitting = True
         logging.info(_(
-            "{session} received quit()...  "
+            "TidyThread {session} received quit()...  "
             "Killing termio session.".format(session=self.session)
         ))
         # Clean up:
@@ -1349,8 +1453,11 @@ def main():
         type=str
     )
     define("address",
-        default="0.0.0.0",
-        help=_("Run on the given address."),
+        default="",
+        help=_("Run on the given address.  Default is all addresses (IPv6 "
+               "included).  Multiple address can be specified using a semicolon"
+               "as the separator (e.g. --address="
+               "'127.0.0.1;::1;10.1.1.2;fe70::222:fcff:fc2a:3c2a')"),
         type=str)
     define("port", default=443, help=_("Run on the given port."), type=int)
     # Please only use this if Gate One is running behind something with SSL:
@@ -1589,10 +1696,12 @@ def main():
     if not os.path.exists(options.certificate):
         logging.info(_("No SSL certificate found.  One will be generated."))
         gen_self_signed_ssl()
-    logging.info(_(
-        "Listening on https://{address}:{port}/".format(
-            address=options.address, port=options.port
-        ))
+    for addr in options.address.split(';'):
+        if addr:
+            logging.info(_(
+                "Listening on https://{address}:{port}/".format(
+                    address=addr, port=options.port
+                ))
     )
     # Setup static file links for plugins (if any)
     static_dir = os.path.join(GATEONE_DIR, "static")
@@ -1608,12 +1717,16 @@ def main():
     http_server = tornado.httpserver.HTTPServer(
         Application(settings=app_settings), ssl_options=ssl_options)
     try: # Start your engines!
-        http_server.listen(options.port, options.address)
+        for addr in options.address.split(';'):
+            if addr:
+                http_server.listen(options.port, addr)
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
         logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
         for t in threading.enumerate():
             if t.getName().startswith('TidyThread'):
+                t.quit()
+            elif t.getName().startswith('CallbackThread'):
                 t.quit()
 
 if __name__ == "__main__":

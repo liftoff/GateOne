@@ -375,7 +375,10 @@ GateOne.Base.update(GateOne, {
                 newStyle.innerHTML = "." + prefix + "terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
                 u.getNode(goDiv).appendChild(newStyle);
             } else {
-                u.removeElement('#'+prefix+'disable_term_transitions');
+                var existing = u.getNode('#'+prefix+'disable_term_transitions');
+                if (existing) {
+                    u.removeElement(existing);
+                }
             }
             u.savePrefs();
             // In case the user changed the rows/cols or the font/size changed:
@@ -419,7 +422,6 @@ GateOne.Base.update(GateOne, {
         toolbarIconPrefs.onclick = showPrefs;
         // Load our CSS theme
         u.loadCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
-        go.Visual.updateDimensions();
         var grid = go.Visual.createGrid(go.prefs.prefix+'termwrapper');
         goDiv.appendChild(grid);
         var style = window.getComputedStyle(goDiv, null),
@@ -550,6 +552,7 @@ GateOne.Base.update(GateOne, {
             go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs'] = {};
         }
         go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']['updateCSS'] = updateCSSfunc;
+        go.Visual.updateDimensions();
         // Start capturing keyboard input
         go.Input.capture();
         goDiv.contentEditable = true;
@@ -739,19 +742,27 @@ GateOne.Base.update(GateOne.Utils, {
         // The returned object will be in the form of:
         //      {'w': <width in px>, 'h': <height in px>}
         var node = GateOne.Utils.getNode(elem),
-            sizingDiv = document.createElement("div");
-        sizingDiv.innerHTML = "M"; // Fill it with a single character
+            sizingDiv = document.createElement("pre");
+        sizingDiv.innerHTML = "██\n██"; // Fill it with two characters, a newline, and two characters.
+        // We need two lines so we can factor in the line height and character spacing (if it has been messed with).
         // Set the attributes of our copy to reflect a minimal-size block element
         sizingDiv.style.display = 'block';
         sizingDiv.style.position = 'absolute';
         sizingDiv.style.top = '0';
         sizingDiv.style.left = '0';
+        sizingDiv.style.margin = '0';
+        sizingDiv.style.padding = '0';
         sizingDiv.style.width = 'auto';
         sizingDiv.style.height = 'auto';
+//         sizingDiv.style.fontSize = GateOne.prefs.fontSize;
         // Add in our sizingDiv and grab its height
         node.appendChild(sizingDiv);
         var nodeHeight = sizingDiv.getClientRects()[0].height,
             nodeWidth = sizingDiv.getClientRects()[0].width;
+        nodeHeight = parseInt(nodeHeight);
+        nodeWidth = parseInt(nodeWidth);
+        nodeHeight = Math.floor(nodeHeight/2);
+        nodeWidth = Math.floor(nodeWidth/2);
         node.removeChild(sizingDiv);
         return {'w': nodeWidth, 'h': nodeHeight};
     },
@@ -765,7 +776,7 @@ GateOne.Base.update(GateOne.Utils, {
             at certain point sizes.  These break on any display with a resolution higher than 96dpi.
     */
         var node = GateOne.Utils.getNode(elem),
-            style = window.getComputedStyle(node, null);
+            style = window.getComputedStyle(node, ':line-marker');
         var elementDimensions = {
             h: parseInt(style.height.split('px')[0]),
             w: parseInt(style.width.split('px')[0])
@@ -1521,7 +1532,7 @@ GateOne.Base.update(GateOne.Input, {
             q = function(char) {e.preventDefault(); goIn.queue(char); goIn.handledKeystroke = true;},
             term = localStorage['selectedTerminal'],
             keyString = String.fromCharCode(key.code);
-        logDebug("emulateKey() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers) + ", event items: " + u.items(e));
+        logDebug("emulateKey() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
         goIn.handledKeystroke = false;
         // Need some special logic for the F11 key since it controls fullscreen mode and without it, users could get stuck in fullscreen mode.
         if (!modifiers.shift && goIn.F11 == true && !skipF11check) { // This is the *second* time F11 was pressed within 0.750 seconds.
@@ -2049,7 +2060,7 @@ GateOne.Base.update(GateOne.Visual, {
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(go.prefs.prefix+'term')[1],
                     replacement_html = '<pre id="' + termObj.id + '_pre">' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
-                u.getNode('#' + go.prefs.prefix + 'term' + term).innerHTML = replacement_html;
+                u.getNode('#' + go.prefs.prefix + 'term' + termID).innerHTML = replacement_html;
             });
         }
         go.Visual.scrollbackToggle = false;
@@ -2788,8 +2799,7 @@ GateOne.Base.update(GateOne.Terminal, {
         setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
             go.Visual.updateDimensions();
             go.Net.sendDimensions();
-        }, 1500);
-//         go.Net.sendDimensions(); // Sets this globally for the user's session
+        }, 2000);
     },
     modes: {
         // Various functions that will be called when a matching mode is set.

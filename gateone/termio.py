@@ -95,6 +95,7 @@ from functools import partial
 from itertools import izip
 import logging
 from subprocess import Popen
+from multiprocessing.managers import SyncManager, RemoteError
 
 # Import our own stuff
 from utils import noop
@@ -106,68 +107,6 @@ _ = get_translation()
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
 # NOTE: That unicode character was carefully selected from only the finest
 # of the PUA.  I hereby dub thee, "U+F0F0F0, The Separator."
-
-# Helper functions
-def handle_special(e):
-    """
-    Used in conjunction with codecs.register_error, will replace special ascii
-    characters such as 0xDA and 0xc4 (which are used by ncurses) with their
-    Unicode equivalents.
-    """
-    # TODO: Fill this out with *all* the ascii characters >127 from
-    #       http://www.ascii-code.com/
-    specials = {
-        # NOTE: When $TERM is set to "Linux" these end up getting used by things
-        #       like ncurses-based apps.  In other words, it makes a whole lot
-        #       of ugly look pretty again.
-        0xda: u'┌', # ACS_ULCORNER
-        0xc0: u'└', # ACS_LLCORNER
-        0xbf: u'┐', # ACS_URCORNER
-        0xd9: u'┘', # ACS_LRCORNER
-        0xb4: u'├', # ACS_RTEE
-        0xc3: u'┤', # ACS_LTEE
-        0xc1: u'┴', # ACS_BTEE
-        0xc2: u'┬', # ACS_TTEE
-        0xc4: u'─', # ACS_HLINE
-        0xb3: u'│', # ACS_VLINE
-        0xc5: u'┼', # ACS_PLUS
-        0x2d: u'', # ACS_S1
-        0x5f: u'', # ACS_S9
-        0xc5: u'◆', # ACS_DIAMOND
-        0xb2: u'▒', # ACS_CKBOARD
-        0xf8: u'°', # ACS_DEGREE
-        0xf1: u'±', # ACS_PLMINUS
-        0xf9: u'•', # ACS_BULLET
-        0x3c: u'←', # ACS_LARROW
-        0x3e: u'→', # ACS_RARROW
-        0x76: u'↓', # ACS_DARROW
-        0x5e: u'↑', # ACS_UARROW
-        0xb0: u'⊞', # ACS_BOARD
-        0x0f: u'⨂', # ACS_LANTERN
-        0xdb: u'█', # ACS_BLOCK
-        0x9d: u'Ø', # Upper-case slashed zero (157)--using same as empty set
-        0xd8: u'Ø', # Empty set (216)
-# Note to self:  Why did I bother with these overly descriptive comments?  Ugh
-# I've been staring at obscure symbols far too much lately ⨀_⨀
-        0xc7: u'Ç', # Latin capital letter C with cedilla
-        0xeb: u'ë', # Latin small letter e with diaeresis
-        0x99: u'™', # Trademark sign--in case you didn't know!
-        0xff: u'ÿ', # Latin small letter y with diaeresis⬅So THATS what that is
-        0xa8: u'¨', # Spacing diaeresis - umlaut
-        0xec: u'ì', # Latin small letter i with grave... concern.
-        0xca: u'Ê', # Latin capital letter E with circumflex
-        0x83: u'ƒ', # Latin small letter f with hook
-        0xe2: u'â',
-    }
-    # I left this in its odd state so I could differentiate between the two
-    # in the future.
-    if isinstance(e, (UnicodeEncodeError, UnicodeTranslateError)):
-        s = [u'%s' % specials[ord(c)] for c in e.object[e.start:e.end]]
-        return ''.join(s), e.end
-    else:
-        s = [u'%s' % specials[ord(c)] for c in e.object[e.start:e.end]]
-        return ''.join(s), e.end
-codecs.register_error('handle_special', handle_special)
 
 # Classes
 class Multiplex:
@@ -190,16 +129,24 @@ class Multiplex:
             term_num=None, # Also only for syslog output for the same reason
             syslog=False,
             syslog_facility=syslog.LOG_DAEMON):
+        self.lock = threading.RLock()
         # NOTE: Commented this out because Death apparently moves too swiftly!
         # Elect for automatic child reaping (may Death take them kindly!)
         #signal.signal(signal.SIGCHLD, signal.SIG_IGN)
         self.cmd = cmd
+        self.term_manager = None
         if not terminal_emulator:
             # Why do this?  So you could use/write your own specialty emulator.
             # Whatever you use it just has to accept 'rows' and 'cols' as
             # keyword arguments in __init__()
             from terminal import Terminal # Dynamic import to cut down on waste
-            self.terminal_emulator = Terminal
+            # Ahh, multiprocessing; how has thee gone unnoticed until now?
+            class TerminalManager(SyncManager):
+                pass
+            TerminalManager.register('Term', Terminal)
+            self.term_manager = TerminalManager()
+            self.term_manager.start()
+            self.terminal_emulator = self.term_manager.Term
         else:
             self.terminal_emulator = terminal_emulator
         self.cps = cps # Characters per second where the rate limiter kicks in
@@ -208,15 +155,18 @@ class Multiplex:
         self.syslog = syslog # See "if self.syslog:" below
         self.syslog_facility = syslog_facility # Ditto
         self.io_loop = ioloop.IOLoop.instance() # Monitors child for activity
+        self.io_loop.set_blocking_signal_threshold(4, self._blocked_io_handler)
         self.alive = True # Provides a quick way to see if we're still kickin'
         # These three variables are used by the rate limiting function:
         self.ratelimit = time.time()
         self.skip = False
         self.ratelimiter_engaged = False
+        self.rows = 24
+        self.cols = 80
         # Setup our callbacks
         self.callbacks = { # Defaults do nothing which saves some conditionals
-            self.CALLBACK_UPDATE: noop,
-            self.CALLBACK_EXIT: noop,
+            self.CALLBACK_UPDATE: {},
+            self.CALLBACK_EXIT: {},
         }
         # Configure syslog logging
         self.user = user
@@ -227,6 +177,77 @@ class Multiplex:
             # Sets up syslog messages to show up like this:
             #   Sep 28 19:45:02 <hostname> gateone: <log message>
             syslog.openlog('gateone', 0, syslog_facility)
+
+    def add_callback(self, event, callback, identifier=None):
+        """
+        Attaches the given *callback* to the given *event*.  If given,
+        *identifier* can be used to reference this callback leter (e.g. when you
+        want to remove it).  Otherwise an identifier will be generated
+        automatically.  If the given *identifier* is already attached to a
+        callback at the given event, that callback will be replaced with
+        *callback*.
+
+        *event* - The numeric ID of the event you're attaching *callback* to.
+        *callback* - The function you're attaching to the *event*.
+        *identifier* - A string or number to be used as a reference point should you wish to remove or update this callback later.
+
+        Returns the identifier of the callback.  to Example:
+
+            >>> m = Multiplex()
+            >>> def somefunc(): pass
+            >>> id = "myref"
+            >>> ref = m.add_callback(m.CALLBACK_UPDATE, somefunc, id)
+
+        NOTE: This allows us to attach callbacks when __init__() has ben
+        overridden (e.g. multiprocessing.BaseManager).  It also allows the
+        controlling program to have multiple callbacks for the same event.
+        """
+        if not identifier:
+            identifier = callback.__hash__()
+        self.callbacks[event][identifier] = callback
+        return identifier
+
+    def remove_callback(self, event, identifier):
+        """
+        Removes the callback referenced by *identifier* that is attached to the
+        given *event*.  Example:
+
+            >>> m.remove_callback(m.CALLBACK_BELL, "myref")
+
+        """
+        del self.callbacks[event][identifier]
+
+    def _reenable_output(self):
+        """
+        Re-adds self.fd to the IOLoop so we can (hopefully) return to a running
+        session.
+        """
+        self.ratelimiter_engaged = False
+        self.io_loop.add_handler(self.fd, self.proc_read, self.io_loop.READ)
+        self.prev_output = [None for a in xrange(self.rows-1)]
+
+    def _blocked_io_handler(self, signum, frame):
+        """
+        Handles the situation where a terminal is blocking IO with too much
+        output.
+        """
+        logging.warning("Noisy process kicked off rate limiter.")
+        #os.kill(self.pid, signal.SIGINT)
+        # Sending Ctrl-c via write() seems to work better:
+        os.write(self.fd, "\x03") # Ctrl-c to the bad process
+        self.io_loop.remove_handler(self.fd)
+        self.ratelimiter_engaged = True
+        try:
+            self.term.clear_screen()
+            self.term.write( # Note: This is temporary until I figure out something better
+                "\x1b[0;1mProgram output too noisy.  Sending Ctrl-c...\x1b[0m")
+        except Exception as e:
+            logging.error(
+                "Got exception trying to write to the term in "
+                "_blocked_io_handler: %s" % e)
+        for callback in self.callbacks[self.CALLBACK_UPDATE].values():
+            self.io_loop.add_callback(callback)
+        self.io_loop.add_timeout(timedelta(seconds=5), self._reenable_output)
 
     def create(self, rows=24, cols=80, env=None):
         """
@@ -241,44 +262,56 @@ class Multiplex:
         *env*
             A dictionary of environment variables to set when executing self.cmd.
         """
-        logging.debug("rows: %s, cols: %s, env: %s" % (rows, cols, env))
         pid, fd = pty.fork()
         if pid == 0: # We're inside the child process
-            try: # Enumerate our file descriptors
-                fd_list = [int(i) for i in os.listdir('/proc/self/fd')]
-            except OSError:
-                fd_list = xrange(256)
     # Close all file descriptors other than stdin, stdout, and stderr (0, 1, 2)
-            for i in [i for i in fd_list if i > 2]:
-                try:
-                    os.close(i)
-                except OSError:
-                    pass
+            try:
+                os.closerange(3, 256)
+            except OSError:
+                pass
             if not env:
                 env = {}
+            stdin = 0
+            stdout = 1
+            stderr = 2
             env["COLUMNS"] = str(cols)
             env["LINES"] = str(rows)
             env["TERM"] = "xterm" # TODO: This needs to be configurable on-the-fly
             #env["PATH"] = os.environ['PATH']
             #env["LANG"] = os.environ['LANG']
+            flags_save = fcntl.fcntl(stdout, fcntl.F_GETFL)
+            logging.debug("fcntl settings: %s" % flags_save)
+            attrs_save = termios.tcgetattr(stdout)
+            attrs = list(attrs_save) # copy the stored version to update
+            # iflag
+            attrs[0] &= termios.IXON
+            # oflag
+            # OPOST: Enable post-processing of chars (not sure if this matters)
+            # ONCLR: We're disabling this so we don't get \r\r\n anywhere
+            attrs[1] &= (termios.OPOST | ~termios.ONLCR)
+            attrs[3] &= (termios.ISIG | termios.IEXTEN)
+            termios.tcsetattr(stdout, termios.TCSANOW, attrs)
+            fcntl.fcntl(stdout, fcntl.F_SETFL, os.O_NONBLOCK)
             p = Popen(self.cmd, env=env, shell=True)
             p.wait()
             # This exit() ensures IOLoop doesn't freak out about a missing fd
             sys.exit(0)
         else: # We're inside this Python script
-            fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK)
-            # These two lines set the size of the terminal window:
-            s = struct.pack("HHHH", rows, cols, 0, 0)
-            fcntl.ioctl(fd, termios.TIOCSWINSZ, s)
             self.fd = fd
             self.pid = pid
+            self.rows = rows
+            self.cols = cols
             self.term = self.terminal_emulator(rows=rows, cols=cols)
             self.time = time.time()
             # Tell our IOLoop instance to start watching the child
             self.io_loop.add_handler(
                 self.fd, self.proc_read, self.io_loop.READ)
             self.prev_output = [None for a in xrange(rows-1)]
-            logging.debug('termios settings: %s' % termios.tcgetattr(self.fd))
+            # Set non-blocking so we don't wait forever for a read()
+            fcntl.fcntl(self.fd, fcntl.F_SETFL, os.O_NONBLOCK)
+            # These two lines set the size of the terminal window:
+            s = struct.pack("HHHH", rows, cols, 0, 0)
+            fcntl.ioctl(fd, termios.TIOCSWINSZ, s)
             return fd
 
     def die(self):
@@ -295,6 +328,10 @@ class Multiplex:
         """
         Resizes the child process's terminal window to *rows* and *cols*
         """
+        logging.debug("Resizing term %s to rows: %s, cols: %s" % (
+            self.term_num, rows, cols))
+        self.rows = rows
+        self.cols = cols
         self.term.resize(rows, cols)
         s = struct.pack("HHHH", rows, cols, 0, 0)
         fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
@@ -305,7 +342,7 @@ class Multiplex:
         a window resize event (using its current dimensions) and writing a
         ctrl-l.
         """
-        s = struct.pack("HHHH", self.term.rows, self.term.cols, 0, 0)
+        s = struct.pack("HHHH", self.rows, self.cols, 0, 0)
         fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
         self.proc_write(u'\x0c') # ctrl-l
         # WINCH can mess things up quite a bit so I've disabled it.
@@ -330,6 +367,11 @@ class Multiplex:
         except OSError:
             # Lots of trivial reasons why we could get these
             pass
+        try:
+             self.term_manager.shutdown() # Don't want this running anymore
+        except OSError:
+            # Often happens when gateone.py terminates.  Nothing to see here.
+            pass
 
     def term_write(self, chars):
         """
@@ -344,7 +386,7 @@ class Multiplex:
         if self.log_path:
             now = int(round(time.time() * 1000))
             # NOTE: I'm using an obscure unicode symbol in order to avoid
-            # conflicts.  We need to do our best to ensure that we can
+            # conflicts.  We need to dpo our best to ensure that we can
             # differentiate between terminal output and our log format...
             # This should do the trick because it is highly unlikely that
             # someone would be displaying this obscure unicode symbol on an
@@ -373,8 +415,40 @@ class Multiplex:
                         self.user, self.term_num, line))
             else:
                 self.syslog_buffer += chars
-        self.term.write(chars)
-        self.io_loop.add_callback(self.callbacks[self.CALLBACK_UPDATE])
+        try:
+            self.term.write(chars)
+        except RemoteError:
+            logging.warning(
+                "Got an error trying to write to the terminal emulator.  "
+                "This probably means it died.")
+        for callback in self.callbacks[self.CALLBACK_UPDATE].values():
+            self.io_loop.add_callback(callback)
+
+    def _buffer_to_term(self):
+        """
+        Reads the incoming stream from self.fd and writes it to the terminal
+        emulator using self.term_write().
+        """
+        try:
+            with self.lock:
+                with io.open(self.fd, 'rb', closefd=False) as reader:
+                    # This needs to be huge to handle big images
+                    updated = bytearray(1048568)
+                    reader.readinto(updated)
+                    updated = updated.rstrip('\x00') # Remove excess null chars
+                self.term_write(updated)
+        except IOError as e:
+            # IOErrors can happen when self.fd is closed before we finish
+            # writing to it.  Not a big deal.
+            pass
+        except OSError as e:
+            logging.error("Got exception in proc_read: %s" % `e`)
+        except Exception as e:
+            import traceback
+            logging.error("Got BIZARRO exception in proc_read (WTF?): %s" % `e`)
+            traceback.print_exc(file=sys.stdout)
+            self.die()
+            self.proc_kill()
 
     def proc_read(self, fd, event):
         """
@@ -391,91 +465,19 @@ class Multiplex:
         should be the one calling it when it detects an io_loop.READ event.
         """
         if event == self.io_loop.READ:
-            try:
-                with io.open(
-                        self.fd,
-                        'rb',
-                        closefd=False,
-                    ) as reader:
-                    # This needs to be huge to handle big images
-                    updated = bytearray(1048568)
-                    reader.readinto(updated)
-                    updated = updated.rstrip('\x00') # Remove excess null chars
-                self.term_write(updated)
-                #updated = os.read(fd, 65536) # A lot slower than reader, why?
-                #delay_write = timedelta(milliseconds=50)
-                #term_write = partial(self.term_write, updated)
-                #self.io_loop.add_callback(term_write)
-                #self.last_timeout = self.io_loop.add_timeout(
-                    #delay_write, term_write)
-                #ratelimit = self.ratelimit
-                #now = time.time()
-                #timediff = now - self.time
-                #print("timediff: %s" % timediff)
-                #rate_timediff = now - ratelimit
-                #characters = len(updated)
-                #cps = characters/timediff # Assumes 7 bits per char (ASCII)
-                #print("cps: %s" % cps)
-                ## The conditionals below drop the output of our fd if it's coming
-                ## in too fast.  Essentially, it is a rate limiter to prevent
-                ## really noisy/fast output console apps (say, 'top' with a
-                ## refresh rate of 0.01) from causing this application to
-                ## gobble up all the system CPU trying to process the input.
-                ## Think of it like mplayer's "-framedrop" option that keeps
-                ## your video playing at the proper rate if the CPU runs out of
-                ## power to process video frames.
-
-                ## Only consider dropping if the rate is faster than self.cps:
-                #if cps > self.cps:
-                    ## Don't start cutting frames unless this is a constant thing
-                    #if rate_timediff > 3:
-                        ## TODO: Have this flash a message on the screen
-                        ##       indicating the rate limiter has been engaged.
-                        #self.ratelimiter_engaged = True
-                        #print("Rate limiter engaged")
-                        #check = divmod(now - ratelimit, 2)[0]
-                        ## Update once every other second or so
-                        #if check % 2 == 0 and not self.skip:
-                            #self.term_write(updated)
-                            #self.skip = True
-                        #elif self.skip:
-                            #self.skip = False
-                    #else:
-                        #self.term_write(updated)
-                    ## NOTE: This can result in odd output with too-fast apps
-                #else:
-                    #self.term_write(updated)
-                #if now - ratelimit > 1:
-                    ## Reset the rate limiter
-                    #self.ratelimit = time.time()
-                #self.time = time.time()
-            except KeyError as e:
-                # Should just be an exception from handle_special()
-                logging.debug("KeyError in proc_read(): %s" % e) # So we know
-            except (IOError, OSError) as e:
-                logging.error("Got exception in proc_read: %s" % `e`)
-                #self.die()
-                #self.proc_kill()
-            except Exception as e:
-                import traceback
-                logging.error("Got BIZARRO exception in proc_read (WTF?): %s" % `e`)
-                traceback.print_exc(file=sys.stdout)
-                self.die()
-                self.proc_kill()
+            self._buffer_to_term()
         else: # Child died
             logging.debug("Apparently fd %s just died." % self.fd)
             self.die()
             self.proc_kill()
-            self.callbacks[self.CALLBACK_EXIT]()
+            for callback in self.callbacks[self.CALLBACK_EXIT].values():
+                callback()
 
-    def proc_write(self, chars):
+    def _buffer_write(self, chars):
         """
-        Writes *chars* to the terminal process running on *fd*.
+        Writes *chars* to self.fd (pretty straightforward).
         """
-        try:
-        # By creating a new writer with every execution of this function we
-        # can avoid the memory leak in earlier versions of Python.  It is
-        # slightly slower but, hey, now you have an excuse to upgrade!
+        with self.lock:
             with io.open(
                 self.fd,
                 'wt',
@@ -485,8 +487,14 @@ class Multiplex:
                 closefd=False
             ) as writer:
                 writer.write(chars)
-            # This doesn't leak but it also doesn't support unicode:
-            #os.write(self.fd, s)
+
+    def proc_write(self, chars):
+        """
+        Adds _buffer_write(*chars*) to the IOLoop callback queue.
+        """
+        try:
+            _buffer_write = partial(self._buffer_write, chars)
+            self.io_loop.add_callback(_buffer_write)
         except (IOError, OSError):
             self.die()
             self.proc_kill()
@@ -505,14 +513,21 @@ class Multiplex:
         try:
             output = []
             scrollback, html = self.term.dump_html()
-            if not full:
-                for line1, line2 in izip(self.prev_output, html):
-                    if line1 != line2:
-                        output.append(line2)
-                    else:
-                        output.append('')
-                html = output
-            self.prev_output = html
-            return (scrollback, html)
-        except KeyError:
-            return (None, None)
+            if html:
+                if not full:
+                    for line1, line2 in izip(self.prev_output, html):
+                        if line1 != line2:
+                            output.append(line2)
+                        else:
+                            output.append('')
+                        html = output
+                    # Otherwise a full dump will take place
+                self.prev_output = html
+                return (scrollback, html)
+            else:
+                return ([], [])
+        except (KeyError, IOError, TypeError):
+            if self.ratelimiter_engaged:
+                return([], [
+                    "<b>Program output too noisy.  Sending Ctrl-c...</b>"])
+            return ([], [])
