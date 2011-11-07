@@ -1070,8 +1070,7 @@ class Terminal(object):
                 return
         if isinstance(chars, bytearray):
             # Have to convert to unicode
-            #chars = unicode(chars.decode('utf-8', errors="ignore"))
-            chars = unicode(chars.decode('utf-8', errors="handle_special"))
+            chars = unicode(chars.decode('utf-8', "handle_special"))
         for char in chars:
             charnum = ord(char)
             if charnum in specials:

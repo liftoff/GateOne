@@ -394,7 +394,7 @@ class Multiplex:
             # Gate One log file in vim or something =)
             # \U000f0f0f == U+F0F0F (Private Use Symbol)
             #output = chars.decode("utf-8")
-            output = unicode(chars.decode('utf-8', errors="ignore"))
+            output = unicode(chars.decode('utf-8', "ignore"))
             output = u"%s:%s\U000f0f0f" % (now, output)
             log = gzip.open(self.log_path, mode='a')
             log.write(output.encode("utf-8"))
