@@ -63,13 +63,14 @@ import logging
 
 # Import our own stuff
 from utils import mkdir_p, generate_session_id
+from utils import get_translation
 
 # 3rd party imports
 import tornado.web
 import tornado.auth
 import tornado.escape
-from utils import get_translation
 
+# Localization support
 _ = get_translation()
 
 class BaseAuthHandler(tornado.web.RequestHandler):

@@ -96,6 +96,9 @@ from itertools import izip
 import logging
 from subprocess import Popen
 from multiprocessing.managers import SyncManager, RemoteError
+# Fix missing termios.IUTF8
+if 'IUTF8' not in termios.__dict__:
+    termios.IUTF8 = 16384 # Hopefully this isn't platform independent
 
 # Import our own stuff
 from utils import noop
@@ -140,13 +143,20 @@ class Multiplex:
             # Whatever you use it just has to accept 'rows' and 'cols' as
             # keyword arguments in __init__()
             from terminal import Terminal # Dynamic import to cut down on waste
-            # Ahh, multiprocessing; how has thee gone unnoticed until now?
-            class TerminalManager(SyncManager):
-                pass
-            TerminalManager.register('Term', Terminal)
-            self.term_manager = TerminalManager()
-            self.term_manager.start()
-            self.terminal_emulator = self.term_manager.Term
+            # Only in Python 2.7+ is functools.partial picklable so we can't use
+            # multiprocessing in Python 2.6.
+            py_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
+            if sys.version_info[0] == 2 and sys.version_info[1] >= 7:
+                # Ahh, multiprocessing; how has thee gone unnoticed until now?
+                class TerminalManager(SyncManager):
+                    pass
+                TerminalManager.register('Term', Terminal)
+                self.term_manager = TerminalManager()
+                self.term_manager.start()
+                self.terminal_emulator = self.term_manager.Term
+            else:
+                # Can't support as many simultaneous users but it works:
+                self.terminal_emulator = Terminal
         else:
             self.terminal_emulator = terminal_emulator
         self.cps = cps # Characters per second where the rate limiter kicks in
@@ -223,7 +233,13 @@ class Multiplex:
         session.
         """
         self.ratelimiter_engaged = False
-        self.io_loop.add_handler(self.fd, self.proc_read, self.io_loop.READ)
+        # Empty the output queue.
+        termios.tcflush(self.fd, termios.TCOFLUSH)
+        #termios.tcflow(self.fd, termios.TCOON)
+        with self.lock:
+            with io.open(self.fd, 'rb', closefd=False) as reader:
+                reader.read() # Go to the end
+        #self.io_loop.add_handler(self.fd, self.proc_read, self.io_loop.READ)
         self.prev_output = [None for a in xrange(self.rows-1)]
 
     def _blocked_io_handler(self, signum, frame):
@@ -231,20 +247,22 @@ class Multiplex:
         Handles the situation where a terminal is blocking IO with too much
         output.
         """
-        logging.warning("Noisy process kicked off rate limiter.")
+        logging.warning(
+            "Noisy process kicked off rate limiter.  Sending Ctrl-c.")
         #os.kill(self.pid, signal.SIGINT)
         # Sending Ctrl-c via write() seems to work better:
-        os.write(self.fd, "\x03") # Ctrl-c to the bad process
-        self.io_loop.remove_handler(self.fd)
+        with io.open(self.fd, 'wb', closefd=False) as writer:
+            writer.write("\x03 # Sent Ctrl-c\n") # Ctrl-c to the bad process
+        # Turn off output to prevent the buffer from filling up
+        #termios.tcflow(self.fd, termios.TCOOFF) # Doesn't seem to do anything
+        # This doesn't seem to work either:
+        #os.write(self.fd, "\x19") # Ctrl-S to the bad process
+        # Empty the output queue.
+        #termios.tcflush(self.fd, termios.TCIOFLUSH) # Ditto, nothing.
+        # NOTE: Turns out that removing the IOLoop handler for this fd isn't
+        # necessary...  It just slows down the process of killing the process.
+        #self.io_loop.remove_handler(self.fd)
         self.ratelimiter_engaged = True
-        try:
-            self.term.clear_screen()
-            self.term.write( # Note: This is temporary until I figure out something better
-                "\x1b[0;1mProgram output too noisy.  Sending Ctrl-c...\x1b[0m")
-        except Exception as e:
-            logging.error(
-                "Got exception trying to write to the term in "
-                "_blocked_io_handler: %s" % e)
         for callback in self.callbacks[self.CALLBACK_UPDATE].values():
             self.io_loop.add_callback(callback)
         self.io_loop.add_timeout(timedelta(seconds=5), self._reenable_output)
@@ -279,20 +297,32 @@ class Multiplex:
             env["TERM"] = "xterm" # TODO: This needs to be configurable on-the-fly
             #env["PATH"] = os.environ['PATH']
             #env["LANG"] = os.environ['LANG']
-            flags_save = fcntl.fcntl(stdout, fcntl.F_GETFL)
-            logging.debug("fcntl settings: %s" % flags_save)
-            attrs_save = termios.tcgetattr(stdout)
-            attrs = list(attrs_save) # copy the stored version to update
-            # iflag
-            attrs[0] &= termios.IXON
-            # oflag
+            # Setup stdout to be more Gate One friendly
+            attrs = termios.tcgetattr(stdout)
+            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = attrs
+            # Enable flow control and UTF-8 input (probably not needed)
+            iflag |= (termios.IXON | termios.IXOFF | termios.IUTF8)
             # OPOST: Enable post-processing of chars (not sure if this matters)
-            # ONCLR: We're disabling this so we don't get \r\r\n anywhere
-            attrs[1] &= (termios.OPOST | ~termios.ONLCR)
-            attrs[3] &= (termios.ISIG | termios.IEXTEN)
+            # INLCR: We're disabling this so we don't get \r\r\n anywhere
+            oflag |= (termios.OPOST | termios.ONLCR | termios.INLCR)
+            attrs = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
             termios.tcsetattr(stdout, termios.TCSANOW, attrs)
+            # Now do the same for stdin
+            attrs = termios.tcgetattr(stdin)
+            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = attrs
+            iflag |= (termios.IXON | termios.IXOFF | termios.IUTF8)
+            oflag |= (termios.OPOST | termios.ONLCR | termios.INLCR)
+            attrs = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
+            termios.tcsetattr(stdin, termios.TCSANOW, attrs)
+            # Set non-blocking so we don't wait forever for a read()
             fcntl.fcntl(stdout, fcntl.F_SETFL, os.O_NONBLOCK)
-            p = Popen(self.cmd, env=env, shell=True)
+            p = Popen(
+                self.cmd,
+                env=env,
+                shell=True,
+                stdin=stdin,
+                stdout=stdout,
+                stderr=stderr)
             p.wait()
             # This exit() ensures IOLoop doesn't freak out about a missing fd
             sys.exit(0)
@@ -307,6 +337,9 @@ class Multiplex:
             self.io_loop.add_handler(
                 self.fd, self.proc_read, self.io_loop.READ)
             self.prev_output = [None for a in xrange(rows-1)]
+            # (re)start the flow control on the fd
+            termios.tcflow(fd, termios.TCOON)
+            termios.tcflow(fd, termios.TCION)
             # Set non-blocking so we don't wait forever for a read()
             fcntl.fcntl(self.fd, fcntl.F_SETFL, os.O_NONBLOCK)
             # These two lines set the size of the terminal window:
@@ -367,11 +400,12 @@ class Multiplex:
         except OSError:
             # Lots of trivial reasons why we could get these
             pass
-        try:
-             self.term_manager.shutdown() # Don't want this running anymore
-        except OSError:
-            # Often happens when gateone.py terminates.  Nothing to see here.
-            pass
+        if self.term_manager:
+            try:
+                self.term_manager.shutdown() # Don't want this running anymore
+            except OSError:
+                # Often happens when gateone.py terminates.  Nothing to see here.
+                pass
 
     def term_write(self, chars):
         """
@@ -433,7 +467,8 @@ class Multiplex:
             with self.lock:
                 with io.open(self.fd, 'rb', closefd=False) as reader:
                     # This needs to be huge to handle big images
-                    updated = bytearray(1048568)
+                    updated = bytearray(65536)
+                    #updated = bytearray(1048568)
                     reader.readinto(updated)
                     updated = updated.rstrip('\x00') # Remove excess null chars
                 self.term_write(updated)
@@ -478,28 +513,28 @@ class Multiplex:
         Writes *chars* to self.fd (pretty straightforward).
         """
         with self.lock:
-            with io.open(
-                self.fd,
-                'wt',
-                buffering=1024,
-                newline="",
-                encoding='UTF-8',
-                closefd=False
-            ) as writer:
-                writer.write(chars)
+            try:
+                with io.open(
+                    self.fd,
+                    'wt',
+                    buffering=1024,
+                    newline="",
+                    encoding='UTF-8',
+                    closefd=False
+                ) as writer:
+                    writer.write(chars)
+            except (IOError, OSError):
+                self.die()
+                self.proc_kill()
+            except Exception as e:
+                logging.error("proc_write() exception: %s" % e)
 
     def proc_write(self, chars):
         """
         Adds _buffer_write(*chars*) to the IOLoop callback queue.
         """
-        try:
-            _buffer_write = partial(self._buffer_write, chars)
-            self.io_loop.add_callback(_buffer_write)
-        except (IOError, OSError):
-            self.die()
-            self.proc_kill()
-        except Exception as e:
-            logging.error("proc_write() exception: %s" % e)
+        _buffer_write = partial(self._buffer_write, chars)
+        self.io_loop.add_callback(_buffer_write)
 
     def dumplines(self, full=False):
         """
@@ -512,7 +547,34 @@ class Multiplex:
         """
         try:
             output = []
-            scrollback, html = self.term.dump_html()
+            scrollback, html = ([], [])
+            if self.term:
+                try:
+                    result = self.term.dump_html()
+                    if result:
+                        scrollback, html = result
+                    else:
+                        # This is just wacky and should not happen!
+                        #logging.debug("Odd: result came back: %s" % result)
+                        if self.term_manager:
+                            # Re-create the terminal manager because it broke.
+                            # I don't understand why this happens but it does.
+                            self.term_manager.shutdown()
+                            from terminal import Terminal
+                            class TerminalManager(SyncManager): pass
+                            TerminalManager.register('Term', Terminal)
+                            self.term_manager = TerminalManager()
+                            self.term_manager.start()
+                            self.terminal_emulator = self.term_manager.Term
+                            self.term = self.terminal_emulator(
+                                rows=self.rows, cols=self.cols)
+                        return([], [
+                            "<b>The program output was too noisy so it has been"
+                            " killed.  Press any key to continue...</b>"
+                        ])
+                except IOError as e:
+                    logging.debug("IOError attempting self.term.dump_html()")
+                    logging.debug("%s" % e)
             if html:
                 if not full:
                     for line1, line2 in izip(self.prev_output, html):
@@ -523,10 +585,14 @@ class Multiplex:
                         html = output
                     # Otherwise a full dump will take place
                 self.prev_output = html
-                return (scrollback, html)
-            else:
-                return ([], [])
-        except (KeyError, IOError, TypeError):
+            return (scrollback, html)
+        except ValueError as e:
+            logging.error("ValueError in dumplines(): %s" % e)
+            return ([], [])
+        except (KeyError, IOError, TypeError) as e:
+            import traceback
+            logging.error("dumplines got exception: %s" % e)
+            traceback.print_exc(file=sys.stdout)
             if self.ratelimiter_engaged:
                 return([], [
                     "<b>Program output too noisy.  Sending Ctrl-c...</b>"])
