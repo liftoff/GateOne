@@ -297,7 +297,7 @@ class Multiplex:
             env["COLUMNS"] = str(cols)
             env["LINES"] = str(rows)
             env["TERM"] = "xterm" # TODO: This needs to be configurable on-the-fly
-            #env["PATH"] = os.environ['PATH']
+            env["PATH"] = os.environ['PATH']
             #env["LANG"] = os.environ['LANG']
             # Setup stdout to be more Gate One friendly
             attrs = termios.tcgetattr(stdout)
