@@ -131,7 +131,7 @@ These options match up directly with Gate One's command line options which you c
       --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
       --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
       --logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
-      --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified by providing additional --address arguments or adding multiple 'address = <address>' lines to the server.conf.
+      --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. '127.0.0.1;::1;10.1.1.100').
       --auth                           Authentication method to use.  Valid options are: none, kerberos, google.
       --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
       --command                        Run the given command when a user connects (e.g. 'nethack').

@@ -198,11 +198,19 @@ GateOne.Base.update(GateOne, {
             GateOne.Utils.loadPrefs();
         }
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
-        logFatal = GateOne.Logging.logFatal || GateOne.Utils.noop;
-        logError = GateOne.Logging.logError || GateOne.Utils.noop;
-        logWarning = GateOne.Logging.logWarning || GateOne.Utils.noop;
-        logInfo = GateOne.Logging.logInfo || GateOne.Utils.noop;
-        logDebug = GateOne.Logging.logDebug || GateOne.Utils.noop;
+        if (GateOne.Logging) {
+            logFatal = GateOne.Logging.logFatal;
+            logError = GateOne.Logging.logError;
+            logWarning = GateOne.Logging.logWarning;
+            logInfo = GateOne.Logging.logInfo;
+            logDebug = GateOne.Logging.logDebug;
+        } else {
+            logFatal = GateOne.Utils.noop;
+            logError = GateOne.Utils.noop;
+            logWarning = GateOne.Utils.noop;
+            logInfo = GateOne.Utils.noop;
+            logDebug = GateOne.Utils.noop;
+        }
         var go = GateOne,
             u = go.Utils,
             pb = GateOne.Playback,

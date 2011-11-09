@@ -16,15 +16,24 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
-import os, sys, errno, readline, re, tempfile, base64, binascii, struct
-from subprocess import Popen, PIPE
+import os, sys, errno, readline, tempfile, base64, binascii, struct
+from subprocess import Popen, check_output
 from optparse import OptionParser
 
 # Import 3rd party stuff
 from tornado.options import options
 
 # Globals
-re_host = re.compile(r'ssh://')
+wrapper_script = """\
+#!/bin/sh
+{cmd}
+echo '[Press Enter to close this terminal]'
+read waitforuser
+rm -f {temp} # Cleanup
+exit 0
+"""
+# We have the little "wait for user" bit so users can see the ouput of a
+# session before it got closed (can be lots of useful information).
 
 # Helper functions
 def mkdir_p(path):
@@ -48,6 +57,7 @@ def connect_ssh(
         user,
         host,
         port,
+        command="/usr/bin/ssh",
         password=None,
         env=None,
         socket=None,
@@ -72,7 +82,6 @@ def connect_ssh(
             'TERM': 'xterm',
             'LANG': 'en_US.UTF-8',
         }
-    command = "/usr/bin/ssh"
     args = [
         "-x", # No X11 forwarding, thanks :)
         "-F/dev/null", # No config dir (might change this is the future)
@@ -131,33 +140,44 @@ def connect_ssh(
         temp.close()
         env['SSH_ASKPASS'] = temp.name
         env['DISPLAY'] = ':9999'
-        # NOTE: preexec_fn below is necessary for SSH_ASKPASS to work
-        p = Popen(args, env=env, preexec_fn=os.setsid)
         # This removes the temporary file in a timely manner
-        rm = Popen("sleep 15 && /bin/rm -f " + temp.name, shell=True)
+        Popen("sleep 15 && /bin/rm -f %s" % temp.name, shell=True)
         # 15 seconds should be enough even for slow connections/servers
         # It's a tradeoff:  Lower number, more secure.  Higher number, less
         # likely to fail
-    else:
-        p = Popen(args)
+    script_path = None
     if 'GO_TERM' in os.environ.keys():
         if 'GO_SESSION_DIR' in os.environ.keys():
             # Save a file indicating our session is attached to GO_TERM
             term = os.environ['GO_TERM']
             ssh_session = 'ssh:%s:%s@%s:%s' % (term, user, host, port)
-            term_hint_path = os.environ['GO_SESSION_DIR'] + '/%s' % ssh_session
-            with open(term_hint_path, 'w') as f:
-                # Doesn't really matter what we write in here...  args works
-                f.write(" ".join(args) + '\n')
-    pid, retcode = os.waitpid(p.pid, 0)
-    # We have this little "wait for user input" bit so users can see the ouput
-    # of a session before it got closed (can be lots of useful information).
-    wait = raw_input("[Press Enter to close this terminal]")
-    # Clean up
-    if 'GO_TERM' in os.environ.keys():
-        if 'GO_SESSION_DIR' in os.environ.keys():
-            os.remove(term_hint_path)
-    sys.exit(retcode/256) # os.waitpid() return code is * 256 for some reason
+            script_path = os.environ['GO_SESSION_DIR'] + '/%s' % ssh_session
+    if not script_path:
+        # Just use a generic temp file
+        temp = tempfile.NamedTemporaryFile(prefix="ssh_connect", delete=False)
+        script_path = "%s" % temp.name
+        temp.close() # Will be written to below
+    env_variables = ["%s=%s;" % (k, v) for k, v in env.items()]
+    env_variables = " ".join(env_variables)
+    # Create our little shell script to wrap the SSH command
+    script = wrapper_script.format(cmd=" ".join(args), temp=script_path)
+    with open(script_path, 'w') as f:
+        f.write(script) # Save it to disk
+    # NOTE: We wrap in a shell script so we can execute it and immediately quit.
+    # By doing this instead of keeping ssh_connect.py running we can save a lot
+    # of memory (depending on how many terminals are open).
+    os.chmod(script_path, 0700) # 0700 for good security practices
+    if password:
+        # SSH_ASKPASS needs some special handling
+        pid = os.fork()
+        if pid == 0:
+            # Ensure that process is detached from TTY so SSH_ASKPASS will work
+            os.setsid() # This is the key
+            # Execute then immediately quit so we don't use up any more memory
+            # than we need.
+            os.execvpe(script_path, [], env)
+    else:
+        os.execvpe(script_path, [], env)
 
 def parse_ssh_url(url):
     """
@@ -189,6 +209,11 @@ def parse_ssh_url(url):
 
 if __name__ == "__main__":
     """Parse command line arguments and execute ssh_connect()"""
+    # Try and set a sane default for the path to the ssh command
+    try:
+        ssh_path = check_output('which ssh', shell=True).rstrip('\n')
+    except CalledProcessError:
+        ssh_path = "/usr/bin/ssh" # Fallback
     usage = (
         #'Usage:\n'
             '\t%prog [options] <user> <host> [port]\n'
@@ -197,6 +222,14 @@ if __name__ == "__main__":
     )
     parser = OptionParser(usage=usage, version=__version__)
     parser.disable_interspersed_args()
+
+    parser.add_option("-c", "--command",
+        dest="command",
+        default=ssh_path,
+        help=("Path to the ssh command.  Default: `which ssh` (usually "
+              "/usr/bin/ssh)."),
+        metavar="'<filepath>'"
+    )
     parser.add_option("-a", "--args",
         dest="additional_args",
         default=None,
@@ -223,6 +256,7 @@ if __name__ == "__main__":
         if len(args) == 1:
             (user, host, port, password) = parse_ssh_url(args[0])
             connect_ssh(user, host, port,
+                command=options.command,
                 password=password,
                 sshfp=options.sshfp,
                 additional_args=options.additional_args,
@@ -230,17 +264,19 @@ if __name__ == "__main__":
             )
         elif len(args) == 2: # No port given, assume 22
             connect_ssh(args[0], args[1], '22',
+                command=options.command,
                 sshfp=options.sshfp,
                 additional_args=options.additional_args,
                 socket=options.socket
             )
         elif len(args) == 3:
             connect_ssh(args[0], args[1], args[2],
+                command=options.command,
                 sshfp=options.sshfp,
                 additional_args=options.additional_args,
                 socket=options.socket
             )
-    except Exception as e:
+    except Exception:
         pass # Something ain't right.  Try the interactive entry method...
     password = None
     try:
@@ -263,6 +299,7 @@ if __name__ == "__main__":
         # Special escape handler:
         print("\x1b]_;ssh|%s@%s:%s\007" % (user, host, port))
         connect_ssh(user, host, port,
+            command=options.command,
             password=password,
             sshfp=options.sshfp,
             additional_args=options.additional_args,

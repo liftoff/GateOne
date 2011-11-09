@@ -93,7 +93,7 @@ well as descriptions of what each configurable option does:
       --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
       --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
       --logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
-      --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified by providing additional --address arguments or adding multiple 'address = <address>' lines to the server.conf.
+      --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. '127.0.0.1;::1;10.1.1.100').
       --auth                           Authentication method to use.  Valid options are: none, kerberos, google
       --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
       --command                        Run the given command when a user connects (e.g. 'nethack').
@@ -259,7 +259,7 @@ def _(string):
     return user_locale.translate(string).encode('UTF-8')
 
 # Helper functions
-def call_callback(queue, identifier, *args):
+def call_callback(session, term, identifier, *args):
     """
     Given an *identifier* (string), pushes that string to *queue* as:
         obj = (identifier, args)
@@ -267,8 +267,19 @@ def call_callback(queue, identifier, *args):
     This should result in the associated callback being called by the
     CallbackThread.
     """
-    obj = (identifier, args)
-    queue.put(obj)
+    print("call_callback identifier: %s" % identifier)
+    if args:
+        SESSIONS[session][term]['callbacks'][identifier](*args)
+        #registry[identifier](*args)
+    else:
+        SESSIONS[session][term]['callbacks'][identifier]()
+        #registry[identifier]()
+
+def register_callback(registry, identifier, callback):
+    print("register_callback registry: %s" % registry)
+    # Have to register it in the registry as well as in SESSIONS
+    registry[identifier] = callback
+    SESSIONS[session][term]['callbacks'][identifier] = callback
 
 # Globals
 SESSIONS = {} # We store the crux of most session info here
@@ -683,7 +694,6 @@ class TerminalWebSocket(WebSocketHandler):
             'kill_terminal': self.kill_terminal,
             'c': self.char_handler, # Just 'c' to keep the bandwidth down
             'refresh': self.refresh_screen,
-            #'refresh_test': self.refresh_screen_testing,
             'resize': self.resize,
             'debug_terminal': self.debug_terminal
         }
@@ -720,7 +730,7 @@ class TerminalWebSocket(WebSocketHandler):
         if message_obj:
             for key, value in message_obj.items():
                 try: # Plugins first so they can override behavior if they wish
-                    PLUGIN_WS_CMDS[key](value, tws=self) # tws==TerminalWebSocket
+                    PLUGIN_WS_CMDS[key](value, tws=self)# tws==TerminalWebSocket
                 except KeyError:
                     try:
                         self.commands[key](value)
@@ -734,11 +744,17 @@ class TerminalWebSocket(WebSocketHandler):
         NOTE: Normally self.refresh_screen() catches the disconnect first and
         this won't be called.
         """
+        logging.debug("on_close()")
         # Shut down the callbacks associated with this user
-        name = "CallbackThread.%s" % self.session
-        for t in threading.enumerate():
-            if t.getName().startswith(name):
-                t.quit()
+        #try:
+            #name = "CallbackThread.%s" % self.session
+        #except AttributeError:
+            ## WebSocket was opened and closed before authentication took place
+            #logging.info(_("WebSocket closed (unknown user)."))
+            #return # Nothing left to do
+        #for t in threading.enumerate():
+            #if t.getName().startswith(name):
+                #t.quit()
         go_upn = self.get_current_user()
         if go_upn:
             logging.info(
@@ -934,76 +950,70 @@ class TerminalWebSocket(WebSocketHandler):
         multiplex.add_callback(multiplex.CALLBACK_EXIT, restart, callback_id)
         # Setup the terminal emulator callbacks
         term_emulator = multiplex.term
-        if multiplex.term_manager:
-            # Only if we're 2.7+ will there be a term_manager.  See the
-            # notes in Multiplex.__init__() as to why this is (it has to do
-            # with functools.partial not being pickleable in Python 2.6).
-            logging.debug("Running with multiprocessing support.")
-            thread_id = 'CallbackThread.%s.%s' % (self.session, term)
-            if thread_id not in SESSIONS[self.session]:
-            # NOTE: We need this funky thread/queue setup because the
-            # multiprocessing module doesn't like to pickle instance methods.
-                queue = multiplex.term_manager.Queue()
-                SESSIONS[self.session][thread_id] = CallbackThread(
-                    thread_id, queue)
-                SESSIONS[self.session][thread_id].start()
-            queue = SESSIONS[self.session][thread_id].queue
-            set_title = partial(self.set_title, term)
-            callback_name = "set_title.%s" % callback_id
-            SESSIONS[self.session][thread_id].register_callback(
-                callback_name, set_title)
-            call_title_callback = partial(call_callback, queue, callback_name)
-            term_emulator.add_callback(
-                terminal.CALLBACK_TITLE, call_title_callback, callback_id)
-            set_title() # Set initial title
-            bell = partial(self.bell, term)
-            callback_name = "bell.%s" % callback_id
-            SESSIONS[self.session][thread_id].register_callback(
-                callback_name, bell)
-            call_bell_callback = partial(call_callback, queue, callback_name)
-            term_emulator.add_callback(
-                terminal.CALLBACK_BELL, call_bell_callback, callback_id)
-            callback_name = "esc_opt_handler.%s" % callback_id
-            SESSIONS[self.session][thread_id].register_callback(
-                callback_name, self.esc_opt_handler)
-            call_opt_callback = partial(call_callback, queue, callback_name)
-            term_emulator.add_callback(
-                terminal.CALLBACK_OPT, call_opt_callback, callback_id)
-            mode_handler = partial(self.mode_handler, term)
-            callback_name = "mode_handler.%s" % callback_id
-            SESSIONS[self.session][thread_id].register_callback(
-                callback_name, mode_handler)
-            call_mode_callback = partial(call_callback, queue, callback_name)
-            term_emulator.add_callback(
-                terminal.CALLBACK_MODE, call_mode_callback, callback_id)
-            reset_term = partial(self.reset_terminal, term)
-            callback_name = "reset_term.%s" % callback_id
-            SESSIONS[self.session][thread_id].register_callback(
-                callback_name, reset_term)
-            call_reset_callback = partial(call_callback, queue, callback_name)
-            term_emulator.add_callback(
-                terminal.CALLBACK_RESET, call_reset_callback, callback_id)
-        else:
+        #if multiplex.term_manager:
+            ## Only if we're 2.7+ will there be a term_manager.  See the
+            ## notes in Multiplex.__init__() as to why this is (it has to do
+            ## with functools.partial not being pickleable in Python 2.6).
+            #logging.debug("Running with multiprocessing support.")
+            #multiplex.registry = {}
+            #reg = multiplex.registry
+            #set_title = partial(self.set_title, term)
+            #callback_name = "set_title.%s" % callback_id
+            #register_callback(reg, callback_name, set_title)
+            #call_title_callback = partial(
+                #call_callback, self.session, term, callback_name)
+            #term_emulator.add_callback(
+                #terminal.CALLBACK_TITLE, call_title_callback, callback_id)
+            #set_title() # Set initial title
+            #bell = partial(self.bell, term)
+            #callback_name = "bell.%s" % callback_id
+            #register_callback(reg, callback_name, bell)
+            #call_bell_callback = partial(
+                #call_callback, self.session, term, callback_name)
+            #term_emulator.add_callback(
+                #terminal.CALLBACK_BELL, call_bell_callback, callback_id)
+            #callback_name = "esc_opt_handler.%s" % callback_id
+            #register_callback(reg, callback_name, self.esc_opt_handler)
+            #call_opt_callback = partial(
+                #call_callback, self.session, term, callback_name)
+            #term_emulator.add_callback(
+                #terminal.CALLBACK_OPT, call_opt_callback, callback_id)
+            #mode_handler = partial(self.mode_handler, term)
+            #callback_name = "mode_handler.%s" % callback_id
+            #register_callback(reg, callback_name, mode_handler)
+            #call_mode_callback = partial(
+                #call_callback, self.session, term, callback_name)
+            #term_emulator.add_callback(
+                #terminal.CALLBACK_MODE, call_mode_callback, callback_id)
+            #reset_term = partial(self.reset_terminal, term)
+            #callback_name = "reset_term.%s" % callback_id
+            #register_callback(reg, callback_name, reset_term)
+            #call_reset_callback = partial(
+                #call_callback, self.session, term, callback_name)
+            #term_emulator.add_callback(
+                #terminal.CALLBACK_RESET, call_reset_callback, callback_id)
+        #else:
             # Python 2.6 won't be able to use multiprocessing (due to
             # functools.partial being unpickleable) but at least the logic is
             # simpler this way!
-            logging.debug("Running WITHOUT multiprocessing support.")
-            set_title = partial(self.set_title, term)
-            term_emulator.add_callback(
-                terminal.CALLBACK_TITLE, set_title, callback_id)
-            set_title() # Set initial title
-            bell = partial(self.bell, term)
-            term_emulator.add_callback(
-                terminal.CALLBACK_BELL, bell, callback_id)
-            term_emulator.add_callback(
-                terminal.CALLBACK_OPT, self.esc_opt_handler, callback_id)
-            mode_handler = partial(self.mode_handler, term)
-            term_emulator.add_callback(
-                terminal.CALLBACK_MODE, mode_handler, callback_id)
-            reset_term = partial(self.reset_terminal, term)
-            term_emulator.add_callback(
-                terminal.CALLBACK_RESET, reset_term, callback_id)
+        logging.debug("Running WITHOUT multiprocessing support.")
+        set_title = partial(self.set_title, term)
+        term_emulator.add_callback(
+            terminal.CALLBACK_TITLE, set_title, callback_id)
+        set_title() # Set initial title
+        bell = partial(self.bell, term)
+        term_emulator.add_callback(
+            terminal.CALLBACK_BELL, bell, callback_id)
+        term_emulator.add_callback(
+            terminal.CALLBACK_OPT, self.esc_opt_handler, callback_id)
+        mode_handler = partial(self.mode_handler, term)
+        term_emulator.add_callback(
+            terminal.CALLBACK_MODE, mode_handler, callback_id)
+        reset_term = partial(self.reset_terminal, term)
+        term_emulator.add_callback(
+            terminal.CALLBACK_RESET, reset_term, callback_id)
         if 'tidy_thread' not in SESSIONS[self.session]:
+            print("starting tidy_thread")
             # Start the keepalive thread so the session will time out if the
             # user disconnects for like a week (by default anyway =)
             SESSIONS[self.session]['tidy_thread'] = TidyThread(self.session)
@@ -1023,8 +1033,8 @@ class TerminalWebSocket(WebSocketHandler):
             SESSIONS[self.session][term]['multiplex'].proc_kill()
             if self.settings['dtach']:
                 kill_dtached_proc(self.session, term)
-            thread_id = 'CallbackThread.%s.%s' % (self.session, term)
-            SESSIONS[self.session][thread_id].quit()
+            #thread_id = 'CallbackThread.%s.%s' % (self.session, term)
+            #SESSIONS[self.session][thread_id].quit()
             #name = "CallbackThread-%s" % self.session
             #for t in threading.enumerate():
                 #if t.getName() == name:
@@ -1109,7 +1119,6 @@ class TerminalWebSocket(WebSocketHandler):
         try:
             SESSIONS[self.session]['tidy_thread'].keepalive(datetime.now())
             m = multiplexer = SESSIONS[self.session][term]['multiplex']
-
             if len(m.callbacks[m.CALLBACK_UPDATE].keys()) > 1:
                 # The screen diff algorithm won't work if there's more than one
                 # client attached to the same multiplexer.
@@ -1232,87 +1241,6 @@ class OpenLogHandler(BaseHandler):
         )
 
 # Thread classes
-class CallbackThread(threading.Thread):
-    """
-    Listens for events in a Queue() and calls any matching/registered callbacks.
-    """
-    # NOTE: I know this CallbackThread/register_callback() stuff seems overly
-    # complex and it is...  But this was the simplest thing I could come up with
-    # to get callbacks working with multiprocessing.  If you have a better way
-    # please submit a patch!
-    def __init__(self, name, queue):
-        threading.Thread.__init__(
-            self,
-            name=name
-        )
-        self.name = name
-        self.queue = queue
-        self.quitting = False
-        self.callbacks = {}
-
-    def register_callback(self, identifier, callback):
-        """
-        Stores the given *callback* as self.callbacks[*identifier*]
-        """
-        self.callbacks.update({identifier: callback})
-
-    def unregister_callbacks(self, callback_id):
-        """
-        Removes all registered callbacks associated with *callback_id*
-        """
-        for identifier in self.callbacks.keys():
-            if callback_id in identifier:
-                logging.debug("deleting self.callbacks[%s]" % identifier)
-                del self.callbacks[identifier]
-
-    def call_callback(self, identifier, args):
-        """
-        Calls the callback function associated with *identifier* using the given
-        *args* like so::
-
-            self.callbacks[*identifier*](*args*)
-        """
-        if identifier in self.callbacks:
-            if not args:
-                self.callbacks[identifier]()
-            else:
-                self.callbacks[identifier](*args)
-        else:
-            logging.error("Unmatched callback: %s" % identifier)
-
-    def quit(self):
-        logging.debug("CallbackThread got quit()")
-        try:
-            self.queue.put('quit')
-        except (IOError, RemoteError) as e:
-            # The term emulator has already shut down.  Not a big deal
-            logging.error("Got error in CallbackThread: %s" % e)
-            pass
-        self.quitting = True
-
-    def run(self):
-        while not self.quitting:
-            try:
-                # TODO: Figure out a way to re-attach the Queue to the callback
-                # thread in the event that the term_manager gets disconnected.
-                obj = self.queue.get()
-                identifier = obj[0]
-                args = obj[1]
-                if identifier != 'quit':
-                    self.call_callback(identifier, args)
-            except EOFError as e:
-                logging.error("EOFError in CallbackThread: %s" % e)
-                logging.error("The EOFError likely means that the term_manager "
-                              "died.")
-            except Exception as e:
-                if len("%s" % e): # Throws empty exceptions at quitting time.
-                    logging.error("Error in CallbackThread: %s" % e)
-                self.quitting = True
-        logging.info(_(
-            "{name} received quit()...  ".format(
-                name=self.name)
-        ))
-
 class TidyThread(threading.Thread):
     """
     Kills a user's termio session if the client hasn't updated the keepalive
@@ -1364,7 +1292,7 @@ class TidyThread(threading.Thread):
         # This loops through all the open terminals checking if each is alive
                 all_dead = True
                 for term in SESSIONS[session].keys():
-                    try:
+                    if isinstance(term, int):
                         if SESSIONS[session][term]['multiplex'].alive:
                             all_dead = False
                             # Added a doublecheck value here because there's a
@@ -1373,8 +1301,6 @@ class TidyThread(threading.Thread):
                             # cause the user's connection to be killed (due to
                             # there being no active terminal associated with it)
                             self.doublecheck = True
-                    except TypeError: # Ignore TidyThread object
-                        pass
                 if all_dead:
                     if not self.doublecheck:
                         self.quitting = True
@@ -1387,6 +1313,8 @@ class TidyThread(threading.Thread):
                 logging.info(_(
                     "Exception encountered: {exception}".format(exception=e)
                 ))
+                import traceback
+                traceback.print_exc(file=sys.stdout)
                 self.quitting = True
         logging.info(_(
             "TidyThread {session} received quit()...  "
@@ -1505,8 +1433,8 @@ def main():
     )
     define("command",
         default=GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
-                r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp -a "
-                "'-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'",
+                r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp "
+                "-a '-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'",
         help=_("Run the given command when a user connects (e.g. '/bin/login')."
                ),
         type=str
@@ -1514,9 +1442,8 @@ def main():
     define("address",
         default="",
         help=_("Run on the given address.  Default is all addresses (IPv6 "
-               "included).  Multiple address can be specified by providing "
-               "additional --address arguments or adding multiple 'address = <"
-               "address>' lines to the server.conf."),
+               "included).  Multiple address can be specified using a semicolon"
+               " as a separator (e.g. '127.0.0.1;::1;10.1.1.100')."),
         type=str)
     define("port", default=443, help=_("Run on the given port."), type=int)
     # Please only use this if Gate One is running behind something with SSL:
@@ -1755,13 +1682,6 @@ def main():
     if not os.path.exists(options.certificate):
         logging.info(_("No SSL certificate found.  One will be generated."))
         gen_self_signed_ssl()
-    for addr in options.address.split(';'):
-        if addr:
-            logging.info(_(
-                "Listening on https://{address}:{port}/".format(
-                    address=addr, port=options.port
-                ))
-    )
     # Setup static file links for plugins (if any)
     static_dir = os.path.join(GATEONE_DIR, "static")
     plugin_dir = os.path.join(GATEONE_DIR, "plugins")
@@ -1776,17 +1696,26 @@ def main():
     http_server = tornado.httpserver.HTTPServer(
         Application(settings=app_settings), ssl_options=ssl_options)
     try: # Start your engines!
-        for addr in options.address.split(';'):
-            if addr:
-                http_server.listen(options.port, addr)
+        if options.address:
+            for addr in options.address.split(';'):
+                if addr: # Listen on all given addresses
+                    logging.info(_(
+                        "Listening on https://{address}:{port}/".format(
+                            address=addr, port=options.port)
+                    ))
+                    http_server.listen(port=options.port, address=addr)
+        else: # Listen on all addresses (including IPv6)
+            logging.info(_(
+                "Listening on https://*:{port}/".format(port=options.port)))
+            http_server.listen(port=options.port, address="")
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
         logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
         for t in threading.enumerate():
             if t.getName().startswith('TidyThread'):
                 t.quit()
-            elif t.getName().startswith('CallbackThread'):
-                t.quit()
+            #elif t.getName().startswith('CallbackThread'):
+                #t.quit()
 
 if __name__ == "__main__":
     main()

@@ -88,8 +88,9 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         string containing the username or userPrincipalName. e.g. 'user@REALM'
         or just 'someuser'.
         """
+        logging.debug("user_login(%s)" % user)
         # Make a directory to store this user's settings/files/logs/etc
-        user_dir = self.settings['user_dir'] + "/" + user
+        user_dir = os.path.join(self.settings['user_dir'], user)
         logging.info(_("Creating user directory: %s" % user_dir))
         mkdir_p(user_dir)
         os.chmod(user_dir, 0700)

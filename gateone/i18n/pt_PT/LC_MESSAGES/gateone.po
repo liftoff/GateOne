@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2011-10-22 22:16-0400\n"
+"POT-Creation-Date: 2011-11-08 09:54-0500\n"
 "PO-Revision-Date: 2011-10-22 20:12-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: pt_PT <LL@li.org>\n"
@@ -18,191 +18,332 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 0.9.6\n"
 
-#: gateone/gateone.py:639
+#: gateone/auth.py:93
+#, python-format
+msgid "Creating user directory: %s"
+msgstr ""
+
+#: gateone/auth.py:164
+msgid "Google auth failed"
+msgstr ""
+
+#: gateone/auth.py:209
+msgid "Kerberos auth failed"
+msgstr ""
+
+#: gateone/auth.py:212
+#, python-format
+msgid "KerberosAuthHandler user: %s"
+msgstr ""
+
+#: gateone/auth.py:243
+msgid "PAM auth failed"
+msgstr ""
+
+#: gateone/auth.py:245
+#, python-format
+msgid "PAMAuthHandler user: %s"
+msgstr ""
+
+#: gateone/gateone.py:232
+msgid ""
+"[31;1mERROR:[0m Gate One requires the Tornado framework.  You probably "
+"want to run something like, [1m'pip install --upgrade tornado'[0m."
+msgstr ""
+
+#: gateone/gateone.py:662
+#, python-format
+msgid "templates/themes/%s.css was not found"
+msgstr ""
+
+#: gateone/gateone.py:672
+#, python-format
+msgid "templates/term_colors/%s.css was not found"
+msgstr ""
+
+#: gateone/gateone.py:705
 #, python-format
 msgid "WebSocket opened (%s)."
 msgstr ""
 
-#: gateone/gateone.py:641
+#: gateone/gateone.py:707
 msgid "WebSocket opened (unknown user)."
 msgstr ""
 
-#: gateone/gateone.py:651
+#: gateone/gateone.py:717
 msgid "'Error: Message bust be a JSON dict.'"
 msgstr ""
 
-#: gateone/gateone.py:653
+#: gateone/gateone.py:719
 msgid "'Error: We only accept JSON here.'"
 msgstr ""
 
-#: gateone/gateone.py:674
+#: gateone/gateone.py:745
 #, python-format
 msgid "WebSocket closed (%s)."
 msgstr ""
 
-#: gateone/gateone.py:676
+#: gateone/gateone.py:747
 msgid "WebSocket closed (unknown user)."
 msgstr ""
 
-#: gateone/gateone.py:699
+#: gateone/gateone.py:770
 msgid "Unauthenticated WebSocket attempt."
 msgstr ""
 
-#: gateone/gateone.py:993
+#: gateone/gateone.py:1137
 #, python-format
 msgid "WebSocket closed (%s)"
 msgstr ""
 
-#: gateone/gateone.py:1045
+#: gateone/gateone.py:1191
 msgid "Got exception trying to execute plugin's optional ESC sequence handler..."
 msgstr ""
 
-#: gateone/gateone.py:1179
+#: gateone/gateone.py:1312
+msgid "{name} received quit()...  "
+msgstr ""
+
+#: gateone/gateone.py:1388
 msgid "Exception encountered: {exception}"
 msgstr ""
 
-#: gateone/gateone.py:1184
-msgid "{session} received quit()...  Killing termio session."
+#: gateone/gateone.py:1393
+msgid "TidyThread {session} received quit()...  Killing termio session."
 msgstr ""
 
-#: gateone/gateone.py:1290
+#: gateone/gateone.py:1438
+#, python-format
+msgid "Using %s authenticationauth"
+msgstr ""
+
+#: gateone/gateone.py:1440
+msgid "No authentication method configured. All users will be %anonymous"
+msgstr ""
+
+#: gateone/gateone.py:1473
+#, python-format
+msgid "Loaded plugins: %s, "
+msgstr ""
+
+#: gateone/gateone.py:1498
 msgid "Enable debugging features such as auto-restarting when files are modified."
 msgstr ""
 "Ativar a depuração recursos como auto-reiniciar quando os arquivos são "
 "modificados."
 
-#: gateone/gateone.py:1295
+#: gateone/gateone.py:1503
 msgid "Use the given 45-character string for cookie encryption."
 msgstr ""
 
-#: gateone/gateone.py:1302
+#: gateone/gateone.py:1510
 msgid "Run the given command when a user connects (e.g. '/bin/login')."
 msgstr ""
 
-#: gateone/gateone.py:1308
-msgid "Run on the given address."
+#: gateone/gateone.py:1516
+msgid ""
+"Run on the given address.  Default is all addresses (IPv6 included).  "
+"Multiple address can be specified by providing additional --address "
+"arguments or adding multiple 'address = <address>' lines to the "
+"server.conf."
 msgstr ""
 
-#: gateone/gateone.py:1310
+#: gateone/gateone.py:1521
 msgid "Run on the given port."
 msgstr ""
 
-#: gateone/gateone.py:1315
+#: gateone/gateone.py:1526
 msgid "If enabled, Gate One will run without SSL (generally not a good idea)."
 msgstr ""
 
-#: gateone/gateone.py:1321
+#: gateone/gateone.py:1532
 msgid "Path to the SSL certificate.  Will be auto-generated if none is provided."
 msgstr ""
 
-#: gateone/gateone.py:1328
+#: gateone/gateone.py:1539
 msgid "Path to the SSL keyfile.  Will be auto-generated if none is provided."
 msgstr ""
 
-#: gateone/gateone.py:1335
+#: gateone/gateone.py:1546
 msgid "Path to the location where user files will be stored."
 msgstr ""
 
-#: gateone/gateone.py:1341
+#: gateone/gateone.py:1552
 msgid "Path to the location where session information will be stored."
 msgstr ""
 
-#: gateone/gateone.py:1347
+#: gateone/gateone.py:1558
 msgid ""
 "If enabled, logs of user sessions will be saved in <user_dir>/logs.  "
 "Default: Enabled"
 msgstr ""
 
-#: gateone/gateone.py:1353
+#: gateone/gateone.py:1564
 msgid "If enabled, logs of user sessions will be written to syslog."
 msgstr ""
 
-#: gateone/gateone.py:1360
+#: gateone/gateone.py:1571
 #, python-format
 msgid ""
 "Syslog facility to use when logging to syslog (if syslog_session_logging "
 "is enabled).  Must be one of: %s.  Default: daemon, "
 msgstr ""
 
-#: gateone/gateone.py:1366
+#: gateone/gateone.py:1577
 msgid ""
 "Amount of time that a session should be kept alive after the client has "
 "logged out.  Accepts <num>X where X could be one of s, m, h, or d for "
 "seconds, minutes, hours, and days.  Default is '5d' (5 days)."
 msgstr ""
 
-#: gateone/gateone.py:1375
+#: gateone/gateone.py:1586
 #, python-format
 msgid "Authentication method to use.  Valid options are: %s"
 msgstr ""
 
-#: gateone/gateone.py:1381
+#: gateone/gateone.py:1592
 msgid ""
 "Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only "
 "relevant if Kerberos authentication is enabled."
 msgstr ""
 
-#: gateone/gateone.py:1388
+#: gateone/gateone.py:1599
 msgid ""
 "Kerberos service (aka application) to use. Defaults to HTTP. Only "
 "relevant if Kerberos authentication is enabled."
 msgstr ""
 
-#: gateone/gateone.py:1395
+#: gateone/gateone.py:1606
 msgid ""
 "Basic auth REALM to display when authenticating clients.  Default: "
 "hostname.  Only relevant if PAM authentication is enabled."
 msgstr ""
 
-#: gateone/gateone.py:1405
+#: gateone/gateone.py:1616
 msgid ""
 "PAM service to use.  Defaults to 'login'. Only relevant if PAM "
 "authentication is enabled."
 msgstr ""
 
-#: gateone/gateone.py:1412
+#: gateone/gateone.py:1623
 msgid ""
 "Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, "
 "etc.  See docs)."
 msgstr ""
 
-#: gateone/gateone.py:1418
+#: gateone/gateone.py:1629
 msgid ""
 "Wrap terminals with dtach. Allows sessions to be resumed even if Gate One"
 " is stopped and started (which is a sweet feature)."
 msgstr ""
 
-#: gateone/gateone.py:1424
+#: gateone/gateone.py:1635
 msgid "Kill any running Gate One terminal processes including dtach'd processes."
 msgstr ""
 
-#: gateone/gateone.py:1430
+#: gateone/gateone.py:1641
 #, python-format
 msgid ""
 "The locale (e.g. pt_PT) Gate One should use for translations.  If not "
-"provided, will default to $LANG (which is '%s' in your current shell)."
+"provided, will default to $LANG (which is '%s' in your current shell), or"
+" en_US if not set."
 msgstr ""
 
-#: gateone/gateone.py:1480
-msgid "Test test test"
-msgstr "Testes testes testes"
+#: gateone/gateone.py:1648
+msgid ""
+"A JavaScript object (string) that will be used when running "
+"GateOne.init() inside index.html.  Example: --js_init=\"{scheme: "
+"'white'}\" would result in GateOne.init({scheme: 'white'})"
+msgstr ""
 
-#: gateone/gateone.py:1488
+#: gateone/gateone.py:1706
 #, python-format
 msgid "[1;31mERROR:[0m Could not create %s for log_file_prefix: %s"
 msgstr ""
 
-#: gateone/gateone.py:1489
+#: gateone/gateone.py:1707
 msgid ""
 "You probably want to change this option, run Gate One as root, or create "
 "that directory and give the proper user ownership of it."
 msgstr ""
 
-#: gateone/gateone.py:1494
+#: gateone/gateone.py:1712
 msgid "No server.conf found.  A new one was generated using defaults."
 msgstr ""
 
-#: gateone/gateone.py:1510
+#: gateone/gateone.py:1728
 msgid "dtach command not found.  dtach support has been disabled."
 msgstr ""
+
+#: gateone/gateone.py:1753
+msgid "No SSL private key found.  One will be generated."
+msgstr ""
+
+#: gateone/gateone.py:1756
+msgid "No SSL certificate found.  One will be generated."
+msgstr ""
+
+#: gateone/gateone.py:1761
+msgid "Listening on https://{address}:{port}/"
+msgstr ""
+
+#: gateone/gateone.py:1784
+msgid "Caught KeyboardInterrupt.  Killing sessions..."
+msgstr ""
+
+#: gateone/sso.py:82
+msgid ""
+"[31;1mERROR:[0m The sso (Kerberos authentication) module requires the "
+"Python kerberos module.  You probably want to run something like, "
+"[1m'pip install kerberos'[0m."
+msgstr ""
+
+#: gateone/sso.py:138 gateone/sso.py:139
+msgid "Kerberos/GSSAPI Single Sign-On"
+msgstr ""
+
+#: gateone/sso.py:162
+msgid "Kerberos Init failed"
+msgstr ""
+
+#: gateone/sso.py:208
+msgid "Headers have already been written"
+msgstr ""
+
+#: gateone/terminal.py:898
+msgid "Got TypeError on CALLBACK_TITLE..."
+msgstr ""
+
+#: gateone/terminal.py:1823
+msgid "Error: Unsupported number for escape sequence J"
+msgstr ""
+
+#: gateone/terminal.py:1898
+msgid "Error: Unsupported number for CSI escape sequence K"
+msgstr ""
+
+#: gateone/terminal.py:2008
+msgid "cursorY >= self.rows! This should not happen! Bug!"
+msgstr ""
+
+#: gateone/terminal.py:2044
+#, python-format
+msgid "WFT?  new_renditions: %s, found_256: %s"
+msgstr ""
+
+#~ msgid "{session} received quit()...  Killing termio session."
+#~ msgstr ""
+
+#~ msgid "Run on the given address."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "The locale (e.g. pt_PT) Gate One "
+#~ "should use for translations.  If not "
+#~ "provided, will default to $LANG (which"
+#~ " is '%s' in your current shell)."
+#~ msgstr ""
+
+#~ msgid "Test test test"
+#~ msgstr "Testes testes testes"
 
