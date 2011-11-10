@@ -559,8 +559,8 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the terminal by calling self.initialize(rows, cols).  This</span>
-<span class="sd">        is so we can have an equivalent function inside of a</span>
-<span class="sd">        multiprocessing.Manager (which overrides __init__()).</span>
+<span class="sd">        is so we can have an equivalent function in situations where __init__()</span>
+<span class="sd">        gets overridden.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
 
@@ -810,9 +810,8 @@
 <span class="sd">            &gt;&gt;&gt; id = &quot;myref&quot;</span>
 <span class="sd">            &gt;&gt;&gt; ref = term.add_callback(CALLBACK_BELL, somefunc, id)</span>
 
-<span class="sd">        NOTE: This allows us to attach callbacks when __init__() has ben</span>
-<span class="sd">        overridden (e.g. multiprocessing.BaseManager).  It also allows the</span>
-<span class="sd">        controlling program to have multiple callbacks for the same event.</span>
+<span class="sd">        NOTE: This allows the controlling program to have multiple callbacks for</span>
+<span class="sd">        the same event.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">identifier</span><span class="p">:</span>
             <span class="n">identifier</span> <span class="o">=</span> <span class="n">callback</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span>
@@ -1093,7 +1092,7 @@
         <span class="n">cursor_right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor_right</span>
         <span class="n">magic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">magic</span>
         <span class="n">changed</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;handling chars: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="sb">`chars`</span><span class="p">)</span>
+        <span class="c">#logging.debug(&#39;handling chars: %s&#39; % `chars`)</span>
         <span class="k">if</span> <span class="n">special_checks</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">):</span>
             <span class="c"># NOTE: Special checks are limited to PNGs and JPEGs right now</span>
             <span class="n">before_chars</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
@@ -1122,8 +1121,7 @@
                 <span class="k">return</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">):</span>
             <span class="c"># Have to convert to unicode</span>
-            <span class="c">#chars = unicode(chars.decode(&#39;utf-8&#39;, errors=&quot;ignore&quot;))</span>
-            <span class="n">chars</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">chars</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s">&quot;handle_special&quot;</span><span class="p">))</span>
+            <span class="n">chars</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">chars</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span> <span class="s">&quot;handle_special&quot;</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">:</span>
             <span class="n">charnum</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">charnum</span> <span class="ow">in</span> <span class="n">specials</span><span class="p">:</span>

@@ -179,7 +179,7 @@ Options:
 &nbsp;&nbsp;--log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
 &nbsp;&nbsp;--log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
 &nbsp;&nbsp;--logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
-&nbsp;&nbsp;--address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as the separator (e.g. --address='127.0.0.1;::1;10.1.1.2;fe70::222:fcff:fc2a:3c2a')
+&nbsp;&nbsp;--address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. '127.0.0.1;::1;10.1.1.100').
 &nbsp;&nbsp;--auth                           Authentication method to use.  Valid options are: none, kerberos, google.
 &nbsp;&nbsp;--certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
 &nbsp;&nbsp;--command                        Run the given command when a user connects (e.g. 'nethack').
@@ -286,13 +286,17 @@ Options:
 <h3>address<a class="headerlink" href="#address" title="Permalink to this headline">¶</a></h3>
 <dl class="option">
 <dt id="cmdoption--address">
-<tt class="descname">--address</tt><tt class="descclassname">=string (IPv4 or IPv6 addresses separated by semicolons)</tt><a class="headerlink" href="#cmdoption--address" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">--address</tt><tt class="descclassname">=string (IPv4 or IPv6 address)</tt><a class="headerlink" href="#cmdoption--address" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<div class="highlight-python"><div class="highlight"><pre><span class="n">address</span> <span class="o">=</span> <span class="s">&quot;0.0.0.0&quot;</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">address</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
 </pre></div>
 </div>
-<p>The address that Gate One will listen for connections.  Default is &quot;0.0.0.0&quot; (all addresses).</p>
+<p>The address that Gate One will listen for connections.  Default is &quot;&quot; (all addresses including IPv6).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Multiple addresses can be specified by giving multiple <tt class="xref py py-obj docutils literal"><span class="pre">--address</span></tt> arguments to gateone.py or by adding multiple <tt class="xref py py-obj docutils literal"><span class="pre">address</span> <span class="pre">=</span> <span class="pre">&quot;&lt;address&gt;&quot;</span></tt> lines to the server.conf.</p>
+</div>
 </div>
 <div class="section" id="auth">
 <h3>auth<a class="headerlink" href="#auth" title="Permalink to this headline">¶</a></h3>

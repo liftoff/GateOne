@@ -145,7 +145,7 @@
 <span class="s">      --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)</span>
 <span class="s">      --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.</span>
 <span class="s">      --logging=info|warning|error|none Set the Python log level. If &#39;none&#39;, tornado won&#39;t touch the logging configuration.</span>
-<span class="s">      --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as the separator (e.g. --address=&#39;127.0.0.1;::1;10.1.1.2;fe70::222:fcff:fc2a:3c2a&#39;)</span>
+<span class="s">      --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. &#39;127.0.0.1;::1;10.1.1.100&#39;).</span>
 <span class="s">      --auth                           Authentication method to use.  Valid options are: none, kerberos, google</span>
 <span class="s">      --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.</span>
 <span class="s">      --command                        Run the given command when a user connects (e.g. &#39;nethack&#39;).</span>
@@ -266,31 +266,37 @@
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <span class="kn">from</span> <span class="nn">platform</span> <span class="kn">import</span> <span class="n">uname</span>
 <span class="kn">from</span> <span class="nn">commands</span> <span class="kn">import</span> <span class="n">getoutput</span>
-<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">Process</span>
+
+<span class="c"># Tornado modules (yeah, we use all this stuff)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">tornado.httpserver</span>
+    <span class="kn">import</span> <span class="nn">tornado.ioloop</span>
+    <span class="kn">import</span> <span class="nn">tornado.options</span>
+    <span class="kn">import</span> <span class="nn">tornado.web</span>
+    <span class="kn">import</span> <span class="nn">tornado.auth</span>
+    <span class="kn">import</span> <span class="nn">tornado.template</span>
+    <span class="kn">from</span> <span class="nn">tornado.websocket</span> <span class="kn">import</span> <span class="n">WebSocketHandler</span>
+    <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_encode</span><span class="p">,</span> <span class="n">json_decode</span>
+    <span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">define</span><span class="p">,</span> <span class="n">options</span>
+    <span class="kn">from</span> <span class="nn">tornado</span> <span class="kn">import</span> <span class="n">locale</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[31;1mERROR:</span><span class="se">\x1b</span><span class="s">[0m Gate One requires the Tornado framework.  &quot;</span>
+          <span class="s">&quot;You probably want to run something like, </span><span class="se">\x1b</span><span class="s">[1m&#39;pip install &quot;</span>
+          <span class="s">&quot;--upgrade tornado&#39;</span><span class="se">\x1b</span><span class="s">[0m.&quot;</span><span class="p">))</span>
+
+<span class="c"># We want this turned on right away</span>
+<span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">enable_pretty_logging</span><span class="p">()</span>
 
 <span class="c"># Our own modules</span>
 <span class="kn">import</span> <span class="nn">termio</span><span class="o">,</span> <span class="nn">terminal</span>
-<span class="kn">from</span> <span class="nn">auth</span> <span class="kn">import</span> <span class="n">NullAuthHandler</span><span class="p">,</span> <span class="n">KerberosAuthHandler</span><span class="p">,</span> <span class="n">GoogleAuthHandler</span><span class="p">,</span> <span class="n">PAMAuthHandler</span>
+<span class="kn">from</span> <span class="nn">auth</span> <span class="kn">import</span> <span class="n">NullAuthHandler</span><span class="p">,</span> <span class="n">KerberosAuthHandler</span><span class="p">,</span> <span class="n">GoogleAuthHandler</span>
+<span class="kn">from</span> <span class="nn">auth</span> <span class="kn">import</span> <span class="n">PAMAuthHandler</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">noop</span><span class="p">,</span> <span class="n">str2bool</span><span class="p">,</span> <span class="n">generate_session_id</span><span class="p">,</span> <span class="n">cmd_var_swap</span><span class="p">,</span> <span class="n">mkdir_p</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">gen_self_signed_ssl</span><span class="p">,</span> <span class="n">killall</span><span class="p">,</span> <span class="n">get_plugins</span><span class="p">,</span> <span class="n">load_plugins</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">create_plugin_static_links</span><span class="p">,</span> <span class="n">merge_handlers</span><span class="p">,</span> <span class="n">none_fix</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">convert_to_timedelta</span><span class="p">,</span> <span class="n">kill_dtached_proc</span><span class="p">,</span> <span class="n">short_hash</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">process_opt_esc_sequence</span><span class="p">,</span> <span class="n">create_data_uri</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">FACILITIES</span><span class="p">,</span> <span class="n">string_to_syslog_facility</span>
-
-<span class="c"># Tornado modules (yeah, we use all this stuff)</span>
-<span class="kn">import</span> <span class="nn">tornado.httpserver</span>
-<span class="kn">import</span> <span class="nn">tornado.ioloop</span>
-<span class="kn">import</span> <span class="nn">tornado.options</span>
-<span class="kn">import</span> <span class="nn">tornado.web</span>
-<span class="kn">import</span> <span class="nn">tornado.auth</span>
-<span class="kn">import</span> <span class="nn">tornado.template</span>
-<span class="kn">from</span> <span class="nn">tornado.websocket</span> <span class="kn">import</span> <span class="n">WebSocketHandler</span>
-<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_encode</span><span class="p">,</span> <span class="n">json_decode</span>
-<span class="kn">from</span> <span class="nn">tornado.options</span> <span class="kn">import</span> <span class="n">define</span><span class="p">,</span> <span class="n">options</span>
-<span class="kn">from</span> <span class="nn">tornado</span> <span class="kn">import</span> <span class="n">locale</span>
-
-<span class="n">tornado</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">enable_pretty_logging</span><span class="p">()</span>
 
 <span class="c"># Setup the locale functions before anything else</span>
 <span class="n">locale</span><span class="o">.</span><span class="n">set_default_locale</span><span class="p">(</span><span class="s">&#39;en_US&#39;</span><span class="p">)</span>
@@ -303,18 +309,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">user_locale</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="call_callback"><a class="viewcode-back" href="../Developer/gateone.html#gateone.call_callback">[docs]</a><span class="k">def</span> <span class="nf">call_callback</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given an *identifier* (string), pushes that string to *queue* as:</span>
-<span class="sd">        obj = (identifier, args)</span>
-
-<span class="sd">    This should result in the associated callback being called by the</span>
-<span class="sd">    CallbackThread.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">obj</span> <span class="o">=</span> <span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
-    <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-
-<span class="c"># Globals</span></div>
+<span class="c"># Globals</span>
 <span class="n">SESSIONS</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># We store the crux of most session info here</span>
 <span class="n">CMD</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Will be overwritten by options.command</span>
 <span class="n">TIMEOUT</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="c"># Gets overridden by options.session_timeout</span>
@@ -727,7 +722,6 @@
             <span class="s">&#39;kill_terminal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kill_terminal</span><span class="p">,</span>
             <span class="s">&#39;c&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">char_handler</span><span class="p">,</span> <span class="c"># Just &#39;c&#39; to keep the bandwidth down</span>
             <span class="s">&#39;refresh&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">refresh_screen</span><span class="p">,</span>
-            <span class="c">#&#39;refresh_test&#39;: self.refresh_screen_testing,</span>
             <span class="s">&#39;resize&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">resize</span><span class="p">,</span>
             <span class="s">&#39;debug_terminal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug_terminal</span>
         <span class="p">}</span>
@@ -764,7 +758,7 @@
         <span class="k">if</span> <span class="n">message_obj</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">message_obj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">try</span><span class="p">:</span> <span class="c"># Plugins first so they can override behavior if they wish</span>
-                    <span class="n">PLUGIN_WS_CMDS</span><span class="p">[</span><span class="n">key</span><span class="p">](</span><span class="n">value</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span> <span class="c"># tws==TerminalWebSocket</span>
+                    <span class="n">PLUGIN_WS_CMDS</span><span class="p">[</span><span class="n">key</span><span class="p">](</span><span class="n">value</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span><span class="c"># tws==TerminalWebSocket</span>
                 <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">[</span><span class="n">key</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
@@ -778,11 +772,17 @@
 <span class="sd">        NOTE: Normally self.refresh_screen() catches the disconnect first and</span>
 <span class="sd">        this won&#39;t be called.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;on_close()&quot;</span><span class="p">)</span>
         <span class="c"># Shut down the callbacks associated with this user</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;CallbackThread.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
-        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threading</span><span class="o">.</span><span class="n">enumerate</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-                <span class="n">t</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+        <span class="c">#try:</span>
+            <span class="c">#name = &quot;CallbackThread.%s&quot; % self.session</span>
+        <span class="c">#except AttributeError:</span>
+            <span class="c">## WebSocket was opened and closed before authentication took place</span>
+            <span class="c">#logging.info(_(&quot;WebSocket closed (unknown user).&quot;))</span>
+            <span class="c">#return # Nothing left to do</span>
+        <span class="c">#for t in threading.enumerate():</span>
+            <span class="c">#if t.getName().startswith(name):</span>
+                <span class="c">#t.quit()</span>
         <span class="n">go_upn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">go_upn</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -978,52 +978,23 @@
         <span class="n">multiplex</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">multiplex</span><span class="o">.</span><span class="n">CALLBACK_EXIT</span><span class="p">,</span> <span class="n">restart</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
         <span class="c"># Setup the terminal emulator callbacks</span>
         <span class="n">term_emulator</span> <span class="o">=</span> <span class="n">multiplex</span><span class="o">.</span><span class="n">term</span>
-        <span class="n">thread_id</span> <span class="o">=</span> <span class="s">&#39;CallbackThread.</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">thread_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">]:</span>
-            <span class="c"># NOTE: We need this funky thread/queue setup because the</span>
-            <span class="c"># multiprocessing module doesn&#39;t like to pickle instance methods.</span>
-            <span class="n">queue</span> <span class="o">=</span> <span class="n">multiplex</span><span class="o">.</span><span class="n">term_manager</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
-
-            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">thread_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">CallbackThread</span><span class="p">(</span>
-                <span class="n">thread_id</span><span class="p">,</span> <span class="n">queue</span><span class="p">)</span>
-            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">thread_id</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-        <span class="n">queue</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">thread_id</span><span class="p">]</span><span class="o">.</span><span class="n">queue</span>
         <span class="n">set_title</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
-        <span class="n">callback_name</span> <span class="o">=</span> <span class="s">&quot;set_title.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">callback_id</span>
-        <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">thread_id</span><span class="p">]</span><span class="o">.</span><span class="n">register_callback</span><span class="p">(</span>
-            <span class="n">callback_name</span><span class="p">,</span> <span class="n">set_title</span><span class="p">)</span>
-        <span class="n">safe_callback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">call_callback</span><span class="p">,</span> <span class="n">queue</span><span class="p">,</span> <span class="n">callback_name</span><span class="p">)</span>
         <span class="n">term_emulator</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span>
-            <span class="n">terminal</span><span class="o">.</span><span class="n">CALLBACK_TITLE</span><span class="p">,</span> <span class="n">safe_callback</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
+            <span class="n">terminal</span><span class="o">.</span><span class="n">CALLBACK_TITLE</span><span class="p">,</span> <span class="n">set_title</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
         <span class="n">set_title</span><span class="p">()</span> <span class="c"># Set initial title</span>
         <span class="n">bell</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bell</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
-        <span class="n">callback_name</span> <span class="o">=</span> <span class="s">&quot;bell.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">callback_id</span>
-        <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">thread_id</span><span class="p">]</span><span class="o">.</span><span class="n">register_callback</span><span class="p">(</span>
-            <span class="n">callback_name</span><span class="p">,</span> <span class="n">bell</span><span class="p">)</span>
-        <span class="n">safe_callback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">call_callback</span><span class="p">,</span> <span class="n">queue</span><span class="p">,</span> <span class="n">callback_name</span><span class="p">)</span>
         <span class="n">term_emulator</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span>
-            <span class="n">terminal</span><span class="o">.</span><span class="n">CALLBACK_BELL</span><span class="p">,</span> <span class="n">safe_callback</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
-        <span class="n">callback_name</span> <span class="o">=</span> <span class="s">&quot;esc_opt_handler.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">callback_id</span>
-        <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">thread_id</span><span class="p">]</span><span class="o">.</span><span class="n">register_callback</span><span class="p">(</span>
-            <span class="n">callback_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">esc_opt_handler</span><span class="p">)</span>
-        <span class="n">safe_callback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">call_callback</span><span class="p">,</span> <span class="n">queue</span><span class="p">,</span> <span class="n">callback_name</span><span class="p">)</span>
+            <span class="n">terminal</span><span class="o">.</span><span class="n">CALLBACK_BELL</span><span class="p">,</span> <span class="n">bell</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
         <span class="n">term_emulator</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span>
-            <span class="n">terminal</span><span class="o">.</span><span class="n">CALLBACK_OPT</span><span class="p">,</span> <span class="n">safe_callback</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
+            <span class="n">terminal</span><span class="o">.</span><span class="n">CALLBACK_OPT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">esc_opt_handler</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
         <span class="n">mode_handler</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode_handler</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
-        <span class="n">callback_name</span> <span class="o">=</span> <span class="s">&quot;mode_handler.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">callback_id</span>
-        <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">thread_id</span><span class="p">]</span><span class="o">.</span><span class="n">register_callback</span><span class="p">(</span>
-            <span class="n">callback_name</span><span class="p">,</span> <span class="n">mode_handler</span><span class="p">)</span>
-        <span class="n">safe_callback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">call_callback</span><span class="p">,</span> <span class="n">queue</span><span class="p">,</span> <span class="n">callback_name</span><span class="p">)</span>
         <span class="n">term_emulator</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span>
-            <span class="n">terminal</span><span class="o">.</span><span class="n">CALLBACK_MODE</span><span class="p">,</span> <span class="n">safe_callback</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
+            <span class="n">terminal</span><span class="o">.</span><span class="n">CALLBACK_MODE</span><span class="p">,</span> <span class="n">mode_handler</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
         <span class="n">reset_term</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_terminal</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
-        <span class="n">callback_name</span> <span class="o">=</span> <span class="s">&quot;reset_term.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">callback_id</span>
-        <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">thread_id</span><span class="p">]</span><span class="o">.</span><span class="n">register_callback</span><span class="p">(</span>
-            <span class="n">callback_name</span><span class="p">,</span> <span class="n">reset_term</span><span class="p">)</span>
-        <span class="n">safe_callback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">call_callback</span><span class="p">,</span> <span class="n">queue</span><span class="p">,</span> <span class="n">callback_name</span><span class="p">)</span>
         <span class="n">term_emulator</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span>
-            <span class="n">terminal</span><span class="o">.</span><span class="n">CALLBACK_RESET</span><span class="p">,</span> <span class="n">safe_callback</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
+            <span class="n">terminal</span><span class="o">.</span><span class="n">CALLBACK_RESET</span><span class="p">,</span> <span class="n">reset_term</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="s">&#39;tidy_thread&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">]:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;starting tidy_thread&quot;</span><span class="p">)</span>
             <span class="c"># Start the keepalive thread so the session will time out if the</span>
             <span class="c"># user disconnects for like a week (by default anyway =)</span>
             <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;tidy_thread&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">TidyThread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
@@ -1036,19 +1007,13 @@
 
     <span class="k">def</span> <span class="nf">kill_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Kills *term* and any associated processes&quot;&quot;&quot;</span>
-        <span class="c">#print(&quot;killing terminal: %s&quot; % term)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;killing terminal: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
         <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">die</span><span class="p">()</span>
             <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">proc_kill</span><span class="p">()</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;dtach&#39;</span><span class="p">]:</span>
                 <span class="n">kill_dtached_proc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
-            <span class="n">thread_id</span> <span class="o">=</span> <span class="s">&#39;CallbackThread.</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
-            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">thread_id</span><span class="p">]</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
-            <span class="c">#name = &quot;CallbackThread-%s&quot; % self.session</span>
-            <span class="c">#for t in threading.enumerate():</span>
-                <span class="c">#if t.getName() == name:</span>
-                    <span class="c">#t.unregister_callbacks(self.callback_id)</span>
             <span class="k">del</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">pass</span> <span class="c"># The EVIL termio has killed my child!  Wait, that&#39;s good...</span>
@@ -1123,12 +1088,12 @@
 <span class="sd">        the client.</span>
 <span class="sd">        If *full*, send the whole screen (not just the difference).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s">&quot;refresh_screen (full=</span><span class="si">%s</span><span class="s">) on </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">full</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span><span class="p">))</span>
+        <span class="c"># Commented this out because it was getting annoying in my debugging.</span>
+        <span class="c">#logging.debug(</span>
+            <span class="c">#&quot;refresh_screen (full=%s) on %s&quot; % (full, self.callback_id))</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="s">&#39;tidy_thread&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keepalive</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">multiplexer</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span>
-
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="c"># The screen diff algorithm won&#39;t work if there&#39;s more than one</span>
                 <span class="c"># client attached to the same multiplexer.</span>
@@ -1138,6 +1103,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="n">multiplexer</span><span class="o">.</span><span class="n">dumplines</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="c"># Session died (i.e. command ended).</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;KeyError in refresh_screen: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
             <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="n">screen</span><span class="p">:</span>
             <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -1250,76 +1216,6 @@
         <span class="p">)</span>
 
 <span class="c"># Thread classes</span></div>
-<div class="viewcode-block" id="CallbackThread"><a class="viewcode-back" href="../Developer/gateone.html#gateone.CallbackThread">[docs]</a><span class="k">class</span> <span class="nc">CallbackThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Listens for events in a Queue() and calls any matching/registered callbacks.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># NOTE: I know this CallbackThread/register_callback() stuff seems overly</span>
-    <span class="c"># complex and it is...  But this was the simplest thing I could come up with</span>
-    <span class="c"># to get callbacks working with multiprocessing.  If you have a better way</span>
-    <span class="c"># please submit a patch!</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">queue</span><span class="p">):</span>
-        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">name</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span> <span class="o">=</span> <span class="p">{}</span>
-
-<div class="viewcode-block" id="CallbackThread.register_callback"><a class="viewcode-back" href="../Developer/gateone.html#gateone.CallbackThread.register_callback">[docs]</a>    <span class="k">def</span> <span class="nf">register_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Stores the given *callback* as self.callbacks[*identifier*]</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">identifier</span><span class="p">:</span> <span class="n">callback</span><span class="p">})</span>
-</div>
-<div class="viewcode-block" id="CallbackThread.unregister_callbacks"><a class="viewcode-back" href="../Developer/gateone.html#gateone.CallbackThread.unregister_callbacks">[docs]</a>    <span class="k">def</span> <span class="nf">unregister_callbacks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback_id</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Removes all registered callbacks associated with *callback_id*</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">identifier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">callback_id</span> <span class="ow">in</span> <span class="n">identifier</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;deleting self.callbacks[</span><span class="si">%s</span><span class="s">]&quot;</span> <span class="o">%</span> <span class="n">identifier</span><span class="p">)</span>
-                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span>
-</div>
-<div class="viewcode-block" id="CallbackThread.call_callback"><a class="viewcode-back" href="../Developer/gateone.html#gateone.CallbackThread.call_callback">[docs]</a>    <span class="k">def</span> <span class="nf">call_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calls the callback function associated with *identifier* using the given</span>
-<span class="sd">        *args* like so::</span>
-
-<span class="sd">            self.callbacks[*identifier*](*args*)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">identifier</span><span class="p">]()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">identifier</span><span class="p">](</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
-</div>
-    <span class="k">def</span> <span class="nf">quit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s">&#39;quit&#39;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-            <span class="c"># The term emulator has already shut down.  Not a big deal</span>
-            <span class="k">pass</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span> <span class="o">=</span> <span class="bp">True</span>
-
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-                <span class="n">identifier</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">args</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">identifier</span> <span class="o">!=</span> <span class="s">&#39;quit&#39;</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">call_callback</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">):</span> <span class="c"># Throws empty exceptions at quitting time.</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Error in CallbackThread: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-            <span class="s">&quot;CallbackThread.{name} received quit()...  &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="p">))</span>
-</div>
 <div class="viewcode-block" id="TidyThread"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TidyThread">[docs]</a><span class="k">class</span> <span class="nc">TidyThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Kills a user&#39;s termio session if the client hasn&#39;t updated the keepalive</span>
@@ -1371,7 +1267,7 @@
         <span class="c"># This loops through all the open terminals checking if each is alive</span>
                 <span class="n">all_dead</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
                         <span class="k">if</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">alive</span><span class="p">:</span>
                             <span class="n">all_dead</span> <span class="o">=</span> <span class="bp">False</span>
                             <span class="c"># Added a doublecheck value here because there&#39;s a</span>
@@ -1380,8 +1276,6 @@
                             <span class="c"># cause the user&#39;s connection to be killed (due to</span>
                             <span class="c"># there being no active terminal associated with it)</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">doublecheck</span> <span class="o">=</span> <span class="bp">True</span>
-                    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span> <span class="c"># Ignore TidyThread object</span>
-                        <span class="k">pass</span>
                 <span class="k">if</span> <span class="n">all_dead</span><span class="p">:</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">doublecheck</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span> <span class="o">=</span> <span class="bp">True</span>
@@ -1394,6 +1288,8 @@
                 <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                     <span class="s">&quot;Exception encountered: {exception}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">exception</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
                 <span class="p">))</span>
+                <span class="kn">import</span> <span class="nn">traceback</span>
+                <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">quitting</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;TidyThread {session} received quit()...  &quot;</span>
@@ -1512,8 +1408,8 @@
     <span class="p">)</span>
     <span class="n">define</span><span class="p">(</span><span class="s">&quot;command&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="n">GATEONE_DIR</span> <span class="o">+</span> <span class="s">&quot;/plugins/ssh/scripts/ssh_connect.py -S &quot;</span>
-                <span class="s">r&quot;&#39;/tmp/gateone/%SESSION%/%SHORT_SOCKET%&#39; --sshfp -a &quot;</span>
-                <span class="s">&quot;&#39;-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts&#39;&quot;</span><span class="p">,</span>
+                <span class="s">r&quot;&#39;/tmp/gateone/%SESSION%/%SHORT_SOCKET%&#39; --sshfp &quot;</span>
+                <span class="s">&quot;-a &#39;-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts&#39;&quot;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Run the given command when a user connects (e.g. &#39;/bin/login&#39;).&quot;</span>
                <span class="p">),</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
@@ -1522,8 +1418,7 @@
         <span class="n">default</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Run on the given address.  Default is all addresses (IPv6 &quot;</span>
                <span class="s">&quot;included).  Multiple address can be specified using a semicolon&quot;</span>
-               <span class="s">&quot; as the separator (e.g. --address=&quot;</span>
-               <span class="s">&quot;&#39;127.0.0.1;::1;10.1.1.2;fe70::222:fcff:fc2a:3c2a&#39;)&quot;</span><span class="p">),</span>
+               <span class="s">&quot; as a separator (e.g. &#39;127.0.0.1;::1;10.1.1.100&#39;).&quot;</span><span class="p">),</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
     <span class="n">define</span><span class="p">(</span><span class="s">&quot;port&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">443</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Run on the given port.&quot;</span><span class="p">),</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="c"># Please only use this if Gate One is running behind something with SSL:</span>
@@ -1762,13 +1657,6 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">certificate</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;No SSL certificate found.  One will be generated.&quot;</span><span class="p">))</span>
         <span class="n">gen_self_signed_ssl</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">addr</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">address</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">addr</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                <span class="s">&quot;Listening on https://{address}:{port}/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">address</span><span class="o">=</span><span class="n">addr</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span>
-                <span class="p">))</span>
-    <span class="p">)</span>
     <span class="c"># Setup static file links for plugins (if any)</span>
     <span class="n">static_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">)</span>
     <span class="n">plugin_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;plugins&quot;</span><span class="p">)</span>
@@ -1783,17 +1671,26 @@
     <span class="n">http_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span>
         <span class="n">Application</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">app_settings</span><span class="p">),</span> <span class="n">ssl_options</span><span class="o">=</span><span class="n">ssl_options</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span> <span class="c"># Start your engines!</span>
-        <span class="k">for</span> <span class="n">addr</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">address</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">addr</span><span class="p">:</span>
-                <span class="n">http_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">addr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">address</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">addr</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">address</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">addr</span><span class="p">:</span> <span class="c"># Listen on all given addresses</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                        <span class="s">&quot;Listening on https://{address}:{port}/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">address</span><span class="o">=</span><span class="n">addr</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+                    <span class="p">))</span>
+                    <span class="n">http_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">addr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c"># Listen on all addresses (including IPv6)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;Listening on https://*:{port}/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">)))</span>
+            <span class="n">http_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">)</span>
         <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span> <span class="c"># ctrl-c</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Caught KeyboardInterrupt.  Killing sessions...&quot;</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threading</span><span class="o">.</span><span class="n">enumerate</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;TidyThread&#39;</span><span class="p">):</span>
                 <span class="n">t</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;CallbackThread&#39;</span><span class="p">):</span>
-                <span class="n">t</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+            <span class="c">#elif t.getName().startswith(&#39;CallbackThread&#39;):</span>
+                <span class="c">#t.quit()</span>
 
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>

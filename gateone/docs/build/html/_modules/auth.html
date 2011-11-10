@@ -115,13 +115,14 @@
 
 <span class="c"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">generate_session_id</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
 
 <span class="c"># 3rd party imports</span>
 <span class="kn">import</span> <span class="nn">tornado.web</span>
 <span class="kn">import</span> <span class="nn">tornado.auth</span>
 <span class="kn">import</span> <span class="nn">tornado.escape</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
 
+<span class="c"># Localization support</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 
 <div class="viewcode-block" id="BaseAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseAuthHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
@@ -139,8 +140,9 @@
 <span class="sd">        string containing the username or userPrincipalName. e.g. &#39;user@REALM&#39;</span>
 <span class="sd">        or just &#39;someuser&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;user_login(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
         <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
-        <span class="n">user_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">user</span>
+        <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
         <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mo">0700</span><span class="p">)</span>

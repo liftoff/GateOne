@@ -29,7 +29,7 @@
     <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="logviewer.py - Session Log Viewer" href="logviewer.html" />
-    <link rel="prev" title="auth.py - Authentication Classes" href="auth.html" /> 
+    <link rel="prev" title="authpam.py - A PAM Authentication Module" href="authpam.html" /> 
   </head>
   <body>
     <div class="related">
@@ -45,7 +45,7 @@
           <a href="logviewer.html" title="logviewer.py - Session Log Viewer"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="auth.html" title="auth.py - Authentication Classes"
+          <a href="authpam.html" title="authpam.py - A PAM Authentication Module"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
@@ -138,7 +138,7 @@ Options:
 &nbsp;&nbsp;--log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
 &nbsp;&nbsp;--log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
 &nbsp;&nbsp;--logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
-&nbsp;&nbsp;--address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as the separator (e.g. --address='127.0.0.1;::1;10.1.1.2;fe70::222:fcff:fc2a:3c2a')
+&nbsp;&nbsp;--address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. '127.0.0.1;::1;10.1.1.100').
 &nbsp;&nbsp;--auth                           Authentication method to use.  Valid options are: none, kerberos, google
 &nbsp;&nbsp;--certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
 &nbsp;&nbsp;--command                        Run the given command when a user connects (e.g. 'nethack').
@@ -292,17 +292,6 @@ the following tasks in relation to plugins:</p>
 </div>
 <div class="section" id="class-docstrings">
 <h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="gateone.call_callback">
-<tt class="descclassname">gateone.</tt><tt class="descname">call_callback</tt><big>(</big><em>queue</em>, <em>identifier</em>, <em>*args</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#call_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.call_callback" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Given an <em>identifier</em> (string), pushes that string to <em>queue</em> as:</dt>
-<dd>obj = (identifier, args)</dd>
-</dl>
-<p>This should result in the associated callback being called by the
-CallbackThread.</p>
-</dd></dl>
-
 <dl class="class">
 <dt id="gateone.BaseHandler">
 <em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.BaseHandler" title="Permalink to this definition">¶</a></dt>
@@ -350,33 +339,6 @@ unable to save itself =).</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="gateone.CallbackThread">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">CallbackThread</tt><big>(</big><em>name</em>, <em>queue</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#CallbackThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.CallbackThread" title="Permalink to this definition">¶</a></dt>
-<dd><p>Listens for events in a Queue() and calls any matching/registered callbacks.</p>
-<dl class="method">
-<dt id="gateone.CallbackThread.register_callback">
-<tt class="descname">register_callback</tt><big>(</big><em>identifier</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#CallbackThread.register_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.CallbackThread.register_callback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Stores the given <em>callback</em> as self.callbacks[<em>identifier</em>]</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.CallbackThread.unregister_callbacks">
-<tt class="descname">unregister_callbacks</tt><big>(</big><em>callback_id</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#CallbackThread.unregister_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.CallbackThread.unregister_callbacks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes all registered callbacks associated with <em>callback_id</em></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.CallbackThread.call_callback">
-<tt class="descname">call_callback</tt><big>(</big><em>identifier</em>, <em>args</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#CallbackThread.call_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.CallbackThread.call_callback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls the callback function associated with <em>identifier</em> using the given
-<em>args</em> like so:</p>
-<div class="highlight-python"><pre>self.callbacks[*identifier*](*args*)</pre>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="gateone.TidyThread">
 <em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">TidyThread</tt><big>(</big><em>session</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TidyThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TidyThread" title="Permalink to this definition">¶</a></dt>
 <dd><p>Kills a user's termio session if the client hasn't updated the keepalive
@@ -420,8 +382,8 @@ background.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="auth.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">auth.py</span></tt> - Authentication Classes</a></p>
+  <p class="topless"><a href="authpam.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="logviewer.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>
@@ -460,7 +422,7 @@ background.</p>
           <a href="logviewer.html" title="logviewer.py - Session Log Viewer"
              >next</a> |</li>
         <li class="right" >
-          <a href="auth.html" title="auth.py - Authentication Classes"
+          <a href="authpam.html" title="authpam.py - A PAM Authentication Module"
              >previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 

@@ -159,9 +159,8 @@ callback at the given event, that callback will be replaced with
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">,</span> <span class="n">somefunc</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>NOTE: This allows us to attach callbacks when __init__() has ben
-overridden (e.g. multiprocessing.BaseManager).  It also allows the
-controlling program to have multiple callbacks for the same event.</p>
+<p>NOTE: This allows the controlling program to have multiple callbacks for
+the same event.</p>
 </dd></dl>
 
 <dl class="method">

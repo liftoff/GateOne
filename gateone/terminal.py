@@ -507,8 +507,8 @@ class Terminal(object):
     def __init__(self, rows=24, cols=80):
         """
         Initializes the terminal by calling self.initialize(rows, cols).  This
-        is so we can have an equivalent function inside of a
-        multiprocessing.Manager (which overrides __init__()).
+        is so we can have an equivalent function in situations where __init__()
+        gets overridden.
         """
         self.initialize(rows, cols)
 
@@ -758,9 +758,8 @@ class Terminal(object):
             >>> id = "myref"
             >>> ref = term.add_callback(CALLBACK_BELL, somefunc, id)
 
-        NOTE: This allows us to attach callbacks when __init__() has ben
-        overridden (e.g. multiprocessing.BaseManager).  It also allows the
-        controlling program to have multiple callbacks for the same event.
+        NOTE: This allows the controlling program to have multiple callbacks for
+        the same event.
         """
         if not identifier:
             identifier = callback.__hash__()
@@ -2138,6 +2137,8 @@ class Terminal(object):
                             outline += "<i>Problem displaying this image</i>"
                             continue
                     # Need to encode base64 to create a data URI
+                    # Python 2.6 doesn't like passing bytearrays to b64encode:
+                    image_data = bytes(image_data) # This isn't necessary in 2.7
                     encoded = base64.b64encode(image_data).replace('\n', '')
                     data_uri = "data:image/%s;base64,%s" % (
                         im.format.lower(), encoded)

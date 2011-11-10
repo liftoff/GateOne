@@ -219,8 +219,8 @@ Unicode equivalents.</p>
 <em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">Terminal</tt><big>(</big><em>rows=24</em>, <em>cols=80</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminal controller class.</p>
 <p>Initializes the terminal by calling self.initialize(rows, cols).  This
-is so we can have an equivalent function inside of a
-multiprocessing.Manager (which overrides __init__()).</p>
+is so we can have an equivalent function in situations where __init__()
+gets overridden.</p>
 <dl class="method">
 <dt id="terminal.Terminal.init_screen">
 <tt class="descname">init_screen</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.init_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.init_screen" title="Permalink to this definition">¶</a></dt>
@@ -263,9 +263,8 @@ callback at the given event, that callback will be replaced with
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">CALLBACK_BELL</span><span class="p">,</span> <span class="n">somefunc</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>NOTE: This allows us to attach callbacks when __init__() has ben
-overridden (e.g. multiprocessing.BaseManager).  It also allows the
-controlling program to have multiple callbacks for the same event.</p>
+<p>NOTE: This allows the controlling program to have multiple callbacks for
+the same event.</p>
 </dd></dl>
 
 <dl class="method">

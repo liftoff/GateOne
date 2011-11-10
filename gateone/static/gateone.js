@@ -216,6 +216,7 @@ GateOne.Base.update(GateOne, {
             pb = GateOne.Playback,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
+            pastearea = u.createElement('textarea', {'id': prefix+'pastearea', 'oninput': 'GateOne.Logging.log("pastearea Input"); GateOne.Input.queue(GateOne.Utils.getNode("#'+prefix+'pastearea").value); GateOne.Utils.getNode("#'+go.prefs.prefix+'pastearea").value = ""; GateOne.Net.sendChars();'}),
             prefsPanel = u.createElement('div', {'id': prefix+'panel_prefs', 'class': prefix+'panel'}),
             prefsPanelH2 = u.createElement('h2'),
             prefsPanelForm = u.createElement('form', {'id': prefix+'prefs_form', 'name': prefix+'prefs_form'}),
@@ -254,6 +255,8 @@ GateOne.Base.update(GateOne, {
             toolbar = u.createElement('div', {'id': prefix+'toolbar'}),
             toolbarIconPrefs = u.createElement('div', {'id': prefix+'icon_prefs', 'class': prefix+'toolbar', 'title': "Preferences"}),
             panels = document.getElementsByClassName('panel'),
+            // Firefox doesn't support 'mousewheel'
+            mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
             sideinfo = u.createElement('div', {'id': prefix+'sideinfo', 'class': prefix+'sideinfo'}),
             themeList = [], // Gets filled out below
             colorsList = [],
@@ -448,10 +451,62 @@ GateOne.Base.update(GateOne, {
         if (pb) {
             pb.addPlaybackControls();
         }
+        // The following functions control the copy & paste capability
+        var pasteareaScroll = function(e) {
+            // We have to hide the pastearea so we can scroll the terminal underneath
+            e.preventDefault();
+            var pasteArea = u.getNode('#'+prefix+'pastearea'),
+                selectedTerm = localStorage['selectedTerminal'];
+            u.hideElement(pasteArea);
+            if (!go.terminals[selectedTerm]['scrollbackVisible']) {
+                // Immediately re-enable the scrollback buffer if it isn't already there
+                go.Visual.enableScrollback(selectedTerm);
+            }
+            if (go.scrollTimeout) {
+                clearTimeout(go.scrollTimeout);
+            }
+            go.scrollTimeout = setTimeout(function() {
+                u.showElement(pasteArea);
+            }, 500);
+        }
+        pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
+        pastearea.onpaste = function(e) {
+            // Start capturing input again
+            setTimeout(function() { go.Input.capture(); }, 150);
+        }
+        pastearea.onmousedown = function(e) {
+            // When the user left-clicks assume they're trying to highlight text
+            // so bring the terminal to the front and try to emulate normal
+            // cursor-text action as much as possible.
+            // NOTE: There's one caveat with this method:  If text is highlighted
+            //       right-click to paste won't work.  So the user has to just click
+            //       somewhere (to deselect the text) before they can use the Paste
+            //       context menu.  As a convenient shortcut/workaround, the user
+            //       can middle-click to paste the current selection.
+            logDebug('pastearea.onmousedown button: ' + e.button + ', which: ' + e.which);
+            var go = GateOne,
+                u = go.Utils,
+                m = go.Input.mouse(e), // Get the properties of the mouse event
+                X = e.clientX,
+                Y = e.clientY,
+                selectedTerm = localStorage['selectedTerminal'];
+            if (m.button.left) { // Left button depressed
+                u.hideElement('#'+prefix+'pastearea');
+                // This lets users click on links underneath the pastearea
+                if (document.elementFromPoint(X, Y).tagName == "A") {
+                    window.open(document.elementFromPoint(X, Y).href);
+                }
+                // Don't add the scrollback if the user is highlighting text--it will mess it up
+                if (go.terminals[selectedTerm]['scrollbackTimer']) {
+                    clearTimeout(go.terminals[selectedTerm]['scrollbackTimer']);
+                }
+                u.getNode(go.prefs.goDiv).focus();
+            }
+        }
+        // Add the pastearea so people can paste stuff
+        goDiv.appendChild(pastearea);
         // Set the tabIndex on our GateOne Div so we can give it focus()
-        go.Utils.getNode(go.prefs.goDiv).tabIndex = 1;
-        // Firefox doesn't support 'mousewheel'
-        var mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
+        goDiv.tabIndex = 1;
         var wheelFunc = function(e) {
             var m = go.Input.mouse(e),
                 p = go.Playback,
@@ -563,7 +618,7 @@ GateOne.Base.update(GateOne, {
         go.Visual.updateDimensions();
         // Start capturing keyboard input
         go.Input.capture();
-        goDiv.contentEditable = true;
+//         goDiv.contentEditable = true;
     }
 });
 
@@ -1116,12 +1171,14 @@ GateOne.Base.update(GateOne.Input, {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
         var go = GateOne,
             u = go.Utils,
-            goDiv = u.getNode(go.prefs.goDiv);
+            goDiv = u.getNode(go.prefs.goDiv),
+            pastearea = u.getNode('#'+go.prefs.prefix+'pastearea');
         goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
         goDiv.onkeydown = go.Input.onKeyDown;
         goDiv.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
         goDiv.onkeypress = go.Input.emulateKeyFallback;
         goDiv.focus();
+        // NOTE: This might not be necessary anymore with the pastearea:
         goDiv.onpaste = function(e) {
             // TODO: Add a pop-up message that tells Firefox users how to grant Gate One access to the clipboard
             // Grab the text being pasted
@@ -1133,6 +1190,7 @@ GateOne.Base.update(GateOne.Input, {
             GateOne.Net.sendChars();
         }
         goDiv.onmousedown = function(e) {
+            logInfo("goDiv onmousedown");
             // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
             var m = go.Input.mouse(e),
                 selectedText = u.getSelText();
@@ -1154,15 +1212,18 @@ GateOne.Base.update(GateOne.Input, {
                         visiblePanel = true;
                     }
                 }
-                if (!visiblePanel) {
-                    goDiv.contentEditable = true;
-                }
+//                 if (!visiblePanel) {
+//                     goDiv.contentEditable = true;
+//                 }
             }
         }
         goDiv.onmouseup = function(e) {
             // Once the user is done pasting (or clicking), set it back to false for speed
-            goDiv.contentEditable = false; // Having this as false makes screen updates faster
+//             goDiv.contentEditable = false; // Having this as false makes screen updates faster
+            goDiv.focus();
         }
+        // This is necessary because sometimes the timer to re-show the pastearea finishes before the user does something that would otherwise re-show the pastearea (if that makes sense).
+        u.showElement(pastearea);
     },
     disableCapture: function() {
         // Turns off keyboard input and certain mouse capture events so that other things (e.g. forms) can work properly
@@ -1722,15 +1783,6 @@ GateOne.Base.update(GateOne.Input, {
             }
         }
     },
-    openPasteArea: function() {
-        // Opens up a textarea where users can paste text into the terminal
-        var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            goDiv = u.getNode(go.prefs.goDiv),
-            pasteArea = u.createElement('textarea', {'id': prefix+'pastearea', 'rows': '24', 'cols': '80'});
-        goDiv.appendChild(pasteArea);
-    }
 });
 // Expand GateOne.Input.specialKeys to be more complete:
 (function () { // Note:  Copied from MochiKit.Signal.
@@ -2526,6 +2578,7 @@ GateOne.Base.update(GateOne.Terminal, {
                         termContainer.appendChild(termPre);
                     }
                     screenUpdate = true;
+                    go.terminals[term]['scrollbackVisible'] = false;
                 } catch (e) { // Likely the terminal just closed
                     u.noop(); // Just ignore it.
                 }

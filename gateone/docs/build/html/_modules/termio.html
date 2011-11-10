@@ -147,7 +147,9 @@
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">izip</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span>
-<span class="kn">from</span> <span class="nn">multiprocessing.managers</span> <span class="kn">import</span> <span class="n">SyncManager</span><span class="p">,</span> <span class="n">RemoteError</span>
+<span class="c"># Fix missing termios.IUTF8</span>
+<span class="k">if</span> <span class="s">&#39;IUTF8&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">termios</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+    <span class="n">termios</span><span class="o">.</span><span class="n">IUTF8</span> <span class="o">=</span> <span class="mi">16384</span> <span class="c"># Hopefully this isn&#39;t platform independent</span>
 
 <span class="c"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">noop</span>
@@ -159,6 +161,7 @@
 <span class="n">SEPARATOR</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="c"># The character used to separate frames in the log</span>
 <span class="c"># NOTE: That unicode character was carefully selected from only the finest</span>
 <span class="c"># of the PUA.  I hereby dub thee, &quot;U+F0F0F0, The Separator.&quot;</span>
+<span class="n">CALLBACK_THREAD</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Used by add_callback()</span>
 
 <span class="c"># Classes</span>
 <div class="viewcode-block" id="Multiplex"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex">[docs]</a><span class="k">class</span> <span class="nc">Multiplex</span><span class="p">:</span>
@@ -186,19 +189,12 @@
         <span class="c"># Elect for automatic child reaping (may Death take them kindly!)</span>
         <span class="c">#signal.signal(signal.SIGCHLD, signal.SIG_IGN)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">term_manager</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">terminal_emulator</span><span class="p">:</span>
             <span class="c"># Why do this?  So you could use/write your own specialty emulator.</span>
             <span class="c"># Whatever you use it just has to accept &#39;rows&#39; and &#39;cols&#39; as</span>
             <span class="c"># keyword arguments in __init__()</span>
             <span class="kn">from</span> <span class="nn">terminal</span> <span class="kn">import</span> <span class="n">Terminal</span> <span class="c"># Dynamic import to cut down on waste</span>
-            <span class="c"># Ahh, multiprocessing; how has thee gone unnoticed until now?</span>
-            <span class="k">class</span> <span class="nc">TerminalManager</span><span class="p">(</span><span class="n">SyncManager</span><span class="p">):</span>
-                <span class="k">pass</span>
-            <span class="n">TerminalManager</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s">&#39;Term&#39;</span><span class="p">,</span> <span class="n">Terminal</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">term_manager</span> <span class="o">=</span> <span class="n">TerminalManager</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">term_manager</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">terminal_emulator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_manager</span><span class="o">.</span><span class="n">Term</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">terminal_emulator</span> <span class="o">=</span> <span class="n">Terminal</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">terminal_emulator</span> <span class="o">=</span> <span class="n">terminal_emulator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cps</span> <span class="o">=</span> <span class="n">cps</span> <span class="c"># Characters per second where the rate limiter kicks in</span>
@@ -250,9 +246,8 @@
 <span class="sd">            &gt;&gt;&gt; id = &quot;myref&quot;</span>
 <span class="sd">            &gt;&gt;&gt; ref = m.add_callback(m.CALLBACK_UPDATE, somefunc, id)</span>
 
-<span class="sd">        NOTE: This allows us to attach callbacks when __init__() has ben</span>
-<span class="sd">        overridden (e.g. multiprocessing.BaseManager).  It also allows the</span>
-<span class="sd">        controlling program to have multiple callbacks for the same event.</span>
+<span class="sd">        NOTE: This allows the controlling program to have multiple callbacks for</span>
+<span class="sd">        the same event.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">identifier</span><span class="p">:</span>
             <span class="n">identifier</span> <span class="o">=</span> <span class="n">callback</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span>
@@ -275,7 +270,13 @@
 <span class="sd">        session.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">proc_read</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+        <span class="c"># Empty the output queue.</span>
+        <span class="n">termios</span><span class="o">.</span><span class="n">tcflush</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TCOFLUSH</span><span class="p">)</span>
+        <span class="c">#termios.tcflow(self.fd, termios.TCOON)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+                <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c"># Go to the end</span>
+        <span class="c">#self.io_loop.add_handler(self.fd, self.proc_read, self.io_loop.READ)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prev_output</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
 
     <span class="k">def</span> <span class="nf">_blocked_io_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
@@ -283,20 +284,22 @@
 <span class="sd">        Handles the situation where a terminal is blocking IO with too much</span>
 <span class="sd">        output.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&quot;Noisy process kicked off rate limiter.&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s">&quot;Noisy process kicked off rate limiter.  Sending Ctrl-c.&quot;</span><span class="p">)</span>
         <span class="c">#os.kill(self.pid, signal.SIGINT)</span>
         <span class="c"># Sending Ctrl-c via write() seems to work better:</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\x03</span><span class="s">&quot;</span><span class="p">)</span> <span class="c"># Ctrl-c to the bad process</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x03</span><span class="s"> # Sent Ctrl-c</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span> <span class="c"># Ctrl-c to the bad process</span>
+        <span class="c"># Turn off output to prevent the buffer from filling up</span>
+        <span class="c">#termios.tcflow(self.fd, termios.TCOOFF) # Doesn&#39;t seem to do anything</span>
+        <span class="c"># This doesn&#39;t seem to work either:</span>
+        <span class="c">#os.write(self.fd, &quot;\x19&quot;) # Ctrl-S to the bad process</span>
+        <span class="c"># Empty the output queue.</span>
+        <span class="c">#termios.tcflush(self.fd, termios.TCIOFLUSH) # Ditto, nothing.</span>
+        <span class="c"># NOTE: Turns out that removing the IOLoop handler for this fd isn&#39;t</span>
+        <span class="c"># necessary...  It just slows down the process of killing the process.</span>
+        <span class="c">#self.io_loop.remove_handler(self.fd)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">clear_screen</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="c"># Note: This is temporary until I figure out something better</span>
-                <span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[0;1mProgram output too noisy.  Sending Ctrl-c...</span><span class="se">\x1b</span><span class="s">[0m&quot;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s">&quot;Got exception trying to write to the term in &quot;</span>
-                <span class="s">&quot;_blocked_io_handler: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reenable_output</span><span class="p">)</span>
@@ -329,22 +332,34 @@
             <span class="n">env</span><span class="p">[</span><span class="s">&quot;COLUMNS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
             <span class="n">env</span><span class="p">[</span><span class="s">&quot;LINES&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
             <span class="n">env</span><span class="p">[</span><span class="s">&quot;TERM&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;xterm&quot;</span> <span class="c"># TODO: This needs to be configurable on-the-fly</span>
-            <span class="c">#env[&quot;PATH&quot;] = os.environ[&#39;PATH&#39;]</span>
+            <span class="n">env</span><span class="p">[</span><span class="s">&quot;PATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;PATH&#39;</span><span class="p">]</span>
             <span class="c">#env[&quot;LANG&quot;] = os.environ[&#39;LANG&#39;]</span>
-            <span class="n">flags_save</span> <span class="o">=</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">fcntl</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">F_GETFL</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;fcntl settings: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">flags_save</span><span class="p">)</span>
-            <span class="n">attrs_save</span> <span class="o">=</span> <span class="n">termios</span><span class="o">.</span><span class="n">tcgetattr</span><span class="p">(</span><span class="n">stdout</span><span class="p">)</span>
-            <span class="n">attrs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">attrs_save</span><span class="p">)</span> <span class="c"># copy the stored version to update</span>
-            <span class="c"># iflag</span>
-            <span class="n">attrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&amp;=</span> <span class="n">termios</span><span class="o">.</span><span class="n">IXON</span>
-            <span class="c"># oflag</span>
+            <span class="c"># Setup stdout to be more Gate One friendly</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="n">termios</span><span class="o">.</span><span class="n">tcgetattr</span><span class="p">(</span><span class="n">stdout</span><span class="p">)</span>
+            <span class="n">iflag</span><span class="p">,</span> <span class="n">oflag</span><span class="p">,</span> <span class="n">cflag</span><span class="p">,</span> <span class="n">lflag</span><span class="p">,</span> <span class="n">ispeed</span><span class="p">,</span> <span class="n">ospeed</span><span class="p">,</span> <span class="n">cc</span> <span class="o">=</span> <span class="n">attrs</span>
+            <span class="c"># Enable flow control and UTF-8 input (probably not needed)</span>
+            <span class="n">iflag</span> <span class="o">|=</span> <span class="p">(</span><span class="n">termios</span><span class="o">.</span><span class="n">IXON</span> <span class="o">|</span> <span class="n">termios</span><span class="o">.</span><span class="n">IXOFF</span> <span class="o">|</span> <span class="n">termios</span><span class="o">.</span><span class="n">IUTF8</span><span class="p">)</span>
             <span class="c"># OPOST: Enable post-processing of chars (not sure if this matters)</span>
-            <span class="c"># ONCLR: We&#39;re disabling this so we don&#39;t get \r\r\n anywhere</span>
-            <span class="n">attrs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&amp;=</span> <span class="p">(</span><span class="n">termios</span><span class="o">.</span><span class="n">OPOST</span> <span class="o">|</span> <span class="o">~</span><span class="n">termios</span><span class="o">.</span><span class="n">ONLCR</span><span class="p">)</span>
-            <span class="n">attrs</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;=</span> <span class="p">(</span><span class="n">termios</span><span class="o">.</span><span class="n">ISIG</span> <span class="o">|</span> <span class="n">termios</span><span class="o">.</span><span class="n">IEXTEN</span><span class="p">)</span>
+            <span class="c"># INLCR: We&#39;re disabling this so we don&#39;t get \r\r\n anywhere</span>
+            <span class="n">oflag</span> <span class="o">|=</span> <span class="p">(</span><span class="n">termios</span><span class="o">.</span><span class="n">OPOST</span> <span class="o">|</span> <span class="n">termios</span><span class="o">.</span><span class="n">ONLCR</span> <span class="o">|</span> <span class="n">termios</span><span class="o">.</span><span class="n">INLCR</span><span class="p">)</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">iflag</span><span class="p">,</span> <span class="n">oflag</span><span class="p">,</span> <span class="n">cflag</span><span class="p">,</span> <span class="n">lflag</span><span class="p">,</span> <span class="n">ispeed</span><span class="p">,</span> <span class="n">ospeed</span><span class="p">,</span> <span class="n">cc</span><span class="p">]</span>
             <span class="n">termios</span><span class="o">.</span><span class="n">tcsetattr</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TCSANOW</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
+            <span class="c"># Now do the same for stdin</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="n">termios</span><span class="o">.</span><span class="n">tcgetattr</span><span class="p">(</span><span class="n">stdin</span><span class="p">)</span>
+            <span class="n">iflag</span><span class="p">,</span> <span class="n">oflag</span><span class="p">,</span> <span class="n">cflag</span><span class="p">,</span> <span class="n">lflag</span><span class="p">,</span> <span class="n">ispeed</span><span class="p">,</span> <span class="n">ospeed</span><span class="p">,</span> <span class="n">cc</span> <span class="o">=</span> <span class="n">attrs</span>
+            <span class="n">iflag</span> <span class="o">|=</span> <span class="p">(</span><span class="n">termios</span><span class="o">.</span><span class="n">IXON</span> <span class="o">|</span> <span class="n">termios</span><span class="o">.</span><span class="n">IXOFF</span> <span class="o">|</span> <span class="n">termios</span><span class="o">.</span><span class="n">IUTF8</span><span class="p">)</span>
+            <span class="n">oflag</span> <span class="o">|=</span> <span class="p">(</span><span class="n">termios</span><span class="o">.</span><span class="n">OPOST</span> <span class="o">|</span> <span class="n">termios</span><span class="o">.</span><span class="n">ONLCR</span> <span class="o">|</span> <span class="n">termios</span><span class="o">.</span><span class="n">INLCR</span><span class="p">)</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">iflag</span><span class="p">,</span> <span class="n">oflag</span><span class="p">,</span> <span class="n">cflag</span><span class="p">,</span> <span class="n">lflag</span><span class="p">,</span> <span class="n">ispeed</span><span class="p">,</span> <span class="n">ospeed</span><span class="p">,</span> <span class="n">cc</span><span class="p">]</span>
+            <span class="n">termios</span><span class="o">.</span><span class="n">tcsetattr</span><span class="p">(</span><span class="n">stdin</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TCSANOW</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
+            <span class="c"># Set non-blocking so we don&#39;t wait forever for a read()</span>
             <span class="n">fcntl</span><span class="o">.</span><span class="n">fcntl</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">F_SETFL</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_NONBLOCK</span><span class="p">)</span>
-            <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span>
+                <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span>
+                <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">stdin</span><span class="o">=</span><span class="n">stdin</span><span class="p">,</span>
+                <span class="n">stdout</span><span class="o">=</span><span class="n">stdout</span><span class="p">,</span>
+                <span class="n">stderr</span><span class="o">=</span><span class="n">stderr</span><span class="p">)</span>
             <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
             <span class="c"># This exit() ensures IOLoop doesn&#39;t freak out about a missing fd</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -359,6 +374,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">proc_read</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">prev_output</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">rows</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+            <span class="c"># (re)start the flow control on the fd</span>
+            <span class="n">termios</span><span class="o">.</span><span class="n">tcflow</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TCOON</span><span class="p">)</span>
+            <span class="n">termios</span><span class="o">.</span><span class="n">tcflow</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TCION</span><span class="p">)</span>
             <span class="c"># Set non-blocking so we don&#39;t wait forever for a read()</span>
             <span class="n">fcntl</span><span class="o">.</span><span class="n">fcntl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">F_SETFL</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_NONBLOCK</span><span class="p">)</span>
             <span class="c"># These two lines set the size of the terminal window:</span>
@@ -419,11 +437,6 @@
         <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
             <span class="c"># Lots of trivial reasons why we could get these</span>
             <span class="k">pass</span>
-        <span class="k">try</span><span class="p">:</span>
-             <span class="bp">self</span><span class="o">.</span><span class="n">term_manager</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span> <span class="c"># Don&#39;t want this running anymore</span>
-        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-            <span class="c"># Often happens when gateone.py terminates.  Nothing to see here.</span>
-            <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="Multiplex.term_write"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.term_write">[docs]</a>    <span class="k">def</span> <span class="nf">term_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -446,7 +459,7 @@
             <span class="c"># Gate One log file in vim or something =)</span>
             <span class="c"># \U000f0f0f == U+F0F0F (Private Use Symbol)</span>
             <span class="c">#output = chars.decode(&quot;utf-8&quot;)</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">chars</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s">&quot;ignore&quot;</span><span class="p">))</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">chars</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span> <span class="s">&quot;ignore&quot;</span><span class="p">))</span>
             <span class="n">output</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
             <span class="n">log</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;utf-8&quot;</span><span class="p">))</span>
@@ -467,12 +480,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">term_num</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">syslog_buffer</span> <span class="o">+=</span> <span class="n">chars</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">RemoteError</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s">&quot;Got an error trying to write to the terminal emulator.  &quot;</span>
-                <span class="s">&quot;This probably means it died.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
 </div>
@@ -485,7 +493,8 @@
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
                     <span class="c"># This needs to be huge to handle big images</span>
-                    <span class="n">updated</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="mi">1048568</span><span class="p">)</span>
+                    <span class="n">updated</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="mi">65536</span><span class="p">)</span>
+                    <span class="c">#updated = bytearray(1048568)</span>
                     <span class="n">reader</span><span class="o">.</span><span class="n">readinto</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
                     <span class="n">updated</span> <span class="o">=</span> <span class="n">updated</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\x00</span><span class="s">&#39;</span><span class="p">)</span> <span class="c"># Remove excess null chars</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">term_write</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
@@ -530,28 +539,28 @@
 <span class="sd">        Writes *chars* to self.fd (pretty straightforward).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span>
-                <span class="s">&#39;wt&#39;</span><span class="p">,</span>
-                <span class="n">buffering</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
-                <span class="n">newline</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span>
-                <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span>
-                <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span>
-            <span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
-                <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span>
+                    <span class="s">&#39;wt&#39;</span><span class="p">,</span>
+                    <span class="n">buffering</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+                    <span class="n">newline</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span>
+                    <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span>
+                    <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span>
+                <span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">die</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">proc_kill</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;proc_write() exception: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Multiplex.proc_write"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.proc_write">[docs]</a>    <span class="k">def</span> <span class="nf">proc_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds _buffer_write(*chars*) to the IOLoop callback queue.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">_buffer_write</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_write</span><span class="p">,</span> <span class="n">chars</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">_buffer_write</span><span class="p">)</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">die</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">proc_kill</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;proc_write() exception: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+        <span class="n">_buffer_write</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_write</span><span class="p">,</span> <span class="n">chars</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">_buffer_write</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="Multiplex.dumplines"><a class="viewcode-back" href="../Developer/termio.html#termio.Multiplex.dumplines">[docs]</a>    <span class="k">def</span> <span class="nf">dumplines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -564,7 +573,15 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">scrollback</span><span class="p">,</span> <span class="n">html</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
+            <span class="n">scrollback</span><span class="p">,</span> <span class="n">html</span> <span class="o">=</span> <span class="p">([],</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                        <span class="n">scrollback</span><span class="p">,</span> <span class="n">html</span> <span class="o">=</span> <span class="n">result</span>
+                <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;IOError attempting self.term.dump_html()&quot;</span><span class="p">)</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">html</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">full</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">line1</span><span class="p">,</span> <span class="n">line2</span> <span class="ow">in</span> <span class="n">izip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_output</span><span class="p">,</span> <span class="n">html</span><span class="p">):</span>
@@ -575,11 +592,15 @@
                         <span class="n">html</span> <span class="o">=</span> <span class="n">output</span>
                     <span class="c"># Otherwise a full dump will take place</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">prev_output</span> <span class="o">=</span> <span class="n">html</span>
-                <span class="k">return</span> <span class="p">(</span><span class="n">scrollback</span><span class="p">,</span> <span class="n">html</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">([],</span> <span class="p">[])</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">IOError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">scrollback</span><span class="p">,</span> <span class="n">html</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c"># This would be special...</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;ValueError in dumplines(): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">([],</span> <span class="p">[])</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;dumplines got exception: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span><span class="p">:</span>
+                <span class="c"># Caused by the program being out of control</span>
                 <span class="k">return</span><span class="p">([],</span> <span class="p">[</span>
                     <span class="s">&quot;&lt;b&gt;Program output too noisy.  Sending Ctrl-c...&lt;/b&gt;&quot;</span><span class="p">])</span>
             <span class="k">return</span> <span class="p">([],</span> <span class="p">[])</span></div></div>

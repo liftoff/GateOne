@@ -82,6 +82,9 @@ def connect_ssh(
             'TERM': 'xterm',
             'LANG': 'en_US.UTF-8',
         }
+    # Get the default rows/cols right from the start
+    env['LINES'] = os.environ['LINES']
+    env['COLUMNS'] = os.environ['COLUMNS']
     args = [
         "-x", # No X11 forwarding, thanks :)
         "-F/dev/null", # No config dir (might change this is the future)
@@ -157,8 +160,6 @@ def connect_ssh(
         temp = tempfile.NamedTemporaryFile(prefix="ssh_connect", delete=False)
         script_path = "%s" % temp.name
         temp.close() # Will be written to below
-    env_variables = ["%s=%s;" % (k, v) for k, v in env.items()]
-    env_variables = " ".join(env_variables)
     # Create our little shell script to wrap the SSH command
     script = wrapper_script.format(cmd=" ".join(args), temp=script_path)
     with open(script_path, 'w') as f:
@@ -209,11 +210,6 @@ def parse_ssh_url(url):
 
 if __name__ == "__main__":
     """Parse command line arguments and execute ssh_connect()"""
-    # Try and set a sane default for the path to the ssh command
-    try:
-        ssh_path = check_output('which ssh', shell=True).rstrip('\n')
-    except CalledProcessError:
-        ssh_path = "/usr/bin/ssh" # Fallback
     usage = (
         #'Usage:\n'
             '\t%prog [options] <user> <host> [port]\n'
@@ -225,8 +221,8 @@ if __name__ == "__main__":
 
     parser.add_option("-c", "--command",
         dest="command",
-        default=ssh_path,
-        help=("Path to the ssh command.  Default: `which ssh` (usually "
+        default='ssh',
+        help=("Path to the ssh command.  Default: 'ssh' (which usually means "
               "/usr/bin/ssh)."),
         metavar="'<filepath>'"
     )

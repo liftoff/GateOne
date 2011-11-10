@@ -117,13 +117,23 @@
 <span class="c"># Standard library modules</span>
 <span class="kn">import</span> <span class="nn">httplib</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">base64</span>
 
+<span class="c"># Import our own stuff</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
+<span class="c"># Enable localization support</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
+
 <span class="c"># 3rd party modules</span>
-<span class="kn">import</span> <span class="nn">kerberos</span>
 <span class="kn">import</span> <span class="nn">tornado.httpserver</span>
 <span class="kn">import</span> <span class="nn">tornado.ioloop</span>
 <span class="kn">import</span> <span class="nn">tornado.web</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">utf8</span>
 <span class="kn">from</span> <span class="nn">tornado.util</span> <span class="kn">import</span> <span class="n">b</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">kerberos</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[31;1mERROR:</span><span class="se">\x1b</span><span class="s">[0m The sso (Kerberos authentication) module &quot;</span>
+          <span class="s">&quot;requires the Python kerberos module.  You probably want to run &quot;</span>
+          <span class="s">&quot;something like, </span><span class="se">\x1b</span><span class="s">[1m&#39;pip install kerberos&#39;</span><span class="se">\x1b</span><span class="s">[0m.&quot;</span><span class="p">))</span>
 
 <span class="c"># NOTE: For some reason if I set this as just an &#39;object&#39; it doesn&#39;t work.</span>
 <div class="viewcode-block" id="KerberosAuthMixin"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin">[docs]</a><span class="k">class</span> <span class="nc">KerberosAuthMixin</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
@@ -177,8 +187,8 @@
 <span class="sd">        NOTE: It won&#39;t hurt anything to override this method in your</span>
 <span class="sd">        RequestHandler.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;sso_realm&quot;</span><span class="p">,</span> <span class="s">&quot;Kerberos/GSSAPI Single Sign-On&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;sso_service&quot;</span><span class="p">,</span> <span class="s">&quot;Kerberos/GSSAPI Single Sign-On&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;sso_realm&quot;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Kerberos/GSSAPI Single Sign-On&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;sso_service&quot;</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Kerberos/GSSAPI Single Sign-On&quot;</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="KerberosAuthMixin.get_authenticated_user"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin.get_authenticated_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -201,7 +211,7 @@
         <span class="n">result</span><span class="p">,</span> <span class="n">context</span> <span class="o">=</span> <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerInit</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;sso_service&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&quot;Kerberos Init failed&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Kerberos Init failed&quot;</span><span class="p">))</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerStep</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">auth_str</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">gssstring</span> <span class="o">=</span> <span class="n">kerberos</span><span class="o">.</span><span class="n">authGSSServerResponse</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
@@ -247,7 +257,7 @@
 <span class="sd">        process as close as possible to how things work in tornado.auth.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_headers_written</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Headers have already been written&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Headers have already been written&#39;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="mi">401</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s">&quot;WWW-Authenticate&quot;</span><span class="p">,</span> <span class="s">&quot;Negotiate&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span>

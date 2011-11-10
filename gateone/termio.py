@@ -95,7 +95,6 @@ from functools import partial
 from itertools import izip
 import logging
 from subprocess import Popen
-from multiprocessing.managers import BaseManager, SyncManager, RemoteError
 # Fix missing termios.IUTF8
 if 'IUTF8' not in termios.__dict__:
     termios.IUTF8 = 16384 # Hopefully this isn't platform independent
@@ -138,26 +137,11 @@ class Multiplex:
         # Elect for automatic child reaping (may Death take them kindly!)
         #signal.signal(signal.SIGCHLD, signal.SIG_IGN)
         self.cmd = cmd
-        self.term_manager = None
         if not terminal_emulator:
             # Why do this?  So you could use/write your own specialty emulator.
             # Whatever you use it just has to accept 'rows' and 'cols' as
             # keyword arguments in __init__()
             from terminal import Terminal # Dynamic import to cut down on waste
-            # Only in Python 2.7+ is functools.partial picklable so we can't use
-            # multiprocessing in Python 2.6.
-            #py_version = "%s.%s" % (sys.version_info[0], sys.version_info[1])
-            #if sys.version_info[0] == 2 and sys.version_info[1] >= 7:
-                ## Ahh, multiprocessing; how has thee gone unnoticed until now?
-                #class TerminalManager(SyncManager):
-                    #pass
-                #TerminalManager.register('Term', Terminal)
-                #self.term_manager = TerminalManager()
-                #self.term_manager.start()
-                #self.registry = self.term_manager.dict()
-                #self.terminal_emulator = self.term_manager.Term
-            #else:
-                # Can't support as many simultaneous users but it works:
             self.terminal_emulator = Terminal
         else:
             self.terminal_emulator = terminal_emulator
@@ -210,9 +194,8 @@ class Multiplex:
             >>> id = "myref"
             >>> ref = m.add_callback(m.CALLBACK_UPDATE, somefunc, id)
 
-        NOTE: This allows us to attach callbacks when __init__() has ben
-        overridden (e.g. multiprocessing.BaseManager).  It also allows the
-        controlling program to have multiple callbacks for the same event.
+        NOTE: This allows the controlling program to have multiple callbacks for
+        the same event.
         """
         if not identifier:
             identifier = callback.__hash__()
@@ -402,12 +385,6 @@ class Multiplex:
         except OSError:
             # Lots of trivial reasons why we could get these
             pass
-        if self.term_manager:
-            try:
-                self.term_manager.shutdown() # Don't want this running anymore
-            except OSError:
-                # Often happens when gateone.py terminates.  Nothing to see here.
-                pass
 
     def term_write(self, chars):
         """
@@ -451,12 +428,7 @@ class Multiplex:
                         self.user, self.term_num, line))
             else:
                 self.syslog_buffer += chars
-        try:
-            self.term.write(chars)
-        except RemoteError:
-            logging.warning(
-                "Got an error trying to write to the terminal emulator.  "
-                "This probably means it died.")
+        self.term.write(chars)
         for callback in self.callbacks[self.CALLBACK_UPDATE].values():
             self.io_loop.add_callback(callback)
 
@@ -555,37 +527,9 @@ class Multiplex:
                     result = self.term.dump_html()
                     if result:
                         scrollback, html = result
-                    else:
-                        # This is just wacky and should not happen!
-                        #logging.debug("Odd: result came back: %s" % result)
-                        if self.term_manager:
-                            # Re-create the terminal manager because it broke.
-                            # I don't understand why this happens but it does.
-                            self.term_manager.shutdown()
-                            from terminal import Terminal
-                            #import Queue
-                            #queue = Queue.Queue()
-                            class TerminalManager(BaseManager): pass
-                            #TerminalManager.register(
-                                #'get_queue', callable=lambda:queue)
-                            TerminalManager.register('Term', Terminal)
-                            self.term_manager = TerminalManager()
-                            self.term_manager.start()
-                            self.terminal_emulator = self.term_manager.Term
-                            self.term = self.terminal_emulator(
-                                rows=self.rows, cols=self.cols)
-                        return([], [
-                            "<b>The program output was too noisy so it has been"
-                            " killed.  Press any key to continue...</b>"
-                        ])
                 except IOError as e:
                     logging.debug("IOError attempting self.term.dump_html()")
                     logging.debug("%s" % e)
-                except RemoteError:
-                    logging.debug("RemoteError in dumplines()")
-                    # Terminal emulator shut down--probably because the
-                    # associated process ended.  That's OK
-                    return ([], [])
             if html:
                 if not full:
                     for line1, line2 in izip(self.prev_output, html):
@@ -598,94 +542,16 @@ class Multiplex:
                 self.prev_output = html
             return (scrollback, html)
         except ValueError as e:
+            # This would be special...
             logging.error("ValueError in dumplines(): %s" % e)
             return ([], [])
-        except (KeyError, IOError, TypeError) as e:
-            import traceback
+        except (IOError, TypeError) as e:
             logging.error("dumplines got exception: %s" % e)
-            traceback.print_exc(file=sys.stdout)
             if self.ratelimiter_engaged:
+                # Caused by the program being out of control
                 return([], [
                     "<b>Program output too noisy.  Sending Ctrl-c...</b>"])
+            else:
+                import traceback
+                traceback.print_exc(file=sys.stdout)
             return ([], [])
-
-#class CallbackThread(threading.Thread):
-    #"""
-    #Listens for events in a Queue() and calls any matching/registered callbacks.
-    #"""
-    ## NOTE: I know this CallbackThread/register_callback() stuff seems overly
-    ## complex and it is...  But this was the simplest thing I could come up with
-    ## to get callbacks working with multiprocessing.  If you have a better way
-    ## please submit a patch!
-    #def __init__(self, name):
-        #threading.Thread.__init__(
-            #self,
-            #name=name
-        #)
-        #self.name = name
-        #self.quitting = False
-        #self.callbacks = {}
-
-    #def register_callback(self, identifier, callback):
-        #"""
-        #Stores the given *callback* as self.callbacks[*identifier*]
-        #"""
-        #self.callbacks.update({identifier: callback})
-
-    #def unregister_callbacks(self, callback_id):
-        #"""
-        #Removes all registered callbacks associated with *callback_id*
-        #"""
-        #for identifier in self.callbacks.keys():
-            #if callback_id in identifier:
-                #logging.debug("deleting self.callbacks[%s]" % identifier)
-                #del self.callbacks[identifier]
-
-    #def call_callback(self, identifier, args):
-        #"""
-        #Calls the callback function associated with *identifier* using the given
-        #*args* like so::
-
-            #self.callbacks[*identifier*](*args*)
-        #"""
-        #if identifier in self.callbacks:
-            #if not args:
-                #self.callbacks[identifier]()
-            #else:
-                #self.callbacks[identifier](*args)
-        #else:
-            #logging.error("Unmatched callback: %s" % identifier)
-
-    #def quit(self):
-        #logging.debug("CallbackThread got quit()")
-        #try:
-            #self.queue.put(('quit', None))
-        #except (IOError, RemoteError) as e:
-            ## The term emulator has already shut down.  Not a big deal
-            ##logging.error("Got error in CallbackThread: %s" % e)
-            #pass
-        #self.quitting = True
-
-    #def run(self):
-        #while not self.quitting:
-            #try:
-                ## TODO: Figure out a way to re-attach the Queue to the callback
-                ## thread in the event that the term_manager gets disconnected.
-                #obj = self.queue.get()
-                #identifier = obj[0]
-                #args = obj[1]
-                #if identifier != 'quit':
-                    #self.call_callback(identifier, args)
-            #except EOFError as e:
-                #if not self.quitting:
-                    #logging.error("EOFError in CallbackThread: %s" % e)
-                    #logging.error("The EOFError likely means that the "
-                                  #"term_manager died.")
-            #except Exception as e:
-                #if len("%s" % e): # Throws empty exceptions at quitting time.
-                    #logging.error("Error in CallbackThread: %s" % e)
-                #self.quitting = True
-        #logging.info(_(
-            #"{name} received quit()...  ".format(
-                #name=self.name)
-        #))

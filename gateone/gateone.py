@@ -214,7 +214,6 @@ from functools import partial
 from datetime import datetime, timedelta
 from platform import uname
 from commands import getoutput
-from multiprocessing.managers import RemoteError
 
 # Tornado modules (yeah, we use all this stuff)
 try:
@@ -244,8 +243,8 @@ from utils import noop, str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
 from utils import create_plugin_static_links, merge_handlers, none_fix
 from utils import convert_to_timedelta, kill_dtached_proc, short_hash
-from utils import process_opt_esc_sequence, create_data_uri
-from utils import FACILITIES, string_to_syslog_facility
+from utils import process_opt_esc_sequence, create_data_uri, MimeTypeFail
+from utils import FACILITIES, string_to_syslog_facility, fallback_bell
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -257,29 +256,6 @@ def _(string):
     function in __main__
     """
     return user_locale.translate(string).encode('UTF-8')
-
-# Helper functions
-def call_callback(session, term, identifier, *args):
-    """
-    Given an *identifier* (string), pushes that string to *queue* as:
-        obj = (identifier, args)
-
-    This should result in the associated callback being called by the
-    CallbackThread.
-    """
-    print("call_callback identifier: %s" % identifier)
-    if args:
-        SESSIONS[session][term]['callbacks'][identifier](*args)
-        #registry[identifier](*args)
-    else:
-        SESSIONS[session][term]['callbacks'][identifier]()
-        #registry[identifier]()
-
-def register_callback(registry, identifier, callback):
-    print("register_callback registry: %s" % registry)
-    # Have to register it in the registry as well as in SESSIONS
-    registry[identifier] = callback
-    SESSIONS[session][term]['callbacks'][identifier] = callback
 
 # Globals
 SESSIONS = {} # We store the crux of most session info here
@@ -600,7 +576,13 @@ class MainHandler(BaseHandler):
         gateone_js = "/static/gateone.js"
         minified_js_abspath = "%s/static/gateone.min.js" % GATEONE_DIR
         bell = "%s/static/bell.ogg" % GATEONE_DIR
-        bell_data_uri = create_data_uri(bell)
+        if os.path.exists(bell):
+            try:
+                bell_data_uri = create_data_uri(bell)
+            except MimeTypeFail:
+                bell_data_uri = fallback_bell
+        else: # There's always the fallback
+            bell_data_uri = fallback_bell
         js_init = self.settings['js_init']
         # Use the minified version if it exists
         if os.path.exists(minified_js_abspath):
@@ -790,7 +772,7 @@ class TerminalWebSocket(WebSocketHandler):
                     message = {'reauthenticate': True}
                     self.write_message(json_encode(message))
                     self.close() # Close the WebSocket
-            except KeyError:
+            except (KeyError, TypeError):
                 # Force them to authenticate
                 message = {'reauthenticate': True}
                 self.write_message(json_encode(message))
@@ -950,53 +932,6 @@ class TerminalWebSocket(WebSocketHandler):
         multiplex.add_callback(multiplex.CALLBACK_EXIT, restart, callback_id)
         # Setup the terminal emulator callbacks
         term_emulator = multiplex.term
-        #if multiplex.term_manager:
-            ## Only if we're 2.7+ will there be a term_manager.  See the
-            ## notes in Multiplex.__init__() as to why this is (it has to do
-            ## with functools.partial not being pickleable in Python 2.6).
-            #logging.debug("Running with multiprocessing support.")
-            #multiplex.registry = {}
-            #reg = multiplex.registry
-            #set_title = partial(self.set_title, term)
-            #callback_name = "set_title.%s" % callback_id
-            #register_callback(reg, callback_name, set_title)
-            #call_title_callback = partial(
-                #call_callback, self.session, term, callback_name)
-            #term_emulator.add_callback(
-                #terminal.CALLBACK_TITLE, call_title_callback, callback_id)
-            #set_title() # Set initial title
-            #bell = partial(self.bell, term)
-            #callback_name = "bell.%s" % callback_id
-            #register_callback(reg, callback_name, bell)
-            #call_bell_callback = partial(
-                #call_callback, self.session, term, callback_name)
-            #term_emulator.add_callback(
-                #terminal.CALLBACK_BELL, call_bell_callback, callback_id)
-            #callback_name = "esc_opt_handler.%s" % callback_id
-            #register_callback(reg, callback_name, self.esc_opt_handler)
-            #call_opt_callback = partial(
-                #call_callback, self.session, term, callback_name)
-            #term_emulator.add_callback(
-                #terminal.CALLBACK_OPT, call_opt_callback, callback_id)
-            #mode_handler = partial(self.mode_handler, term)
-            #callback_name = "mode_handler.%s" % callback_id
-            #register_callback(reg, callback_name, mode_handler)
-            #call_mode_callback = partial(
-                #call_callback, self.session, term, callback_name)
-            #term_emulator.add_callback(
-                #terminal.CALLBACK_MODE, call_mode_callback, callback_id)
-            #reset_term = partial(self.reset_terminal, term)
-            #callback_name = "reset_term.%s" % callback_id
-            #register_callback(reg, callback_name, reset_term)
-            #call_reset_callback = partial(
-                #call_callback, self.session, term, callback_name)
-            #term_emulator.add_callback(
-                #terminal.CALLBACK_RESET, call_reset_callback, callback_id)
-        #else:
-            # Python 2.6 won't be able to use multiprocessing (due to
-            # functools.partial being unpickleable) but at least the logic is
-            # simpler this way!
-        logging.debug("Running WITHOUT multiprocessing support.")
         set_title = partial(self.set_title, term)
         term_emulator.add_callback(
             terminal.CALLBACK_TITLE, set_title, callback_id)
@@ -1013,7 +948,6 @@ class TerminalWebSocket(WebSocketHandler):
         term_emulator.add_callback(
             terminal.CALLBACK_RESET, reset_term, callback_id)
         if 'tidy_thread' not in SESSIONS[self.session]:
-            print("starting tidy_thread")
             # Start the keepalive thread so the session will time out if the
             # user disconnects for like a week (by default anyway =)
             SESSIONS[self.session]['tidy_thread'] = TidyThread(self.session)
@@ -1033,12 +967,6 @@ class TerminalWebSocket(WebSocketHandler):
             SESSIONS[self.session][term]['multiplex'].proc_kill()
             if self.settings['dtach']:
                 kill_dtached_proc(self.session, term)
-            #thread_id = 'CallbackThread.%s.%s' % (self.session, term)
-            #SESSIONS[self.session][thread_id].quit()
-            #name = "CallbackThread-%s" % self.session
-            #for t in threading.enumerate():
-                #if t.getName() == name:
-                    #t.unregister_callbacks(self.callback_id)
             del SESSIONS[self.session][term]
         except KeyError as e:
             pass # The EVIL termio has killed my child!  Wait, that's good...
@@ -1067,7 +995,6 @@ class TerminalWebSocket(WebSocketHandler):
             {'set_title': {'term': 1, 'title': "user@host"}}
         """
         logging.debug("set_title(%s)" % term)
-        #print("Got set_title on term: %s" % term)
         title = SESSIONS[self.session][term]['multiplex'].term.get_title()
         # Only send a title update if it actually changed
         if term not in self.titles: # There's a first time for everything
@@ -1089,6 +1016,9 @@ class TerminalWebSocket(WebSocketHandler):
 
     def mode_handler(self, term, setting, boolean):
         """Handles mode settings that require an action on the client."""
+        logging.debug(
+            "mode_handler() term: %s, setting: %s, boolean: %s" %
+            (term, setting, boolean))
         if setting in ['1']: # Only support this mode right now
             if boolean:
                 # Tell client to enable application cursor mode
@@ -1156,6 +1086,7 @@ class TerminalWebSocket(WebSocketHandler):
 
             {'rows': 24, 'cols': 80}
         """
+        logging.debug("resize(%s)" % repr(resize_obj))
         self.rows = resize_obj['rows']
         self.cols = resize_obj['cols']
         term = resize_obj['term']
@@ -1192,6 +1123,7 @@ class TerminalWebSocket(WebSocketHandler):
         Executes whatever function is registered matching the tuple returned by
         process_opt_esc_sequence().
         """
+        logging.debug("esc_opt_handler(%s)" % repr(chars))
         plugin_name, text = process_opt_esc_sequence(chars)
         if plugin_name:
             try:
