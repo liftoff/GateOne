@@ -574,14 +574,14 @@ GateOne.Base.update(GateOne, {
             }
         }
         goDiv.addEventListener(mousewheelevt, wheelFunc, true);
-        var onResize = function() {
+        var onResizeEvent = function(e) {
             // Update the Terminal if it is resized
             if (u.getNode(go.prefs.goDiv).style.display != "none") {
                 go.Visual.updateDimensions();
                 go.Net.sendDimensions();
             }
         }
-        window.onresize = onResize;
+        window.onresize = onResizeEvent;
         // Check for support for WebSockets. NOTE: (IE with the Websocket add-on calls it "WebSocketDraft")
         if(typeof(WebSocket) != "function") {
             // TODO:  Make this display a helpful message showing users how they can get a browser with WebSocket support.
@@ -753,11 +753,15 @@ GateOne.Base.update(GateOne.Utils, {
     },
     showElement: function(elem) {
         // Sets the 'display' style of the given element to 'block' (which undoes setting it to 'none')
-        GateOne.Utils.getNode(elem).style.display = 'block';
+//         GateOne.Utils.getNode(elem).style.display = 'block';
+        var go = GateOne,
+            u = go.Utils;
+        u.getNode(elem).className = u.getNode(elem).className.replace(/(?:^|\s)none(?!\S)/, '');
     },
     hideElement: function(elem) {
         // Sets the 'display' style of the given element to 'none'
-        GateOne.Utils.getNode(elem).style.display = 'none';
+//         GateOne.Utils.getNode(elem).style.display = 'none';
+        GateOne.Utils.getNode(elem).className += " " + GateOne.prefs.prefix + "none";
     },
     noop: function(a) { return a },
     toArray: function (obj) {
@@ -1190,9 +1194,10 @@ GateOne.Base.update(GateOne.Input, {
             GateOne.Net.sendChars();
         }
         goDiv.onmousedown = function(e) {
-            logInfo("goDiv onmousedown");
             // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
-            var m = go.Input.mouse(e),
+            var go = GateOne,
+                u = go.Utils,
+                m = go.Input.mouse(e),
                 selectedText = u.getSelText();
             // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
             // However, we only want this when the user is actually bringing up the context menu because
@@ -1207,6 +1212,8 @@ GateOne.Base.update(GateOne.Input, {
             } else {
                 var panels = document.getElementsByClassName(go.prefs.prefix+'panel'),
                     visiblePanel = false;
+                u.getNode(go.prefs.goDiv).focus();
+                // Hide all the panels
                 for (var i in u.toArray(panels)) {
                     if (panels[i].style['transform'] != 'scale(0)') {
                         visiblePanel = true;
@@ -1220,6 +1227,7 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onmouseup = function(e) {
             // Once the user is done pasting (or clicking), set it back to false for speed
 //             goDiv.contentEditable = false; // Having this as false makes screen updates faster
+            u.showElement(pastearea);
             goDiv.focus();
         }
         // This is necessary because sometimes the timer to re-show the pastearea finishes before the user does something that would otherwise re-show the pastearea (if that makes sense).
@@ -2577,6 +2585,7 @@ GateOne.Base.update(GateOne.Terminal, {
                     } else {
                         termContainer.appendChild(termPre);
                     }
+                    u.scrollToBottom(termPre);
                     screenUpdate = true;
                     go.terminals[term]['scrollbackVisible'] = false;
                 } catch (e) { // Likely the terminal just closed

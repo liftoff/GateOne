@@ -249,6 +249,10 @@
     margin: 0;
     opacity: 0;
 }
+/* This is to work around a Chrome/Windows bug where pasting gets disabled if you use JS to set display: none */
+.{{prefix}}none {
+    display: none;
+}
 .{{prefix}}sideinfo {
     -webkit-transform: rotate(90deg);
     -webkit-transform-origin: right bottom;

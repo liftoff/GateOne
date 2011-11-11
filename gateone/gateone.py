@@ -727,16 +727,6 @@ class TerminalWebSocket(WebSocketHandler):
         this won't be called.
         """
         logging.debug("on_close()")
-        # Shut down the callbacks associated with this user
-        #try:
-            #name = "CallbackThread.%s" % self.session
-        #except AttributeError:
-            ## WebSocket was opened and closed before authentication took place
-            #logging.info(_("WebSocket closed (unknown user)."))
-            #return # Nothing left to do
-        #for t in threading.enumerate():
-            #if t.getName().startswith(name):
-                #t.quit()
         go_upn = self.get_current_user()
         if go_upn:
             logging.info(
@@ -763,8 +753,8 @@ class TerminalWebSocket(WebSocketHandler):
         # Make sure the client is authenticated if authentication is enabled
         if self.settings['auth']:
             try:
-                user = self.get_current_user()['go_upn']
-                if user == '%anonymous':
+                user = self.get_current_user()
+                if user and user['go_upn'] == '%anonymous':
                     logging.error(_("Unauthenticated WebSocket attempt."))
                     # In case this is a legitimate client that simply lost its
                     # cookie, tell it to re-auth by calling the appropriate
@@ -772,7 +762,7 @@ class TerminalWebSocket(WebSocketHandler):
                     message = {'reauthenticate': True}
                     self.write_message(json_encode(message))
                     self.close() # Close the WebSocket
-            except (KeyError, TypeError):
+            except KeyError: # 'go_upn' wasn't in user
                 # Force them to authenticate
                 message = {'reauthenticate': True}
                 self.write_message(json_encode(message))

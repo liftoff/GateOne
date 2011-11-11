@@ -224,7 +224,10 @@ class Multiplex:
         with self.lock:
             with io.open(self.fd, 'rb', closefd=False) as reader:
                 reader.read() # Go to the end
-        #self.io_loop.add_handler(self.fd, self.proc_read, self.io_loop.READ)
+        # Create a new terminal emulator instance to free up any memory that
+        # was consumed by the runaway process buffering up too much stuff.
+        self.term = self.terminal_emulator(rows=self.rows, cols=self.cols)
+        # TODO: Consider restoring the mode/state of the terminal emulator.
         self.prev_output = [None for a in xrange(self.rows-1)]
 
     def _blocked_io_handler(self, signum, frame):
@@ -238,12 +241,8 @@ class Multiplex:
         # Sending Ctrl-c via write() seems to work better:
         with io.open(self.fd, 'wb', closefd=False) as writer:
             writer.write("\x03 # Sent Ctrl-c\n") # Ctrl-c to the bad process
-        # Turn off output to prevent the buffer from filling up
-        #termios.tcflow(self.fd, termios.TCOOFF) # Doesn't seem to do anything
-        # This doesn't seem to work either:
+        # This doesn't seem to work (would be nice if it did though!):
         #os.write(self.fd, "\x19") # Ctrl-S to the bad process
-        # Empty the output queue.
-        #termios.tcflush(self.fd, termios.TCIOFLUSH) # Ditto, nothing.
         # NOTE: Turns out that removing the IOLoop handler for this fd isn't
         # necessary...  It just slows down the process of killing the process.
         #self.io_loop.remove_handler(self.fd)
@@ -265,6 +264,7 @@ class Multiplex:
         *env*
             A dictionary of environment variables to set when executing self.cmd.
         """
+        logging.debug("create(rows=%s, cols=%s, env=%s)" % (rows, cols, repr(env)))
         pid, fd = pty.fork()
         if pid == 0: # We're inside the child process
     # Close all file descriptors other than stdin, stdout, and stderr (0, 1, 2)
@@ -283,22 +283,6 @@ class Multiplex:
             env["PATH"] = os.environ['PATH']
             #env["LANG"] = os.environ['LANG']
             # Setup stdout to be more Gate One friendly
-            attrs = termios.tcgetattr(stdout)
-            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = attrs
-            # Enable flow control and UTF-8 input (probably not needed)
-            iflag |= (termios.IXON | termios.IXOFF | termios.IUTF8)
-            # OPOST: Enable post-processing of chars (not sure if this matters)
-            # INLCR: We're disabling this so we don't get \r\r\n anywhere
-            oflag |= (termios.OPOST | termios.ONLCR | termios.INLCR)
-            attrs = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
-            termios.tcsetattr(stdout, termios.TCSANOW, attrs)
-            # Now do the same for stdin
-            attrs = termios.tcgetattr(stdin)
-            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = attrs
-            iflag |= (termios.IXON | termios.IXOFF | termios.IUTF8)
-            oflag |= (termios.OPOST | termios.ONLCR | termios.INLCR)
-            attrs = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
-            termios.tcsetattr(stdin, termios.TCSANOW, attrs)
             # Set non-blocking so we don't wait forever for a read()
             fcntl.fcntl(stdout, fcntl.F_SETFL, os.O_NONBLOCK)
             p = Popen(
@@ -316,8 +300,8 @@ class Multiplex:
             self.pid = pid
             self.rows = rows
             self.cols = cols
-            self.term = self.terminal_emulator(rows=rows, cols=cols)
             self.time = time.time()
+            self.term = self.terminal_emulator(rows=rows, cols=cols)
             # Tell our IOLoop instance to start watching the child
             self.io_loop.add_handler(
                 self.fd, self.proc_read, self.io_loop.READ)
@@ -439,12 +423,9 @@ class Multiplex:
         """
         try:
             with self.lock:
-                with io.open(self.fd, 'rb', closefd=False) as reader:
-                    # This needs to be huge to handle big images
-                    updated = bytearray(65536)
-                    #updated = bytearray(1048568)
-                    reader.readinto(updated)
-                    updated = updated.rstrip('\x00') # Remove excess null chars
+                with io.open(
+                  self.fd, 'rb', closefd=False, buffering=65536) as reader:
+                    updated = reader.read()
                 self.term_write(updated)
         except IOError as e:
             # IOErrors can happen when self.fd is closed before we finish
@@ -454,7 +435,8 @@ class Multiplex:
             logging.error("Got exception in proc_read: %s" % `e`)
         except Exception as e:
             import traceback
-            logging.error("Got BIZARRO exception in proc_read (WTF?): %s" % `e`)
+            logging.error(
+                "Got unhandled exception in _buffer_to_term (???): %s" % `e`)
             traceback.print_exc(file=sys.stdout)
             self.die()
             self.proc_kill()

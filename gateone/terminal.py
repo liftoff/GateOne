@@ -453,6 +453,8 @@ class Terminal(object):
     ASCII_VT = 11     # Vertical Tab
     ASCII_FF = 12     # Form Feed
     ASCII_CR = 13     # Carriage Return
+    ASCII_SO = 14     # Ctrl-N; Shift out (switches to the G0 charset)
+    ASCII_SI = 15     # Ctrl-O; Shift in (switches to the G1 charset)
     ASCII_XON = 17    # Resume Transmission
     ASCII_XOFF = 19   # Stop Transmission or Ignore Characters
     ASCII_CAN = 24    # Cancel Escape Sequence
@@ -461,7 +463,9 @@ class Terminal(object):
     ASCII_CSI = 155   # Control Sequence Introducer (that nothing uses)
     ASCII_HTS = 210   # Horizontal Tab Stop (HTS)
 
-    charsets = {'0': { # Line drawing mode
+    charsets = {
+        'B': {}, # Default: USA
+        '0': { # Line drawing mode
             95: u' ',
             96: u'◆',
             97: u'▒',
@@ -520,14 +524,13 @@ class Terminal(object):
         self.title = "Gate One"
         self.local_echo = True
         self.esc_buffer = '' # For holding escape sequences as they're typed.
-        self.prev_esc_buffer = '' # Special: So we can differentiate between
-                                  # certain circumstances.
         self.show_cursor = True
         self.last_rendition = [0]
         self.init_screen()
         self.init_renditions()
         self.G0_charset = 'B'
         self.G1_charset = 'B'
+        self.current_charset = self.charsets['B']
         # Set the default window margins
         self.top_margin = 0
         self.bottom_margin = self.rows - 1
@@ -541,6 +544,8 @@ class Terminal(object):
             self.ASCII_VT: self._linefeed,
             self.ASCII_FF: self._linefeed,
             self.ASCII_CR: self._carriage_return,
+            self.ASCII_SO: self.use_g1_charset,
+            self.ASCII_SI: self.use_g0_charset,
             self.ASCII_XON: self._xon,
             self.ASCII_CAN: self._cancel_esc_sequence,
             self.ASCII_XOFF: self._xoff,
@@ -791,10 +796,10 @@ class Terminal(object):
         self.local_echo = True
         self.title = "Gate One"
         self.esc_buffer = ''
-        self.prev_esc_buffer = ''
         self.show_cursor = True
         self.rendition_set = False
         self.G0_charset = 'B'
+        self.current_charset = self.charsets['B']
         self.top_margin = 0
         self.bottom_margin = self.rows - 1
         self.alt_screen = None
@@ -959,10 +964,20 @@ class Terminal(object):
     def _set_line_params(self, param):
         """
         This function handles the control sequences that set double and single
-        line heights and widths.  NOTE: Not actually implemented yet!
+        line heights and widths.  It also handles the "screen alignment test" (
+        fill the screen with Es).
         """
-        pass
-        #print("TODO: Handle this line height setting: %s" % param)
+        try:
+            param = int(param)
+        except ValueError:
+            logging.warning("Couldn't handle escape sequence #%s" % repr(param))
+        if param == 8:
+            # Screen alignment test
+            self.init_renditions()
+            self.screen = [
+                [u'E' for a in xrange(self.cols)] for b in xrange(self.rows)
+            ]
+        # TODO: Get this handling double line height stuff
 
     def set_G0_charset(self, char):
         """
@@ -988,7 +1003,12 @@ class Terminal(object):
 
         NOTE: Doesn't actually do anything other than set the variable.
         """
-        self.G0_charset = char
+        #logging.debug("Setting G0 charset to %s" % repr(char))
+        if char not in self.charsets:
+            # Ignore (for now)
+            self.G0_charset = 'B'
+        else:
+            self.G0_charset = char
 
     def set_G1_charset(self, char):
         """
@@ -1014,7 +1034,40 @@ class Terminal(object):
 
         NOTE: Doesn't actually do anything other than set the variable.
         """
-        self.G1_charset = char
+        #logging.debug("Setting G1 charset to %s" % repr(char))
+        if char not in self.charsets:
+            # Ignore (for now)
+            self.G1_charset = 'B'
+        else:
+            self.G1_charset = char
+
+    def use_g0_charset(self):
+        """
+        Sets the current charset to G0.  This should get called when ASCII_SO
+        is encountered.
+        """
+        #logging.debug(
+            #"Switching to G0 charset (which is %s)" % repr(self.G0_charset))
+        if self.G0_charset in self.charsets:
+            if self.current_charset != self.charsets[self.G0_charset]:
+                self.current_charset = self.charsets[self.G0_charset]
+        else:
+            if self.current_charset != self.charsets[self.G0_charset]:
+                self.current_charset = self.charsets['B']
+
+    def use_g1_charset(self):
+        """
+        Sets the current charset to G1.  This should get called when ASCII_SI
+        is encountered.
+        """
+        #logging.debug(
+            #"Switching to G1 charset (which is %s)" % repr(self.G1_charset))
+        if self.G1_charset in self.charsets:
+            if self.current_charset != self.charsets[self.G1_charset]:
+                self.current_charset = self.charsets[self.G1_charset]
+        else:
+            if self.current_charset != self.charsets[self.G1_charset]:
+                self.current_charset = self.charsets['B']
 
     def write(self, chars, special_checks=True):
         """
@@ -1040,11 +1093,11 @@ class Terminal(object):
         cursor_right = self.cursor_right
         magic = self.magic
         changed = False
-        #logging.debug('handling chars: %s' % `chars`)
-        if special_checks and isinstance(chars, bytearray):
+        logging.debug('handling chars: %s' % `chars`)
+        if special_checks:
             # NOTE: Special checks are limited to PNGs and JPEGs right now
-            before_chars = bytearray()
-            after_chars = bytearray()
+            before_chars = ""
+            after_chars = ""
             image_captured = False
             for magic_header in magic.keys():
                 if magic_header.match(chars):
@@ -1067,9 +1120,8 @@ class Terminal(object):
                 if after_chars:
                     self.write(after_chars, special_checks=False)
                 return
-        if isinstance(chars, bytearray):
-            # Have to convert to unicode
-            chars = unicode(chars.decode('utf-8', "handle_special"))
+        # Have to convert to unicode
+        chars = unicode(chars.decode('utf-8', "handle_special"))
         for char in chars:
             charnum = ord(char)
             if charnum in specials:
@@ -1089,7 +1141,6 @@ class Terminal(object):
                                 esc_handlers[seq_type]()
                             else: # Multi-character stuff like '\x1b)B'
                                 esc_handlers[seq_type[0]](seq_type[1:])
-                            self.prev_esc_buffer = self.esc_buffer
                             self.esc_buffer = '' # All done with this one
                             continue
                         # Next try to handle CSI ESC sequences
@@ -1109,7 +1160,6 @@ class Terminal(object):
                                     #(csi_type, csi_values)
                                 #))
                                 pass
-                            self.prev_esc_buffer = self.esc_buffer
                             self.esc_buffer = ''
                             continue
                     except KeyError:
@@ -1125,36 +1175,37 @@ class Terminal(object):
                             self.esc_buffer = ''
                     continue # We're done here
 # TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
-                if self.local_echo:
-                    changed = True
-                    if self.cursorX >= self.cols:
-                        # Start a newline but NOTE: Not really the best way to
-                        # handle this because it means copying and pasting lines
-                        # will end up broken into pieces of size=self.cols
-                        self._newline()
-                        self.cursorX = 0
-                        # This actually works but until I figure out a way to
-                        # get the browser to properly wrap the line without
-                        # freaking out whenever someone clicks on the page it
-                        # will have to stay commented.  NOTE: This might be a
-                        # browser bug.
-                        #self.screen[self.cursorY].append(unicode(char))
-                        #self.renditions[self.cursorY].append([])
-                        # To try it just uncomment the above two lines and
-                        # comment out the self._newline() and self.cusorX lines
-                    if self.G0_charset == '0':
-                        self.screen[self.cursorY][self.cursorX] = self.charsets[
-                            '0'][charnum]
+                #if self.local_echo:
+                changed = True
+                if self.cursorX >= self.cols:
+                    # Start a newline but NOTE: Not really the best way to
+                    # handle this because it means copying and pasting lines
+                    # will end up broken into pieces of size=self.cols
+                    self._newline()
+                    self.cursorX = 0
+                    # This actually works but until I figure out a way to
+                    # get the browser to properly wrap the line without
+                    # freaking out whenever someone clicks on the page it
+                    # will have to stay commented.  NOTE: This might be a
+                    # browser bug.
+                    #self.screen[self.cursorY].append(unicode(char))
+                    #self.renditions[self.cursorY].append([])
+                    # To try it just uncomment the above two lines and
+                    # comment out the self._newline() and self.cusorX lines
+                try:
+                    self.renditions[self.cursorY][
+                        self.cursorX] = self.last_rendition
+                    if charnum in self.current_charset:
+                        char = self.current_charset[charnum]
+                        self.screen[self.cursorY][self.cursorX] = char
                     else:
-                        try:
-                            self.renditions[self.cursorY][
-                                self.cursorX] = self.last_rendition
-                            self.screen[self.cursorY][self.cursorX] = char
-                        except IndexError:
-                            # This can happen when escape sequences go haywire
-                            pass
-                    self.prev_esc_buffer = ''
-                    cursor_right()
+                        # Use plain ASCII if the char wasn't found (means it
+                        # isn't a special line drawing character).
+                        self.screen[self.cursorY][self.cursorX] = char
+                except IndexError:
+                    # This can happen when escape sequences go haywire
+                    pass
+                cursor_right()
         if changed:
             # Execute our callbacks
             try:
@@ -1487,6 +1538,7 @@ class Terminal(object):
 
         Notes on modes::
             '?1h' - Application Cursor Keys
+            '?5h' - DECSCNM (default off): Set reverse-video mode.
             '?12h' - Local echo (SRM or Send Receive Mode)
             '?25h' - Hide cursor
             '?1049h' - Save cursor and screen
@@ -1577,10 +1629,13 @@ class Terminal(object):
 
         self.local_echo = *onoff*
         """
-        if onoff:
-            self.local_echo = False
-        else:
-            self.local_echo = True
+        logging.debug("send_receive_mode(%s)" % repr(onoff))
+        # This has been disabled because it might only be meant for the
+        # underlying program and not the terminal emulator.  Needs research.
+        #if onoff:
+            #self.local_echo = False
+        #else:
+            #self.local_echo = True
 
     def insert_characters(self, n=1):
         """Inserts the specified number of characters at the cursor position"""
@@ -1838,18 +1893,9 @@ class Terminal(object):
         """
         self.screen[self.cursorY][self.cursorX:] = [
             u' ' for a in self.screen[self.cursorY][self.cursorX:]]
-        # NOTE: We have to check if a rendition was just set for this cursor
-        #       position since \x1b[K is only supposed to clear renditions that
-        #       were set prior to the cursor being placed at its current
-        #       position (which is odd--and I can't find any documentation that
-        #       says that's how it is supposed to work but it seems to be the
-        #       case in real-world testing).
-        if self.prev_esc_buffer.endswith('m'): # Was a rendition, preserve it
-            self.renditions[self.cursorY][self.cursorX+1:] = [
-                None for a in self.screen[self.cursorY][self.cursorX:]]
-        else: # Reset the cursor position's rendition to the end of the line
-            self.renditions[self.cursorY][self.cursorX:] = [
-                None for a in self.screen[self.cursorY][self.cursorX:]]
+        # Reset the cursor position's rendition to the end of the line
+        self.renditions[self.cursorY][self.cursorX:] = [
+            self.last_rendition for a in self.screen[self.cursorY][self.cursorX:]]
 
     def clear_line_from_cursor_left(self):
         """
@@ -1861,7 +1907,7 @@ class Terminal(object):
             u' ' for a in self.screen[self.cursorY][:self.cursorX]
         ] + saved
         self.renditions[self.cursorY] = [
-            None for a in self.screen[self.cursorY][:self.cursorX]
+            [] for a in self.screen[self.cursorY][:self.cursorX]
         ] + saved_renditions
 
     def clear_line(self):
@@ -2208,8 +2254,6 @@ class Terminal(object):
                 else:
                     outline += char
                 charcount += 1
-            # rstrip() is here to save some bandwidth
-            outline = outline.rstrip()
             if outline:
                 results.append(outline)
             else:
@@ -2324,7 +2368,6 @@ class Terminal(object):
                         outline += '<span class="%s">' % " ".join(current_classes)
                         spancount += 1
                 outline += char
-            outline = outline.rstrip()
             if outline:
                 results.append(outline)
             else:

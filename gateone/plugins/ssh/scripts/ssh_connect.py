@@ -83,8 +83,11 @@ def connect_ssh(
             'LANG': 'en_US.UTF-8',
         }
     # Get the default rows/cols right from the start
-    env['LINES'] = os.environ['LINES']
-    env['COLUMNS'] = os.environ['COLUMNS']
+    try:
+        env['LINES'] = os.environ['LINES']
+        env['COLUMNS'] = os.environ['COLUMNS']
+    except KeyError:
+        pass # These variables aren't set
     args = [
         "-x", # No X11 forwarding, thanks :)
         "-F/dev/null", # No config dir (might change this is the future)
