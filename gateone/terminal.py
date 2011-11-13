@@ -1056,7 +1056,6 @@ class Terminal(object):
         #logging.debug(
             #"Switching to G0 charset (which is %s)" % repr(self.G0_charset))
         self.current_charset = 0
-        print("g0 current_charset: %s" % self.current_charset)
 
     def use_g1_charset(self):
         """
@@ -1066,7 +1065,6 @@ class Terminal(object):
         #logging.debug(
             #"Switching to G1 charset (which is %s)" % repr(self.G1_charset))
         self.current_charset = 1
-        print("g1 current_charset: %s" % self.current_charset)
 
     def write(self, chars, special_checks=True):
         """
