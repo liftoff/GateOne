@@ -528,9 +528,13 @@ class Terminal(object):
         self.last_rendition = [0]
         self.init_screen()
         self.init_renditions()
-        self.G0_charset = 'B'
-        self.G1_charset = 'B'
-        self.current_charset = self.charsets['B']
+        self.G0_charset = self.charsets['B']
+        self.G1_charset = self.charsets['B']
+        self.current_charset = 0
+        self.charset = self.G0_charset
+        self.set_G0_charset('B')
+        self.set_G1_charset('B')
+        self.use_g0_charset()
         # Set the default window margins
         self.top_margin = 0
         self.bottom_margin = self.rows - 1
@@ -576,6 +580,9 @@ class Terminal(object):
             '5': self._device_status_report, # Request: Device status report DSR
             '0': self.__ignore, # Response: terminal is OK  DSR
             'P': self._dcs_handler, # Device Control String  DCS
+            # NOTE: = and > are ignored because the user can override/control
+            # them via the numlock key on their keyboard.  To do otherwise would
+            # just confuse people.
             '=': self.__ignore, # Application Keypad  DECPAM
             '>': self.__ignore, # Exit alternate keypad mode
             '<': self.__ignore, # Exit VT-52 mode
@@ -1000,15 +1007,15 @@ class Terminal(object):
             H    Swedish
             7    Swedish
             =    Swiss
-
-        NOTE: Doesn't actually do anything other than set the variable.
         """
         #logging.debug("Setting G0 charset to %s" % repr(char))
         if char not in self.charsets:
-            # Ignore (for now)
-            self.G0_charset = 'B'
+            # Ignore and use USA (for now)
+            self.G0_charset = self.charsets['B']
         else:
-            self.G0_charset = char
+            self.G0_charset = self.charsets[char]
+        if self.current_charset == 0:
+            self.charset = self.G0_charset
 
     def set_G1_charset(self, char):
         """
@@ -1031,15 +1038,15 @@ class Terminal(object):
             H    Swedish
             7    Swedish
             =    Swiss
-
-        NOTE: Doesn't actually do anything other than set the variable.
         """
         #logging.debug("Setting G1 charset to %s" % repr(char))
         if char not in self.charsets:
-            # Ignore (for now)
-            self.G1_charset = 'B'
+            # Ignore and use USA (for now)
+            self.G1_charset = self.charsets['B']
         else:
-            self.G1_charset = char
+            self.G1_charset = self.charsets[char]
+        if self.current_charset == 1:
+            self.charset = self.G1_charset
 
     def use_g0_charset(self):
         """
@@ -1048,12 +1055,8 @@ class Terminal(object):
         """
         #logging.debug(
             #"Switching to G0 charset (which is %s)" % repr(self.G0_charset))
-        if self.G0_charset in self.charsets:
-            if self.current_charset != self.charsets[self.G0_charset]:
-                self.current_charset = self.charsets[self.G0_charset]
-        else:
-            if self.current_charset != self.charsets[self.G0_charset]:
-                self.current_charset = self.charsets['B']
+        self.current_charset = 0
+        print("g0 current_charset: %s" % self.current_charset)
 
     def use_g1_charset(self):
         """
@@ -1062,12 +1065,8 @@ class Terminal(object):
         """
         #logging.debug(
             #"Switching to G1 charset (which is %s)" % repr(self.G1_charset))
-        if self.G1_charset in self.charsets:
-            if self.current_charset != self.charsets[self.G1_charset]:
-                self.current_charset = self.charsets[self.G1_charset]
-        else:
-            if self.current_charset != self.charsets[self.G1_charset]:
-                self.current_charset = self.charsets['B']
+        self.current_charset = 1
+        print("g1 current_charset: %s" % self.current_charset)
 
     def write(self, chars, special_checks=True):
         """
@@ -1093,7 +1092,7 @@ class Terminal(object):
         cursor_right = self.cursor_right
         magic = self.magic
         changed = False
-        logging.debug('handling chars: %s' % `chars`)
+        #logging.debug('handling chars: %s' % `chars`)
         if special_checks:
             # NOTE: Special checks are limited to PNGs and JPEGs right now
             before_chars = ""
@@ -1195,8 +1194,8 @@ class Terminal(object):
                 try:
                     self.renditions[self.cursorY][
                         self.cursorX] = self.last_rendition
-                    if charnum in self.current_charset:
-                        char = self.current_charset[charnum]
+                    if charnum in self.charset:
+                        char = self.charset[charnum]
                         self.screen[self.cursorY][self.cursorX] = char
                     else:
                         # Use plain ASCII if the char wasn't found (means it
@@ -1682,7 +1681,7 @@ class Terminal(object):
         n = min(n, distance)
         for i in xrange(n):
             self.screen[self.cursorY][self.cursorX+i] = u' '
-            self.renditions[self.cursorY][self.cursorX+i] = [0]
+            self.renditions[self.cursorY][self.cursorX+i] = []
 
     def cursor_left(self, n=1):
         """ESCnD CUB (Cursor Back)"""
