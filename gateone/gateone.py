@@ -546,6 +546,15 @@ COLORS_256 = {
 }
 
 # Classes
+class HTTPSRedirectHandler(tornado.web.RequestHandler):
+    """
+    A handler to redirect clients from HTTP to HTTPS.
+    """
+    # Right now it's just the one...
+    def get(self):
+        """Just redirects the client to HTTPS"""
+        self.redirect('https://%s/' % self.request.headers['Host'])
+
 class BaseHandler(tornado.web.RequestHandler):
     """
     A base handler that all Gate One RequestHandlers will inherit methods from.
@@ -1500,6 +1509,12 @@ def main():
                "GateOne.init({scheme: 'white'})"),
         type=str
     )
+    define(
+        "https_redirect",
+        default=False,
+        help=_("If enabled, a separate listener will be started on port 80 that"
+               " redirects users to the configured port using HTTPS.")
+    )
     # Before we do anythong else, load plugins and assign their hooks.  This
     # allows plugins to add their own define() statements/options.
     imported = load_plugins(PLUGINS['py'])
@@ -1615,21 +1630,31 @@ def main():
     }
     if options.disable_ssl:
         ssl_options = None
-    http_server = tornado.httpserver.HTTPServer(
+    https_server = tornado.httpserver.HTTPServer(
         Application(settings=app_settings), ssl_options=ssl_options)
+    https_redirect = tornado.web.Application([(r"/", HTTPSRedirectHandler),])
     try: # Start your engines!
         if options.address:
             for addr in options.address.split(';'):
                 if addr: # Listen on all given addresses
+                    if options.https_redirect:
+                        logging.info(_(
+                         "http://{address}:80/ will be redirected to...".format(
+                                address=addr)
+                        ))
+                        https_redirect.listen(port=80, address=addr)
                     logging.info(_(
                         "Listening on https://{address}:{port}/".format(
                             address=addr, port=options.port)
                     ))
-                    http_server.listen(port=options.port, address=addr)
+                    https_server.listen(port=options.port, address=addr)
         else: # Listen on all addresses (including IPv6)
+            if options.https_redirect:
+                logging.info(_("http://*:80/ will be redirected to..."))
+                https_redirect.listen(port=80, address="")
             logging.info(_(
                 "Listening on https://*:{port}/".format(port=options.port)))
-            http_server.listen(port=options.port, address="")
+            https_server.listen(port=options.port, address="")
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
         logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
