@@ -753,14 +753,14 @@ GateOne.Base.update(GateOne.Utils, {
     },
     showElement: function(elem) {
         // Sets the 'display' style of the given element to 'block' (which undoes setting it to 'none')
-//         GateOne.Utils.getNode(elem).style.display = 'block';
+        GateOne.Utils.getNode(elem).style.display = 'block';
         var go = GateOne,
             u = go.Utils;
         u.getNode(elem).className = u.getNode(elem).className.replace(/(?:^|\s)none(?!\S)/, '');
     },
     hideElement: function(elem) {
         // Sets the 'display' style of the given element to 'none'
-//         GateOne.Utils.getNode(elem).style.display = 'none';
+        GateOne.Utils.getNode(elem).style.display = 'none';
         GateOne.Utils.getNode(elem).className += " " + GateOne.prefs.prefix + "none";
     },
     noop: function(a) { return a },
