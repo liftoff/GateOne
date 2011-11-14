@@ -2787,6 +2787,10 @@ GateOne.Base.update(GateOne.Terminal, {
                 callback(term);
             });
         }
+        setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
+            go.Visual.updateDimensions();
+            go.Net.sendDimensions();
+        }, 2000);
     },
     closeTerminal: function(term) {
         // Closes the given terminal and tells the server to end its running process
