@@ -76,12 +76,7 @@ import tornado.ioloop
 import tornado.web
 from tornado.escape import utf8
 from tornado.util import b
-try:
-    import kerberos
-except ImportError:
-    print(_("\x1b[31;1mERROR:\x1b[0m The sso (Kerberos authentication) module "
-          "requires the Python kerberos module.  You probably want to run "
-          "something like, \x1b[1m'pip install kerberos'\x1b[0m."))
+import kerberos
 
 # NOTE: For some reason if I set this as just an 'object' it doesn't work.
 class KerberosAuthMixin(tornado.web.RequestHandler):
