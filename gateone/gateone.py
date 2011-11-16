@@ -1086,21 +1086,29 @@ class TerminalWebSocket(WebSocketHandler):
             {'rows': 24, 'cols': 80}
         """
         logging.debug("resize(%s)" % repr(resize_obj))
+        term = None
+        if 'term' in resize_obj:
+            term = int(resize_obj['term'])
         self.rows = resize_obj['rows']
         self.cols = resize_obj['cols']
-        term = resize_obj['term']
         if self.rows < 2 or self.cols < 2:
             # Fall back to a standard default:
             self.rows = 24
             self.cols = 80
         # If the user already has a running session, set the new terminal size:
-        try: # TODO: Make this only resize a given terminal.  Let the client handle repeating the resize command for each.
-            for term in SESSIONS[self.session].keys():
-                if isinstance(term, int): # Skip the TidyThread
-                    SESSIONS[self.session][term]['multiplex'].resize(
-                        self.rows,
-                        self.cols
-                    )
+        try:
+            if term:
+                SESSIONS[self.session][term]['multiplex'].resize(
+                    self.rows,
+                    self.cols
+                )
+            else: # Resize them all
+                for term in SESSIONS[self.session].keys():
+                    if isinstance(term, int): # Skip the TidyThread
+                        SESSIONS[self.session][term]['multiplex'].resize(
+                            self.rows,
+                            self.cols
+                        )
         except KeyError: # Session doesn't exist yet, no biggie
             pass
 

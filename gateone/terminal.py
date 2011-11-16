@@ -522,6 +522,8 @@ class Terminal(object):
         self.scrollback_buf = []
         self.scrollback_renditions = []
         self.title = "Gate One"
+        # Use to tell if we actually made a change or just moved the cursor:
+        self.modified = False
         self.local_echo = True
         self.esc_buffer = '' # For holding escape sequences as they're typed.
         self.show_cursor = True
@@ -1009,11 +1011,10 @@ class Terminal(object):
             =    Swiss
         """
         #logging.debug("Setting G0 charset to %s" % repr(char))
-        if char not in self.charsets:
-            # Ignore and use USA (for now)
-            self.G0_charset = self.charsets['B']
-        else:
+        try:
             self.G0_charset = self.charsets[char]
+        except KeyError:
+            self.G0_charset = self.charsets['B']
         if self.current_charset == 0:
             self.charset = self.G0_charset
 
@@ -1040,11 +1041,10 @@ class Terminal(object):
             =    Swiss
         """
         #logging.debug("Setting G1 charset to %s" % repr(char))
-        if char not in self.charsets:
-            # Ignore and use USA (for now)
-            self.G1_charset = self.charsets['B']
-        else:
+        try:
             self.G1_charset = self.charsets[char]
+        except KeyError:
+            self.G1_charset = self.charsets['B']
         if self.current_charset == 1:
             self.charset = self.G1_charset
 
@@ -1204,6 +1204,7 @@ class Terminal(object):
                     pass
                 cursor_right()
         if changed:
+            self.modified = True
             # Execute our callbacks
             try:
                 for callback in self.callbacks[CALLBACK_CHANGED].values():
@@ -2389,6 +2390,7 @@ class Terminal(object):
             scrollback = self.__spanify_scrollback()
         # Empty the scrollback buffer:
         self.init_scrollback()
+        self.modified = False
         return (scrollback, results)
 
     def dump_plain(self):
@@ -2400,6 +2402,7 @@ class Terminal(object):
         scrollback = self.scrollback_buf
         # Empty the scrollback buffer:
         self.init_scrollback()
+        self.modified = False
         return (scrollback, screen)
 
     def dump_components(self):
@@ -2418,6 +2421,7 @@ class Terminal(object):
                 self.scrollback_buf, self.scrollback_renditions)
         # Empty the scrollback buffer:
         self.init_scrollback()
+        self.modified = False
         return (scrollback, screen, self.renditions, self.cursorY, self.cursorX)
 
     def dump(self):

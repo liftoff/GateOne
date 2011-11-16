@@ -818,6 +818,7 @@
 #{{container}} .button:active {
     position: relative;
     top: 1px;
+    border: solid 0.1em #FFF;
 }
 /* black buttons */
 #{{container}} .black {
@@ -838,6 +839,13 @@
 }
 #{{container}} .black:active {
     color: #666;
+    background: -webkit-gradient(linear, left top, left bottom, from(#000), to(#444));
+    background: -moz-linear-gradient(top,  #000,  #444);
+    background: -o-linear-gradient(top,  #000,  #444);
+    filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#666666');
+}
+#{{container}} .black:focus {
+    color: #FFF;
     background: -webkit-gradient(linear, left top, left bottom, from(#000), to(#444));
     background: -moz-linear-gradient(top,  #000,  #444);
     background: -o-linear-gradient(top,  #000,  #444);

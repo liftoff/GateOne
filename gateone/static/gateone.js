@@ -941,7 +941,9 @@ GateOne.Base.update(GateOne.Utils, {
         if (localStorage['prefs']) {
             var userPrefs = JSON.parse(localStorage['prefs']);
             for (i in userPrefs) {
-                GateOne.prefs[i] = userPrefs[i];
+                if (userPrefs[i] != null) {
+                    GateOne.prefs[i] = userPrefs[i];
+                }
             }
         }
     },
@@ -1212,7 +1214,7 @@ GateOne.Base.update(GateOne.Input, {
             } else {
                 var panels = document.getElementsByClassName(go.prefs.prefix+'panel'),
                     visiblePanel = false;
-                u.getNode(go.prefs.goDiv).focus();
+//                 u.getNode(go.prefs.goDiv).focus();
                 // Hide all the panels
                 for (var i in u.toArray(panels)) {
                     if (panels[i].style['transform'] != 'scale(0)') {
@@ -1227,6 +1229,9 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onmouseup = function(e) {
             // Once the user is done pasting (or clicking), set it back to false for speed
 //             goDiv.contentEditable = false; // Having this as false makes screen updates faster
+            if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
+                return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
+            }
             u.showElement(pastearea);
             goDiv.focus();
         }
@@ -1246,6 +1251,7 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onkeypress = null;
         goDiv.onmousedown = null;
         goDiv.onmouseup = null;
+        u.hideElement(pastearea);
     },
     queue: function(text) {
         // Adds 'text' to the charBuffer Array
@@ -1418,7 +1424,7 @@ GateOne.Base.update(GateOne.Input, {
             goIn.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
             return true; // Save some CPU
         }
-        if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA") {
+        if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
             return; // Let the browser handle it if the user is editing something
             // NOTE: Doesn't actually work so well so we have GateOne.Input.disableCapture() as a fallback :)
         }
@@ -1780,7 +1786,7 @@ GateOne.Base.update(GateOne.Input, {
         var go = GateOne,
             goIn = go.Input,
             q = function(char) {e.preventDefault(); goIn.queue(char); goIn.handledKeystroke = false;};
-        if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA") {
+        if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
             return; // Let the browser handle it if the user is editing something
             // NOTE: Doesn't actually work so well so we have GateOne.Input.disableCapture() as a fallback :)
         }
@@ -2572,7 +2578,12 @@ GateOne.Base.update(GateOne.Terminal, {
                 screenUpdate = false,
                 terminalObj = {},
                 reScrollback = u.partial(go.Visual.enableScrollback, term);
-            if (term) { terminalObj = go.terminals[term] } else { logError("No terminal object?!?") };
+            if (term && go.terminals[term]) {
+                terminalObj = go.terminals[term];
+            } else {
+                // Terminal was likely just closed.
+                return;
+            };
             if (screen) {
                 try {
                     terminalObj['screen'] = screen;
@@ -2753,6 +2764,13 @@ GateOne.Base.update(GateOne.Terminal, {
         }
         if (prevScrollback) {
             go.terminals[term]['scrollback'] = prevScrollback.split('\n');
+        } else { // No previous scrollback buffer
+            // Fill it with empty strings so that the current line stays at the bottom of the screen when scrollback is re-enabled after screen updates.
+            var blankLines = [];
+            for (var i=0; i<go.prefs.scrollback; i++) {
+                blankLines.push("");
+            }
+            go.terminals[term]['scrollback'] = blankLines;
         }
         // Add the terminal div to the grid
         var terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': go.prefs.prefix+'terminal'}),
@@ -2787,10 +2805,10 @@ GateOne.Base.update(GateOne.Terminal, {
                 callback(term);
             });
         }
-        setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
-            go.Visual.updateDimensions();
-            go.Net.sendDimensions();
-        }, 2000);
+//         setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
+//             go.Visual.updateDimensions();
+//             go.Net.sendDimensions();
+//         }, 2000);
     },
     closeTerminal: function(term) {
         // Closes the given terminal and tells the server to end its running process

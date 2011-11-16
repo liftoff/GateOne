@@ -277,8 +277,8 @@ class Multiplex:
             stdin = 0
             stdout = 1
             stderr = 2
-            env["COLUMNS"] = str(cols)
-            env["LINES"] = str(rows)
+            #env["COLUMNS"] = str(cols)
+            #env["LINES"] = str(rows)
             env["TERM"] = "xterm" # TODO: This needs to be configurable on-the-fly
             env["PATH"] = os.environ['PATH']
             #env["LANG"] = os.environ['LANG']
@@ -298,22 +298,16 @@ class Multiplex:
         else: # We're inside this Python script
             self.fd = fd
             self.pid = pid
-            self.rows = rows
-            self.cols = cols
             self.time = time.time()
             self.term = self.terminal_emulator(rows=rows, cols=cols)
             # Tell our IOLoop instance to start watching the child
             self.io_loop.add_handler(
-                self.fd, self.proc_read, self.io_loop.READ)
+                fd, self.proc_read, self.io_loop.READ)
             self.prev_output = [None for a in xrange(rows-1)]
-            # (re)start the flow control on the fd
-            termios.tcflow(fd, termios.TCOON)
-            termios.tcflow(fd, termios.TCION)
             # Set non-blocking so we don't wait forever for a read()
             fcntl.fcntl(self.fd, fcntl.F_SETFL, os.O_NONBLOCK)
-            # These two lines set the size of the terminal window:
-            s = struct.pack("HHHH", rows, cols, 0, 0)
-            fcntl.ioctl(fd, termios.TIOCSWINSZ, s)
+            # Set the size of the terminal
+            self.resize(rows, cols)
             return fd
 
     def die(self):
@@ -335,6 +329,16 @@ class Multiplex:
         self.rows = rows
         self.cols = cols
         self.term.resize(rows, cols)
+        # Sometimes the resize doesn't actually apply (for whatever reason)
+        # so to get around this we have to send a different value than the
+        # actual value we want then send our actual value.  It's a bug outside
+        # of Gate One that I have no idea how to isolate but this has proven to
+        # be an effective workaround.
+        s = struct.pack("HHHH", rows-1, cols-1, 0, 0)
+        fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
+        os.kill(self.pid, signal.SIGWINCH) # Send the resize signal
+        time.sleep(0.01) # Have to wait just a moment for this to work
+        # This second (proper) resize forces the terminal to take notice
         s = struct.pack("HHHH", rows, cols, 0, 0)
         fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
 
