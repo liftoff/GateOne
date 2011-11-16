@@ -1229,6 +1229,11 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onmouseup = function(e) {
             // Once the user is done pasting (or clicking), set it back to false for speed
 //             goDiv.contentEditable = false; // Having this as false makes screen updates faster
+            var selectedText = u.getSelText();
+            if (selectedText) {
+                // Don't show the pastearea as it will prevent the user from right-clicking to copy.
+                return;
+            }
             if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
                 return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
             }
