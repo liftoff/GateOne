@@ -756,12 +756,12 @@ GateOne.Base.update(GateOne.Utils, {
         GateOne.Utils.getNode(elem).style.display = 'block';
         var go = GateOne,
             u = go.Utils;
-        u.getNode(elem).className = u.getNode(elem).className.replace(/(?:^|\s)none(?!\S)/, '');
+        u.getNode(elem).className = u.getNode(elem).className.replace(/(?:^|\s)go_none(?!\S)/, '');
     },
     hideElement: function(elem) {
         // Sets the 'display' style of the given element to 'none'
         GateOne.Utils.getNode(elem).style.display = 'none';
-        GateOne.Utils.getNode(elem).className += " " + GateOne.prefs.prefix + "none";
+        GateOne.Utils.getNode(elem).className += " go_none";
     },
     noop: function(a) { return a },
     toArray: function (obj) {
@@ -2290,6 +2290,8 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             v = go.Visual,
+            pastearea = u.getNode('#'+go.prefs.prefix+'pastearea'),
+            controlsContainer = u.getNode('#'+go.prefs.prefix+'controlsContainer'),
             terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal'));
         if (goBack == null) {
             goBack == true;
@@ -2305,12 +2307,16 @@ GateOne.Base.update(GateOne.Visual, {
             if (goBack) {
                 v.slideToTerm(localStorage['selectedTerminal']); // Slide to the intended terminal
             }
+            u.showElement(pastearea);
+            u.showElement(controlsContainer);
         } else {
             v.gridView = true;
             setTimeout(function() {
                 u.getNode(go.prefs.goDiv).style.overflowY = 'visible';
                 u.getNode('#'+go.prefs.prefix+'termwrapper').style.width = go.Visual.goDimensions.w;
             }, 1000);
+            u.hideElement(pastearea);
+            u.hideElement(controlsContainer);
             v.disableScrollback();
             v.applyTransform(terms, 'translate(0px, 0px)');
             var odd = true,

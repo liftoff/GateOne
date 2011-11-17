@@ -134,7 +134,7 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import re, time, logging, base64, copy, StringIO, codecs
+import re, logging, base64, copy, StringIO, codecs
 from collections import defaultdict
 from itertools import imap, izip
 
@@ -256,6 +256,7 @@ RENDITION_CLASSES = defaultdict(lambda: None, {
 for i in xrange(256):
     RENDITION_CLASSES[(i+1000)] = "fx%s" % i
     RENDITION_CLASSES[(i+10000)] = "bx%s" % i
+del i # Cleanup
 
 def handle_special(e):
     """
@@ -281,7 +282,7 @@ def handle_special(e):
         0xc5: u'┼', # ACS_PLUS
         0x2d: u'', # ACS_S1
         0x5f: u'', # ACS_S9
-        0xc5: u'◆', # ACS_DIAMOND
+        0x60: u'◆', # ACS_DIAMOND
         0xb2: u'▒', # ACS_CKBOARD
         0xf8: u'°', # ACS_DEGREE
         0xf1: u'±', # ACS_PLMINUS
@@ -439,7 +440,52 @@ codecs.register_error('handle_special', handle_special)
 # TODO List:
 #
 #   * Needs tests!
-#   * Figure out how to handle programs like htop that position the cursor without following up with proper rendition reset sequences.
+
+# Helper functions
+def _reduce_renditions(renditions):
+    """
+    Takes a list, *renditions*, and reduces it to its logical equivalent (as
+    far as renditions go).  Example:
+
+        [0, 32, 0, 34, 0, 32]
+
+    Would become:
+
+        [0, 32]
+
+    Other Examples:
+
+        [0, 1, 36, 36] -> [0, 1, 36]
+        [0, 30, 42, 30, 42] -> [0, 30, 42]
+        [36, 32, 44, 42] -> [32, 42]
+        [36, 35] -> [35]
+    """
+    out_renditions = []
+    foreground = None
+    background = None
+    for i, rend in enumerate(renditions):
+        if rend < 29:
+            if rend not in out_renditions:
+                out_renditions.append(rend)
+        elif rend > 29 and rend < 40:
+            # Regular 8-color foregrounds
+            foreground = rend
+        elif rend > 39 and rend < 50:
+            # Regular 8-color backgrounds
+            background = rend
+        elif rend > 91 and rend < 98:
+            # 'Bright' (16-color) foregrounds
+            foreground = rend
+        elif rend > 99 and rend < 108:
+            # 'Bright' (16-color) backgrounds
+            background = rend
+        else:
+            out_renditions.append(rend)
+    if foreground:
+        out_renditions.append(foreground)
+    if background:
+        out_renditions.append(background)
+    return out_renditions
 
 class Terminal(object):
     """
@@ -1095,7 +1141,6 @@ class Terminal(object):
             # NOTE: Special checks are limited to PNGs and JPEGs right now
             before_chars = ""
             after_chars = ""
-            image_captured = False
             for magic_header in magic.keys():
                 if magic_header.match(chars):
                     self.matched_header = magic_header
@@ -1111,7 +1156,6 @@ class Terminal(object):
                     self._capture_image(self.image)
                     self.image = bytearray() # Empty it out
                     self.matched_header = None # Ditto
-                    image_captured = True
                 if before_chars:
                     self.write(before_chars, special_checks=False)
                 if after_chars:
@@ -1265,11 +1309,11 @@ class Terminal(object):
         scrolling the screen.
         """
         for x in xrange(int(n)):
-            line = self.screen.pop(self.bottom_margin) # Remove the bottom line
+            self.screen.pop(self.bottom_margin) # Remove the bottom line
             empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
             self.screen.insert(self.top_margin, empty_line) # Add it to the top
             # Remove bottom line's style information:
-            style = self.renditions.pop(self.bottom_margin)
+            self.renditions.pop(self.bottom_margin)
             # Insert a new empty one:
             self.renditions.insert(
                 self.top_margin, [[0] for a in xrange(self.cols)])
@@ -1296,9 +1340,9 @@ class Terminal(object):
             n = 1
         n = int(n)
         for i in xrange(n):
-            line = self.screen.pop(self.bottom_margin) # Remove the bottom line
+            self.screen.pop(self.bottom_margin) # Remove the bottom line
             # Remove bottom line's style information as well:
-            style = self.renditions.pop(self.bottom_margin)
+            self.renditions.pop(self.bottom_margin)
             empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
             self.screen.insert(self.cursorY, empty_line) # Insert at cursor
             # Insert a new empty rendition as well:
@@ -1313,9 +1357,9 @@ class Terminal(object):
             n = 1
         n = int(n)
         for i in xrange(n):
-            line = self.screen.pop(self.cursorY) # Remove the line at the cursor
+            self.screen.pop(self.cursorY) # Remove the line at the cursor
             # Remove the line's style information as well:
-            style = self.renditions.pop(self.cursorY)
+            self.renditions.pop(self.cursorY)
             # Now add an empty line and empty set of renditions to the bottom of the
             # view
             empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
@@ -1979,51 +2023,6 @@ class Terminal(object):
         except TypeError:
             pass
 
-    def __reduce_renditions(self, renditions):
-        """
-        Takes a list, *renditions*, and reduces it to its logical equivalent (as
-        far as renditions go).  Example:
-
-            [0, 32, 0, 34, 0, 32]
-
-        Would become:
-
-            [0, 32]
-
-        Other Examples:
-
-            [0, 1, 36, 36] -> [0, 1, 36]
-            [0, 30, 42, 30, 42] -> [0, 30, 42]
-            [36, 32, 44, 42] -> [32, 42]
-            [36, 35] -> [35]
-        """
-        out_renditions = []
-        foreground = None
-        background = None
-        for i, rend in enumerate(renditions):
-            if rend < 29:
-                if rend not in out_renditions:
-                    out_renditions.append(rend)
-            elif rend > 29 and rend < 40:
-                # Regular 8-color foregrounds
-                foreground = rend
-            elif rend > 39 and rend < 50:
-                # Regular 8-color backgrounds
-                background = rend
-            elif rend > 91 and rend < 98:
-                # 'Bright' (16-color) foregrounds
-                foreground = rend
-            elif rend > 99 and rend < 108:
-                # 'Bright' (16-color) backgrounds
-                background = rend
-            else:
-                out_renditions.append(rend)
-        if foreground:
-            out_renditions.append(foreground)
-        if background:
-            out_renditions.append(background)
-        return out_renditions
-
     def _set_rendition(self, n):
         """
         Sets self.renditions[self.cursorY][self.cursorX] equal to n.split(';').
@@ -2095,7 +2094,7 @@ class Terminal(object):
             self.last_rendition = out_renditions
             return
         new_renditions = out_renditions
-        self.last_rendition = self.__reduce_renditions(
+        self.last_rendition = _reduce_renditions(
             self.last_rendition + new_renditions)
 
     def __opt_handler(self, chars):

@@ -22,15 +22,13 @@ authentication (PAM doesn't take a "realm" setting).
 """
 
 # Standard library modules
-import httplib, logging, base64
+import base64
 
 # 3rd party modules
 import PAM
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-from tornado.escape import utf8
-from tornado.util import b
 
 
 class PAMAuthMixin(tornado.web.RequestHandler):

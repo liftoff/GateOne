@@ -37,6 +37,7 @@ gateone_files=[ # Start with the basics...
         'gateone/terminal.py',
         'gateone/termio.py',
         'gateone/utils.py',
+        'gateone/authpam.py',
         'README.rst',
         'babel_gateone.cfg'
     ])

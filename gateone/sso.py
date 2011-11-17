@@ -63,7 +63,7 @@ Class Docstrings
 """
 
 # Standard library modules
-import httplib, logging, base64
+import base64
 
 # Import our own stuff
 from utils import get_translation
@@ -74,8 +74,6 @@ _ = get_translation()
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-from tornado.escape import utf8
-from tornado.util import b
 import kerberos
 
 # NOTE: For some reason if I set this as just an 'object' it doesn't work.

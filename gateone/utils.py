@@ -19,7 +19,6 @@ import os
 import signal
 import sys
 import random
-import time
 import re
 import errno
 import base64
@@ -30,7 +29,7 @@ import mimetypes
 import struct
 import binascii
 from commands import getstatusoutput
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 # Import 3rd party stuff
 from tornado import locale
@@ -127,7 +126,7 @@ def get_translation():
     gateone_dir = os.path.dirname(os.path.abspath(__file__))
     server_conf = os.path.join(gateone_dir, 'server.conf')
     try:
-	locale_str = os.environ.get('LANG', 'en_US').split('.')[0]
+        locale_str = os.environ.get('LANG', 'en_US').split('.')[0]
         with open(server_conf) as f:
             for line in f:
                 if line.startswith('locale'):
@@ -136,8 +135,8 @@ def get_translation():
                     break
     except IOError: # server.conf doesn't exist (yet).
         # Fall back to os.environ['LANG']
-	# Already set above
-	pass
+        # Already set above
+        pass
     user_locale = locale.get(locale_str)
     return user_locale.translate
 

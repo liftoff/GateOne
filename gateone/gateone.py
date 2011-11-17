@@ -228,9 +228,9 @@ try:
     from tornado.options import define, options
     from tornado import locale
 except ImportError:
-    print(_("\x1b[31;1mERROR:\x1b[0m Gate One requires the Tornado framework.  "
+    print("\x1b[31;1mERROR:\x1b[0m Gate One requires the Tornado framework.  "
           "You probably want to run something like, \x1b[1m'pip install "
-          "--upgrade tornado'\x1b[0m."))
+          "--upgrade tornado'\x1b[0m.")
 
 # We want this turned on right away
 tornado.options.enable_pretty_logging()
@@ -239,7 +239,7 @@ tornado.options.enable_pretty_logging()
 import termio, terminal
 from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
 from auth import PAMAuthHandler
-from utils import noop, str2bool, generate_session_id, cmd_var_swap, mkdir_p
+from utils import str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
 from utils import create_plugin_static_links, merge_handlers, none_fix
 from utils import convert_to_timedelta, kill_dtached_proc, short_hash
@@ -885,7 +885,6 @@ class TerminalWebSocket(WebSocketHandler):
                 self.settings['syslog_facility'])
             SESSIONS[self.session][term]['multiplex'] = termio.Multiplex(
                 cmd,
-                tmpdir=session_dir,
                 log_path=log_path,
                 user=user,
                 term_num=term,

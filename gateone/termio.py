@@ -27,7 +27,6 @@ like so::
 
     multiplexer = termio.Multiplex(
         'nethack',
-        tmpdir='/tmp',
         log_path='/var/log/myapp',
         user='bsmith@CORP',
         term_num=1,
@@ -87,8 +86,7 @@ Module Functions and Classes
 """
 
 # Stdlib imports
-import signal, threading, fcntl, os, pty, re, sys, time, termios, struct
-import io, codecs, gzip, syslog
+import signal, threading, fcntl, os, pty, sys, time, termios, struct, io, gzip
 from datetime import timedelta
 from tornado import ioloop
 from functools import partial
@@ -100,7 +98,6 @@ if 'IUTF8' not in termios.__dict__:
     termios.IUTF8 = 16384 # Hopefully this isn't platform independent
 
 # Import our own stuff
-from utils import noop
 from utils import get_translation
 
 _ = get_translation()
@@ -125,13 +122,11 @@ class Multiplex:
     def __init__(self,
             cmd=None,
             terminal_emulator=None, # Defaults to Gate One's terminal.Terminal
-            cps=5000,
-            tmpdir="/tmp",
             log_path=None,
             user=None, # Only used by syslog output (to differentiate who's who)
             term_num=None, # Also only for syslog output for the same reason
             syslog=False,
-            syslog_facility=syslog.LOG_DAEMON):
+            syslog_facility=None):
         self.lock = threading.RLock()
         # NOTE: Commented this out because Death apparently moves too swiftly!
         # Elect for automatic child reaping (may Death take them kindly!)
@@ -145,17 +140,11 @@ class Multiplex:
             self.terminal_emulator = Terminal
         else:
             self.terminal_emulator = terminal_emulator
-        self.cps = cps # Characters per second where the rate limiter kicks in
-        self.tmpdir = tmpdir # Where to store things like pid files
         self.log_path = log_path # Logs of the terminal output wind up here
         self.syslog = syslog # See "if self.syslog:" below
-        self.syslog_facility = syslog_facility # Ditto
         self.io_loop = ioloop.IOLoop.instance() # Monitors child for activity
         self.io_loop.set_blocking_signal_threshold(4, self._blocked_io_handler)
         self.alive = True # Provides a quick way to see if we're still kickin'
-        # These three variables are used by the rate limiting function:
-        self.ratelimit = time.time()
-        self.skip = False
         self.ratelimiter_engaged = False
         self.rows = 24
         self.cols = 80
@@ -170,6 +159,9 @@ class Multiplex:
         self.syslog_buffer = ''
         if self.syslog: # Dynamic imports again because I'm freaky and frugal
             import syslog
+            if not syslog_facility:
+                syslog_facility = syslog.LOG_DAEMON
+            syslog_facility = syslog_facility
             # Sets up syslog messages to show up like this:
             #   Sep 28 19:45:02 <hostname> gateone: <log message>
             syslog.openlog('gateone', 0, syslog_facility)
@@ -363,7 +355,7 @@ class Multiplex:
         """
         try:
             self.io_loop.remove_handler(self.fd)
-        except KeyError, IOError:
+        except (KeyError, IOError):
             # This can happen when the fd is removed by the underlying process
             # before the next cycle of the IOLoop.  Not really a problem.
             pass
