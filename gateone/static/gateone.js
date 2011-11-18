@@ -2616,12 +2616,12 @@ GateOne.Base.update(GateOne.Terminal, {
             }
             if (scrollback) {
                 terminalObj['scrollback'] = scrollback;
-                try {
-                    // Save the scrollback buffer in localStorage for retrieval if the user reloads
-                    localStorage.setItem("scrollback" + term, scrollback.join('\n'));
-                } catch (e) {
-                    logError(e);
-                }
+//                 try {
+//                     // Save the scrollback buffer in localStorage for retrieval if the user reloads
+//                     localStorage.setItem("scrollback" + term, scrollback.join('\n'));
+//                 } catch (e) {
+//                     logError(e);
+//                 }
             }
             if (consoleLog) {
                 console.log(consoleLog);
