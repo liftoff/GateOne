@@ -18,7 +18,7 @@ var linkify = function(text, pattern, newString) {
     return text.replace(pattern, newString);
 };
 // NOTE: This function is a work in progress...  When I'm done it should make Gate One even more responsive.
-var processScreen = function(terminalObj, termUpdateObj, prevScrollback, termTitle, prefs, textTransforms) {
+var processScreen = function(terminalObj, termUpdateObj, prevScrollback, prefs, textTransforms) {
     // Do all the necessary client-side processing of the terminal screen and scrollback buffer.  The idea being that a web worker doing this stuff should make Gate One more responsive (at the client).
     // terminalObj: go.terminals[term]
     // termUpdateObj: The object containing the terminal screen/scrollback provided by the server
@@ -86,7 +86,6 @@ self.addEventListener('message', function(e) {
         terminalObj = data.terminalObj,
         termUpdateObj = data.termUpdateObj,
         prevScrollback = data.prevScrollback,
-        termTitle = data.termTitle,
         prefs= data.prefs,
         textTransforms = data.textTransforms,
         result = null;
@@ -106,7 +105,7 @@ self.addEventListener('message', function(e) {
                     }
                     break;
                 case 'processScreen':
-                    result = processScreen(terminalObj, termUpdateObj, prevScrollback, termTitle, prefs, textTransforms);
+                    result = processScreen(terminalObj, termUpdateObj, prevScrollback, prefs, textTransforms);
                     break;
                 default:
                     self.postMessage('Unknown command: ' + cmds);

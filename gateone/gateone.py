@@ -685,6 +685,7 @@ class TerminalWebSocket(WebSocketHandler):
             'kill_terminal': self.kill_terminal,
             'c': self.char_handler, # Just 'c' to keep the bandwidth down
             'refresh': self.refresh_screen,
+            'full_refresh': self.full_refresh,
             'resize': self.resize,
             'debug_terminal': self.debug_terminal
         }
@@ -735,6 +736,7 @@ class TerminalWebSocket(WebSocketHandler):
         NOTE: Normally self.refresh_screen() catches the disconnect first and
         this won't be called.
         """
+        # TODO: Make this detach all callbacks so they're not sticking around in memory
         logging.debug("on_close()")
         go_upn = self.get_current_user()
         if go_upn:
@@ -791,7 +793,8 @@ class TerminalWebSocket(WebSocketHandler):
             # Try to use the cookie session first
             try:
                 self.session = self.get_current_user()['go_session']
-            except:
+            except Exception as e:
+                print("authenticate session exception: %s" % e)
                 # This generates a random 45-character string:
                 self.session = generate_session_id()
         # This check is to make sure there's no existing session so we don't
@@ -839,7 +842,7 @@ class TerminalWebSocket(WebSocketHandler):
         needs_full_refresh = False # Used to track if we need a full screen dump to the client (since TidyThread needs to be running before that)
         if term not in SESSIONS[self.session]:
             # Setup the requisite dict
-            SESSIONS[self.session][term] = {}
+            SESSIONS[self.session][term] = {'refresh_timeout': None}
         if 'multiplex' not in SESSIONS[self.session][term]:
             # Start up a new terminal
             SESSIONS[self.session][term]['created'] = datetime.now()
@@ -1035,28 +1038,23 @@ class TerminalWebSocket(WebSocketHandler):
                 }}
                 self.write_message(json_encode(mode_message))
 
-    def refresh_screen(self, term, full=False):
-        """
-        Writes the state of the given terminal's screen and scrollback buffer to
-        the client.
-        If *full*, send the whole screen (not just the difference).
-        """
-        # Commented this out because it was getting annoying in my debugging.
-        #logging.debug(
-            #"refresh_screen (full=%s) on %s" % (full, self.callback_id))
+    def _send_refresh(self, term, full=False):
+        """Sends a screen update to the client."""
         try:
-            SESSIONS[self.session]['tidy_thread'].keepalive(datetime.now())
-            m = multiplexer = SESSIONS[self.session][term]['multiplex']
+            now = datetime.now()
+            tidy_thread = SESSIONS[self.session]['tidy_thread']
+            tidy_thread.keepalive(now)
+            m = multiplex = SESSIONS[self.session][term]['multiplex']
             if len(m.callbacks[m.CALLBACK_UPDATE].keys()) > 1:
                 # The screen diff algorithm won't work if there's more than one
                 # client attached to the same multiplexer.
                 full = True
             if full:
-                scrollback, screen = multiplexer.dumplines(full=True)
+                scrollback, screen = multiplex.dumplines(full=True)
             else:
-                scrollback, screen = multiplexer.dumplines()
+                scrollback, screen = multiplex.dumplines()
         except KeyError as e: # Session died (i.e. command ended).
-            logging.debug("KeyError in refresh_screen: %s" % e)
+            logging.debug("KeyError in _send_refresh: %s" % e)
             scrollback, screen = None, None
         if screen:
             output_dict = {
@@ -1064,7 +1062,7 @@ class TerminalWebSocket(WebSocketHandler):
                     'term': term,
                     'scrollback': scrollback,
                     'screen' : screen,
-                    'ratelimiter': multiplexer.ratelimiter_engaged
+                    'ratelimiter': multiplex.ratelimiter_engaged
                 }
             }
             try:
@@ -1075,6 +1073,42 @@ class TerminalWebSocket(WebSocketHandler):
                 multiplex = SESSIONS[self.session][term]['multiplex']
                 multiplex.remove_callback( # Stop trying to write
                     multiplex.CALLBACK_UPDATE, self.callback_id)
+
+    def refresh_screen(self, term, full=False):
+        """
+        Writes the state of the given terminal's screen and scrollback buffer to
+        the client.
+        If *full*, send the whole screen (not just the difference).
+        """
+        # Commented this out because it was getting annoying in my debugging.
+        #logging.debug(
+            #"refresh_screen (full=%s) on %s" % (full, self.callback_id))
+        term = int(term)
+        try:
+            msec = timedelta(milliseconds=50) # Keeps things smooth
+            # In testing, 150 milliseconds was about as low as I could go and
+            # still remain practical.
+            force_refresh_threshold = timedelta(milliseconds=150)
+            tidy_thread = SESSIONS[self.session]['tidy_thread']
+            last_keepalive = tidy_thread.last_keepalive
+            timediff = datetime.now() - last_keepalive
+            sess = SESSIONS[self.session][term]
+            multiplex = sess['multiplex']
+            refresh = partial(self._send_refresh, term, full)
+            if sess['refresh_timeout']:
+                multiplex.io_loop.remove_timeout(sess['refresh_timeout'])
+            if timediff > force_refresh_threshold:
+                refresh()
+            else:
+                sess['refresh_timeout'] = multiplex.io_loop.add_timeout(
+                    msec, refresh)
+        except KeyError as e: # Session died (i.e. command ended).
+            logging.debug("KeyError in refresh_screen: %s" % e)
+
+    def full_refresh(self, term):
+        """Calls self.refresh_screen(*term*, full=True)"""
+        term = int(term)
+        self.refresh_screen(term, full=True)
 
     def resize(self, resize_obj):
         """

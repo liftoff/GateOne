@@ -32,38 +32,9 @@ this file.
 
 // Everything goes in GateOne
 (function(window, undefined) {
+"use strict";
 
 var document = window.document; // Have to do this because we're sandboxed
-
-// NOTE: Probably don't need this since none of the browsers that support WebSockets are actually missing these functions.  You never know I guess.
-// Polyfills (functions that fix missing features in older browsers)
-if (!Array.prototype.forEach) { // Add .forEach to Array if it is missing
-    Array.prototype.forEach = function(fun /*, thisp*/) {
-        var len = this.length;
-        if (typeof fun != "function")
-            throw new TypeError();
-        var thisp = arguments[1];
-        for (var i = 0; i < len; i++) {
-            if (i in this)
-                fun.call(thisp, this[i], i, this);
-        }
-    };
-}
-if (!Array.prototype.indexOf) { // Add .indexOf to Array if it is missing
-    Array.prototype.indexOf = function(elt /*, from*/) {
-        var len = this.length,
-            from = Number(arguments[1]) || 0;
-        from = (from < 0) ? Math.ceil(from) : Math.floor(from);
-        if (from < 0)
-            from += len;
-        for (; from < len; from++) {
-            if (from in this &&
-                this[from] === elt)
-                return from;
-        }
-        return -1;
-    };
-}
 
 // Sandbox-wide shortcuts
 var ESC = String.fromCharCode(27); // Saves a lot of typing and it's easy to read
@@ -75,7 +46,7 @@ var logInfo = null;
 var logDebug = null;
 
 // These can be used to test the performance of various functions and whatnot.
-benchmark = null; // Need a global for this to work across the board
+var benchmark = null; // Need a global for this to work across the board
 function startBenchmark() {
     var date1 = new Date();
     benchmark = date1.getTime();
@@ -190,7 +161,7 @@ GateOne.Base.update(GateOne, {
     init: function(prefs) {
         // Before we do anything else, load our prefs
         // Update GateOne.prefs with the settings provided in the calling page
-        for (setting in prefs) {
+        for (var setting in prefs) {
             GateOne.prefs[setting] = prefs[setting];
         }
         // Now override them with the user's settings (if present)
@@ -497,8 +468,10 @@ GateOne.Base.update(GateOne, {
                     window.open(document.elementFromPoint(X, Y).href);
                 }
                 // Don't add the scrollback if the user is highlighting text--it will mess it up
-                if (go.terminals[selectedTerm]['scrollbackTimer']) {
-                    clearTimeout(go.terminals[selectedTerm]['scrollbackTimer']);
+                if (go.terminals[selectedTerm]) {
+                    if (go.terminals[selectedTerm]['scrollbackTimer']) {
+                        clearTimeout(go.terminals[selectedTerm]['scrollbackTimer']);
+                    }
                 }
                 u.getNode(go.prefs.goDiv).focus();
             }
@@ -940,7 +913,7 @@ GateOne.Base.update(GateOne.Utils, {
         // TODO: Add a hook here for plugins to use too.
         if (localStorage['prefs']) {
             var userPrefs = JSON.parse(localStorage['prefs']);
-            for (i in userPrefs) {
+            for (var i in userPrefs) {
                 if (userPrefs[i] != null) {
                     GateOne.prefs[i] = userPrefs[i];
                 }
@@ -1073,7 +1046,8 @@ GateOne.Base.update(GateOne.Net, {
             terms = document.getElementsByClassName(go.prefs.prefix+'terminal');
         logError("Error communicating with server... ");
         u.toArray(terms).forEach(function(termObj) {
-            go.Terminal.closeTerminal(termObj.id.split('term')[1]);
+            // Passing 'true' here to keep the stuff in localStorage for this term.
+            go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
         });
         u.getNode('#'+go.prefs.prefix+'termwrapper').innerHTML = "A communications disruption can mean only one thing...";
         setTimeout(go.Net.connect, 5000);
@@ -1130,7 +1104,7 @@ GateOne.Base.update(GateOne.Net, {
         }
         go.ws.onmessage = function (evt) {
             logDebug('message: ' + evt.data);
-            messageObj = JSON.parse(evt.data);
+            var messageObj = JSON.parse(evt.data);
             // Execute each respective action
             go.Utils.items(messageObj).forEach(function(item) {
                 var key = item[0],
@@ -1158,7 +1132,12 @@ GateOne.Base.update(GateOne.Net, {
         GateOne.ws.send(JSON.stringify({'kill_terminal': term}));
     },
     refresh: function(term) {
+        // Refreshes the screen (diff method)
         GateOne.ws.send(JSON.stringify({'refresh': term}));
+    },
+    fullRefresh: function(term) {
+        // Performs a full screen refresh (Ctrl-l)
+        GateOne.ws.send(JSON.stringify({'full_refresh': term}));
     }
 });
 GateOne.Base.module(GateOne, "Input", '0.9', ['Base', 'Utils']);
@@ -1185,16 +1164,16 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onkeypress = go.Input.emulateKeyFallback;
         goDiv.focus();
         // NOTE: This might not be necessary anymore with the pastearea:
-        goDiv.onpaste = function(e) {
-            // TODO: Add a pop-up message that tells Firefox users how to grant Gate One access to the clipboard
-            // Grab the text being pasted
-            var contents = e.clipboardData.getData('Text');
-            // Don't actually paste the text where the user clicked
-            e.preventDefault();
-            // Queue it up and send the characters as if we typed them in
-            GateOne.Input.queue(contents);
-            GateOne.Net.sendChars();
-        }
+//         goDiv.onpaste = function(e) {
+//             // TODO: Add a pop-up message that tells Firefox users how to grant Gate One access to the clipboard
+//             // Grab the text being pasted
+//             var contents = e.clipboardData.getData('Text');
+//             // Don't actually paste the text where the user clicked
+//             e.preventDefault();
+//             // Queue it up and send the characters as if we typed them in
+//             GateOne.Input.queue(contents);
+//             GateOne.Net.sendChars();
+//         }
         goDiv.onmousedown = function(e) {
             // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
             var go = GateOne,
@@ -1436,12 +1415,12 @@ GateOne.Base.update(GateOne.Input, {
         if (container) { // This display check prevents an exception when someone presses a key before the document has been fully loaded
             if (container.style.display != "none") {
                 // This loops over everything in *shortcuts* and executes actions for any matching keyboard shortcuts that have been defined.
-                for (k in goIn.shortcuts) {
+                for (var k in goIn.shortcuts) {
                     if (key.string == k) {
                         var matched = false;
                         goIn.shortcuts[k].forEach(function(shortcut) {
                             var match = true; // Have to use some reverse logic here...  Slightly confusing but if you can think of a better way by all means send in a patch!
-                            for (mod in modifiers) {
+                            for (var mod in modifiers) {
                                 if (modifiers[mod] != shortcut.modifiers[mod]) {
                                     match = false;
                                 }
@@ -1584,7 +1563,7 @@ GateOne.Base.update(GateOne.Input, {
             var overwrote = false;
             GateOne.Input.shortcuts[keyString].forEach(function(shortcut) {
                 var match = true;
-                for (mod in shortcutObj.modifiers) {
+                for (var mod in shortcutObj.modifiers) {
                     if (shortcutObj.modifiers[mod] != shortcut.modifiers[mod]) {
                         match = false;
                     }
@@ -1699,7 +1678,14 @@ GateOne.Base.update(GateOne.Input, {
             } else {
                 // Basic ASCII characters are pretty easy to convert to ctrl-<key> sequences...
                 if (key.code >= 97 && key.code <= 122) q(String.fromCharCode(key.code - 96)); // Ctrl-[a-z]
-                else if (key.code >= 65 && key.code <= 90) q(String.fromCharCode(key.code - 64)); // More Ctrl-[a-z]
+                else if (key.code >= 65 && key.code <= 90) {
+                    if (key.code == 76) { // Ctrl-l gets some extra love
+                        go.Net.fullRefresh(localStorage['selectedTerminal']);
+                        q(String.fromCharCode(key.code - 64));
+                    } else {
+                        q(String.fromCharCode(key.code - 64)); // More Ctrl-[a-z]
+                    }
+                }
             }
         }
         // Handle alt-<key> and alt-shift-<key> combos
@@ -1813,17 +1799,17 @@ GateOne.Base.update(GateOne.Input, {
     }
 
     /* for KEY_A - KEY_Z */
-    for (i = 65; i <= 90; i++) {
+    for (var i = 65; i <= 90; i++) {
         specialKeys[i] = 'KEY_' + String.fromCharCode(i);
     }
 
     /* for KEY_NUM_PAD_0 - KEY_NUM_PAD_9 */
-    for (i = 96; i <= 105; i++) {
+    for (var i = 96; i <= 105; i++) {
         specialKeys[i] = 'KEY_NUM_PAD_' + (i - 96);
     }
 
     /* for KEY_F1 - KEY_F12 */
-    for (i = 112; i <= 123; i++) {
+    for (var i = 112; i <= 123; i++) {
         // no F0
         specialKeys[i] = 'KEY_F' + (i - 112 + 1);
     }
@@ -2616,12 +2602,19 @@ GateOne.Base.update(GateOne.Terminal, {
             }
             if (scrollback) {
                 terminalObj['scrollback'] = scrollback;
-//                 try {
-//                     // Save the scrollback buffer in localStorage for retrieval if the user reloads
-//                     localStorage.setItem("scrollback" + term, scrollback.join('\n'));
-//                 } catch (e) {
-//                     logError(e);
-//                 }
+                // We wrap the logic that stores the scrollback buffer in a timer so we're not writing to localStorage (aka "to disk") every nth of a second for fast screen refreshes (e.g. fast typers).  Writing to localStroage is a blocking operation so this could speed things up considerable for larger terminal sizes.
+                var writeScrollback = function() {
+                    try { // Save the scrollback buffer in localStorage for retrieval if the user reloads
+                        localStorage.setItem("scrollback" + term, scrollback.join('\n'));
+                    } catch (e) {
+                        logError(e);
+                    }
+                };
+                if (terminalObj['scrollbackWriteTimer']) {
+                    clearTimeout(terminalObj['scrollbackWriteTimer']);
+                }
+                // This will save the scrollback buffer after 2 seconds of terminal inactivity (idle)
+                terminalObj['scrollbackWriteTimer'] = setTimeout(writeScrollback, 2000); // 3.5 seconds is just past the default 'top' refresh rate
             }
             if (consoleLog) {
                 console.log(consoleLog);
@@ -2688,7 +2681,7 @@ GateOne.Base.update(GateOne.Terminal, {
         // Ctrl-Alt-N to create a new terminal
         go.Input.registerShortcut('KEY_N', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'});
         // Ctrl-Alt-W to close the current terminal
-        go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'go.Terminal.closeTerminal(localStorage["selectedTerminal"])'});
+        go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'go.Terminal.closeTerminal(localStorage["selectedTerminal"], false)'});
         // Register our actions
         go.Net.addAction('terminals', go.Terminal.reattachTerminalsAction);
         go.Net.addAction('termupdate', go.Terminal.updateTerminalAction);
@@ -2706,9 +2699,12 @@ GateOne.Base.update(GateOne.Terminal, {
             term = termUpdateObj['term'],
             prevScrollback = localStorage["scrollback" + term],
             terminalObj = go.terminals[term],
-            termTitle = u.getNode('#' + go.prefs.prefix + 'term' + term).title,
             textTransforms = go.Terminal.textTransforms;
 //         logDebug('GateOne.Utils.updateTerminalActionTest() termUpdateObj: ' + u.items(termUpdateObj));
+        if (!terminalObj) {
+            // Terminal was just closed, ignore
+            return;
+        }
         if (screen) {
             // Offload processing of the incoming screen to the Web Worker
             t.termUpdatesWorker.postMessage({
@@ -2716,7 +2712,6 @@ GateOne.Base.update(GateOne.Terminal, {
                 'terminalObj': terminalObj,
                 'termUpdateObj': termUpdateObj,
                 'prevScrollback': prevScrollback,
-                'termTitle': termTitle,
                 'prefs': go.prefs,
                 'textTransforms': textTransforms
             });
@@ -2816,21 +2811,20 @@ GateOne.Base.update(GateOne.Terminal, {
                 callback(term);
             });
         }
-//         setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
-//             go.Visual.updateDimensions();
-//             go.Net.sendDimensions();
-//         }, 2000);
     },
-    closeTerminal: function(term) {
-        // Closes the given terminal and tells the server to end its running process
+    closeTerminal: function(term, /*opt*/noCleanup) {
+        // Closes the given terminal and tells the server to end its running process.
+        // If noCleanup resolves to true, stored data will be left hanging around for this terminal (e.g. the scrollback buffer in localStorage).  Otherwise it will be deleted.
         var go = GateOne,
             u = go.Utils,
             message = "Closed term " + term + ": " + u.getNode('#'+go.prefs.prefix+'term' + term).title,
             lastTerm = null;
         // Tell the server to kill the terminal
         go.Net.killTerminal(term);
-        // Delete the associated scrollback buffer (save the world from localStorage pollution)
-        delete localStorage['scrollback'+term];
+        if (!noCleanup) {
+            // Delete the associated scrollback buffer (save the world from localStorage pollution)
+            delete localStorage['scrollback'+term];
+        }
         // Remove the terminal from the page
         u.removeElement('#'+go.prefs.prefix+'term' + term);
         // Also remove it from working memory
@@ -2857,15 +2851,6 @@ GateOne.Base.update(GateOne.Terminal, {
             go.Terminal.newTerminal();
         }
     },
-//     hideAllButCurrentTerminal: function() { // TODO: Can probably remove this (not presently used)
-//         var u = GateOne.Utils,
-//             terms = u.toArray(document.getElementsByClassName(GateOne.prefs.prefix+'terminal'));
-//         terms.forEach(function(termObj) {
-//             if (!u.hasElementClass(termObj, GateOne.prefs.prefix+'currentterm')) {
-//                 u.hideElement(termObj);
-//             }
-//         });
-//     },
     reconnectTerminalAction: function(term){
         // Called when the server reports that the terminal number supplied via 'new_terminal' already exists
         // NOTE: Doesn't do anything at the moment

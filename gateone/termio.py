@@ -498,26 +498,29 @@ class Multiplex:
         If *full*, will return the entire screen (not just the diff).
         """
         try:
-            output = []
+            #output = []
             scrollback, html = ([], [])
             if self.term:
                 try:
                     result = self.term.dump_html()
                     if result:
                         scrollback, html = result
+                        # Make a copy so we can save it to prev_output later
+                        preserved_html = html[:]
                 except IOError as e:
                     logging.debug("IOError attempting self.term.dump_html()")
                     logging.debug("%s" % e)
             if html:
                 if not full:
+                    count = 0
                     for line1, line2 in izip(self.prev_output, html):
                         if line1 != line2:
-                            output.append(line2)
+                            html[count] = line2 # I love updates-in-place
                         else:
-                            output.append('')
-                        html = output
+                            html[count] = ''
+                        count += 1
                     # Otherwise a full dump will take place
-                self.prev_output = html
+                self.prev_output = preserved_html
             return (scrollback, html)
         except ValueError as e:
             # This would be special...

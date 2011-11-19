@@ -1,15 +1,10 @@
 (function(window, undefined) {
 var document = window.document; // Have to do this because we're sandboxed
 
+"use strict";
+
 // Useful sandbox-wide stuff
 var noop = GateOne.Utils.noop;
-
-// Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = null;
-var logError = null;
-var logWarning = null;
-var logInfo = null;
-var logDebug = null;
 
 // GateOne.Bookmarks (bookmark management functions)
 GateOne.Base.module(GateOne, "Bookmarks", "0.9", ['Base']);
@@ -18,19 +13,41 @@ GateOne.Bookmarks.tags = [];
 GateOne.Bookmarks.sortToggle = false;
 GateOne.Base.update(GateOne.Bookmarks, {
     // TODO: Add auto-tagging bookmarks based on date of last login...  <1day, <7days, etc
-    // TODO: Add the ability to filter-search with instant results.
     // TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
     init: function() {
-        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
-        logFatal = GateOne.Logging.logFatal || noop;
-        logError = GateOne.Logging.logError || noop;
-        logWarning = GateOne.Logging.logWarning || noop;
-        logInfo = GateOne.Logging.logInfo || noop;
-        logDebug = GateOne.Logging.logDebug || noop;
         var go = GateOne,
             u = go.Utils,
+            b = go.Bookmarks,
             toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': go.prefs.prefix+'toolbar', 'title': "Bookmarks"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
+        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
+        if (go.Logging) {
+            logFatal = go.Logging.logFatal;
+            logError = go.Logging.logError;
+            logWarning = go.Logging.logWarning;
+            logInfo = go.Logging.logInfo;
+            logDebug = go.Logging.logDebug;
+        } else {
+            logFatal = noop;
+            logError = noop;
+            logWarning = noop;
+            logInfo = noop;
+            logDebug = noop;
+        }
+        // Default sort order is by date created, descending, followed by alphabetical order
+        if (!localStorage['sort']) {
+            // Set a default
+            localStorage['sort'] = 'date';
+            b.sortfunc = b.sortFunctions.created;
+        } else {
+            if (localStorage['sort'] == 'alpha') {
+                b.sortfunc = b.sortFunctions.alphabetical;
+            } else if (localStorage['sort'] == 'date') {
+                b.sortfunc = b.sortFunctions.created;
+            } if (localStorage['sort'] == 'visits') {
+                b.sortfunc = b.sortFunctions.visits;
+            }
+        }
         // Setup our toolbar icons and actions
         go.Icons['bookmark'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="17.117" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop class="stop1" offset="0"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>';
         toolbarBookmarks.innerHTML = go.Icons['bookmark'];
@@ -45,10 +62,402 @@ GateOne.Base.update(GateOne.Bookmarks, {
             localStorage['bookmarks'] = "[]"; // Init as empty list
         }
         // Default sort order is by visits, descending
-        GateOne.Bookmarks.sortfunc = function(a,b) { if (a.visits > b.visits) { return -1 } else { return 1 } };
-        GateOne.Bookmarks.createPanel();
-        GateOne.Bookmarks.loadBookmarks(GateOne.Bookmarks.sort);
+        b.sortfunc = function(a,b) { if (a.visits > b.visits) { return -1 } else { return 1 } };
+        b.createPanel();
+        b.loadBookmarks(b.sort);
     },
+    sortFunctions: {
+        visits: function(a,b) {
+            // Sorts bookmarks according to the number of visits followed by alphabetical
+            if (a.visits === b.visits) {
+                var x = a.name.toLowerCase(), y = b.name.toLowerCase();
+                return x < y ? -1 : x > y ? 1 : 0;
+            }
+            if (a.visits > b.visits) {
+                return -1;
+            }
+            if (a.visits < b.visits) {
+                return 1;
+            }
+        },
+        created: function(a,b) {
+            // Sorts bookmarks by date modified followed by alphabetical
+            if (a.created === b.created) {
+                var x = a.name.toLowerCase(), y = b.name.toLowerCase();
+                return x < y ? -1 : x > y ? 1 : 0;
+            }
+            if (a.created > b.created) {
+                return -1;
+            }
+            if (a.created < b.created) {
+                return 1;
+            }
+        },
+        alphabetical: function(a,b) {
+            var x = a.name.toLowerCase(), y = b.name.toLowerCase();
+            return x < y ? -1 : x > y ? 1 : 0;
+        }
+    },
+    storeBookmarks: function(bookmarks, /*opt*/recreatePanel, skipTags) {
+        // Takes an array of bookmarks and stores them in both Bookmarks.bookmarks and using Bookmarks.Storage
+        // If *recreatePanel* is true, the panel will be re-drawn after bookmarks are stored.
+        // If *skipTags* is true, bookmark tags will be ignored when saving the bookmark object (necessary since Evernote will return notes with missing tags after you add new ones on the first save)
+        var go = GateOne,
+            b = go.Bookmarks,
+            count = 0;
+        bookmarks.forEach(function(bookmark) {
+            count += 1;
+            var conflictingBookmark = false,
+                deletedBookmark = false;
+            // Add a trailing slash to URLs like http://liftoffsoftware.com
+            if (bookmark.url.split('/').length == 3) {
+                bookmark.url += '/';
+            }
+            // Check if this is our "Deleted Bookmarks" bookmark
+            if (bookmark.url == "web+deleted:bookmarked.us/") {
+                // Write the contained URLs to localStorage
+                deletedBookmark = true;
+            }
+            // Add a "Untagged" tag if tags is empty
+            if (!bookmark.tags.length) {
+                bookmark.tags = ['Untagged'];
+            }
+            b.bookmarks.forEach(function(storedBookmark) {
+                if (storedBookmark.url == bookmark.url) {
+                    // There's a conflict
+                    conflictingBookmark = storedBookmark;
+                }
+            });
+            if (conflictingBookmark) {
+                if (parseInt(conflictingBookmark.updated) < parseInt(bookmark.updated)) {
+                    // Evernote is newer; overwrite it
+                    if (skipTags) {
+                        bookmark.tags = conflictingBookmark.tags; // Use the old ones
+                    }
+                    b.createOrUpdateBookmark(bookmark);
+                } else if (parseInt(conflictingBookmark.updateSequenceNum) < parseInt(bookmark.updateSequenceNum)) {
+                    // Evernote isn't newer but it has a higher USN.  So just update this bookmark's USN to match
+                    b.updateUSN(bookmark);
+                    conflictingBookmark.updateSequenceNum = bookmark.updateSequenceNum;
+                    if (bookmark.updateSequenceNum > parseInt(localStorage['USN'])) {
+                        // Also need to add it to toUpload
+                        b.toUpload.push(conflictingBookmark);
+                    }
+                }
+            } else if (deletedBookmark) {
+                // Don't do anything
+            } else {
+                // No conflict; store it if we haven't already deleted it
+                var deletedBookmarks = localStorage['deletedBookmarks'];
+                if (deletedBookmarks) {
+                    var existing = JSON.parse(deletedBookmarks),
+                        found = false;
+                    existing.forEach(function(obj) {
+                        if (obj.url == bookmark.url) {
+                            if (!obj.deleted > bookmark.updated) {
+                                found = true;
+                            }
+                        }
+                    });
+                    if (!found) {
+                        b.createOrUpdateBookmark(bookmark);
+                    }
+                } else {
+                    b.createOrUpdateBookmark(bookmark);
+                }
+            }
+        });
+        if (recreatePanel) {
+            b.createPanel();
+        }
+        b.flushIconQueue();
+        return count;
+    },
+//     loadBookmarks: function(/*opt*/delay) {
+//         // Loads the user's bookmarks
+//         // Optionally, a sort function may be supplied that sorts the bookmarks before placing them in the panel.
+//         // If *ad* is true, an advertisement will be the first item in the bookmarks list
+//         // If *delay* is given, that will be used to set the delay
+// //         console.log("loadBookmarks()");
+//         var go = GateOne,
+//             b = go.Bookmarks,
+//             u = go.Utils,
+//             bookmarks = b.bookmarks.slice(0), // Make a local copy since we're going to mess with it
+//             bmCount = 0, // Starts at 1 for the ad
+//             bmMax = u.getMaxBookmarks('#'+prefix+'bm_container'),
+//             bmContainer = u.getNode('#'+prefix+'bm_container'),
+//             bmPanel = u.getNode('#'+prefix+'panel_bookmarks'),
+//             pagination = u.getNode('#'+prefix+'bm_pagination'),
+//             paginationUL = u.getNode('#'+prefix+'bm_pagination_ul'),
+//             tagCloud = u.getNode('#'+prefix+'bm_tagcloud'),
+//             bmSearch = u.getNode('#'+prefix+'bm_search'),
+//             bmTaglist = u.getNode('#'+prefix+'bm_taglist'),
+//             cloudTags = u.toArray(tagCloud.getElementsByClassName('bm_tag')),
+//             allTags = [],
+//             filteredBookmarks = [],
+//             bookmarkElements = u.toArray(document.getElementsByClassName('bookmark'));
+//         bmPanel.style['overflow-y'] = "hidden"; // Only temporary while we're loading bookmarks
+//         setTimeout(function() {
+//             bmPanel.style['overflow-y'] = "auto"; // Set it back after everything is loaded
+//         }, 1000);
+//         if (bookmarkElements) { // Remove any existing bookmarks from the list
+//             bookmarkElements.forEach(function(bm) {
+//                 bm.style.opacity = 0;
+//                 setTimeout(function() {
+//                     u.removeElement(bm);
+//                 },500);
+//             });
+//         }
+//         if (!delay) {
+//             delay = 0;
+//         }
+//         // Remove the pagination UL
+//         if (paginationUL) {
+//             u.removeElement(paginationUL);
+//         };
+//         // Apply the sort function
+//         bookmarks.sort(b.sortfunc);
+//         if (b.sortToggle) {
+//             bookmarks.reverse();
+//         }
+//         if (!bookmarks.length) { // No bookmarks == Likely new user.  Show a welcome message.
+//             var welcome = {
+//                     'url': "http://liftoffsoftware.com/",
+//                     'name': "You don't have any bookmarks yet!",
+//                     'tags': [],
+//                     'notes': 'A great way to get started is to import bookmarks or click Evernote Sync.',
+//                     'visits': 0,
+//                     'updated': new Date().getTime(),
+//                     'created': new Date().getTime(),
+//                     'updateSequenceNum': 0, // This will get set when synchronizing with Evernote
+//                     'images': {'favicon': "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sHCBMpEfMvEIMAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAACEUlEQVQoz2M0Lei7f/YIA3FAS02FUcQ2iFtcDi7Ex81poq6ooyTz7cevl+8/nr354Nmb93DZry8fMXPJa7Lx8EP43pYGi2oyIpwt2NlY333+WpcQGO9pw8jAePbm/X///zMwMPz++pEJrrs00ntqUbwQLzcDA8P2Exd3nLzEwMDAwsxcGO6xuCaTmQmqEkqZaSplBjrDNW87cfHinUdwx1jqqKT7O0HYLBAqwcvuzpOXEPb956+fvn7PwMCwfM8JX2tDuGuX7T729SUDCwMDAyc7m5KkaO6ERTcfPUcOk8lrd01eu4uBgUGAh6szM0JPRe7p3RtMDAwMarISGvJSG9sLo1ytMIPSTFNpe0+pu5mulrwU1A+fv/1gYGDgYGNtSwttSApCVu1jZbC8IVtSWICBgeHT1+9QDQ+ev/728xdExYcv35A1vP30BR4+Vx88hWr49///zpOXIKLbT1xkYGDwtNDPD3FnZmI6de3eu89fGRgYHrx4c+3BU0QoNc5fb6On/uX7j4cv3rSlhUI8Y62nlj9x8e7Tl0MdzYunLPv95y8DAwMiaZhqKPnbGplpKqvJSsCd9OHLt3UHT9958nLZnuOQpMEClzt9497Nx8+rYv2E+XiE+XkYGBi+/fx1+e7jpbuP3X36Cq4MPfFBgKSwABcH2/1nryFJCDnxsWipqVy7dQdNw52Xj7Amb0VjGwCOn869WU5D8AAAAABJRU5ErkJggg=="}
+//             },
+//                 introVideo = {
+//                 'url': "http://vimeo.com/26357093",
+//                 'name': "A Quick Screencast Overview of Bookmarked",
+//                 'tags': ["Video", "Help"],
+//                 'notes': 'Want some help getting started?  Our short (3 minutes) overview screencast can be illuminating.',
+//                 'visits': 0,
+//                 'updated': new Date().getTime(),
+//                 'created': new Date().getTime(),
+//                 'updateSequenceNum': 0, // This will get set when synchronizing with Evernote
+//                 'images': {'favicon': "data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAA8uvRAMq/oQDj28EA27crAOjRdwCrhwoAuZQLAODKdwC6r5EAkXs1AODCSgCKd0MA3rw7AP///wDi3dAA/PnwAI9yFwBzWxUAh2kHAL6aCwDAmgsA6taGAM+nDACwjxkA1q0NANfIkwDt3qQAz8ShAI98RADr6OAAlXUIAO3blQCqk0UAtKeCAOndsgCdewkAzsawAOTcwQDg1rIA2bIcALmlZADbvUkAno5iAPX07wDGt4MA8OCkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQUFBQUFBQUFBQUFBQUABQUGRkZGQcXGRkZGRkZFBQUGRkZGR8MEgYZGRkZGRkUFBkZGRcJDiwrBhkZGRkZFBQZGRkYDg4ODisHGRkZGRQUGRkZKQ4ODg4OHRkZGRkUFBkZGQIODhYBDiwRGRkZFBQZGRUeDg4ZCw4OJQcZGRQUByQKDg4mFxknDg4hGRkUFCotDw4OGigTIg4OHBkZFBQoLg4ODggZIywODgMZGRQUGRkgDhAEGQsODg4bGRkUFBkZGQ0EGRkZBBYFKBkZFBQZGRkZGRkZGRkZGRkZGRQUDRkZGRkZGRkZGRkZGQ0UABQUFBQUFBQUFBQUFBQUAIABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAAA="}
+//             };
+//             b.createBookmark(bmContainer, welcome, delay, false);
+//             b.createBookmark(bmContainer, introVideo, delay+100, false);
+//         }
+//         // Remove bookmarks from *bookmarks* that don't match the searchFilter (if one is set)
+//         if (b.searchFilter) {
+//             bookmarks.forEach(function(bookmark) {
+//                 var bookmarkName = bookmark.name.toLowerCase();
+//                 if (bookmarkName.match(b.searchFilter.toLowerCase())) {
+//                     filteredBookmarks.push(bookmark);
+//                 }
+//             });
+//             bookmarks = filteredBookmarks;
+//             filteredBookmarks = []; // Have to reset this for use further down
+//         }
+//         bmTaglist.innerHTML = ""; // Clear out the tag list
+//         // Now recreate it...
+//         if (b.dateTags) {
+//             for (var i in b.dateTags) {
+//                 var tag = u.createElement('li', {'id': 'bm_autotag'});
+//                 tag.onclick = function(e) {
+//                     b.removeFilterDateTag(bookmarks, this.innerHTML);
+//                 };
+//                 tag.innerHTML = b.dateTags[i];
+//                 bmTaglist.appendChild(tag);
+//             }
+//         }
+//         if (b.tags) {
+//             for (var i in b.tags) { // Recreate the tag filter list
+//                 var tag = u.createElement('li', {'id': 'bm_tag'});
+//                 tag.innerHTML = b.tags[i];
+//                 tag.onclick = function(e) {
+//                     b.removeFilterTag(bookmarks, this.innerHTML);
+//                 };
+//                 bmTaglist.appendChild(tag);
+//             }
+//         }
+//         if (b.tags) {
+//         // Remove all bookmarks that don't have matching *Bookmarks.tags*
+//             bookmarks.forEach(function(bookmark) {
+//                 var bookmarkTags = bookmark.tags,
+//                     allTagsPresent = false,
+//                     tagCount = 0;
+//                 bookmarkTags.forEach(function(tag) {
+//                     if (b.tags.indexOf(tag) != -1) { // tag not in tags
+//                         tagCount += 1;
+//                     }
+//                 });
+//                 if (tagCount == Bookmarks.tags.length) {
+//                     // Add the bookmark to the list
+//                     filteredBookmarks.push(bookmark);
+//                 }
+//             });
+//             bookmarks = filteredBookmarks;
+//             filteredBookmarks = []; // Have to reset this for use further down
+//         }
+//         if (b.dateTags) {
+//         // Remove from the bookmarks array all bookmarks that don't measure up to *Bookmarks.dateTags*
+//             bookmarks.forEach(function(bookmark) {
+//                 var dateObj = new Date(parseInt(bookmark.created)),
+//                     dateTag = b.getDateTag(dateObj),
+//                     tagCount = 0;
+//                 b.dateTags.forEach(function(tag) {
+//                     // Create a new Date object that reflects the date tag
+//                     var dateTagDateObj = new Date(),
+//                         olderThanYear = false;
+//                     if (tag == '<1 day') {
+//                         dateTagDateObj.setDate(parseInt(dateTagDateObj.getDate())-1);
+//                     }
+//                     if (tag == '<7 days') {
+//                         dateTagDateObj.setDate(parseInt(dateTagDateObj.getDate())-7);
+//                     }
+//                     if (tag == '<30 days') {
+//                         dateTagDateObj.setDate(parseInt(dateTagDateObj.getDate())-30);
+//                     }
+//                     if (tag == '<60 days') {
+//                         dateTagDateObj.setDate(parseInt(dateTagDateObj.getDate())-60);
+//                     }
+//                     if (tag == '<90 days') {
+//                         dateTagDateObj.setDate(parseInt(dateTagDateObj.getDate())-90);
+//                     }
+//                     if (tag == '<180 days') {
+//                         dateTagDateObj.setDate(parseInt(dateTagDateObj.getDate())-180);
+//                     }
+//                     if (tag == '<1 year') {
+//                         dateTagDateObj.setDate(parseInt(dateTagDateObj.getDate())-365);
+//                     }
+//                     if (tag == '>1 year') {
+//                         olderThanYear = true;
+//                         dateTagDateObj.setDate(parseInt(dateTagDateObj.getDate())-365);
+//                     }
+//                     if (!olderThanYear) {
+//                         if (dateObj > dateTagDateObj) {
+//                             tagCount += 1;
+//                         }
+//                     } else {
+//                         if (dateObj < dateTagDateObj) {
+//                             tagCount += 1;
+//                         }
+//                     }
+//                 });
+//                 if (tagCount == b.dateTags.length) {
+//                     // Add the bookmark to the list
+//                     filteredBookmarks.push(bookmark);
+//                 }
+//             });
+//             bookmarks = filteredBookmarks;
+//             filteredBookmarks = [];
+//         }
+//         allTags = b.getTags(bookmarks);
+//         b.filteredBookmarks = bookmarks; // Need to keep track semi-globally for some things
+//         if (b.page) {
+//             var pageBookmarks = null;
+//             if (bmMax*(b.page+1) < bookmarks.length) {
+//                 pageBookmarks = bookmarks.slice(bmMax*b.page, bmMax*(b.page+1));
+//             } else {
+//                 pageBookmarks = bookmarks.slice(bmMax*b.page, bookmarks.length-1);
+//             }
+//             pageBookmarks.forEach(function(bookmark) {
+//                 if (bmCount < bmMax) {
+//                     if (!bookmark.images) {
+// //                         console.log('bookmark missing images: ' + bookmark);
+//                     }
+//                     b.createBookmark(bmContainer, bookmark, delay);
+// //                     delay += 25;
+//                 }
+//                 bmCount += 1;
+//             });
+//         } else {
+//             bookmarks.forEach(function(bookmark) {
+//                 if (bmCount < bmMax) {
+//                     b.createBookmark(bmContainer, bookmark, delay);
+// //                     delay += 25;
+//                 }
+//                 bmCount += 1;
+//             });
+//         }
+//         // Add the pagination query string to the location
+//         if (window.history.pushState) {
+//             var query = window.location.search.substring(1),
+//                 newQuery = null,
+//                 match = false,
+//                 queries = query.split('&');
+// //             console.log('query: ' + query + ', queries: ' + queries);
+//             if (b.page > 0) {
+//                 if (query.length) {
+//                     if (query.indexOf('page=') != -1) {
+//                         // 'page=' is already present
+//                         for (var i in queries) {
+//                             if (queries[i].indexOf('page=') != -1) { // This is the page string
+//                                 queries[i] = 'page=' + (b.page+1);
+//                                 match = true;
+//                             }
+//                         }
+//                     } else {
+//                         queries.push('page=' + (b.page+1));
+//                     }
+//                     newQuery = queries.join('&');
+//                 } else {
+//                     newQuery = 'page=' + (b.page+1);
+//                 }
+// //                 console.log('newQuery: ' + newQuery);
+//                 window.history.pushState("", "Bookmarked. Page " + b.page, "/?" + newQuery);
+//             } else {
+//                 if (query.indexOf('page=') != -1) {
+//                     // Gotta remove the 'page=' part
+//                     for (var i in queries) {
+//                         if (queries[i].indexOf('page=') != -1) { // This is the page string
+//                             delete queries[i];
+//                         }
+//                     }
+//                     if (query.length) {
+//                         newQuery = queries.join('&');
+//                         if (newQuery.length) {
+//                             window.history.pushState("", "Default", "/?" + queries.join('&'));
+//                         } else {
+//                             window.history.pushState("", "Default", "/");
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         var bmPaginationUL = b.loadPagination(bookmarks, b.page);
+//         pagination.appendChild(bmPaginationUL);
+//         // Hide tags that aren't in the bookmark array
+//         delay = 100;
+//         cloudTags.forEach(function hideTag(tagNode) {
+//             if (allTags.indexOf(tagNode.innerHTML) == -1) { // Tag isn't in the new list of bookmarks
+//                 // Make it appear inactive
+//                 setTimeout(function() {
+//                     tagNode.className = 'bm_tag sectrans inactive';
+// //                     u.applyTransform(tagNode, 'scale(0)');
+//                 }, delay);
+//             }
+//         });
+//         // Mark tags as active that were previously inactive (if the user just removed a tag from the tag filter)
+//         delay = 100;
+//         cloudTags.forEach(function showTag(tagNode) {
+// //             tagNode.className = "bm_tag sectransform";
+//             if (allTags.indexOf(tagNode.innerHTML) != -1) { // Tag is in the new list of bookmarks
+//                 // Make it appear active
+//                 setTimeout(function unTrans() {
+//                     setTimeout(function reClass() {
+//                         if (tagNode.innerHTML == "Untagged") {
+//                             tagNode.className = 'bm_tag sectrans untagged';
+//                         } else if (tagNode.innerHTML == "Searches") {
+//                             tagNode.className = 'bm_tag sectrans searches';
+//                         } else {
+//                             tagNode.className = 'bm_tag sectrans'; // So we don't have slow mouseovers
+//                         }
+//                     }, 500);
+//                 }, delay);
+//             }
+//         });
+//     },
+// This is the old loadBookmarks (need it for reference until I'm done porting everything from http://bookmarked.us/)
     loadBookmarks: function(/*opt*/sortfunc) {
         // Loads the user's bookmarks from localStorage
         // bookmark format:
@@ -262,7 +671,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bookmarks = GateOne.Utils.toArray(document.getElementsByClassName(go.prefs.prefix+'bookmark')),
             bmTags = document.getElementsByClassName(go.prefs.prefix+'bm_tag');
         bmTaglist.innerHTML = ""; // Clear out the tag list
-        for (i in tags) { // Recreate the tag list
+        for (var i in tags) { // Recreate the tag list
             tag = u.createElement('li', {id: go.prefs.prefix+'bm_tag'});
             tag.innerHTML = tags[i];
             tag.onclick = function(e) {
@@ -301,7 +710,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
     },
     addFilterTag: function(tag) {
         // Adds the given tag to the filter list
-        for (i in GateOne.Bookmarks.tags) {
+        for (var i in GateOne.Bookmarks.tags) {
             if (GateOne.Bookmarks.tags[i] == tag) {
                 // Tag already exists, ignore.
                 return;
@@ -312,7 +721,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
     },
     removeFilterTag: function(tag) {
         // Removes the given tag from the filter list
-        for (i in GateOne.Bookmarks.tags) {
+        for (var i in GateOne.Bookmarks.tags) {
             if (GateOne.Bookmarks.tags[i] == tag) {
                 GateOne.Bookmarks.tags.splice(i, 1);
             }
