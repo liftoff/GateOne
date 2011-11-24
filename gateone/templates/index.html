@@ -4,21 +4,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Gate One - {{hostname}}</title>
     <link rel="stylesheet" href="/static/gateone.css" type="text/css" media="screen" />
-    <!-- Begin CSS files from plugins -->
-{% for cssplugin in cssplugins %}
-    <link rel="stylesheet" href="{{cssplugin}}" type="text/css" media="screen" />
-{% end %}
-    <!-- End CSS files from plugins -->
 </head>
 <body>
 <!-- This crypto stuff will be used in the future -->
 <!-- <script type="text/javascript" src="/static/crypto-md5.js"></script> -->
 <script type="text/javascript" src="{{gateone_js}}"></script>
-<!-- Begin JS files from plugins -->
-{% for jsplugin in jsplugins %}
-<script type="text/javascript" src="{{jsplugin}}"></script>
-{% end %}
-<!-- End JS files from plugins -->
 <div id="gateone"></div>
 <script>
 window.onload = function() {

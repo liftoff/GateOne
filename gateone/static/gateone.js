@@ -37,13 +37,14 @@ this file.
 var document = window.document; // Have to do this because we're sandboxed
 
 // Sandbox-wide shortcuts
+var noop = function(a) { return a }; // Let's us reference functions that may or may not be available (see logging shortcuts below).
 var ESC = String.fromCharCode(27); // Saves a lot of typing and it's easy to read
-// Log level shortcuts for each log level (actually assigned in GateOne.init())
-var logFatal = null;
-var logError = null;
-var logWarning = null;
-var logInfo = null;
-var logDebug = null;
+// Log level shortcuts for each log level (these get properly assigned in GateOne.initialize() if GateOne.Logging is available)
+var logFatal = noop;
+var logError = noop;
+var logWarning = noop;
+var logInfo = noop;
+var logDebug = noop;
 
 // These can be used to test the performance of various functions and whatnot.
 var benchmark = null; // Need a global for this to work across the board
@@ -168,6 +169,10 @@ GateOne.Base.update(GateOne, {
         if (localStorage['prefs']) {
             GateOne.Utils.loadPrefs();
         }
+        // Load Plugins (GateOne.initialize is passed as a callback)
+        GateOne.Utils.loadPlugins(GateOne.initialize);
+    },
+    initialize: function() {
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
         if (GateOne.Logging) {
             logFatal = GateOne.Logging.logFatal;
@@ -175,12 +180,6 @@ GateOne.Base.update(GateOne, {
             logWarning = GateOne.Logging.logWarning;
             logInfo = GateOne.Logging.logInfo;
             logDebug = GateOne.Logging.logDebug;
-        } else {
-            logFatal = GateOne.Utils.noop;
-            logError = GateOne.Utils.noop;
-            logWarning = GateOne.Utils.noop;
-            logInfo = GateOne.Utils.noop;
-            logDebug = GateOne.Utils.noop;
         }
         var go = GateOne,
             u = go.Utils,
@@ -324,7 +323,7 @@ GateOne.Base.update(GateOne, {
             // Grab the form values and set them in prefs
             if (theme != go.prefs.theme || colors != go.prefs.colors) {
                 // Start using the new CSS theme and colors
-                u.loadCSS({'theme': theme, 'colors': colors});
+                u.loadThemeCSS({'theme': theme, 'colors': colors});
                 // Save the user's choice
                 go.prefs.theme = theme;
                 go.prefs.colors = colors;
@@ -403,7 +402,7 @@ GateOne.Base.update(GateOne, {
         }
         toolbarIconPrefs.onclick = showPrefs;
         // Load our CSS theme
-        u.loadCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
+        u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
         var grid = go.Visual.createGrid(go.prefs.prefix+'termwrapper');
         goDiv.appendChild(grid);
         var style = window.getComputedStyle(goDiv, null),
@@ -417,11 +416,6 @@ GateOne.Base.update(GateOne, {
         document.body.appendChild(noticeContainer); // Notifications can be outside the GateOne area
         // Add the sidebar text
         goDiv.appendChild(sideinfo);
-        // Add the the playback controls if the module is loaded
-        // TODO: Move this to the playback plugin
-        if (pb) {
-            pb.addPlaybackControls();
-        }
         // The following functions control the copy & paste capability
         var pasteareaScroll = function(e) {
             // We have to hide the pastearea so we can scroll the terminal underneath
@@ -565,33 +559,18 @@ GateOne.Base.update(GateOne, {
             go.prefs.url = window.location.href;
             go.prefs.url = go.prefs.url.split('#')[0]; // Get rid of any hash at the end
         }
-        go.ws = go.Net.connect(go.prefs.url);
-        // NOTE: Probably don't need a preInit() since modules can just put stuff inside their main .js for that.  If you can think of a use case let me know and I'll add it.
-        // Go through all our loaded modules and run their init functions (if any)
-        go.loadedModules.forEach(function(module) {
-            var moduleObj = eval(module);
-            logDebug('Module Load: ' + moduleObj.NAME + 'init()');
-            if (typeof(moduleObj.init) == "function") {
-                moduleObj.init();
-            }
-        })
-        // Go through all our loaded modules and run their postInit functions (if any)
-        go.loadedModules.forEach(function(module) {
-            var moduleObj = eval(module);
-            logDebug('Module Load: ' + moduleObj.NAME + 'postInit()');
-            if (typeof(moduleObj.postInit) == "function") {
-                moduleObj.postInit();
-            }
-        })
-        // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to refresh the page when the server has new CSS files).
+        // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
         if (!go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']) {
             go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs'] = {};
         }
         go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']['updateCSS'] = updateCSSfunc;
         go.Visual.updateDimensions();
+        // Connect to the server
+        go.ws = go.Net.connect(go.prefs.url);
+        // This calls plugins init() and postInit() functions:
+        u.postOnLoad();
         // Start capturing keyboard input
         go.Input.capture();
-//         goDiv.contentEditable = true;
     }
 });
 
@@ -839,7 +818,82 @@ GateOne.Base.update(GateOne.Utils, {
             }
         }
     },
-    loadCSS: function(schemeObj) {
+    postOnLoad: function() {
+        // Called after all the plugins have been loaded.
+        var go = GateOne;
+        // NOTE: Probably don't need a preInit() since modules can just put stuff inside their main .js for that.  If you can think of a use case let me know and I'll add it.
+        // Go through all our loaded modules and run their init functions (if any)
+        go.loadedModules.forEach(function(module) {
+            var moduleObj = eval(module);
+            logDebug('Running: ' + moduleObj.NAME + '.init()');
+            if (typeof(moduleObj.init) == "function") {
+                moduleObj.init();
+            }
+        });
+        // Go through all our loaded modules and run their postInit functions (if any)
+        go.loadedModules.forEach(function(module) {
+            var moduleObj = eval(module);
+            logDebug('Running: ' + moduleObj.NAME + '.postInit()');
+            if (typeof(moduleObj.postInit) == "function") {
+                moduleObj.postInit();
+            }
+        });
+    },
+    handlePlugins: function(JSONDoc, callback) {
+        // Handles the response from getPlugins() by making sure each JavaScript and CSS file is loaded.
+        // If *callback* is given it will be called after plugins are done loading.
+        var go = GateOne,
+            prefix = go.prefs.prefix,
+            container = go.prefs.goDiv.split('#')[1], // Can't have the leading #
+            cssPlugins = JSONDoc['css'],
+            jsPlugins = JSONDoc['js'];
+        if (cssPlugins.length) {
+            cssPlugins.forEach(function(cssPlugin) {
+                var plugin = cssPlugin.split('plugin=')[1].split('&')[0],
+                    file = cssPlugin.split('template=')[1].split('&')[0].split('.')[0],
+                    url = cssPlugin + '&prefix=' + prefix + '&container=' + container;
+                // <plugin name>_<file name> serves as the id for the <link> element
+                go.Utils.loadCSS(url, plugin+'_'+file);
+            });
+        }
+        // For JS plugins we can get them all in one step by grabbing /combined_js
+        if (jsPlugins.length) {
+            go.Utils.loadScript('/combined_js', callback);
+        }
+    },
+    loadPlugins: function(callback) {
+        // Returns a JS object representing the plugins available on the server.  Example:
+        //     {"py": ["playback", "ssh"], "css": ["/cssrender?plugin=bookmarks&template=bookmarks.css"], "js": ["/static/bookmarks/bookmarks.js", "/static/help/help.js", "/static/logging/logging.js", "/static/playback/playback.js", "/static/ssh/ssh.js"]}
+        // If *callback* is given, it will be passed to handlePlugins() to be called after plugins are done loading.
+        var http = new XMLHttpRequest(); // We don't support older browsers anyway so no need to worry about ActiveX garbage
+        http.open("GET", '/get_plugins');
+        http.onreadystatechange = function() {
+            if(http.readyState == 4) {
+                var JSONDoc = JSON.parse(http.responseText);
+                GateOne.Utils.handlePlugins(JSONDoc, callback);
+            }
+        }
+        http.send(null); // All done
+    },
+    loadCSS: function(url, id){
+        // Imports the given CSS *URL* and applies the stylesheet to the current document.
+        // When the <link> element is created it will use *id* like so: {'id': GateOne.prefs.prefix + id}.
+        // If an existing <link> element already exists with the same *id* it will be overridden.
+        if (!id) {
+            id = 'css_file';
+        }
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            container = GateOne.prefs.goDiv.split('#')[1],
+            cssNode = u.createElement('link', {'id': prefix+id, 'type': 'text/css', 'rel': 'stylesheet', 'href': url, 'media': 'screen'}),
+            existing = u.getNode('#'+prefix+id);
+        if (existing) {
+            u.removeElement(existing);
+        }
+        document.getElementsByTagName("head")[0].appendChild(cssNode);
+    },
+    loadThemeCSS: function(schemeObj) {
         // Loads the GateOne CSS for the given *schemeObj* which should be in the form of:
         //     {'theme': 'black'} or {'colors': 'gnome-terminal'} or an object containing both.
         // If *schemeObj* is not provided, will load the defaults.
@@ -856,37 +910,23 @@ GateOne.Base.update(GateOne.Utils, {
             theme = schemeObj['theme'],
             colors = schemeObj['colors'];
         if (theme) {
-            var themeNode = document.createElement('link'),
-                existing = u.getNode('#'+prefix+'css_theme');
-            if (existing) {
-                u.removeElement(existing);
-            }
-            themeNode.type = 'text/css';
-            themeNode.rel = 'stylesheet';
-            themeNode.href = '/style?theme='+theme+'&container='+container+'&prefix='+prefix;
-            themeNode.id = prefix+'css_theme';
-            themeNode.media = 'screen';
-            document.getElementsByTagName("head")[0].appendChild(themeNode);
+            u.loadCSS('/style?theme='+theme+'&container='+container+'&prefix='+prefix, prefix+'css_theme');
         }
         if (colors) {
-            var colorsNode = document.createElement('link'),
-                existing = u.getNode('#'+prefix+'css_colors');
-            if (existing) {
-                u.removeElement(existing);
-            }
-            colorsNode.type = 'text/css';
-            colorsNode.rel = 'stylesheet';
-            colorsNode.href = '/style?colors='+colors+'&container='+container+'&prefix='+prefix;
-            colorsNode.id = prefix+'css_colors';
-            colorsNode.media = 'screen';
-            document.getElementsByTagName("head")[0].appendChild(colorsNode);
+            u.loadCSS('/style?colors='+colors+'&container='+container+'&prefix='+prefix, prefix+'css_colors');
         }
     },
-    loadScript: function(url){
-        // Imports the given JS URL
+    loadScript: function(url, callback){
+        // Imports the given JS *url*
+        // If *callback* is given, it will be called in the onload() event handler for the script
         var tag = document.createElement("script");
         tag.type="text/javascript";
         tag.src = url;
+        if (callback) {
+            tag.onload = function() {
+                callback();
+            }
+        }
         document.body.appendChild(tag);
     },
     savePrefs: function() {
@@ -2574,6 +2614,7 @@ GateOne.Base.update(GateOne.Terminal, {
                 consoleLog = data.log, // Only used when debugging
                 screenUpdate = false,
                 terminalObj = {},
+                termTitle = u.getNode('#' + prefix + 'term' + term).title,
                 reScrollback = u.partial(go.Visual.enableScrollback, term);
             if (term && go.terminals[term]) {
                 terminalObj = go.terminals[term];

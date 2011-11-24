@@ -330,24 +330,30 @@ def killall(session_dir):
     cmd = "rm -rf %s/*" % session_dir
     recode, output = getstatusoutput(cmd)
 
-def create_plugin_static_links(static_dir, plugin_dir):
+def create_plugin_links(static_dir, templates_dir, plugin_dir):
     """
-    Creates symbolic links for all plugins in the ./static/ directory.  The
-    equivalent of:
+    Creates symbolic links for all plugins in the ./static/ and ./templates/
+    directories.  The equivalent of:
 
     .. ansi-block::
 
         \x1b[1;31mroot\x1b[0m@host\x1b[1;34m:~ $\x1b[0m ln -s *plugin_dir*/<plugin>/static *static_dir*/<plugin>
+        \x1b[1;31mroot\x1b[0m@host\x1b[1;34m:~ $\x1b[0m ln -s *plugin_dir*/<plugin>/templates *templates_dir*/<plugin>
 
-    This is so plugins can reference files in their static directories using the
-    following straightforward path::
+    This is so plugins can reference files in these directories using the
+    following straightforward paths::
 
         https://<gate one>/static/<plugin name>/<some file>
+        https://<gate one>/render/<plugin name>/<some file>
 
     This function will also remove any dead links if a plugin is removed.
     """
     # Clean up dead links before we do anything else
     for f in os.listdir(static_dir):
+        if os.path.islink(f):
+            if not os.path.exists(os.readlink(f)):
+                os.unlink(f)
+    for f in os.listdir(templates_dir):
         if os.path.islink(f):
             if not os.path.exists(os.readlink(f)):
                 os.unlink(f)
@@ -363,6 +369,13 @@ def create_plugin_static_links(static_dir, plugin_dir):
                     os.symlink(abs_src_path, abs_dest_path)
                 except OSError:
                     pass # Already exists
+            if f == 'templates':
+                abs_src_path = os.path.join(directory, f)
+                abs_dest_path = os.path.join(templates_dir, plugin_name)
+                try:
+                    os.symlink(abs_src_path, abs_dest_path)
+                except OSError:
+                    pass # Already exists
 
 def get_plugins(plugin_dir):
     """
@@ -370,12 +383,13 @@ def get_plugins(plugin_dir):
     JavaScript, CSS, and Python files contained in *plugin_dir* like so::
 
         {
-            'js': [ # NOTE: These would be be inside *plugin_dir*/static
+            'js': [ // NOTE: These would be be inside *plugin_dir*/static
                 '/static/happy_plugin/whatever.js',
                 '/static/ssh/ssh.js',
             ],
-            'css': ['/static/ssh/ssh.css'],
-            'py': [ # NOTE: These will get added to sys.path
+            'css': ['/cssrender?plugin=bookmarks&template=bookmarks.css'],
+            // NOTE: CSS URLs will require '&container=<container>' and '&prefix=<prefix>' to load.
+            'py': [ // NOTE: These will get added to sys.path
                 'happy_plugin',
                 'ssh'
             ],
@@ -390,13 +404,7 @@ def get_plugins(plugin_dir):
             <script type="text/javascript" src="{{jsplugin}}"></script>
         {% end %}
 
-    \*.css files will get added to the <head> like so:
-
-    .. code-block:: html
-
-        {% for cssplugin in cssplugins %}
-            <link rel="stylesheet" href="{{cssplugin}}" type="text/css" media="screen" />
-        {% end %}
+    \*.css files will get imported automatically by GateOne.init()
     """
     out_dict = {'js': [], 'css': [], 'py': []}
     for directory in os.listdir(plugin_dir):
@@ -424,6 +432,13 @@ def get_plugins(plugin_dir):
                         out_dict['js'].append(http_path)
                     elif static_file.endswith('.css'):
                         http_path = os.path.join(http_static_path, static_file)
+                        out_dict['css'].append(http_path)
+            if plugin_file == 'templates':
+                templates_dir = os.path.join(directory, plugin_file)
+                for template_file in os.listdir(templates_dir):
+                    if template_file.endswith('.css'):
+                        http_path = "/cssrender?plugin=%s&template=%s" % (
+                            plugin, template_file)
                         out_dict['css'].append(http_path)
     # Sort all plugins alphabetically so the order in which they're applied can
     # be controlled somewhat predictably

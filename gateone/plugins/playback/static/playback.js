@@ -40,6 +40,7 @@ GateOne.Base.update(GateOne.Playback, {
             go.Playback.saveRecording(localStorage['selectedTerminal']);
         }
         p.appendChild(infoPanelSaveRecording);
+        go.Playback.addPlaybackControls();
     },
     updateClock: function(/*opt:*/dateObj) {
         // Updates the clock with the time in the given *dateObj*.
@@ -100,8 +101,7 @@ GateOne.Base.update(GateOne.Playback, {
         milliseconds += frameInterval; // Increment determines our framerate
     },
     addPlaybackControls: function() {
-        // Add the session playback controls to the given terminal
-        GateOne.Logging.logDebug('GateOne.Playback.addPlaybackControls()');
+        // Add the session playback controls to Gate One
         var go = GateOne,
             u = go.Utils,
             p = go.Playback,

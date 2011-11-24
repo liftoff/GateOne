@@ -241,10 +241,10 @@ from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
 from auth import PAMAuthHandler
 from utils import str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
-from utils import create_plugin_static_links, merge_handlers, none_fix
-from utils import convert_to_timedelta, kill_dtached_proc, short_hash
+from utils import create_plugin_links, merge_handlers, none_fix, short_hash
+from utils import convert_to_timedelta, kill_dtached_proc, FACILITIES
 from utils import process_opt_esc_sequence, create_data_uri, MimeTypeFail
-from utils import FACILITIES, string_to_syslog_facility, fallback_bell
+from utils import string_to_syslog_facility, fallback_bell
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -621,8 +621,7 @@ class StyleHandler(BaseHandler):
     If 'theme' or 'colors' are provided (along with the requisite 'container'
     and 'prefix' arguments), returns the content of the requested CSS file.
     """
-    # Hey, if unauthenticated clients want this they can have it!
-    #@tornado.web.authenticated
+    @tornado.web.authenticated
     def get(self):
         enum = self.get_argument("enumerate", None)
         if enum:
@@ -673,6 +672,74 @@ class StyleHandler(BaseHandler):
                     # Given theme was not found
                     logging.error(_(
                         "templates/term_colors/%s.css was not found" % colors))
+
+class PluginCSSTemplateHandler(BaseHandler):
+    """
+    Renders plugin CSS template files, passing them the same *prefix* and
+    *container* variables used by the StyleHandler.  This is so we don't need a
+    CSS template rendering function in every plugin that needs to use {{prefix}}
+    or {{container}}.
+
+    gateone.js will automatically load all *.css files in plugin template
+    directories using this method.
+    """
+    def get(self):
+        container = self.get_argument("container")
+        prefix = self.get_argument("prefix")
+        plugin = self.get_argument("plugin")
+        template = self.get_argument("template")
+        self.set_header ('Content-Type', 'text/css')
+        try:
+            self.render(
+                "templates/%s/%s" % (plugin, template),
+                container=container,
+                prefix=prefix
+            )
+        except IOError:
+            # The provided plugin/template combination was not found
+            logging.error(
+                _("templates/%s/%s was not found" % (plugin, template)))
+
+class EnumeratePluginsHandler(BaseHandler):
+    """
+    Returns a list of plugins available in the form of::
+
+        {'python': [list of plugins], 'javascript': [list of plugins], 'css': [list of plugins]}
+    """
+    @tornado.web.authenticated
+    def get(self):
+        self.set_header ('Content-Type', 'application/json')
+        try:
+            plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
+            self.write(tornado.escape.json_encode(plugins))
+        except IOError:
+            # The provided plugin/template combination was not found
+            logging.error(
+                _("templates/%s/%s.css was not found" % (plugin, template)))
+
+class JSPluginsHandler(BaseHandler):
+    """
+    Combines all JavaScript plugins into a single file to keep things simple and
+    speedy.
+    """
+    @tornado.web.authenticated
+    def get(self):
+        self.set_header ('Content-Type', 'application/javascript')
+        plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
+        static_dir = os.path.join(GATEONE_DIR, "static")
+        combined_plugins = os.path.join(static_dir, "combined_plugins.js")
+        if os.path.exists(combined_plugins):
+            with open(combined_plugins) as f:
+                self.write(f.read())
+        else: # Create it
+            out = ""
+            for js_plugin in plugins['js']:
+                js_path = os.path.join(GATEONE_DIR, js_plugin.lstrip('/'))
+                with open(js_path) as f:
+                    out += f.read()
+            with open(combined_plugins, 'w') as f:
+                f.write(out)
+            self.write(out)
 
 class TerminalWebSocket(WebSocketHandler):
     def __init__(self, application, request):
@@ -1346,6 +1413,9 @@ class Application(tornado.web.Application):
             (r"/auth", AuthHandler),
             (r"/style", StyleHandler),
             (r"/openlog", OpenLogHandler),
+            (r"/cssrender", PluginCSSTemplateHandler),
+            (r"/combined_js", JSPluginsHandler),
+            (r"/get_plugins", EnumeratePluginsHandler),
             (r"/docs/(.*)", tornado.web.StaticFileHandler, {
                 "path": GATEONE_DIR + '/docs/build/html/',
                 "default_filename": "index.html"
@@ -1367,7 +1437,13 @@ class Application(tornado.web.Application):
         handlers = merge_handlers(handlers)
         # Include JS-only and CSS-only plugins (for logging purposes)
         js_plugins = [a.split('/')[2] for a in PLUGINS['js']]
-        css_plugins = [a.split('/')[2] for a in PLUGINS['css']]
+        css_plugins = []
+        for i in css_plugins:
+            if '?' in i: # CSS Template
+                css_plugins.append(i.split('plugin=')[1].split('&')[0])
+            else: # Static CSS file
+                css_plugins.append(i.split('/')[1])
+        #css_plugins = [a.split('?')[1].split('&')[0].split('=')[1] for a in PLUGINS['css']]
         plugin_list = list(set(PLUGINS['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
         logging.info(_("Loaded plugins: %s" % ", ".join(plugin_list)))
@@ -1663,7 +1739,12 @@ def main():
     # Setup static file links for plugins (if any)
     static_dir = os.path.join(GATEONE_DIR, "static")
     plugin_dir = os.path.join(GATEONE_DIR, "plugins")
-    create_plugin_static_links(static_dir, plugin_dir)
+    templates_dir = os.path.join(GATEONE_DIR, "templates")
+    combined_plugins = os.path.join(static_dir, "combined_plugins.js")
+    # Remove the combined_plugins.js (it will get auto-recreated)
+    if os.path.exists(combined_plugins):
+        os.remove(combined_plugins)
+    create_plugin_links(static_dir, templates_dir, plugin_dir)
     # Instantiate our Tornado web server
     ssl_options = {
         "certfile": options.certificate,
