@@ -5,11 +5,11 @@ var document = window.document; // Have to do this because we're sandboxed
 var noop = GateOne.Utils.noop;
 
 // Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = null;
-var logError = null;
-var logWarning = null;
-var logInfo = null;
-var logDebug = null;
+var logFatal = noop;
+var logError = noop;
+var logWarning = noop;
+var logInfo = noop;
+var logDebug = noop;
 
 // TODO: Add the ability for users to generate/modify their keys
 
@@ -17,12 +17,6 @@ var logDebug = null;
 GateOne.Base.module(GateOne, "SSH", "0.9", ['Base']);
 GateOne.Base.update(GateOne.SSH, {
     init: function() {
-        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
-        logFatal = GateOne.Logging.logFatal || noop;
-        logError = GateOne.Logging.logError || noop;
-        logWarning = GateOne.Logging.logWarning || noop;
-        logInfo = GateOne.Logging.logInfo || noop;
-        logDebug = GateOne.Logging.logDebug || noop;
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
@@ -31,6 +25,14 @@ GateOne.Base.update(GateOne.SSH, {
             h3 = u.createElement('h3'),
             infoPanelDuplicateSession = u.createElement('button', {'id': prefix+'duplicate_session', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             prefsPanelKnownHosts = u.createElement('button', {'id': prefix+'edit_kh', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
+        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
+        if (go.Logging) {
+            logFatal = go.Logging.logFatal;
+            logError = go.Logging.logError;
+            logWarning = go.Logging.logWarning;
+            logInfo = go.Logging.logInfo;
+            logDebug = go.Logging.logDebug;
+        }
         prefsPanelKnownHosts.innerHTML = "Edit Known Hosts";
         prefsPanelKnownHosts.onclick = function() {
             u.xhrGet('/ssh?known_hosts=True', go.SSH.updateKH);
@@ -104,7 +106,7 @@ GateOne.Base.update(GateOne.SSH, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_known_hosts'),
-            sshPanel = u.createElement('div', {'id': prefix+'panel_known_hosts', 'class': prefix+'panel sectrans'}),
+            sshPanel = u.createElement('div', {'id': prefix+'panel_known_hosts', 'class': 'panel sectrans'}),
             sshHeader = u.createElement('div', {'id': prefix+'ssh_header', 'class': 'sectrans'}),
             sshHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
             sshKHTextArea = u.createElement('textarea', {'id': prefix+'ssh_kh_textarea', 'rows': 30, 'cols': 100}),

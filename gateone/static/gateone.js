@@ -139,7 +139,7 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     scrollback: 500, // Amount of lines to keep in the scrollback buffer
     rows: null, // Override the automatically calculated value (null means fill the window)
     cols: null, // Ditto
-    prefix: 'go_', // What to prefix all GateOne elements with (in case you need to avoid a name conflict)
+    prefix: 'go_', // What to prefix element IDs with (in case you need to avoid a name conflict).  NOTE: There are a few classes that use the prefix too.
     theme: 'black', // The theme to use by default (e.g. 'black', 'white', etc)
     colors: 'default', // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
     fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
@@ -186,48 +186,48 @@ GateOne.Base.update(GateOne, {
             pb = GateOne.Playback,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
-            pastearea = u.createElement('textarea', {'id': prefix+'pastearea', 'oninput': 'GateOne.Logging.log("pastearea Input"); GateOne.Input.queue(GateOne.Utils.getNode("#'+prefix+'pastearea").value); GateOne.Utils.getNode("#'+go.prefs.prefix+'pastearea").value = ""; GateOne.Net.sendChars();'}),
-            prefsPanel = u.createElement('div', {'id': prefix+'panel_prefs', 'class': prefix+'panel'}),
+            pastearea = u.createElement('textarea', {'id': prefix+'pastearea', 'oninput': 'GateOne.Logging.log("pastearea Input"); GateOne.Input.queue(GateOne.Utils.getNode("#'+prefix+'pastearea").value); GateOne.Utils.getNode("#'+prefix+'pastearea").value = ""; GateOne.Net.sendChars();'}),
+            prefsPanel = u.createElement('div', {'id': prefix+'panel_prefs', 'class':'panel'}),
             prefsPanelH2 = u.createElement('h2'),
             prefsPanelForm = u.createElement('form', {'id': prefix+'prefs_form', 'name': prefix+'prefs_form'}),
-            prefsPanelStyleRow1 = u.createElement('div', {'class': prefix+'paneltablerow'}),
-            prefsPanelStyleRow2 = u.createElement('div', {'class': prefix+'paneltablerow'}),
-            prefsPanelStyleRow3 = u.createElement('div', {'class': prefix+'paneltablerow'}),
-            prefsPanelStyleRow4 = u.createElement('div', {'class': prefix+'paneltablerow'}),
-            prefsPanelRow1 = u.createElement('div', {'class': prefix+'paneltablerow'}),
-            prefsPanelRow2 = u.createElement('div', {'class': prefix+'paneltablerow'}),
-            prefsPanelRow3 = u.createElement('div', {'class': prefix+'paneltablerow'}),
-            prefsPanelRow4 = u.createElement('div', {'class': prefix+'paneltablerow'}),
-            prefsPanelRow5 = u.createElement('div', {'class': prefix+'paneltablerow'}),
+            prefsPanelStyleRow1 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelStyleRow2 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelStyleRow3 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelStyleRow4 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelRow1 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelRow2 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelRow3 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelRow4 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelRow5 = u.createElement('div', {'class':'paneltablerow'}),
             hr = u.createElement('hr', {'style': {'width': '100%', 'margin-top': '0.5em', 'margin-bottom': '0.5em'}}),
-            tableDiv = u.createElement('div', {'id': prefix+'prefs_tablediv1', 'class': prefix+'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            tableDiv2 = u.createElement('div', {'class': prefix+'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            prefsPanelThemeLabel = u.createElement('span', {'id': prefix+'prefs_theme_label', 'class': prefix+'paneltablelabel'}),
+            tableDiv = u.createElement('div', {'id': prefix+'prefs_tablediv1', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            tableDiv2 = u.createElement('div', {'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            prefsPanelThemeLabel = u.createElement('span', {'id': prefix+'prefs_theme_label', 'class':'paneltablelabel'}),
             prefsPanelTheme = u.createElement('select', {'id': prefix+'prefs_theme', 'name': prefix+'prefs_theme', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelColorsLabel = u.createElement('span', {'id': prefix+'prefs_colors_label', 'class': prefix+'paneltablelabel'}),
-            prefsPanelColors = u.createElement('select', {'id': prefix+'prefs_colors', 'name': prefix+'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelFontSizeLabel = u.createElement('span', {'id': prefix+'prefs_fontsize_label', 'class': prefix+'paneltablelabel'}),
+            prefsPanelColorsLabel = u.createElement('span', {'id': prefix+'prefs_colors_label', 'class':'paneltablelabel'}),
+            prefsPanelColors = u.createElement('select', {'id': prefix+'prefs_colors', 'name':'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelFontSizeLabel = u.createElement('span', {'id': prefix+'prefs_fontsize_label', 'class':'paneltablelabel'}),
             prefsPanelFontSize = u.createElement('input', {'id': prefix+'prefs_fontsize', 'name': prefix+'prefs_fontsize', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelDisableTermTransitionsLabel = u.createElement('span', {'id': prefix+'prefs_disabletermtrans_label', 'class': prefix+'paneltablelabel'}),
+            prefsPanelDisableTermTransitionsLabel = u.createElement('span', {'id': prefix+'prefs_disabletermtrans_label', 'class':'paneltablelabel'}),
             prefsPanelDisableTermTransitions = u.createElement('input', {'id': prefix+'prefs_disabletermtrans', 'name': prefix+'prefs_disabletermtrans', 'value': 'disabletermtrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelScrollbackLabel = u.createElement('span', {'id': prefix+'prefs_scrollback_label', 'class': prefix+'paneltablelabel'}),
+            prefsPanelScrollbackLabel = u.createElement('span', {'id': prefix+'prefs_scrollback_label', 'class':'paneltablelabel'}),
             prefsPanelScrollback = u.createElement('input', {'id': prefix+'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelLogLinesLabel = u.createElement('span', {'id': prefix+'prefs_loglines_label', 'class': prefix+'paneltablelabel'}),
+            prefsPanelLogLinesLabel = u.createElement('span', {'id': prefix+'prefs_loglines_label', 'class':'paneltablelabel'}),
             prefsPanelLogLines = u.createElement('input', {'id': prefix+'prefs_loglines', 'name': prefix+'prefs_loglines', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelPlaybackLabel = u.createElement('span', {'id': prefix+'prefs_playback_label', 'class': prefix+'paneltablelabel'}),
+            prefsPanelPlaybackLabel = u.createElement('span', {'id': prefix+'prefs_playback_label', 'class':'paneltablelabel'}),
             prefsPanelPlayback = u.createElement('input', {'id': prefix+'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelRowsLabel = u.createElement('span', {'id': prefix+'prefs_rows_label', 'class': prefix+'paneltablelabel'}),
+            prefsPanelRowsLabel = u.createElement('span', {'id': prefix+'prefs_rows_label', 'class':'paneltablelabel'}),
             prefsPanelRows = u.createElement('input', {'id': prefix+'prefs_rows', 'name': prefix+'prefs_rows', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelColsLabel = u.createElement('span', {'id': prefix+'prefs_cols_label', 'class': prefix+'paneltablelabel'}),
+            prefsPanelColsLabel = u.createElement('span', {'id': prefix+'prefs_cols_label', 'class':'paneltablelabel'}),
             prefsPanelCols = u.createElement('input', {'id': prefix+'prefs_cols', 'name': prefix+'prefs_cols', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelSave = u.createElement('button', {'id': prefix+'prefs_save', 'type': 'submit', 'value': 'Save', 'class': 'button black', 'style': {'float': 'right'}}),
             noticeContainer = u.createElement('div', {'id': prefix+'noticecontainer', 'style': {'margin-right': '2em', 'background': 'transparent'}}),
             toolbar = u.createElement('div', {'id': prefix+'toolbar'}),
-            toolbarIconPrefs = u.createElement('div', {'id': prefix+'icon_prefs', 'class': prefix+'toolbar', 'title': "Preferences"}),
+            toolbarIconPrefs = u.createElement('div', {'id': prefix+'icon_prefs', 'class':'toolbar', 'title': "Preferences"}),
             panels = document.getElementsByClassName('panel'),
             // Firefox doesn't support 'mousewheel'
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
-            sideinfo = u.createElement('div', {'id': prefix+'sideinfo', 'class': prefix+'sideinfo'}),
+            sideinfo = u.createElement('div', {'id': prefix+'sideinfo', 'class':'sideinfo'}),
             themeList = [], // Gets filled out below
             colorsList = [],
             enumerateCSS = function(jsonObj) {
@@ -254,6 +254,7 @@ GateOne.Base.update(GateOne, {
             },
             updateCSSfunc = function() { u.xhrGet(go.prefs.url + 'style?enumerate=True', enumerateCSS) };
         // Create our prefs panel
+        go.Visual.applyTransform(prefsPanel, 'scale(0)');
         toolbarIconPrefs.innerHTML = GateOne.Icons.prefs;
         prefsPanelH2.innerHTML = "Preferences";
         prefsPanel.appendChild(prefsPanelH2);
@@ -305,7 +306,6 @@ GateOne.Base.update(GateOne, {
         prefsPanelForm.appendChild(prefsPanelSave);
         prefsPanel.appendChild(prefsPanelForm);
         prefsPanel.appendChild(hr);
-        go.Visual.applyTransform(prefsPanel, 'scale(0)');
         if (!go.prefs.embedded) {
             goDiv.appendChild(prefsPanel); // Doesn't really matter where it goes
         }
@@ -353,7 +353,7 @@ GateOne.Base.update(GateOne, {
             }
             if (disableTermTransitions) {
                 var newStyle = u.createElement('style', {'id': prefix+'disable_term_transitions'});
-                newStyle.innerHTML = "." + prefix + "terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+                newStyle.innerHTML = ".terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
                 u.getNode(goDiv).appendChild(newStyle);
             } else {
                 var existing = u.getNode('#'+prefix+'disable_term_transitions');
@@ -391,19 +391,19 @@ GateOne.Base.update(GateOne, {
         // Disable terminal transitions if the user wants
         if (go.prefs.disableTermTransitions) {
             var newStyle = u.createElement('style', {'id': prefix+'disable_term_transitions'});
-            newStyle.innerHTML = "." + prefix + "terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+            newStyle.innerHTML = ".terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
             u.getNode(goDiv).appendChild(newStyle);
         }
         // Create the (empty) toolbar
         toolbar.appendChild(toolbarIconPrefs); // The only default toolbar icon is the preferences
         goDiv.appendChild(toolbar);
         var showPrefs = function() {
-            go.Visual.togglePanel('#'+go.prefs.prefix+'panel_prefs');
+            go.Visual.togglePanel('#'+prefix+'panel_prefs');
         }
         toolbarIconPrefs.onclick = showPrefs;
         // Load our CSS theme
         u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
-        var grid = go.Visual.createGrid(go.prefs.prefix+'termwrapper');
+        var grid = go.Visual.createGrid(prefix+'termwrapper');
         goDiv.appendChild(grid);
         var style = window.getComputedStyle(goDiv, null),
             adjust = 0;
@@ -494,18 +494,18 @@ GateOne.Base.update(GateOne, {
                     }
                     if (p.currentFrame == null) {
                         p.currentFrame = terminalObj['playbackFrames'].length - 1;
-                        u.getNode('#'+go.prefs.prefix+'progressBar').style.width = '100%';
+                        u.getNode('#'+prefix+'progressBar').style.width = '100%';
                     } else {
                         p.currentFrame = p.currentFrame + 1;
                         percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
-                        u.getNode('#'+go.prefs.prefix+'progressBar').style.width = (percent) + '%';
+                        u.getNode('#'+prefix+'progressBar').style.width = (percent) + '%';
                     }
                     if (selectedFrame) {
-                        u.getNode('#'+go.prefs.prefix+'term' + term).innerHTML = selectedFrame['screen'];
-                        u.getNode('#'+go.prefs.prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
+                        u.getNode('#'+prefix+'term' + term).innerHTML = selectedFrame['screen'];
+                        u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
                     } else {
                         p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
-                        u.getNode('#'+go.prefs.prefix+'progressBar').style.width = '100%';
+                        u.getNode('#'+prefix+'progressBar').style.width = '100%';
                         if (!cu) { // Get the clock updating again
                             cu = setInterval('GateOne.Playback.updateClock()', 1);
                         }
@@ -521,14 +521,14 @@ GateOne.Base.update(GateOne, {
                     } else {
                         p.currentFrame = p.currentFrame - 1;
                         percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
-                        u.getNode('#'+go.prefs.prefix+'progressBar').style.width = (percent) + '%';
+                        u.getNode('#'+prefix+'progressBar').style.width = (percent) + '%';
                     }
                     if (selectedFrame) {
-                        u.getNode('#'+go.prefs.prefix+'term' + term).innerHTML = selectedFrame['screen'];
-                        u.getNode('#'+go.prefs.prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
+                        u.getNode('#'+prefix+'term' + term).innerHTML = selectedFrame['screen'];
+                        u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
                     } else {
                         p.currentFrame = terminalObj['playbackFrames'][0]; // First frame
-                        u.getNode('#'+go.prefs.prefix+'progressBar').style.width = '0%';
+                        u.getNode('#'+prefix+'progressBar').style.width = '0%';
                     }
                 }
             } else {
@@ -1083,7 +1083,7 @@ GateOne.Base.update(GateOne.Net, {
     connectionError: function() {
         var go = GateOne,
             u = go.Utils,
-            terms = document.getElementsByClassName(go.prefs.prefix+'terminal');
+            terms = u.getNode(go.prefs.goDiv).getElementsByClassName('terminal');
         logError("Error communicating with server... ");
         u.toArray(terms).forEach(function(termObj) {
             // Passing 'true' here to keep the stuff in localStorage for this term.
@@ -1231,7 +1231,7 @@ GateOne.Base.update(GateOne.Input, {
                     go.Net.sendChars();
                 }
             } else {
-                var panels = document.getElementsByClassName(go.prefs.prefix+'panel'),
+                var panels = u.getNode(go.prefs.goDiv).getElementsByClassName('panel'),
                     visiblePanel = false;
 //                 u.getNode(go.prefs.goDiv).focus();
                 // Hide all the panels
@@ -1875,7 +1875,7 @@ GateOne.Base.update(GateOne.Visual, {
     init: function() {
         var go = GateOne,
             u = go.Utils,
-            toolbarGrid = u.createElement('div', {'id': go.prefs.prefix+'icon_grid', 'class': go.prefs.prefix+'toolbar', 'title': "Grid View"}),
+            toolbarGrid = u.createElement('div', {'id': go.prefs.prefix+'icon_grid', 'class': 'toolbar', 'title': "Grid View"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
         // Add our grid icon to the icons list
         GateOne.Icons['grid'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient3002" y2="255.75" gradientUnits="userSpaceOnUse" x2="311.03" gradientTransform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,261.98407,-149.06549)" y1="227.75" x1="311.03"><stop class="stop1" offset="0"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.66103562,-0.67114094,0.66103562,0.67114094,-611.1013,-118.18392)"><g fill="url(#linearGradient3002)" transform="translate(63.353214,322.07725)"><polygon points="311.03,255.22,304.94,249.13,311.03,243.03,317.13,249.13"/><polygon points="318.35,247.91,312.25,241.82,318.35,235.72,324.44,241.82"/><polygon points="303.52,247.71,297.42,241.61,303.52,235.52,309.61,241.61"/><polygon points="310.83,240.39,304.74,234.3,310.83,228.2,316.92,234.3"/></g></g></svg>';
@@ -1899,8 +1899,8 @@ GateOne.Base.update(GateOne.Visual, {
     updateDimensions: function() { // Sets GateOne.Visual.goDimensions to the current width/height of prefs.goDiv
         var go = GateOne,
             u = go.Utils,
-            terms = document.getElementsByClassName(go.prefs.prefix+'terminal'),
             goDiv = u.getNode(go.prefs.goDiv),
+            terms = goDiv.getElementsByClassName('terminal'),
             wrapperDiv = u.getNode('#'+go.prefs.prefix+'termwrapper'),
             style = window.getComputedStyle(goDiv, null),
             rightAdjust = 0;
@@ -1974,14 +1974,15 @@ GateOne.Base.update(GateOne.Visual, {
         // Say you wanted to call a function whenever the preferences panel was toggled into view:
         //      GateOne.Visual.panelToggleCallbacks['in']['#'+go.prefs.prefix+'panel_prefs']['updateOptions'] = myFunction;
         // Then whenever the preferences panel was toggled into view, myfunction() would be called.
-        var v = GateOne.Visual,
-            u = GateOne.Utils,
+        var go = GateOne,
+            v = go.Visual,
+            u = go.Utils,
             panelID = panel,
             panel = u.getNode(panel),
             origState = panel.style['transform'],
-            panels = document.getElementsByClassName(GateOne.prefs.prefix+'panel'),
+            panels = u.getNode(go.prefs.goDiv).getElementsByClassName('panel'),
             term = localStorage['selectedTerminal'],
-            title = u.getNode('#'+GateOne.prefs.prefix+'term'+term).title;
+            title = u.getNode('#'+go.prefs.prefix+'term'+term).title;
         // Start by scaling all panels out
         for (var i in u.toArray(panels)) {
             if (u.getNode(panels[i]).style['transform'] != 'scale(0)') {
@@ -2136,7 +2137,7 @@ GateOne.Base.update(GateOne.Visual, {
             var termPre = u.getNode('#'+go.prefs.prefix+'term' + term + '_pre');
             u.scrollToBottom(termPre);
         } else {
-            var terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal'));
+            var terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(go.prefs.prefix+'term')[1],
                     replacement_html = '<pre id="' + termObj.id + '_pre" style="height: 100%">' + go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
@@ -2156,7 +2157,7 @@ GateOne.Base.update(GateOne.Visual, {
         // If *term* is given, only disable scrollback for that terminal
         var go = GateOne,
             u = go.Utils,
-            terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal')),
+            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
             textTransforms = go.Terminal.textTransforms;
         if (term) {
             var replacement_html = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
@@ -2194,7 +2195,7 @@ GateOne.Base.update(GateOne.Visual, {
             count = 0,
             wPX = 0,
             hPX = 0,
-            terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal')),
+            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
             style = window.getComputedStyle(u.getNode(go.prefs.goDiv), null),
             rightAdjust = 0,
             bottomAdjust = 0,
@@ -2242,71 +2243,79 @@ GateOne.Base.update(GateOne.Visual, {
     },
     slideLeft: function() {
         // Slides to the terminal left of the current view
-        var count = 0,
+        var go = GateOne,
+            u = go.Utils,
+            count = 0,
             term = 0,
-            terms = GateOne.Utils.toArray(document.getElementsByClassName(GateOne.prefs.prefix+'terminal'));
+            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
         terms.forEach(function(termObj) {
-            if (termObj.id == GateOne.prefs.prefix+'term' + localStorage['selectedTerminal']) {
+            if (termObj.id == go.prefs.prefix+'term' + localStorage['selectedTerminal']) {
                 term = count;
             }
             count = count + 1;
         });
-        if (GateOne.Utils.isEven(term+1)) {
-            var slideTo = terms[term-1].id.split(GateOne.prefs.prefix+'term')[1];
-            GateOne.Visual.slideToTerm(slideTo, true);
+        if (u.isEven(term+1)) {
+            var slideTo = terms[term-1].id.split(go.prefs.prefix+'term')[1];
+            go.Visual.slideToTerm(slideTo, true);
         }
     },
     slideRight: function() {
         // Slides to the terminal right of the current view
-        var terms = GateOne.Utils.toArray(document.getElementsByClassName(GateOne.prefs.prefix+'terminal')),
+        var go = GateOne,
+            u = go.Utils,
+            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
             count = 0,
             term = 0;
         if (terms.length > 1) {
             terms.forEach(function(termObj) {
-                if (termObj.id == GateOne.prefs.prefix+'term' + localStorage['selectedTerminal']) {
+                if (termObj.id == go.prefs.prefix+'term' + localStorage['selectedTerminal']) {
                     term = count;
                 }
                 count = count + 1;
             });
-            if (!GateOne.Utils.isEven(term+1)) {
-                var slideTo = terms[term+1].id.split(GateOne.prefs.prefix+'term')[1];
-                GateOne.Visual.slideToTerm(slideTo, true);
+            if (!u.isEven(term+1)) {
+                var slideTo = terms[term+1].id.split(go.prefs.prefix+'term')[1];
+                go.Visual.slideToTerm(slideTo, true);
             }
         }
     },
     slideDown: function() {
         // Slides the view downward one terminal by pushing all the others up.
-        var terms = GateOne.Utils.toArray(document.getElementsByClassName(GateOne.prefs.prefix+'terminal')),
+        var go = GateOne,
+            u = go.Utils,
+            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
             count = 0,
             term = 0;
         if (terms.length > 2) {
             terms.forEach(function(termObj) {
-                if (termObj.id == GateOne.prefs.prefix+'term' + localStorage['selectedTerminal']) {
+                if (termObj.id == go.prefs.prefix+'term' + localStorage['selectedTerminal']) {
                     term = count;
                 }
                 count = count + 1;
             });
             if (terms[term+2]) {
-                var slideTo = terms[term+2].id.split(GateOne.prefs.prefix+'term')[1];
-                GateOne.Visual.slideToTerm(slideTo, true);
+                var slideTo = terms[term+2].id.split(go.prefs.prefix+'term')[1];
+                go.Visual.slideToTerm(slideTo, true);
             }
         }
     },
     slideUp: function() {
         // Slides the view downward one terminal by pushing all the others down.
-        var terms = GateOne.Utils.toArray(document.getElementsByClassName(GateOne.prefs.prefix+'terminal')),
+        var go = GateOne,
+            u = go.Utils,
+            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
             count = 0,
             term = 0;
         if (localStorage['selectedTerminal'] > 1) {
             terms.forEach(function(termObj) {
-                if (termObj.id == GateOne.prefs.prefix+'term' + localStorage['selectedTerminal']) {
+                if (termObj.id == go.prefs.prefix+'term' + localStorage['selectedTerminal']) {
                     term = count;
                 }
                 count = count + 1;
             });
             if (terms[term-2]) {
-                var slideTo = terms[term-2].id.split(GateOne.prefs.prefix+'term')[1];
-                GateOne.Visual.slideToTerm(Math.max(slideTo, 1), true);
+                var slideTo = terms[term-2].id.split(go.prefs.prefix+'term')[1];
+                go.Visual.slideToTerm(Math.max(slideTo, 1), true);
             }
         }
     },
@@ -2318,7 +2327,7 @@ GateOne.Base.update(GateOne.Visual, {
             v = go.Visual,
             pastearea = u.getNode('#'+go.prefs.prefix+'pastearea'),
             controlsContainer = u.getNode('#'+go.prefs.prefix+'controlsContainer'),
-            terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal'));
+            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
         if (goBack == null) {
             goBack == true;
         }
@@ -2372,7 +2381,7 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 count += 1;
                 termObj.onclick = function(e) {
-                    var termID = termObj.id.split(GateOne.prefs.prefix+'term')[1],
+                    var termID = termObj.id.split(go.prefs.prefix+'term')[1],
                         termPre = u.getNode('#'+go.prefs.prefix+'term' + termID + '_pre');
                     localStorage['selectedTerminal'] = termID;
                     v.toggleGridView(false);
@@ -2399,7 +2408,7 @@ GateOne.Base.update(GateOne.Visual, {
     addSquare: function(squareName) {
         // Only called by createGrid; creates a terminal div and appends it to go.Visual.squares
         logDebug('creating: ' + squareName);
-        var terminal = GateOne.Utils.createElement('div', {'id': squareName, 'class': GateOne.prefs.prefix+'terminal', 'style': {'width': GateOne.Visual.goDimensions.w + 'px', 'height': GateOne.Visual.goDimensions.h + 'px'}});
+        var terminal = GateOne.Utils.createElement('div', {'id': squareName, 'class': 'terminal', 'style': {'width': GateOne.Visual.goDimensions.w + 'px', 'height': GateOne.Visual.goDimensions.h + 'px'}});
         GateOne.Visual.squares.push(terminal);
     },
     createGrid: function(id, terminalNames) {
@@ -2439,16 +2448,16 @@ GateOne.Base.update(GateOne.Terminal, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             p = u.createElement('p', {'id': prefix+'info_actions', 'style': {'padding-bottom': '0.4em'}}),
-            tableDiv = u.createElement('div', {'class': prefix+'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            tableDiv2 = u.createElement('div', {'class': prefix+'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            toolbarClose = u.createElement('div', {'id': prefix+'icon_closeterm', 'class': prefix+'toolbar', 'title': "Close This Terminal"}),
-            toolbarNewTerm = u.createElement('div', {'id': prefix+'icon_newterm', 'class': prefix+'toolbar', 'title': "New Terminal"}),
-            toolbarInfo = u.createElement('div', {'id': prefix+'icon_info', 'class': prefix+'toolbar', 'title': "Terminal Info"}),
-            infoPanel = u.createElement('div', {'id': prefix+'panel_info', 'class': prefix+'panel'}),
-            infoPanelRow1 = u.createElement('div', {'class': prefix+'paneltablerow', 'id': prefix+'panel_inforow1'}),
-            infoPanelRow2 = u.createElement('div', {'class': prefix+'paneltablerow', 'id': prefix+'panel_inforow2'}),
-            infoPanelRow3 = u.createElement('div', {'class': prefix+'paneltablerow', 'id': prefix+'panel_inforow3'}),
-            infoPanelRow4 = u.createElement('div', {'class': prefix+'paneltablerow', 'id': prefix+'panel_inforow4'}),
+            tableDiv = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            tableDiv2 = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            toolbarClose = u.createElement('div', {'id': prefix+'icon_closeterm', 'class': 'toolbar', 'title': "Close This Terminal"}),
+            toolbarNewTerm = u.createElement('div', {'id': prefix+'icon_newterm', 'class': 'toolbar', 'title': "New Terminal"}),
+            toolbarInfo = u.createElement('div', {'id': prefix+'icon_info', 'class': 'toolbar', 'title': "Terminal Info"}),
+            infoPanel = u.createElement('div', {'id': prefix+'panel_info', 'class': 'panel'}),
+            infoPanelRow1 = u.createElement('div', {'class': 'paneltablerow', 'id': prefix+'panel_inforow1'}),
+            infoPanelRow2 = u.createElement('div', {'class': 'paneltablerow', 'id': prefix+'panel_inforow2'}),
+            infoPanelRow3 = u.createElement('div', {'class': 'paneltablerow', 'id': prefix+'panel_inforow3'}),
+            infoPanelRow4 = u.createElement('div', {'class': 'paneltablerow', 'id': prefix+'panel_inforow4'}),
             infoPanelH2 = u.createElement('h2', {'id': prefix+'termtitle'}),
             infoPanelTimeLabel = u.createElement('span', {'id': prefix+'term_time_label', 'style': {'display': 'table-cell'}}),
             infoPanelTime = u.createElement('span', {'id': prefix+'term_time', 'style': {'display': 'table-cell'}}),
@@ -2510,7 +2519,7 @@ GateOne.Base.update(GateOne.Terminal, {
             var term = localStorage['selectedTerminal'],
                 monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                 monitorActivity = u.getNode('#'+prefix+'monitor_activity'),
-                termTitle = u.getNode('#' + prefix + 'term' + term).title;
+                termTitle = u.getNode('#'+prefix+'term'+term).title;
             if (monitorInactivity.checked) {
                 var inactivity = function() {
                     go.Terminal.notifyInactivity(termTitle);
@@ -2614,7 +2623,7 @@ GateOne.Base.update(GateOne.Terminal, {
                 consoleLog = data.log, // Only used when debugging
                 screenUpdate = false,
                 terminalObj = {},
-                termTitle = u.getNode('#' + prefix + 'term' + term).title,
+                termTitle = u.getNode('#'+prefix+'term'+term).title,
                 reScrollback = u.partial(go.Visual.enableScrollback, term);
             if (term && go.terminals[term]) {
                 terminalObj = go.terminals[term];
@@ -2625,9 +2634,9 @@ GateOne.Base.update(GateOne.Terminal, {
             if (screen) {
                 try {
                     terminalObj['screen'] = screen;
-                    var termContainer = u.getNode('#'+prefix+'term' + term),
-                        existingPre = u.getNode('#'+prefix+'term' + term + '_pre'),
-                        termPre = u.createElement('pre', {'id': prefix+'term' + term + '_pre'});
+                    var termContainer = u.getNode('#'+prefix+'term'+term),
+                        existingPre = u.getNode('#'+prefix+'term'+term+'_pre'),
+                        termPre = u.createElement('pre', {'id': prefix+'term'+term+'_pre'});
                     termPre.innerHTML = screen.join('\n') + '\n\n';
                     if (existingPre) {
                         termContainer.replaceChild(termPre, existingPre);
@@ -2820,7 +2829,7 @@ GateOne.Base.update(GateOne.Terminal, {
             go.terminals[term]['scrollback'] = blankLines;
         }
         // Add the terminal div to the grid
-        var terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': go.prefs.prefix+'terminal'}),
+        var terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': 'terminal'}),
         // Get any previous term's dimensions so we can use them for the new terminal
             termSettings = {
                 'term': term,
@@ -2835,7 +2844,7 @@ GateOne.Base.update(GateOne.Terminal, {
         // Tell the server to create a new terminal process
         go.ws.send(JSON.stringify({'new_terminal': termSettings}));
         // Fix the width/height of all terminals (including the one we just created)
-        var terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal'));
+        var terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
         terms.forEach(function(termObj) {
         // Set the dimensions of each terminal to the full width/height of the window
             termObj.style.width = go.Visual.goDimensions.w + 'px';
@@ -2871,7 +2880,7 @@ GateOne.Base.update(GateOne.Terminal, {
         // Also remove it from working memory
         delete go.terminals[term];
         // Now find out what the previous terminal was and move to it
-        var terms = u.toArray(document.getElementsByClassName(go.prefs.prefix+'terminal'));
+        var terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
         go.Visual.displayMessage(message);
         terms.forEach(function(termObj) {
             lastTerm = termObj;

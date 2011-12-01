@@ -5,11 +5,11 @@ var document = window.document; // Have to do this because we're sandboxed
 var noop = GateOne.Utils.noop;
 
 // Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = null;
-var logError = null;
-var logWarning = null;
-var logInfo = null;
-var logDebug = null;
+var logFatal = noop;
+var logError = noop;
+var logWarning = noop;
+var logInfo = noop;
+var logDebug = noop;
 
 // Tunable playback prefs
 GateOne.prefs.playbackFrames = 200; // Maximum number of session recording frames to store (in memory--for now)
@@ -24,17 +24,19 @@ GateOne.Playback.frameRate = 15; // Approximate
 GateOne.Playback.frameInterval = Math.round(1000/GateOne.Playback.frameRate); // Needs to be converted to ms
 GateOne.Base.update(GateOne.Playback, {
     init: function() {
-        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
-        logFatal = GateOne.Logging.logFatal || noop;
-        logError = GateOne.Logging.logError || noop;
-        logWarning = GateOne.Logging.logWarning || noop;
-        logInfo = GateOne.Logging.logInfo || noop;
-        logDebug = GateOne.Logging.logDebug || noop;
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
             p = u.getNode('#'+prefix+'info_actions'),
             infoPanelSaveRecording = u.createElement('button', {'id': prefix+'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
+        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
+        if (go.Logging) {
+            logFatal = go.Logging.logFatal;
+            logError = go.Logging.logError;
+            logWarning = go.Logging.logWarning;
+            logInfo = go.Logging.logInfo;
+            logDebug = go.Logging.logDebug;
+        }
         infoPanelSaveRecording.innerHTML = "View Session Recording";
         infoPanelSaveRecording.onclick = function() {
             go.Playback.saveRecording(localStorage['selectedTerminal']);

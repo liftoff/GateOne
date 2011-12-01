@@ -1144,13 +1144,22 @@ class TerminalWebSocket(WebSocketHandler):
     def refresh_screen(self, term, full=False):
         """
         Writes the state of the given terminal's screen and scrollback buffer to
-        the client.
+        the client using self._send_refresh().  Also ensures that screen updates
+        don't get sent too fast to the client by instituting a rate limiter that
+        also forces a refresh every 150ms.  This keeps things smooth on the
+        client side and also reduces the bandwidth used by the application (CPU
+        too).
+
         If *full*, send the whole screen (not just the difference).
         """
-        # Commented this out because it was getting annoying in my debugging.
+        # Commented this out because it was getting annoying.
+        # Note to self: add more levels of debugging beyond just "debug".
         #logging.debug(
             #"refresh_screen (full=%s) on %s" % (full, self.callback_id))
-        term = int(term)
+        if term:
+            term = int(term)
+        else:
+            return # This just prevents an exception when the cookie is invalid
         try:
             msec = timedelta(milliseconds=50) # Keeps things smooth
             # In testing, 150 milliseconds was about as low as I could go and
@@ -1162,6 +1171,14 @@ class TerminalWebSocket(WebSocketHandler):
             sess = SESSIONS[self.session][term]
             multiplex = sess['multiplex']
             refresh = partial(self._send_refresh, term, full)
+            # We impose a rate limit of max one screen update every 50ms by
+            # wrapping the call to _send_refresh() in an IOLoop timeout that
+            # gets cancelled and replaced if screen updates come in faster than
+            # once every 50ms.  If screen updates are consistently faster than
+            # that (e.g. a key is held down) we also force sending the screen
+            # to the client every 150ms.  This ensures that no matter how fast
+            # screen updates are happening the user will get at least one
+            # update every 150ms.  It works out quite nice, actually.
             if sess['refresh_timeout']:
                 multiplex.io_loop.remove_timeout(sess['refresh_timeout'])
             if timediff > force_refresh_threshold:

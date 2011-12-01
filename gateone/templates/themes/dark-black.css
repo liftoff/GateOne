@@ -19,16 +19,19 @@
     /* Future CSS3 standard */
     transition: all 1.0s ease-in-out;
 }
-.about_gateone ul {
+#{{container}} .pointer {
+    cursor: pointer;
+}
+#{{container}} .about_gateone ul {
     list-style-type: none;
     padding-left: 1.5em;
     padding-top: 0.5em;
     padding-bottom: 0.5em;
 }
-.about_gateone li:before {
+#{{container}} .about_gateone li:before {
     content: "⎚ ";
 }
-.sectrans {
+#{{container}} .sectrans {
     /* WebKit */
     -webkit-transform-origin: top right;
     -webkit-transition: all 1s ease-in-out;
@@ -36,13 +39,21 @@
     -moz-transition: all 1s ease-in-out;
     -moz-transform-origin: top right;
     /* Opera */
-    -o-transition: all 1s ease-in-out;
-    -o-transform-origin: top right;
+    -o-transition-property: all;
+    -o-transition-duration: 1s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: right top;
+    /* KHTML */
+    -khtml-transform-origin: top right;
+    -khtml-transition: all 1s ease-in-out;
+    /* IE 9+ */
+    -ms-transform-origin: top right;
+    -ms-transition: all 1s ease-in-out;
     /* Future CSS3 standard */
     transform-origin: top right;
     transition: all 1s ease-in-out;
 }
-.sectransform {
+#{{container}} .sectransform {
     /* For only transform effects */
     /* WebKit */
     -webkit-transform-origin: top right;
@@ -51,13 +62,21 @@
     -moz-transition: -moz-transform 1s ease-in-out;
     -moz-transform-origin: top right;
     /* Opera */
-    -o-transition: -o-transform 1s ease-in-out;
-    -o-transform-origin: top right;
+    -o-transition-property: -o-transform;
+    -o-transition-duration: 1s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: right top;
+    /* KHTML */
+    -khtml-transform-origin: top right;
+    -khtml-transition: -khtml-transform 1s ease-in-out;
+    /* IE 9+ */
+    -ms-transform-origin: top right;
+    -ms-transition: -ms-transform 1s ease-in-out;
     /* Future CSS3 standard */
     transform-origin: top right;
     transition: transform 1s ease-in-out;
 }
-.halfsectrans {
+#{{container}} .halfsectrans {
     /* WebKit */
     -webkit-transform-origin: top right;
     -webkit-transition: all 0.5s ease-in-out;
@@ -65,11 +84,63 @@
     -moz-transition: all 0.5s ease-in-out;
     -moz-transform-origin: top right;
     /* Opera */
-    -o-transition: all 0.5s ease-in-out;
-    -o-transform-origin: top right;
+    -o-transition-property: all;
+    -o-transition-duration: 0.5s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: right top;
+    /* KHTML */
+    -khtml-transform-origin: top right;
+    -khtml-transition: all 0.5s ease-in-out;
+    /* IE 9+ */
+    -ms-transform-origin: top right;
+    -ms-transition: all 0.5s ease-in-out;
     /* Future CSS3 standard */
     transform-origin: top right;
     transition: all 0.5s ease-in-out;
+}
+#{{container}} .quartersectrans {
+    /* WebKit */
+    -webkit-transform-origin: top right;
+    -webkit-transition: all 0.25s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 0.25s ease-in-out;
+    -moz-transform-origin: top right;
+    /* Opera */
+    -o-transition-property: all;
+    -o-transition-duration: 0.25s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: right top;
+    /* KHTML */
+    -khtml-transform-origin: top right;
+    -khtml-transition: all 0.25s ease-in-out;
+    /* IE 9+ */
+    -ms-transform-origin: top right;
+    -ms-transition: all 0.25s ease-in-out;
+    /* Future CSS3 standard */
+    transform-origin: top right;
+    transition: all 0.25s ease-in-out;
+}
+#{{container}} .superfasttrans {
+    /* WebKit */
+    -webkit-transform-origin: top left;
+    -webkit-transition: all 0.1s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 0.1s ease-in-out;
+    -moz-transform-origin: top left;
+    /* Opera */
+    -o-transition-property: all;
+    -o-transition-duration: 0.1s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: left top;
+    /* KHTML */
+    -khtml-transform-origin: top right;
+    -khtml-transition: all 0.1s ease-in-out;
+    /* IE 9+ */
+    -ms-transform-origin: top right;
+    -ms-transition: all 0.1s ease-in-out;
+    /* Future CSS3 standard */
+    transform-origin: top left;
+    transition: all 0.1s ease-in-out;
 }
 #{{container}} textarea {
     background-color: #000;
@@ -79,7 +150,7 @@
     font-family: monospace;
     font-size: 0.8em;
 }
-.{{prefix}}terminal {
+#{{container}} .terminal {
     background-color: #000; /* Black - dark black! */
     color: #fff;
     position:static;
@@ -94,13 +165,13 @@
     /* Future CSS3 standard */
     transition: all 1.0s ease-in-out;
 }
-.{{prefix}}terminal a {
+#{{container}} .terminal a {
     color: #90A3C5;
 }
-.{{prefix}}terminal a:visited {
+#{{container}} .terminal a:visited {
     color: #90A3C5;
 }
-.{{prefix}}terminal pre {
+#{{container}} .terminal pre {
     font-family: monospace;
     /*height: auto;*/ /* Needs to be 100% when scrollback is enabled */
     width: 100%;
@@ -174,7 +245,7 @@
     color: #fff;
     text-align: right;
 }
-.{{prefix}}toolbar {
+#{{container}} .toolbar {
     float: right;
     clear: both;
     opacity: .75;
@@ -189,11 +260,11 @@
     /* Future CSS3 standard */
     transition: all 1.0s ease-in-out;
 }
-.{{prefix}}toolbar:hover {
+#{{container}} .toolbar:hover {
     opacity: 1;
     cursor:pointer;
 }
-.{{prefix}}toolbar:target {
+#{{container}} .toolbar:target {
     -webkit-transform:rotate(180deg);
     -moz-transform:rotate(180deg);
     -o-transform:rotate(180deg);
@@ -250,7 +321,7 @@
 .go_none { /* No prefix on this one because of issues with that in the JS code */
     display: none;
 }
-.{{prefix}}sideinfo {
+#{{container}} .sideinfo {
     -webkit-transform: rotate(90deg);
     -webkit-transform-origin: right bottom;
     -moz-transform: rotate(90deg);
@@ -286,7 +357,7 @@
     padding: 0.5em;
     margin: 1em;
 }
-.{{prefix}}sidepanel {
+#{{container}} .sidepanel {
     /* WebKit */
     -webkit-transition: -webkit-transform 1.0s ease-in-out;
     /* Firefox */
@@ -344,7 +415,7 @@
     opacity: 0.7;
     font-size: 0.7em;
 }
-.{{prefix}}panel {
+#{{container}} .panel {
     position:absolute;
     top:1em;
     right:3.4em;
@@ -376,30 +447,30 @@
     transition: all 0.5s ease-in-out;
     border: 0.1em #fff outset;
 }
-.{{prefix}}panel h2 {
+#{{container}} .panel h2 {
     font-size: 1.5em;
     border-bottom: 0.1em #000 solid;
     position: relative;
     margin-bottom: 0.2em;
 }
-.{{prefix}}panel h3 {
+#{{container}} .panel h3 {
     font-size: 1.2em;
     border-bottom: 0.1em #000 solid;
     position: relative;
     margin-bottom: 0.2em;
 }
-.{{prefix}}panel a {
+#{{container}} .panel a {
     color: #3169C3;
     text-decoration: none;
     font-weight: bold;
 }
-.{{prefix}}panel a:hover {
+#{{container}} .panel a:hover {
     color: maroon;
 }
-.{{prefix}}panel a:visited {
+#{{container}} .panel a:visited {
     color: #3169C3;
 }
-.{{prefix}}paneltable {
+#{{container}} .paneltable {
     position: relative;
     width: 35em;
     background-color: #000;
@@ -408,31 +479,31 @@
     margin-bottom: 0.2em;
     border: 0.1em #fff solid;
 }
-.{{prefix}}paneltablerow {
+#{{container}} .paneltablerow {
     display: table-row;
     padding-bottom: 0.3em;
 }
-.{{prefix}}paneltablerow select, input {
-    text-align: right;
+#{{container}} .paneltablerow select, input {
+/*     text-align: right; */
     margin-right: 0.5em;
     background-color: #000;
     color: #fff;
 }
-.{{prefix}}paneltablelabel {
+#{{container}} .paneltablelabel {
     display: table-cell;
     width: 75%;
 }
-.{{prefix}}paneltablecell {
+#{{container}} .paneltablecell {
     display: table-cell;
     padding-left: 1em;
 }
-.{{prefix}}panel_close_icon {
+#{{container}} .panel_close_icon {
     position: absolute;
     opacity: .75;
     right: 0;
     top: 0;
 }
-.{{prefix}}panel_close_icon:hover {
+#{{container}} .panel_close_icon:hover {
     opacity: 1;
     cursor:pointer;
 }
@@ -440,7 +511,7 @@
     min-width: 50%;
     min-height: 50%;
 }
-.{{prefix}}bookmark {
+#{{container}} .bookmark {
     position: relative;
     background-color: #000;
     color: #fff;
@@ -455,26 +526,26 @@
    /* Opera 11.10+ */
    background-image: -o-linear-gradient(#000, #222);
 }
-.{{prefix}}bookmark a {
+#{{container}} .bookmark a {
     color: #3169C3;
     display: inline;
     text-decoration: none;
 }
-.{{prefix}}bookmark a:hover {
+#{{container}} .bookmark a:hover {
     color: #fff;
     background-color: #3169C3;
 }
-.{{prefix}}bookmark a:visited {
+#{{container}} .bookmark a:visited {
     color: #3169C3;
 }
-.{{prefix}}bookmark ul {
+#{{container}} .bookmark ul {
     display: inline;
     font-size: 0.8em;
     position: absolute;
     bottom: 0;
     right: 0;
 }
-.{{prefix}}bookmark ul li {
+#{{container}} .bookmark ul li {
     margin-left: 0.1em;
     padding-left: 0.2em;
     padding-right: 0.2em;
@@ -484,12 +555,12 @@
     background-color: #333;
     color: white;
 }
-.{{prefix}}bookmark ul li:hover {
+#{{container}} .bookmark ul li:hover {
     color: #fff;
     background-color: #3169C3;
     cursor: pointer;
 }
-.{{prefix}}bookmark ul li.first {
+#{{container}} .bookmark ul li.first {
     margin-left: 0;
     border-left: none;
     list-style: none;
@@ -510,7 +581,7 @@
 #{{prefix}}bm_tagcloud_ul {
     display: inline;
 }
-.{{prefix}}bm_tag {
+#{{container}} .bm_tag {
     margin: 0.2em;
     padding-left: 0.2em;
     padding-right: 0.2em;
@@ -520,38 +591,38 @@
     background-color: #333;
     color: white;
 }
-.{{prefix}}bm_tag:hover {
+#{{container}} .bm_tag:hover {
     color: #fff;
     background-color: #3169C3;
     cursor: pointer;
 }
-.{{prefix}}bm_controls {
+#{{container}} .bm_controls {
     position: absolute;
     bottom: 0;
     left: 0;
     font-size: 0.6em;
     text-transform: uppercase;
 }
-.{{prefix}}bm_controls a {
+#{{container}} .bm_controls a {
     padding-left: 0.1em;
     padding-right: 0.1em;
 }
-.{{prefix}}bm_controls a:hover {
+#{{container}} .bm_controls a:hover {
     color: #fff;
     background-color: #CC0003;
 }
-.{{prefix}}bm_uri {
+#{{container}} .bm_uri {
     float: left;
     padding-left: 0.2em;
 }
-.{{prefix}}bm_uri a:hover {
+#{{container}} .bm_uri a:hover {
     color: #fff;
     background-color: #3169C3;
 }
-.{{prefix}}bm_url {
+#{{container}} .bm_url {
     font-weight: bold;
 }
-.{{prefix}}bm_visited {
+#{{container}} .bm_visited {
     float: right;
     clear: right;
     padding: 0.2em;
@@ -559,7 +630,7 @@
     color: white;
     font-size: 0.9em;
 }
-.{{prefix}}bm_visited:hover {
+#{{container}} .bm_visited:hover {
     background-color: #000;
     cursor: pointer;
 }
@@ -631,7 +702,7 @@
     color: #3169C3;
     padding-bottom: 0.2em;
 }
-.{{prefix}}bm_desc {
+#{{container}} .bm_desc {
     padding: 0.4em;
 }
 #{{prefix}}bm_sort_direction {
@@ -742,6 +813,7 @@
     margin-top: -5.6em;
     width: 98%;
     height: 5em;
+    font-size: 1.2em;
 }
 #{{container}} .medium {
     height: 5em;

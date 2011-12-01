@@ -2189,7 +2189,9 @@ class Terminal(object):
                         data_uri, im.size[0], im.size[1])
                     continue
                 changed = True
-                if char in "<>": # Have to convert lt/gt to HTML entities
+                if char in "&<>":
+                    # Have to convert ampersands and lt/gt to HTML entities
+                    char = char.replace('&', '&amp;')
                     char = char.replace('<', '&lt;')
                     char = char.replace('>', '&gt;')
                 if rend == prev_rendition:
@@ -2315,7 +2317,9 @@ class Terminal(object):
                         data_uri, im.size[0], im.size[1])
                     continue
                 changed = True
-                if char in "<>":
+                if char in "&<>":
+                    # Have to convert ampersands and lt/gt to HTML entities
+                    char = char.replace('&', '&amp;')
                     char = char.replace('<', '&lt;')
                     char = char.replace('>', '&gt;')
                 if rend == prev_rendition:

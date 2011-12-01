@@ -7,11 +7,11 @@ var document = window.document; // Have to do this because we're sandboxed
 var noop = GateOne.Utils.noop;
 
 // Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = null;
-var logError = null;
-var logWarning = null;
-var logInfo = null;
-var logDebug = null;
+var logFatal = noop;
+var logError = noop;
+var logWarning = noop;
+var logInfo = noop;
+var logDebug = noop;
 
 // GateOne.Help (functions related to the help menu/panel)
 GateOne.Base.module(GateOne, "Help", "0.9", ['Base']);
@@ -22,9 +22,9 @@ GateOne.Base.update(GateOne.Help, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             helpContent = u.createElement('p', {'id': prefix+'help_content', 'class': 'sectrans', 'style': {'padding-bottom': '0.4em'}}),
-            helpPanel = u.createElement('div', {'id': prefix+'panel_help', 'class': prefix+'panel', 'style': {'width': '90%'}}),
+            helpPanel = u.createElement('div', {'id': prefix+'panel_help', 'class': 'panel', 'style': {'width': '90%'}}),
             helpPanelH2 = u.createElement('h2', {'id': prefix+'help_title'}),
-            helpPanelClose = u.createElement('div', {'id': prefix+'icon_closehelp', 'class': prefix+'panel_close_icon', 'title': "Close This Panel"}),
+            helpPanelClose = u.createElement('div', {'id': prefix+'icon_closehelp', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
             helpPanelSections = u.createElement('span', {'id': prefix+'help_sections'}),
             helpPanelUL = u.createElement('ul', {'id': prefix+'help_ol', style: {'margin-left': '1em', 'padding-left': '1em'}}),
             helpPanelAbout = u.createElement('li'),
@@ -32,6 +32,14 @@ GateOne.Base.update(GateOne.Help, {
             helpPanelDocs = u.createElement('li'),
             helpPanelDocsAnchor = u.createElement('a', {'id': prefix+'help_docs'}),
             goDiv = u.getNode(go.prefs.goDiv);
+        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
+        if (go.Logging) {
+            logFatal = go.Logging.logFatal;
+            logError = go.Logging.logError;
+            logWarning = go.Logging.logWarning;
+            logInfo = go.Logging.logInfo;
+            logDebug = go.Logging.logDebug;
+        }
         // Create our info panel
         helpPanelH2.innerHTML = "Gate One Help";
         helpPanelClose.innerHTML = go.Icons['panelclose'];
@@ -90,7 +98,7 @@ GateOne.Base.update(GateOne.Help, {
             prefix = go.prefs.prefix,
             helpContent = u.getNode('#'+prefix+'help_content'),
             helpPanel = u.getNode('#'+prefix+'panel_help'),
-            helpNav = u.createElement('div', {'id': prefix+'help_nav', 'class': prefix+'panel_nav sectrans', 'style': {'padding-bottom': '0.5em'}}),
+            helpNav = u.createElement('div', {'id': prefix+'help_nav', 'class': 'panel_nav sectrans', 'style': {'padding-bottom': '0.5em'}}),
             helpBack = u.createElement('a', {'id': prefix+'help_back'}),
             newHelpContent = u.createElement('p', {'id': prefix+'help_section', 'class': 'sectrans', 'style': {'padding-bottom': '0.4em'}});
         var displayHelp = function(helpText) {

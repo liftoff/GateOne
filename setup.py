@@ -5,9 +5,12 @@ from distutils.core import setup
 import sys, os
 
 version = '0.9'
-install_path = '/opt'
+prefix = '/opt'
+for arg in sys.argv:
+    if arg.startswith('--prefix') or arg.startswith('--home'):
+        prefix = arg.split('=')[1]
 
-def walk_data_files(path, install_path="/opt"):
+def walk_data_files(path, install_path=prefix):
     """
     Walks *path* and returns a list suitable for use in data_files.
     *install_path* will be used as the base installation path of the output.
@@ -20,6 +23,7 @@ def walk_data_files(path, install_path="/opt"):
             del dirs[dirs.index(".git")]
         thesefiles = []
         final_path = os.path.join(install_path, dirpath)
+        print("final path: %s" % final_path)
         for fname in filenames:
             file_path = os.path.join(dirpath, fname)
             thesefiles.append(file_path)
@@ -28,7 +32,7 @@ def walk_data_files(path, install_path="/opt"):
 
 # Take care of our data files
 gateone_files=[ # Start with the basics...
-    (install_path + '/gateone', [
+    (prefix + '/gateone', [
         'gateone/auth.py',      # Yes, we're treating Python files as data files
         'gateone/gateone.py',   # ...because Gate One is not a module.
         'LICENSE.txt',          # Why bother?  Because users are familiar with

@@ -17,7 +17,7 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
 import os, sys, errno, readline, tempfile, base64, binascii, struct
-from subprocess import Popen, check_output
+from subprocess import Popen
 from optparse import OptionParser
 
 # Import 3rd party stuff
