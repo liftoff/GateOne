@@ -504,9 +504,7 @@
     padding-bottom: 0.3em;
 }
 #{{container}} .paneltablerow select, input {
-/*     width: 100%; */
-/*     text-align: right; */
-    margin-right: 0.5em;
+    margin-right: 0.1em;
 }
 #{{container}} .paneltablelabel {
     display: table-cell;

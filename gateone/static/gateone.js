@@ -161,16 +161,20 @@ GateOne.Base.update(GateOne, {
     // This starts up GateOne using the given settings (*prefs*)
     init: function(prefs) {
         // Before we do anything else, load our prefs
+        var go = GateOne,
+            u = go.Utils;
         // Update GateOne.prefs with the settings provided in the calling page
         for (var setting in prefs) {
-            GateOne.prefs[setting] = prefs[setting];
+            go.prefs[setting] = prefs[setting];
         }
         // Now override them with the user's settings (if present)
         if (localStorage['prefs']) {
-            GateOne.Utils.loadPrefs();
+            u.loadPrefs();
         }
+        // Load our CSS theme
+        u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
         // Load Plugins (GateOne.initialize is passed as a callback)
-        GateOne.Utils.loadPlugins(GateOne.initialize);
+        u.loadPlugins(go.initialize);
     },
     initialize: function() {
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
@@ -401,8 +405,6 @@ GateOne.Base.update(GateOne, {
             go.Visual.togglePanel('#'+prefix+'panel_prefs');
         }
         toolbarIconPrefs.onclick = showPrefs;
-        // Load our CSS theme
-        u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
         var grid = go.Visual.createGrid(prefix+'termwrapper');
         goDiv.appendChild(grid);
         var style = window.getComputedStyle(goDiv, null),

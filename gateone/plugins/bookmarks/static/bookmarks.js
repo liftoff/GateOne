@@ -72,6 +72,8 @@ GateOne.Base.update(GateOne.Bookmarks, {
         // Setup our toolbar icons and actions
         go.Icons['bookmark'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="17.117" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop class="stop1" offset="0"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>';
         toolbarBookmarks.innerHTML = go.Icons['bookmark'];
+        // This is the favicon that gets used for SSH URLs (used by updateIcon())
+        go.Icons['ssh'] = 'data:image/x-icon;base64,AAABAAIABQkAAAEAIAAAAQAAJgAAABAQAAABAAgAaAUAACYBAAAoAAAABQAAABIAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////SP///0j///9I////SP///w////8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A+AAAAPgAAAD4AAAA+AAAAPgAAAD4AAAA+AAAAPgAAAD4AAAAKAAAABAAAAAgAAAAAQAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACcnJwAoKSkAKikpACorKgArKysAKywrACwtLAAtLi0ALi4tAC0uLgAuLy4ALi8vAC8wLwAwMC8AMDAwADAxMAAxMjAAMTIxADIzMQAyMzIAMjMzADI0MgAyNDMAMzQ0ADQ0NAAzNTQANDU0ADQ2NAA0NjUANTY1ADU2NgA1NzUANjc2ADY3NwA3ODcANjg4ADc5NwA3OTgAODk4ADg5OQA4OjkAOTo5ADk6OgA5OzoAOjs6ADo7OwA6PDsAOzw7ADw9PAA8PjwAPD49ADw+PgA9Pz4APT8/AD1APgA/QD8AP0E/AEBBQQBAQkAAQEJBAEFCQQBBQ0IAQkRCAEJEQwBDRUMAREZFAEZIRwBGSUYAR0lHAEdKSABHSkkASEtJAElMSgBKTUsAS05MAE5QTwBnaGcAkXBUAG1wbgB+f34AgoOCAMOLWgDQlmMAj5CQAJCRkQChoqEAsrOyALO0swC3t7cAvL29AL29vQC+v74AxcXFAMbGxgDHx8cAyMjIAMrKygDLy8sAzMzMAM3NzQDOzs4Az8/PANHR0QDS0tIA1NTUANbW1gDb29sA39/fAOTk5ADo6OgA6enpAO3t7QDv7+8A8fHxAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABzc3Nzc3Nzc3Nzc3Nzc3Nzc1xoaGhoaGhoaGhoaGhac3NlNjEtJiEYEQ0IBQIAXXNzZDk0MC4kHxcRDAcEAV1zc2M9ODRPKSQdFBALBgNdc3NiQExVW1AoIhsVDwoGXnNzYUE/O1NXLighGRMOCV9zc2FDS1ZYNDAsJh0aEgxgc3NhRk5XNDQ0LyojHBYRYnNzYUhFVFlUODMvKCEcFGVzc2FKR0RUQDw3MiwnIBpmc3NhSklHQkE+OjUyKyUeZ3NzaGZpamtsbW9wbmxramhzc2hNcnJycnJycnJycmhNc3NRYWFhYXFRUVFRUVFRUXNzUVFRUVFRUVFRUVFRUlJz//8AAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAA==';
         var showBookmarks = function() {
             go.Visual.togglePanel('#'+go.prefs.prefix+'panel_bookmarks');
         }
@@ -89,6 +91,19 @@ GateOne.Base.update(GateOne.Bookmarks, {
         b.sortfunc = function(a,b) { if (a.visits > b.visits) { return -1 } else { return 1 } };
         b.createPanel();
         b.loadBookmarks(b.sort);
+        setTimeout(function() {
+            // Create or complete the icon fetching queue
+            if (!localStorage[prefix+'iconQueue']) {
+                localStorage[prefix+'iconQueue'] = "";
+            } else {
+                b.flushIconQueue();
+            }
+        }, 3000);
+        // Setup a callback that re-draws the bookmarks panel whenever it is opened
+        if (!go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_bookmarks']) {
+            go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_bookmarks'] = {};
+        }
+        go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_bookmarks']['createPanel'] = b.createPanel;
     },
     sortFunctions: {
         visits: function(a,b) {
@@ -123,10 +138,11 @@ GateOne.Base.update(GateOne.Bookmarks, {
         }
     },
     storeBookmarks: function(bookmarks, /*opt*/recreatePanel, skipTags) {
-        // Takes an array of bookmarks and stores them in both GateOne.Bookmarks.bookmarks and using GateOne.Bookmarks.Storage
+        // Takes an array of bookmarks and stores them in both GateOne.Bookmarks.bookmarks
         // If *recreatePanel* is true, the panel will be re-drawn after bookmarks are stored.
-        // If *skipTags* is true, bookmark tags will be ignored when saving the bookmark object (necessary since Evernote will return notes with missing tags after you add new ones on the first save)
+        // If *skipTags* is true, bookmark tags will be ignored when saving the bookmark object.
         var go = GateOne,
+            prefix = go.prefs.prefix,
             b = go.Bookmarks,
             count = 0;
         bookmarks.forEach(function(bookmark) {
@@ -134,7 +150,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             var conflictingBookmark = false,
                 deletedBookmark = false;
             // Add a trailing slash to URLs like http://liftoffsoftware.com
-            if (bookmark.url.split('/').length == 3) {
+            if (bookmark.url.slice(0,4) == "http" && bookmark.url.indexOf('/', 7) == -1) {
                 bookmark.url += '/';
             }
             // Check if this is our "Deleted Bookmarks" bookmark
@@ -154,13 +170,13 @@ GateOne.Base.update(GateOne.Bookmarks, {
             });
             if (conflictingBookmark) {
                 if (parseInt(conflictingBookmark.updated) < parseInt(bookmark.updated)) {
-                    // Evernote is newer; overwrite it
+                    // Server is newer; overwrite it
                     if (skipTags) {
                         bookmark.tags = conflictingBookmark.tags; // Use the old ones
                     }
                     b.createOrUpdateBookmark(bookmark);
                 } else if (parseInt(conflictingBookmark.updateSequenceNum) < parseInt(bookmark.updateSequenceNum)) {
-                    // Evernote isn't newer but it has a higher USN.  So just update this bookmark's USN to match
+                    // Server isn't newer but it has a higher USN.  So just update this bookmark's USN to match
                     b.updateUSN(bookmark);
                     conflictingBookmark.updateSequenceNum = bookmark.updateSequenceNum;
                     if (bookmark.updateSequenceNum > parseInt(localStorage[prefix+'USN'])) {
@@ -194,15 +210,228 @@ GateOne.Base.update(GateOne.Bookmarks, {
         if (recreatePanel) {
             b.createPanel();
         }
-//         b.flushIconQueue();
+        b.flushIconQueue();
         return count;
+    },
+    syncComplete: function(response) {
+        // Called when the initial sync (download) is completed, uploads any pending changes.
+        logDebug('syncComplete()');
+        var go = GateOne,
+            b = go.Bookmarks,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            responseObj = JSON.parse(response);
+        clearInterval(b.syncTimer);
+        if (responseObj['updateSequenceNum']) {
+            localStorage[prefix+'USN'] = parseInt(responseObj['updateSequenceNum']);
+        }
+        if (responseObj['errors'].length == 0) {
+            go.Visual.displayMessage("Synchronization Complete: " + (responseObj['count']) + " bookmarks were updated.");
+            if (responseObj['updates'].length) {
+                // The 'updates' list will include the bookmarks that have been updated so we can update their "updated" and "USN" attributes on the client
+                b.storeBookmarks(responseObj['updates'], true, true);
+            }
+        } else {
+            go.Visual.displayMessage("Synchronization Complete (With Errors): " + (responseObj['count']) + " bookmarks were updated successfully.");
+            // TODO: Log the errors (guess I need the logging module after all!)
+            go.Visual.displayMessage("See the log (Options->View Log) for details.");
+            logError("Synchronization Errors: " + u.items(responseObj['errors'][0]));
+            b.createPanel();
+        }
+        u.getNode('#'+prefix+'bm_sync').innerHTML = "Sync Bookmarks | ";
+        b.toUpload = []; // Reset it
+    },
+    syncBookmarks: function(response) {
+        logDebug('syncBookmarks() response: ' + response + ', response.length: ' + response.length);
+        var go = GateOne,
+            u = go.Utils,
+            b = go.Bookmarks,
+            prefix = go.prefs.prefix,
+            firstTime = false,
+            bookmarks = null,
+            foundDeleted = false,
+            localDiff = [],
+            remoteDiff = [];
+        if (!localStorage[prefix+'deletedBookmarks']) {
+            // If it isn't present as an empty array it can break things.
+            localStorage[prefix+'deletedBookmarks'] = "[]";
+        }
+        if (!b.bookmarks.length) {
+            firstTime = true;
+        }
+        bookmarks = JSON.parse(response);
+        // Process deleted bookmarks before anything else
+        bookmarks.forEach(function(bookmark) {
+            if (bookmark.url == 'web+deleted:bookmarks/') {
+                foundDeleted = true;
+                var deletedBookmarksLocal = JSON.parse(localStorage[prefix+'deletedBookmarks']),
+                    deletedBookmarksServer = JSON.parse(bookmark.notes);
+                // Figure out the differences
+                for (var i in deletedBookmarksLocal) {
+                    var found = false;
+                    for (var n in deletedBookmarksServer) {
+                        if (deletedBookmarksLocal[i].url == deletedBookmarksServer[n].url) {
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        // We need to send these to the server for processing
+                        localDiff.push(deletedBookmarksLocal[i]);
+                    }
+                }
+                for (var i in deletedBookmarksServer) {
+                    var found = false;
+                    for (var n in deletedBookmarksLocal) {
+                        if (deletedBookmarksServer[i].url == deletedBookmarksLocal[n].url) {
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        // We need to process these locally
+                        remoteDiff.push(deletedBookmarksServer[i]);
+                    }
+                }
+                if (localDiff.length) {
+                    b.syncDeletedBookmarks(localDiff);
+                }
+                if (remoteDiff.length) {
+                    for (var i in remoteDiff) {
+                        var callback = function() {
+                            // This is so we don't endlessly sync deleted bookmarks.
+                            localStorage[prefix+'deletedBookmarks'] = "[]";
+                        }
+                        b.deleteBookmark(remoteDiff[i].url, callback);
+                    }
+                }
+                // Fix the USN if the deletedBookmark note has the highest USN
+                if (parseInt(localStorage['USN']) < bookmark.updateSequenceNum) {
+                    localStorage['USN'] = JSON.parse(bookmark.updateSequenceNum);
+                }
+            }
+        });
+        // Remove any deleted bookmarks from the array
+        for (var i in bookmarks) {
+            for (var n in remoteDiff) {
+                if (bookmarks[i].url == remoteDiff[n].url) {
+                    bookmarks.splice(i, 1);
+                }
+            }
+        }
+        if (!foundDeleted) {
+            // Have to upload our deleted bookmarks list (if any)
+            var deletedBookmarks = JSON.parse(localStorage[prefix+'deletedBookmarks']);
+            if (deletedBookmarks.length) {
+                b.syncDeletedBookmarks(deletedBookmarks);
+            }
+        }
+        setTimeout(function() {
+            var count = b.storeBookmarks(bookmarks, false),
+                xhr = new XMLHttpRequest(),
+                handleStateChange = function(e) {
+                    var status = null;
+                    try {
+                        status = parseInt(e.target.status);
+                    } catch(e) {
+                        return;
+                    }
+                    if (e.target.readyState == 4) {
+                        if (status == 200) {
+                            logDebug('syncBookmarks() response text: ' + e.target.responseText);
+                            b.syncComplete(e.target.responseText);
+                        } else {
+                            logError('syncBookmarks() error response: ' + u.items(e.target));
+                        }
+                    }
+                };
+            // This checks if there are new/imported bookmarks
+            b.bookmarks.forEach(function(bookmark) {
+                if (bookmark.updateSequenceNum == 0) { // A USN of 0 means it isn't on the server at all or needs to be synchronized
+                    // Mark it for upload
+                    b.toUpload.push(bookmark);
+                }
+            });
+            // If there *are* new/imported bookmarks, upload them:
+            if (b.toUpload.length) {
+                xhr.addEventListener('readystatechange', handleStateChange, false);
+                xhr.open('POST', '/bookmarks_sync', true);
+                xhr.setRequestHeader("Content-Type", "application/octet-stream");
+                xhr.send(JSON.stringify(b.toUpload));
+            } else {
+                clearTimeout(b.syncTimer);
+                if (!firstTime) {
+                    if (!JSON.parse(localStorage[prefix+'deletedBookmarks']).length) {
+                        // Only say we're done if the deletedBookmarks queue is empty
+                        // Otherwise let the syncDeletedBookmarks function take care of it =)
+                        go.Visual.displayMessage("Synchronization Complete");
+                    }
+                    if (localStorage[prefix+'iconQueue'].length) {
+                        go.Visual.displayMessage("Missing bookmark icons will be retrieved in the background");
+                    }
+                    if (b.highestUSN() > parseInt(localStorage[prefix+'USN'])) {
+                        localStorage[prefix+'USN'] = b.highestUSN();
+                    }
+                } else {
+                    go.Visual.displayMessage("First-Time Synchronization Complete");
+                    go.Visual.displayMessage("Missing bookmark icons will be retrieved in the background");
+                    b.createPanel();
+                    localStorage[prefix+'USN'] = b.highestUSN();
+                }
+                u.getNode('#'+prefix+'bm_sync').innerHTML = "Sync Bookmarks | ";
+            }
+            // Process any pending tag renames
+            if (localStorage[prefix+'renamedTags']) {
+                var renamedTags = JSON.parse(localStorage[prefix+'renamedTags']),
+                    xhr2 = new XMLHttpRequest(),
+                    url = '/bookmarks_renametags',
+                    handleStateChange2 = function(e) {
+                        var status = null;
+                        if (e.target.readyState == 4) {
+                            if (parseInt(e.target.status) == 200) {
+                                delete localStorage[prefix+'renamedTags'];
+                                go.Visual.displayMessage(renamedTags.length + " tags were renamed.");
+                            } else {
+                                logError('syncBookmarks() error response: ' + u.items(e.target));
+                            }
+                        }
+                    };
+                xhr2.addEventListener('readystatechange', handleStateChange2, false);
+                xhr2.open('POST', url, true);
+                xhr2.setRequestHeader("Content-Type", "application/octet-stream");
+                xhr2.send(JSON.stringify(renamedTags));
+            }
+        }, 200);
+    },
+    syncDeletedBookmarks: function(localDiff) {
+        // Handles uploading the bookmarks in localDiff (e.g. [{'url': 'http://whatever/', 'deleted': 1234567890112}])
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            xhr = new XMLHttpRequest(),
+            url = '/bookmarks_delete',
+            handleStateChange = function(e) {
+                var status = null;
+                if (e.target.readyState == 4) {
+                    if (parseInt(e.target.status) == 200) {
+                        localStorage[prefix+'deletedBookmarks'] = "[]";
+                        go.Visual.displayMessage("Synchronization Complete");
+                        go.Visual.displayMessage(localDiff.length + " bookmarks were deleted or marked as such.");
+                    } else {
+                        // TODO: Switch this to using a log() function
+                            logError('Error synchronizing deleted bookmarks... ' + u.items(e.target));
+                    }
+                }
+            };
+        xhr.addEventListener('readystatechange', handleStateChange, false);
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader("Content-Type", "application/octet-stream");
+        xhr.send(JSON.stringify(localDiff));
     },
     loadBookmarks: function(/*opt*/delay) {
         // Loads the user's bookmarks
         // Optionally, a sort function may be supplied that sorts the bookmarks before placing them in the panel.
         // If *ad* is true, an advertisement will be the first item in the bookmarks list
         // If *delay* is given, that will be used to set the delay
-//         console.log("loadBookmarks()");
+        logDebug("loadBookmarks()");
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
@@ -251,11 +480,11 @@ GateOne.Base.update(GateOne.Bookmarks, {
                     'url': "http://liftoffsoftware.com/",
                     'name': "You don't have any bookmarks yet!",
                     'tags': [],
-                    'notes': 'A great way to get started is to import bookmarks or click Evernote Sync.',
+                    'notes': 'A great way to get started is to import bookmarks or click Sync.',
                     'visits': 0,
                     'updated': new Date().getTime(),
                     'created': new Date().getTime(),
-                    'updateSequenceNum': 0, // This will get set when synchronizing with Evernote
+                    'updateSequenceNum': 0,
                     'images': {'favicon': "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sHCBMpEfMvEIMAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAACEUlEQVQoz2M0Lei7f/YIA3FAS02FUcQ2iFtcDi7Ex81poq6ooyTz7cevl+8/nr354Nmb93DZry8fMXPJa7Lx8EP43pYGi2oyIpwt2NlY333+WpcQGO9pw8jAePbm/X///zMwMPz++pEJrrs00ntqUbwQLzcDA8P2Exd3nLzEwMDAwsxcGO6xuCaTmQmqEkqZaSplBjrDNW87cfHinUdwx1jqqKT7O0HYLBAqwcvuzpOXEPb956+fvn7PwMCwfM8JX2tDuGuX7T729SUDCwMDAyc7m5KkaO6ERTcfPUcOk8lrd01eu4uBgUGAh6szM0JPRe7p3RtMDAwMarISGvJSG9sLo1ytMIPSTFNpe0+pu5mulrwU1A+fv/1gYGDgYGNtSwttSApCVu1jZbC8IVtSWICBgeHT1+9QDQ+ev/728xdExYcv35A1vP30BR4+Vx88hWr49///zpOXIKLbT1xkYGDwtNDPD3FnZmI6de3eu89fGRgYHrx4c+3BU0QoNc5fb6On/uX7j4cv3rSlhUI8Y62nlj9x8e7Tl0MdzYunLPv95y8DAwMiaZhqKPnbGplpKqvJSsCd9OHLt3UHT9958nLZnuOQpMEClzt9497Nx8+rYv2E+XiE+XkYGBi+/fx1+e7jpbuP3X36Cq4MPfFBgKSwABcH2/1nryFJCDnxsWipqVy7dQdNw52Xj7Amb0VjGwCOn869WU5D8AAAAABJRU5ErkJggg=="}
             },
                 introVideo = {
@@ -266,7 +495,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 'visits': 0,
                 'updated': new Date().getTime(),
                 'created': new Date().getTime(),
-                'updateSequenceNum': 0, // This will get set when synchronizing with Evernote
+                'updateSequenceNum': 0,
                 'images': {'favicon': "data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAA8uvRAMq/oQDj28EA27crAOjRdwCrhwoAuZQLAODKdwC6r5EAkXs1AODCSgCKd0MA3rw7AP///wDi3dAA/PnwAI9yFwBzWxUAh2kHAL6aCwDAmgsA6taGAM+nDACwjxkA1q0NANfIkwDt3qQAz8ShAI98RADr6OAAlXUIAO3blQCqk0UAtKeCAOndsgCdewkAzsawAOTcwQDg1rIA2bIcALmlZADbvUkAno5iAPX07wDGt4MA8OCkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQUFBQUFBQUFBQUFBQUABQUGRkZGQcXGRkZGRkZFBQUGRkZGR8MEgYZGRkZGRkUFBkZGRcJDiwrBhkZGRkZFBQZGRkYDg4ODisHGRkZGRQUGRkZKQ4ODg4OHRkZGRkUFBkZGQIODhYBDiwRGRkZFBQZGRUeDg4ZCw4OJQcZGRQUByQKDg4mFxknDg4hGRkUFCotDw4OGigTIg4OHBkZFBQoLg4ODggZIywODgMZGRQUGRkgDhAEGQsODg4bGRkUFBkZGQ0EGRkZBBYFKBkZFBQZGRkZGRkZGRkZGRkZGRQUDRkZGRkZGRkZGRkZGQ0UABQUFBQUFBQUFBQUFBQUAIABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAAA="}
             };
             b.createBookmark(bmContainer, welcome, delay, false);
@@ -389,10 +618,9 @@ GateOne.Base.update(GateOne.Bookmarks, {
             pageBookmarks.forEach(function(bookmark) {
                 if (bmCount < bmMax) {
                     if (!bookmark.images) {
-//                         console.log('bookmark missing images: ' + bookmark);
+                        logDebug('bookmark missing images: ' + bookmark);
                     }
                     b.createBookmark(bmContainer, bookmark, delay);
-//                     delay += 25;
                 }
                 bmCount += 1;
             });
@@ -400,56 +628,54 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bookmarks.forEach(function(bookmark) {
                 if (bmCount < bmMax) {
                     b.createBookmark(bmContainer, bookmark, delay);
-//                     delay += 25;
                 }
                 bmCount += 1;
             });
         }
         // Add the pagination query string to the location
-        if (window.history.pushState) {
-            var query = window.location.search.substring(1),
-                newQuery = null,
-                match = false,
-                queries = query.split('&');
-//             console.log('query: ' + query + ', queries: ' + queries);
-            if (b.page > 0) {
-                if (query.length) {
-                    if (query.indexOf('page=') != -1) {
-                        // 'page=' is already present
-                        for (var i in queries) {
-                            if (queries[i].indexOf('page=') != -1) { // This is the page string
-                                queries[i] = 'page=' + (b.page+1);
-                                match = true;
-                            }
-                        }
-                    } else {
-                        queries.push('page=' + (b.page+1));
-                    }
-                    newQuery = queries.join('&');
-                } else {
-                    newQuery = 'page=' + (b.page+1);
-                }
-//                 console.log('newQuery: ' + newQuery);
-                window.history.pushState("", "Bookmarked. Page " + b.page, "/?" + newQuery);
-            } else {
-                if (query.indexOf('page=') != -1) {
-                    // Gotta remove the 'page=' part
-                    for (var i in queries) {
-                        if (queries[i].indexOf('page=') != -1) { // This is the page string
-                            delete queries[i];
-                        }
-                    }
-                    if (query.length) {
-                        newQuery = queries.join('&');
-                        if (newQuery.length) {
-                            window.history.pushState("", "Default", "/?" + queries.join('&'));
-                        } else {
-                            window.history.pushState("", "Default", "/");
-                        }
-                    }
-                }
-            }
-        }
+//         if (window.history.pushState) {
+//             var query = window.location.search.substring(1),
+//                 newQuery = null,
+//                 match = false,
+//                 queries = query.split('&');
+//             if (b.page > 0) {
+//                 if (query.length) {
+//                     if (query.indexOf('page=') != -1) {
+//                         // 'page=' is already present
+//                         for (var i in queries) {
+//                             if (queries[i].indexOf('page=') != -1) { // This is the page string
+//                                 queries[i] = 'page=' + (b.page+1);
+//                                 match = true;
+//                             }
+//                         }
+//                     } else {
+//                         queries.push('page=' + (b.page+1));
+//                     }
+//                     newQuery = queries.join('&');
+//                 } else {
+//                     newQuery = 'page=' + (b.page+1);
+//                 }
+// //                 console.log('newQuery: ' + newQuery);
+//                 window.history.pushState("", "Bookmarked. Page " + b.page, "/?" + newQuery);
+//             } else {
+//                 if (query.indexOf('page=') != -1) {
+//                     // Gotta remove the 'page=' part
+//                     for (var i in queries) {
+//                         if (queries[i].indexOf('page=') != -1) { // This is the page string
+//                             delete queries[i];
+//                         }
+//                     }
+//                     if (query.length) {
+//                         newQuery = queries.join('&');
+//                         if (newQuery.length) {
+//                             window.history.pushState("", "Default", "/?" + queries.join('&'));
+//                         } else {
+//                             window.history.pushState("", "Default", "/");
+//                         }
+//                     }
+//                 }
+//             }
+//         }
         var bmPaginationUL = b.loadPagination(bookmarks, b.page);
         pagination.appendChild(bmPaginationUL);
         // Hide tags that aren't in the bookmark array
@@ -481,88 +707,161 @@ GateOne.Base.update(GateOne.Bookmarks, {
             }
         });
     },
-// This is the old loadBookmarks (need it for reference until I'm done porting everything from http://bookmarked.us/)
-//     loadBookmarks: function(/*opt*/sortfunc) {
-//         // Loads the user's bookmarks from localStorage
-//         // bookmark format:
-//         // [{name: 'Some Host', url: 'ssh://user@somehost:22', tags: ['New York, Linux'], notes: 'Lots of stuff on this host.'}, <another>, <another>, ...]
-//         // Optionally, a sort function may be supplied that sorts the bookmarks before placing them in the panel.
-//         logDebug('loadBookmarks()');
-//         var go = GateOne,
-//             prefix = go.prefs.prefix,
-//             u = go.Utils,
-//             bmPanel = u.getNode('#'+prefix+'panel_bookmarks'),
-//             bookmarks = localStorage['bookmarks'],
-//             bmContainer = u.createElement('div', {'id': prefix+'bm_container', 'class': 'sectrans'}),
-//             alltags = go.Bookmarks.allTags(),
-//             bmTagCloud = u.createElement('ul', {'id': prefix+'bm_tagcloud', 'class': 'sectrans'}),
-//             bmTagCloudUL = u.createElement('ul', {'id': prefix+'bm_tagcloud_ul'}),
-//             bmTagsHeader = u.createElement('h3', {'class': 'sectrans'}),
-//             delay = 1000,
-//             bookmarkElements = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('bookmark'));
-//         if (bookmarks) {
-//             bookmarks = go.Bookmarks.bookmarks = JSON.parse(bookmarks);
-//         } else {
-//             return;
-//         }
-//         if (bookmarkElements) { // Remove any existing bookmarks from the list
-//             bookmarkElements.forEach(function(bm) {
-//                 bm.style.opacity = 0;
-//                 setTimeout(function() {
-//                     u.removeElement(bm);
-//                 },1000);
-//             });
-//         }
-//         // Remove the tag cloud before we add a new one
-//         var tagCloud = u.getNode('#'+prefix+'bm_tagcloud');
-//         if (tagCloud) {
-//             tagCloud.style.opacity = 0;
-//             setTimeout(function() {
-//                 u.removeElement(tagCloud);
-//             },1000);
-//         };
-//         // Apply the sort function
-//         if (sortfunc) {
-//             bookmarks.sort(sortfunc);
-//         } else {
-//             bookmarks.sort(go.Bookmarks.sortfunc);
-//         }
-//         bookmarks.forEach(function(bookmark) {
-//             go.Bookmarks.createBookmark(bmContainer, bookmark, delay);
-//             delay += 50;
+    flushIconQueue: function() {
+        // Goes through the iconQueue fetching icons until it is empty.
+        // If we're already processing the queue, don't do anything when called.
+        var go = GateOne,
+            b = go.Bookmarks,
+            u = go.Utils,
+            prefix = go.prefs.prefix;
+        if (!b.flushingIconQueue) {
+            setTimeout(function() { // Wrapped for async
+                b.flushingIconQueue = true;
+                if (localStorage[prefix+'iconQueue'].length) {
+                    // We have icons to fetch
+                    var iconQueue = localStorage[prefix+'iconQueue'].split('\n'),
+                        removed = [];
+                    b.flushProgress = setInterval(function() {
+                        try {
+                            var remaining = Math.abs((localStorage[prefix+'iconQueue'].split('\n').length-1) - iconQueue.length);
+                            u.updateProgress('iconflush', iconQueue.length, remaining, 'Fetching Icons...');
+                            if (localStorage[prefix+'iconQueue'].split('\n').length == 1) {
+                                clearInterval(b.flushProgress);
+                            }
+                        } catch(e) {
+                            // Something went wrong (bad math)... Stop updating progress
+                            clearInterval(b.flushProgress);
+                        }
+                    }, 1000);
+                    for (var i in iconQueue) {
+                        // Find the bookmark associated with this URL
+                        var bookmark = b.getBookmarkObj(iconQueue[i]);
+                        if (bookmark) {
+                            if (bookmark.url) {
+                                b.updateIcon(bookmark);
+                            }
+                        } else {
+                            // For whatever reason this bookmark doesn't exist anymore.
+                            removed.push(iconQueue[i]);
+                        }
+                    }
+                    if (removed.length) {
+                        // Remove these from the queue
+                        iconQueue = localStorage[prefix+'iconQueue'].split('\n');
+                        for (var r in removed) {
+                            for (var i in iconQueue) {
+                                if (iconQueue[i] == removed[r]) {
+                                    iconQueue.splice(i, 1);
+                                }
+                            }
+                        }
+                        if (iconQueue.length) {
+                            localStorage[prefix+'iconQueue'] = iconQueue.join('\n');
+                        } else {
+                            localStorage[prefix+'iconQueue'] = "";
+                        }
+                    }
+                }
+                b.flushingIconQueue = false;
+            }, 100);
+        }
+    },
+    updateIcon: function(bookmark) {
+        // Grabs and stores (as a data: URI) the favicon associated with the given bookmark (if any)
+        var go = GateOne,
+            b = go.Bookmarks,
+            u = go.Utils;
+        if (!b.fetchingIcon) {
+            if (bookmark.url.slice(0,4) == "http") {
+                // This is an HTTP or HTTPS URL.  Fetch it's icon
+                var params = 'url=' + bookmark.url,
+                    callback = u.partial(b.storeFavicon, bookmark),
+                    xhr = new XMLHttpRequest(),
+                    handleStateChange = function(e) {
+                        var status = null;
+                        try {
+                            status = parseInt(e.target.status);
+                        } catch(e) {
+                            return;
+                        }
+                        if (e.target.readyState == 4) {
+                            b.fetchingIcon = false; // All done regardless of what happened
+                            callback(e.target.responseText); // storeFavicon will take care of filtering out bad responses
+                        }
+                    };
+                b.fetchingIcon = true;
+                if (xhr.addEventListener) {
+                    xhr.addEventListener('readystatechange', handleStateChange, false);
+                } else {
+                    xhr.onreadystatechange = handleStateChange;
+                }
+                xhr.open('POST', '/bookmarks_fetchicon', true);
+                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                xhr.send(params);
+            } else {
+                // Check if this is an SSH URL and use the SSH icon for it
+                if (bookmark.url.slice(0,3) == "ssh") {
+                    b.storeFavicon(bookmark, go.Icons['ssh']);
+                }
+                // Ignore everything else (until we add suitable favicons)
+            }
+        } else {
+            setTimeout(function() {
+                b.updateIcon(bookmark);
+            }, 50); // Wait a moment and retry
+        }
+    },
+    storeFavicon: function(bookmark, dataURI) {
+        // *dataURI* should be pre-encoded data:URI
+        var go = GateOne,
+            u = go.Utils,
+            b = go.Bookmarks,
+            prefix = go.prefs.prefix,
+            iconQueue = localStorage[prefix+'iconQueue'].split('\n'),
+            goDiv = u.getNode(go.prefs.goDiv),
+            visibleBookmarks = u.toArray(goDiv.getElementsByClassName('bookmark')),
+            removed = null;
+        if (u.startsWith("data:", dataURI)) {
+            bookmark.images = {'favicon': dataURI};
+            b.createOrUpdateBookmark(bookmark);
+        }
+        for (var i in iconQueue) {
+            if (iconQueue[i] == bookmark.url) {
+                // Remove it
+                removed = iconQueue.splice(i, 1);
+            }
+        }
+        localStorage[prefix+'iconQueue'] = iconQueue.join('\n');
+//         visibleBookmarks.forEach(function(bookmark) {
+//             // Update the favicon of this bookmark in-place (if it is visible)
+//             var bmURL = bookmark.getElementsByClassName('bm_url');
+//             if (bmURL.href == bookmark.url) {
+//                 // Add the favicon
+//
+//             }
 //         });
-//         bmPanel.appendChild(bmContainer);
-//         // Add the tag cloud
-//         bmTagsHeader.innerHTML = 'Tags';
-//         go.Visual.applyTransform(bmTagsHeader, 'translate(200%, 0)');
-//         bmTagCloud.appendChild(bmTagsHeader);
-//         bmTagCloud.appendChild(bmTagCloudUL);
-//         delay = 1250;
-//         setTimeout(function() {
-//             go.Visual.applyTransform(bmTagsHeader, 'translate(0, 0)');
-//         }, 1000);
-//         alltags.forEach(function(tag) {
-//             var li = u.createElement('li', {'class': 'bm_tag sectrans'});
-//             li.innerHTML = tag;
-//             go.Visual.applyTransform(li, 'translate(1000%, 0)');
-//             li.onclick = function(e) {
-//                 go.Bookmarks.addFilterTag(tag);
-//             };
-//             bmTagCloudUL.appendChild(li);
-//             setTimeout(function() {
-//                 go.Visual.applyTransform(li, 'translate(0, 0)');
-//             }, delay);
-//             delay += 50;
-//         });
-//         bmPanel.appendChild(bmTagCloud);
-//     },
+        // Ignore anything else
+    },
+    updateIcons: function(urls) {
+        // Loops over *urls* attempting to fetch and store their respective favicons
+        // NOTE: Only used in debugging (not called from anywhere)
+        var go = GateOne,
+            b = go.Bookmarks;
+        urls.forEach(function(url) {
+            b.bookmarks.forEach(function(bookmark) {
+                if (bookmark.url == url) {
+                    b.updateIcon(bookmark);
+                }
+            });
+        });
+    },
     createBookmark: function(bmContainer, bookmark, delay, /*opt*/ad) {
         // Creates a new bookmark element and places it in  in bmContainer.  Also returns the bookmark element.
         // *bmContainer* is the node we're going to be placing bookmarks
         // *bookmark* is expected to be a bookmark object
         // *delay* is the amount of milliseconds to wait before translating the bookmark into view
         // Optional: if *ad* is true, will not bother adding tags or edit/delete/share links
-//         console.log('createBookmark() bookmark: ' + bookmark.url);
+        logDebug('createBookmark() bookmark: ' + bookmark.url);
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
@@ -578,29 +877,18 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmLink = u.createElement('a', {'href': bookmark.url, 'class': 'bm_url', 'tabindex': 2}),
             bmEdit = u.createElement('a', {'class': 'bm_edit'}),
             bmDelete = u.createElement('a', {'class': 'bm_delete'}),
-            bmShare = u.createElement('a', {'class': 'bm_share'}),
             bmControls = u.createElement('span', {'class': 'bm_controls'}),
             bmDesc = u.createElement('span', {'class': 'bm_desc'}),
             bmVisited = u.createElement('span', {'class': 'bm_visited', 'title': 'Number of visits'}),
             bmTaglist = u.createElement('ul', {'class': 'bm_taglist'});
-//         if (bmElement.addEventListener) {
             bmElement.addEventListener('dragstart', u.handleDragStart, false);
             bmElement.addEventListener('dragenter', u.handleDragEnter, false);
             bmElement.addEventListener('dragover', u.handleDragOver, false);
             bmElement.addEventListener('dragleave', u.handleDragLeave, false);
             bmElement.addEventListener('drop', u.handleDrop, false);
             bmElement.addEventListener('dragend', u.handleDragEnd, false);
-//         } else { // I hate IE!
-//             bmElement.attachEvent('dragstart', u.handleDragStart);
-//             bmElement.attachEvent('dragenter', u.handleDragEnter);
-//             bmElement.attachEvent('dragover', u.handleDragOver);
-//             bmElement.attachEvent('dragleave', u.handleDragLeave);
-//             bmElement.attachEvent('drop', u.handleDrop);
-//             bmElement.attachEvent('dragend', u.handleDragEnd);
-//         }
         bmEdit.innerHTML = 'Edit |';
-        bmDelete.innerHTML = 'Delete |';
-        bmShare.innerHTML = 'Share';
+        bmDelete.innerHTML = 'Delete';
         bmEdit.onclick = function(e) {
             e.preventDefault();
             b.editBookmark(this);
@@ -609,13 +897,8 @@ GateOne.Base.update(GateOne.Bookmarks, {
             e.preventDefault();
             b.deleteBookmark(this);
         }
-        bmShare.onclick = function(e) {
-            e.preventDefault();
-            b.shareBookmark(this);
-        }
         bmControls.appendChild(bmEdit);
         bmControls.appendChild(bmDelete);
-        bmControls.appendChild(bmShare);
         bmStats.innerHTML = months[dateObj.getMonth()] + '<br />' + dateObj.getDay() + '<br />' + dateObj.getFullYear();
         bmElement.title = bookmark.url;
         if (bookmark.url.indexOf('%s') != -1) {
@@ -625,6 +908,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmLink.innerHTML = bookmark.name;
         }
         bmLink.onclick = function(e) {
+            e.preventDefault();
             b.openBookmark(this.href);
         };
         if (ad) {
@@ -794,7 +1078,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
         // Creates the bookmarks panel.  If *ad* is true, shows an ad as the first bookmark
         // If the bookmarks panel already exists, re-create the bookmarks container and reset pagination
         // If *embedded* is true then we'll just load the header (without search).
-//         console.log('createPanel()');
+        logDebug('createPanel()');
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
@@ -812,10 +1096,10 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmDisplayOpts = u.createElement('div', {'id': prefix+'bm_display_opts', 'class': 'sectransform'}),
             bmSortOpts = b.createSortOpts(),
             bmOptions = u.createElement('div', {'id': prefix+'bm_options'}),
-            bmNuke = u.createElement('a', {'id': prefix+'bm_nuke', 'title': 'Erase all bookmarks (locally) and de-authorize Evernote Sync.'}),
+            bmNuke = u.createElement('a', {'id': prefix+'bm_nuke', 'title': 'Erase all bookmarks (locally).'}),
             bmExport = u.createElement('a', {'id': prefix+'bm_export', 'title': 'Save your bookmarks to a file'}),
             bmImport = u.createElement('a', {'id': prefix+'bm_import', 'title': 'Import bookmarks from another application'}),
-            bmENSync = u.createElement('a', {'id': prefix+'en_sync', 'title': 'Synchronize your bookmarks with Evernote'}),
+            bmSync = u.createElement('a', {'id': prefix+'bm_sync', 'title': 'Synchronize your bookmarks with the server.'}),
             bmH2 = u.createElement('h2'),
             bmHeaderImage = u.createElement('span', {'id': prefix+'bm_header_star'}),
             bmTagCloudUL = u.createElement('ul', {'id': prefix+'bm_tagcloud_ul'}),
@@ -841,7 +1125,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
         }
         bmHeader.appendChild(bmH2);
         bmTags.innerHTML = '<span id="'+prefix+'bm_taglist_label">Tag Filter:</span> <ul id="'+prefix+'bm_taglist"></ul> ';
-        bmENSync.innerHTML = 'Sync Bookmarks | ';
+        bmSync.innerHTML = 'Sync Bookmarks | ';
         bmImport.innerHTML = 'Import | ';
         bmExport.innerHTML = 'Export | ';
         bmNuke.innerHTML = 'Nuke | ';
@@ -854,20 +1138,20 @@ GateOne.Base.update(GateOne.Bookmarks, {
         bmNuke.onclick = function(e) {
             b.openNukeDialog();
         }
-        bmENSync.onclick = function(e) {
+        bmSync.onclick = function(e) {
             var USN = localStorage[prefix+'USN'] || 0;
             this.innerHTML = "Synchronizing... | ";
             if (!b.bookmarks.length) {
-                u.displayMessage("NOTE: Since this is your first sync it can take a few seconds.  Please be patient.");
+                go.Visual.displayMessage("NOTE: Since this is your first sync it can take a few seconds.  Please be patient.");
             } else {
-                u.displayMessage("Please wait while we synchronize your bookmarks...");
+                go.Visual.displayMessage("Please wait while we synchronize your bookmarks...");
             }
             b.syncTimer = setInterval(function() {
-                u.displayMessage("Please wait while we synchronize your bookmarks...");
+                go.Visual.displayMessage("Please wait while we synchronize your bookmarks...");
             }, 6000);
-            u.xhrGet('/evernote?sync=True&updateSequenceNum='+USN, b.syncEvernote);
+            u.xhrGet('/bookmarks_sync?updateSequenceNum='+USN, b.syncBookmarks);
         }
-        bmOptions.appendChild(bmENSync);
+        bmOptions.appendChild(bmSync);
         bmOptions.appendChild(bmImport);
         bmOptions.appendChild(bmExport);
         bmOptions.appendChild(bmNuke);
@@ -1013,9 +1297,14 @@ GateOne.Base.update(GateOne.Bookmarks, {
             b = go.Bookmarks,
             u = go.Utils,
             prefix = go.prefs.prefix,
+            bookmark = b.getBookmarkObj(URL),
             term = localStorage['selectedTerminal'],
             termTitle = u.getNode('#'+prefix+'term'+term).title;
-        if (URL.slice(0,4) == "http") {
+        if (URL.indexOf('%s') != -1) { // This is a keyword search bookmark
+            b.openSearchDialog(URL, bookmark.name);
+            return;
+        }
+        if (URL.slice(0,4) == "http") { // NOTE: Includes https URLs
             // This is a regular URL, open in a new window
             b.incrementVisits(URL);
             go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
@@ -1025,9 +1314,11 @@ GateOne.Base.update(GateOne.Bookmarks, {
         // Proceed as if this is an SSH URL...
         if (termTitle == 'Gate One') {
             // Foreground terminal has yet to be connected, use it
+            b.incrementVisits(URL);
             go.Input.queue(URL+'\n');
             go.Net.sendChars();
         } else {
+            b.incrementVisits(URL);
             go.Terminal.newTerminal();
             setTimeout(function() {
                 go.Input.queue(URL+'\n');
@@ -1035,7 +1326,6 @@ GateOne.Base.update(GateOne.Bookmarks, {
             }, 250);
         }
         go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
-        b.incrementVisits(URL);
     },
     toggleSortOrder: function(/*opt*/bookmarks) {
         // Reverses the order of the bookmarks list
@@ -1061,9 +1351,6 @@ GateOne.Base.update(GateOne.Bookmarks, {
         var go = GateOne,
             b = go.Bookmarks;
         b.searchFilter = str;
-        if (window.history.pushState) {
-            window.history.pushState("", "Bookmarked. Search: " + str, "/?filterstring=" + str);
-        }
         b.loadBookmarks();
     },
     addFilterTag: function(bookmarks, tag) {
@@ -1077,17 +1364,17 @@ GateOne.Base.update(GateOne.Bookmarks, {
             }
         }
         b.tags.push(tag);
-        if (window.history.pushState) {
-            var tagString = b.tags.join(',');
-            window.history.pushState("", "Bookmarked. Tag Filter: " + tagString, "/?filtertags=" + tagString);
-        }
+//         if (window.history.pushState) {
+//             var tagString = b.tags.join(',');
+//             window.history.pushState("", "Bookmarked. Tag Filter: " + tagString, "/?filtertags=" + tagString);
+//         }
         // Reset the pagination since our bookmark list will change
         b.page = 0;
         b.loadBookmarks();
     },
     removeFilterTag: function(bookmarks, tag) {
         // Removes the given tag from the filter list
-//         console.log('removeFilterTag tag: ' + tag);
+        logDebug('removeFilterTag tag: ' + tag);
         var go = GateOne,
             b = go.Bookmarks;
         for (var i in b.tags) {
@@ -1095,21 +1382,21 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 b.tags.splice(i, 1);
             }
         }
-        if (window.history.pushState) {
-            if (b.tags.length) {
-                var tagString = b.tags.join(',');
-                window.history.pushState("", "Bookmarked. Tag Filter: " + tagString, "/?filtertags=" + tagString);
-            } else {
-                window.history.pushState("", "Default", "/"); // Set it back to the default URL
-            }
-        }
+//         if (window.history.pushState) {
+//             if (b.tags.length) {
+//                 var tagString = b.tags.join(',');
+//                 window.history.pushState("", "Bookmarked. Tag Filter: " + tagString, "/?filtertags=" + tagString);
+//             } else {
+//                 window.history.pushState("", "Default", "/"); // Set it back to the default URL
+//             }
+//         }
         // Reset the pagination since our bookmark list will change
         b.page = 0;
         b.loadBookmarks();
     },
     addFilterDateTag: function(bookmarks, tag) {
         // Adds the given dateTag to the filter list
-//         console.log('addFilterDateTag: ' + tag);
+        logDebug('addFilterDateTag: ' + tag);
         var go = GateOne,
             b = go.Bookmarks;
         for (var i in b.dateTags) {
@@ -1125,7 +1412,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
     },
     removeFilterDateTag: function(bookmarks, tag) {
         // Removes the given dateTag from the filter list
-//         console.log("removeFilterDateTag: " + tag);
+        logDebug("removeFilterDateTag: " + tag);
         var go = GateOne,
             b = go.Bookmarks;
         // Change the &lt; and &gt; back into < and >
@@ -1191,92 +1478,6 @@ GateOne.Base.update(GateOne.Bookmarks, {
         }
         return ">1 year";
     },
-//     toggleSortOrder: function() {
-//         // Reverses the order of the bookmarks list
-//         var go = GateOne,
-//             sortDirection = go.Utils.getNode('#'+go.prefs.prefix+'bm_sort_direction');
-//         if (go.Bookmarks.sortToggle) {
-//             go.Bookmarks.sortToggle = false;
-//             go.Bookmarks.sortfunc = function(a,b) { if (a.visits > b.visits) { return -1 } else { return 1 } };
-//             go.Bookmarks.loadBookmarks();
-//             go.Bookmarks.filterBookmarksByTags(GateOne.Bookmarks.tags);
-//             go.Visual.applyTransform(sortDirection, 'rotate(0deg)');
-//         } else {
-//             go.Bookmarks.sortToggle = true;
-//             go.Bookmarks.sortfunc = function(a,b) { if (a.visits < b.visits) { return -1 } else { return 1 } };
-//             go.Bookmarks.loadBookmarks();
-//             go.Bookmarks.filterBookmarksByTags(GateOne.Bookmarks.tags);
-//             go.Visual.applyTransform(sortDirection, 'rotate(180deg)');
-//         }
-//     },
-//     filterBookmarksByTags: function(tags) {
-//         // Filters the bookmarks list using the given tags and draws the breadcrumbs at the top of the panel.
-//         // *tags* should be an array of strings:  ['Linux', 'New York']
-//         var go = GateOne,
-//             u = go.Utils,
-//             goDiv = u.getNode(go.prefs.goDiv),
-//             bmTaglist = u.getNode('#'+go.prefs.prefix+'bm_taglist'),
-//             bookmarks = u.toArray(goDiv.getElementsByClassName('bookmark')),
-//             bmTags = goDiv.getElementsByClassName('bm_tag');
-//         bmTaglist.innerHTML = ""; // Clear out the tag list
-//         for (var i in tags) { // Recreate the tag list
-//             tag = u.createElement('li', {'id': go.prefs.prefix+'bm_tag'});
-//             tag.innerHTML = tags[i];
-//             tag.onclick = function(e) {
-//                 go.Bookmarks.removeFilterTag(this.innerHTML);
-//             };
-//             bmTaglist.appendChild(tag);
-//         }
-//         var getTags = function(bookmark) {
-//             // Returns an array of tags associated with the given bookmark element.
-//             var bmTags = bookmark.getElementsByClassName('bm_tag'),
-//                 outArray = [];
-//             bmTags = u.toArray(bmTags);
-//             bmTags.forEach(function(liTag) {
-//                 outArray.push(liTag.innerHTML);
-//             });
-//             return outArray;
-//         }
-//         // Remove bookmarks that don't match the user's selected tags:
-//         bookmarks.forEach(function(bookmark) {
-//             var bookmarkTags = getTags(bookmark),
-//                 allTagsPresent = false,
-//                 tagCount = 0;
-//             bookmarkTags.forEach(function(tag) {
-//                 if (tags.indexOf(tag) != -1) { // tag not in tags
-//                     tagCount += 1;
-//                 }
-//             });
-//             if (tagCount != tags.length) {
-//                 // Remove the bookmark from the list
-//                 go.Visual.applyTransform(bookmark, 'translate(-200%, 0)');
-//                 setTimeout(function() {
-//                     u.removeElement(bookmark);
-//                 }, 1000);
-//             }
-//         });
-//     },
-//     addFilterTag: function(tag) {
-//         // Adds the given tag to the filter list
-//         for (var i in GateOne.Bookmarks.tags) {
-//             if (GateOne.Bookmarks.tags[i] == tag) {
-//                 // Tag already exists, ignore.
-//                 return;
-//             }
-//         }
-//         GateOne.Bookmarks.tags.push(tag);
-//         GateOne.Bookmarks.filterBookmarksByTags(GateOne.Bookmarks.tags);
-//     },
-//     removeFilterTag: function(tag) {
-//         // Removes the given tag from the filter list
-//         for (var i in GateOne.Bookmarks.tags) {
-//             if (GateOne.Bookmarks.tags[i] == tag) {
-//                 GateOne.Bookmarks.tags.splice(i, 1);
-//             }
-//         }
-//         GateOne.Bookmarks.loadBookmarks(GateOne.Bookmarks.sortfunc);
-//         GateOne.Bookmarks.filterBookmarksByTags(GateOne.Bookmarks.tags);
-//     },
     allTags: function() {
         // Returns an array of all the tags in localStorage['bookmarks']
         // ordered alphabetically
@@ -1362,6 +1563,9 @@ GateOne.Base.update(GateOne.Bookmarks, {
         });
         setTimeout(function() {
             go.Visual.applyTransform(bmForm, 'translate(0, 0)');
+            setTimeout(function() {
+                u.getNode('#'+prefix+'bm_newurl').focus();
+            }, 1000);
         }, 500);
         // Set our onchange event to remove the inline label once the user has started typing
         u.toArray(goDiv.getElementsByClassName('input-text')).forEach(function(node) {
@@ -1410,17 +1614,19 @@ GateOne.Base.update(GateOne.Bookmarks, {
                     'visits': 0,
                     'updated': now.getTime(),
                     'created': now.getTime(),
-                    'updateSequenceNum': 0, // This will get set when synchronizing with Evernote
+                    'updateSequenceNum': 0, // This will get set when synchronizing with the server
                     'images': {'favicon': null}
                 };
                 b.createOrUpdateBookmark(bm);
-                // TODO: Get this fetching icons for HTTP and HTTPS URLs
-                // Fetch its icon (have to wait a sec since storeBookmark is async)
-//                 setTimeout(function() {
-//                     b.updateIcon(bm);
-//                 }, 1000);
+                // Fetch its icon
+                b.updateIcon(bm);
+                // Keep everything sync'd up.
+                setTimeout(function() {
+                    var USN = localStorage[prefix+'USN'] || 0;
+                    u.xhrGet('/bookmarks_sync?updateSequenceNum='+USN, b.syncBookmarks);
+                    b.createPanel();
+                }, 1000);
             } else {
-//                 console.log("existing bookmark, url: " + url);
                 // Find the existing bookmark and replace it.
                 for (var i in b.bookmarks) {
                     if (b.bookmarks[i].url == URL) { // Note that we're matching the original URL
@@ -1437,98 +1643,32 @@ GateOne.Base.update(GateOne.Bookmarks, {
                         }
                         // Store the modified bookmark
                         b.createOrUpdateBookmark(b.bookmarks[i]);
-//                         b.Storage.storeBookmark(b.bookmarks[i]);
                         // Re-fetch its icon (have to wait a sec since storeBookmark is async)
                         setTimeout(function() {
                             b.updateIcon(b.bookmarks[i]);
+                            b.createPanel();
                         }, 1000);
                         break;
                     }
                 }
             }
             bmForm.style.opacity = 0;
-            setTimeout(function() {
-                u.removeElement(bmForm);
-            }, 1000);
-            b.createPanel();
         }
-//         bmForm.onsubmit = function(e) {
-//             // Don't actually submit it
-//             e.preventDefault();
-//             // Grab the form values
-//             var delay = 1000,
-//                 bmContainer = u.getNode('#'+go.prefs.prefix+'bm_container'),
-//                 url = u.getNode('#'+go.prefs.prefix+'bm_newurl').value,
-//                 name = u.getNode('#'+go.prefs.prefix+'bm_new_name').value,
-//                 tags = u.getNode('#'+go.prefs.prefix+'bm_newurl_tags').value,
-//                 notes = u.getNode('#'+go.prefs.prefix+'bm_new_notes').value,
-//                 bookmarks = JSON.parse(localStorage[prefix+'bookmarks']);
-//             // Fix any missing trailing slashes in the URL
-//             if (url.slice(0,4) == "http") {
-//                 if (url.indexOf("?") == -1){
-//                     // No query string present, assume a trailing slash is necessary
-//                     if (url[url.length-1] != "/") {
-//                         url = url + "/";
-//                     }
-//                 }
-//             }
-//             if (tags) {
-//                 // Convert to list
-//                 tags = tags.split(',');
-//                 tags = tags.map(function(item) {
-//                     return item.trim();
-//                 });
-//             }
-//             // Construct a new bookmark object
-//             var bm = {url: url, name: name, tags: tags, notes: notes, visits: 0};
-//             // Append to the bookmarks array
-//             bookmarks.push(bm);
-//             // Save back to localStorage
-//             localStorage[prefix+'bookmarks'] = JSON.stringify(bookmarks);
-//             // Add the new bookmark to the panel
-//             go.Bookmarks.createBookmark(bmContainer, bm, 10);
-//             // Now fade out the form and bring our regular bookmark panel back.
-// //             go.Visual.applyTransform(bmForm, 'translate(200%, 0)');
-//             bmForm.style.opacity = 0;
-//             setTimeout(function() {
-//                 u.removeElement(bmForm);
-// //                 u.toArray(bmPanelChildren).forEach(function(child) {
-// //                     setTimeout(function() {
-// //                         child.style.display = "block";
-// //                     }, 750);
-// //                     setTimeout(function() {
-// //                         go.Visual.applyTransform(child, 'translate(0, 0)');
-// //                     }, 1000);
-// //                 });
-//             }, 1000);
-//             go.Bookmarks.createPanel();
-//             go.Bookmarks.loadBookmarks(go.Bookmarks.sortfunc);
-//         }
     },
     incrementVisits: function(url) {
         // Increments the given bookmark by 1
         var go = GateOne,
-            prefix = go.prefs.prefix,
-            bookmarks = JSON.parse(localStorage[prefix+'bookmarks']);
-        bookmarks.forEach(function(bookmark) {
+            b = go.Bookmarks;
+        // Increments the given bookmark by 1
+        b.bookmarks.forEach(function(bookmark) {
             if (bookmark.url == url) {
                 bookmark.visits += 1;
+                bookmark.updated = new Date().getTime(); // So it will sync
+                bookmark.updateSequenceNum = 0;
+                b.storeBookmark(bookmark);
             }
         });
-        localStorage[prefix+'bookmarks'] = JSON.stringify(bookmarks);
-        go.Bookmarks.loadBookmarks(go.Bookmarks.sort);
-    },
-    newBookmark: function(obj) {
-        // Creates a new bookmark using *obj* which should be something like this:
-        // {"name":"My Host","url":"ssh://myuser@myhost","tags":["Home","Linux"],"notes":"Home PC","visits":0}
-        var go = GateOne,
-            prefix = go.prefs.prefix,
-            bookmarks = localStorage[prefix+'bookmarks'];
-        if (bookmarks) {
-            bookmarks = go.Bookmarks.bookmarks = JSON.parse(bookmarks);
-        }
-        bookmarks.push(obj);
-        localStorage[prefix+'bookmarks'] = JSON.stringify(bookmarks);
+        b.loadBookmarks(b.sort);
     },
     editBookmark: function(obj) {
         // Slides the bookmark editor form into view
@@ -1537,16 +1677,27 @@ GateOne.Base.update(GateOne.Bookmarks, {
             url = obj.parentElement.parentElement.getElementsByClassName("bm_url")[0].href;
         go.Bookmarks.bookmarkForm(url);
     },
+    highestUSN: function() {
+        // Returns the highest updateSequenceNum in all the bookmarks
+        var b = GateOne.Bookmarks,
+            highest = 0;
+        b.bookmarks.forEach(function(bookmark) {
+            if (bookmark['updateSequenceNum'] > highest) {
+                highest = bookmark['updateSequenceNum'];
+            }
+        });
+        return highest;
+    },
     deleteBookmark: function(obj) {
         // Deletes the given bookmark..  *obj* can either be a URL (string) or the "go_bm_delete" anchor tag.
         var go = GateOne,
             u = go.Utils,
+            b = go.Bookmarks,
             prefix = go.prefs.prefix,
             url = null,
             count = 0,
             remove = null,
-            bookmarks = JSON.parse(localStorage[prefix+'bookmarks']),
-            confirmElement = u.createElement('div', {'id': prefix+'bm_confirm_delete', 'class': 'bookmark halfsectrans', 'style': {'text-align': 'center', 'position': 'absolute', 'top': 0, 'left': 0, 'right': 0, 'bottom': 0, 'opacity': 0, 'border': 0, 'padding': '0.2em', 'z-index': 750}}),
+            confirmElement = u.createElement('div', {'id': prefix+'bm_confirm_delete', 'class': 'bookmark halfsectrans'}),
             yes = u.createElement('button', {'id': prefix+'bm_yes', 'class': 'button black'}),
             no = u.createElement('button', {'id': prefix+'bm_no', 'class': 'button black'}),
             bmPanel = u.getNode('#'+prefix+'panel_bookmarks');
@@ -1559,19 +1710,20 @@ GateOne.Base.update(GateOne.Bookmarks, {
         yes.innerHTML = "Yes";
         no.innerHTML = "No";
         yes.onclick = function(e) {
-            go.Visual.applyTransform(obj.parentElement.parentElement.parentElement, 'translate(-200%, 0)');
+            var USN = localStorage[prefix+'USN'] || 0;
+            go.Visual.applyTransform(obj.parentNode.parentNode, 'translate(-200%, 0)');
             // Find the matching bookmark and delete it
-            bookmarks.forEach(function(bookmark) {
-                if (bookmark.url == url) {
-                    remove = count;
+            for (var i in b.bookmarks) {
+                if (b.bookmarks[i].url == url) {
+                    b.bookmarks.splice(i, 1); // Remove the bookmark in question.
                 }
-                count += 1;
-            });
-            bookmarks.splice(remove, 1); // Remove the bookmark in question.
-            // Now save our new bookmarks list
-            localStorage[prefix+'bookmarks'] = JSON.stringify(bookmarks);
+            }
+            // Now save our new bookmarks list to disk
+            localStorage[prefix+'bookmarks'] = JSON.stringify(b.bookmarks);
+            // Keep everything sync'd up.
+            u.xhrGet('/bookmarks_sync?updateSequenceNum='+USN, b.syncBookmarks);
             setTimeout(function() {
-                u.removeElement(obj.parentElement.parentElement.parentElement);
+                u.removeElement(obj.parentNode.parentNode);
             }, 1000);
         };
         no.onclick = function(e) {
@@ -1586,23 +1738,52 @@ GateOne.Base.update(GateOne.Bookmarks, {
         confirmElement.innerHTML = "Are you sure you want to delete this bookmark?<br />";
         confirmElement.appendChild(no);
         confirmElement.appendChild(yes);
-        obj.parentElement.parentElement.appendChild(confirmElement);
+        obj.parentNode.parentNode.appendChild(confirmElement);
         setTimeout(function() {
             confirmElement.style.opacity = 1;
         }, 250);
+        // Save this bookmark in the deleted bookmarks list so we can let the server know the next time we sync
+        var deletedBookmarks = localStorage[prefix+'deletedBookmarks'],
+            deleted = new Date().getTime();
+        if (!deletedBookmarks) {
+            localStorage[prefix+'deletedBookmarks'] = JSON.stringify([{'url': url, 'deleted': deleted}]);
+        } else {
+            var existing = JSON.parse(deletedBookmarks);
+            existing.push({'url': url, 'deleted': deleted});
+            localStorage[prefix+'deletedBookmarks'] = JSON.stringify(existing);
+        }
+    },
+    updateUSN: function(obj) {
+        // Updates the USN of the bookmark matching *obj* in GateOne.Bookmarks.bookmarks (and on disk).
+        var go = GateOne,
+            b = go.Bookmarks,
+            matched = null;
+        for (var i in b.bookmarks) {
+            if (b.bookmarks[i]) {
+                if (b.bookmarks[i].url == obj.url) {
+                    // Replace this one
+                    b.bookmarks[i].updateSequenceNum = obj.updateSequenceNum;
+                    matched = b.bookmarks[i];
+                }
+            }
+        };
+        // storeBookmark takes care of duplicates automatically
+        if (matched) {
+            b.storeBookmark(matched);
+        }
     },
     createOrUpdateBookmark: function(obj) {
         // Creates or updates a bookmark (in Bookmarks.bookmarks and storage) using *obj*
-//         console.log("calling createOrUpdateBookmark()");
         var go = GateOne,
             u = go.Utils,
             b = go.Bookmarks,
+            prefix = go.prefs.prefix,
             matched = false;
         for (var i in b.bookmarks) {
             if (b.bookmarks[i]) {
                 if (b.bookmarks[i].url == obj.url) {
                     // Double-check the images to make sure we're not throwing one away
-                    if (u.items(Bookmarks.bookmarks[i].images).length) {
+                    if (u.items(b.bookmarks[i].images).length) {
                         if (!u.items(obj.images).length) {
                             // No images in obj. Replace them with existing
                             obj['images'] = b.bookmarks[i].images;
@@ -1615,7 +1796,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             }
         };
         if (!matched) {
-            // Fix the name (Evernote doesn't like leading spaces)
+            // Fix the name (i.e. remove leading spaces)
             obj.name = obj.name.trim();
             b.bookmarks.push(obj);
         }
@@ -1627,11 +1808,9 @@ GateOne.Base.update(GateOne.Bookmarks, {
             }
         }
         // storeBookmark takes care of duplicates automatically
-//         var recordIt = function() { console.log(obj.url); };
-//         Bookmarks.Storage.storeBookmark(obj, recordIt);
         b.storeBookmark(obj);
         // Add this bookmark to the icon fetching queue
-//         localStorage['iconQueue'] += obj.url + '\n';
+        localStorage[prefix+'iconQueue'] += obj.url + '\n';
     },
     getMaxBookmarks: function(elem) {
     // Calculates and returns the number of bookmarks that will fit in the given element ID (elem).
@@ -1730,6 +1909,57 @@ GateOne.Base.update(GateOne.Bookmarks, {
         bmPaginationUL.appendChild(next);
         return bmPaginationUL;
     },
+    getBookmarkObj: function(URL) {
+        // Returns the bookmark object with the given *URL*
+        var go = GateOne,
+            b = go.Bookmarks;
+        for (var i in b.bookmarks) {
+            if (b.bookmarks[i].url == URL) {
+                return b.bookmarks[i];
+            }
+        }
+    },
+    addTagToBookmark: function(URL, tag) {
+        // Adds the given *tag* to the bookmark object associated with *URL*
+        logDebug('addTagToBookmark tag: ' + tag);
+        var go = GateOne,
+            b = go.Bookmarks,
+            u = go.Utils,
+            goDiv = u.getNode(go.prefs.goDiv),
+            visibleBookmarks = u.toArray(goDiv.getElementsByClassName('bookmark'));
+        for (var i in b.bookmarks) {
+            if (b.bookmarks[i].url == URL) {
+                b.bookmarks[i].tags.push(tag);
+                // Now remove the "Untagged" tag if present
+                for (var n in b.bookmarks[i].tags) {
+                    if (b.bookmarks[i].tags[n] == 'Untagged') {
+                        b.bookmarks[i].tags.splice(n, 1);
+                    }
+                }
+                // Now make the change permanent
+                b.storeBookmark(b.bookmarks[i]);
+            }
+        }
+        visibleBookmarks.forEach(function(bookmark) {
+            var bmURL = bookmark.getElementsByClassName('bm_url')[0].href,
+                bmTaglist = bookmark.getElementsByClassName('bm_taglist')[0];
+            if (URL == bmURL) {
+                // This is our bookmark, append this tag to bm_tags
+                var bmTag = u.createElement('li', {'class': 'bm_tag'});
+                bmTag.innerHTML = tag;
+                bmTag.onclick = function(e) {
+                    b.addFilterTag(b.filteredBookmarks, tag);
+                };
+                bmTaglist.appendChild(bmTag);
+            }
+            // Now remove the "Untagged" tag
+            for (var i in bmTaglist.childNodes) {
+                if (bmTaglist.childNodes[i].innerHTML == "Untagged") {
+                    u.removeElement(bmTaglist.childNodes[i]);
+                }
+            }
+        });
+    },
     storeBookmark: function(bookmarkObj, /*opt*/callback) {
         // Stores the given *bookmarkObj* in the DB
         // if *callback* is given, will be executed after the bookmark is stored with the bookmarkObj as the only argument
@@ -1737,6 +1967,109 @@ GateOne.Base.update(GateOne.Bookmarks, {
         localStorage[GateOne.prefs.prefix+'bookmarks'] = JSON.stringify(GateOne.Bookmarks.bookmarks);
         if (callback) {
             callback(bookmarkObj);
+        }
+    },
+    openNukeDialog: function() {
+        // Creates a dialog where the user can confirm/cancel removing all bookmarks and de-authorizing Evernote Sync
+        var go = GateOne,
+            b = go.Bookmarks,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            dialogContainer = u.createElement('div', {'id': prefix+'bm_dialogcontainer', 'class': 'halfsectrans'}),
+            dialogDiv = u.createElement('div', {'id': prefix+'bm_dialogdiv'}),
+            dialogTitle = u.createElement('h3', {'id': prefix+'bm_dialogtitle'}),
+            close = u.createElement('div', {'id': prefix+'bm_dialog_close'}),
+            dialogText = u.createElement('div', {'class': 'bm_dialogtext'}),
+            bmForm = u.createElement('form', {'name': 'bm_dialog_form', 'id': 'bm_dialog_form', 'class': 'sectrans'}),
+            bmSubmit = u.createElement('button', {'id': prefix+'bm_submit', 'type': 'submit', 'value': 'Nuke', 'class': 'button black'}),
+            bmCancel = u.createElement('button', {'id': prefix+'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'}),
+            bmPanel = u.getNode('#'+prefix+'panel_bookmarks'),
+            closeDialog = function(e) {
+                if (e) { e.preventDefault() }
+                dialogContainer.style.opacity = 0;
+                setTimeout(function() {
+                    u.removeElement(dialogContainer);
+                }, 1000);
+            };
+        dialogText.innerHTML = '<p>This will delete all bookmarks stored in this web browser.  Use this feature after using Bookmarked on someone else\'s computer to keep your bookmarks private.  <b>Note:</b> Bookmarks will <i>not</i> be removed from your Evernote account.</p>';
+        bmCancel.onclick = closeDialog;
+        bmForm.appendChild(bmSubmit);
+        bmForm.appendChild(bmCancel);
+        bmSubmit.innerHTML = "Nuke";
+        bmCancel.innerHTML = "Cancel";
+        dialogContainer.style.opacity = 0;
+        setTimeout(function() {
+            dialogContainer.style.opacity = 1;
+        }, 100);
+        close.innerHTML = "X";
+        close.onclick = closeDialog;
+        dialogTitle.innerHTML = "Delete (Nuke) All Bookmarks?";
+        dialogContainer.appendChild(dialogTitle);
+        dialogTitle.appendChild(close);
+        dialogContainer.appendChild(dialogText);
+        dialogContainer.style.opacity = 0;
+        dialogContainer.appendChild(dialogDiv);
+        bmPanel.appendChild(dialogContainer);
+        dialogDiv.appendChild(bmForm);
+        bmForm.onsubmit = function(e) {
+            // Don't actually submit it
+            e.preventDefault();
+            b.clearBookmarksDB();
+            closeDialog();
+            // The delay is here to give the user the feeling that it actually took some effort to nuke everything (really, without this I've had some folks worry that nothing happened because it goes so quick).
+            setTimeout(function() {
+                window.location = '/'; // Load Bookmarked anew
+            }, 1000);
+        }
+    },
+    openSearchDialog: function(URL, title) {
+        // Creates a dialog where the user can utilize a keyword search *URL*
+        // *title* will be used to create the dialog title like this:  "Keyword Search: *title*"
+        var go = GateOne,
+            b = go.Bookmarks,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            dialogContainer = u.createElement('div', {'id': prefix+'bm_dialogcontainer', 'class': 'halfsectrans'}),
+            dialogDiv = u.createElement('div', {'id': prefix+'bm_dialogdiv'}),
+            dialogTitle = u.createElement('h3', {'id': prefix+'bm_dialogtitle'}),
+            close = u.createElement('div', {'id': prefix+'bm_dialog_close'}),
+            bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': prefix+'bm_dialog_form', 'class': 'sectrans'}),
+            bmSubmit = u.createElement('button', {'id': prefix+'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            bmCancel = u.createElement('button', {'id': prefix+'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'}),
+            bmPanel = u.getNode('#'+prefix+'panel_bookmarks'),
+            closeDialog = function(e) {
+                if (e) { e.preventDefault() }
+                dialogContainer.style.opacity = 0;
+                setTimeout(function() {
+                    u.removeElement(dialogContainer);
+                }, 1000);
+            };
+        bmForm.innerHTML = '<label for='+prefix+'"bm_keyword_seach">Search</label><input type="text" name="'+prefix+'bm_searchstring" id="'+prefix+'bm_searchstring" autofocus required>';
+        bmCancel.onclick = closeDialog;
+        bmForm.appendChild(bmSubmit);
+        bmForm.appendChild(bmCancel);
+        bmSubmit.innerHTML = "Submit";
+        bmCancel.innerHTML = "Cancel";
+        dialogContainer.style.opacity = 0;
+        setTimeout(function() {
+            dialogContainer.style.opacity = 1;
+        }, 100);
+        close.innerHTML = "X";
+        close.onclick = closeDialog;
+        dialogTitle.innerHTML = "Keyword Search: " + title;
+        dialogContainer.appendChild(dialogTitle);
+        dialogTitle.appendChild(close);
+        dialogContainer.style.opacity = 0;
+        dialogContainer.appendChild(dialogDiv);
+        bmPanel.appendChild(dialogContainer);
+        dialogDiv.appendChild(bmForm);
+        bmForm.onsubmit = function(e) {
+            // Don't actually submit it
+            e.preventDefault();
+            b.incrementVisits(URL);
+            var searchString = u.getNode('#'+prefix+'bm_searchstring').value;
+            window.location = URL.replace('%s', searchString);
+            closeDialog();
         }
     },
     generateTip: function() {
