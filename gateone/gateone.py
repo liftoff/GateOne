@@ -768,10 +768,13 @@ class TerminalWebSocket(WebSocketHandler):
 
     def open(self):
         """Called when a new WebSocket is opened."""
-        go_upn = self.get_current_user()
-        if go_upn:
+        user = self.get_current_user()
+        # client_id is unique to the browser/client whereas session_id is unique
+        # to the user.
+        self.client_id = generate_session_id()
+        if user:
             logging.info(
-                _("WebSocket opened (%s).") % self.get_current_user()['go_upn'])
+                _("WebSocket opened (%s).") % user['go_upn'])
         else:
             logging.info(_("WebSocket opened (unknown user)."))
 
@@ -792,7 +795,10 @@ class TerminalWebSocket(WebSocketHandler):
                     PLUGIN_WS_CMDS[key](value, tws=self)# tws==TerminalWebSocket
                 except KeyError:
                     try:
-                        self.commands[key](value)
+                        if value:
+                            self.commands[key](value)
+                        else:
+                            self.commands[key]()
                     except KeyError:
                         pass # Ignore commands we don't understand
 
@@ -805,10 +811,11 @@ class TerminalWebSocket(WebSocketHandler):
         """
         # TODO: Make this detach all callbacks so they're not sticking around in memory
         logging.debug("on_close()")
-        go_upn = self.get_current_user()
-        if go_upn:
+        user = self.get_current_user()
+
+        if user:
             logging.info(
-                _("WebSocket closed (%s).") % self.get_current_user()['go_upn'])
+                _("WebSocket closed (%s).") % user['go_upn'])
         else:
             logging.info(_("WebSocket closed (unknown user)."))
 
@@ -886,10 +893,16 @@ class TerminalWebSocket(WebSocketHandler):
                     if term not in terminals:
                         terminals.append(term)
         terminals.sort() # Put them in order so folks don't get confused
-        message = {'terminals': terminals}
+        message = {
+            'terminals': terminals,
+        # This is just so the client has a human-readable point of reference:
+            'set_username': self.get_current_user()['go_upn']
+        }
         # TODO: Add a hook here for plugins to send their own messages when a
         #       given terminal is reconnected.
         self.write_message(json_encode(message))
+        #message = {'set_user': self.get_current_user()['go_upn']}
+        #self.write_message(json_encode(message)) # Handled by GateOne.User
 
     def new_terminal(self, settings):
         """
@@ -909,7 +922,12 @@ class TerminalWebSocket(WebSocketHandler):
         needs_full_refresh = False # Used to track if we need a full screen dump to the client (since TidyThread needs to be running before that)
         if term not in SESSIONS[self.session]:
             # Setup the requisite dict
-            SESSIONS[self.session][term] = {'refresh_timeout': None}
+            SESSIONS[self.session][term] = {}
+        if self.client_id not in SESSIONS[self.session][term]:
+            SESSIONS[self.session][term][self.client_id] = {
+                # Used by refresh_screen()
+                'refresh_timeout': None
+            }
         if 'multiplex' not in SESSIONS[self.session][term]:
             # Start up a new terminal
             SESSIONS[self.session][term]['created'] = datetime.now()
@@ -979,8 +997,8 @@ class TerminalWebSocket(WebSocketHandler):
                 message = {'term_exists': term}
                 self.write_message(json_encode(message))
                 # This resets the screen diff
-                SESSIONS[self.session][term]['multiplex'].prev_output = [
-                    None for a in xrange(rows-1)]
+                SESSIONS[self.session][term]['multiplex'].prev_output[
+                    self.client_id] = [None for a in xrange(rows-1)]
             else:
                 # Tell the client this terminal is no more
                 message = {'term_ended': term}
@@ -988,7 +1006,7 @@ class TerminalWebSocket(WebSocketHandler):
                 return
         # Setup callbacks so that everything gets called when it should
         self.callback_id = callback_id = "%s;%s;%s" % (
-            self.session, self.request.host, self.request.remote_ip)
+            self.client_id, self.request.host, self.request.remote_ip)
         # NOTE: request.host is the FQDN or IP the user entered to open Gate One
         # so if you want to have multiple browsers open to the same user session
         # from the same IP just use an alternate hostname/IP for the URL.
@@ -1112,14 +1130,7 @@ class TerminalWebSocket(WebSocketHandler):
             tidy_thread = SESSIONS[self.session]['tidy_thread']
             tidy_thread.keepalive(now)
             m = multiplex = SESSIONS[self.session][term]['multiplex']
-            if len(m.callbacks[m.CALLBACK_UPDATE].keys()) > 1:
-                # The screen diff algorithm won't work if there's more than one
-                # client attached to the same multiplexer.
-                full = True
-            if full:
-                scrollback, screen = multiplex.dumplines(full=True)
-            else:
-                scrollback, screen = multiplex.dumplines()
+            scrollback, screen = multiplex.dumplines(client_id=self.client_id)
         except KeyError as e: # Session died (i.e. command ended).
             logging.debug("KeyError in _send_refresh: %s" % e)
             scrollback, screen = None, None
@@ -1169,6 +1180,7 @@ class TerminalWebSocket(WebSocketHandler):
             last_keepalive = tidy_thread.last_keepalive
             timediff = datetime.now() - last_keepalive
             sess = SESSIONS[self.session][term]
+            client_dict = sess[self.client_id]
             multiplex = sess['multiplex']
             refresh = partial(self._send_refresh, term, full)
             # We impose a rate limit of max one screen update every 50ms by
@@ -1179,12 +1191,12 @@ class TerminalWebSocket(WebSocketHandler):
             # to the client every 150ms.  This ensures that no matter how fast
             # screen updates are happening the user will get at least one
             # update every 150ms.  It works out quite nice, actually.
-            if sess['refresh_timeout']:
-                multiplex.io_loop.remove_timeout(sess['refresh_timeout'])
+            if client_dict['refresh_timeout']:
+                multiplex.io_loop.remove_timeout(client_dict['refresh_timeout'])
             if timediff > force_refresh_threshold:
                 refresh()
             else:
-                sess['refresh_timeout'] = multiplex.io_loop.add_timeout(
+                client_dict['refresh_timeout'] = multiplex.io_loop.add_timeout(
                     msec, refresh)
         except KeyError as e: # Session died (i.e. command ended).
             logging.debug("KeyError in refresh_screen: %s" % e)

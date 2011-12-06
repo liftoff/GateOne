@@ -23,6 +23,9 @@ from optparse import OptionParser
 # Import 3rd party stuff
 from tornado.options import options
 
+# Disable ESC autocomplete for local paths (prevents information disclosure)
+readline.parse_and_bind('esc: none')
+
 # Globals
 wrapper_script = """\
 #!/bin/sh

@@ -39,7 +39,7 @@ GateOne.Base.update(GateOne.SSH, {
         }
         infoPanelDuplicateSession.innerHTML = "Duplicate Session";
         infoPanelDuplicateSession.onclick = function() {
-            var term = localStorage['selectedTerminal'];
+            var term = localStorage[prefix+'selectedTerminal'];
             go.SSH.duplicateSession(term);
         }
         h3.innerHTML = "SSH Plugin";
@@ -60,7 +60,7 @@ GateOne.Base.update(GateOne.SSH, {
         // Handles the 'sshjs_connect' action which should provide an SSH *connectString* in the form of user@host:port
         // The *connectString* will be stored in GateOne.terminals[term]['sshConnectString'] which is meant to be used in duplicating terminals (because you can't rely on the title).
         logDebug('sshjs_connect: ' + connectString);
-        var term = localStorage['selectedTerminal'];
+        var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         GateOne.terminals[term]['sshConnectString'] = connectString;
     },
     handleReconnect: function(jsonDoc) {

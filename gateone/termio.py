@@ -220,7 +220,8 @@ class Multiplex:
         # was consumed by the runaway process buffering up too much stuff.
         self.term = self.terminal_emulator(rows=self.rows, cols=self.cols)
         # TODO: Consider restoring the mode/state of the terminal emulator.
-        self.prev_output = [None for a in xrange(self.rows-1)]
+        for i in self.prev_output.keys():
+            self.prev_output.update({i: [None for a in xrange(self.rows-1)]})
 
     def _blocked_io_handler(self, signum, frame):
         """
@@ -295,7 +296,7 @@ class Multiplex:
             # Tell our IOLoop instance to start watching the child
             self.io_loop.add_handler(
                 fd, self.proc_read, self.io_loop.READ)
-            self.prev_output = [None for a in xrange(rows-1)]
+            self.prev_output = {}
             # Set non-blocking so we don't wait forever for a read()
             fcntl.fcntl(self.fd, fcntl.F_SETFL, os.O_NONBLOCK)
             # Set the size of the terminal
@@ -488,7 +489,7 @@ class Multiplex:
         _buffer_write = partial(self._buffer_write, chars)
         self.io_loop.add_callback(_buffer_write)
 
-    def dumplines(self, full=False):
+    def dumplines(self, full=False, client_id='0'):
         """
         Returns the terminal text lines (a list of lines, to be specific) and
         its scrollback buffer (which is also a list of lines) as a tuple,
@@ -496,9 +497,12 @@ class Multiplex:
         it will be replaced with an empty string (in the terminal text lines).
 
         If *full*, will return the entire screen (not just the diff).
+        if *client_id* is given, it will be used as a unique client identifier
+        for keeping track of screen differences.
         """
+        if client_id not in self.prev_output:
+            self.prev_output[client_id] = [None for a in xrange(self.rows-1)]
         try:
-            #output = []
             scrollback, html = ([], [])
             if self.term:
                 try:
@@ -513,14 +517,14 @@ class Multiplex:
             if html:
                 if not full:
                     count = 0
-                    for line1, line2 in izip(self.prev_output, html):
+                    for line1, line2 in izip(self.prev_output[client_id], html):
                         if line1 != line2:
                             html[count] = line2 # I love updates-in-place
                         else:
                             html[count] = ''
                         count += 1
                     # Otherwise a full dump will take place
-                self.prev_output = preserved_html
+                self.prev_output.update({client_id: preserved_html})
             return (scrollback, html)
         except ValueError as e:
             # This would be special...

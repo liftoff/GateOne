@@ -274,20 +274,21 @@
     background-color: maroon;
     cursor: pointer;
 }
-#{{prefix}}bm_context {
+#{{container}} #{{prefix}}bm_context {
     position: fixed;
     font-size: 0.8em;
     background-color: #eee;
     margin-top: 0.2em;
-/*     text-align: right; */
     padding: 0.2em;
     border: 1px #000 solid;
 }
-#{{prefix}}bm_context a {
+#{{container}} #{{prefix}}bm_context a {
     color: #000;
     background-color: #eee;
+    float: left;
+    clear: both;
 }
-#{{prefix}}bm_context a:hover {
+#{{container}} #{{prefix}}bm_context a:hover {
     color: #fff;
     background-color: #1F5470;
 }
@@ -483,7 +484,6 @@
     margin-left: 0.2em;
     color: #1F5470;
     background-color: transparent;
-/*     padding-right: 0.1em; */
     position: absolute;
     bottom: 0.5em;
 }
@@ -492,15 +492,13 @@
     text-align: right;
     font-size: 0.9em;
     color: #1F5470;
-    margin-left: 0.1em;
-    padding-bottom: 0.2em;
+    margin-left: 0.45em;
 }
 #{{prefix}}bm_display_opts a {
     font-size: 0.8em;
 }
 #{{container}} .bm_desc {
     padding-left: 0.3em;
-/*     display: table-cell; */
     vertical-align: top;
 }
 #{{prefix}}bm_sort_options a {
@@ -783,6 +781,9 @@
 #{{container}} .bm_progressbar {
     background-color: #1F5470;
     height: 100%;
+}
+#{{prefix}}bookmarks_upload {
+    height: 2.5em;
 }
 /* Effects */
 #{{container}} div[name="bookmark"]:hover {

@@ -168,7 +168,7 @@ GateOne.Base.update(GateOne, {
             go.prefs[setting] = prefs[setting];
         }
         // Now override them with the user's settings (if present)
-        if (localStorage['prefs']) {
+        if (localStorage[go.prefs.prefix+'prefs']) {
             u.loadPrefs();
         }
         // Load our CSS theme
@@ -423,7 +423,7 @@ GateOne.Base.update(GateOne, {
             // We have to hide the pastearea so we can scroll the terminal underneath
             e.preventDefault();
             var pasteArea = u.getNode('#'+prefix+'pastearea'),
-                selectedTerm = localStorage['selectedTerminal'];
+                selectedTerm = localStorage[prefix+'selectedTerminal'];
             u.hideElement(pasteArea);
             if (!go.terminals[selectedTerm]['scrollbackVisible']) {
                 // Immediately re-enable the scrollback buffer if it isn't already there
@@ -453,10 +453,11 @@ GateOne.Base.update(GateOne, {
             logDebug('pastearea.onmousedown button: ' + e.button + ', which: ' + e.which);
             var go = GateOne,
                 u = go.Utils,
+                prefix = go.prefs.prefix,
                 m = go.Input.mouse(e), // Get the properties of the mouse event
                 X = e.clientX,
                 Y = e.clientY,
-                selectedTerm = localStorage['selectedTerminal'];
+                selectedTerm = localStorage[prefix+'selectedTerminal'];
             if (m.button.left) { // Left button depressed
                 u.hideElement('#'+prefix+'pastearea');
                 // This lets users click on links underneath the pastearea
@@ -482,7 +483,7 @@ GateOne.Base.update(GateOne, {
                 cu = p.clockUpdater,
                 percent = 0,
                 modifiers = go.Input.modifiers(e),
-                term = localStorage['selectedTerminal'],
+                term = localStorage[prefix+'selectedTerminal'],
                 terminalObj = go.terminals[term],
                 selectedFrame = terminalObj['playbackFrames'][p.currentFrame],
                 sbT = terminalObj['scrollbackTimer'];
@@ -577,8 +578,8 @@ GateOne.Base.update(GateOne, {
 });
 
 // Apply some universal defaults
-if (!localStorage['selectedTerminal']) {
-    localStorage['selectedTerminal'] = 1;
+if (!localStorage[GateOne.prefs.prefix+'selectedTerminal']) {
+    localStorage[GateOne.prefs.prefix+'selectedTerminal'] = 1;
 }
 
 // GateOne.Utils (generic utility functions)
@@ -932,7 +933,7 @@ GateOne.Base.update(GateOne.Utils, {
         document.body.appendChild(tag);
     },
     savePrefs: function() {
-        // Saves all user-specific settings in GateOne.prefs.* to localStorage['prefs']
+        // Saves all user-specific settings in GateOne.prefs.* to localStorage[prefix+'prefs']
         // TODO: Add a hook here for plugins to take advantage of.
         var prefs = GateOne.prefs,
             userPrefs = { // These are all the things that are user-specific
@@ -947,14 +948,14 @@ GateOne.Base.update(GateOne.Utils, {
                 'cols': prefs['cols'],
                 'disableTermTransitions': prefs['disableTermTransitions']
             };
-        localStorage['prefs'] = JSON.stringify(userPrefs);
+        localStorage[prefs.prefix+'prefs'] = JSON.stringify(userPrefs);
         GateOne.Visual.displayMessage("Preferences have been saved.");
     },
     loadPrefs: function() {
         // Populates GateOne.prefs.* with values from localStorage['prefs']
         // TODO: Add a hook here for plugins to use too.
-        if (localStorage['prefs']) {
-            var userPrefs = JSON.parse(localStorage['prefs']);
+        if (localStorage[GateOne.prefs.prefix+'prefs']) {
+            var userPrefs = JSON.parse(localStorage[GateOne.prefs.prefix+'prefs']);
             for (var i in userPrefs) {
                 if (userPrefs[i] != null) {
                     GateOne.prefs[i] = userPrefs[i];
@@ -1067,7 +1068,7 @@ GateOne.Base.update(GateOne.Net, {
     },
     sendDimensions: function(term) {
         if (!term) {
-            var term = localStorage['selectedTerminal'];
+            var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
         var go = GateOne,
             dimensions = go.Utils.getRowsAndColumns(go.prefs.goDiv),
@@ -1132,7 +1133,7 @@ GateOne.Base.update(GateOne.Net, {
                 }
                 setTimeout(function() {
                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
-                }, 1000);
+                }, 3000);
             }, 1000);
         }
         go.ws.onclose = function() {
@@ -1166,7 +1167,7 @@ GateOne.Base.update(GateOne.Net, {
     },
     setTerminal: function(term) {
         var term = parseInt(term); // Sometimes it will be a string
-        localStorage['selectedTerminal'] = term;
+        localStorage[GateOne.prefs.prefix+'selectedTerminal'] = term;
         GateOne.ws.send(JSON.stringify({'set_terminal': term}));
     },
     killTerminal: function(term) {
@@ -1633,13 +1634,14 @@ GateOne.Base.update(GateOne.Input, {
         var go = GateOne,
             u = go.Utils,
             v = go.Visual,
+            prefix = go.prefs.prefix,
             goIn = go.Input,
             noop = u.noop,
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
             buffer = goIn.bufferEscSeq,
             q = function(char) {e.preventDefault(); goIn.queue(char); goIn.handledKeystroke = true;},
-            term = localStorage['selectedTerminal'],
+            term = localStorage[prefix+'selectedTerminal'],
             keyString = String.fromCharCode(key.code);
         logDebug("emulateKey() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
         goIn.handledKeystroke = false;
@@ -1722,7 +1724,7 @@ GateOne.Base.update(GateOne.Input, {
                 if (key.code >= 97 && key.code <= 122) q(String.fromCharCode(key.code - 96)); // Ctrl-[a-z]
                 else if (key.code >= 65 && key.code <= 90) {
                     if (key.code == 76) { // Ctrl-l gets some extra love
-                        go.Net.fullRefresh(localStorage['selectedTerminal']);
+                        go.Net.fullRefresh(localStorage[go.prefs.prefix+'selectedTerminal']);
                         q(String.fromCharCode(key.code - 64));
                     } else {
                         q(String.fromCharCode(key.code - 64)); // More Ctrl-[a-z]
@@ -1982,9 +1984,7 @@ GateOne.Base.update(GateOne.Visual, {
             panelID = panel,
             panel = u.getNode(panel),
             origState = panel.style['transform'],
-            panels = u.getNode(go.prefs.goDiv).getElementsByClassName('panel'),
-            term = localStorage['selectedTerminal'],
-            title = u.getNode('#'+go.prefs.prefix+'term'+term).title;
+            panels = u.getNode(go.prefs.goDiv).getElementsByClassName('panel');
         // Start by scaling all panels out
         for (var i in u.toArray(panels)) {
             if (u.getNode(panels[i]).style['transform'] != 'scale(0)') {
@@ -2019,13 +2019,14 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             v = go.Visual,
-            termObj = u.getNode('#'+go.prefs.prefix+'term' + term),
+            prefix = go.prefs.prefix,
+            termObj = u.getNode('#'+prefix+'term' + term),
             displayText = termObj.id.split('term')[1] + ": " + termObj.title,
-            termInfoDiv = u.createElement('div', {'id': go.prefs.prefix+'terminfo'}),
+            termInfoDiv = u.createElement('div', {'id': prefix+'terminfo'}),
             marginFix = Math.round(termObj.title.length/2),
-            infoContainer = u.createElement('div', {'id': go.prefs.prefix+'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
+            infoContainer = u.createElement('div', {'id': prefix+'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
         termInfoDiv.innerHTML = displayText;
-        if (u.getNode('#'+go.prefs.prefix+'infocontainer')) { u.removeElement('#'+go.prefs.prefix+'infocontainer') }
+        if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer') }
         infoContainer.appendChild(termInfoDiv);
         u.getNode(go.prefs.goDiv).appendChild(infoContainer);
         if (v.infoTimer) {
@@ -2049,9 +2050,10 @@ GateOne.Base.update(GateOne.Visual, {
         }
         var go = GateOne,
             u = go.Utils,
+            prefix = go.prefs.prefix,
             now = new Date(),
             timeDiff = now - go.Visual.sinceLastMessage,
-            notice = u.createElement('div', {'id': go.prefs.prefix+id});
+            notice = u.createElement('div', {'id': prefix+id});
         if (message == go.Visual.lastMessage) {
             // Only display messages every two seconds if they repeat so we don't spam the user.
             if (timeDiff < 2000) {
@@ -2065,7 +2067,7 @@ GateOne.Base.update(GateOne.Visual, {
             removeTimeout = 5000;
         }
         notice.innerHTML = message;
-        u.getNode('#'+go.prefs.prefix+'noticecontainer').appendChild(notice);
+        u.getNode('#'+prefix+'noticecontainer').appendChild(notice);
         setTimeout(function() {
             go.Visual.applyStyle(notice, {'opacity': 0});
             setTimeout(function() {
@@ -2079,18 +2081,19 @@ GateOne.Base.update(GateOne.Visual, {
         // Sets the title of titleObj['term'] to titleObj['title']
         var go = GateOne,
             u = go.Utils,
+            prefix = go.prefs.prefix,
             term = titleObj['term'],
             title = titleObj['title'],
-            sideinfo = u.getNode('#'+go.prefs.prefix+'sideinfo'),
-            toolbar = u.getNode('#'+go.prefs.prefix+'toolbar'),
-            termNode = u.getNode('#'+go.prefs.prefix+'term' + term),
+            sideinfo = u.getNode('#'+prefix+'sideinfo'),
+            toolbar = u.getNode('#'+prefix+'toolbar'),
+            termNode = u.getNode('#'+prefix+'term' + term),
             goDiv = u.getNode(go.prefs.goDiv),
             heightDiff = goDiv.clientHeight - toolbar.clientHeight;
         logDebug("Setting term " + term + " to title: " + title);
         termNode.title = title;
         sideinfo.innerHTML = term + ": " + title;
         // Also update the info panel
-        u.getNode('#'+go.prefs.prefix+'termtitle').innerHTML = term+': '+title;
+        u.getNode('#'+prefix+'termtitle').innerHTML = term+': '+title;
         // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
         go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(1)"); // Have to reset it first
         if (sideinfo.clientWidth > heightDiff) { // We have overlap
@@ -2102,9 +2105,10 @@ GateOne.Base.update(GateOne.Visual, {
     },
     bellAction: function(bellObj) {
         // Plays a bell sound and pops up a message indiciating which terminal issued a bell
-        var term = bellObj['term'];
-        GateOne.Visual.playBell();
-        GateOne.Visual.displayMessage("Bell in " + term + ": " + GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'term' + term).title);
+        var go = GateOne,
+            term = bellObj['term'];
+        go.Visual.playBell();
+        go.Visual.displayMessage("Bell in " + term + ": " + go.Utils.getNode('#'+go.prefs.prefix+'term' + term).title);
     },
     playBell: function() {
         // Plays the bell sound without any visual notification.
@@ -2116,7 +2120,8 @@ GateOne.Base.update(GateOne.Visual, {
         // If *term* is given, only disable scrollback for that terminal
         logDebug('enableScrollback(' + term + ')');
         var go = GateOne,
-            u = go.Utils;
+            u = go.Utils,
+            prefix = go.prefs.prefix;
         if (term) {
             if (!go.terminals[term]) { // The terminal was just closed
                 return; // We're done here
@@ -2130,25 +2135,25 @@ GateOne.Base.update(GateOne.Visual, {
                 }, 3500);
                 return;
             }
-            var replacement_html = '<pre id="'+go.prefs.prefix+'term' + term + '_pre" style="height: 100%">' + go.terminals[term]['scrollback'].join('\n') + '\n' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
-            u.getNode('#' + go.prefs.prefix + 'term' + term).innerHTML = replacement_html;
+            var replacement_html = '<pre id="'+prefix+'term' + term + '_pre" style="height: 100%">' + go.terminals[term]['scrollback'].join('\n') + '\n' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
+            u.getNode('#' + prefix + 'term' + term).innerHTML = replacement_html;
             if (go.terminals[term]['scrollbackTimer']) {
                 clearTimeout(go.terminals[term]['scrollbackTimer']);
             }
             go.terminals[term]['scrollbackVisible'] = true;
-            var termPre = u.getNode('#'+go.prefs.prefix+'term' + term + '_pre');
+            var termPre = u.getNode('#'+prefix+'term' + term + '_pre');
             u.scrollToBottom(termPre);
         } else {
             var terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
             terms.forEach(function(termObj) {
-                var termID = termObj.id.split(go.prefs.prefix+'term')[1],
+                var termID = termObj.id.split(prefix+'term')[1],
                     replacement_html = '<pre id="' + termObj.id + '_pre" style="height: 100%">' + go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
-                    u.getNode('#' + go.prefs.prefix + 'term' + term).innerHTML = replacement_html;
+                    u.getNode('#' + prefix + 'term' + term).innerHTML = replacement_html;
                 if (go.terminals[termID]['scrollbackTimer']) {
                     clearTimeout(go.terminals[termID]['scrollbackTimer']);
                 }
                 go.terminals[termID]['scrollbackVisible'] = true;
-                var termPre = u.getNode('#'+go.prefs.prefix+'term' + termID + '_pre');
+                var termPre = u.getNode('#'+prefix+'term' + termID + '_pre');
                 u.scrollToBottom(termPre);
             });
         }
@@ -2159,16 +2164,17 @@ GateOne.Base.update(GateOne.Visual, {
         // If *term* is given, only disable scrollback for that terminal
         var go = GateOne,
             u = go.Utils,
+            prefix = go.prefs.prefix,
             terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
             textTransforms = go.Terminal.textTransforms;
         if (term) {
-            var replacement_html = '<pre id="'+go.prefs.prefix+'term' + term + '_pre">' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
-            u.getNode('#' + go.prefs.prefix + 'term' + term).innerHTML = replacement_html;
+            var replacement_html = '<pre id="'+prefix+'term' + term + '_pre">' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
+            u.getNode('#' + prefix + 'term' + term).innerHTML = replacement_html;
         } else {
             terms.forEach(function(termObj) {
-                var termID = termObj.id.split(go.prefs.prefix+'term')[1],
+                var termID = termObj.id.split(prefix+'term')[1],
                     replacement_html = '<pre id="' + termObj.id + '_pre">' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
-                u.getNode('#' + go.prefs.prefix + 'term' + termID).innerHTML = replacement_html;
+                u.getNode('#' + prefix + 'term' + termID).innerHTML = replacement_html;
             });
         }
         go.Visual.scrollbackToggle = false;
@@ -2247,17 +2253,18 @@ GateOne.Base.update(GateOne.Visual, {
         // Slides to the terminal left of the current view
         var go = GateOne,
             u = go.Utils,
+            prefix = go.prefs.prefix,
             count = 0,
             term = 0,
             terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
         terms.forEach(function(termObj) {
-            if (termObj.id == go.prefs.prefix+'term' + localStorage['selectedTerminal']) {
+            if (termObj.id == prefix+'term' + localStorage[prefix+'selectedTerminal']) {
                 term = count;
             }
             count = count + 1;
         });
         if (u.isEven(term+1)) {
-            var slideTo = terms[term-1].id.split(go.prefs.prefix+'term')[1];
+            var slideTo = terms[term-1].id.split(prefix+'term')[1];
             go.Visual.slideToTerm(slideTo, true);
         }
     },
@@ -2265,18 +2272,19 @@ GateOne.Base.update(GateOne.Visual, {
         // Slides to the terminal right of the current view
         var go = GateOne,
             u = go.Utils,
+            prefix = go.prefs.prefix,
             terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
             count = 0,
             term = 0;
         if (terms.length > 1) {
             terms.forEach(function(termObj) {
-                if (termObj.id == go.prefs.prefix+'term' + localStorage['selectedTerminal']) {
+                if (termObj.id == prefix+'term' + localStorage[prefix+'selectedTerminal']) {
                     term = count;
                 }
                 count = count + 1;
             });
             if (!u.isEven(term+1)) {
-                var slideTo = terms[term+1].id.split(go.prefs.prefix+'term')[1];
+                var slideTo = terms[term+1].id.split(prefix+'term')[1];
                 go.Visual.slideToTerm(slideTo, true);
             }
         }
@@ -2285,18 +2293,19 @@ GateOne.Base.update(GateOne.Visual, {
         // Slides the view downward one terminal by pushing all the others up.
         var go = GateOne,
             u = go.Utils,
+            prefix = go.prefs.prefix,
             terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
             count = 0,
             term = 0;
         if (terms.length > 2) {
             terms.forEach(function(termObj) {
-                if (termObj.id == go.prefs.prefix+'term' + localStorage['selectedTerminal']) {
+                if (termObj.id == prefix+'term' + localStorage[prefix+'selectedTerminal']) {
                     term = count;
                 }
                 count = count + 1;
             });
             if (terms[term+2]) {
-                var slideTo = terms[term+2].id.split(go.prefs.prefix+'term')[1];
+                var slideTo = terms[term+2].id.split(prefix+'term')[1];
                 go.Visual.slideToTerm(slideTo, true);
             }
         }
@@ -2305,18 +2314,19 @@ GateOne.Base.update(GateOne.Visual, {
         // Slides the view downward one terminal by pushing all the others down.
         var go = GateOne,
             u = go.Utils,
+            prefix = go.prefs.prefix,
             terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
             count = 0,
             term = 0;
-        if (localStorage['selectedTerminal'] > 1) {
+        if (localStorage[prefix+'selectedTerminal'] > 1) {
             terms.forEach(function(termObj) {
-                if (termObj.id == go.prefs.prefix+'term' + localStorage['selectedTerminal']) {
+                if (termObj.id == prefix+'term' + localStorage[prefix+'selectedTerminal']) {
                     term = count;
                 }
                 count = count + 1;
             });
             if (terms[term-2]) {
-                var slideTo = terms[term-2].id.split(go.prefs.prefix+'term')[1];
+                var slideTo = terms[term-2].id.split(prefix+'term')[1];
                 go.Visual.slideToTerm(Math.max(slideTo, 1), true);
             }
         }
@@ -2327,8 +2337,9 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             v = go.Visual,
-            pastearea = u.getNode('#'+go.prefs.prefix+'pastearea'),
-            controlsContainer = u.getNode('#'+go.prefs.prefix+'controlsContainer'),
+            prefix = go.prefs.prefix,
+            pastearea = u.getNode('#'+prefix+'pastearea'),
+            controlsContainer = u.getNode('#'+prefix+'controlsContainer'),
             terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
         if (goBack == null) {
             goBack == true;
@@ -2342,7 +2353,7 @@ GateOne.Base.update(GateOne.Visual, {
             });
             u.getNode(go.prefs.goDiv).style.overflow = 'hidden';
             if (goBack) {
-                v.slideToTerm(localStorage['selectedTerminal']); // Slide to the intended terminal
+                v.slideToTerm(localStorage[prefix+'selectedTerminal']); // Slide to the intended terminal
             }
             u.showElement(pastearea);
             u.showElement(controlsContainer);
@@ -2350,7 +2361,7 @@ GateOne.Base.update(GateOne.Visual, {
             v.gridView = true;
             setTimeout(function() {
                 u.getNode(go.prefs.goDiv).style.overflowY = 'visible';
-                u.getNode('#'+go.prefs.prefix+'termwrapper').style.width = go.Visual.goDimensions.w;
+                u.getNode('#'+prefix+'termwrapper').style.width = go.Visual.goDimensions.w;
             }, 1000);
             u.hideElement(pastearea);
             u.hideElement(controlsContainer);
@@ -2383,19 +2394,19 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 count += 1;
                 termObj.onclick = function(e) {
-                    var termID = termObj.id.split(go.prefs.prefix+'term')[1],
-                        termPre = u.getNode('#'+go.prefs.prefix+'term' + termID + '_pre');
-                    localStorage['selectedTerminal'] = termID;
+                    var termID = termObj.id.split(prefix+'term')[1],
+                        termPre = u.getNode('#'+prefix+'term' + termID + '_pre');
+                    localStorage[prefix+'selectedTerminal'] = termID;
                     v.toggleGridView(false);
                     v.slideToTerm(termID, true);
                     u.scrollToBottom(termPre);
                 }
                 termObj.onmouseover = function(e) {
-                    var displayText = termObj.id.split(go.prefs.prefix+'term')[1] + ": " + termObj.title,
-                        termInfoDiv = u.createElement('div', {'id': go.prefs.prefix+'terminfo'}),
+                    var displayText = termObj.id.split(prefix+'term')[1] + ": " + termObj.title,
+                        termInfoDiv = u.createElement('div', {'id': prefix+'terminfo'}),
                         marginFix = Math.round(termObj.title.length/2),
-                        infoContainer = u.createElement('div', {'id': go.prefs.prefix+'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
-                    if (u.getNode('#'+go.prefs.prefix+'infocontainer')) { u.removeElement('#'+go.prefs.prefix+'infocontainer') }
+                        infoContainer = u.createElement('div', {'id': prefix+'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
+                    if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer') }
                     termInfoDiv.innerHTML = displayText;
                     infoContainer.appendChild(termInfoDiv);
                     v.applyTransform(infoContainer, 'scale(2)');
@@ -2518,7 +2529,7 @@ GateOne.Base.update(GateOne.Terminal, {
         goDiv.appendChild(infoPanel); // Doesn't really matter where it goes
         infoPanelMonitorInactivity.onclick = function(e) {
             // Turn on/off inactivity monitoring
-            var term = localStorage['selectedTerminal'],
+            var term = localStorage[prefix+'selectedTerminal'],
                 monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                 monitorActivity = u.getNode('#'+prefix+'monitor_activity'),
                 termTitle = u.getNode('#'+prefix+'term'+term).title;
@@ -2528,7 +2539,6 @@ GateOne.Base.update(GateOne.Terminal, {
                     // Restart the timer
                     go.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.terminals[term]['inactivityTimeout']);
                 }
-//                 logStorage('Monitoring for inactivity in: ' + termTitle);
                 go.terminals[term]['inactivityTimeout'] = 10000; // Ten second default--might want to make user-modifiable
                 go.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.terminals[term]['inactivityTimeout']);
                 if (go.terminals[term]['activityNotify']) {
@@ -2544,12 +2554,11 @@ GateOne.Base.update(GateOne.Terminal, {
         }
         infoPanelMonitorActivity.onclick = function() {
             // Turn on/off activity monitoring
-            var term = localStorage['selectedTerminal'],
+            var term = localStorage[prefix+'selectedTerminal'],
                 monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                 monitorActivity = u.getNode('#'+prefix+'monitor_activity'),
-                termTitle = u.getNode('#' + prefix + 'term' + term).title;
+                termTitle = u.getNode('#'+prefix+'term'+term).title;
             if (monitorActivity.checked) {
-//                 logStorage('Monitoring for activity in: ' + termTitle);
                 go.terminals[term]['activityNotify'] = true;
                 if (go.terminals[term]['inactivityTimer']) {
                     // Turn off monitoring for activity if we're now going to monitor for inactivity
@@ -2564,11 +2573,11 @@ GateOne.Base.update(GateOne.Terminal, {
         }
         infoPanelInactivityInterval.onblur = function(e) {
             // Update go.terminals[term]['inactivityTimeout'] with the this.value
-            var term = localStorage['selectedTerminal'];
+            var term = localStorage[prefix+'selectedTerminal'];
             go.terminals[term]['inactivityTimeout'] = parseInt(this.value) * 1000;
         }
         var editTitle =  function(e) {
-            var term = localStorage['selectedTerminal'],
+            var term = localStorage[prefix+'selectedTerminal'],
                 title = u.getNode('#'+prefix+'term'+term).title,
                 titleEdit = u.createElement('input', {'type': 'text', 'name': 'title', 'value': title, 'id': go.prefs.prefix + 'title_edit'}),
                 finishEditing = function(e) {
@@ -2598,12 +2607,12 @@ GateOne.Base.update(GateOne.Terminal, {
         infoPanelH2.onclick = editTitle;
         toolbarNewTerm.onclick = function(e) {go.Terminal.newTerminal()};
         var closeCurrentTerm = function() {
-            go.Terminal.closeTerminal(localStorage['selectedTerminal']);
+            go.Terminal.closeTerminal(localStorage[prefix+'selectedTerminal']);
         }
         toolbarClose.onclick = closeCurrentTerm;
         // TODO: Get showInfo() displaying the proper status of the activity monitory checkboxes
         var showInfo = function() {
-            var term = localStorage['selectedTerminal'],
+            var term = localStorage[prefix+'selectedTerminal'],
                 termObj = go.terminals[term];
             u.getNode('#'+prefix+'term_time').innerHTML = termObj['created'].toLocaleString() + "<br />";
             u.getNode('#'+prefix+'rows').innerHTML = termObj['rows'] + "<br />";
@@ -2657,7 +2666,7 @@ GateOne.Base.update(GateOne.Terminal, {
                 // We wrap the logic that stores the scrollback buffer in a timer so we're not writing to localStorage (aka "to disk") every nth of a second for fast screen refreshes (e.g. fast typers).  Writing to localStroage is a blocking operation so this could speed things up considerable for larger terminal sizes.
                 var writeScrollback = function() {
                     try { // Save the scrollback buffer in localStorage for retrieval if the user reloads
-                        localStorage.setItem("scrollback" + term, scrollback.join('\n'));
+                        localStorage.setItem(prefix+"scrollback" + term, scrollback.join('\n'));
                     } catch (e) {
                         logError(e);
                     }
@@ -2733,7 +2742,7 @@ GateOne.Base.update(GateOne.Terminal, {
         // Ctrl-Alt-N to create a new terminal
         go.Input.registerShortcut('KEY_N', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'});
         // Ctrl-Alt-W to close the current terminal
-        go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'go.Terminal.closeTerminal(localStorage["selectedTerminal"], false)'});
+        go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'go.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
         // Register our actions
         go.Net.addAction('terminals', go.Terminal.reattachTerminalsAction);
         go.Net.addAction('termupdate', go.Terminal.updateTerminalAction);
@@ -2748,8 +2757,9 @@ GateOne.Base.update(GateOne.Terminal, {
             u = go.Utils,
             t = go.Terminal,
             v = go.Visual,
+            prefix = go.prefs.prefix,
             term = termUpdateObj['term'],
-            prevScrollback = localStorage["scrollback" + term],
+            prevScrollback = localStorage[prefix+"scrollback" + term],
             terminalObj = go.terminals[term],
             textTransforms = go.Terminal.textTransforms;
 //         logDebug('GateOne.Utils.updateTerminalActionTest() termUpdateObj: ' + u.items(termUpdateObj));
@@ -2774,14 +2784,12 @@ GateOne.Base.update(GateOne.Terminal, {
         var message = "Inactivity in terminal: " + term;
         GateOne.Visual.playBell();
         GateOne.Visual.displayMessage(message);
-//         logStorage(message);
     },
     notifyActivity: function(term) {
         // Notifies the user of activity in *term*
         var message = "Activity in terminal: " + term;
         GateOne.Visual.playBell();
         GateOne.Visual.displayMessage(message);
-//         logStorage(message);
     },
     newTerminal: function(/*Opt:*/term) {
         // Adds a new terminal to the grid and starts updates with the server.
@@ -2790,18 +2798,19 @@ GateOne.Base.update(GateOne.Terminal, {
         var go = GateOne,
             u = go.Utils,
             t = go.Terminal,
+            prefix = go.prefs.prefix,
             currentTerm = null,
             termUndefined = false,
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
-            prevScrollback = localStorage.getItem("scrollback" + term);
+            prevScrollback = localStorage.getItem(prefix+"scrollback" + term);
         if (term) {
-            currentTerm = go.prefs.prefix+'term' + term;
+            currentTerm = prefix+'term' + term;
             t.lastTermNumber = term;
         } else {
             termUndefined = true;
             t.lastTermNumber = t.lastTermNumber + 1;
             term = t.lastTermNumber;
-            currentTerm = go.prefs.prefix+'term' + t.lastTermNumber;
+            currentTerm = prefix+'term' + t.lastTermNumber;
         }
         // Create the terminal record scaffold
         go.terminals[term] = {
@@ -2869,16 +2878,17 @@ GateOne.Base.update(GateOne.Terminal, {
         // If noCleanup resolves to true, stored data will be left hanging around for this terminal (e.g. the scrollback buffer in localStorage).  Otherwise it will be deleted.
         var go = GateOne,
             u = go.Utils,
+            prefix = go.prefs.prefix,
             message = "Closed term " + term + ": " + u.getNode('#'+go.prefs.prefix+'term' + term).title,
             lastTerm = null;
         // Tell the server to kill the terminal
         go.Net.killTerminal(term);
         if (!noCleanup) {
             // Delete the associated scrollback buffer (save the world from localStorage pollution)
-            delete localStorage['scrollback'+term];
+            delete localStorage[prefix+'scrollback'+term];
         }
         // Remove the terminal from the page
-        u.removeElement('#'+go.prefs.prefix+'term' + term);
+        u.removeElement('#'+prefix+'term' + term);
         // Also remove it from working memory
         delete go.terminals[term];
         // Now find out what the previous terminal was and move to it
@@ -2913,13 +2923,14 @@ GateOne.Base.update(GateOne.Terminal, {
         // If we're reconnecting to an existing session, those running terminals will be recreated.
         // If this is a new session, a fresh terminal will be created.
         var go = GateOne,
-            u = go.Utils;
+            u = go.Utils,
+            prefix = go.prefs.prefix;
         logDebug("reattachTerminalsAction() terminals: " + u.items(terminals));
         if (terminals.length) {
             // Reattach the running terminals
             var selectedMatch = false;
             terminals.forEach(function(termNum) {
-                if (termNum == localStorage['selectedTerminal']) {
+                if (termNum == localStorage[prefix+'selectedTerminal']) {
                     selectedMatch = true;
                     var slide = u.partial(go.Visual.slideToTerm, termNum, true);
                     setTimeout(slide, 1000);
@@ -2973,19 +2984,90 @@ GateOne.Base.update(GateOne.Terminal, {
         //      "Ticket number: <a href='https://support.company.com/tracker?ticket=IM123456789' target='new'>IM123456789</a>"
         //
         // NOTE: *name* is only used for reference purposes in the textTransforms object.
+        var go = GateOne;
         if (typeof(pattern) == "object") {
             pattern = pattern.toString(); // Have to convert it to a string so we can pass it to the Web Worker so Firefox won't freak out
         }
-        GateOne.Terminal.textTransforms[name] = {};
-        GateOne.Terminal.textTransforms[name]['pattern'] = pattern;
-        GateOne.Terminal.textTransforms[name]['newString'] = newString;
+        go.Terminal.textTransforms[name] = {};
+        go.Terminal.textTransforms[name]['pattern'] = pattern;
+        go.Terminal.textTransforms[name]['newString'] = newString;
     },
     resetTerminalAction: function(term) {
         // Clears the screen and the scrollback buffer (in memory and in localStorage)
+        var go = GateOne,
+            prefix = go.prefs.prefix;
         logDebug("resetTerminalAction term: " + term);
-        GateOne.terminals[term]['scrollback'] = [];
-        GateOne.terminals[term]['screen'] = [];
-        localStorage["scrollback" + term] = '';
+        go.terminals[term]['scrollback'] = [];
+        go.terminals[term]['screen'] = [];
+        localStorage[prefix+"scrollback" + term] = '';
+    }
+});
+
+GateOne.Base.module(GateOne, "User", "0.9", ['Base', 'Utils', 'Visual']);
+GateOne.User.userLoginCallbacks = []; // Each of these will get called after the server sends us the user's username, providing the username as the only argument.
+GateOne.Base.update(GateOne.User, {
+    // The User module is for things like logging out, synchronizing preferences with the server, and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.
+    init: function() {
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
+            prefsPanelForm = u.getNode('#'+prefix+'prefs_form'),
+            prefsPanelUserInfo = u.createElement('div', {'id': prefix+'user_info'}),
+            prefsPanelUserID = u.createElement('span', {'id': prefix+'user_info_id'}),
+            prefsPanelUserLogout = u.createElement('a', {'id': prefix+'user_info_logout'});
+        prefsPanelUserLogout.innerHTML = "Sign Out";
+        prefsPanelUserLogout.onclick = function(e) {
+            e.preventDefault();
+            go.User.logout();
+        }
+        prefsPanelUserInfo.appendChild(prefsPanelUserID);
+        prefsPanelUserInfo.appendChild(prefsPanelUserLogout);
+        prefsPanel.insertBefore(prefsPanelUserInfo, prefsPanelForm);
+        // Surround "Sign Out" with parens (looks nicer this way)
+        prefsPanelUserLogout.insertAdjacentHTML("beforeBegin", "(");
+        prefsPanelUserLogout.insertAdjacentHTML("afterEnd", ")");
+        // Register our actions
+        go.Net.addAction('set_username', go.User.setUsername);
+    },
+    setUsername: function(username) {
+        // Sets GateOne.User.username using *username*.  Also provides hooks that plugins can have called after a user has logged in successfully.
+        // NOTE:  Primarily here to present something more easy to understand than the session ID :)
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            prefsPanelUserID = u.getNode('#'+prefix+'user_info_id');
+        logDebug("setUsername(" + username + ")");
+        GateOne.User.username = username;
+        prefsPanelUserID.innerHTML = username + " ";
+        if (go.User.userLoginCallbacks.length) {
+            // Call any registered callbacks
+            go.User.userLoginCallbacks.forEach(function(callback) {
+                callback(username);
+            });
+        }
+    },
+    logout: function() {
+        // Logs the user out of Gate One by deleting the "user" cookie and everything related to Gate One in localStorage
+        var go = GateOne,
+            u = go.Utils,
+            v = go.Visual,
+            prefix = go.prefs.prefix;
+        // Remove all Gate One-specific items from localStorage by deleting everything that starts with GateOne.prefs.prefix.
+        for (var key in localStorage) {
+            if (u.startsWith(prefix, key)) {
+                delete localStorage[key];
+            }
+        }
+        // NOTE: This takes care of deleting the "user" cookie
+        u.xhrGet('/auth?logout=True', function(response) {
+            logDebug("Logout Response: " + response);
+            var URL = response;
+            v.displayMessage("You have been logged out.  Redirecting to: " + URL);
+            setTimeout(function() {
+                window.location.href = URL;
+            }, 2000);
+        });
     }
 });
 

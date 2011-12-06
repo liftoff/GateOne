@@ -91,9 +91,10 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         logging.debug("user_login(%s)" % user)
         # Make a directory to store this user's settings/files/logs/etc
         user_dir = os.path.join(self.settings['user_dir'], user)
-        logging.info(_("Creating user directory: %s" % user_dir))
-        mkdir_p(user_dir)
-        os.chmod(user_dir, 0700)
+        if not os.path.exists(user_dir):
+            logging.info(_("Creating user directory: %s" % user_dir))
+            mkdir_p(user_dir)
+            os.chmod(user_dir, 0700)
         session_file = user_dir + '/session'
         if os.path.exists(session_file):
             session_data = open(session_file).read()
@@ -109,17 +110,24 @@ class BaseAuthHandler(tornado.web.RequestHandler):
                 f.write(session_info_json)
         self.set_secure_cookie("user", tornado.escape.json_encode(session_info))
 
-    def user_logout(self, user):
+    def user_logout(self, user, redirect=None):
         """
-        Called immediately after a user logs out.  Doesn't actually do
-        anything.  Just potential future use at this point.
+        Called immediately after a user logs out, cleans up the user's session
+        information and optionally, redirects them to *redirect* (URL).
         """
-        pass # Nothing here yet but someone might want to override it
+        logging.debug("user_logout(%s)" % user)
+        if redirect:
+            self.write(redirect)
+            self.finish()
+        else:
+            self.write("/")
+            self.finish()
 
 class NullAuthHandler(BaseAuthHandler):
     """
     A handler for when no authentication method is chosen (i.e. --auth=none).
     """
+    @tornado.web.asynchronous
     def get(self):
         """
         Sets the 'user' cookie with a new random session ID (*go_session*) and
@@ -129,12 +137,18 @@ class NullAuthHandler(BaseAuthHandler):
         # This ensures we won't have a conflict at some point with an actual
         # user.
         user = r'%anonymous'
-        self.user_login(user) # Takes care of the user's settings dir
-        user_cookie = {
-            'go_upn': user,
-            'go_session': generate_session_id()
-        }
-        self.set_secure_cookie("user", tornado.escape.json_encode(user_cookie))
+        logout = self.get_argument("logout", None)
+        if logout:
+            self.clear_cookie('user')
+            self.user_logout(user)
+            return
+        # This takes care of the user's settings dir and their session info
+        self.user_login(user)
+        #user_cookie = {
+            #'go_upn': user,
+            #'go_session': generate_session_id()
+        #}
+        #self.set_secure_cookie("user", tornado.escape.json_encode(user_cookie))
         next_url = self.get_argument("next", None)
         if next_url:
             self.redirect(next_url)
@@ -150,6 +164,13 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
         """
         Sets the 'user' cookie with an appropriate *go_upn* and *go_session*.
         """
+        logout_url = "https://accounts.google.com/Logout"
+        logout = self.get_argument("logout", None)
+        if logout:
+            user = self.get_current_user()['go_upn']
+            self.clear_cookie('user')
+            self.user_logout(user, logout_url)
+            return
         if self.get_argument("openid.mode", None):
             self.get_authenticated_user(self._on_auth)
             return
@@ -169,16 +190,17 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
         #     'first_name': u'Dan',
         #     'last_name': u'McDougall',
         #     'name': u'Dan McDougall',
-        #     'email': u'riskable@gmail.com'}
+        #     'email': u'daniel.mcdougall@liftoffsoftware.com'}
         # Named these 'go_<whatever>' since that is less likely to conflict with
         # anything in the future (should some auth mechanism start returning
         # session IDs of some sort).
-        self.user_login(user['email']) # Takes care of the user's settings dir
-        user_cookie = { # Don't need all that other stuff
-            'go_session': generate_session_id(),
-            'go_upn': user['email'] # Just an equivalent for standardization
-        }
-        self.set_secure_cookie("user", tornado.escape.json_encode(user_cookie))
+        # This takes care of the user's settings dir and their session info
+        self.user_login(user['email'])
+        #user_cookie = { # Don't need all that other stuff
+            #'go_session': generate_session_id(),
+            #'go_upn': user['email'] # Just an equivalent for standardization
+        #}
+        #self.set_secure_cookie("user", tornado.escape.json_encode(user_cookie))
         next_url = self.get_argument("next", None)
         if next_url:
             self.redirect(next_url)
@@ -193,12 +215,19 @@ try:
         """
         Handles authenticating users via Kerberos/GSSAPI/SSO.
         """
+        @tornado.web.asynchronous
         def get(self):
             """
             Checks the user's request header for the proper Authorization data.
             If it checks out the user will be logged in via _on_auth().  If not,
             the browser will be redirected to login.
             """
+            logout = self.get_argument("logout", None)
+            if logout:
+                user = self.get_current_user()['go_upn']
+                self.clear_cookie('user')
+                self.user_logout(user)
+                return
             auth_header = self.request.headers.get('Authorization')
             if auth_header:
                 self.get_authenticated_user(self._on_auth)
@@ -208,7 +237,8 @@ try:
         def _on_auth(self, user):
             if not user:
                 raise tornado.web.HTTPError(500, _("Kerberos auth failed"))
-            self.user_login(user) # This takes care of the user's settings dir
+            # This takes care of the user's settings dir and their session info
+            self.user_login(user)
             # TODO: Add some LDAP or local DB lookups here to add more detail to user objects
             logging.debug(_("KerberosAuthHandler user: %s" % user))
             next_url = self.get_argument("next", None)
@@ -227,12 +257,19 @@ try:
         """
         Handles authenticating users via PAM.
         """
+        @tornado.web.asynchronous
         def get(self):
             """
             Checks the user's request header for the proper Authorization data.
             If it checks out the user will be logged in via _on_auth().  If not,
             the browser will be redirected to login.
             """
+            logout = self.get_argument("logout", None)
+            if logout:
+                user = self.get_current_user()['go_upn']
+                self.clear_cookie('user')
+                self.user_logout(user)
+                return
             auth_header = self.request.headers.get('Authorization')
             if auth_header:
                 self.get_authenticated_user(self._on_auth)
@@ -242,7 +279,8 @@ try:
         def _on_auth(self, user):
             if not user:
                 raise tornado.web.HTTPError(500, _("PAM auth failed"))
-            self.user_login(user) # This takes care of the user's settings dir
+            # This takes care of the user's settings dir and their session info
+            self.user_login(user)
             logging.debug(_("PAMAuthHandler user: %s" % user))
             next_url = self.get_argument("next", None)
             if next_url:

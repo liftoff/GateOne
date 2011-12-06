@@ -14,8 +14,7 @@ __version_info__ = (0, 9)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
-import os, sys
-import logging
+import os, sys, re, logging
 from functools import partial
 try:
     from urlparse import urlparse
@@ -38,9 +37,203 @@ plugin_path = os.path.split(__file__)[0]
 sys.path.append(os.path.join(plugin_path, "dependencies"))
 import html5lib
 from html5lib import treebuilders, treewalkers
+from htmlentitydefs import name2codepoint
+# Fix the missing one:
+name2codepoint['#39'] = 39
 
 # Globals
 
+# Helper functions
+def unescape(s):
+    """
+    Unescape HTML code refs; c.f. http://wiki.python.org/moin/EscapingHtml
+    """
+    return re.sub('&(%s);' % '|'.join(name2codepoint), lambda m: unichr(name2codepoint[m.group(1)]), s)
+
+def parse_bookmarks_html(html):
+    """
+    Reads the Netscape-style bookmarks.html in string, *html* and returns a
+    list of Bookmark objects.
+    """
+    # If this looks impossibly complicated it's because parsing HTML streams is
+    # dark voodoo.  I had to push my brains back behind my eyes and into my ears
+    # a few times while writing this.
+    out_list = []
+    p = html5lib.HTMLParser(tree=treebuilders.getTreeBuilder("dom"))
+    dom_tree = p.parse(html)
+    walker = treewalkers.getTreeWalker("dom")
+    stream = walker(dom_tree)
+    level = 0
+    tags = []
+    h3on = False
+    aon = False
+    ddon = False
+    add_date = None
+    url = None
+    icon = None
+    name = ""
+    notes = ""
+    for token in stream:
+        if 'name' in token:
+            if token['name'] == 'dl':
+                if token['type'] == 'StartTag':
+                    level += 1
+                elif token['type'] == 'EndTag':
+                    if tags:
+                        tags.pop()
+                    level -= 1
+            if token['name'] == 'dd':
+                if token['type'] == 'StartTag':
+                    ddon = True
+                elif token['type'] == 'EndTag':
+                    ddon = False
+            if token['name'] == 'h3':
+                if token['type'] == 'StartTag':
+                    h3on = True
+                elif token['type'] == 'EndTag':
+                    h3on = False
+            if token['name'] == 'a':
+                if token['type'] == 'StartTag':
+                    aon = True
+                elif token['type'] == 'EndTag':
+                    aon = False
+                    if not add_date: # JavaScript-style 13-digit epoch:
+                        add_date = int(round(time.time() * 1000))
+                    add_date = int(add_date)
+                    if add_date > 9999999999999: # Delicious goes out to 16
+                        add_date = int(add_date/1000)
+                    if add_date < 10000000000: # Chrome only goes to 10 digits
+                        add_date = int(add_date*1000)
+                    bm = {
+                        'url': url,
+                        'name': name.strip(),
+                        'tags': [a for a in tags if a], # Remove empty tags
+                        'notes': "", # notes
+                        'visits': 0, # visits
+                        'updated': add_date, # updated
+                        'created': add_date, # created
+                        'updateSequenceNum': 0, # updateSequenceNum
+                        'images': {'favicon': icon}
+                    }
+                    out_list.append(bm)
+                    # Reset everything (just in case)
+                    add_date = None
+                    url = None
+                    icon = None
+                    name = ""
+        if h3on:
+            if token['data']:
+                if type(token['data']) == str:
+                    tags.append(token['data'])
+                elif type(token['data']) == unicode:
+                    tags.append(token['data'])
+        if ddon: # Indicates that there's notes here
+            if token['data']:
+                if token['type'] == 'Characters':
+                    # Notes get attached to the bookmark we just created
+                    out_list[-1]['notes'] = unescape(token['data'].strip())
+        if aon:
+            if token['type'] == 'StartTag':
+                for tup in token['data']:
+                    if tup[0] == 'add_date':
+                        add_date = tup[1]
+                    elif tup[0] == 'href':
+                        url = tup[1]
+                    elif tup[0] == 'icon':
+                        icon = tup[1]
+                    elif tup[0] == 'tags':
+                        tags = tup[1].split(',') # Delicious-style
+            elif token['type'] == 'Characters':
+                name += unescape(token['data'])
+    return out_list
+
+def get_json_tags(json_dict, url):
+    """
+    Recursively looks inside *json_dict* trying to find tags associated with the
+    given *url*.  Returns the tags found as a list.
+    """
+    tags = []
+    # This function has been brought to you by your favorite stock symbol
+    if json_dict.has_key('root') and json_dict.has_key('children'):
+        for item in json_dict['children']:
+            if item['title'] == 'Tags':
+                for child in item['children']:
+                    if child['type'] == 'text/x-moz-place-container':
+                        for subchild in child['children']:
+                            if subchild['type'] == 'text/x-moz-place':
+                                if subchild['uri'] == url:
+                                    tags.append(child['title'])
+                                        # "Ahhhhhhh"
+                                            # "hhhhhhhh"
+                                                # "hhhhhhh"
+                                                    # "hhhhhh"
+                                                        # "hhhhh"
+                                                            # "!!!"
+                                                                # <splat>
+    return tags
+
+def get_ns_json_bookmarks(json_dict, bookmarks):
+    """
+    Given a *json_dict*, updates *urls_list* with each URL as it is found
+    within.
+
+    NOTE: Only works with Netscape-style bookmarks.json files.
+    """
+    children = []
+    if json_dict.has_key('children'):
+        for child in json_dict['children']:
+            if child['type'] == 'text/x-moz-place':
+                if not bookmarks[0].has_key(child['uri']):
+                    # Browser won't let you load file: URIs from HTTP pages
+                    if child['uri'][0:6] not in ['place:', 'file:/']:
+                        # Note the use of json_dict as bookmarks[1] here:
+                        tags = get_json_tags(bookmarks[1], child['uri'])
+                        if not tags:
+                            tags = ['Untagged']
+                        if child.has_key("annos"):
+                            notes = child["annos"]
+                        else:
+                            notes = ""
+                        if child['lastModified'] > 9999999999999:
+                            # Chop off the microseconds to make it 13 digits
+                            child['lastModified'] = int(child['lastModified']/1000)
+                        elif child['lastModified'] < 10000000000:
+                            child['lastModified'] = int(child['lastModified']*1000)
+                        if child['dateAdded'] > 9999999999999: # Delicious
+                            # Chop off the microseconds to make it 13 digits
+                            child['dateAdded'] = int(child['dateAdded']/1000)
+                        elif child['dateAdded'] < 10000000000: # Chrome
+                            child['dateAdded'] = int(child['dateAdded']*1000)
+                        bm = {
+                            'url': child['uri'],
+                            'name': child['title'].strip(),
+                            'tags': tags,
+                            'notes': notes,
+                            'visits': 0, # visits
+                            'updated': child['lastModified'], # updated
+                            'created': child['dateAdded'], # created
+                            'updateSequenceNum': 0, # updateSequenceNum
+                            'images': {} # No icons in JSON :(
+                        }
+                        bookmarks[0].update({child['uri']: bm})
+            elif child['type'] == 'text/x-moz-place-container':
+                get_ns_json_bookmarks(child, bookmarks)
+
+def parse_bookmarks_json(json_str):
+    """
+    Given *json_str*, returns a list of bookmark objects representing the data
+    contained therein.
+    """
+    # TODO: Get this recognizing and parsing our own JSON format.
+    json_obj = json.loads(json_str)
+    out_list = []
+    bookmarks = [{}, json_obj] # Inside a list for persistence
+    get_ns_json_bookmarks(json_obj, bookmarks) # Updates urls in-place
+    for url, bm in bookmarks[0].items():
+        out_list.append(bm)
+    return out_list
+
+# Data Structures
 class BookmarksDB(object):
     """
     Used to read and write bookmarks to a file on disk.  Can also synchronize
@@ -49,14 +242,7 @@ class BookmarksDB(object):
     """
     def __init__(self, user_dir, user):
         """
-        Sets up a session with Evernote to store/retrieve/sync notes...
-
-        Authenticates in one of two ways:  username/password or you can skip
-        that and provide an authToken.  If providing an authToken you must also
-        provide a shardId and a userId.
-
-        *notebook_name* represents the name of the notebook
-        we'll be using to store bookmarks.
+        Sets up our bookmarks database object and reads everything in.
         """
         self.bookmarks = [] # For temp storage of all bookmarks
         self.user_dir = user_dir
@@ -152,6 +338,18 @@ class BookmarksDB(object):
                 highest_USN = bm['updateSequenceNum']
         return highest_USN
 
+    def rename_tag(self, old_tag, new_tag):
+        """
+        Goes through all bookmarks and renames all tags named *old_tag* to be
+        *new_tag*.
+        """
+        for bm in self.bookmarks:
+            if old_tag in bm['tags']:
+                i = bm['tags'].index(old_tag)
+                bm['tags'][i] = new_tag
+        # Save the change to disk
+        self.save_bookmarks()
+
 # Handlers
 class SyncHandler(BaseHandler):
     """
@@ -224,6 +422,7 @@ class DeleteBookmarksHandler(BaseHandler):
     Handles POSTs of deleted bookmarks to process on the server side of things.
     """
     @tornado.web.asynchronous
+    @tornado.web.authenticated
     def post(self):
         """Handles POSTs of a JSON-encoded deletedBookmarks list."""
         deleted_bookmarks_json = unicode(self.request.body, errors='ignore')
@@ -246,7 +445,29 @@ class DeleteBookmarksHandler(BaseHandler):
         self.write(out_dict)
         self.finish()
 
-class FaviconHandler(tornado.web.RequestHandler):
+class RenameTagsHandler(BaseHandler):
+    """Handles POSTs of tags to rename on the server side of things."""
+    @tornado.web.asynchronous
+    @tornado.web.authenticated
+    def post(self):
+        """Handles POSTs of JSON-encoded bookmarks."""
+        user = self.get_current_user()['go_upn']
+        bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
+        renamed_tags_json = unicode(self.request.body, errors='ignore')
+        renamed_tags = tornado.escape.json_decode(renamed_tags_json)
+        out_dict = {
+            'result': "",
+            'count': 0,
+            'errors': [],
+            'updates': []
+        }
+        for pair in renamed_tags:
+            old_name, new_name = pair.split(',')
+            bookmarks_db.rename_tag(old_name, new_name)
+        self.write(tornado.escape.json_encode(renamed_tags))
+        self.finish()
+
+class FaviconHandler(BaseHandler):
     """
     Retrives the biggest favicon-like icon at the given URL.  It will try to
     fetch apple-touch-icons (which can be nice and big) before it falls back
@@ -265,10 +486,12 @@ class FaviconHandler(tornado.web.RequestHandler):
         'image/jpeg'
     ]
     @tornado.web.asynchronous
+    @tornado.web.authenticated
     def get(self):
         self.process()
 
     @tornado.web.asynchronous
+    @tornado.web.authenticated
     def post(self):
         self.process()
 
@@ -397,10 +620,44 @@ class FaviconHandler(tornado.web.RequestHandler):
         self.write(data_uri)
         self.finish()
 
+class ImportHandler(tornado.web.RequestHandler):
+    """
+    Takes a bookmarks.html in a POST and returns a list of bookmarks in JSON
+    format
+    """
+    @tornado.web.asynchronous
+    def post(self):
+        html = self.request.body
+        if html.startswith('{'): # This is a JSON file
+            bookmarks = parse_bookmarks_json(html)
+        else:
+            bookmarks = parse_bookmarks_html(html)
+        self.write(tornado.escape.json_encode(bookmarks))
+        self.finish()
+        # NOTE: The client will take care of storing these at the next sync
+
+class ExportHandler(tornado.web.RequestHandler):
+    """
+    Takes a JSON-encoded list of bookmarks and returns a Netscape-style HTML
+    file.
+    """
+    def post(self):
+        bookmarks = self.get_argument("bookmarks")
+        bookmarks = tornado.escape.json_decode(bookmarks)
+        self.set_header("Content-Type", "text/html")
+        self.set_header(
+            "Content-Disposition", 'attachment; filename="bookmarks.html"')
+        templates_path = os.path.join(plugin_path, "templates")
+        bookmarks_html =  os.path.join(templates_path, "bookmarks.html")
+        self.render(bookmarks_html, bookmarks=bookmarks)
+
 hooks = {
     'Web': [
         (r"/bookmarks_sync", SyncHandler),
         (r"/bookmarks_fetchicon", FaviconHandler),
         (r"/bookmarks_delete", DeleteBookmarksHandler),
+        (r"/bookmarks_renametags", RenameTagsHandler),
+        (r"/bookmarks_export", ExportHandler),
+        (r"/bookmarks_import", ImportHandler),
     ]
 }

@@ -489,6 +489,7 @@
 }
 #{{container}} .panel a:hover {
     color: maroon;
+    cursor: pointer;
 }
 #{{container}} .panel a:visited {
     color: #3169C3;
@@ -673,6 +674,17 @@
     background: -moz-linear-gradient(top,  #000,  #444);
     background: -o-linear-gradient(top,  #000,  #444);
     filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#666666');
+}
+#{{prefix}}user_info {
+    font-size: 0.8em;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding-top: 0.5em;
+    padding-right: 0.25em;
+}
+#{{prefix}}user_info a:hover {
+    cursor: pointer;
 }
 /* SVG Styling */
 .svgtext { letter-spacing:0px; text-anchor:middle; word-spacing:0px; text-align:center; color: #FFF; fill: #fff; }
