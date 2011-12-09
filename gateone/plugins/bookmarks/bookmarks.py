@@ -351,6 +351,7 @@ class BookmarksDB(object):
         self.save_bookmarks()
 
 # Handlers
+# TODO: Change all these use WebSockets so they'll work in embedded mode
 class SyncHandler(BaseHandler):
     """
     Handles synchronizing bookmarks with clients.
@@ -364,8 +365,11 @@ class SyncHandler(BaseHandler):
         'false': False
     }
 
+    # Disabled auth due to redirection issues when embedding.  It's OK though
+    # because synchronizing bookmarks won't work unless it can find a proper
+    # user in the cookie (which must be encrypted properly).
+    #@tornado.web.authenticated
     @tornado.web.asynchronous
-    @tornado.web.authenticated
     def post(self):
         """Handles POSTs of JSON-encoded bookmarks."""
         out_dict = {
@@ -374,7 +378,7 @@ class SyncHandler(BaseHandler):
             'errors': []
         }
         try:
-            user = self.get_current_user()['go_upn']
+            user = self.get_current_user()['upn']
             bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
             bookmarks_json = unicode(self.request.body, errors='ignore')
             bookmarks = tornado.escape.json_decode(bookmarks_json)
@@ -396,8 +400,8 @@ class SyncHandler(BaseHandler):
         self.write(json_encode(out_dict))
         self.finish()
 
+    #@tornado.web.authenticated
     @tornado.web.asynchronous
-    @tornado.web.authenticated
     def get(self):
         """
         Returns a JSON-encodedlist of bookmarks updated since the last
@@ -406,7 +410,7 @@ class SyncHandler(BaseHandler):
         If "updateSequenceNum" resolves to False, all bookmarks will be sent to
         the client.
         """
-        user = self.get_current_user()['go_upn']
+        user = self.get_current_user()['upn']
         bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
         updateSequenceNum = self.get_argument("updateSequenceNum", None)
         if updateSequenceNum:
@@ -427,7 +431,7 @@ class DeleteBookmarksHandler(BaseHandler):
         """Handles POSTs of a JSON-encoded deletedBookmarks list."""
         deleted_bookmarks_json = unicode(self.request.body, errors='ignore')
         deleted_bookmarks = tornado.escape.json_decode(deleted_bookmarks_json)
-        user = self.get_current_user()['go_upn']
+        user = self.get_current_user()['upn']
         bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
         out_dict = {
             'result': "",
@@ -451,7 +455,7 @@ class RenameTagsHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self):
         """Handles POSTs of JSON-encoded bookmarks."""
-        user = self.get_current_user()['go_upn']
+        user = self.get_current_user()['upn']
         bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
         renamed_tags_json = unicode(self.request.body, errors='ignore')
         renamed_tags = tornado.escape.json_decode(renamed_tags_json)
@@ -653,11 +657,11 @@ class ExportHandler(tornado.web.RequestHandler):
 
 hooks = {
     'Web': [
-        (r"/bookmarks_sync", SyncHandler),
-        (r"/bookmarks_fetchicon", FaviconHandler),
-        (r"/bookmarks_delete", DeleteBookmarksHandler),
-        (r"/bookmarks_renametags", RenameTagsHandler),
-        (r"/bookmarks_export", ExportHandler),
-        (r"/bookmarks_import", ImportHandler),
+        (r"/bookmarks/sync", SyncHandler),
+        (r"/bookmarks/fetchicon", FaviconHandler),
+        (r"/bookmarks/delete", DeleteBookmarksHandler),
+        (r"/bookmarks/renametags", RenameTagsHandler),
+        (r"/bookmarks/export", ExportHandler),
+        (r"/bookmarks/import", ImportHandler),
     ]
 }

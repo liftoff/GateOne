@@ -460,7 +460,7 @@
     margin-bottom: 0.2em;
 }
 #{{container}} .panel a {
-    color: #3169C3;
+    color: #1F5470;
     text-decoration: none;
     font-weight: bold;
 }
@@ -469,7 +469,7 @@
     cursor: pointer;
 }
 #{{container}} .panel a:visited {
-    color: #3169C3;
+    color: #1F5470;
 }
 #{{container}} .paneltable {
     position: relative;
@@ -527,16 +527,16 @@
    background-image: -o-linear-gradient(#000, #222);
 }
 #{{container}} .bookmark a {
-    color: #3169C3;
+    color: #1F5470;
     display: inline;
     text-decoration: none;
 }
 #{{container}} .bookmark a:hover {
     color: #fff;
-    background-color: #3169C3;
+    background-color: #1F5470;
 }
 #{{container}} .bookmark a:visited {
-    color: #3169C3;
+    color: #1F5470;
 }
 #{{container}} .bookmark ul {
     display: inline;
@@ -557,7 +557,7 @@
 }
 #{{container}} .bookmark ul li:hover {
     color: #fff;
-    background-color: #3169C3;
+    background-color: #1F5470;
     cursor: pointer;
 }
 #{{container}} .bookmark ul li.first {
@@ -593,7 +593,7 @@
 }
 #{{container}} .bm_tag:hover {
     color: #fff;
-    background-color: #3169C3;
+    background-color: #1F5470;
     cursor: pointer;
 }
 #{{container}} .bm_controls {
@@ -617,7 +617,7 @@
 }
 #{{container}} .bm_uri a:hover {
     color: #fff;
-    background-color: #3169C3;
+    background-color: #1F5470;
 }
 #{{container}} .bm_url {
     font-weight: bold;
@@ -626,7 +626,7 @@
     float: right;
     clear: right;
     padding: 0.2em;
-    background-color: #3169C3;
+    background-color: #1F5470;
     color: white;
     font-size: 0.9em;
 }
@@ -654,7 +654,7 @@
     padding-right: 1.6em;
     list-style: none;
     display: inline;
-    background-color: #3169C3;
+    background-color: #1F5470;
     color: #fff;
 }
 #{{prefix}}bm_tags ul li:hover {
@@ -666,7 +666,7 @@
     content: "X";
     font-size: 1.4em;
     bottom: 0.45em;
-    color: #3169C3;
+    color: #1F5470;
 }
 #{{prefix}}bm_tags ul li:after {
     font-size: 2em;
@@ -684,13 +684,13 @@
     content: "X";
     font-size: 1.4em;
     bottom: 0.45em;
-    color: #3169C3;
+    color: #1F5470;
 }
 #{{prefix}}bm_tags ul li:last-child:after {
     content: " ▶";
     font-size: 1.5em;
     margin-left: 0.3em;
-    color: #3169C3;
+    color: #1F5470;
     background-color: transparent;
     position: absolute;
     bottom: 0.56em;
@@ -699,7 +699,7 @@
     width: 70%;
     text-align: right;
     font-size: 0.8em;
-    color: #3169C3;
+    color: #1F5470;
     padding-bottom: 0.2em;
 }
 #{{container}} .bm_desc {
@@ -725,7 +725,7 @@
 }
 #{{prefix}}bm_new {
     float: left;
-    color: #3169C3;
+    color: #1F5470;
     font-size: 0.8em;
     font-weight: bold;
     cursor: pointer;
@@ -890,4 +890,4 @@
 .panelstop1 { stop-color: #2A5BA6; } /* Note: Same by default in both black and white */
 .panelstop2 { stop-color: #2D61B4; }
 .panelstop3 { stop-color: #2E63B9; }
-.panelstop4 { stop-color: #3169C3; }
+.panelstop4 { stop-color: #1F5470; }

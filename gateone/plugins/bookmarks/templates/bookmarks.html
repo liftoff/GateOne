@@ -1,0 +1,16 @@
+<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarked Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL><p>
+{% for bookmark in bookmarks %}
+    {% if 'favicon' in bookmark['images'] %}
+    <DT><A HREF="{{bookmark['url']}}" ADD_DATE="{{bookmark['created']}}" LAST_MODIFIED="{{bookmark['updated']}}" TAGS="{{','.join(bookmark['tags'])}}" ICON="{{bookmark['images']['favicon']}}">{{bookmark['name']}}</A>
+    {% else %}
+    <DT><A HREF="{{bookmark['url']}}" ADD_DATE="{{bookmark['created']}}" LAST_MODIFIED="{{bookmark['updated']}}" TAGS="{{','.join(bookmark['tags'])}}">{{bookmark['name']}}</A>
+    {% end %}
+    {% if bookmark['notes'] %}
+        <DD>{{escape(bookmark['notes'])}}
+    {% end %}
+{% end %}
+</DL><p>

@@ -300,13 +300,15 @@
 }
 #{{prefix}}bm_container {
     width: 60%;
-/*     height: 100%; */
-/*     float: left; */
     position: absolute;
     top: 4.8em;
     bottom: 0;
     padding-left: 0.2em;
-    background-image: url(/static/bookmarks/images/star.svg);
+    background: url(/static/bookmarks/images/star.svg);
+    background-repeat: no-repeat;
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-size: 100% 100%;
     margin-left: 9%;
 }
 #{{prefix}}bm_tagcloud {
@@ -586,11 +588,6 @@
 #{{prefix}}bm_buttons {
     text-align: center;
 }
-#{{container}} .bm_pagination ul {
-    border: 0;
-    margin: 0;
-    padding: 0;
-}
 #{{prefix}}bm_pagination {
     width: 29%;
     float: right;
@@ -598,6 +595,11 @@
     font-size: 0.8em;
     clear: right;
     margin-top: -1.2em;
+}
+#{{prefix}}bm_pagination ul {
+    border: 0;
+    margin: 0;
+    padding: 0;
 }
 #{{prefix}}bm_pagination li {
     border: 0;
@@ -625,69 +627,23 @@
 #{{prefix}}bm_pagination .previous a {
     font-weight:bold;
 }
-#{{prefix}}bm_pagination .active {
-    background: #1F5470;
-    color: #FFFFFF;
-    font-weight: bold;
-    display: block;
-    float: left;
-}
 #{{prefix}}bm_pagination a:link,
 #{{prefix}}bm_pagination a:visited {
-    color: #1F5470;
-    display: block;
     float: left;
-    padding: 0 0.2em;
-    text-decoration: none;
 }
 #{{prefix}}bm_pagination a:hover{
     border: solid 1px #1F5470;
 }
-#{{prefix}}bm_pagination .inactive a {
+#{{container}} #{{prefix}}bm_pagination .active {
+    background: #1F5470;
+    color: #FFF;
+}
+#{{container}} #{{prefix}}bm_pagination .inactive a {
     border: solid 1px #DEDEDE;
-    color: #888888;
-    display: block;
-}
-#{{prefix}}bm_dialogcontainer { /* Just used to center everything inside */
-    position: fixed;
-    top: 25%;
-    left: 25%;
-    background-color: white;
-    max-width: 50%;
-    z-index: 20;
-    border: solid 1px #000;
-}
-#{{prefix}}bm_dialogcontainer h3 {
-    background-color: #1F5470;
-    color: #fff;
-    padding-left: 0.2em;
-    line-height: 1.5;
-    margin-top: 0;
-    padding-right: 2em;
-    max-width: 35em;
-    text-align: center;
-}
-#{{prefix}}bm_dialogdiv {
-    text-align:left;
-    margin: 0.2em;
-}
-#{{container}} .bm_dialogtext {
-    font-size: 0.9em;
-    margin: 0.5em;
-}
-#{{prefix}}bm_dialog_close {
-    position: absolute;
-    top: 0;
-    right: 0;
-    color: #fff;
-    margin-right: 0.2em;
-    cursor: pointer;
+    color: #888;
 }
 #{{container}} .search {
     color: maroon;
-}
-#{{prefix}}bm_dialog_close:hover {
-    text-shadow: 0.1em 0.1em 0.1em #000;
 }
 #{{prefix}}bm_dialog_form {
     text-align: center;

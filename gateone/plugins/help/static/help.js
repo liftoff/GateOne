@@ -82,7 +82,7 @@ GateOne.Base.update(GateOne.Help, {
     aboutGateOne: function() { // Displays our credits
         // First we create our settings object to pass to showHelpSection()
         var settingsObj = {
-            'helpURL': '/static/about.html',
+            'helpURL': go.prefs.url+'static/about.html',
             'title': 'About Gate One'
         };
         GateOne.Help.showHelpSection(settingsObj);

@@ -559,12 +559,15 @@ class BaseHandler(tornado.web.RequestHandler):
     """
     A base handler that all Gate One RequestHandlers will inherit methods from.
     """
-    # Right now it's just the one...
+    # Right now it's just the one function...
     def get_current_user(self):
         """Tornado standard method--implemented our way."""
-        user_json = self.get_secure_cookie("user")
-        if not user_json: return None
-        return tornado.escape.json_decode(user_json)
+        user_json = self.get_secure_cookie("gateone_user")
+        if user_json:
+            user = json_decode(user_json)
+            if user and 'upn' not in user:
+                return None
+            return user
 
 class MainHandler(BaseHandler):
     """
@@ -621,7 +624,9 @@ class StyleHandler(BaseHandler):
     If 'theme' or 'colors' are provided (along with the requisite 'container'
     and 'prefix' arguments), returns the content of the requested CSS file.
     """
-    @tornado.web.authenticated
+    # Disabled authentication for this so we could get embedding working without
+    # requiring a cookie to be set.  Stylesheet enumeration isn't exactly a
+    # compelling attack vector.
     def get(self):
         enum = self.get_argument("enumerate", None)
         if enum:
@@ -683,6 +688,9 @@ class PluginCSSTemplateHandler(BaseHandler):
     gateone.js will automatically load all *.css files in plugin template
     directories using this method.
     """
+    # Had to disable authentication for this for the embedded stuff to work.
+    # Not a big deal...  Just some stylesheets.  To an attacker it's like
+    # peering into a window and seeing the wallpaper.
     def get(self):
         container = self.get_argument("container")
         prefix = self.get_argument("prefix")
@@ -706,23 +714,19 @@ class EnumeratePluginsHandler(BaseHandler):
 
         {'python': [list of plugins], 'javascript': [list of plugins], 'css': [list of plugins]}
     """
-    @tornado.web.authenticated
+    # Had to disable authentication for this for the embedded auth to work.
+    # TODO: Move this method to the WebSocket (if possible)
     def get(self):
         self.set_header ('Content-Type', 'application/json')
-        try:
-            plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
-            self.write(tornado.escape.json_encode(plugins))
-        except IOError:
-            # The provided plugin/template combination was not found
-            logging.error(
-                _("templates/%s/%s.css was not found" % (plugin, template)))
+        plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
+        self.write(tornado.escape.json_encode(plugins))
 
 class JSPluginsHandler(BaseHandler):
     """
     Combines all JavaScript plugins into a single file to keep things simple and
     speedy.
     """
-    @tornado.web.authenticated
+    # No auth for this...  Not really necessary (just serves up a static file).
     def get(self):
         self.set_header ('Content-Type', 'application/javascript')
         plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
@@ -754,29 +758,46 @@ class TerminalWebSocket(WebSocketHandler):
             'refresh': self.refresh_screen,
             'full_refresh': self.full_refresh,
             'resize': self.resize,
+            'get_webworker': self.get_webworker,
             'debug_terminal': self.debug_terminal
         }
         self.terms = {}
         # So we can keep track and avoid sending unnecessary messages:
         self.titles = {}
+        self.api_user = None
 
     def get_current_user(self):
-        """Identical to the function of the same name in MainHandler."""
-        user_json = self.get_secure_cookie("user")
-        if not user_json: return None
+        """
+        Mostly identical to the function of the same name in MainHandler.  The
+        difference being that when API authentication is enabled the WebSocket
+        will expect and perform its own auth of the client.
+        """
+        if self.settings['auth'] == 'api':
+            return self.api_user
+        user_json = self.get_secure_cookie("gateone_user")
+        if not user_json:
+            return None
         return tornado.escape.json_decode(user_json)
 
     def open(self):
         """Called when a new WebSocket is opened."""
-        user = self.get_current_user()
         # client_id is unique to the browser/client whereas session_id is unique
         # to the user.
         self.client_id = generate_session_id()
-        if user:
+        user = self.get_current_user()
+        if user and 'upn' in user:
             logging.info(
-                _("WebSocket opened (%s).") % user['go_upn'])
+                _("WebSocket opened (%s).") % user['upn'])
         else:
             logging.info(_("WebSocket opened (unknown user)."))
+        if user and 'upn' not in user: # Invalid user info
+            logging.error(_("Unauthenticated WebSocket attempt."))
+            # In case this is a legitimate client that simply had its auth info
+            # expire/go bad, tell it to re-auth by calling the appropriate
+            # action on the other side.
+            message = {'reauthenticate': True}
+            self.write_message(json_encode(message))
+            self.close() # Close the WebSocket
 
     def on_message(self, message):
         """Called when we receive a message from the client."""
@@ -812,10 +833,9 @@ class TerminalWebSocket(WebSocketHandler):
         # TODO: Make this detach all callbacks so they're not sticking around in memory
         logging.debug("on_close()")
         user = self.get_current_user()
-
-        if user:
+        if user and 'upn' in user:
             logging.info(
-                _("WebSocket closed (%s).") % user['go_upn'])
+                _("WebSocket closed (%s).") % user['upn'])
         else:
             logging.info(_("WebSocket closed (unknown user)."))
 
@@ -836,10 +856,10 @@ class TerminalWebSocket(WebSocketHandler):
         """
         logging.debug("authenticate(): %s" % settings)
         # Make sure the client is authenticated if authentication is enabled
-        if self.settings['auth']:
+        if self.settings['auth'] and self.settings['auth'] != 'api':
             try:
                 user = self.get_current_user()
-                if user and user['go_upn'] == '%anonymous':
+                if user and user['upn'] == '%anonymous':
                     logging.error(_("Unauthenticated WebSocket attempt."))
                     # In case this is a legitimate client that simply lost its
                     # cookie, tell it to re-auth by calling the appropriate
@@ -847,30 +867,96 @@ class TerminalWebSocket(WebSocketHandler):
                     message = {'reauthenticate': True}
                     self.write_message(json_encode(message))
                     self.close() # Close the WebSocket
-            except KeyError: # 'go_upn' wasn't in user
+            except KeyError: # 'upn' wasn't in user
                 # Force them to authenticate
                 message = {'reauthenticate': True}
                 self.write_message(json_encode(message))
                 self.close() # Close the WebSocket
+        elif self.settings['auth'] and self.settings['auth'] == 'api':
+            if 'auth' in settings.keys():
+                # 'auth' message should look like this:
+                # {
+                #    'api_key': 'MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M',
+                #    'upn': 'joe@company.com',
+                #    'timestamp': 1323391717238,
+                #    'signature': <gibberish>,
+                #    'signature_method': 'HMAC-SHA1',
+                #    'api_version': '1.0'
+                # }
+                #
+                # *api_key* is the first half of what gets generated when you
+                #   run ./gateone --new_api_key.
+                # *upn* is the User Principal Name of the user.  This is
+                #   typically something like "joe@company.com".
+                # *timestamp* is a JavaScript Date() object converted into an
+                #   "time since the epoch": var timestamp = new Date().getTime()
+                # *signature* is an HMAC signature of the previous three
+                #   variables that was signed using the given API key's secret.
+                # *signature_method* is the HMAC hashing algorithm to use for
+                #   the signature.  Only HMAC-SHA1 is supported for now.
+                # *api_version* is the auth API version.  Always "1.0" for now.
+                auth_obj = settings['auth']
+                if 'api_key' in auth_obj:
+                    # Assume everything else is present if the api_key is there
+                    api_key = auth_obj['api_key']
+                    upn = auth_obj['upn']
+                    timestamp = auth_obj['timestamp']
+                    signature = auth_obj['signature']
+                    signature_method = auth_obj['signature_method']
+                    api_version = auth_obj['api_version']
+                    if signature_method != 'HMAC-SHA1':
+                        message = {
+                            'notice': _(
+                                'AUTHENTICATION ERROR: Unsupported signature '
+                                'method: %s' % signature_method)
+                        }
+                        self.write_message(json_encode(message))
+                    secret = self.settings['api_keys'][api_key]
+                    # Check the signature against existing API keys
+                    sig_check = tornado.web._create_signature(
+                        secret, api_key, upn, timestamp)
+                    if sig_check == signature:
+                        # Auth success!
+                        # TODO: Add timestamp checking as well
+                        # Make a directory to store this user's settings/files/logs/etc
+                        user_dir = os.path.join(self.settings['user_dir'], user)
+                        if not os.path.exists(user_dir):
+                            logging.info(
+                                _("Creating user directory: %s" % user_dir))
+                            mkdir_p(user_dir)
+                            os.chmod(user_dir, 0700)
+                        session_file = user_dir + '/session'
+                        if os.path.exists(session_file):
+                            session_data = open(session_file).read()
+                            self.api_user = json_decode(session_data)
+                        else:
+                            with open(session_file, 'w') as f:
+                        # Save it so we can keep track across multiple clients
+                                self.api_user = {
+                                    'upn': upn, # FYI: UPN == userPrincipalName
+                                    'session': generate_session_id()
+                                }
+                                session_info_json = tornado.escape.json_encode(
+                                    self.api_user)
+                                f.write(session_info_json)
         else:
             # Double-check there isn't a user set in the cookie (i.e. we have
             # recently changed Gate One's settings).  If there is, force it
             # back to %anonymous.
             user = self.get_current_user()
             if user:
-                user = user['go_upn']
+                user = user['upn']
             if user != '%anonymous':
                 message = {'reauthenticate': True}
                 self.write_message(json_encode(message))
                 self.close() # Close the WebSocket
-        if 'session' in settings.keys():
-            # Try to use the cookie session first
-            try:
-                self.session = self.get_current_user()['go_session']
-            except Exception as e:
-                print("authenticate session exception: %s" % e)
-                # This generates a random 45-character string:
-                self.session = generate_session_id()
+        try:
+            self.session = self.get_current_user()['session']
+        except Exception as e:
+            print("authenticate session exception: %s" % e)
+            message = {'notice': _('AUTHENTICATION ERROR: %s' % e)}
+            self.write_message(json_encode(message))
+            return
         # This check is to make sure there's no existing session so we don't
         # accidentally clobber it.
         if self.session not in SESSIONS:
@@ -896,13 +982,16 @@ class TerminalWebSocket(WebSocketHandler):
         message = {
             'terminals': terminals,
         # This is just so the client has a human-readable point of reference:
-            'set_username': self.get_current_user()['go_upn']
+            'set_username': self.get_current_user()['upn'],
         }
         # TODO: Add a hook here for plugins to send their own messages when a
         #       given terminal is reconnected.
         self.write_message(json_encode(message))
-        #message = {'set_user': self.get_current_user()['go_upn']}
-        #self.write_message(json_encode(message)) # Handled by GateOne.User
+        # Now we need to tell the client about plugin CSS templates
+        plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
+        for css_template in plugins['css']:
+            print("sending css template: %s" % css_template)
+            self.write_message(json_encode({'load_css': css_template}))
 
     def new_terminal(self, settings):
         """
@@ -914,7 +1003,7 @@ class TerminalWebSocket(WebSocketHandler):
         exists or not).
         """
         logging.debug("%s new_terminal(): %s" % (
-            self.get_current_user()['go_upn'], settings))
+            self.get_current_user()['upn'], settings))
         self.current_term = term = settings['term']
         self.rows = rows = settings['rows']
         self.cols = cols = settings['cols']
@@ -934,7 +1023,7 @@ class TerminalWebSocket(WebSocketHandler):
             # NOTE: Not doing anything with 'created'...  yet!
             now = int(round(time.time() * 1000))
             try:
-                user = self.get_current_user()['go_upn']
+                user = self.get_current_user()['upn']
             except:
                 # No auth, use %anonymous (% is there to prevent conflicts)
                 user = r'%anonymous' # Don't get on this guy's bad side
@@ -1147,7 +1236,7 @@ class TerminalWebSocket(WebSocketHandler):
                 self.write_message(json_encode(output_dict))
             except IOError: # Socket was just closed, no biggie
                 logging.info(
-                 _("WebSocket closed (%s)") % self.get_current_user()['go_upn'])
+                 _("WebSocket closed (%s)") % self.get_current_user()['upn'])
                 multiplex = SESSIONS[self.session][term]['multiplex']
                 multiplex.remove_callback( # Stop trying to write
                     multiplex.CALLBACK_UPDATE, self.callback_id)
@@ -1269,6 +1358,18 @@ class TerminalWebSocket(WebSocketHandler):
                     "Got exception trying to execute plugin's optional ESC "
                     "sequence handler..."))
                 print(e)
+
+    def get_webworker(self):
+        """
+        Returns the text of our go_process.js to get around the limitations of
+        loading remote Web Worker URLs (for embedding Gate One into other apps).
+        """
+        static_path = os.path.join(GATEONE_DIR, "static")
+        webworker_path = os.path.join(static_path, 'go_process.js')
+        with open(webworker_path) as f:
+            go_process = f.read()
+        message = {'load_webworker': go_process}
+        self.write_message(tornado.escape.json_encode(message))
 
     def debug_terminal(self, term):
         """
@@ -1585,6 +1686,12 @@ def main():
         type=str
     )
     define(
+        "new_api_key",
+        default=False,
+        help=_("Generate a new API key that an external application can use to"
+               "embed Gate One."),
+    )
+    define(
         "auth",
         default=None,
         help=_("Authentication method to use.  Valid options are: %s" % auths),
@@ -1725,6 +1832,28 @@ def main():
         # Kill all running dtach sessions (associated with Gate One anyway)
         killall(options.session_dir)
         sys.exit(0)
+    if options.new_api_key:
+        # Generate a new API key for an application to use
+        api_key = generate_session_id()
+        # Generate a new secret
+        secret = generate_session_id()
+        # Save it
+        server_conf = ""
+        with open(os.path.join(GATEONE_DIR, 'server.conf')) as f:
+            existing = ""
+            for line in f.readlines():
+                if line.startswith("api_keys"):
+                    existing = line.split('=')[1].strip().strip('"').strip("'")
+                    existing += ",%s:%s" % (api_key, secret)
+                    line = 'api_keys = "%s"\n' % existing
+                server_conf += line
+            if not existing:
+                server_conf += 'api_keys = "%s:%s"\n' % (api_key, secret)
+        open(os.path.join(GATEONE_DIR, 'server.conf'), 'w').write(server_conf)
+        print("A new API key has been generated: %s" % api_key)
+        print(_("This key can now be used to embed Gate One into other "
+                "applications."))
+        return
     # Set our CMD variable to tell the multiplexer which command to execute
     global CMD
     CMD = options.command
@@ -1737,6 +1866,16 @@ def main():
         logging.warning(
             _("dtach command not found.  dtach support has been disabled."))
         options.dtach = False
+    # Turn our API keys into a dict
+    api_keys = {}
+    with open(os.path.join(GATEONE_DIR, 'server.conf')) as f:
+        for line in f.readlines():
+            if line.startswith("api_keys"):
+                values = line.split('=')[1].strip().strip('"').strip("'")
+                pairs = values.split(',')
+                for pair in pairs:
+                    api_key, secret = pair.split(':')
+                    api_keys.update({api_key: secret})
     # Define our Application settings
     app_settings = {
         'gateone_dir': GATEONE_DIR, # Only here so plugins can reference it
@@ -1755,7 +1894,8 @@ def main():
         'sso_service': options.sso_service,
         'pam_realm': options.pam_realm,
         'pam_service': options.pam_service,
-        'locale': options.locale
+        'locale': options.locale,
+        'api_keys': api_keys
     }
     # Check to make sure we have a certificate and keyfile and generate fresh
     # ones if not.
@@ -1812,8 +1952,6 @@ def main():
         for t in threading.enumerate():
             if t.getName().startswith('TidyThread'):
                 t.quit()
-            #elif t.getName().startswith('CallbackThread'):
-                #t.quit()
 
 if __name__ == "__main__":
     main()

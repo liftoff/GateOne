@@ -77,7 +77,7 @@ class BaseAuthHandler(tornado.web.RequestHandler):
     """The base class for all Gate One authentication handlers."""
     def get_current_user(self):
         """Tornado standard method--implemented our way."""
-        user_json = self.get_secure_cookie("user")
+        user_json = self.get_secure_cookie("gateone_user")
         if not user_json: return None
         return tornado.escape.json_decode(user_json)
 
@@ -103,12 +103,12 @@ class BaseAuthHandler(tornado.web.RequestHandler):
             with open(session_file, 'w') as f:
                 # Save it so we can keep track across multiple clients
                 session_info = {
-                    'go_upn': user, # FYI: UPN == userPrincipalName
-                    'go_session': generate_session_id()
+                    'upn': user, # FYI: UPN == userPrincipalName
+                    'session': generate_session_id()
                 }
                 session_info_json = tornado.escape.json_encode(session_info)
                 f.write(session_info_json)
-        self.set_secure_cookie("user", tornado.escape.json_encode(session_info))
+        self.set_secure_cookie("gateone_user", tornado.escape.json_encode(session_info))
 
     def user_logout(self, user, redirect=None):
         """
@@ -137,18 +137,25 @@ class NullAuthHandler(BaseAuthHandler):
         # This ensures we won't have a conflict at some point with an actual
         # user.
         user = r'%anonymous'
+        check = self.get_argument("check", None)
+        if check:
+            # This lets any origin check if the user has been authenticated
+            # (necessary to prevent "not allowed ..." XHR errors)
+            self.set_header ('Access-Control-Allow-Origin', '*')
+            user = self.get_current_user()
+            if user:
+                self.write('authenticated')
+            else:
+                self.write('unauthenticated')
+            self.finish()
+            return
         logout = self.get_argument("logout", None)
         if logout:
-            self.clear_cookie('user')
+            self.clear_cookie('gateone_user')
             self.user_logout(user)
             return
         # This takes care of the user's settings dir and their session info
         self.user_login(user)
-        #user_cookie = {
-            #'go_upn': user,
-            #'go_session': generate_session_id()
-        #}
-        #self.set_secure_cookie("user", tornado.escape.json_encode(user_cookie))
         next_url = self.get_argument("next", None)
         if next_url:
             self.redirect(next_url)
@@ -162,13 +169,23 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
     @tornado.web.asynchronous
     def get(self):
         """
-        Sets the 'user' cookie with an appropriate *go_upn* and *go_session*.
+        Sets the 'user' cookie with an appropriate *upn* and *session*.
         """
+        check = self.get_argument("check", None)
+        if check:
+            self.set_header ('Access-Control-Allow-Origin', '*')
+            user = self.get_current_user()
+            if user:
+                self.write('authenticated')
+            else:
+                self.write('unauthenticated')
+            self.finish()
+            return
         logout_url = "https://accounts.google.com/Logout"
         logout = self.get_argument("logout", None)
         if logout:
-            user = self.get_current_user()['go_upn']
-            self.clear_cookie('user')
+            user = self.get_current_user()['upn']
+            self.clear_cookie('gateone_user')
             self.user_logout(user, logout_url)
             return
         if self.get_argument("openid.mode", None):
@@ -196,11 +213,6 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
         # session IDs of some sort).
         # This takes care of the user's settings dir and their session info
         self.user_login(user['email'])
-        #user_cookie = { # Don't need all that other stuff
-            #'go_session': generate_session_id(),
-            #'go_upn': user['email'] # Just an equivalent for standardization
-        #}
-        #self.set_secure_cookie("user", tornado.escape.json_encode(user_cookie))
         next_url = self.get_argument("next", None)
         if next_url:
             self.redirect(next_url)
@@ -222,10 +234,20 @@ try:
             If it checks out the user will be logged in via _on_auth().  If not,
             the browser will be redirected to login.
             """
+            check = self.get_argument("check", None)
+            self.set_header ('Access-Control-Allow-Origin', '*')
+            if check:
+                user = self.get_current_user()
+                if user:
+                    self.write('authenticated')
+                else:
+                    self.write('unauthenticated')
+                self.finish()
+                return
             logout = self.get_argument("logout", None)
             if logout:
-                user = self.get_current_user()['go_upn']
-                self.clear_cookie('user')
+                user = self.get_current_user()['upn']
+                self.clear_cookie('gateone_user')
                 self.user_logout(user)
                 return
             auth_header = self.request.headers.get('Authorization')
@@ -264,10 +286,20 @@ try:
             If it checks out the user will be logged in via _on_auth().  If not,
             the browser will be redirected to login.
             """
+            check = self.get_argument("check", None)
+            self.set_header ('Access-Control-Allow-Origin', '*')
+            if check:
+                user = self.get_current_user()
+                if user:
+                    self.write('authenticated')
+                else:
+                    self.write('unauthenticated')
+                self.finish()
+                return
             logout = self.get_argument("logout", None)
             if logout:
-                user = self.get_current_user()['go_upn']
-                self.clear_cookie('user')
+                user = self.get_current_user()['upn']
+                self.clear_cookie('gateone_user')
                 self.user_logout(user)
                 return
             auth_header = self.request.headers.get('Authorization')

@@ -20,10 +20,7 @@ this file.
 
 // 1.0 TODO:
 // TODO: Add a first-time user splash screen that explains how Gate One works and how special features like copy & paste work.
-// TODO: Fix the playback button.
-// TODO: Finish the search field in Bookmarks.
-// TODO: Fix any remaining ugliness:
-//        * fix CSS inside recordings.
+// TODO: Fix Playback of live sessions.
 // TODO: TEST TEST TEST.
 
 // General TODOs
@@ -145,14 +142,20 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
     autoConnectURL: null, // This is a URL that will be automatically connected to whenever a terminal is loaded. TODO: Move this to the ssh plugin.
     embedded: false, // In embedded mode we have no toolbar and only one terminal is allowed
-    disableTermTransitions: false // Disabled the sliding animation on terminals to make switching faster
+    disableTermTransitions: false, // Disabled the sliding animation on terminals to make switching faster
+    auth: null // If using API authentication, this value will hold the user's auth object (see docs for the format).
 };
+// Example 'auth' object:
+// {
+//     'api_key': 'MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M',
+//     'upn': 'joe@company.com',
+//     'timestamp': 1323391717238,
+//     'signature': <gibberish>,
+//     'signature_method': 'HMAC-SHA1',
+//     'api_version': '1.0'
+// }
 // Icons (so we can use them in more than one place or replace them all by applying a theme)
-GateOne.Icons = {};
-GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15560" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#linearGradient15560)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
-GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient12573" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#linearGradient12573)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
-GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient3011" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#linearGradient3011)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
-
+GateOne.Icons = {}; // NOTE: The built-in icons are actually at the bottom of this file.
 GateOne.Base.update(GateOne, {
     // GateOne internal tracking variables and user functions
     terminals: {}, // For keeping track of running terminals
@@ -162,7 +165,23 @@ GateOne.Base.update(GateOne, {
     init: function(prefs) {
         // Before we do anything else, load our prefs
         var go = GateOne,
-            u = go.Utils;
+            u = go.Utils,
+            parseResponse = function(response) {
+                if (response == 'authenticated') {
+                    // Load Plugins (GateOne.initialize is passed as a callback)
+                    go.initialize();
+                } else {
+                    if (go.prefs.auth) {
+                        // API authentication
+                        logDebug("Using API authtentiation object: " + go.prefs.auth);
+                        go.initialize();
+                    } else {
+                        // Regular auth.  Redirect the user...
+                        var currentLocation = window.location.href;
+                        window.location.href = go.prefs.url + 'auth?next=' + currentLocation;
+                    }
+                }
+            };
         // Update GateOne.prefs with the settings provided in the calling page
         for (var setting in prefs) {
             go.prefs[setting] = prefs[setting];
@@ -171,10 +190,16 @@ GateOne.Base.update(GateOne, {
         if (localStorage[go.prefs.prefix+'prefs']) {
             u.loadPrefs();
         }
+        if (!go.prefs.url) {
+            go.prefs.url = window.location.href;
+            go.prefs.url = go.prefs.url.split('#')[0]; // Get rid of any hash at the end
+        }
         // Load our CSS theme
         u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
-        // Load Plugins (GateOne.initialize is passed as a callback)
-        u.loadPlugins(go.initialize);
+        // Load our JS Plugins
+        u.loadScript(go.prefs.url+'combined_js');
+        // Now check if we're authenticated
+        u.xhrGet(go.prefs.url+'auth?check=True', parseResponse);
     },
     initialize: function() {
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
@@ -558,10 +583,6 @@ GateOne.Base.update(GateOne, {
             logError("No WebSocket support!");
             return;
         }
-        if (!go.prefs.url) {
-            go.prefs.url = window.location.href;
-            go.prefs.url = go.prefs.url.split('#')[0]; // Get rid of any hash at the end
-        }
         // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
         if (!go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']) {
             go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs'] = {};
@@ -685,7 +706,9 @@ GateOne.Base.update(GateOne.Utils, {
     removeElement: function(elem) {
         // Removes the given element.  Works with node objects and CSS selectors.
         var node = GateOne.Utils.getNode(elem);
-        node.parentNode.removeChild(node);
+        if (node.parentNode) { // This check ensures that we don't throw an exception if the element has already been removed.
+            node.parentNode.removeChild(node);
+        }
     },
     createElement: function(tagname, properties) {
         // Takes a string, *tagname* and creates a DOM element of that type and applies *properties* to it.
@@ -842,42 +865,44 @@ GateOne.Base.update(GateOne.Utils, {
             }
         });
     },
-    handlePlugins: function(JSONDoc, callback) {
-        // Handles the response from getPlugins() by making sure each JavaScript and CSS file is loaded.
-        // If *callback* is given it will be called after plugins are done loading.
-        var go = GateOne,
-            prefix = go.prefs.prefix,
-            container = go.prefs.goDiv.split('#')[1], // Can't have the leading #
-            cssPlugins = JSONDoc['css'],
-            jsPlugins = JSONDoc['js'];
-        if (cssPlugins.length) {
-            cssPlugins.forEach(function(cssPlugin) {
-                var plugin = cssPlugin.split('plugin=')[1].split('&')[0],
-                    file = cssPlugin.split('template=')[1].split('&')[0].split('.')[0],
-                    url = cssPlugin + '&prefix=' + prefix + '&container=' + container;
-                // <plugin name>_<file name> serves as the id for the <link> element
-                go.Utils.loadCSS(url, plugin+'_'+file);
-            });
-        }
-        // For JS plugins we can get them all in one step by grabbing /combined_js
-        if (jsPlugins.length) {
-            go.Utils.loadScript('/combined_js', callback);
-        }
-    },
-    loadPlugins: function(callback) {
-        // Returns a JS object representing the plugins available on the server.  Example:
-        //     {"py": ["playback", "ssh"], "css": ["/cssrender?plugin=bookmarks&template=bookmarks.css"], "js": ["/static/bookmarks/bookmarks.js", "/static/help/help.js", "/static/logging/logging.js", "/static/playback/playback.js", "/static/ssh/ssh.js"]}
-        // If *callback* is given, it will be passed to handlePlugins() to be called after plugins are done loading.
-        var http = new XMLHttpRequest(); // We don't support older browsers anyway so no need to worry about ActiveX garbage
-        http.open("GET", '/get_plugins');
-        http.onreadystatechange = function() {
-            if(http.readyState == 4) {
-                var JSONDoc = JSON.parse(http.responseText);
-                GateOne.Utils.handlePlugins(JSONDoc, callback);
-            }
-        }
-        http.send(null); // All done
-    },
+//     handlePlugins: function(JSONDoc, callback) {
+//         // Handles the response from getPlugins() by making sure each JavaScript and CSS file is loaded.
+//         // If *callback* is given it will be called after plugins are done loading.
+//         var go = GateOne,
+//             u = go.Utils,
+//             prefix = go.prefs.prefix,
+//             urlNoSlash = go.prefs.url.substring(0, go.prefs.url.length-1),
+//             container = go.prefs.goDiv.split('#')[1], // Can't have the leading #
+//             cssPlugins = JSONDoc['css'],
+//             jsPlugins = JSONDoc['js'];
+//         if (cssPlugins.length) {
+//             cssPlugins.forEach(function(cssPlugin) {
+//                 var plugin = cssPlugin.split('plugin=')[1].split('&')[0],
+//                     file = cssPlugin.split('template=')[1].split('&')[0].split('.')[0],
+//                     url = urlNoSlash + cssPlugin + '&prefix=' + prefix + '&container=' + container;
+//                 // <plugin name>_<file name> serves as the id for the <link> element
+//                 u.loadCSS(url, plugin+'_'+file);
+//             });
+//         }
+//         // For JS plugins we can get them all in one step by grabbing /combined_js
+//         if (jsPlugins.length) {
+//             u.loadScript(go.prefs.url+'combined_js', callback);
+//         }
+//     },
+//     loadPlugins: function(callback) {
+//         // Returns a JS object representing the plugins available on the server.  Example:
+//         //     {"py": ["playback", "ssh"], "css": ["/cssrender?plugin=bookmarks&template=bookmarks.css"], "js": ["/static/bookmarks/bookmarks.js", "/static/help/help.js", "/static/logging/logging.js", "/static/playback/playback.js", "/static/ssh/ssh.js"]}
+//         // If *callback* is given, it will be passed to handlePlugins() to be called after plugins are done loading.
+//         var http = new XMLHttpRequest(); // We don't support older browsers anyway so no need to worry about ActiveX garbage
+//         http.open("GET", GateOne.prefs.url+'get_plugins');
+//         http.onreadystatechange = function() {
+//             if(http.readyState == 4) {
+//                 var JSONDoc = JSON.parse(http.responseText);
+//                 GateOne.Utils.handlePlugins(JSONDoc, callback);
+//             }
+//         }
+//         http.send(null); // All done
+//     },
     loadCSS: function(url, id){
         // Imports the given CSS *URL* and applies the stylesheet to the current document.
         // When the <link> element is created it will use *id* like so: {'id': GateOne.prefs.prefix + id}.
@@ -913,10 +938,10 @@ GateOne.Base.update(GateOne.Utils, {
             theme = schemeObj['theme'],
             colors = schemeObj['colors'];
         if (theme) {
-            u.loadCSS('/style?theme='+theme+'&container='+container+'&prefix='+prefix, prefix+'css_theme');
+            u.loadCSS(go.prefs.url+'style?theme='+theme+'&container='+container+'&prefix='+prefix, prefix+'css_theme');
         }
         if (colors) {
-            u.loadCSS('/style?colors='+colors+'&container='+container+'&prefix='+prefix, prefix+'css_colors');
+            u.loadCSS(go.prefs.url+'style?colors='+colors+'&container='+container+'&prefix='+prefix, prefix+'css_colors');
         }
     },
     loadScript: function(url, callback){
@@ -1119,11 +1144,12 @@ GateOne.Base.update(GateOne.Net, {
         go.ws.onopen = function() {
             // Clear the error message if it's still there
             u.getNode('#'+go.prefs.prefix+'termwrapper').innerHTML = "";
+            // Load the Web Worker
+            go.ws.send(JSON.stringify({'get_webworker': null}));
             // Check if there are any existing terminals for the current session ID
             setTimeout(function () {
-                var session = localStorage.getItem(go.prefs.prefix+"session"),
-                    prefs = {'session': session};
-                go.ws.send(JSON.stringify({'authenticate': prefs}));
+                var settings = {'auth': go.prefs.auth};
+                go.ws.send(JSON.stringify({'authenticate': settings}));
                 // Autoconnect if autoConnectURL is specified
                 if (go.prefs.autoConnectURL) {
                     setTimeout(function () {
@@ -1131,6 +1157,8 @@ GateOne.Base.update(GateOne.Net, {
                         GateOne.Net.sendChars();
                     }, 500);
                 }
+                // Update our dimensions (for some reason they can be lost if disconnected)
+                go.Net.sendDimensions();
                 setTimeout(function() {
                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
                 }, 3000);
@@ -1181,6 +1209,49 @@ GateOne.Base.update(GateOne.Net, {
     fullRefresh: function(term) {
         // Performs a full screen refresh (Ctrl-l)
         GateOne.ws.send(JSON.stringify({'full_refresh': term}));
+    },
+    openAuthDialog: function() {
+        // Creates a dialog where the user will be asked to authorize Gate One (only used for auth methods that need it)
+        var go = GateOne,
+            prefix = go.prefs.prefix,
+            u = go.Utils,
+            goDiv = u.getNode(go.prefs.goDiv),
+            pastearea = u.getNode('#'+go.prefs.prefix+'pastearea'),
+            dialogContainer = u.createElement('div', {'id': prefix+'dialogcontainer', 'class': 'halfsectrans'}),
+            dialogDiv = u.createElement('div', {'id': prefix+'dialogdiv'}),
+            dialogTitle = u.createElement('h3', {'id': prefix+'dialogtitle'}),
+            iframeSrc = go.prefs.url+'auth?next='+go.prefs.url+'#authcomplete',
+            iframe = u.createElement('iframe', {'id': prefix+'auth_iframe', 'src': iframeSrc, 'class': 'sectrans', 'frameborder': 0, 'scrolling': 'yes', 'allowTransparency': 'true'}),
+            close = u.createElement('div', {'id': prefix+'dialog_close'}),
+            closeDialog = function(e) {
+                if (e) { e.preventDefault() }
+                dialogContainer.style.opacity = 0;
+                setTimeout(function() {
+                    u.removeElement(dialogContainer);
+                }, 1000);
+                if (pastearea) {
+                    u.showElement(pastearea);
+                }
+            };
+        if (pastearea) {
+            u.hideElement(pastearea);
+        }
+        dialogContainer.style.opacity = 0;
+        dialogContainer.style.width = "50%";
+        dialogContainer.style.height = "50%";
+        setTimeout(function() {
+            dialogContainer.style.opacity = 1;
+        }, 100);
+        close.innerHTML = "X";
+        close.onclick = closeDialog;
+        dialogTitle.innerHTML = "Authenticate Your Gate One Terminal";
+        dialogContainer.appendChild(dialogTitle);
+        dialogTitle.appendChild(close);
+        dialogContainer.style.opacity = 0;
+        dialogDiv.innerHTML = "<p>Please authenticate Gate One.</p>";
+        dialogDiv.appendChild(iframe);
+        dialogContainer.appendChild(dialogDiv);
+        goDiv.appendChild(dialogContainer);
     }
 });
 GateOne.Base.module(GateOne, "Input", '0.9', ['Base', 'Utils']);
@@ -1269,7 +1340,8 @@ GateOne.Base.update(GateOne.Input, {
         // Turns off keyboard input and certain mouse capture events so that other things (e.g. forms) can work properly
         var go = GateOne,
             u = go.Utils,
-            goDiv = u.getNode(go.prefs.goDiv);
+            goDiv = u.getNode(go.prefs.goDiv),
+            pastearea = u.getNode('#'+go.prefs.prefix+'pastearea');
 //         goDiv.contentEditable = false; // This needs to be turned off or it might capture paste events (which is really annoying when you're trying to edit a form)
         goDiv.onpaste = null;
         goDiv.tabIndex = null;
@@ -1899,6 +1971,8 @@ GateOne.Base.update(GateOne.Visual, {
         go.Input.registerShortcut('KEY_G', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.toggleGridView()'});
         go.Net.addAction('bell', go.Visual.bellAction);
         go.Net.addAction('set_title', go.Visual.setTitleAction);
+        go.Net.addAction('notice', go.Visual.serverMessageAction);
+        go.Net.addAction('load_css', go.Visual.CSSPluginAction);
     },
     updateDimensions: function() { // Sets GateOne.Visual.goDimensions to the current width/height of prefs.goDiv
         var go = GateOne,
@@ -1967,6 +2041,21 @@ GateOne.Base.update(GateOne.Visual, {
             node.style[name] = style[name];
         }
     },
+    getTransform: function(elem) {
+        // Returns the transform string applied to the style of the given *elem*
+        var node = GateOne.Utils.getNode(elem);
+        if (node.style['transform']) {
+            return node.style['transform'];
+        } else if (node.style.MozTransform) {
+            return node.style.MozTransform;
+        } else if (node.style['-khtml-transform']) {
+            return node.style['-khtml-transform'];
+        } else if (node.style['-ms-transform']) {
+            return node.style['-ms-transform'];
+        } else if (node.style['-o-transform']) {
+            return node.style['-o-transform'];
+        }
+    },
     togglePanel: function(panel) {
         // Toggles the given *panel* in or out of view.
         // If other panels are open at the time, they will be closed.
@@ -1983,7 +2072,7 @@ GateOne.Base.update(GateOne.Visual, {
             u = go.Utils,
             panelID = panel,
             panel = u.getNode(panel),
-            origState = panel.style['transform'],
+            origState = v.getTransform(panel),
             panels = u.getNode(go.prefs.goDiv).getElementsByClassName('panel');
         // Start by scaling all panels out
         for (var i in u.toArray(panels)) {
@@ -2443,6 +2532,21 @@ GateOne.Base.update(GateOne.Visual, {
         }
         v.squares = null; // Cleanup
         return grid;
+    },
+    serverMessageAction: function(message) {
+        // Displays a *message* sent from the server
+        GateOne.Visual.displayMessage(message);
+    },
+    CSSPluginAction: function(url) {
+        // Loads the CSS for a given plugin by adding a <link> tag to the <head>
+        var queries = url.split('?')[1].split('&'), // So we can parse out the plugin name and the template
+            plugin = queries[0].split('=')[1],
+            file = queries[1].split('=')[1].split('.')[0];
+        // The /cssrender method needs the prefix and the container
+        url = url + '&container=' + GateOne.prefs.goDiv.substring(1);
+        url = url + '&prefix=' + GateOne.prefs.prefix;
+        url = GateOne.prefs.url + url.substring(1);
+        GateOne.Utils.loadCSS(url, plugin+'_'+file);
     }
 });
 GateOne.Base.module(GateOne, "Terminal", "0.9", ['Base', 'Utils', 'Visual']);
@@ -2623,121 +2727,6 @@ GateOne.Base.update(GateOne.Terminal, {
         toolbar.insertBefore(toolbarInfo, toolbarPrefs);
         toolbar.insertBefore(toolbarNewTerm, toolbarInfo);
         toolbar.insertBefore(toolbarClose, toolbarNewTerm);
-        // Setup the text processing web worker
-        t.termUpdatesWorker = new Worker('/static/go_process.js');
-        var termUpdateFromWorker = function(e) {
-            var data = e.data,
-                term = data.term,
-                screen = data.screen,
-                scrollback = data.scrollback,
-                screen_html = "",
-                consoleLog = data.log, // Only used when debugging
-                screenUpdate = false,
-                terminalObj = {},
-                termTitle = u.getNode('#'+prefix+'term'+term).title,
-                reScrollback = u.partial(go.Visual.enableScrollback, term);
-            if (term && go.terminals[term]) {
-                terminalObj = go.terminals[term];
-            } else {
-                // Terminal was likely just closed.
-                return;
-            };
-            if (screen) {
-                try {
-                    terminalObj['screen'] = screen;
-                    var termContainer = u.getNode('#'+prefix+'term'+term),
-                        existingPre = u.getNode('#'+prefix+'term'+term+'_pre'),
-                        termPre = u.createElement('pre', {'id': prefix+'term'+term+'_pre'});
-                    termPre.innerHTML = screen.join('\n') + '\n\n';
-                    if (existingPre) {
-                        termContainer.replaceChild(termPre, existingPre);
-                    } else {
-                        termContainer.appendChild(termPre);
-                    }
-                    u.scrollToBottom(termPre);
-                    screenUpdate = true;
-                    go.terminals[term]['scrollbackVisible'] = false;
-                } catch (e) { // Likely the terminal just closed
-                    u.noop(); // Just ignore it.
-                }
-            }
-            if (scrollback) {
-                terminalObj['scrollback'] = scrollback;
-                // We wrap the logic that stores the scrollback buffer in a timer so we're not writing to localStorage (aka "to disk") every nth of a second for fast screen refreshes (e.g. fast typers).  Writing to localStroage is a blocking operation so this could speed things up considerable for larger terminal sizes.
-                var writeScrollback = function() {
-                    try { // Save the scrollback buffer in localStorage for retrieval if the user reloads
-                        localStorage.setItem(prefix+"scrollback" + term, scrollback.join('\n'));
-                    } catch (e) {
-                        logError(e);
-                    }
-                };
-                if (terminalObj['scrollbackWriteTimer']) {
-                    clearTimeout(terminalObj['scrollbackWriteTimer']);
-                }
-                // This will save the scrollback buffer after 2 seconds of terminal inactivity (idle)
-                terminalObj['scrollbackWriteTimer'] = setTimeout(writeScrollback, 2000); // 3.5 seconds is just past the default 'top' refresh rate
-            }
-            if (consoleLog) {
-                console.log(consoleLog);
-            }
-            if (screenUpdate) {
-                // TODO here:  go.Playback stuff
-                // Take care of the activity/inactivity notifications
-                if (terminalObj['inactivityTimer']) {
-                    clearTimeout(terminalObj['inactivityTimer']);
-                    var inactivity = u.partial(t.notifyInactivity, termTitle);
-                    terminalObj['inactivityTimer'] = setTimeout(inactivity, terminalObj['inactivityTimeout']);
-                }
-                if (terminalObj['activityNotify']) {
-                    if (!terminalObj['lastNotifyTime']) {
-                        // Setup a minimum delay between activity notifications so we're not spamming the user
-                        terminalObj['lastNotifyTime'] = new Date();
-                        t.notifyActivity(termTitle);
-                    } else {
-                        var then = new Date(terminalObj['lastNotifyTime']),
-                            now = new Date();
-                        then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
-                        if (now > then) {
-                            terminalObj['lastNotifyTime'] = new Date(); // Reset
-                            t.notifyActivity(termTitle);
-                        }
-                    }
-                }
-                if (terminalObj['scrollbackTimer']) {
-                    clearTimeout(terminalObj['scrollbackTimer']);
-                }
-                // This timeout re-adds the scrollback buffer after 3.5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
-                terminalObj['scrollbackTimer'] = setTimeout(reScrollback, 3500); // 3.5 seconds is just past the default 'top' refresh rate
-                // Excute any registered callbacks
-                if (go.Terminal.updateTermCallbacks.length) {
-                    go.Terminal.updateTermCallbacks.forEach(function(callback) {
-                        callback(term);
-                    });
-                }
-            }
-            if (go.Playback) {
-                // Add the screen to the session recording
-                var frameObj = {'screen': screen_html, 'time': new Date()};
-                // Session storage has been disabled because it is too slow to re-parse the JSON every screen update.  I'm hoping that we can use sessionStorage like this in the future with some sort of workaround but it might not be possible.
-//                 var existingFrames = sessionStorage.getItem("playbackFrames" + term);
-//                 if (existingFrames) {
-//                     terminalObj['playbackFrames'] = JSON.parse(existingFrames);
-//                 }
-                terminalObj['playbackFrames'] = terminalObj['playbackFrames'].concat(frameObj);
-                // Trim the array to match the go.prefs['playbackFrames'] setting
-                if (terminalObj['playbackFrames'].length > go.prefs['playbackFrames']) {
-                    terminalObj['playbackFrames'].reverse();
-                    terminalObj['playbackFrames'].length = go.prefs['playbackFrames'];
-                    terminalObj['playbackFrames'].reverse(); // Put it back in the proper order
-                }
-                if (!go.Playback.clockUpdater) { // Get the clock updating
-                    go.Playback.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
-                }
-                // Reset the playback frame to be current
-                go.Playback.currentFrame = terminalObj['playbackFrames'].length - 1;
-            }
-        }
-        t.termUpdatesWorker.addEventListener('message', termUpdateFromWorker, false);
         // Register our keyboard shortcuts
         // Ctrl-Alt-N to create a new terminal
         go.Input.registerShortcut('KEY_N', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'});
@@ -2750,6 +2739,123 @@ GateOne.Base.update(GateOne.Terminal, {
         go.Net.addAction('term_exists', go.Terminal.reconnectTerminalAction);
         go.Net.addAction('set_mode', go.Terminal.setModeAction); // For things like application cursor keys
         go.Net.addAction('metadata', go.Terminal.storeMetadata);
+        go.Net.addAction('load_webworker', go.Terminal.loadWebWorkerAction);
+    },
+    loadWebWorkerAction: function(source) {
+        // Loads our Web Worker given it's *source* (which is sent to us over the WebSocket which is a clever workaround to the origin limitations of Web Workers =).
+        var go = GateOne,
+            u = go.Utils,
+            t = go.Terminal,
+            prefix = go.prefs.prefix,
+            BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
+            URL = (window.URL || window.webkitURL),
+            bb = new BlobBuilder();
+        bb.append(source); // Add the Web Worker source code
+        // Obtain a blob URL reference to our worker 'file'.
+        var blobURL = URL.createObjectURL(bb.getBlob()),
+            termUpdateFromWorker = function(e) {
+                var data = e.data,
+                    term = data.term,
+                    screen = data.screen,
+                    scrollback = data.scrollback,
+                    screen_html = "",
+                    consoleLog = data.log, // Only used when debugging
+                    screenUpdate = false,
+                    terminalObj = {},
+                    termTitle = u.getNode('#'+prefix+'term'+term).title,
+                    reScrollback = u.partial(go.Visual.enableScrollback, term);
+                if (term && go.terminals[term]) {
+                    terminalObj = go.terminals[term];
+                } else {
+                    // Terminal was likely just closed.
+                    return;
+                };
+                if (screen) {
+                    try {
+                        terminalObj['screen'] = screen;
+                        var termContainer = u.getNode('#'+prefix+'term'+term),
+                            existingPre = u.getNode('#'+prefix+'term'+term+'_pre'),
+                            termPre = u.createElement('pre', {'id': prefix+'term'+term+'_pre'});
+                        termPre.innerHTML = screen.join('\n') + '\n\n';
+                        if (existingPre) {
+                            termContainer.replaceChild(termPre, existingPre);
+                        } else {
+                            termContainer.appendChild(termPre);
+                        }
+                        u.scrollToBottom(termPre);
+                        screenUpdate = true;
+                        go.terminals[term]['scrollbackVisible'] = false;
+                    } catch (e) { // Likely the terminal just closed
+                        u.noop(); // Just ignore it.
+                    }
+                }
+                if (scrollback) {
+                    terminalObj['scrollback'] = scrollback;
+                    // We wrap the logic that stores the scrollback buffer in a timer so we're not writing to localStorage (aka "to disk") every nth of a second for fast screen refreshes (e.g. fast typers).  Writing to localStroage is a blocking operation so this could speed things up considerable for larger terminal sizes.
+                    var writeScrollback = function() {
+                        try { // Save the scrollback buffer in localStorage for retrieval if the user reloads
+                            localStorage.setItem(prefix+"scrollback" + term, scrollback.join('\n'));
+                        } catch (e) {
+                            logError(e);
+                        }
+                    };
+                    if (terminalObj['scrollbackWriteTimer']) {
+                        clearTimeout(terminalObj['scrollbackWriteTimer']);
+                    }
+                    // This will save the scrollback buffer after 2 seconds of terminal inactivity (idle)
+                    terminalObj['scrollbackWriteTimer'] = setTimeout(writeScrollback, 2000); // 3.5 seconds is just past the default 'top' refresh rate
+                }
+                if (consoleLog) {
+                    logInfo(consoleLog);
+                }
+                if (screenUpdate) {
+                    // TODO here:  go.Playback stuff
+                    // Take care of the activity/inactivity notifications
+                    if (terminalObj['inactivityTimer']) {
+                        clearTimeout(terminalObj['inactivityTimer']);
+                        var inactivity = u.partial(t.notifyInactivity, termTitle);
+                        terminalObj['inactivityTimer'] = setTimeout(inactivity, terminalObj['inactivityTimeout']);
+                    }
+                    if (terminalObj['activityNotify']) {
+                        if (!terminalObj['lastNotifyTime']) {
+                            // Setup a minimum delay between activity notifications so we're not spamming the user
+                            terminalObj['lastNotifyTime'] = new Date();
+                            t.notifyActivity(termTitle);
+                        } else {
+                            var then = new Date(terminalObj['lastNotifyTime']),
+                                now = new Date();
+                            then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
+                            if (now > then) {
+                                terminalObj['lastNotifyTime'] = new Date(); // Reset
+                                t.notifyActivity(termTitle);
+                            }
+                        }
+                    }
+                    if (terminalObj['scrollbackTimer']) {
+                        clearTimeout(terminalObj['scrollbackTimer']);
+                    }
+                    // This timeout re-adds the scrollback buffer after 3.5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
+                    terminalObj['scrollbackTimer'] = setTimeout(reScrollback, 3500); // 3.5 seconds is just past the default 'top' refresh rate
+                    // Excute any registered callbacks
+                    if (go.Terminal.updateTermCallbacks.length) {
+                        go.Terminal.updateTermCallbacks.forEach(function(callback) {
+                            callback(term);
+                        });
+                    }
+                }
+            };
+        // NOTE: Using Blob URLs for WebWorkers doesn't work in Firefox 8 due to a bug (https://bugzilla.mozilla.org/show_bug.cgi?id=699633)
+        if (navigator.userAgent.indexOf('Firefox/8') == -1) {
+            t.termUpdatesWorker = new Worker(blobURL);
+        } else {
+            // Fall back to the old way
+            t.termUpdatesWorker = new Worker(go.prefs.url+'static/go_process.js');
+            // Why bother with Blobs?  Because you can't load Web Workers from a different origin *type*.  What?!?
+            // The origin type would be, say, HTTPS on port 443.  So if I wanted to load a Web Worker from such a page where the Worker's URL is from an HTTPS server on port 10443 it would throw errors.  Even if it is from the same domain.  The same holds true for loading a Worker from an HTTP URL.  What's odd is that you can load a Worker from HTTPS on a completely *different* domain as long as it's the same origin *type*!  Who comes up with this stuff?!?
+            // So by loading the Web Worker code via the WebSocket we can get around all that nonsense since WebSockets can be anywhere and on any port without silly restrictions.
+            // In other words, the old way should still work as long as Gate One is listening on the same protocol (HTTPS) and port (443) as the app that's embedding it.
+        }
+        t.termUpdatesWorker.onmessage = termUpdateFromWorker;
     },
     updateTerminalAction: function(termUpdateObj) {
         // Replaces the contents of the terminal div with the lines in *termUpdateObj*.
@@ -3060,7 +3166,7 @@ GateOne.Base.update(GateOne.User, {
             }
         }
         // NOTE: This takes care of deleting the "user" cookie
-        u.xhrGet('/auth?logout=True', function(response) {
+        u.xhrGet(go.prefs.url+'auth?logout=True', function(response) {
             logDebug("Logout Response: " + response);
             var URL = response;
             v.displayMessage("You have been logged out.  Redirecting to: " + URL);
@@ -3079,6 +3185,10 @@ GateOne.Net.actions = {
     'pong': GateOne.Net.pong,
     'reauthenticate': GateOne.Net.reauthenticate,
 }
+
+GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15560" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#linearGradient15560)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
+GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient12573" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#linearGradient12573)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
+GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient3011" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#linearGradient3011)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
 
 window.GateOne = GateOne; // Make everything usable
 

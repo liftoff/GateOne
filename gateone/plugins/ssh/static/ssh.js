@@ -35,7 +35,7 @@ GateOne.Base.update(GateOne.SSH, {
         }
         prefsPanelKnownHosts.innerHTML = "Edit Known Hosts";
         prefsPanelKnownHosts.onclick = function() {
-            u.xhrGet('/ssh?known_hosts=True', go.SSH.updateKH);
+            u.xhrGet(go.prefs.url+'ssh?known_hosts=True', go.SSH.updateKH);
         }
         infoPanelDuplicateSession.innerHTML = "Duplicate Session";
         infoPanelDuplicateSession.onclick = function() {
@@ -114,7 +114,7 @@ GateOne.Base.update(GateOne.SSH, {
             cancel = u.createElement('button', {'id': prefix+'ssh_cancel', 'class': 'button black'}),
             form = u.createElement('form', {
                 'method': 'post',
-                'action': '/ssh?known_hosts=True'
+                'action': go.prefs.url+'ssh?known_hosts=True'
             });
         sshHeader.innerHTML = '<h2>SSH Plugin: Edit Known Hosts</h2>';
         sshHeader.appendChild(sshHRFix); // The HR here fixes an odd rendering bug with Chrome on Mac OS X
@@ -154,7 +154,7 @@ GateOne.Base.update(GateOne.SSH, {
             } else {
                 xhr.onreadystatechange = handleStateChange;
             }
-            xhr.open('POST', '/ssh?known_hosts=True', true);
+            xhr.open('POST', go.prefs.url+'ssh?known_hosts=True', true);
             xhr.send(kh);
         }
         form.appendChild(sshHeader);
