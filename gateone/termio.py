@@ -204,6 +204,16 @@ class Multiplex:
         """
         del self.callbacks[event][identifier]
 
+    def remove_all_callbacks(self, identifier):
+        """
+        Removes all callbacks associated with *identifier*
+        """
+        for event, identifiers in self.callbacks.items():
+            try:
+                del self.callbacks[event][identifier]
+            except KeyError:
+                pass # Doesn't exist--nothing to worry about
+
     def _reenable_output(self):
         """
         Re-adds self.fd to the IOLoop so we can (hopefully) return to a running
@@ -329,11 +339,11 @@ class Multiplex:
         # be an effective workaround.
         s = struct.pack("HHHH", rows-1, cols-1, 0, 0)
         fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
-        os.kill(self.pid, signal.SIGWINCH) # Send the resize signal
-        time.sleep(0.01) # Have to wait just a moment for this to work
+        #os.kill(self.pid, signal.SIGWINCH) # Send the resize signal
+        #time.sleep(0.01) # Have to wait just a moment for this to work
         # This second (proper) resize forces the terminal to take notice
-        s = struct.pack("HHHH", rows, cols, 0, 0)
-        fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
+        #s = struct.pack("HHHH", rows, cols, 0, 0)
+        #fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
 
     def redraw(self):
         """

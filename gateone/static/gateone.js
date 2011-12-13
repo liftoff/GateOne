@@ -149,7 +149,7 @@ GateOne.prefs = { // Tunable prefs (things users can change)
 // {
 //     'api_key': 'MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M',
 //     'upn': 'joe@company.com',
-//     'timestamp': 1323391717238,
+//     'timestamp': 1323391717238, // Can be created via: new Date().getTime();
 //     'signature': <gibberish>,
 //     'signature_method': 'HMAC-SHA1',
 //     'api_version': '1.0'
@@ -197,9 +197,10 @@ GateOne.Base.update(GateOne, {
         // Load our CSS theme
         u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
         // Load our JS Plugins
-        u.loadScript(go.prefs.url+'combined_js');
-        // Now check if we're authenticated
-        u.xhrGet(go.prefs.url+'auth?check=True', parseResponse);
+        u.loadScript(go.prefs.url+'combined_js', function() {
+            // Check if we're authenticated after all the scripts are done loading
+            u.xhrGet(go.prefs.url+'auth?check=True', parseResponse);
+        });
     },
     initialize: function() {
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
@@ -588,6 +589,7 @@ GateOne.Base.update(GateOne, {
             go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs'] = {};
         }
         go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']['updateCSS'] = updateCSSfunc;
+        // Make sure the termwrapper is the proper width for 2 columns
         go.Visual.updateDimensions();
         // Connect to the server
         go.ws = go.Net.connect(go.prefs.url);
@@ -1158,7 +1160,9 @@ GateOne.Base.update(GateOne.Net, {
                     }, 500);
                 }
                 // Update our dimensions (for some reason they can be lost if disconnected)
-                go.Net.sendDimensions();
+                setTimeout(function() {
+                    go.Net.sendDimensions();
+                }, 1000);
                 setTimeout(function() {
                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
                 }, 3000);
@@ -1177,10 +1181,10 @@ GateOne.Base.update(GateOne.Net, {
             logDebug('message: ' + evt.data);
             var messageObj = JSON.parse(evt.data);
             // Execute each respective action
-            go.Utils.items(messageObj).forEach(function(item) {
+            u.items(messageObj).forEach(function(item) {
                 var key = item[0],
                     val = item[1],
-                    getter = go.Utils.itemgetter(key),
+                    getter = u.itemgetter(key),
                     actionToTake = getter(go.Net.actions);
                 if (actionToTake) {
                     actionToTake(val);
@@ -2311,7 +2315,7 @@ GateOne.Base.update(GateOne.Visual, {
         if (changeSelected) {
             go.Net.setTerminal(term);
         }
-        v.updateDimensions();
+//         v.updateDimensions();
         u.getNode('#'+go.prefs.prefix+'sideinfo').innerHTML = displayText;
         // Have to scroll all the way to the top in order for the translate effect to work properly:
         u.getNode(go.prefs.goDiv).scrollTop = 0;
@@ -2444,16 +2448,24 @@ GateOne.Base.update(GateOne.Visual, {
             if (goBack) {
                 v.slideToTerm(localStorage[prefix+'selectedTerminal']); // Slide to the intended terminal
             }
-            u.showElement(pastearea);
-            u.showElement(controlsContainer);
+            if (pastearea) {
+                u.showElement(pastearea);
+            }
+            if (controlsContainer) {
+                u.showElement(controlsContainer);
+            }
         } else {
             v.gridView = true;
             setTimeout(function() {
                 u.getNode(go.prefs.goDiv).style.overflowY = 'visible';
                 u.getNode('#'+prefix+'termwrapper').style.width = go.Visual.goDimensions.w;
             }, 1000);
-            u.hideElement(pastearea);
-            u.hideElement(controlsContainer);
+            if (pastearea) {
+                u.hideElement(pastearea);
+            }
+            if (controlsContainer) {
+                u.hideElement(controlsContainer);
+            }
             v.disableScrollback();
             v.applyTransform(terms, 'translate(0px, 0px)');
             var odd = true,
@@ -2946,7 +2958,7 @@ GateOne.Base.update(GateOne.Terminal, {
             go.terminals[term]['scrollback'] = blankLines;
         }
         // Add the terminal div to the grid
-        var terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': 'terminal'}),
+        var terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': 'terminal', 'style': {'width': go.Visual.goDimensions.w + 'px', 'height': go.Visual.goDimensions.h + 'px'}}),
         // Get any previous term's dimensions so we can use them for the new terminal
             termSettings = {
                 'term': term,
@@ -2954,19 +2966,19 @@ GateOne.Base.update(GateOne.Terminal, {
                 'cols': dimensions.cols - 6 // -6 for the scrollbar
             },
             slide = u.partial(go.Visual.slideToTerm, term, true);
-        u.getNode('#'+go.prefs.prefix+'termwrapper').appendChild(terminal);
+        u.getNode('#'+prefix+'termwrapper').appendChild(terminal);
         // Apply user-defined rows and cols (if set)
         if (go.prefs.cols) { termSettings.cols = go.prefs.cols };
         if (go.prefs.rows) { termSettings.rows = go.prefs.rows };
         // Tell the server to create a new terminal process
         go.ws.send(JSON.stringify({'new_terminal': termSettings}));
         // Fix the width/height of all terminals (including the one we just created)
-        var terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
-        terms.forEach(function(termObj) {
-        // Set the dimensions of each terminal to the full width/height of the window
-            termObj.style.width = go.Visual.goDimensions.w + 'px';
-            termObj.style.height = go.Visual.goDimensions.h + 'px';
-        });
+//         var terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
+//         terms.forEach(function(termObj) {
+//         // Set the dimensions of each terminal to the full width/height of the window
+//             termObj.style.width = go.Visual.goDimensions.w + 'px';
+//             termObj.style.height = go.Visual.goDimensions.h + 'px';
+//         });
         // Switch to our new terminal if *term* is set (no matter where it is)
         if (termUndefined) {
             // Only slide for terminals that are actually *new* (as opposed to ones that we're re-attaching to)
@@ -2985,7 +2997,7 @@ GateOne.Base.update(GateOne.Terminal, {
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            message = "Closed term " + term + ": " + u.getNode('#'+go.prefs.prefix+'term' + term).title,
+            message = "Closed term " + term + ": " + u.getNode('#'+prefix+'term' + term).title,
             lastTerm = null;
         // Tell the server to kill the terminal
         go.Net.killTerminal(term);
@@ -3039,7 +3051,7 @@ GateOne.Base.update(GateOne.Terminal, {
                 if (termNum == localStorage[prefix+'selectedTerminal']) {
                     selectedMatch = true;
                     var slide = u.partial(go.Visual.slideToTerm, termNum, true);
-                    setTimeout(slide, 1000);
+                    setTimeout(slide, 500);
                 }
                 go.Terminal.newTerminal(termNum);
                 go.Terminal.lastTermNumber = termNum;
@@ -3053,10 +3065,10 @@ GateOne.Base.update(GateOne.Terminal, {
             go.Terminal.newTerminal();
         }
         // In case the user changed the rows/cols or the font/size changed:
-        setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
-            go.Visual.updateDimensions();
-            go.Net.sendDimensions();
-        }, 2000);
+//         setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
+//             go.Visual.updateDimensions();
+//             go.Net.sendDimensions();
+//         }, 2000);
     },
     modes: {
         // Various functions that will be called when a matching mode is set.

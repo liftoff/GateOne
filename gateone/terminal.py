@@ -836,6 +836,16 @@ class Terminal(object):
         """
         del self.callbacks[event][identifier]
 
+    def remove_all_callbacks(self, identifier):
+        """
+        Removes all callbacks associated with *identifier*.
+        """
+        for event, identifiers in self.callbacks.items():
+            try:
+                del self.callbacks[event][identifier]
+            except KeyError:
+                pass # No match, no biggie
+
     def terminal_reset(self, *args, **kwargs):
         """
         Resets the terminal back to an empty screen with all defaults.  Calls
@@ -1510,16 +1520,16 @@ class Terminal(object):
         # Try the title sequence first
         match_obj = self.RE_TITLE_SEQ.match(self.esc_buffer)
         if match_obj:
+            self.esc_buffer = ''
             title = match_obj.group(1)
             self.set_title(title) # Sets self.title
-            self.esc_buffer = ''
             return
         # Next try our special optional handler sequence
         match_obj = self.RE_OPT_SEQ.match(self.esc_buffer)
         if match_obj:
+            self.esc_buffer = ''
             text = match_obj.group(1)
             self.__opt_handler(text)
-            self.esc_buffer = ''
             return
         # At this point we've encountered something unusual
         #logging.warning(_("Warning: No ESC sequence handler for %s" %

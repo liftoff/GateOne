@@ -239,7 +239,7 @@ def mkdir_p(path):
 
         >>> import commands, utils
         >>> utils.mkdir_p('/tmp/test/testing') # Does the same thing as below:
-        >>> commands.getoutput('mkdir -p /tmp/test/testing')
+        >>> commands.getstatusoutput('mkdir -p /tmp/test/testing')
     """
     try:
         os.makedirs(path)

@@ -160,6 +160,8 @@
     -webkit-transition: all 1.0s ease-in-out;
     /* Firefox */
     -moz-transition: all 1.0s ease-in-out;
+    /* IE9+ */
+    -ms-transition: all 1.0s ease-in-out;
     /* Opera */
     -o-transition: all 1.0s ease-in-out;
     /* Future CSS3 standard */

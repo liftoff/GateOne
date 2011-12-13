@@ -14,7 +14,7 @@ __version_info__ = (0, 9)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
-import os, sys, re, logging
+import os, sys, re, logging, time
 from functools import partial
 try:
     from urlparse import urlparse
@@ -42,6 +42,14 @@ from htmlentitydefs import name2codepoint
 name2codepoint['#39'] = 39
 
 # Globals
+boolean_fix = {
+    True: True,
+    False: False,
+    'True': True,
+    'False': False,
+    'true': True,
+    'false': False
+}
 
 # Helper functions
 def unescape(s):
@@ -280,6 +288,12 @@ class BookmarksDB(object):
         changed = False # For if there's changes that need to be written
         updated_bookmarks = [] # For bookmarks that are newer on the server
         for bm in bookmarks:
+            if bm['url'] == "web+deleted:bookmarks/":
+                # Remove the existing deleted entry if it exists
+                for j, deleted_bm in enumerate(bm['notes']):
+                    if deleted_bm['url'] == bookmark['url']:
+                        # Remove the deleted bookmark entry
+                        bm['notes'].pop(j)
             found_existing = False
             for i, db_bookmark in enumerate(self.bookmarks):
                 if bm['url'] == db_bookmark['url']:
@@ -310,10 +324,47 @@ class BookmarksDB(object):
 
     def delete_bookmark(self, bookmark):
         """Deletes the given *bookmark*."""
+        highest_USN = self.get_highest_USN()
         for i, db_bookmark in enumerate(self.bookmarks):
             if bookmark['url'] == db_bookmark['url']:
                 # Remove it
-                self.bookmarks.pop(i)
+                deleted = self.bookmarks.pop(i)
+                # Add it to the list of deleted bookmarks
+                special_deleted_bm = None
+                for bm in self.bookmarks:
+                    if bm['url'] == "web+deleted:bookmarks/":
+                        special_deleted_bm = bm
+                # The deleted bookmarks 'bookmark' is just a list of URLs that
+                # have been deleted along with the time it happened.  This lets
+                # us keep multiple browsers in sync with what's been deleted
+                # so we don't inadvertently end up re-adding bookmarks that were
+                # deleted by another client.
+                if not special_deleted_bm:
+                    # Make our first entry
+                    special_deleted_bm = {
+                        'url': "web+deleted:bookmarks/",
+                        'name': "Deleted Bookmarks",
+                        'tags': [],
+                        'notes': [bookmark],
+                        'visits': highest_USN + 1,
+                        'updated': int(round(time.time() * 1000)),
+                        'created': int(round(time.time() * 1000)),
+                        'updateSequenceNum': 0,
+                        'images': {}
+                    }
+                    self.bookmarks.append(special_deleted_bm)
+                else:
+                    # Check for pre-existing
+                    updated = False
+                    for j, deleted_bm in enumerate(special_deleted_bm['notes']):
+                        if deleted_bm['url'] == bookmark['url']:
+                            # Update it in place
+                            special_deleted_bm['notes'][j] = bookmark
+                            updated = True
+                    if not updated:
+                        special_deleted_bm['notes'].append(bookmark)
+                    highest_USN += 1
+                    special_deleted_bm['updateSequenceNum'] = highest_USN
                 break
         # Save the change to disk
         self.save_bookmarks()
@@ -343,134 +394,19 @@ class BookmarksDB(object):
         Goes through all bookmarks and renames all tags named *old_tag* to be
         *new_tag*.
         """
+        highest_USN = self.get_highest_USN()
         for bm in self.bookmarks:
             if old_tag in bm['tags']:
+                highest_USN += 1
                 i = bm['tags'].index(old_tag)
                 bm['tags'][i] = new_tag
+                # Made a change so we need to increment the USN to ensure sync
+                bm['updateSequenceNum'] = highest_USN
+                bm['updated'] = int(round(time.time() * 1000))
         # Save the change to disk
         self.save_bookmarks()
 
 # Handlers
-# TODO: Change all these use WebSockets so they'll work in embedded mode
-class SyncHandler(BaseHandler):
-    """
-    Handles synchronizing bookmarks with clients.
-    """
-    boolean_fix = {
-        True: True,
-        False: False,
-        'True': True,
-        'False': False,
-        'true': True,
-        'false': False
-    }
-
-    # Disabled auth due to redirection issues when embedding.  It's OK though
-    # because synchronizing bookmarks won't work unless it can find a proper
-    # user in the cookie (which must be encrypted properly).
-    #@tornado.web.authenticated
-    @tornado.web.asynchronous
-    def post(self):
-        """Handles POSTs of JSON-encoded bookmarks."""
-        out_dict = {
-            'updates': [],
-            'count': 0,
-            'errors': []
-        }
-        try:
-            user = self.get_current_user()['upn']
-            bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
-            bookmarks_json = unicode(self.request.body, errors='ignore')
-            bookmarks = tornado.escape.json_decode(bookmarks_json)
-            updates = bookmarks_db.sync_bookmarks(bookmarks)
-            out_dict.update({
-                'updates': updates,
-                'count': len(bookmarks),
-            })
-            out_dict['updateSequenceNum'] = bookmarks_db.get_highest_USN()
-        except Exception as e:
-            import traceback
-            logging.error("Got exception synchronizing bookmarks: %s" % e)
-            traceback.print_exc(file=sys.stdout)
-            out_dict['errors'].append(str(e))
-        if out_dict['errors']:
-            out_dict['result'] = "Upload completed but errors were encountered."
-        else:
-            out_dict['result'] = "Upload successful"
-        self.write(json_encode(out_dict))
-        self.finish()
-
-    #@tornado.web.authenticated
-    @tornado.web.asynchronous
-    def get(self):
-        """
-        Returns a JSON-encodedlist of bookmarks updated since the last
-        updateSequenceNum.  Expects "updateSequenceNum" as an argument.
-
-        If "updateSequenceNum" resolves to False, all bookmarks will be sent to
-        the client.
-        """
-        user = self.get_current_user()['upn']
-        bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
-        updateSequenceNum = self.get_argument("updateSequenceNum", None)
-        if updateSequenceNum:
-            updateSequenceNum = int(updateSequenceNum)
-        else: # This will force a full download
-            updateSequenceNum = 0
-        updated_bookmarks = bookmarks_db.get_bookmarks(updateSequenceNum)
-        self.write(json_encode(updated_bookmarks))
-        self.finish()
-
-class DeleteBookmarksHandler(BaseHandler):
-    """
-    Handles POSTs of deleted bookmarks to process on the server side of things.
-    """
-    @tornado.web.asynchronous
-    @tornado.web.authenticated
-    def post(self):
-        """Handles POSTs of a JSON-encoded deletedBookmarks list."""
-        deleted_bookmarks_json = unicode(self.request.body, errors='ignore')
-        deleted_bookmarks = tornado.escape.json_decode(deleted_bookmarks_json)
-        user = self.get_current_user()['upn']
-        bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
-        out_dict = {
-            'result': "",
-            'count': 0,
-            'errors': [],
-        }
-        try:
-            for bookmark in deleted_bookmarks:
-                out_dict['count'] += 1
-                bookmarks_db.delete_bookmark(bookmark)
-            out_dict['result'] = "Success"
-        except Exception as e: # TODO: Make this more specific
-            out_dict['result'] = "Errors"
-            out_dict['errors'].append(str(e))
-        self.write(out_dict)
-        self.finish()
-
-class RenameTagsHandler(BaseHandler):
-    """Handles POSTs of tags to rename on the server side of things."""
-    @tornado.web.asynchronous
-    @tornado.web.authenticated
-    def post(self):
-        """Handles POSTs of JSON-encoded bookmarks."""
-        user = self.get_current_user()['upn']
-        bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
-        renamed_tags_json = unicode(self.request.body, errors='ignore')
-        renamed_tags = tornado.escape.json_decode(renamed_tags_json)
-        out_dict = {
-            'result': "",
-            'count': 0,
-            'errors': [],
-            'updates': []
-        }
-        for pair in renamed_tags:
-            old_name, new_name = pair.split(',')
-            bookmarks_db.rename_tag(old_name, new_name)
-        self.write(tornado.escape.json_encode(renamed_tags))
-        self.finish()
-
 class FaviconHandler(BaseHandler):
     """
     Retrives the biggest favicon-like icon at the given URL.  It will try to
@@ -490,12 +426,10 @@ class FaviconHandler(BaseHandler):
         'image/jpeg'
     ]
     @tornado.web.asynchronous
-    @tornado.web.authenticated
     def get(self):
         self.process()
 
     @tornado.web.asynchronous
-    @tornado.web.authenticated
     def post(self):
         self.process()
 
@@ -645,6 +579,7 @@ class ExportHandler(tornado.web.RequestHandler):
     Takes a JSON-encoded list of bookmarks and returns a Netscape-style HTML
     file.
     """
+    @tornado.web.asynchronous
     def post(self):
         bookmarks = self.get_argument("bookmarks")
         bookmarks = tornado.escape.json_decode(bookmarks)
@@ -654,14 +589,111 @@ class ExportHandler(tornado.web.RequestHandler):
         templates_path = os.path.join(plugin_path, "templates")
         bookmarks_html =  os.path.join(templates_path, "bookmarks.html")
         self.render(bookmarks_html, bookmarks=bookmarks)
+        self.finish()
+
+# WebSocket commands (not the same as handlers)
+def save_bookmarks(bookmarks, tws):
+    """
+    Handles saving *bookmarks* for clients.
+    """
+    out_dict = {
+        'updates': [],
+        'count': 0,
+        'errors': []
+    }
+    try:
+        user = tws.get_current_user()['upn']
+        bookmarks_db = BookmarksDB(tws.settings['user_dir'], user)
+        updates = bookmarks_db.sync_bookmarks(bookmarks)
+        out_dict.update({
+            'updates': updates,
+            'count': len(bookmarks),
+        })
+        out_dict['updateSequenceNum'] = bookmarks_db.get_highest_USN()
+    except Exception as e:
+        import traceback
+        logging.error("Got exception synchronizing bookmarks: %s" % e)
+        traceback.print_exc(file=sys.stdout)
+        out_dict['errors'].append(str(e))
+    if out_dict['errors']:
+        out_dict['result'] = "Upload completed but errors were encountered."
+    else:
+        out_dict['result'] = "Upload successful"
+    message = {'bookmarks_save_result': out_dict}
+    tws.write_message(json_encode(message))
+
+def get_bookmarks(updateSequenceNum, tws):
+    """
+    Returns a JSON-encoded list of bookmarks updated since the last
+    *updateSequenceNum*.
+
+    If "updateSequenceNum" resolves to False, all bookmarks will be sent to
+    the client.
+    """
+    user = tws.get_current_user()['upn']
+    bookmarks_db = BookmarksDB(tws.settings['user_dir'], user)
+    if updateSequenceNum:
+        updateSequenceNum = int(updateSequenceNum)
+    else: # This will force a full download
+        updateSequenceNum = 0
+    updated_bookmarks = bookmarks_db.get_bookmarks(updateSequenceNum)
+    message = {'bookmarks_updated': updated_bookmarks}
+    tws.write_message(json_encode(message))
+
+def delete_bookmarks(deleted_bookmarks, tws):
+    """
+    Handles deleting bookmars given a *deleted_bookmarks* list.
+    """
+    user = tws.get_current_user()['upn']
+    bookmarks_db = BookmarksDB(tws.settings['user_dir'], user)
+    out_dict = {
+        'result': "",
+        'count': 0,
+        'errors': [],
+    }
+    try:
+        for bookmark in deleted_bookmarks:
+            out_dict['count'] += 1
+            bookmarks_db.delete_bookmark(bookmark)
+        out_dict['result'] = "Success"
+    except Exception as e: # TODO: Make this more specific
+        logging.error("delete_bookmarks error: %s" % e)
+        import traceback
+        traceback.print_exc(file=sys.stdout)
+        out_dict['result'] = "Errors"
+        out_dict['errors'].append(str(e))
+    message = {'bookmarks_delete_result': out_dict}
+    tws.write_message(json_encode(message))
+
+def rename_tags(renamed_tags, tws):
+    """
+    Handles renaming tags.
+    """
+    user = tws.get_current_user()['upn']
+    bookmarks_db = BookmarksDB(tws.settings['user_dir'], user)
+    out_dict = {
+        'result': "",
+        'count': 0,
+        'errors': [],
+        'updates': []
+    }
+    for pair in renamed_tags:
+        old_name, new_name = pair.split(',')
+        bookmarks_db.rename_tag(old_name, new_name)
+        out_dict['count'] += 1
+    message = {'bookmarks_renamed_tags': out_dict}
+    tws.write_message(json_encode(message))
 
 hooks = {
     'Web': [
-        (r"/bookmarks/sync", SyncHandler),
         (r"/bookmarks/fetchicon", FaviconHandler),
-        (r"/bookmarks/delete", DeleteBookmarksHandler),
-        (r"/bookmarks/renametags", RenameTagsHandler),
         (r"/bookmarks/export", ExportHandler),
         (r"/bookmarks/import", ImportHandler),
-    ]
+    ],
+    'WebSocket': {
+        'bookmarks_sync': save_bookmarks,
+        'bookmarks_get': get_bookmarks,
+        'bookmarks_deleted': delete_bookmarks,
+        'bookmarks_rename_tags': rename_tags,
+    }
 }

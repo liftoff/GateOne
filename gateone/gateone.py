@@ -7,7 +7,7 @@
 
 # 1.0 TODO:
 # * DOCUMENTATION!
-# * Write a setup.py' with init scripts to stop/start/restart Gate One safely.  Also make sure that .deb and .rpm packages safely restart Gate One without impacting running sessions.  The setup.py should also attempt to minify the .css and .js files.
+# * Write init scripts to stop/start/restart Gate One safely.  Also make sure that .deb and .rpm packages safely restart Gate One without impacting running sessions.  The setup.py should also attempt to minify the .css and .js files.
 
 # Meta
 __version__ = '0.9'
@@ -213,7 +213,10 @@ import time
 from functools import partial
 from datetime import datetime, timedelta
 from platform import uname
-from commands import getoutput
+try:
+    from commands import getstatusoutput
+except ImportError: # Moved to subprocess in Python 3 (this is just preparation)
+    from subprocess import getstatusoutput
 
 # Tornado modules (yeah, we use all this stuff)
 try:
@@ -227,10 +230,19 @@ try:
     from tornado.escape import json_encode, json_decode
     from tornado.options import define, options
     from tornado import locale
+    from tornado import version as tornado_version
+    from tornado import version_info as tornado_version_info
 except ImportError:
     print("\x1b[31;1mERROR:\x1b[0m Gate One requires the Tornado framework.  "
           "You probably want to run something like, \x1b[1m'pip install "
           "--upgrade tornado'\x1b[0m.")
+    sys.exit(1)
+
+if tornado_version_info[0] < 2 and tornado_version_info[1] < 1:
+    print("\x1b[31;1mERROR:\x1b[0m Gate One requires version 2.1+ of the "
+            "Tornado framework.  The installed version of Tornado is version "
+            "%s." % tornado_version)
+    sys.exit(1)
 
 # We want this turned on right away
 tornado.options.enable_pretty_logging()
@@ -708,19 +720,6 @@ class PluginCSSTemplateHandler(BaseHandler):
             logging.error(
                 _("templates/%s/%s was not found" % (plugin, template)))
 
-class EnumeratePluginsHandler(BaseHandler):
-    """
-    Returns a list of plugins available in the form of::
-
-        {'python': [list of plugins], 'javascript': [list of plugins], 'css': [list of plugins]}
-    """
-    # Had to disable authentication for this for the embedded auth to work.
-    # TODO: Move this method to the WebSocket (if possible)
-    def get(self):
-        self.set_header ('Content-Type', 'application/json')
-        plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
-        self.write(tornado.escape.json_encode(plugins))
-
 class JSPluginsHandler(BaseHandler):
     """
     Combines all JavaScript plugins into a single file to keep things simple and
@@ -782,7 +781,8 @@ class TerminalWebSocket(WebSocketHandler):
     def open(self):
         """Called when a new WebSocket is opened."""
         # client_id is unique to the browser/client whereas session_id is unique
-        # to the user.
+        # to the user.  It isn't used much right now but it will be useful in
+        # the future once more stuff is running over WebSockets.
         self.client_id = generate_session_id()
         user = self.get_current_user()
         if user and 'upn' in user:
@@ -833,6 +833,13 @@ class TerminalWebSocket(WebSocketHandler):
         # TODO: Make this detach all callbacks so they're not sticking around in memory
         logging.debug("on_close()")
         user = self.get_current_user()
+        # Remove all attached callbacks so we're not wasting memory/CPU
+        for term in SESSIONS[self.session]:
+            if isinstance(term, int):
+                multiplex = SESSIONS[self.session][term]['multiplex']
+                multiplex.remove_all_callbacks(self.callback_id)
+                term_emulator = multiplex.term
+                term_emulator.remove_all_callbacks(self.callback_id)
         if user and 'upn' in user:
             logging.info(
                 _("WebSocket closed (%s).") % user['upn'])
@@ -847,7 +854,6 @@ class TerminalWebSocket(WebSocketHandler):
         message = {'pong': timestamp}
         self.write_message(json_encode(message))
 
-# TODO: Change this to encrypt the session ID so that it is stored in encrypted form on the client end.  Just like we do with cookies but for use with localStorage.  The encrypted value should actually be a JSON dict with a uniqe, random ID included to ensure that the encrypted data changes every time it is created (even though the session ID might not).
     def authenticate(self, settings):
         """
         Authenticates the client using the given session (which should be
@@ -891,7 +897,7 @@ class TerminalWebSocket(WebSocketHandler):
                 # *timestamp* is a JavaScript Date() object converted into an
                 #   "time since the epoch": var timestamp = new Date().getTime()
                 # *signature* is an HMAC signature of the previous three
-                #   variables that was signed using the given API key's secret.
+                #   variables that was created using the given API key's secret.
                 # *signature_method* is the HMAC hashing algorithm to use for
                 #   the signature.  Only HMAC-SHA1 is supported for now.
                 # *api_version* is the auth API version.  Always "1.0" for now.
@@ -917,9 +923,10 @@ class TerminalWebSocket(WebSocketHandler):
                         secret, api_key, upn, timestamp)
                     if sig_check == signature:
                         # Auth success!
+                        logging.debug(_("WebSocket Authentication Successful"))
                         # TODO: Add timestamp checking as well
-                        # Make a directory to store this user's settings/files/logs/etc
-                        user_dir = os.path.join(self.settings['user_dir'], user)
+                # Make a directory to store this user's settings/files/logs/etc
+                        user_dir = os.path.join(self.settings['user_dir'], upn)
                         if not os.path.exists(user_dir):
                             logging.info(
                                 _("Creating user directory: %s" % user_dir))
@@ -939,6 +946,11 @@ class TerminalWebSocket(WebSocketHandler):
                                 session_info_json = tornado.escape.json_encode(
                                     self.api_user)
                                 f.write(session_info_json)
+                    else:
+                        logging.error(_(
+                            "WebSocket auth failed signature check."))
+            else:
+                logging.error(_("Missing API Key in authentication object"))
         else:
             # Double-check there isn't a user set in the cookie (i.e. we have
             # recently changed Gate One's settings).  If there is, force it
@@ -953,7 +965,7 @@ class TerminalWebSocket(WebSocketHandler):
         try:
             self.session = self.get_current_user()['session']
         except Exception as e:
-            print("authenticate session exception: %s" % e)
+            logging.error("authenticate session exception: %s" % e)
             message = {'notice': _('AUTHENTICATION ERROR: %s' % e)}
             self.write_message(json_encode(message))
             return
@@ -990,14 +1002,13 @@ class TerminalWebSocket(WebSocketHandler):
         # Now we need to tell the client about plugin CSS templates
         plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
         for css_template in plugins['css']:
-            print("sending css template: %s" % css_template)
             self.write_message(json_encode({'load_css': css_template}))
 
     def new_terminal(self, settings):
         """
         Starts up a new terminal associated with the user's session using
         *settings* as the parameters.  If a terminal already exists with the
-        same number as *settings[term]* self.set_terminal() will be called
+        same number as *settings[term]*, self.set_terminal() will be called
         instead of starting a new terminal (so clients can resume their session
         without having to worry about figuring out if a new terminal already
         exists or not).
@@ -1008,7 +1019,7 @@ class TerminalWebSocket(WebSocketHandler):
         self.rows = rows = settings['rows']
         self.cols = cols = settings['cols']
         user_dir = self.settings['user_dir']
-        needs_full_refresh = False # Used to track if we need a full screen dump to the client (since TidyThread needs to be running before that)
+        needs_full_refresh = False
         if term not in SESSIONS[self.session]:
             # Setup the requisite dict
             SESSIONS[self.session][term] = {}
@@ -1219,7 +1230,8 @@ class TerminalWebSocket(WebSocketHandler):
             tidy_thread = SESSIONS[self.session]['tidy_thread']
             tidy_thread.keepalive(now)
             m = multiplex = SESSIONS[self.session][term]['multiplex']
-            scrollback, screen = multiplex.dumplines(client_id=self.client_id)
+            scrollback, screen = multiplex.dumplines(
+                full=full, client_id=self.client_id)
         except KeyError as e: # Session died (i.e. command ended).
             logging.debug("KeyError in _send_refresh: %s" % e)
             scrollback, screen = None, None
@@ -1357,7 +1369,7 @@ class TerminalWebSocket(WebSocketHandler):
                 logging.error(_(
                     "Got exception trying to execute plugin's optional ESC "
                     "sequence handler..."))
-                print(e)
+                logging.error(str(e))
 
     def get_webworker(self):
         """
@@ -1545,7 +1557,6 @@ class Application(tornado.web.Application):
             (r"/openlog", OpenLogHandler),
             (r"/cssrender", PluginCSSTemplateHandler),
             (r"/combined_js", JSPluginsHandler),
-            (r"/get_plugins", EnumeratePluginsHandler),
             (r"/docs/(.*)", tornado.web.StaticFileHandler, {
                 "path": GATEONE_DIR + '/docs/build/html/',
                 "default_filename": "index.html"
@@ -1590,7 +1601,7 @@ def main():
     user_locale = locale.get(default_locale)
     # NOTE: The locale setting above is only for the --help messages.
     # Simplify the auth option help message
-    auths = "none, google"
+    auths = "none, api, google"
     if KerberosAuthHandler:
         auths += ", kerberos"
     if PAMAuthHandler:
@@ -1850,7 +1861,7 @@ def main():
             if not existing:
                 server_conf += 'api_keys = "%s:%s"\n' % (api_key, secret)
         open(os.path.join(GATEONE_DIR, 'server.conf'), 'w').write(server_conf)
-        print("A new API key has been generated: %s" % api_key)
+        print(_("A new API key has been generated: %s" % api_key))
         print(_("This key can now be used to embed Gate One into other "
                 "applications."))
         return
@@ -1861,8 +1872,8 @@ def main():
     global TIMEOUT
     TIMEOUT = convert_to_timedelta(options.session_timeout)
     # Make sure dtach is available and if not, set dtach=False
-    result = getoutput('which dtach')
-    if not result:
+    retcode, result = getstatusoutput('which dtach')
+    if retcode != 0:
         logging.warning(
             _("dtach command not found.  dtach support has been disabled."))
         options.dtach = False

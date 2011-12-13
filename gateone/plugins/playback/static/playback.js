@@ -43,6 +43,11 @@ GateOne.Base.update(GateOne.Playback, {
         }
         p.appendChild(infoPanelSaveRecording);
         go.Playback.addPlaybackControls();
+        go.Terminal.updateTermCallbacks.push(pushPlaybackFrame);
+    },
+    pushPlaybackFrame: function(term) {
+        // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']
+
     },
     updateClock: function(/*opt:*/dateObj) {
         // Updates the clock with the time in the given *dateObj*.

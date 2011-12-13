@@ -38,7 +38,6 @@ GateOne.Bookmarks.toUpload = []; // Used for tracking what needs to be uploaded 
 GateOne.Bookmarks.loginSync = true; // Makes sure we don't display "Synchronization Complete" if the user just logged in (unless it is the first time).
 GateOne.Bookmarks.temp = ""; // Just a temporary holding space for things like drag & drop
 GateOne.Base.update(GateOne.Bookmarks, {
-    // TODO: Add auto-tagging bookmarks based on date of last login...  <1day, <7days, etc
     // TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
     init: function() {
         var go = GateOne,
@@ -84,9 +83,14 @@ GateOne.Base.update(GateOne.Bookmarks, {
         // Initialize the localStorage['bookmarks'] if it doesn't exist
         if (!localStorage[prefix+'bookmarks']) {
             localStorage[prefix+'bookmarks'] = "[]"; // Init as empty JSON list
+            b.bookmarks = [];
         } else {
             // Load them into GateOne.Bookmarks.bookmarks
             b.bookmarks = JSON.parse(localStorage[prefix+'bookmarks']);
+        }
+        // Initialize the USN if it isn't already set
+        if (!localStorage[prefix+'USN']) {
+            localStorage[prefix+'USN'] = 0;
         }
         // Default sort order is by visits, descending
         b.createPanel();
@@ -103,10 +107,15 @@ GateOne.Base.update(GateOne.Bookmarks, {
             go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_bookmarks'] = {};
         }
         go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_bookmarks']['createPanel'] = b.createPanel;
+        // Register our WebSocket actions
+        go.Net.addAction('bookmarks_updated', b.syncBookmarks);
+        go.Net.addAction('bookmarks_save_result', b.syncComplete);
+        go.Net.addAction('bookmarks_delete_result', b.deletedBookmarksSyncComplete);
+        go.Net.addAction('bookmarks_renamed_tags', b.tagRenameComplete);
         // Setup a callback that synchronizes the user's bookmarks after they login
         go.User.userLoginCallbacks.push(function(username) {
             var USN = localStorage[prefix+'USN'] || 0;
-            u.xhrGet(go.prefs.url+'bookmarks/sync?updateSequenceNum='+USN, b.syncBookmarks);
+            go.ws.send(JSON.stringify({'bookmarks_get': USN}));
         });
     },
     sortFunctions: {
@@ -142,7 +151,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
         }
     },
     storeBookmarks: function(bookmarks, /*opt*/recreatePanel, skipTags) {
-        // Takes an array of bookmarks and stores them in both GateOne.Bookmarks.bookmarks
+        // Takes an array of bookmarks and stores them in GateOne.Bookmarks.bookmarks
         // If *recreatePanel* is true, the panel will be re-drawn after bookmarks are stored.
         // If *skipTags* is true, bookmark tags will be ignored when saving the bookmark object.
         var go = GateOne,
@@ -158,7 +167,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 bookmark.url += '/';
             }
             // Check if this is our "Deleted Bookmarks" bookmark
-            if (bookmark.url == "web+deleted:bookmarked.us/") {
+            if (bookmark.url == "web+deleted:bookmarks/") {
                 // Write the contained URLs to localStorage
                 deletedBookmark = true;
             }
@@ -224,7 +233,12 @@ GateOne.Base.update(GateOne.Bookmarks, {
             b = go.Bookmarks,
             u = go.Utils,
             prefix = go.prefs.prefix,
+            responseObj = null;
+        if (typeof(response) == "string") {
             responseObj = JSON.parse(response);
+        } else {
+            responseObj = response;
+        }
         clearInterval(b.syncTimer);
         if (responseObj['updateSequenceNum']) {
             localStorage[prefix+'USN'] = parseInt(responseObj['updateSequenceNum']);
@@ -240,8 +254,8 @@ GateOne.Base.update(GateOne.Bookmarks, {
             // TODO: Log the errors (guess I need the logging module after all!)
             go.Visual.displayMessage("See the log (Options->View Log) for details.");
             logError("Synchronization Errors: " + u.items(responseObj['errors'][0]));
-            b.createPanel();
         }
+        b.createPanel();
         u.getNode('#'+prefix+'bm_sync').innerHTML = "Sync Bookmarks | ";
         b.toUpload = []; // Reset it
     },
@@ -263,13 +277,17 @@ GateOne.Base.update(GateOne.Bookmarks, {
         if (!b.bookmarks.length) {
             firstTime = true;
         }
-        bookmarks = JSON.parse(response);
+        if (typeof(response) == "string") {
+            bookmarks = JSON.parse(response);
+        } else {
+            bookmarks = response;
+        }
         // Process deleted bookmarks before anything else
         bookmarks.forEach(function(bookmark) {
             if (bookmark.url == 'web+deleted:bookmarks/') {
                 foundDeleted = true;
                 var deletedBookmarksLocal = JSON.parse(localStorage[prefix+'deletedBookmarks']),
-                    deletedBookmarksServer = JSON.parse(bookmark.notes);
+                    deletedBookmarksServer = bookmark.notes;
                 // Figure out the differences
                 for (var i in deletedBookmarksLocal) {
                     var found = false;
@@ -296,7 +314,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
                     }
                 }
                 if (localDiff.length) {
-                    b.syncDeletedBookmarks(localDiff);
+                    go.ws.send(JSON.stringify({'bookmarks_deleted': localDiff}));
                 }
                 if (remoteDiff.length) {
                     for (var i in remoteDiff) {
@@ -304,7 +322,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
                             // This is so we don't endlessly sync deleted bookmarks.
                             localStorage[prefix+'deletedBookmarks'] = "[]";
                         }
-                        b.deleteBookmark(remoteDiff[i].url, callback);
+                        b.removeBookmark(remoteDiff[i].url, callback);
                     }
                 }
                 // Fix the USN if the deletedBookmark note has the highest USN
@@ -313,41 +331,16 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 }
             }
         });
-        // Remove any deleted bookmarks from the array
-        for (var i in bookmarks) {
-            for (var n in remoteDiff) {
-                if (bookmarks[i].url == remoteDiff[n].url) {
-                    bookmarks.splice(i, 1);
-                }
-            }
-        }
         if (!foundDeleted) {
             // Have to upload our deleted bookmarks list (if any)
             var deletedBookmarks = JSON.parse(localStorage[prefix+'deletedBookmarks']);
             if (deletedBookmarks.length) {
-                b.syncDeletedBookmarks(deletedBookmarks);
+                go.ws.send(JSON.stringify({'bookmarks_deleted': deletedBookmarks}));
             }
         }
         setTimeout(function() {
-            var count = b.storeBookmarks(bookmarks, false),
-                xhr = new XMLHttpRequest(),
-                handleStateChange = function(e) {
-                    var status = null;
-                    try {
-                        status = parseInt(e.target.status);
-                    } catch(e) {
-                        return;
-                    }
-                    if (e.target.readyState == 4) {
-                        if (status == 200) {
-                            logDebug('syncBookmarks() response text: ' + e.target.responseText);
-                            b.syncComplete(e.target.responseText);
-                        } else {
-                            logError('syncBookmarks() error response: ' + u.items(e.target));
-                        }
-                    }
-                };
             // This checks if there are new/imported bookmarks
+            var count = b.storeBookmarks(bookmarks, false);
             b.bookmarks.forEach(function(bookmark) {
                 if (bookmark.updateSequenceNum == 0) { // A USN of 0 means it isn't on the server at all or needs to be synchronized
                     // Mark it for upload
@@ -356,19 +349,18 @@ GateOne.Base.update(GateOne.Bookmarks, {
             });
             // If there *are* new/imported bookmarks, upload them:
             if (b.toUpload.length) {
-                xhr.addEventListener('readystatechange', handleStateChange, false);
-                xhr.open('POST', go.prefs.url+'bookmarks/sync', true);
-                xhr.setRequestHeader("Content-Type", "application/octet-stream");
-                xhr.send(JSON.stringify(b.toUpload));
+                go.ws.send(JSON.stringify({'bookmarks_sync': b.toUpload}));
             } else {
                 clearTimeout(b.syncTimer);
                 if (!firstTime) {
                     if (!JSON.parse(localStorage[prefix+'deletedBookmarks']).length) {
                         // Only say we're done if the deletedBookmarks queue is empty
-                        // Otherwise let the syncDeletedBookmarks function take care of it =)
                         if (!b.loginSync) {
                             // This lets us turn off the "Synchronization Complete" message when the user had their bookmarks auto-sync after login
-                            go.Visual.displayMessage("Synchronization Complete");
+                                go.Visual.displayMessage("Synchronization Complete");
+                            if (count) {
+                                b.createPanel();
+                            }
                         }
                     }
                     if (localStorage[prefix+'iconQueue'].length) {
@@ -387,52 +379,30 @@ GateOne.Base.update(GateOne.Bookmarks, {
             }
             // Process any pending tag renames
             if (localStorage[prefix+'renamedTags']) {
-                var renamedTags = JSON.parse(localStorage[prefix+'renamedTags']),
-                    xhr2 = new XMLHttpRequest(),
-                    url = go.prefs.url+'bookmarks/renametags',
-                    handleStateChange2 = function(e) {
-                        var status = null;
-                        if (e.target.readyState == 4) {
-                            if (parseInt(e.target.status) == 200) {
-                                delete localStorage[prefix+'renamedTags'];
-                                go.Visual.displayMessage(renamedTags.length + " tags were renamed.");
-                            } else {
-                                logError('syncBookmarks() error response: ' + u.items(e.target));
-                            }
-                        }
-                    };
-                xhr2.addEventListener('readystatechange', handleStateChange2, false);
-                xhr2.open('POST', url, true);
-                xhr2.setRequestHeader("Content-Type", "application/octet-stream");
-                xhr2.send(JSON.stringify(renamedTags));
+                var renamedTags = JSON.parse(localStorage[prefix+'renamedTags']);
+                go.ws.send(JSON.stringify({'bookmarks_rename_tags': renamedTags}));
             }
             b.loginSync = false; // So subsequent synchronizations display the "Synchronization Complete" message
         }, 200);
     },
-    syncDeletedBookmarks: function(localDiff) {
-        // Handles uploading the bookmarks in localDiff (e.g. [{'url': 'http://whatever/', 'deleted': 1234567890112}])
+    tagRenameComplete: function(result) {
         var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            xhr = new XMLHttpRequest(),
-            url = go.prefs.url+'bookmarks/delete',
-            handleStateChange = function(e) {
-                var status = null;
-                if (e.target.readyState == 4) {
-                    if (parseInt(e.target.status) == 200) {
-                        localStorage[prefix+'deletedBookmarks'] = "[]";
-                        go.Visual.displayMessage("Synchronization Complete");
-                        go.Visual.displayMessage(localDiff.length + " bookmarks were deleted or marked as such.");
-                    } else {
-                        // TODO: Switch this to using a log() function
-                            logError('Error synchronizing deleted bookmarks... ' + u.items(e.target));
-                    }
-                }
-            };
-        xhr.addEventListener('readystatechange', handleStateChange, false);
-        xhr.open('POST', url, true);
-        xhr.setRequestHeader("Content-Type", "application/octet-stream");
-        xhr.send(JSON.stringify(localDiff));
+            b = go.Bookmarks,
+            prefix = go.prefs.prefix;
+        if (result) {
+            delete localStorage[prefix+'renamedTags'];
+            go.Visual.displayMessage(result['count'] + " tags were renamed.");
+        }
+    },
+    deletedBookmarksSyncComplete: function(message) {
+        // Handles the response from the server after we've sent the bookmarks_deleted command
+        var go = GateOne,
+            v = go.Visual,
+            prefix = go.prefs.prefix;
+        if (message) {
+            localStorage[prefix+'deletedBookmarks'] = "[]"; // Clear it out now that we're done
+            v.displayMessage(message['count'] + " bookmarks were deleted or marked as such.");
+        }
     },
     loadBookmarks: function(/*opt*/delay) {
         // Loads the user's bookmarks
@@ -1063,7 +1033,8 @@ GateOne.Base.update(GateOne.Bookmarks, {
             b.syncTimer = setInterval(function() {
                 go.Visual.displayMessage("Please wait while we synchronize your bookmarks...");
             }, 6000);
-            u.xhrGet(go.prefs.url+'bookmarks/sync?updateSequenceNum='+USN, b.syncBookmarks);
+            go.ws.send(JSON.stringify({'bookmarks_get': USN}));
+//             u.xhrGet(go.prefs.url+'bookmarks/sync?updateSequenceNum='+USN, b.syncBookmarks);
         }
         bmOptions.appendChild(bmSync);
         bmOptions.appendChild(bmImport);
@@ -1605,7 +1576,8 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 // Keep everything sync'd up.
                 setTimeout(function() {
                     var USN = localStorage[prefix+'USN'] || 0;
-                    u.xhrGet(go.prefs.url+'bookmarks/sync?updateSequenceNum='+USN, b.syncBookmarks);
+                    go.ws.send(JSON.stringify({'bookmarks_get': USN}));
+//                     u.xhrGet(go.prefs.url+'bookmarks/sync?updateSequenceNum='+USN, b.syncBookmarks);
                     b.createPanel();
                 }, 1000);
             } else {
@@ -1621,15 +1593,17 @@ GateOne.Base.update(GateOne.Bookmarks, {
                         b.bookmarks[i].updateSequenceNum = 0;
                         if (url != URL) { // We're changing the URL for this bookmark
                             // Have to delete the old one since the URL is used as the index in the indexedDB
-                            b.deleteBookmark(URL); // Delete the original URL
+                            b.removeBookmark(URL); // Delete the original URL
                         }
                         // Store the modified bookmark
                         b.createOrUpdateBookmark(b.bookmarks[i]);
-                        // Re-fetch its icon (have to wait a sec since storeBookmark is async)
+                        // Re-fetch its icon
                         setTimeout(function() {
                             b.updateIcon(b.bookmarks[i]);
-                            b.createPanel();
-                        }, 1000);
+                            setTimeout(function() {
+                                b.createPanel();
+                            }, 700);
+                        }, 100);
                         break;
                     }
                 }
@@ -1670,8 +1644,28 @@ GateOne.Base.update(GateOne.Bookmarks, {
         });
         return highest;
     },
+    removeBookmark: function(url, callback) {
+        // Removes the bookmark matching *url* from GateOne.Bookmarks.bookmarks and saves the change to localStorage
+        // If *callback* is given, it will be called after the bookmark has been deleted
+        var go = GateOne,
+            u = go.Utils,
+            b = go.Bookmarks,
+            prefix = go.prefs.prefix;
+        // Find the matching bookmark and delete it
+        for (var i in b.bookmarks) {
+            if (b.bookmarks[i].url == url) {
+                b.bookmarks.splice(i, 1); // Remove the bookmark in question.
+            }
+        }
+        // Now save our new bookmarks list to disk
+        localStorage[prefix+'bookmarks'] = JSON.stringify(b.bookmarks);
+        if (callback) {
+            callback();
+        }
+    },
     deleteBookmark: function(obj) {
-        // Deletes the given bookmark..  *obj* can either be a URL (string) or the "go_bm_delete" anchor tag.
+        // Asks the user for confirmation then deletes the chosen bookmark...
+        // *obj* can either be a URL (string) or the "go_bm_delete" anchor tag.
         var go = GateOne,
             u = go.Utils,
             b = go.Bookmarks,
@@ -1703,7 +1697,8 @@ GateOne.Base.update(GateOne.Bookmarks, {
             // Now save our new bookmarks list to disk
             localStorage[prefix+'bookmarks'] = JSON.stringify(b.bookmarks);
             // Keep everything sync'd up.
-            u.xhrGet(go.prefs.url+'bookmarks/sync?updateSequenceNum='+USN, b.syncBookmarks);
+            go.ws.send(JSON.stringify({'bookmarks_get': USN}));
+//             u.xhrGet(go.prefs.url+'bookmarks/sync?updateSequenceNum='+USN, b.syncBookmarks);
             setTimeout(function() {
                 u.removeElement(obj.parentNode.parentNode);
             }, 1000);
@@ -1903,7 +1898,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
     },
     addTagToBookmark: function(URL, tag) {
         // Adds the given *tag* to the bookmark object associated with *URL*
-        logInfo('addTagToBookmark tag: ' + tag);
+        logDebug('addTagToBookmark tag: ' + tag);
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,

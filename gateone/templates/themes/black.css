@@ -148,13 +148,15 @@
     float: left;
     top: 0;
     /* WebKit */
-    -webkit-transition: all 1.0s ease-in-out;
+    -webkit-transition: -webkit-transform 1s ease-in-out;
     /* Firefox */
-    -moz-transition: all 1.0s ease-in-out;
+    -moz-transition: -moz-transform 1s ease-in-out;
+    /* IE9+ */
+    -ms-transition: -ms-transform 1s ease-in-out;
     /* Opera */
-    -o-transition: all 1.0s ease-in-out;
+    -o-transition: -o-transform 1s ease-in-out;
     /* Future CSS3 standard */
-    transition: all 1.0s ease-in-out;
+    transition: transform 1s ease-in-out;
 }
 #{{container}} .terminal a {
     color: #90A3C5;
@@ -249,7 +251,6 @@
     opacity: .75;
     padding-top: 0.5em;
     padding-bottom: 0.5em;
-/*     padding-right: 1.8em; */
     /* WebKit */
     -webkit-transition: -webkit-transform 1.0s ease-in-out;
     /* Firefox */
