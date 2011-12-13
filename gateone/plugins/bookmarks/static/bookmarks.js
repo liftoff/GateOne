@@ -1555,7 +1555,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
                     return item.trim();
                 });
             } else {
-                tags = [];
+                tags = ['Untagged'];
             }
             if (typeof(URL) != "string") { // We're creating a new bookmark
                 // Construct a new bookmark object

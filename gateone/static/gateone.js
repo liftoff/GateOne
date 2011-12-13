@@ -530,7 +530,7 @@ GateOne.Base.update(GateOne, {
                         u.getNode('#'+prefix+'progressBar').style.width = (percent) + '%';
                     }
                     if (selectedFrame) {
-                        u.getNode('#'+prefix+'term' + term).innerHTML = selectedFrame['screen'];
+                        u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
                         u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
                     } else {
                         p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
@@ -553,7 +553,7 @@ GateOne.Base.update(GateOne, {
                         u.getNode('#'+prefix+'progressBar').style.width = (percent) + '%';
                     }
                     if (selectedFrame) {
-                        u.getNode('#'+prefix+'term' + term).innerHTML = selectedFrame['screen'];
+                        u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
                         u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
                     } else {
                         p.currentFrame = terminalObj['playbackFrames'][0]; // First frame
