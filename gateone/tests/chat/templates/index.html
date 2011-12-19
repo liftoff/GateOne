@@ -41,7 +41,12 @@
     window.onload = function() {
         var authObj = {% raw auth %};
         // Init Gate One (client) using a specific Gate One server (url):
-        GateOne.init({url: 'https://shell.theleadingbrand.com/', fillContainer: true, auth: authObj});
+        GateOne.init({
+            url: 'https://shell.theleadingbrand.com/',
+            fillContainer: true,
+            auth: authObj,
+            embedded: true
+        });
         // Using 'fillContainer: true' to make it easy to size the #gateone element (it will fill whatever you put it in)
     }
     </script>

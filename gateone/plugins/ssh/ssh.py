@@ -63,7 +63,7 @@ class KnownHostsHandler(BaseHandler):
 
     def _return_known_hosts(self):
         """Returns the user's known_hosts file in text/plain format."""
-        user = self.get_current_user()['go_upn']
+        user = self.get_current_user()['upn']
         logging.debug("known_hosts requested by %s" % user)
         kh_path = "%s/%s/known_hosts" % (self.settings['user_dir'], user)
         known_hosts = ""
@@ -74,7 +74,7 @@ class KnownHostsHandler(BaseHandler):
 
     def _save_known_hosts(self, known_hosts):
         """Save the given *known_hosts* file."""
-        user = self.get_current_user()['go_upn']
+        user = self.get_current_user()['upn']
         kh_path = "%s/%s/known_hosts" % (self.settings['user_dir'], user)
         # Letting Tornado's exception handler deal with errors here
         f = open(kh_path, 'w')

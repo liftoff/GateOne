@@ -1609,6 +1609,12 @@ def main():
     # Simplify the syslog_facility option help message
     facilities = FACILITIES.keys()
     facilities.sort()
+    define("config",
+        default=os.path.join(GATEONE_DIR, "server.conf"),
+        help=_(
+            "Path to the config file.  Default: %s/server.conf" % GATEONE_DIR),
+        type=str
+    )
     define(
         "debug",
         default=False,
@@ -1789,8 +1795,8 @@ def main():
             PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
         except AttributeError:
             pass # No hooks--probably just a supporting .py file.
-    if os.path.exists(GATEONE_DIR + "/server.conf"):
-        tornado.options.parse_config_file(GATEONE_DIR + "/server.conf")
+    if os.path.exists(options.config):
+        tornado.options.parse_config_file(options.config)
     else: # Generate a default server.conf with a random cookie secret
         new_conf = True
         if not os.path.exists(options.user_dir): # Make our user_dir
@@ -1810,16 +1816,19 @@ def main():
         config_defaults.update({'log_file_max_size': 100 * 1024 * 1024}) # 100MB
         config_defaults.update({'log_file_num_backups': 10})
         config_defaults.update({'log_to_stderr': False})
+        web_log_path = os.path.join(GATEONE_DIR, logs)
+        if not os.path.exists(web_log_path):
+            mkdir_p(web_log_path)
         config_defaults.update(
-            {'log_file_prefix': '/var/log/gateone/webserver.log'})
-        config = open(GATEONE_DIR + "/server.conf", "w")
+            {'log_file_prefix': os.path.join(web_log_path, 'webserver.log')})
+        config = open(options.config, "w")
         for key, value in config_defaults.items():
             if isinstance(value, basestring):
                 config.write('%s = "%s"\n' % (key, value))
             else:
                 config.write('%s = %s\n' % (key, value))
         config.close()
-        tornado.options.parse_config_file(GATEONE_DIR + "/server.conf")
+        tornado.options.parse_config_file(options.config)
     tornado.options.parse_command_line()
     # Re-do the locale in case the user supplied something as --locale
     user_locale = locale.get(options.locale)
@@ -1850,7 +1859,7 @@ def main():
         secret = generate_session_id()
         # Save it
         server_conf = ""
-        with open(os.path.join(GATEONE_DIR, 'server.conf')) as f:
+        with open(options.config) as f:
             existing = ""
             for line in f.readlines():
                 if line.startswith("api_keys"):
@@ -1860,7 +1869,7 @@ def main():
                 server_conf += line
             if not existing:
                 server_conf += 'api_keys = "%s:%s"\n' % (api_key, secret)
-        open(os.path.join(GATEONE_DIR, 'server.conf'), 'w').write(server_conf)
+        open(os.path.join(options.config), 'w').write(server_conf)
         print(_("A new API key has been generated: %s" % api_key))
         print(_("This key can now be used to embed Gate One into other "
                 "applications."))
@@ -1879,7 +1888,7 @@ def main():
         options.dtach = False
     # Turn our API keys into a dict
     api_keys = {}
-    with open(os.path.join(GATEONE_DIR, 'server.conf')) as f:
+    with open(options.config) as f:
         for line in f.readlines():
             if line.startswith("api_keys"):
                 values = line.split('=')[1].strip().strip('"').strip("'")

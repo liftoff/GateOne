@@ -1,0 +1,51 @@
+#{{prefix}}playbackControls {
+    padding: 0;
+    border: 0;
+}
+#{{prefix}}controlsContainer {
+    display: block;
+    position: absolute;
+    z-index: 100;
+    bottom: 0;
+    white-space: normal;
+    padding: 0;
+    border: 0;
+    left: 0;
+    right: 3em;
+}
+#{{prefix}}playPause {
+    float: left;
+    color: white;
+    opacity: 0.7;
+    font-size: 1.2em;
+    margin-left: 0.2em;
+}
+#{{prefix}}playPause:hover {
+    cursor: pointer;
+}
+#{{prefix}}progressBar {
+    background: black;
+    padding: 0;
+    margin: 0.1em;
+    border: 0;
+    width: 0%;
+    height: 0.4em;
+}
+#{{prefix}}progressBarContainer {
+    position: absolute;
+    bottom: 0;
+    right: 1.3em;
+    left: 1.4em;
+    margin-bottom: 0.4em;
+    background: white;
+    border: 0;
+    opacity: 0.7;
+}
+#{{prefix}}clock {
+    float: right;
+    margin-right: 1.3em;
+    margin-top: -0.5em;
+    color: white;
+    opacity: 0.7;
+    font-size: 0.7em;
+}

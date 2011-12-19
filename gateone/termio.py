@@ -88,11 +88,15 @@ Module Functions and Classes
 # Stdlib imports
 import signal, threading, fcntl, os, pty, sys, time, termios, struct, io, gzip
 from datetime import timedelta
-from tornado import ioloop
 from functools import partial
 from itertools import izip
 import logging
 from subprocess import Popen
+
+# 3rd party imports
+from tornado import ioloop
+from tornado.escape import json_encode, json_decode
+
 # Fix missing termios.IUTF8
 if 'IUTF8' not in termios.__dict__:
     termios.IUTF8 = 16384 # Hopefully this isn't platform independent
@@ -389,6 +393,22 @@ class Multiplex:
         # Write to the log too (if configured)
         if self.log_path:
             now = int(round(time.time() * 1000))
+            if not os.path.exists(self.log_path):
+                # Write the first frame as metadata
+                metadata = {
+                    'version': '1.0', # Log format version
+                    'start_date': now,
+                    # NOTE: end_date should be added later when the is read for
+                    # the first time by either the logviewer or the logging
+                    # plugin.
+                }
+                # The hope is that we can use the first-frame-metadata paradigm
+                # to store all sorts of useful information about a log.
+                output = unicode(json_encode(metadata))
+                output = u"%s:%s\U000f0f0f" % (now, output)
+                log = gzip.open(self.log_path, mode='a')
+                log.write(output.encode("utf-8"))
+                log.close()
             # NOTE: I'm using an obscure unicode symbol in order to avoid
             # conflicts.  We need to dpo our best to ensure that we can
             # differentiate between terminal output and our log format...
@@ -397,7 +417,6 @@ class Multiplex:
             # actual terminal unless they were using Gate One to view a
             # Gate One log file in vim or something =)
             # \U000f0f0f == U+F0F0F (Private Use Symbol)
-            #output = chars.decode("utf-8")
             output = unicode(chars.decode('utf-8', "ignore"))
             output = u"%s:%s\U000f0f0f" % (now, output)
             log = gzip.open(self.log_path, mode='a')

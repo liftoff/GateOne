@@ -12,10 +12,14 @@ var logInfo = noop;
 var logDebug = noop;
 
 // Tunable playback prefs
-GateOne.prefs.playbackFrames = 200; // Maximum number of session recording frames to store (in memory--for now)
+if (!GateOne.prefs.playbackFrames) {
+    GateOne.prefs.playbackFrames = 200; // Maximum number of session recording frames to store (in memory--for now)
+}
 
 // GateOne.Playback
 GateOne.Base.module(GateOne, 'Playback', '0.9', ['Base', 'Net', 'Logging']);
+GateOne.Playback.clockElement = null; // Set with a global scope so we don't have to keep looking it up every time the clock is updated
+GateOne.Playback.progressBarElement = null; // Set with a global scope so we don't have to keep looking it up every time we update a terminal
 GateOne.Playback.progressBarMouseDown = false;
 GateOne.Playback.clockUpdater = null; // Will be a timer
 GateOne.Playback.frameUpdater = null; // Ditto
@@ -26,8 +30,13 @@ GateOne.Base.update(GateOne.Playback, {
     init: function() {
         var go = GateOne,
             u = go.Utils,
+            p = go.Playback,
             prefix = go.prefs.prefix,
-            p = u.getNode('#'+prefix+'info_actions'),
+            pTag = u.getNode('#'+prefix+'info_actions'),
+            prefsTableDiv2 = u.getNode('#'+prefix+'prefs_tablediv2'),
+            prefsPanelRow = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelPlaybackLabel = u.createElement('span', {'id': prefix+'prefs_playback_label', 'class':'paneltablelabel'}),
+            prefsPanelPlayback = u.createElement('input', {'id': prefix+'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             infoPanelSaveRecording = u.createElement('button', {'id': prefix+'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
         if (go.Logging) {
@@ -37,22 +46,37 @@ GateOne.Base.update(GateOne.Playback, {
             logInfo = go.Logging.logInfo;
             logDebug = go.Logging.logDebug;
         }
+        prefsPanelPlaybackLabel.innerHTML = "<b>Playback Frames:</b> ";
+        prefsPanelPlayback.value = go.prefs.playbackFrames;
+        prefsPanelRow.appendChild(prefsPanelPlaybackLabel);
+        prefsPanelRow.appendChild(prefsPanelPlayback);
+        prefsTableDiv2.appendChild(prefsPanelRow);
         infoPanelSaveRecording.innerHTML = "View Session Recording";
         infoPanelSaveRecording.onclick = function() {
-            go.Playback.saveRecording(localStorage[prefix+'selectedTerminal']);
+            p.saveRecording(localStorage[prefix+'selectedTerminal']);
         }
-        p.appendChild(infoPanelSaveRecording);
+        pTag.appendChild(infoPanelSaveRecording);
         setTimeout(function() {
-            go.Playback.addPlaybackControls();
+            p.addPlaybackControls();
         }, 2000);
-        go.Terminal.updateTermCallbacks.push(go.Playback.pushPlaybackFrame);
+        // This makes sure our playback frames get added to the terminal object whenever the screen is updated
+        go.Terminal.updateTermCallbacks.push(p.pushPlaybackFrame);
+        // This makes sure our prefs get saved along with everything else
+        go.savePrefsCallbacks.push(p.savePrefsCallback);
     },
     pushPlaybackFrame: function(term) {
         // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']
         var go = GateOne,
             u = go.Utils,
+            p = go.Playback,
             prefix = go.prefs.prefix,
             frameObj = {'screen': go.terminals[term]['screen'], 'time': new Date()};
+        if (!p.progressBarElement) {
+            p.progressBarElement = u.getNode('#'+prefix+'progressBar');
+        }
+        if (!go.terminals[term]['playbackFrames']) {
+            go.terminals[term]['playbackFrames'] = [];
+        }
         go.terminals[term]['playbackFrames'].push(frameObj);
         if (go.terminals[term]['playbackFrames'].length > go.prefs.playbackFrames) {
             // Reduce it to fit the max
@@ -60,15 +84,39 @@ GateOne.Base.update(GateOne.Playback, {
             go.terminals[term]['playbackFrames'].length = go.prefs.playbackFrames; // Love that length is assignable!
             go.terminals[term]['playbackFrames'].reverse(); // Put it back in the right order
         }
-        clearInterval(go.Playback.frameUpdater);
-        go.Playback.milliseconds = 0; // Reset this in case the user was in the middle of playing something back when the screen updated
-        u.getNode('#'+prefix+'progressBar').style.width = '0%';
+        // Fix the progress bar if it is in a non-default state and stop playback
+        if (p.progressBarElement) {
+            if (p.progressBarElement.style.width != '0%') {
+                clearInterval(p.frameUpdater);
+                p.frameUpdater = null;
+                p.milliseconds = 0; // Reset this in case the user was in the middle of playing something back when the screen updated
+                p.progressBarElement.style.width = '0%';
+                // Also make sure the pastearea is put back if missing
+                u.showElement('#'+prefix+'pastearea');
+            }
+        }
+    },
+    savePrefsCallback: function() {
+        // Called when the user clicks the "Save" button in the prefs panel
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix;
+        var playbackValue = u.getNode('#'+prefix+'prefs_playback').value;
+        if (playbackValue) {
+            go.prefs.playbackFrames = parseInt(playbackValue);
+        }
     },
     updateClock: function(/*opt:*/dateObj) {
         // Updates the clock with the time in the given *dateObj*.
         // If no *dateObj* is given, the clock will be updated with the current local time
+        var go = GateOne,
+            u = go.Utils,
+            p = go.Playback;
         if (!dateObj) { dateObj = new Date() }
-        GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'clock').innerHTML = dateObj.toLocaleTimeString();
+        if (!p.clockElement) {
+            p.clockElement = u.getNode('#'+go.prefs.prefix+'clock');
+        }
+        p.clockElement.innerHTML = dateObj.toLocaleTimeString();
     },
     startPlayback: function(term) {
         // Plays back the given terminal's session in real-time
@@ -76,6 +124,7 @@ GateOne.Base.update(GateOne.Playback, {
             p = go.Playback;
         if (p.clockUpdater) { // Get the clock updating
             clearInterval(p.clockUpdater);
+            p.clockUpdater = null;
         }
         p.frameUpdater = setInterval('GateOne.Playback.playbackRealtime('+term+')', p.frameInterval);
     },
@@ -120,6 +169,7 @@ GateOne.Base.update(GateOne.Playback, {
             u.getNode('#'+prefix+'sideinfo').innerHTML = lastDateTime.toLocaleDateString();
             u.getNode('#'+prefix+'progressBar').style.width = '100%';
             clearInterval(p.frameUpdater);
+            p.frameUpdater = null;
             p.milliseconds = 0;
             // Restart the clock
             p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
@@ -150,6 +200,7 @@ GateOne.Base.update(GateOne.Playback, {
         } else {
             playPause.innerHTML = '▶';
             clearInterval(p.frameUpdater);
+            p.frameUpdater = null;
             go.Visual.applyTransform(playPause, ''); // Set it back to normal
         }
     },
@@ -169,7 +220,9 @@ GateOne.Base.update(GateOne.Playback, {
             goDiv = u.getNode(go.prefs.goDiv),
             style = window.getComputedStyle(goDiv, null),
             emDimensions = u.getEmDimensions(goDiv),
-            controlsWidth = parseInt(style.width.split('px')[0]) - (emDimensions.w * 3);
+            controlsWidth = parseInt(style.width.split('px')[0]) - (emDimensions.w * 3),
+            // Firefox doesn't support 'mousewheel'
+            mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
         playPause.innerHTML = '▶';
         playPause.onclick = p.playPauseControl;
         progressBarContainer.appendChild(progressBar);
@@ -215,10 +268,76 @@ GateOne.Base.update(GateOne.Playback, {
         playbackControls.appendChild(progressBarContainer);
         playbackControls.appendChild(clock);
         controlsContainer.appendChild(playbackControls);
-        u.getNode(go.prefs.goDiv).appendChild(controlsContainer);
+        goDiv.appendChild(controlsContainer);
         if (!p.clockUpdater) { // Get the clock updating
             p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
         }
+        var wheelFunc = function(e) {
+            var m = go.Input.mouse(e),
+                percent = 0,
+                modifiers = go.Input.modifiers(e),
+                term = localStorage[prefix+'selectedTerminal'],
+                terminalObj = go.terminals[term],
+                selectedFrame = terminalObj['playbackFrames'][p.currentFrame],
+                sbT = terminalObj['scrollbackTimer'];
+            if (modifiers.shift) { // If shift is held, go back/forth in the recording instead of scrolling up/down
+                e.preventDefault();
+                // Stop updating the clock
+                clearInterval(p.clockUpdater);
+                p.clockUpdater = null;
+                // Prevent the pastearea from re-enabling itself
+                clearInterval(go.scrollTimeout);
+                go.scrollTimeout = null;
+                if (sbT) {
+                    clearTimeout(sbT);
+                    sbT = null;
+                }
+                if (terminalObj['scrollbackVisible']) {
+                    // This just ensures that we're keeping states set properly
+                    terminalObj['scrollbackVisible'] = false;
+                }
+                if (typeof(p.currentFrame) == "undefined") {
+                    p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
+                    selectedFrame = terminalObj['playbackFrames'][p.currentFrame]
+                    p.progressBarElement.style.width = '100%';
+                }
+                if (m.wheel.x > 0) { // Shift + scroll shows up as left/right scroll (x instead of y)
+                    p.currentFrame = p.currentFrame + 1;
+                    if (p.currentFrame >= terminalObj['playbackFrames'].length) {
+                        p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
+                        p.progressBarElement.style.width = '100%';
+                        u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = terminalObj['screen'].join('\n');
+                        if (!p.clockUpdater) { // Get the clock updating again
+                            p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1);
+                        }
+                        terminalObj['scrollbackTimer'] = setTimeout(function() { // Get the scrollback timer going again
+                            go.Visual.enableScrollback(term);
+                        }, 3500);
+                        // Add back the pastearea
+                        u.showElement('#'+prefix+'pastearea');
+                    } else {
+                        percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
+                        p.progressBarElement.style.width = percent + '%';
+                        if (selectedFrame) {
+                            u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
+                            u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
+                        }
+                    }
+                } else {
+                    p.currentFrame = p.currentFrame - 1;
+                    percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
+                    p.progressBarElement.style.width = percent + '%';
+                    if (selectedFrame) {
+                        u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
+                        u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
+                    } else {
+                        p.currentFrame = 0; // First frame
+                        p.progressBarElement.style.width = '0%';
+                    }
+                }
+            }
+        }
+        goDiv.addEventListener(mousewheelevt, wheelFunc, true);
     },
     saveRecording: function(term) {
         // Saves the session playback recording

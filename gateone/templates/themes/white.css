@@ -867,6 +867,49 @@
 #{{prefix}}user_info a:hover {
     cursor: pointer;
 }
+#{{prefix}}dialogcontainer h3 {
+    background-color: #1F5470;
+    color: #fff;
+    padding-left: 0.2em;
+    line-height: 1.5;
+    margin-top: 0;
+    padding-right: 2em;
+    text-align: center;
+    font-size: 1.4em;
+}
+#{{prefix}}dialogtitle:hover {
+    cursor: move;
+}
+#{{prefix}}dialogdiv {
+    text-align:left;
+    margin: 0.2em;
+}
+#{{prefix}}dialog_close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: #fff;
+    margin-right: 0.2em;
+    cursor: pointer;
+}
+#{{prefix}}dialog_close:hover {
+    text-shadow: 0.1em 0.1em 0.1em #000;
+}
+#{{prefix}}dialog_form input {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 0.2em;
+    display: block;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    box-shadow: 0 1px 1px #fff;
+    color: #000;
+    position: relative;
+    z-index: 2;
+    font-size: 1em;
+}
 /* SVG Styling */
 .svgtext { letter-spacing:0px; text-anchor:middle; word-spacing:0px; text-align:center; color: #000; fill: #000; }
 .svgplugin { fill: #000; }

@@ -110,30 +110,6 @@
     opacity: 1;
     box-shadow: 0.2em 0.2em 0.5em #000;
 }
-#infocontainer {
-    /* WebKit */
-    -webkit-transition: all 2s ease-in-out;
-    /* Firefox */
-    -moz-transition: all 2s ease-in-out;
-    /* Opera */
-    -o-transition-property: all;
-    -o-transition-duration: 2s;
-    -o-transition-timing-function: ease-in-out;
-    /* KHTML */
-    -khtml-transition: all 2s ease-in-out;
-    /* IE 9+ */
-    -ms-transition: all 2s ease-in-out;
-    /* Future CSS3 standard */
-    transition: all 2s ease-in-out;
-    display: block;
-    position: absolute;
-    bottom: 50%;
-    right: 50%;
-    border: 1px #FFF solid;
-    background-color: #000;
-    z-index: 100;
-    padding: 0.5em;
-}
 #{{prefix}}bm_noticecontainer {
     display: block;
     position: absolute;
@@ -192,14 +168,11 @@
 }
 #{{container}} .bookmark a {
     color: #1F5470;
-/*     display: inline; */
     cursor: pointer;
     text-decoration: none;
     font-weight: bold;
 }
 #{{container}} .bookmark a:hover {
-/*     color: #fff; */
-/*     background-color: #1F5470; */
     color: maroon;
 }
 #{{container}} .bookmark a:visited {
@@ -569,6 +542,9 @@
     height: 100%;
     z-index: 1;
 }
+#{{container}} .linkfloat:hover {
+    cursor: pointer;
+}
 #{{container}} .bm_preview {
     float: right;
     width: 29%;
@@ -742,7 +718,7 @@
     height: 2.5em;
 }
 /* Effects */
-#{{container}} div[name="bookmark"]:hover {
+#{{container}} div[name="{{prefix}}bookmark"]:hover {
     background-color: rgba(0, 0, 0, 0.2);
     cursor: pointer;
     -webkit-transform-origin: center center;

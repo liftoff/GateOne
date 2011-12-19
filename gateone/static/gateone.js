@@ -20,7 +20,6 @@ this file.
 
 // 1.0 TODO:
 // TODO: Add a first-time user splash screen that explains how Gate One works and how special features like copy & paste work.
-// TODO: Fix Playback of live sessions.
 // TODO: TEST TEST TEST.
 
 // General TODOs
@@ -141,10 +140,26 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     colors: 'default', // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
     fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
     autoConnectURL: null, // This is a URL that will be automatically connected to whenever a terminal is loaded. TODO: Move this to the ssh plugin.
-    embedded: false, // In embedded mode we have no toolbar and only one terminal is allowed
+    embedded: false, // Equivalent to {showTitle: false, showToolbar: false} and certain keyboard shortcuts won't be registered
     disableTermTransitions: false, // Disabled the sliding animation on terminals to make switching faster
-    auth: null // If using API authentication, this value will hold the user's auth object (see docs for the format).
+    auth: null, // If using API authentication, this value will hold the user's auth object (see docs for the format).
+    showTitle: true, // If false, the terminal title will not be shown in the sidebar
+    showToolbar: true // If false, the toolbar will now be shown in the sidebar
 };
+// Properties in this object will get ignored when GateOne.prefs is saved to localStorage
+GateOne.noSavePrefs = {
+    // Plugin authors:  If you want to have your own property in GateOne.prefs but it isn't a per-user setting, add your property here
+    url: null,
+    fillContainer: null,
+    style: null,
+    goDiv: null,
+    prefix: null,
+    autoConnectURL: null,
+    embedded: null,
+    auth: null,
+    showTitle: null,
+    showToolbar: null
+}
 // Example 'auth' object:
 // {
 //     'api_key': 'MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M',
@@ -161,7 +176,8 @@ GateOne.Base.update(GateOne, {
     terminals: {}, // For keeping track of running terminals
     doingUpdate: false, // Used to prevent out-of-order character events
     ws: null, // Where our WebSocket gets stored
-    // This starts up GateOne using the given settings (*prefs*)
+    savePrefsCallbacks: [], // For plugins to use so they can have their own preferences saved when the user clicks "Save" in the Gate One prefs panel
+    // This starts up GateOne using the given *prefs*
     init: function(prefs) {
         // Before we do anything else, load our prefs
         var go = GateOne,
@@ -190,6 +206,11 @@ GateOne.Base.update(GateOne, {
         if (localStorage[go.prefs.prefix+'prefs']) {
             u.loadPrefs();
         }
+        // Apply embedded mode settings
+        if (go.prefs.embedded) {
+            go.prefs.showToolbar = false;
+            go.prefs.showTitle = false;
+        }
         if (!go.prefs.url) {
             go.prefs.url = window.location.href;
             go.prefs.url = go.prefs.url.split('#')[0]; // Get rid of any hash at the end
@@ -213,7 +234,6 @@ GateOne.Base.update(GateOne, {
         }
         var go = GateOne,
             u = go.Utils,
-            pb = GateOne.Playback,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
             pastearea = u.createElement('textarea', {'id': prefix+'pastearea', 'oninput': 'GateOne.Logging.log("pastearea Input"); GateOne.Input.queue(GateOne.Utils.getNode("#'+prefix+'pastearea").value); GateOne.Utils.getNode("#'+prefix+'pastearea").value = ""; GateOne.Net.sendChars();'}),
@@ -226,12 +246,12 @@ GateOne.Base.update(GateOne, {
             prefsPanelStyleRow4 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow1 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow2 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelRow3 = u.createElement('div', {'class':'paneltablerow'}),
+//             prefsPanelRow3 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow4 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow5 = u.createElement('div', {'class':'paneltablerow'}),
             hr = u.createElement('hr', {'style': {'width': '100%', 'margin-top': '0.5em', 'margin-bottom': '0.5em'}}),
             tableDiv = u.createElement('div', {'id': prefix+'prefs_tablediv1', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            tableDiv2 = u.createElement('div', {'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            tableDiv2 = u.createElement('div', {'id': prefix+'prefs_tablediv2', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             prefsPanelThemeLabel = u.createElement('span', {'id': prefix+'prefs_theme_label', 'class':'paneltablelabel'}),
             prefsPanelTheme = u.createElement('select', {'id': prefix+'prefs_theme', 'name': prefix+'prefs_theme', 'style': {'display': 'table-cell', 'float': 'right'}}),
             prefsPanelColorsLabel = u.createElement('span', {'id': prefix+'prefs_colors_label', 'class':'paneltablelabel'}),
@@ -242,10 +262,6 @@ GateOne.Base.update(GateOne, {
             prefsPanelDisableTermTransitions = u.createElement('input', {'id': prefix+'prefs_disabletermtrans', 'name': prefix+'prefs_disabletermtrans', 'value': 'disabletermtrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelScrollbackLabel = u.createElement('span', {'id': prefix+'prefs_scrollback_label', 'class':'paneltablelabel'}),
             prefsPanelScrollback = u.createElement('input', {'id': prefix+'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelLogLinesLabel = u.createElement('span', {'id': prefix+'prefs_loglines_label', 'class':'paneltablelabel'}),
-            prefsPanelLogLines = u.createElement('input', {'id': prefix+'prefs_loglines', 'name': prefix+'prefs_loglines', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelPlaybackLabel = u.createElement('span', {'id': prefix+'prefs_playback_label', 'class':'paneltablelabel'}),
-            prefsPanelPlayback = u.createElement('input', {'id': prefix+'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelRowsLabel = u.createElement('span', {'id': prefix+'prefs_rows_label', 'class':'paneltablelabel'}),
             prefsPanelRows = u.createElement('input', {'id': prefix+'prefs_rows', 'name': prefix+'prefs_rows', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelColsLabel = u.createElement('span', {'id': prefix+'prefs_cols_label', 'class':'paneltablelabel'}),
@@ -307,27 +323,18 @@ GateOne.Base.update(GateOne, {
         tableDiv.appendChild(prefsPanelStyleRow4);
         prefsPanelScrollbackLabel.innerHTML = "<b>Scrollback Buffer Lines:</b> ";
         prefsPanelScrollback.value = go.prefs.scrollback;
-        prefsPanelLogLinesLabel.innerHTML = "<b>Terminal Log Lines:</b> ";
-        prefsPanelLogLines.value = go.prefs.logLines;
-        prefsPanelPlaybackLabel.innerHTML = "<b>Playback Frames:</b> ";
-        prefsPanelPlayback.value = go.prefs.playbackFrames;
         prefsPanelRowsLabel.innerHTML = "<b>Terminal Rows:</b> ";
         prefsPanelRows.value = go.prefs.rows;
         prefsPanelColsLabel.innerHTML = "<b>Terminal Columns:</b> ";
         prefsPanelCols.value = go.prefs.cols;
         prefsPanelRow1.appendChild(prefsPanelScrollbackLabel);
         prefsPanelRow1.appendChild(prefsPanelScrollback);
-        prefsPanelRow2.appendChild(prefsPanelLogLinesLabel);
-        prefsPanelRow2.appendChild(prefsPanelLogLines);
-        prefsPanelRow3.appendChild(prefsPanelPlaybackLabel);
-        prefsPanelRow3.appendChild(prefsPanelPlayback);
         prefsPanelRow4.appendChild(prefsPanelRowsLabel);
         prefsPanelRow4.appendChild(prefsPanelRows);
         prefsPanelRow5.appendChild(prefsPanelColsLabel);
         prefsPanelRow5.appendChild(prefsPanelCols);
         tableDiv2.appendChild(prefsPanelRow1);
         tableDiv2.appendChild(prefsPanelRow2);
-        tableDiv2.appendChild(prefsPanelRow3);
         tableDiv2.appendChild(prefsPanelRow4);
         tableDiv2.appendChild(prefsPanelRow5);
         prefsPanelForm.appendChild(tableDiv);
@@ -345,8 +352,6 @@ GateOne.Base.update(GateOne, {
                 colors = u.getNode('#'+prefix+'prefs_colors').value,
                 fontSize = u.getNode('#'+prefix+'prefs_fontsize').value,
                 scrollbackValue = u.getNode('#'+prefix+'prefs_scrollback').value,
-                logLinesValue = u.getNode('#'+prefix+'prefs_loglines').value,
-                playbackValue = u.getNode('#'+prefix+'prefs_playback').value,
                 rowsValue = u.getNode('#'+prefix+'prefs_rows').value,
                 colsValue = u.getNode('#'+prefix+'prefs_cols').value,
                 disableTermTransitions = u.getNode('#'+prefix+'prefs_disabletermtrans').checked;
@@ -364,12 +369,6 @@ GateOne.Base.update(GateOne, {
             }
             if (scrollbackValue) {
                 go.prefs.scrollback = parseInt(scrollbackValue);
-            }
-            if (logLinesValue) {
-                go.prefs.logLines = parseInt(logLinesValue);
-            }
-            if (playbackValue) {
-                go.prefs.playbackFrames = parseInt(playbackValue);
             }
             if (rowsValue) {
                 go.prefs.rows = parseInt(rowsValue);
@@ -389,6 +388,12 @@ GateOne.Base.update(GateOne, {
                 var existing = u.getNode('#'+prefix+'disable_term_transitions');
                 if (existing) {
                     u.removeElement(existing);
+                }
+            }
+            if (go.savePrefsCallbacks.length) {
+                // Call any registered prefs callbacks
+                for (var i in go.savePrefsCallbacks) {
+                    go.savePrefsCallbacks[i]();
                 }
             }
             u.savePrefs();
@@ -425,6 +430,10 @@ GateOne.Base.update(GateOne, {
             u.getNode(goDiv).appendChild(newStyle);
         }
         // Create the (empty) toolbar
+        if (!go.prefs.showToolbar) {
+            // We just keep it hidden so that plugins don't have to worry about whether or not it is there (avoids exceptions)
+            toolbar.style['display'] = 'none';
+        }
         toolbar.appendChild(toolbarIconPrefs); // The only default toolbar icon is the preferences
         goDiv.appendChild(toolbar);
         var showPrefs = function() {
@@ -442,7 +451,11 @@ GateOne.Base.update(GateOne, {
         grid.style.width = gridWidth + 'px';
         // Put our invisible pop-up message container on the page
         document.body.appendChild(noticeContainer); // Notifications can be outside the GateOne area
-        // Add the sidebar text
+        // Add the sidebar text (if set to do so)
+        if (!go.prefs.showTitle) {
+            // Just keep it hidden so plugins don't have to worry about whether or not it is present (to avoid exceptions)
+            sideinfo.style['display'] = 'none';
+        }
         goDiv.appendChild(sideinfo);
         // The following functions control the copy & paste capability
         var pasteareaScroll = function(e) {
@@ -457,10 +470,11 @@ GateOne.Base.update(GateOne, {
             }
             if (go.scrollTimeout) {
                 clearTimeout(go.scrollTimeout);
+                go.scrollTimeout = null;
             }
             go.scrollTimeout = setTimeout(function() {
                 u.showElement(pasteArea);
-            }, 500);
+            }, 1000);
         }
         pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
         pastearea.onpaste = function(e) {
@@ -503,70 +517,26 @@ GateOne.Base.update(GateOne, {
         goDiv.appendChild(pastearea);
         // Set the tabIndex on our GateOne Div so we can give it focus()
         goDiv.tabIndex = 1;
+        // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)
         var wheelFunc = function(e) {
             var m = go.Input.mouse(e),
-                p = go.Playback,
-                cu = p.clockUpdater,
-                percent = 0,
-                modifiers = go.Input.modifiers(e),
-                term = localStorage[prefix+'selectedTerminal'],
-                terminalObj = go.terminals[term],
-                selectedFrame = terminalObj['playbackFrames'][p.currentFrame],
-                sbT = terminalObj['scrollbackTimer'];
-            if (modifiers.shift && go.Playback) { // If shift is held, go back/forth in the recording instead of scrolling up/down
-                e.preventDefault();
-                clearInterval(cu);
-                cu = null;
-                if (m.wheel.x > 0) { // Shift + scroll shows up as left/right scroll (x instead of y)
-                    if (sbT) {
-                        clearTimeout(sbT);
-                    }
-                    if (p.currentFrame == null) {
-                        p.currentFrame = terminalObj['playbackFrames'].length - 1;
-                        u.getNode('#'+prefix+'progressBar').style.width = '100%';
-                    } else {
-                        p.currentFrame = p.currentFrame + 1;
-                        percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
-                        u.getNode('#'+prefix+'progressBar').style.width = (percent) + '%';
-                    }
-                    if (selectedFrame) {
-                        u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
-                        u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
-                    } else {
-                        p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
-                        u.getNode('#'+prefix+'progressBar').style.width = '100%';
-                        if (!cu) { // Get the clock updating again
-                            cu = setInterval('GateOne.Playback.updateClock()', 1);
-                        }
-                    }
-                } else {
-                    if (sbT) {
-                        clearTimeout(sbT);
-                    }
-                    if (!p.currentFrame) {
-                        if (p.currentFrame == null) {
-                            p.currentFrame = terminalObj['playbackFrames'].length - 1;
-                        }
-                    } else {
-                        p.currentFrame = p.currentFrame - 1;
-                        percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
-                        u.getNode('#'+prefix+'progressBar').style.width = (percent) + '%';
-                    }
-                    if (selectedFrame) {
-                        u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
-                        u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
-                    } else {
-                        p.currentFrame = terminalObj['playbackFrames'][0]; // First frame
-                        u.getNode('#'+prefix+'progressBar').style.width = '0%';
-                    }
+                modifiers = go.Input.modifiers(e);
+            if (!modifiers.shift && !modifiers.ctrl && !modifiers.alt) { // Only for basic scrolling
+                var term = localStorage[prefix+'selectedTerminal'],
+                    terminalObj = go.terminals[term],
+                    screen = terminalObj['screen'],
+                    scrollback = terminalObj['scrollback'],
+                    sbT = terminalObj['scrollbackTimer'];
+                if (sbT) {
+                    clearTimeout(sbT);
+                    sbT = null;
                 }
-            } else {
-                var screen = terminalObj['screen'],
-                    scrollback = terminalObj['scrollback'];
                 if (!terminalObj['scrollbackVisible']) {
                     // Immediately re-enable the scrollback buffer
                     go.Visual.enableScrollback(term);
                 }
+            } else {
+                e.preventDefault();
             }
         }
         goDiv.addEventListener(mousewheelevt, wheelFunc, true);
@@ -867,44 +837,6 @@ GateOne.Base.update(GateOne.Utils, {
             }
         });
     },
-//     handlePlugins: function(JSONDoc, callback) {
-//         // Handles the response from getPlugins() by making sure each JavaScript and CSS file is loaded.
-//         // If *callback* is given it will be called after plugins are done loading.
-//         var go = GateOne,
-//             u = go.Utils,
-//             prefix = go.prefs.prefix,
-//             urlNoSlash = go.prefs.url.substring(0, go.prefs.url.length-1),
-//             container = go.prefs.goDiv.split('#')[1], // Can't have the leading #
-//             cssPlugins = JSONDoc['css'],
-//             jsPlugins = JSONDoc['js'];
-//         if (cssPlugins.length) {
-//             cssPlugins.forEach(function(cssPlugin) {
-//                 var plugin = cssPlugin.split('plugin=')[1].split('&')[0],
-//                     file = cssPlugin.split('template=')[1].split('&')[0].split('.')[0],
-//                     url = urlNoSlash + cssPlugin + '&prefix=' + prefix + '&container=' + container;
-//                 // <plugin name>_<file name> serves as the id for the <link> element
-//                 u.loadCSS(url, plugin+'_'+file);
-//             });
-//         }
-//         // For JS plugins we can get them all in one step by grabbing /combined_js
-//         if (jsPlugins.length) {
-//             u.loadScript(go.prefs.url+'combined_js', callback);
-//         }
-//     },
-//     loadPlugins: function(callback) {
-//         // Returns a JS object representing the plugins available on the server.  Example:
-//         //     {"py": ["playback", "ssh"], "css": ["/cssrender?plugin=bookmarks&template=bookmarks.css"], "js": ["/static/bookmarks/bookmarks.js", "/static/help/help.js", "/static/logging/logging.js", "/static/playback/playback.js", "/static/ssh/ssh.js"]}
-//         // If *callback* is given, it will be passed to handlePlugins() to be called after plugins are done loading.
-//         var http = new XMLHttpRequest(); // We don't support older browsers anyway so no need to worry about ActiveX garbage
-//         http.open("GET", GateOne.prefs.url+'get_plugins');
-//         http.onreadystatechange = function() {
-//             if(http.readyState == 4) {
-//                 var JSONDoc = JSON.parse(http.responseText);
-//                 GateOne.Utils.handlePlugins(JSONDoc, callback);
-//             }
-//         }
-//         http.send(null); // All done
-//     },
     loadCSS: function(url, id){
         // Imports the given CSS *URL* and applies the stylesheet to the current document.
         // When the <link> element is created it will use *id* like so: {'id': GateOne.prefs.prefix + id}.
@@ -961,26 +893,20 @@ GateOne.Base.update(GateOne.Utils, {
     },
     savePrefs: function() {
         // Saves all user-specific settings in GateOne.prefs.* to localStorage[prefix+'prefs']
-        // TODO: Add a hook here for plugins to take advantage of.
         var prefs = GateOne.prefs,
-            userPrefs = { // These are all the things that are user-specific
-                'theme': prefs['theme'],
-                'colors': prefs['colors'],
-                'fontSize': prefs['fontSize'],
-                'logLevel': prefs['logLevel'],
-                'logLines': prefs['logLines'],
-                'scrollback': prefs['scrollback'],
-                'playbackFrames': prefs['playbackFrames'],
-                'rows': prefs['rows'],
-                'cols': prefs['cols'],
-                'disableTermTransitions': prefs['disableTermTransitions']
-            };
+            userPrefs = {};
+        for (var pref in prefs) {
+            if (pref in GateOne.noSavePrefs) {
+                ;;
+            } else {
+                userPrefs[pref] = prefs[pref];
+            }
+        }
         localStorage[prefs.prefix+'prefs'] = JSON.stringify(userPrefs);
         GateOne.Visual.displayMessage("Preferences have been saved.");
     },
     loadPrefs: function() {
         // Populates GateOne.prefs.* with values from localStorage['prefs']
-        // TODO: Add a hook here for plugins to use too.
         if (localStorage[GateOne.prefs.prefix+'prefs']) {
             var userPrefs = JSON.parse(localStorage[GateOne.prefs.prefix+'prefs']);
             for (var i in userPrefs) {
@@ -1104,6 +1030,9 @@ GateOne.Base.update(GateOne.Net, {
                 'rows': dimensions.rows - 1,
                 'cols': dimensions.cols - 6 // -6 for the sidebar + scrollbar
             }
+        if (!go.prefs.showToolbar && !go.prefs.showTitle) {
+            prefs['cols'] = dimensions.cols - 1; // If there's no toolbar and no title there's no reason to have empty space on the right.
+        }
         // Apply user-defined rows and cols (if set)
         if (go.prefs.cols) { prefs.cols = go.prefs.cols };
         if (go.prefs.rows) { prefs.rows = go.prefs.rows };
@@ -1213,49 +1142,6 @@ GateOne.Base.update(GateOne.Net, {
     fullRefresh: function(term) {
         // Performs a full screen refresh (Ctrl-l)
         GateOne.ws.send(JSON.stringify({'full_refresh': term}));
-    },
-    openAuthDialog: function() {
-        // Creates a dialog where the user will be asked to authorize Gate One (only used for auth methods that need it)
-        var go = GateOne,
-            prefix = go.prefs.prefix,
-            u = go.Utils,
-            goDiv = u.getNode(go.prefs.goDiv),
-            pastearea = u.getNode('#'+go.prefs.prefix+'pastearea'),
-            dialogContainer = u.createElement('div', {'id': prefix+'dialogcontainer', 'class': 'halfsectrans'}),
-            dialogDiv = u.createElement('div', {'id': prefix+'dialogdiv'}),
-            dialogTitle = u.createElement('h3', {'id': prefix+'dialogtitle'}),
-            iframeSrc = go.prefs.url+'auth?next='+go.prefs.url+'#authcomplete',
-            iframe = u.createElement('iframe', {'id': prefix+'auth_iframe', 'src': iframeSrc, 'class': 'sectrans', 'frameborder': 0, 'scrolling': 'yes', 'allowTransparency': 'true'}),
-            close = u.createElement('div', {'id': prefix+'dialog_close'}),
-            closeDialog = function(e) {
-                if (e) { e.preventDefault() }
-                dialogContainer.style.opacity = 0;
-                setTimeout(function() {
-                    u.removeElement(dialogContainer);
-                }, 1000);
-                if (pastearea) {
-                    u.showElement(pastearea);
-                }
-            };
-        if (pastearea) {
-            u.hideElement(pastearea);
-        }
-        dialogContainer.style.opacity = 0;
-        dialogContainer.style.width = "50%";
-        dialogContainer.style.height = "50%";
-        setTimeout(function() {
-            dialogContainer.style.opacity = 1;
-        }, 100);
-        close.innerHTML = "X";
-        close.onclick = closeDialog;
-        dialogTitle.innerHTML = "Authenticate Your Gate One Terminal";
-        dialogContainer.appendChild(dialogTitle);
-        dialogTitle.appendChild(close);
-        dialogContainer.style.opacity = 0;
-        dialogDiv.innerHTML = "<p>Please authenticate Gate One.</p>";
-        dialogDiv.appendChild(iframe);
-        dialogContainer.appendChild(dialogDiv);
-        goDiv.appendChild(dialogContainer);
     }
 });
 GateOne.Base.module(GateOne, "Input", '0.9', ['Base', 'Utils']);
@@ -1968,11 +1854,13 @@ GateOne.Base.update(GateOne.Visual, {
         // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
         toolbar.appendChild(toolbarGrid);
         // Register our keyboard shortcuts (Shift-<arrow keys> to switch terminals, ctrl-alt-G to toggle grid view)
-        go.Input.registerShortcut('KEY_ARROW_LEFT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideLeft()'});
-        go.Input.registerShortcut('KEY_ARROW_RIGHT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideRight()'});
-        go.Input.registerShortcut('KEY_ARROW_UP', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideUp()'});
-        go.Input.registerShortcut('KEY_ARROW_DOWN', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideDown()'});
-        go.Input.registerShortcut('KEY_G', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.toggleGridView()'});
+        if (!go.prefs.embedded) {
+            go.Input.registerShortcut('KEY_ARROW_LEFT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideLeft()'});
+            go.Input.registerShortcut('KEY_ARROW_RIGHT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideRight()'});
+            go.Input.registerShortcut('KEY_ARROW_UP', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideUp()'});
+            go.Input.registerShortcut('KEY_ARROW_DOWN', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideDown()'});
+            go.Input.registerShortcut('KEY_G', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.toggleGridView()'});
+        }
         go.Net.addAction('bell', go.Visual.bellAction);
         go.Net.addAction('set_title', go.Visual.setTitleAction);
         go.Net.addAction('notice', go.Visual.serverMessageAction);
@@ -2559,6 +2447,113 @@ GateOne.Base.update(GateOne.Visual, {
         url = url + '&prefix=' + GateOne.prefs.prefix;
         url = GateOne.prefs.url + url.substring(1);
         GateOne.Utils.loadCSS(url, plugin+'_'+file);
+    },
+    dialog: function(title, content, /*opt*/options) {
+        // Creates a dialog with the given *title* and *content*.  If given, *options* will determine various properties.
+        // *title* - string: Will appear at the top of the dialog.
+        // *content* - HTML string or JavaScript DOM node:  The content of the dialog.
+        // *options* doesn't do anything for now.
+        var go = GateOne,
+            prefix = go.prefs.prefix,
+            u = go.Utils,
+            v = go.Visual,
+            goDiv = u.getNode(go.prefs.goDiv),
+            pastearea = u.getNode('#'+go.prefs.prefix+'pastearea'),
+            dialogContainer = u.createElement('div', {'id': prefix+'dialogcontainer', 'class': 'halfsectrans'}),
+            dialogDiv = u.createElement('div', {'id': prefix+'dialogdiv'}),
+            dialogTitle = u.createElement('h3', {'id': prefix+'dialogtitle'}),
+            close = u.createElement('div', {'id': prefix+'dialog_close'}),
+            moveDialog = function(e) {
+                if (v.dragging) {
+                    var X = e.clientX + window.scrollX,
+                        Y = e.clientY + window.scrollY,
+                        xMoved = X - v.dragOrigin.X,
+                        yMoved = Y - v.dragOrigin.Y,
+                        newX = 0,
+                        newY = 0;
+                    if (isNaN(v.dragOrigin.dialogX)) {
+                        v.dragOrigin.dialogX = 0;
+                    }
+                    if (isNaN(v.dragOrigin.dialogY)) {
+                        v.dragOrigin.dialogY = 0;
+                    }
+                    newX = v.dragOrigin.dialogX + xMoved;
+                    newY = v.dragOrigin.dialogY + yMoved;
+                    if (v.dragging) {
+                        dialogContainer.style.left = newX + 'px';
+                        dialogContainer.style.top = newY + 'px';
+                    }
+                }
+            },
+            closeDialog = function(e) {
+                if (e) { e.preventDefault() }
+                dialogContainer.style.opacity = 0;
+                setTimeout(function() {
+                    u.removeElement(dialogContainer);
+                }, 1000);
+                if (pastearea) {
+                    u.showElement(pastearea);
+                }
+                document.body.removeEventListener("mousemove", moveDialog, true);
+                document.body.removeEventListener("mouseup", function(e) {v.dragging = false;}, true);
+            };
+        if (pastearea) {
+            u.hideElement(pastearea);
+        }
+        // Enable drag-to-move on the dialog title
+        if (!v.dragging) {
+            v.dragging = false;
+            v.dragOrigin = {};
+        }
+        dialogTitle.onmousedown = function(e) {
+            var m = go.Input.mouse(e); // Get the properties of the mouse event
+            if (m.button.left) { // Only if left button is depressed
+                var left = window.getComputedStyle(dialogContainer, null)['left'],
+                    top = window.getComputedStyle(dialogContainer, null)['top'];
+                v.dragging = true;
+                e.preventDefault();
+                v.dragOrigin.X = e.clientX + window.scrollX;
+                v.dragOrigin.Y = e.clientY + window.scrollY;
+                if (left.indexOf('%') != -1) {
+                    // Have to convert a percent to an actual pixel value
+                    var percent = parseInt(left.substring(0, left.length-1)),
+                        bodyWidth = window.getComputedStyle(document.body, null)['width'],
+                        bodyWidth = parseInt(bodyWidth.substring(0, bodyWidth.length-2));
+                    v.dragOrigin.dialogX = Math.floor(bodyWidth * (percent*.01));
+                } else {
+                    v.dragOrigin.dialogX = parseInt(dialogContainer.style.left.substring(0, dialogContainer.style.left.length-2)); // Remove the 'px'
+                }
+                if (top.indexOf('%') != -1) {
+                    // Have to convert a percent to an actual pixel value
+                    var percent = parseInt(top.substring(0, top.length-1)),
+                        bodyHeight = document.body.scrollHeight;
+                    v.dragOrigin.dialogY = Math.floor(bodyHeight * (percent*.01));
+                } else {
+                    v.dragOrigin.dialogY = parseInt(dialogContainer.style.top.substring(0, dialogContainer.style.top.length-2));
+                }
+            }
+        }
+        document.body.addEventListener("mousemove", moveDialog, true);
+        document.body.addEventListener("mouseup", function(e) {v.dragging = false;}, true);
+        dialogContainer.style.opacity = 0;
+        dialogContainer.style.width = "50%";
+        dialogContainer.style.height = "50%";
+        setTimeout(function() {
+            // This fades the dialog in with a nice and smooth CSS3 transition (thanks to the 'halfsectrans' class)
+            dialogContainer.style.opacity = 1;
+        }, 100);
+        close.innerHTML = "X";
+        close.onclick = closeDialog;
+        dialogTitle.innerHTML = title;
+        dialogContainer.appendChild(dialogTitle);
+        dialogTitle.appendChild(close);
+        if (typeof(content) == "string") {
+            dialogDiv.innerHTML = content;
+        } else {
+            dialogDiv.appendChild(content);
+        }
+        dialogContainer.appendChild(dialogDiv);
+        document.body.appendChild(dialogContainer);
     }
 });
 GateOne.Base.module(GateOne, "Terminal", "0.9", ['Base', 'Utils', 'Visual']);
@@ -2741,9 +2736,11 @@ GateOne.Base.update(GateOne.Terminal, {
         toolbar.insertBefore(toolbarClose, toolbarNewTerm);
         // Register our keyboard shortcuts
         // Ctrl-Alt-N to create a new terminal
-        go.Input.registerShortcut('KEY_N', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'});
-        // Ctrl-Alt-W to close the current terminal
-        go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'go.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
+        if (!go.prefs.embedded) {
+            go.Input.registerShortcut('KEY_N', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'});
+            // Ctrl-Alt-W to close the current terminal
+            go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'go.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
+        }
         // Register our actions
         go.Net.addAction('terminals', go.Terminal.reattachTerminalsAction);
         go.Net.addAction('termupdate', go.Terminal.updateTerminalAction);
@@ -2821,7 +2818,6 @@ GateOne.Base.update(GateOne.Terminal, {
                     logInfo(consoleLog);
                 }
                 if (screenUpdate) {
-                    // TODO here:  go.Playback stuff
                     // Take care of the activity/inactivity notifications
                     if (terminalObj['inactivityTimer']) {
                         clearTimeout(terminalObj['inactivityTimer']);
@@ -2940,7 +2936,6 @@ GateOne.Base.update(GateOne.Terminal, {
             screen: [],
             prevScreen: [],
             scrollback: [],
-            playbackFrames: [],
             scrollbackTimer: null // Controls re-adding scrollback buffer
         };
         for (var i=0; i<dimensions.rows; i++) {
