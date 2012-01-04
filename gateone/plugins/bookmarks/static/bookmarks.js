@@ -39,6 +39,7 @@ GateOne.Bookmarks.loginSync = true; // Makes sure we don't display "Synchronizat
 GateOne.Bookmarks.temp = ""; // Just a temporary holding space for things like drag & drop
 GateOne.Base.update(GateOne.Bookmarks, {
     // TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
+    // TODO: Move the JSON.stringify() stuff into a Web Worker so the browser doesn't stop responding when a huge amount of bookmarks are being saved.
     init: function() {
         var go = GateOne,
             u = go.Utils,
@@ -94,11 +95,13 @@ GateOne.Base.update(GateOne.Bookmarks, {
         }
         // Default sort order is by visits, descending
         b.createPanel();
+        // Create the icon fetching queue if it doesn't already exist
+        if (!localStorage[prefix+'iconQueue']) {
+            localStorage[prefix+'iconQueue'] = "";
+        }
         setTimeout(function() {
-            // Create or complete the icon fetching queue
-            if (!localStorage[prefix+'iconQueue']) {
-                localStorage[prefix+'iconQueue'] = "";
-            } else {
+            // Complete fetching icons if there's anything to fetch
+            if (localStorage[prefix+'iconQueue'].length) {
                 b.flushIconQueue();
             }
         }, 3000);
@@ -251,7 +254,6 @@ GateOne.Base.update(GateOne.Bookmarks, {
             }
         } else {
             go.Visual.displayMessage("Synchronization Complete (With Errors): " + (responseObj['count']) + " bookmarks were updated successfully.");
-            // TODO: Log the errors (guess I need the logging module after all!)
             go.Visual.displayMessage("See the log (Options->View Log) for details.");
             logError("Synchronization Errors: " + u.items(responseObj['errors'][0]));
         }
@@ -810,8 +812,8 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmContent = u.createElement('span', {'class': 'bm_content'}),
             bmFavicon = u.createElement('span', {'class': 'bm_favicon'}),
             bmLink = u.createElement('a', {'href': bookmark.url, 'class': 'bm_url', 'tabindex': 2}),
-            bmEdit = u.createElement('a', {'class': 'bm_edit'}),
-            bmDelete = u.createElement('a', {'class': 'bm_delete'}),
+            bmEdit = u.createElement('a'),
+            bmDelete = u.createElement('a'),
             bmControls = u.createElement('span', {'class': 'bm_controls'}),
             bmDesc = u.createElement('span', {'class': 'bm_desc'}),
             bmVisited = u.createElement('span', {'class': 'bm_visited', 'title': 'Number of visits'}),
@@ -1165,13 +1167,12 @@ GateOne.Base.update(GateOne.Bookmarks, {
         }
         go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
     },
-    toggleSortOrder: function(/*opt*/bookmarks) {
+    toggleSortOrder: function() {
         // Reverses the order of the bookmarks list
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            bmSearch = u.getNode('#'+prefix+'bm_search'),
             sortDirection = u.getNode('#'+prefix+'bm_sort_direction');
         if (b.sortToggle) {
             b.sortToggle = false;

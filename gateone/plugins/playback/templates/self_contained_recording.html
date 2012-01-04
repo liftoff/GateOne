@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -31,24 +31,29 @@ body {
 }
 {{theme}}
 {{colors}}
+{% include "playback.css" %}
 /* Need a few custom overrides of the defaults for session playback since it isn't being controlled by gateone.js */
-.{{prefix}}terminal pre {
+.terminal pre {
     height: 100%;
     width: 100%;
 }
-.{{prefix}}terminal {
+#{{container}} .terminal {
     position:absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
 }
-.{{prefix}}sidetitle {
+.sidetitle {
     right: 1.3em;
     top: 4.5em;
     bottom: auto;
     left: auto;
     font-size: 2em;
+}
+.full {
+    width: 100%;
+    height: 100%;
 }
 </style>
 
@@ -60,17 +65,18 @@ body {
 
   <script>
 // Create the terminal record scaffold
-term = 1; // For recordings this will always be 1
-terminals = {};
+var term = 1; // For recordings this will always be 1
+var terminals = {};
 terminals[term] = {};
 terminals[term]['screen'] = new Array();
 terminals[term]['playbackFrames'] = new Array();
-progressBarMouseDown = false;
-currentFrame = null;
-milliseconds = 0;
-frameUpdater = null;
-frameRate = 15; // Approximate
-frameInterval = Math.round(1000/frameRate); // Needs to be converted to ms
+var progressBarMouseDown = false;
+var currentFrame = null;
+var milliseconds = 0;
+var frameUpdater = null;
+var frameRate = 15; // Approximate
+var frameInterval = Math.round(1000/frameRate); // Needs to be converted to ms
+var resizeTimer = null; // Used to de-bounce window resizes
 function setTransform(node, transform) {
     // Applys the given CSS3 *transform* to *node* for all known vendor prefixes (e.g. -<whatever>-transform)
     var transforms = {
@@ -88,7 +94,7 @@ function fitWindow(node) {
     // Scales the recording to fit within the browser view
     var node = document.getElementById(node); // This allows us to pass the node name as well as a node object
     var translate = 0;
-    var nodeHeight = node.getClientRects()[0].height;
+    var nodeHeight = node.scrollHeight;
     if (nodeHeight > document.documentElement.clientHeight) { // Resize to fit
         var scale = document.documentElement.clientHeight / (nodeHeight + 15); // +15 to make room for playback bar
         var translate = Math.abs((scale - 1)*10) * 5; // This is how much needs to be translated to match the scale
@@ -97,6 +103,10 @@ function fitWindow(node) {
         var transform = translateXY + scaleXY;
         setTransform(node, transform);
     }
+}
+function scrollToBottom(elem) {
+    var node = document.getElementById(elem);
+    node.scrollTop = node.scrollHeight;
 }
 function addPlaybackControls() {
     // Add the session playback controls to the given terminal
@@ -136,8 +146,9 @@ function addPlaybackControls() {
             }
             var selectedFrame = terminals[term]['playbackFrames'][currentFrame];
             var dateTime = new Date(selectedFrame['time']);
-            document.getElementById('{{prefix}}term1').innerHTML = selectedFrame['screen'];
+            document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
             document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();
+            scrollToBottom('{{prefix}}term1_pre');
             var firstDateTime = new Date(terminals[1]['playbackFrames'][0]['time']);
             var lastFrame = terminals[1]['playbackFrames'].length - 1;
             var lastDateTime = new Date(terminals[1]['playbackFrames'][lastFrame]['time']);
@@ -195,17 +206,19 @@ function playbackRealtime() {
     var lastFrame = terminals[1]['playbackFrames'].length - 1;
     var lastDateTime = new Date(terminals[1]['playbackFrames'][lastFrame]['time']);
     if (!selectedFrame) { // All done
-        document.getElementById('{{prefix}}term1').innerHTML = terminals[1]['playbackFrames'][lastFrame]['screen'];
+        document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + terminals[1]['playbackFrames'][lastFrame]['screen'].join('\n') + "\n\n</pre>";
         document.getElementById('{{prefix}}clock').innerHTML = lastDateTime.toLocaleTimeString();
         document.getElementById('{{prefix}}sideinfo').innerHTML = lastDateTime.toLocaleDateString();
         document.getElementById('{{prefix}}progressBar').style.width = '100%';
+        scrollToBottom('{{prefix}}term1_pre');
         clearInterval(frameUpdater);
         milliseconds = 0;
         return
     }
     document.getElementById('{{prefix}}clock').innerHTML = frameTime.toLocaleTimeString();
     document.getElementById('{{prefix}}sideinfo').innerHTML = frameTime.toLocaleDateString();
-    document.getElementById('{{prefix}}term1').innerHTML = selectedFrame['screen'];
+    document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+    scrollToBottom('{{prefix}}term1_pre');
     // Update progress bar
     var firstDateTime = new Date(terminals[1]['playbackFrames'][0]['time']);
     var percent = Math.abs((lastDateTime.getTime() - frameTime.getTime())/(lastDateTime.getTime() - firstDateTime.getTime()) - 1);
@@ -221,7 +234,21 @@ function startRealtimePlayback() {
 }
 function onResize() {
     // This gets run if the window is resized
-    fitWindow('{{prefix}}term1');
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+        var term1 = document.getElementById('{{prefix}}term1');
+        setTransform(term1, '');
+        term1.style['height'] = "100%";
+        setTimeout(function() {
+            var termPre = document.getElementById('{{prefix}}term1_pre');
+            if (termPre.scrollHeight) {
+                term1.style['height'] = termPre.scrollHeight + 'px';
+                fitWindow('{{prefix}}term1');
+            } else {
+                console.log('termPre.scrollHeight: ' + termPre.scrollHeight);
+            }
+        }, 250);
+    }, 100);
 }
 window.onresize = function() {onResize()}
 window.onload = function() {
@@ -229,26 +256,41 @@ window.onload = function() {
     var terminal = document.createElement("div");
     terminal.id = '{{prefix}}term1';
     terminal.title = 'Recorded Session';
-    terminal.className = '{{prefix}}terminal {{prefix}}termcontainer';
+    terminal.className = 'terminal termcontainer full';
     document.getElementById('{{prefix}}termwrapper').appendChild(terminal);
     addPlaybackControls();
     var selectedFrame = terminals[1]['playbackFrames'][0];
-    document.getElementById('{{prefix}}term1').innerHTML = selectedFrame['screen'];
+    document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
+    scrollToBottom('{{prefix}}term1_pre');
     var dateTime = new Date(selectedFrame['time']);
     document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();
     // Add the sidebar text
     var sidetitle = document.createElement("div");
     sidetitle.id = '{{prefix}}sidetitle';
-    sidetitle.className = '{{prefix}}sideinfo {{prefix}}sidetitle';
+    sidetitle.className = 'sideinfo sidetitle';
     sidetitle.innerHTML = "Playback";
     var sideinfo = document.createElement("div");
     sideinfo.id = '{{prefix}}sideinfo';
-    sideinfo.className = '{{prefix}}sideinfo';
+    sideinfo.className = 'sideinfo';
     sideinfo.innerHTML = dateTime.toLocaleDateString();
     document.getElementById('{{container}}').appendChild(sidetitle);
     document.getElementById('{{container}}').appendChild(sideinfo);
     startRealtimePlayback();
-    fitWindow('{{prefix}}term1');
+    // Set the background of the page to match the background of the terminal
+    var term1 = document.getElementById('{{prefix}}term1'),
+        style = window.getComputedStyle(term1, null);
+    document.body.style['background'] = style['background'];
+    document.body.style['background-clip'] = style['background-clip'];
+    document.body.style['background-color'] = style['background-color'];
+    document.body.style['background-image'] = style['background-image'];
+    document.body.style['background-origin'] = style['background-origin'];
+    document.body.style['background-position'] = style['background-position'];
+    document.body.style['background-repeat'] = style['background-repeat'];
+    document.body.style['background-size'] = style['background-size'];
+    setTimeout(function() {
+        document.getElementById('{{prefix}}term1').style['height'] = document.getElementById('{{prefix}}term1_pre').scrollHeight + 'px';
+        fitWindow('{{prefix}}term1');
+    }, 500);
 }
   </script>
 </body>

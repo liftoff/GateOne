@@ -641,11 +641,13 @@ class StyleHandler(BaseHandler):
     # compelling attack vector.
     def get(self):
         enum = self.get_argument("enumerate", None)
+        templates_path = os.path.join(GATEONE_DIR, 'templates')
+        themes_path = os.path.join(templates_path, 'themes')
+        colors_path = os.path.join(templates_path, 'term_colors')
         if enum:
-            themes = os.listdir(os.path.join(GATEONE_DIR, 'templates/themes'))
+            themes = os.listdir(themes_path)
             themes = [a.replace('.css', '') for a in themes]
-            colors = os.listdir(
-                os.path.join(GATEONE_DIR, 'templates/term_colors'))
+            colors = os.listdir(colors_path)
             colors = [a.replace('.css', '') for a in colors]
             self.set_header ('Content-Type', 'application/json')
             message = {'themes': themes, 'colors': colors}
@@ -668,27 +670,27 @@ class StyleHandler(BaseHandler):
             self.set_header ('Content-Type', 'text/css')
             if theme:
                 try:
+                    theme_path = os.path.join(themes_path, "%s.css" % theme)
                     self.render(
-                        "templates/themes/%s.css" % theme,
+                        theme_path,
                         container=container,
                         prefix=prefix,
                         colors_256=colors_256
                     )
                 except IOError:
                     # Given theme was not found
-                    logging.error(
-                        _("templates/themes/%s.css was not found" % theme))
+                    logging.error(_("%s was not found" % theme_path))
             elif colors:
                 try:
+                    color_path = os.path.join(colors_path, "%s.css" % colors)
                     self.render(
-                        "templates/term_colors/%s.css" % colors,
+                        color_path,
                         container=container,
                         prefix=prefix
                     )
                 except IOError:
                     # Given theme was not found
-                    logging.error(_(
-                        "templates/term_colors/%s.css was not found" % colors))
+                    logging.error(_("%s was not found" % color_path))
 
 class PluginCSSTemplateHandler(BaseHandler):
     """
@@ -708,17 +710,19 @@ class PluginCSSTemplateHandler(BaseHandler):
         prefix = self.get_argument("prefix")
         plugin = self.get_argument("plugin")
         template = self.get_argument("template")
+        templates_path = os.path.join(GATEONE_DIR, 'templates')
+        plugin_templates_path = os.path.join(templates_path, plugin)
+        plugin_template = os.path.join(plugin_templates_path, "%s.css" % plugin)
         self.set_header ('Content-Type', 'text/css')
         try:
             self.render(
-                "templates/%s/%s" % (plugin, template),
+                plugin_template,
                 container=container,
                 prefix=prefix
             )
         except IOError:
             # The provided plugin/template combination was not found
-            logging.error(
-                _("templates/%s/%s was not found" % (plugin, template)))
+            logging.error(_("%s.css was not found" % plugin_template))
 
 class JSPluginsHandler(BaseHandler):
     """
@@ -780,6 +784,7 @@ class TerminalWebSocket(WebSocketHandler):
 
     def open(self):
         """Called when a new WebSocket is opened."""
+        # TODO: Make it so that idle WebSockets that haven't passed authentication tests get auto-closed within N seconds in order to prevent a DoS scenario where the attacker keeps all possible ports open indefinitely.
         # client_id is unique to the browser/client whereas session_id is unique
         # to the user.  It isn't used much right now but it will be useful in
         # the future once more stuff is running over WebSockets.
@@ -834,12 +839,13 @@ class TerminalWebSocket(WebSocketHandler):
         logging.debug("on_close()")
         user = self.get_current_user()
         # Remove all attached callbacks so we're not wasting memory/CPU
-        for term in SESSIONS[self.session]:
-            if isinstance(term, int):
-                multiplex = SESSIONS[self.session][term]['multiplex']
-                multiplex.remove_all_callbacks(self.callback_id)
-                term_emulator = multiplex.term
-                term_emulator.remove_all_callbacks(self.callback_id)
+        if user['session'] in SESSIONS:
+            for term in SESSIONS[user['session']]:
+                if isinstance(term, int):
+                    multiplex = SESSIONS[user['session']][term]['multiplex']
+                    multiplex.remove_all_callbacks(self.callback_id)
+                    term_emulator = multiplex.term
+                    term_emulator.remove_all_callbacks(self.callback_id)
         if user and 'upn' in user:
             logging.info(
                 _("WebSocket closed (%s).") % user['upn'])
@@ -856,9 +862,11 @@ class TerminalWebSocket(WebSocketHandler):
 
     def authenticate(self, settings):
         """
-        Authenticates the client using the given session (which should be
-        settings['session']) and returns a list of all running terminals (if
-        any).  If no session is given (null) a new one will be created.
+        Authenticates the client by first trying to use the 'gateone_user'
+        cookie or if Gate One is configured to use API authentication it will
+        use *settings['auth']*.  Additionally, it will accept
+        *settings['container']* and *settings['prefix']* to apply those to the
+        equivalent properties (self.container and self.prefix).
         """
         logging.debug("authenticate(): %s" % settings)
         # Make sure the client is authenticated if authentication is enabled
@@ -969,6 +977,12 @@ class TerminalWebSocket(WebSocketHandler):
             message = {'notice': _('AUTHENTICATION ERROR: %s' % e)}
             self.write_message(json_encode(message))
             return
+        # Apply the container/prefix settings (if present)
+        # NOTE:  Currently these are only used by the logging plugin
+        if 'container' in settings:
+            self.container = settings['container']
+        if 'prefix' in settings:
+            self.prefix = settings['prefix']
         # This check is to make sure there's no existing session so we don't
         # accidentally clobber it.
         if self.session not in SESSIONS:
@@ -1400,27 +1414,6 @@ class TerminalWebSocket(WebSocketHandler):
             print("%s:%s" % (i, "".join(line)))
             print(renditions[i])
 
-class OpenLogHandler(BaseHandler):
-    """
-    Handles uploads of user logs and returns them to the client as a basic HTML
-    page.  Essentially, this works around the limitation of an HTML page being
-    unable to save itself =).
-    """
-    def post(self):
-        log = self.get_argument("log")
-        container = self.get_argument("container")
-        prefix = self.get_argument("prefix")
-        theme = self.get_argument("theme")
-        css_file = open('templates/css_%s.css' % theme).read()
-        css = tornado.template.Template(css_file)
-        self.render(
-            "templates/user_log.html",
-            log=log,
-            container=container,
-            prefix=prefix,
-            css=css.generate(container=container, prefix=prefix)
-        )
-
 # Thread classes
 class TidyThread(threading.Thread):
     """
@@ -1554,7 +1547,6 @@ class Application(tornado.web.Application):
             (r"/ws", TerminalWebSocket),
             (r"/auth", AuthHandler),
             (r"/style", StyleHandler),
-            (r"/openlog", OpenLogHandler),
             (r"/cssrender", PluginCSSTemplateHandler),
             (r"/combined_js", JSPluginsHandler),
             (r"/docs/(.*)", tornado.web.StaticFileHandler, {
@@ -1816,7 +1808,7 @@ def main():
         config_defaults.update({'log_file_max_size': 100 * 1024 * 1024}) # 100MB
         config_defaults.update({'log_file_num_backups': 10})
         config_defaults.update({'log_to_stderr': False})
-        web_log_path = os.path.join(GATEONE_DIR, logs)
+        web_log_path = os.path.join(GATEONE_DIR, 'logs')
         if not os.path.exists(web_log_path):
             mkdir_p(web_log_path)
         config_defaults.update(

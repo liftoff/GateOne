@@ -26,10 +26,8 @@ _ = get_translation()
 
 # Tornado stuff
 import tornado.web
+import tornado.template
 from tornado.escape import json_encode, json_decode
-
-# Globals
-colors_256 = ""
 
 class RecordingHandler(BaseHandler):
     """
@@ -46,12 +44,23 @@ class RecordingHandler(BaseHandler):
         theme = self.get_argument("theme")
         colors = self.get_argument("colors")
         gateone_dir = self.settings['gateone_dir']
-        colors_file = open(
-            '%s/templates/term_colors/%s.css' % (gateone_dir, colors)).read()
+        plugins_path = os.path.join(gateone_dir, 'plugins')
+        #playback_plugin_path = os.path.join(plugins_path, 'playback')
+        template_path = os.path.join(gateone_dir, 'templates')
+        colors_templates_path = os.path.join(template_path, 'term_colors')
+        colors_css_path = os.path.join(colors_templates_path, '%s.css' % colors)
+        with open(colors_css_path) as f:
+            colors_file = f.read()
+        themes_templates_path = os.path.join(template_path, 'themes')
+        theme_css_path = os.path.join(themes_templates_path, '%s.css' % theme)
+        with open(theme_css_path) as f:
+            theme_file = f.read()
+        #colors_file = open(
+            #'%s/templates/term_colors/%s.css' % (gateone_dir, colors)).read()
         colors = tornado.template.Template(colors_file)
         rendered_colors = colors.generate(container=container, prefix=prefix)
-        theme_file = open(
-            '%s/templates/themes/%s.css' % (gateone_dir, theme)).read()
+        #theme_file = open(
+            #'%s/templates/themes/%s.css' % (gateone_dir, theme)).read()
         theme = tornado.template.Template(theme_file)
         # Setup our 256-color support CSS:
         colors_256 = ""

@@ -549,9 +549,9 @@ class Terminal(object):
 
     RE_CSI_ESC_SEQ = re.compile(r'\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])')
     RE_ESC_SEQ = re.compile(r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=<>]|[()# %*+].)')
-    RE_TITLE_SEQ = re.compile(r'\x1b\][0-2]\;(.*)(\x07|\x1b\\)')
+    RE_TITLE_SEQ = re.compile(r'\x1b\][0-2]\;(.*?)(\x07|\x1b\\)')
     # The below regex is used to match our optional (non-standard) handler
-    RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.*)(\x07|\x1b\\)')
+    RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)')
     RE_NUMBERS = re.compile('\d*') # Matches any number
 
     def __init__(self, rows=24, cols=80):
@@ -1172,7 +1172,16 @@ class Terminal(object):
                     self.write(after_chars, special_checks=False)
                 return
         # Have to convert to unicode
-        chars = unicode(chars.decode('utf-8', "handle_special"))
+        try:
+            chars = unicode(chars.decode('utf-8', "handle_special"))
+        except UnicodeEncodeError:
+            # Just in case
+            try:
+                chars = unicode(chars.decode('utf-8', "ignore"))
+            except UnicodeEncodeError:
+                logging.error(
+                    _("Double UnicodeEncodeError in Terminal.terminal."))
+                return
         for char in chars:
             charnum = ord(char)
             if charnum in specials:
@@ -1290,6 +1299,11 @@ class Terminal(object):
         for x in xrange(int(n)):
             line = self.screen.pop(self.top_margin) # Remove the top line
             self.scrollback_buf.append(line) # Add it to the scrollback buffer
+            if len(self.scrollback_buf) > 1000:
+                # 1000 lines ought to be enough for anybody
+                self.init_scrollback()
+                # NOTE:  This would only be if 1000 lines piled up before the
+                # next dump_html() or dump().
             empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
             # Add it to the bottom of the window:
             self.screen.insert(self.bottom_margin, empty_line)

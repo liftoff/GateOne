@@ -437,7 +437,7 @@
 }
 #{{container}} .paneltable {
     position: relative;
-    width: 35em;
+    width: 100%;
     background-color: #222;
     color: #000;
     padding-bottom: 0.5em;
@@ -460,7 +460,7 @@
     padding-bottom: 0.3em;
 }
 #{{container}} .paneltablerow select, input {
-    margin-right: 0.1em;
+    margin-right: 1em;
 }
 #{{container}} .paneltablelabel {
     display: table-cell;
@@ -475,6 +475,7 @@
     opacity: .75;
     right: 0;
     top: 0;
+    padding: 0.2em;
 }
 #{{container}} .panel_close_icon:hover {
     opacity: 1;

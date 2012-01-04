@@ -160,7 +160,9 @@ def connect_ssh(
             # Save a file indicating our session is attached to GO_TERM
             term = os.environ['GO_TERM']
             ssh_session = 'ssh:%s:%s@%s:%s' % (term, user, host, port)
-            script_path = os.environ['GO_SESSION_DIR'] + '/%s' % ssh_session
+            script_path = os.path.join(
+                os.environ['GO_SESSION_DIR'], ssh_session)
+            #script_path = os.environ['GO_SESSION_DIR'] + '/%s' % ssh_session
     if not script_path:
         # Just use a generic temp file
         temp = tempfile.NamedTemporaryFile(prefix="ssh_connect", delete=False)

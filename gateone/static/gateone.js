@@ -123,7 +123,7 @@ GateOne.Base.update = function (self, obj/*, ... */) {
     return self;
 };
 
-// Choose the appropriate WebSocket
+// Choose the appropriate WebSocket, BlobBuilder, and URL
 var WebSocket =  window.MozWebSocket || window.WebSocket || window.WebSocketDraft || null;
 
 // GateOne Settings
@@ -144,7 +144,8 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     disableTermTransitions: false, // Disabled the sliding animation on terminals to make switching faster
     auth: null, // If using API authentication, this value will hold the user's auth object (see docs for the format).
     showTitle: true, // If false, the terminal title will not be shown in the sidebar
-    showToolbar: true // If false, the toolbar will now be shown in the sidebar
+    showToolbar: true, // If false, the toolbar will now be shown in the sidebar
+    bellSound: true // If false, the bell sound will not be played (visual notification will still occur)
 };
 // Properties in this object will get ignored when GateOne.prefs is saved to localStorage
 GateOne.noSavePrefs = {
@@ -244,6 +245,7 @@ GateOne.Base.update(GateOne, {
             prefsPanelStyleRow2 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelStyleRow3 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelStyleRow4 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelStyleRow5 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow1 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow2 = u.createElement('div', {'class':'paneltablerow'}),
 //             prefsPanelRow3 = u.createElement('div', {'class':'paneltablerow'}),
@@ -260,6 +262,8 @@ GateOne.Base.update(GateOne, {
             prefsPanelFontSize = u.createElement('input', {'id': prefix+'prefs_fontsize', 'name': prefix+'prefs_fontsize', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelDisableTermTransitionsLabel = u.createElement('span', {'id': prefix+'prefs_disabletermtrans_label', 'class':'paneltablelabel'}),
             prefsPanelDisableTermTransitions = u.createElement('input', {'id': prefix+'prefs_disabletermtrans', 'name': prefix+'prefs_disabletermtrans', 'value': 'disabletermtrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelDisableAudibleBellLabel = u.createElement('span', {'id': prefix+'prefs_disableaudiblebell_label', 'class':'paneltablelabel'}),
+            prefsPanelDisableAudibleBell = u.createElement('input', {'id': prefix+'prefs_disableaudiblebell', 'name': prefix+'prefs_disableaudiblebell', 'value': 'disableaudiblebell', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelScrollbackLabel = u.createElement('span', {'id': prefix+'prefs_scrollback_label', 'class':'paneltablelabel'}),
             prefsPanelScrollback = u.createElement('input', {'id': prefix+'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelRowsLabel = u.createElement('span', {'id': prefix+'prefs_rows_label', 'class':'paneltablelabel'}),
@@ -308,6 +312,7 @@ GateOne.Base.update(GateOne, {
         prefsPanelColorsLabel.innerHTML = "<b>Color Scheme:</b> ";
         prefsPanelFontSizeLabel.innerHTML = "<b>Font Size:</b> ";
         prefsPanelDisableTermTransitionsLabel.innerHTML = "<b>Disable Terminal Slide Effect:</b> ";
+        prefsPanelDisableAudibleBellLabel.innerHTML = "<b>Disable Bell Sound:</b> ";
         prefsPanelFontSize.value = go.prefs.fontSize;
         prefsPanelStyleRow1.appendChild(prefsPanelThemeLabel);
         prefsPanelStyleRow1.appendChild(prefsPanelTheme);
@@ -317,10 +322,13 @@ GateOne.Base.update(GateOne, {
         prefsPanelStyleRow3.appendChild(prefsPanelFontSize);
         prefsPanelStyleRow4.appendChild(prefsPanelDisableTermTransitionsLabel);
         prefsPanelStyleRow4.appendChild(prefsPanelDisableTermTransitions);
+        prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBellLabel);
+        prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBell);
         tableDiv.appendChild(prefsPanelStyleRow1);
         tableDiv.appendChild(prefsPanelStyleRow2);
         tableDiv.appendChild(prefsPanelStyleRow3);
         tableDiv.appendChild(prefsPanelStyleRow4);
+        tableDiv.appendChild(prefsPanelStyleRow5);
         prefsPanelScrollbackLabel.innerHTML = "<b>Scrollback Buffer Lines:</b> ";
         prefsPanelScrollback.value = go.prefs.scrollback;
         prefsPanelRowsLabel.innerHTML = "<b>Terminal Rows:</b> ";
@@ -354,7 +362,8 @@ GateOne.Base.update(GateOne, {
                 scrollbackValue = u.getNode('#'+prefix+'prefs_scrollback').value,
                 rowsValue = u.getNode('#'+prefix+'prefs_rows').value,
                 colsValue = u.getNode('#'+prefix+'prefs_cols').value,
-                disableTermTransitions = u.getNode('#'+prefix+'prefs_disabletermtrans').checked;
+                disableTermTransitions = u.getNode('#'+prefix+'prefs_disabletermtrans').checked,
+                disableAudibleBell = u.getNode('#'+prefix+'prefs_disableaudiblebell').checked;
             // Grab the form values and set them in prefs
             if (theme != go.prefs.theme || colors != go.prefs.colors) {
                 // Start using the new CSS theme and colors
@@ -389,6 +398,11 @@ GateOne.Base.update(GateOne, {
                 if (existing) {
                     u.removeElement(existing);
                 }
+            }
+            if (disableAudibleBell) {
+                go.prefs.bellSound = false;
+            } else {
+                go.prefs.bellSound = true;
             }
             if (go.savePrefsCallbacks.length) {
                 // Call any registered prefs callbacks
@@ -704,14 +718,22 @@ GateOne.Base.update(GateOne.Utils, {
     showElement: function(elem) {
         // Sets the 'display' style of the given element to 'block' (which undoes setting it to 'none')
         GateOne.Utils.getNode(elem).style.display = 'block';
-        var go = GateOne,
-            u = go.Utils;
-        u.getNode(elem).className = u.getNode(elem).className.replace(/(?:^|\s)go_none(?!\S)/, '');
+        GateOne.Utils.getNode(elem).className = GateOne.Utils.getNode(elem).className.replace(/(?:^|\s)go_none(?!\S)/, '');
     },
     hideElement: function(elem) {
         // Sets the 'display' style of the given element to 'none'
         GateOne.Utils.getNode(elem).style.display = 'none';
         GateOne.Utils.getNode(elem).className += " go_none";
+    },
+    getOffset: function(el) {
+        var _x = 0;
+        var _y = 0;
+        while( el && !isNaN( el.offsetLeft ) && !isNaN( el.offsetTop ) ) {
+            _x += el.offsetLeft - el.scrollLeft;
+            _y += el.offsetTop - el.scrollTop;
+            el = el.offsetParent;
+        }
+        return { top: _y, left: _x };
     },
     noop: function(a) { return a },
     toArray: function (obj) {
@@ -732,7 +754,11 @@ GateOne.Base.update(GateOne.Utils, {
     },
     scrollToBottom: function(elem) {
         var node = GateOne.Utils.getNode(elem);
-        node.scrollTop = node.scrollHeight;
+        try {
+            node.scrollTop = node.scrollHeight;
+        } finally {
+            node = null;
+        }
     },
     replaceURLWithHTMLLinks: function(text) {
         var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
@@ -809,10 +835,10 @@ GateOne.Base.update(GateOne.Utils, {
     // See: http://www.alistapart.com/articles/alternate/
     setActiveStyleSheet: function(title) {
         var i, a, main;
-        for(i=0; (a = document.getElementsByTagName("link")[i]); i++) {
-            if(a.getAttribute("rel").indexOf("style") != -1 && a.getAttribute("title")) {
+        for (var i=0; (a = document.getElementsByTagName("link")[i]); i++) {
+            if (a.getAttribute("rel").indexOf("style") != -1 && a.getAttribute("title")) {
                 a.disabled = true;
-                if(a.getAttribute("title") == title) a.disabled = false;
+                if (a.getAttribute("title") == title) a.disabled = false;
             }
         }
     },
@@ -935,7 +961,7 @@ GateOne.Base.update(GateOne.Utils, {
         // Copied from http://www.javascripter.net/faq/numberisprime.htm (thanks for making the Internet a better place!)
         if (isNaN(n) || !isFinite(n) || n%1 || n<2) return false;
         var m=Math.sqrt(n);
-        for (var i=2;i<=m;i++) if (n%i==0) return false;
+        for (var i=2; i<=m; i++) if (n%i==0) return false;
         return true;
     },
     randomPrime: function() {
@@ -1072,31 +1098,7 @@ GateOne.Base.update(GateOne.Net, {
         }
         logDebug("GateOne.Net.connect(" + go.wsURL + ")");
         go.ws = new WebSocket(go.wsURL); // For reference, I already tried Socket.IO and custom implementations of long-held HTTP streams...  Only WebSockets provide low enough latency for real-time terminal interaction.  All others were absolutely unacceptable in real-world testing (especially Flash-based...  Wow, really surprised me how bad it was).
-        go.ws.onopen = function() {
-            // Clear the error message if it's still there
-            u.getNode('#'+go.prefs.prefix+'termwrapper').innerHTML = "";
-            // Load the Web Worker
-            go.ws.send(JSON.stringify({'get_webworker': null}));
-            // Check if there are any existing terminals for the current session ID
-            setTimeout(function () {
-                var settings = {'auth': go.prefs.auth};
-                go.ws.send(JSON.stringify({'authenticate': settings}));
-                // Autoconnect if autoConnectURL is specified
-                if (go.prefs.autoConnectURL) {
-                    setTimeout(function () {
-                        go.Input.queue(go.prefs.autoConnectURL+'\n');
-                        GateOne.Net.sendChars();
-                    }, 500);
-                }
-                // Update our dimensions (for some reason they can be lost if disconnected)
-                setTimeout(function() {
-                    go.Net.sendDimensions();
-                }, 1000);
-                setTimeout(function() {
-                    go.Net.ping(); // Check latency (after things have calmed down a bit =)
-                }, 3000);
-            }, 1000);
-        }
+        go.ws.onopen = go.Net.onOpen;
         go.ws.onclose = function() {
             // Connection to the server was lost
             logDebug("WebSocket Closed");
@@ -1106,21 +1108,59 @@ GateOne.Base.update(GateOne.Net, {
             // Something went wrong with the WebSocket (who knows?)
             logError("ERROR on WebSocket: " + evt.data);
         }
-        go.ws.onmessage = function (evt) {
-            logDebug('message: ' + evt.data);
-            var messageObj = JSON.parse(evt.data);
-            // Execute each respective action
-            u.items(messageObj).forEach(function(item) {
+        go.ws.onmessage = go.Net.onMessage;
+        return go.ws;
+    },
+    onOpen: function() {
+        var settings = null;
+        try {
+            // Clear the error message if it's still there
+            GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'termwrapper').innerHTML = "";
+            // Load the Web Worker
+            GateOne.ws.send(JSON.stringify({'get_webworker': null}));
+            // Check if there are any existing terminals for the current session ID
+            setTimeout(function () {
+                settings = {'auth': GateOne.prefs.auth, 'container': GateOne.prefs.goDiv.split('#')[1], 'prefix': GateOne.prefs.prefix};
+                GateOne.ws.send(JSON.stringify({'authenticate': settings}));
+                // Autoconnect if autoConnectURL is specified
+                if (GateOne.prefs.autoConnectURL) {
+                    setTimeout(function () {
+                        GateOne.Input.queue(GateOne.prefs.autoConnectURL+'\n');
+                        GateOne.Net.sendChars();
+                    }, 500);
+                }
+                // Update our dimensions (for some reason they can be lost if disconnected)
+                setTimeout(function() {
+                    GateOne.Net.sendDimensions();
+                }, 1000);
+                setTimeout(function() {
+                    GateOne.Net.ping(); // Check latency (after things have calmed down a bit =)
+                }, 3000);
+            }, 1000);
+        } finally {
+            settings = null;
+        }
+    },
+    onMessage: function (evt) {
+        logDebug('message: ' + evt.data);
+        var messageObj = JSON.parse(evt.data);
+        // Execute each respective action
+        try {
+            GateOne.Utils.items(messageObj).forEach(function(item) {
                 var key = item[0],
-                    val = item[1],
-                    getter = u.itemgetter(key),
-                    actionToTake = getter(go.Net.actions);
-                if (actionToTake) {
-                    actionToTake(val);
+                    val = item[1];
+                try {
+                    if (GateOne.Net.actions[key]) {
+                        GateOne.Net.actions[key](val);
+                    }
+                } finally {
+                    key = null;
+                    val = null;
                 }
             });
-        };
-        return go.ws;
+        } finally {
+            messageObj = null;
+        }
     },
     addAction: function(name, func) {
         // Adds/overwrites actions in GateOne.Net.actions
@@ -1156,6 +1196,37 @@ GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up 
 // 'KEY_N': [{'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'}]
 GateOne.Base.update(GateOne.Input, {
     // This object holds all of the special key handlers and controls the "escape"/"escape escape" sequences
+    goDivMouseDown: function(e) {
+        // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
+        var go = GateOne,
+            u = go.Utils,
+            m = go.Input.mouse(e),
+            selectedText = u.getSelText();
+        // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
+        // However, we only want this when the user is actually bringing up the context menu because
+        // having it enabled slows down screen updates by a non-trivial amount.
+        if (m.button.middle) {
+            if (selectedText.length) {
+                // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
+                e.preventDefault();
+                go.Input.queue(selectedText);
+                go.Net.sendChars();
+            }
+        } else {
+            var panels = u.getNode(go.prefs.goDiv).getElementsByClassName('panel'),
+                visiblePanel = false;
+//                 u.getNode(go.prefs.goDiv).focus();
+            // Hide all the panels
+            for (var i in u.toArray(panels)) {
+                if (panels[i].style['transform'] != 'scale(0)') {
+                    visiblePanel = true;
+                }
+            }
+//                 if (!visiblePanel) {
+//                     goDiv.contentEditable = true;
+//                 }
+        }
+    },
     capture: function() {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
         var go = GateOne,
@@ -1178,37 +1249,7 @@ GateOne.Base.update(GateOne.Input, {
 //             GateOne.Input.queue(contents);
 //             GateOne.Net.sendChars();
 //         }
-        goDiv.onmousedown = function(e) {
-            // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
-            var go = GateOne,
-                u = go.Utils,
-                m = go.Input.mouse(e),
-                selectedText = u.getSelText();
-            // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
-            // However, we only want this when the user is actually bringing up the context menu because
-            // having it enabled slows down screen updates by a non-trivial amount.
-            if (m.button.middle) {
-                if (selectedText.length) {
-                    // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
-                    e.preventDefault();
-                    go.Input.queue(selectedText);
-                    go.Net.sendChars();
-                }
-            } else {
-                var panels = u.getNode(go.prefs.goDiv).getElementsByClassName('panel'),
-                    visiblePanel = false;
-//                 u.getNode(go.prefs.goDiv).focus();
-                // Hide all the panels
-                for (var i in u.toArray(panels)) {
-                    if (panels[i].style['transform'] != 'scale(0)') {
-                        visiblePanel = true;
-                    }
-                }
-//                 if (!visiblePanel) {
-//                     goDiv.contentEditable = true;
-//                 }
-            }
-        }
+        goDiv.onmousedown = go.Input.goDivMouseDown;
         goDiv.onmouseup = function(e) {
             // Once the user is done pasting (or clicking), set it back to false for speed
 //             goDiv.contentEditable = false; // Having this as false makes screen updates faster
@@ -1654,6 +1695,7 @@ GateOne.Base.update(GateOne.Input, {
                 return; // Don't continue (null means null!)
             }
         }
+        q = null;
     },
     emulateKeyCombo: function(e) {
         // This method translates ctrl/alt/meta key combos such as ctrl-c into their string equivalents.
@@ -1775,6 +1817,7 @@ GateOne.Base.update(GateOne.Input, {
                 }
             }
         }
+        q = null;
     },
     emulateKeyFallback: function(e) {
         // Meant to be attached to (GateOne.prefs.goDiv).onkeypress, will queue the (character) result of a keypress event if an unknown modifier key is held.
@@ -1793,6 +1836,7 @@ GateOne.Base.update(GateOne.Input, {
                 go.Net.sendChars();
             }
         }
+        q = null;
     },
 });
 // Expand GateOne.Input.specialKeys to be more complete:
@@ -1850,7 +1894,11 @@ GateOne.Base.update(GateOne.Visual, {
         var gridToggle = function() {
             go.Visual.toggleGridView(true);
         }
-        toolbarGrid.onclick = gridToggle;
+        try {
+            toolbarGrid.onclick = gridToggle;
+        } finally {
+            gridToggle = null;
+        }
         // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
         toolbar.appendChild(toolbarGrid);
         // Register our keyboard shortcuts (Shift-<arrow keys> to switch terminals, ctrl-alt-G to toggle grid view)
@@ -2094,7 +2142,9 @@ GateOne.Base.update(GateOne.Visual, {
     playBell: function() {
         // Plays the bell sound without any visual notification.
         var snd = GateOne.Utils.getNode('#bell');
-        snd.play();
+        if (GateOne.prefs.bellSound) {
+            snd.play();
+        }
     },
     enableScrollback: function(/*Optional*/term) {
         // Replaces the contents of the selected terminal with the complete screen + scrollback buffer
@@ -2556,6 +2606,25 @@ GateOne.Base.update(GateOne.Visual, {
         document.body.appendChild(dialogContainer);
     }
 });
+
+window.GateOne = GateOne; // Make everything usable
+
+})(window);
+
+// GateOne.Terminal gets its own sandbox to avoid a constant barrage of circular references on the garbage collector
+(function(window, undefined) {
+"use strict";
+
+// Sandbox-wide shortcuts for each log level (actually assigned in init())
+var logFatal = GateOne.Utils.noop;
+var logError = GateOne.Utils.noop;
+var logWarning = GateOne.Utils.noop;
+var logInfo = GateOne.Utils.noop;
+var logDebug = GateOne.Utils.noop;
+
+var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
+    URL = (window.URL || window.webkitURL);
+
 GateOne.Base.module(GateOne, "Terminal", "0.9", ['Base', 'Utils', 'Visual']);
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
@@ -2600,6 +2669,14 @@ GateOne.Base.update(GateOne.Terminal, {
             goDiv = u.getNode(go.prefs.goDiv),
             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
             toolbar = u.getNode('#'+prefix+'toolbar');
+        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
+        if (GateOne.Logging) {
+            logFatal = GateOne.Logging.logFatal;
+            logError = GateOne.Logging.logError;
+            logWarning = GateOne.Logging.logWarning;
+            logInfo = GateOne.Logging.logInfo;
+            logDebug = GateOne.Logging.logDebug;
+        }
         // Create our info panel
         go.Icons['info'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient12680" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#linearGradient12680)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
         toolbarInfo.innerHTML = go.Icons['info'];
@@ -2750,108 +2827,135 @@ GateOne.Base.update(GateOne.Terminal, {
         go.Net.addAction('metadata', go.Terminal.storeMetadata);
         go.Net.addAction('load_webworker', go.Terminal.loadWebWorkerAction);
     },
+    writeScrollback: function(term, scrollback) {
+        try { // Save the scrollback buffer in localStorage for retrieval if the user reloads
+            localStorage.setItem(GateOne.prefs.prefix+"scrollback" + term, scrollback.join('\n'));
+        } catch (e) {
+            logError(e);
+        }
+        return null;
+    },
+    termUpdateFromWorker: function(e) {
+        var prefix = GateOne.prefs.prefix + "",
+            data = e.data,
+            term = data.term,
+            screen = data.screen,
+            scrollback = data.scrollback,
+            screen_html = "",
+            consoleLog = data.log, // Only used when debugging
+            screenUpdate = false,
+            termTitle = "Gate One", // Will be replaced down below
+            reScrollback = GateOne.Utils.partial(GateOne.Visual.enableScrollback, term),
+            writeScrollback = GateOne.Utils.partial(GateOne.Terminal.writeScrollback, term, scrollback);
+        if (term && GateOne.terminals[term]) {
+            termTitle = GateOne.Utils.getNode('#'+prefix+'term'+term).title;
+        } else {
+            // Terminal was likely just closed.
+            return;
+        };
+        if (screen) {
+            var termContainer = GateOne.Utils.getNode('#'+prefix+'term'+term),
+                existingPre = GateOne.Utils.getNode('#'+prefix+'term'+term+'_pre'),
+                termPre = GateOne.Utils.createElement('pre', {'id': prefix+'term'+term+'_pre'});
+            try {
+                GateOne.terminals[term]['screen'] = screen;
+                termPre.innerHTML = screen.join('\n') + '\n\n';
+                if (existingPre) {
+                    termContainer.replaceChild(termPre, existingPre);
+                } else {
+                    termContainer.appendChild(termPre);
+                }
+                GateOne.Utils.scrollToBottom(termPre);
+                screenUpdate = true;
+                GateOne.terminals[term]['scrollbackVisible'] = false;
+            } catch (e) { // Likely the terminal just closed
+                GateOne.Utils.noop(); // Just ignore it.
+            } finally {
+                termContainer = null;
+                existingPre = null;
+                termPre = null;
+                screen = null;
+            }
+        }
+        if (scrollback) {
+            GateOne.terminals[term]['scrollback'] = scrollback;
+            // We wrap the logic that stores the scrollback buffer in a timer so we're not writing to localStorage (aka "to disk") every nth of a second for fast screen refreshes (e.g. fast typers).  Writing to localStroage is a blocking operation so this could speed things up considerable for larger terminal sizes.
+            clearTimeout(GateOne.terminals[term]['scrollbackWriteTimer']);
+            GateOne.terminals[term]['scrollbackWriteTimer'] = null;
+            // This will save the scrollback buffer after 2 seconds of terminal inactivity (idle)
+            try {
+                GateOne.terminals[term]['scrollbackWriteTimer'] = setTimeout(writeScrollback, 2000); // 3.5 seconds is just past the default 'top' refresh rate
+            } finally {
+                writeScrollback = null;
+                scrollback = null;
+            }
+        }
+        if (consoleLog) {
+            try {
+                logInfo(consoleLog);
+            } finally {
+                consoleLog = null;
+            }
+        }
+        if (screenUpdate) {
+            // Take care of the activity/inactivity notifications
+            if (GateOne.terminals[term]['inactivityTimer']) {
+                clearTimeout(GateOne.terminals[term]['inactivityTimer']);
+                var inactivity = GateOne.Utils.partial(GateOne.Terminal.notifyInactivity, termTitle);
+                try {
+                    GateOne.terminals[term]['inactivityTimer'] = setTimeout(inactivity, GateOne.terminals[term]['inactivityTimeout']);
+                } finally {
+                    inactivity = null;
+                }
+            }
+            if (GateOne.terminals[term]['activityNotify']) {
+                if (!GateOne.terminals[term]['lastNotifyTime']) {
+                    // Setup a minimum delay between activity notifications so we're not spamming the user
+                    GateOne.terminals[term]['lastNotifyTime'] = new Date();
+                    GateOne.Terminal.notifyActivity(termTitle);
+                } else {
+                    var then = new Date(GateOne.terminals[term]['lastNotifyTime']),
+                        now = new Date();
+                    try {
+                        then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
+                        if (now > then) {
+                            GateOne.terminals[term]['lastNotifyTime'] = new Date(); // Reset
+                            GateOne.Terminal.notifyActivity(termTitle);
+                        }
+                    } finally {
+                        then = null;
+                        now = null;
+                    }
+                }
+            }
+            try {
+                clearTimeout(GateOne.terminals[term]['scrollbackTimer']);
+                GateOne.terminals[term]['scrollbackTimer'] = null;
+                // This timeout re-adds the scrollback buffer after 3.5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
+                GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 3500); // 3.5 seconds is just past the default 'top' refresh rate
+            } finally {
+                reScrollback = null; // Prevent memory leak
+                screenUpdate = null;
+            }
+            // Excute any registered callbacks
+            if (GateOne.Terminal.updateTermCallbacks.length) {
+                for (var i=0; i<GateOne.Terminal.updateTermCallbacks.length; i++) {
+                    GateOne.Terminal.updateTermCallbacks[i](term);
+                }
+            }
+        }
+        return null;
+    },
     loadWebWorkerAction: function(source) {
         // Loads our Web Worker given it's *source* (which is sent to us over the WebSocket which is a clever workaround to the origin limitations of Web Workers =).
         var go = GateOne,
             u = go.Utils,
             t = go.Terminal,
             prefix = go.prefs.prefix,
-            BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
-            URL = (window.URL || window.webkitURL),
             bb = new BlobBuilder();
         bb.append(source); // Add the Web Worker source code
         // Obtain a blob URL reference to our worker 'file'.
-        var blobURL = URL.createObjectURL(bb.getBlob()),
-            termUpdateFromWorker = function(e) {
-                var data = e.data,
-                    term = data.term,
-                    screen = data.screen,
-                    scrollback = data.scrollback,
-                    screen_html = "",
-                    consoleLog = data.log, // Only used when debugging
-                    screenUpdate = false,
-                    terminalObj = {},
-                    termTitle = u.getNode('#'+prefix+'term'+term).title,
-                    reScrollback = u.partial(go.Visual.enableScrollback, term);
-                if (term && go.terminals[term]) {
-                    terminalObj = go.terminals[term];
-                } else {
-                    // Terminal was likely just closed.
-                    return;
-                };
-                if (screen) {
-                    try {
-                        terminalObj['screen'] = screen;
-                        var termContainer = u.getNode('#'+prefix+'term'+term),
-                            existingPre = u.getNode('#'+prefix+'term'+term+'_pre'),
-                            termPre = u.createElement('pre', {'id': prefix+'term'+term+'_pre'});
-                        termPre.innerHTML = screen.join('\n') + '\n\n';
-                        if (existingPre) {
-                            termContainer.replaceChild(termPre, existingPre);
-                        } else {
-                            termContainer.appendChild(termPre);
-                        }
-                        u.scrollToBottom(termPre);
-                        screenUpdate = true;
-                        go.terminals[term]['scrollbackVisible'] = false;
-                    } catch (e) { // Likely the terminal just closed
-                        u.noop(); // Just ignore it.
-                    }
-                }
-                if (scrollback) {
-                    terminalObj['scrollback'] = scrollback;
-                    // We wrap the logic that stores the scrollback buffer in a timer so we're not writing to localStorage (aka "to disk") every nth of a second for fast screen refreshes (e.g. fast typers).  Writing to localStroage is a blocking operation so this could speed things up considerable for larger terminal sizes.
-                    var writeScrollback = function() {
-                        try { // Save the scrollback buffer in localStorage for retrieval if the user reloads
-                            localStorage.setItem(prefix+"scrollback" + term, scrollback.join('\n'));
-                        } catch (e) {
-                            logError(e);
-                        }
-                    };
-                    if (terminalObj['scrollbackWriteTimer']) {
-                        clearTimeout(terminalObj['scrollbackWriteTimer']);
-                    }
-                    // This will save the scrollback buffer after 2 seconds of terminal inactivity (idle)
-                    terminalObj['scrollbackWriteTimer'] = setTimeout(writeScrollback, 2000); // 3.5 seconds is just past the default 'top' refresh rate
-                }
-                if (consoleLog) {
-                    logInfo(consoleLog);
-                }
-                if (screenUpdate) {
-                    // Take care of the activity/inactivity notifications
-                    if (terminalObj['inactivityTimer']) {
-                        clearTimeout(terminalObj['inactivityTimer']);
-                        var inactivity = u.partial(t.notifyInactivity, termTitle);
-                        terminalObj['inactivityTimer'] = setTimeout(inactivity, terminalObj['inactivityTimeout']);
-                    }
-                    if (terminalObj['activityNotify']) {
-                        if (!terminalObj['lastNotifyTime']) {
-                            // Setup a minimum delay between activity notifications so we're not spamming the user
-                            terminalObj['lastNotifyTime'] = new Date();
-                            t.notifyActivity(termTitle);
-                        } else {
-                            var then = new Date(terminalObj['lastNotifyTime']),
-                                now = new Date();
-                            then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
-                            if (now > then) {
-                                terminalObj['lastNotifyTime'] = new Date(); // Reset
-                                t.notifyActivity(termTitle);
-                            }
-                        }
-                    }
-                    if (terminalObj['scrollbackTimer']) {
-                        clearTimeout(terminalObj['scrollbackTimer']);
-                    }
-                    // This timeout re-adds the scrollback buffer after 3.5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
-                    terminalObj['scrollbackTimer'] = setTimeout(reScrollback, 3500); // 3.5 seconds is just past the default 'top' refresh rate
-                    // Excute any registered callbacks
-                    if (go.Terminal.updateTermCallbacks.length) {
-                        go.Terminal.updateTermCallbacks.forEach(function(callback) {
-                            callback(term);
-                        });
-                    }
-                }
-            };
+        var blobURL = URL.createObjectURL(bb.getBlob());
         // NOTE: Using Blob URLs for WebWorkers doesn't work in Firefox 8 due to a bug (https://bugzilla.mozilla.org/show_bug.cgi?id=699633)
         if (navigator.userAgent.indexOf('Firefox/8') == -1) {
             t.termUpdatesWorker = new Worker(blobURL);
@@ -2863,7 +2967,7 @@ GateOne.Base.update(GateOne.Terminal, {
             // So by loading the Web Worker code via the WebSocket we can get around all that nonsense since WebSockets can be anywhere and on any port without silly restrictions.
             // In other words, the old way should still work as long as Gate One is listening on the same protocol (HTTPS) and port (443) as the app that's embedding it.
         }
-        t.termUpdatesWorker.onmessage = termUpdateFromWorker;
+        t.termUpdatesWorker.onmessage = t.termUpdateFromWorker;
     },
     updateTerminalAction: function(termUpdateObj) {
         // Replaces the contents of the terminal div with the lines in *termUpdateObj*.
@@ -2875,22 +2979,36 @@ GateOne.Base.update(GateOne.Terminal, {
             term = termUpdateObj['term'],
             prevScrollback = localStorage[prefix+"scrollback" + term],
             terminalObj = go.terminals[term],
-            textTransforms = go.Terminal.textTransforms;
+            textTransforms = go.Terminal.textTransforms,
+            message = null;
 //         logDebug('GateOne.Utils.updateTerminalActionTest() termUpdateObj: ' + u.items(termUpdateObj));
-        if (!terminalObj) {
-            // Terminal was just closed, ignore
-            return;
-        }
-        if (screen) {
-            // Offload processing of the incoming screen to the Web Worker
-            t.termUpdatesWorker.postMessage({
-                'cmds': ['processScreen'],
-                'terminalObj': terminalObj,
-                'termUpdateObj': termUpdateObj,
-                'prevScrollback': prevScrollback,
-                'prefs': go.prefs,
-                'textTransforms': textTransforms
-            });
+        try {
+            if (!terminalObj) {
+                // Terminal was just closed, ignore
+                return;
+            }
+            if (screen) {
+                message = {
+                    'cmds': ['processScreen'],
+                    'terminalObj': terminalObj,
+                    'termUpdateObj': termUpdateObj,
+                    'prevScrollback': prevScrollback,
+                    'prefs': go.prefs,
+                    'textTransforms': textTransforms
+                };
+                // Offload processing of the incoming screen to the Web Worker
+                t.termUpdatesWorker.postMessage(message);
+            }
+        } finally {
+            // Force GC
+            message = null;
+            textTransforms = null;
+            terminalObj = null;
+            prevScrollback = null;
+            v = null;
+            t = null;
+            u = null;
+            go = null;
         }
     },
     notifyInactivity: function(term) {

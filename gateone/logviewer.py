@@ -11,13 +11,17 @@ __version_info__ = (0, 9)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import stdlib stuff
-import sys, re, gzip
+import os, sys, re, gzip
 from time import sleep
 from datetime import datetime
 from optparse import OptionParser
 
 # Import our own stuff
 from utils import raw
+from gateone import PLUGINS
+
+# 3rd party imports
+from tornado.escape import json_encode, json_decode
 
 __doc__ = """\
 .. _log_viewer:
@@ -95,6 +99,9 @@ Class Docstrings
 
 # Globals
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
+RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)', re.MULTILINE)
+RE_TITLE_SEQ = re.compile(
+    r'.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)', re.DOTALL|re.MULTILINE)
 
 # TODO: Support Fast forward/rewind/pause like Gate One itself.
 
@@ -109,7 +116,7 @@ def playback_log(log_path, file_like, show_esc=False):
     """
     log = gzip.open(log_path).read().decode('utf-8')
     prev_frame_time = None
-    for i, frame in enumerate(log.split(SEPARATOR)):
+    for i, frame in enumerate(log.split(SEPARATOR)[1:]): # Skip first frame
         try:
             frame_time = float(frame[:13]) # First 13 chars is the timestamp
             frame = frame[14:] # Skips the colon
@@ -147,12 +154,6 @@ def escape_escape_seq(text, preserve_renditions=True, rstrip=True):
         r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=]|[()# %*+].)')
     csi_sequence = re.compile(r'\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])')
     esc_rstrip = re.compile('[ \t]+\x1b.+$')
-    #replacement_map = {
-        #0: u'␀',
-        #7: u'␇',
-        #9: u'␉',
-        #24: u'␘',
-    #}
     out = u""
     esc_buffer = u""
     # If this seems confusing it is because text parsing is a black art! ARRR!
@@ -188,13 +189,88 @@ def escape_escape_seq(text, preserve_renditions=True, rstrip=True):
                 continue
     if rstrip:
         # Remove trailing whitespace + trailing ESC sequences
-        return esc_rstrip.sub('', out)
+        return esc_rstrip.sub('', out).rstrip()
     else: # All these trailers better make for a good movie
         return out
 
+def retrieve_first_frame(golog_path):
+    """
+    Retrieves the first frame from the given *golog_path*.
+    """
+    found_first_frame = None
+    frame = ""
+    f = gzip.open(golog_path)
+    while not found_first_frame:
+        frame += f.read(1)
+        if frame.decode('UTF-8', "ignore").endswith(SEPARATOR):
+            # That's it; wrap this up
+            found_first_frame = True
+    f.close()
+    return frame.decode('UTF-8', "ignore").rstrip(SEPARATOR)
+
+def get_metadata(golog_path, user):
+    """
+    Retrieves or creates/adds the metadata inside of the golog at *golog_path*.
+
+    NOTE:  All logs will need "fixing" the first time they're enumerated since
+    they won't have an end_date.  Fortunately we only need to do this once per
+    golog.
+    """
+    first_frame = retrieve_first_frame(golog_path)
+    metadata = {}
+    if first_frame[14:].startswith('{'):
+        # This is JSON
+        metadata = json_decode(first_frame[14:])
+        if 'end_date' in metadata: # end_date gets added by this func
+            return metadata # All done
+    # Sadly, we have to read the whole thing into memory to do this
+    golog_frames = gzip.open(golog_path).read().decode('UTF-8').split(SEPARATOR)
+    golog_frames.pop() # Get rid of the last (empty) item
+    # Getting the start and end dates are easy
+    start_date = golog_frames[0][:13]
+    end_date = golog_frames[-2][:13] # The very last is empty
+    num_frames = len(golog_frames)
+    version = "1.0"
+    connect_string = None
+    if 'ssh' in PLUGINS['py']:
+        # Try to find the host that was connected to by looking for the SSH
+        # plugin's special optional escape sequence.  It looks like this:
+        #   "\x1b]_;ssh|%s@%s:%s\007"
+        for frame in golog_frames[:50]: # Only look in the first 50 frames
+            match_obj = RE_OPT_SEQ.match(frame)
+            if match_obj:
+                connect_string = match_obj.group(1).split('|')[1]
+                break
+    if not connect_string:
+        # Try guessing it by looking for a title escape sequence
+        for frame in golog_frames[:50]: # Only look in the first 50 frames
+            match_obj = RE_TITLE_SEQ.match(frame)
+            if match_obj:
+                # The split() here is an attempt to remove titles like this:
+                #   'someuser@somehost: ~'
+                connect_string = match_obj.group(1).split(':')[0]
+                break
+    metadata.update({
+        'user': user,
+        'start_date': start_date,
+        'end_date': end_date,
+        'frames': num_frames,
+        'version': version,
+        'connect_string': connect_string,
+        'filename': os.path.split(golog_path)[1]
+    })
+    first_frame = "%s:%s%s" % (start_date, json_encode(metadata), SEPARATOR)
+    # Insert the new first frame
+    golog_frames.insert(0, first_frame)
+    # Save it
+    f = gzip.open(golog_path, 'w')
+    f.write(SEPARATOR.join(golog_frames).encode('UTF-8'))
+    f.close()
+    return metadata
+
 def flatten_log(log_path, preserve_renditions=True, show_esc=False):
     """
-    Given a log file at *log_path*, return a list of log lines contained within.
+    Given a log file at *log_path*, return a str of log lines contained within.
 
     If *preserve_renditions* is True, CSI escape sequences for renditions will
     be preserved as-is (e.g. font color, background, etc).  This is to make the
@@ -211,7 +287,7 @@ def flatten_log(log_path, preserve_renditions=True, show_esc=False):
     import gzip
     lines = gzip.open(log_path).read().decode('utf-8')
     out = ""
-    for frame in lines.split(SEPARATOR):
+    for frame in lines.split(SEPARATOR)[1:]: # Skip the first frame (metadata)
         try:
             frame_time = float(frame[:13]) # First 13 chars is the timestamp
             # Convert to datetime object
@@ -224,28 +300,28 @@ def flatten_log(log_path, preserve_renditions=True, show_esc=False):
                         # start of each line in case the previous line didn't
                         # reset it on its own.
                         if show_esc:
-                            out += "%s %s\n" % ( # Standard Unix log format
+                            out += u"%s %s\n" % ( # Standard Unix log format
                                 frame_time.strftime(u'\x1b[m%b %m %H:%M:%S'),
                                 raw(fl))
                         else:
-                            out += "%s %s\n" % ( # Standard Unix log format
+                            out += u"%s %s\n" % ( # Standard Unix log format
                                 frame_time.strftime(u'\x1b[m%b %m %H:%M:%S'),
-                                escape_escape_seq(fl, rstrip=True)
+                                escape_escape_seq(fl, rstrip=True).rstrip()
                             )
                     elif i:# Don't need this for the first empty line in a frame
                         out += frame_time.strftime(u'\x1b[m%b %m %H:%M:%S \n')
             elif show_esc:
-                if len(out) and out[-1] == '\n':
+                if len(out) and out[-1] == u'\n':
                     out = u"%s%s\n" % (out[:-1], raw(frame[14:]))
             else:
-                escaped_frame = escape_escape_seq(frame[14:], rstrip=False)
-                if len(out) and out[-1] == '\n':
+                escaped_frame = escape_escape_seq(frame[14:], rstrip=True).rstrip()
+                if len(out) and out[-1] == u'\n':
                     out = u"%s%s\n" % (out[:-1], escaped_frame)
                 elif escaped_frame:
                     # This is pretty much always going to be the first line
-                    out += "%s %s\n" % ( # Standard Unix log format
+                    out += u"%s %s\n" % ( # Standard Unix log format
                         frame_time.strftime(u'\x1b[m%b %m %H:%M:%S'),
-                        escaped_frame
+                        escaped_frame.rstrip()
                     )
         except ValueError as e:
             pass

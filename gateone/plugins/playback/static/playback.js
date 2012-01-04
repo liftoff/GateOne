@@ -1,15 +1,27 @@
 (function(window, undefined) {
 var document = window.document; // Have to do this because we're sandboxed
 
-// Useful sandbox-wide stuff
-var noop = GateOne.Utils.noop;
-
 // Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = noop;
-var logError = noop;
-var logWarning = noop;
-var logInfo = noop;
-var logDebug = noop;
+// var logFatal = GateOne.Utils.noop;
+// var logError = GateOne.Utils.noop;
+// var logWarning = GateOne.Utils.noop;
+// var logInfo = GateOne.Utils.noop;
+// var logDebug = GateOne.Utils.noop;
+
+// This is so we can copy a whole function so there's no circular references
+Function.prototype.clone = function() {
+    var fct = this;
+    var clone = function() {
+        return fct.apply(this, arguments);
+    };
+    clone.prototype = fct.prototype;
+    for (property in fct) {
+        if (fct.hasOwnProperty(property) && property !== 'prototype') {
+            clone[property] = fct[property];
+        }
+    }
+    return clone;
+};
 
 // Tunable playback prefs
 if (!GateOne.prefs.playbackFrames) {
@@ -38,95 +50,91 @@ GateOne.Base.update(GateOne.Playback, {
             prefsPanelPlaybackLabel = u.createElement('span', {'id': prefix+'prefs_playback_label', 'class':'paneltablelabel'}),
             prefsPanelPlayback = u.createElement('input', {'id': prefix+'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             infoPanelSaveRecording = u.createElement('button', {'id': prefix+'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
-        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
-        if (go.Logging) {
-            logFatal = go.Logging.logFatal;
-            logError = go.Logging.logError;
-            logWarning = go.Logging.logWarning;
-            logInfo = go.Logging.logInfo;
-            logDebug = go.Logging.logDebug;
-        }
         prefsPanelPlaybackLabel.innerHTML = "<b>Playback Frames:</b> ";
         prefsPanelPlayback.value = go.prefs.playbackFrames;
         prefsPanelRow.appendChild(prefsPanelPlaybackLabel);
         prefsPanelRow.appendChild(prefsPanelPlayback);
         prefsTableDiv2.appendChild(prefsPanelRow);
         infoPanelSaveRecording.innerHTML = "View Session Recording";
+        infoPanelSaveRecording.title = "Open the current terminal's playback history in a new window (which you can save to a file)."
         infoPanelSaveRecording.onclick = function() {
-            p.saveRecording(localStorage[prefix+'selectedTerminal']);
+            GateOne.Playback.saveRecording(localStorage[GateOne.prefs.prefix+'selectedTerminal']);
         }
         pTag.appendChild(infoPanelSaveRecording);
         setTimeout(function() {
-            p.addPlaybackControls();
-        }, 2000);
+            GateOne.Playback.addPlaybackControls();
+        }, 3000);
         // This makes sure our playback frames get added to the terminal object whenever the screen is updated
-        go.Terminal.updateTermCallbacks.push(p.pushPlaybackFrame);
+        go.Terminal.updateTermCallbacks.push(GateOne.Playback.pushPlaybackFrame);
         // This makes sure our prefs get saved along with everything else
-        go.savePrefsCallbacks.push(p.savePrefsCallback);
+        go.savePrefsCallbacks.push(GateOne.Playback.savePrefsCallback);
     },
-    pushPlaybackFrame: function(term) {
+    pushPlaybackFrame: function(termNum) {
         // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']
-        var go = GateOne,
-            u = go.Utils,
-            p = go.Playback,
-            prefix = go.prefs.prefix,
-            frameObj = {'screen': go.terminals[term]['screen'], 'time': new Date()};
-        if (!p.progressBarElement) {
-            p.progressBarElement = u.getNode('#'+prefix+'progressBar');
+        var prefix = GateOne.prefs.prefix,
+            progressBarElement = null,
+            term = termNum,
+            playbackFrames = null,
+            frame = {'screen': GateOne.terminals[term]['screen'], 'time': new Date()};
+        if (!progressBarElement) {
+            progressBarElement = GateOne.Utils.getNode('#'+prefix+'progressBar');
         }
-        if (!go.terminals[term]['playbackFrames']) {
-            go.terminals[term]['playbackFrames'] = [];
+        if (!GateOne.terminals[term]['playbackFrames']) {
+            GateOne.terminals[term]['playbackFrames'] = [];
         }
-        go.terminals[term]['playbackFrames'].push(frameObj);
-        if (go.terminals[term]['playbackFrames'].length > go.prefs.playbackFrames) {
-            // Reduce it to fit the max
-            go.terminals[term]['playbackFrames'].reverse(); // Have to reverse it before we truncate
-            go.terminals[term]['playbackFrames'].length = go.prefs.playbackFrames; // Love that length is assignable!
-            go.terminals[term]['playbackFrames'].reverse(); // Put it back in the right order
+        playbackFrames = GateOne.terminals[term]['playbackFrames'];
+        // Add the new playback frame to the terminal object
+        playbackFrames.push(frame);
+        frame = null; // Clean up
+        if (playbackFrames.length > GateOne.prefs.playbackFrames) {
+            // Reduce it to fit within the user's configured max
+//             GateOne.terminals[term]['playbackFrames'].shift();
+            playbackFrames.reverse(); // Have to reverse it before we truncate
+            playbackFrames.length = GateOne.prefs.playbackFrames; // Love that length is assignable!
+            playbackFrames.reverse(); // Put it back in the right order
         }
+        GateOne.terminals[term]['playbackFrames'] = null;
+        GateOne.terminals[term]['playbackFrames'] = playbackFrames;
         // Fix the progress bar if it is in a non-default state and stop playback
-        if (p.progressBarElement) {
-            if (p.progressBarElement.style.width != '0%') {
-                clearInterval(p.frameUpdater);
-                p.frameUpdater = null;
-                p.milliseconds = 0; // Reset this in case the user was in the middle of playing something back when the screen updated
-                p.progressBarElement.style.width = '0%';
+        if (progressBarElement) {
+            if (progressBarElement.style.width != '0%') {
+                clearInterval(GateOne.Playback.frameUpdater);
+                GateOne.Playback.frameUpdater = null;
+                GateOne.Playback.milliseconds = 0; // Reset this in case the user was in the middle of playing something back when the screen updated
+                progressBarElement.style.width = '0%';
                 // Also make sure the pastearea is put back if missing
-                u.showElement('#'+prefix+'pastearea');
+                GateOne.Utils.showElement('#'+prefix+'pastearea');
             }
         }
     },
     savePrefsCallback: function() {
         // Called when the user clicks the "Save" button in the prefs panel
-        var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix;
-        var playbackValue = u.getNode('#'+prefix+'prefs_playback').value;
-        if (playbackValue) {
-            go.prefs.playbackFrames = parseInt(playbackValue);
+        var prefix = GateOne.prefs.prefix,
+            playbackValue = GateOne.Utils.getNode('#'+prefix+'prefs_playback').value;
+        try {
+            if (playbackValue) {
+                GateOne.prefs.playbackFrames = parseInt(playbackValue);
+            }
+        } finally {
+            playbackValue = null;
         }
     },
     updateClock: function(/*opt:*/dateObj) {
         // Updates the clock with the time in the given *dateObj*.
         // If no *dateObj* is given, the clock will be updated with the current local time
-        var go = GateOne,
-            u = go.Utils,
-            p = go.Playback;
         if (!dateObj) { dateObj = new Date() }
-        if (!p.clockElement) {
-            p.clockElement = u.getNode('#'+go.prefs.prefix+'clock');
+        if (!GateOne.Playback.clockElement) {
+            GateOne.Playback.clockElement = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'clock');
         }
-        p.clockElement.innerHTML = dateObj.toLocaleTimeString();
+        GateOne.Playback.clockElement.innerHTML = dateObj.toLocaleTimeString();
     },
     startPlayback: function(term) {
         // Plays back the given terminal's session in real-time
-        var go = GateOne,
-            p = go.Playback;
-        if (p.clockUpdater) { // Get the clock updating
-            clearInterval(p.clockUpdater);
-            p.clockUpdater = null;
+        if (GateOne.Playback.clockUpdater) { // Get the clock updating
+            clearInterval(GateOne.Playback.clockUpdater);
+            GateOne.Playback.clockUpdater = null;
         }
-        p.frameUpdater = setInterval('GateOne.Playback.playbackRealtime('+term+')', p.frameInterval);
+        GateOne.Playback.frameUpdater = setInterval('GateOne.Playback.playbackRealtime('+term+')', GateOne.Playback.frameInterval);
     },
     selectFrame: function(term, ms) {
         // For the given terminal, returns the last frame # with a 'time' less than (first frame's time + *ms*)

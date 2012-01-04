@@ -131,7 +131,7 @@ class Multiplex:
             term_num=None, # Also only for syslog output for the same reason
             syslog=False,
             syslog_facility=None):
-        self.lock = threading.RLock()
+        self.lock = threading.Lock()
         # NOTE: Commented this out because Death apparently moves too swiftly!
         # Elect for automatic child reaping (may Death take them kindly!)
         #signal.signal(signal.SIGCHLD, signal.SIG_IGN)
@@ -147,11 +147,12 @@ class Multiplex:
         self.log_path = log_path # Logs of the terminal output wind up here
         self.syslog = syslog # See "if self.syslog:" below
         self.io_loop = ioloop.IOLoop.instance() # Monitors child for activity
-        self.io_loop.set_blocking_signal_threshold(4, self._blocked_io_handler)
+        self.io_loop.set_blocking_signal_threshold(5, self._blocked_io_handler)
         self.alive = True # Provides a quick way to see if we're still kickin'
         self.ratelimiter_engaged = False
         self.rows = 24
         self.cols = 80
+        self.reader = None
         # Setup our callbacks
         self.callbacks = { # Defaults do nothing which saves some conditionals
             self.CALLBACK_UPDATE: {},
@@ -224,35 +225,38 @@ class Multiplex:
         session.
         """
         self.ratelimiter_engaged = False
+        #self.io_loop.add_handler(
+            #self.fd, self.proc_read, self.io_loop.READ)
         # Empty the output queue.
         termios.tcflush(self.fd, termios.TCOFLUSH)
         #termios.tcflow(self.fd, termios.TCOON)
         with self.lock:
             with io.open(self.fd, 'rb', closefd=False) as reader:
-                reader.read() # Go to the end
+                updated = reader.read() # Go to the end
+                del updated
         # Create a new terminal emulator instance to free up any memory that
         # was consumed by the runaway process buffering up too much stuff.
+        del self.term
         self.term = self.terminal_emulator(rows=self.rows, cols=self.cols)
         # TODO: Consider restoring the mode/state of the terminal emulator.
         for i in self.prev_output.keys():
             self.prev_output.update({i: [None for a in xrange(self.rows-1)]})
 
-    def _blocked_io_handler(self, signum, frame):
+    def _blocked_io_handler(self, signum=None, frame=None):
         """
         Handles the situation where a terminal is blocking IO with too much
         output.
         """
         logging.warning(
             "Noisy process kicked off rate limiter.  Sending Ctrl-c.")
-        #os.kill(self.pid, signal.SIGINT)
+        #os.kill(self.pid, signal.SIGINT) # Doesn't work right with dtach
+        #self.io_loop.remove_handler(self.fd)
         # Sending Ctrl-c via write() seems to work better:
         with io.open(self.fd, 'wb', closefd=False) as writer:
-            writer.write("\x03 # Sent Ctrl-c\n") # Ctrl-c to the bad process
+            writer.write("\x03\n") # Just pray it works!
+            writer.write(_("# Process was auto-killed.\n"))
         # This doesn't seem to work (would be nice if it did though!):
         #os.write(self.fd, "\x19") # Ctrl-S to the bad process
-        # NOTE: Turns out that removing the IOLoop handler for this fd isn't
-        # necessary...  It just slows down the process of killing the process.
-        #self.io_loop.remove_handler(self.fd)
         self.ratelimiter_engaged = True
         for callback in self.callbacks[self.CALLBACK_UPDATE].values():
             self.io_loop.add_callback(callback)
@@ -284,14 +288,11 @@ class Multiplex:
             stdin = 0
             stdout = 1
             stderr = 2
-            #env["COLUMNS"] = str(cols)
-            #env["LINES"] = str(rows)
+            env["COLUMNS"] = str(cols)
+            env["LINES"] = str(rows)
             env["TERM"] = "xterm" # TODO: This needs to be configurable on-the-fly
             env["PATH"] = os.environ['PATH']
             #env["LANG"] = os.environ['LANG']
-            # Setup stdout to be more Gate One friendly
-            # Set non-blocking so we don't wait forever for a read()
-            fcntl.fcntl(stdout, fcntl.F_SETFL, os.O_NONBLOCK)
             p = Popen(
                 self.cmd,
                 env=env,
@@ -312,7 +313,8 @@ class Multiplex:
                 fd, self.proc_read, self.io_loop.READ)
             self.prev_output = {}
             # Set non-blocking so we don't wait forever for a read()
-            fcntl.fcntl(self.fd, fcntl.F_SETFL, os.O_NONBLOCK)
+            fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
+            fcntl.fcntl(self.fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
             # Set the size of the terminal
             self.resize(rows, cols)
             return fd
@@ -389,7 +391,6 @@ class Multiplex:
         NOTE: This kind of logging doesn't capture user keystrokes.  This is
         intentional as we don't want passwords winding up in the logs.
         """
-        #print("termio type of chars: %s" % type(chars))
         # Write to the log too (if configured)
         if self.log_path:
             now = int(round(time.time() * 1000))
@@ -397,7 +398,9 @@ class Multiplex:
                 # Write the first frame as metadata
                 metadata = {
                     'version': '1.0', # Log format version
-                    'start_date': now,
+                    'rows': self.rows,
+                    'cols': self.cols,
+                    'start_date': now
                     # NOTE: end_date should be added later when the is read for
                     # the first time by either the logviewer or the logging
                     # plugin.
@@ -449,10 +452,16 @@ class Multiplex:
         """
         try:
             with self.lock:
-                with io.open(
-                  self.fd, 'rb', closefd=False, buffering=65536) as reader:
-                    updated = reader.read()
-                self.term_write(updated)
+                with io.open(self.fd, 'rb', closefd=False) as reader:
+                    while True:
+                        updated = reader.read(4096)
+                        if not updated:
+                            break
+                        if self.ratelimiter_engaged:
+                            # Don't do any writing if the rate limiter is enaged
+                            break
+                        self.term_write(updated)
+                        del updated
         except IOError as e:
             # IOErrors can happen when self.fd is closed before we finish
             # writing to it.  Not a big deal.
@@ -482,7 +491,8 @@ class Multiplex:
         should be the one calling it when it detects an io_loop.READ event.
         """
         if event == self.io_loop.READ:
-            self._buffer_to_term()
+            if not self.lock.locked():
+                self._buffer_to_term()
         else: # Child died
             logging.debug("Apparently fd %s just died." % self.fd)
             self.die()
@@ -494,22 +504,20 @@ class Multiplex:
         """
         Writes *chars* to self.fd (pretty straightforward).
         """
-        with self.lock:
-            try:
-                with io.open(
-                    self.fd,
-                    'wt',
-                    buffering=1024,
-                    newline="",
-                    encoding='UTF-8',
-                    closefd=False
-                ) as writer:
-                    writer.write(chars)
-            except (IOError, OSError):
-                self.die()
-                self.proc_kill()
-            except Exception as e:
-                logging.error("proc_write() exception: %s" % e)
+        try:
+            with io.open(
+                self.fd,
+                'wt',
+                newline="",
+                encoding='UTF-8',
+                closefd=False
+            ) as writer:
+                writer.write(chars)
+        except (IOError, OSError):
+            self.die()
+            self.proc_kill()
+        except Exception as e:
+            logging.error("proc_write() exception: %s" % e)
 
     def proc_write(self, chars):
         """

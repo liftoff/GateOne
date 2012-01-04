@@ -511,6 +511,7 @@
     top: 0.1em;
     right: 0;
     font-size: 0.7em;
+    margin-right: 0;
 }
 #{{prefix}}bm_new {
     float: left;

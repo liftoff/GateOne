@@ -117,5 +117,6 @@ self.addEventListener('message', function(e) {
         } else if (result) {
             self.postMessage(result);
         }
+        result = null;
     }
 }, false);
