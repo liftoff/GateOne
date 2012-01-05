@@ -1314,11 +1314,15 @@ class TerminalWebSocket(WebSocketHandler):
                 client_dict['refresh_timeout'] = multiplex.io_loop.add_timeout(
                     msec, refresh)
         except KeyError as e: # Session died (i.e. command ended).
-            logging.debug("KeyError in refresh_screen: %s" % e)
+            logging.debug(_("KeyError in refresh_screen: %s" % e))
 
     def full_refresh(self, term):
         """Calls self.refresh_screen(*term*, full=True)"""
-        term = int(term)
+        try:
+            term = int(term)
+        except ValueError:
+            logging.debug(_(
+                "Invalid terminal number given to full_refresh(): %s" % term))
         self.refresh_screen(term, full=True)
 
     def resize(self, resize_obj):
