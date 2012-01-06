@@ -969,7 +969,6 @@ GateOne.Base.update(GateOne.Bookmarks, {
         // Creates the bookmarks panel.  If *ad* is true, shows an ad as the first bookmark
         // If the bookmarks panel already exists, re-create the bookmarks container and reset pagination
         // If *embedded* is true then we'll just load the header (without search).
-        logDebug('createPanel()');
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,

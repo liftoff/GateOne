@@ -1132,6 +1132,7 @@ GateOne.Base.update(GateOne.Net, {
                 // Update our dimensions (for some reason they can be lost if disconnected)
                 setTimeout(function() {
                     GateOne.Net.sendDimensions();
+                    // NOTE: If this gets called before a any terminals have been opened it will simply be ignored by the server
                 }, 1000);
                 setTimeout(function() {
                     GateOne.Net.ping(); // Check latency (after things have calmed down a bit =)
@@ -3247,17 +3248,19 @@ GateOne.Base.update(GateOne.User, {
             prefsPanelUserInfo = u.createElement('div', {'id': prefix+'user_info'}),
             prefsPanelUserID = u.createElement('span', {'id': prefix+'user_info_id'}),
             prefsPanelUserLogout = u.createElement('a', {'id': prefix+'user_info_logout'});
-        prefsPanelUserLogout.innerHTML = "Sign Out";
-        prefsPanelUserLogout.onclick = function(e) {
-            e.preventDefault();
-            go.User.logout();
+        if (prefsPanelForm) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
+            prefsPanelUserLogout.innerHTML = "Sign Out";
+            prefsPanelUserLogout.onclick = function(e) {
+                e.preventDefault();
+                go.User.logout();
+            }
+            prefsPanelUserInfo.appendChild(prefsPanelUserID);
+            prefsPanelUserInfo.appendChild(prefsPanelUserLogout);
+            prefsPanel.insertBefore(prefsPanelUserInfo, prefsPanelForm);
+            // Surround "Sign Out" with parens (looks nicer this way)
+            prefsPanelUserLogout.insertAdjacentHTML("beforeBegin", "(");
+            prefsPanelUserLogout.insertAdjacentHTML("afterEnd", ")");
         }
-        prefsPanelUserInfo.appendChild(prefsPanelUserID);
-        prefsPanelUserInfo.appendChild(prefsPanelUserLogout);
-        prefsPanel.insertBefore(prefsPanelUserInfo, prefsPanelForm);
-        // Surround "Sign Out" with parens (looks nicer this way)
-        prefsPanelUserLogout.insertAdjacentHTML("beforeBegin", "(");
-        prefsPanelUserLogout.insertAdjacentHTML("afterEnd", ")");
         // Register our actions
         go.Net.addAction('set_username', go.User.setUsername);
     },
@@ -3270,7 +3273,9 @@ GateOne.Base.update(GateOne.User, {
             prefsPanelUserID = u.getNode('#'+prefix+'user_info_id');
         logDebug("setUsername(" + username + ")");
         GateOne.User.username = username;
-        prefsPanelUserID.innerHTML = username + " ";
+        if (prefsPanelUserID) {
+            prefsPanelUserID.innerHTML = username + " ";
+        }
         if (go.User.userLoginCallbacks.length) {
             // Call any registered callbacks
             go.User.userLoginCallbacks.forEach(function(callback) {

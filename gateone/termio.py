@@ -102,7 +102,8 @@ if 'IUTF8' not in termios.__dict__:
     termios.IUTF8 = 16384 # Hopefully this isn't platform independent
 
 # Import our own stuff
-from utils import get_translation
+from utils import get_translation, human_readable_bytes, noop
+from logviewer import get_or_update_metadata
 
 _ = get_translation()
 
@@ -127,7 +128,7 @@ class Multiplex:
             cmd=None,
             terminal_emulator=None, # Defaults to Gate One's terminal.Terminal
             log_path=None,
-            user=None, # Only used by syslog output (to differentiate who's who)
+            user=None, # Only used by log output (to differentiate who's who)
             term_num=None, # Also only for syslog output for the same reason
             syslog=False,
             syslog_facility=None):
@@ -225,11 +226,8 @@ class Multiplex:
         session.
         """
         self.ratelimiter_engaged = False
-        #self.io_loop.add_handler(
-            #self.fd, self.proc_read, self.io_loop.READ)
         # Empty the output queue.
         termios.tcflush(self.fd, termios.TCOFLUSH)
-        #termios.tcflow(self.fd, termios.TCOON)
         with self.lock:
             with io.open(self.fd, 'rb', closefd=False) as reader:
                 updated = reader.read() # Go to the end
@@ -250,7 +248,6 @@ class Multiplex:
         logging.warning(
             "Noisy process kicked off rate limiter.  Sending Ctrl-c.")
         #os.kill(self.pid, signal.SIGINT) # Doesn't work right with dtach
-        #self.io_loop.remove_handler(self.fd)
         # Sending Ctrl-c via write() seems to work better:
         with io.open(self.fd, 'wb', closefd=False) as writer:
             writer.write("\x03\n") # Just pray it works!
@@ -292,7 +289,6 @@ class Multiplex:
             env["LINES"] = str(rows)
             env["TERM"] = "xterm" # TODO: This needs to be configurable on-the-fly
             env["PATH"] = os.environ['PATH']
-            #env["LANG"] = os.environ['LANG']
             p = Popen(
                 self.cmd,
                 env=env,
@@ -345,11 +341,8 @@ class Multiplex:
         # be an effective workaround.
         s = struct.pack("HHHH", rows-1, cols-1, 0, 0)
         fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
+        # SIGWINCH has been disabled since it can screw things up
         #os.kill(self.pid, signal.SIGWINCH) # Send the resize signal
-        #time.sleep(0.01) # Have to wait just a moment for this to work
-        # This second (proper) resize forces the terminal to take notice
-        #s = struct.pack("HHHH", rows, cols, 0, 0)
-        #fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
 
     def redraw(self):
         """
@@ -370,6 +363,7 @@ class Multiplex:
 
         NOTE: If dtach is being used this only kills the dtach process.
         """
+        logging.debug("proc_kill() self.pid: %s" % self.pid)
         try:
             self.io_loop.remove_handler(self.fd)
         except (KeyError, IOError):
@@ -382,6 +376,15 @@ class Multiplex:
         except OSError:
             # Lots of trivial reasons why we could get these
             pass
+        # Kick off a process that finalizes the log (updates metadata and
+        # recompresses everything to save a ton of disk space)
+        pid, fd = pty.fork()
+        # Multiprocessing doesn't get much simpler than this!
+        if pid == 0: # We're inside the child process
+            # Have to wait just a moment for the main thread to finish writing:
+            time.sleep(5)
+            get_or_update_metadata(self.log_path, self.user)
+            sys.exit(0)
 
     def term_write(self, chars):
         """
@@ -473,8 +476,9 @@ class Multiplex:
             logging.error(
                 "Got unhandled exception in _buffer_to_term (???): %s" % `e`)
             traceback.print_exc(file=sys.stdout)
-            self.die()
-            self.proc_kill()
+            if self.alive:
+                self.die()
+                self.proc_kill()
 
     def proc_read(self, fd, event):
         """
@@ -495,8 +499,9 @@ class Multiplex:
                 self._buffer_to_term()
         else: # Child died
             logging.debug("Apparently fd %s just died." % self.fd)
-            self.die()
-            self.proc_kill()
+            if self.alive:
+                self.die()
+                self.proc_kill()
             for callback in self.callbacks[self.CALLBACK_EXIT].values():
                 callback()
 
@@ -514,8 +519,9 @@ class Multiplex:
             ) as writer:
                 writer.write(chars)
         except (IOError, OSError):
-            self.die()
-            self.proc_kill()
+            if self.alive:
+                self.die()
+                self.proc_kill()
         except Exception as e:
             logging.error("proc_write() exception: %s" % e)
 

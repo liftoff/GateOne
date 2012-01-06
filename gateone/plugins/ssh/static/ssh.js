@@ -43,11 +43,13 @@ GateOne.Base.update(GateOne.SSH, {
             go.SSH.duplicateSession(term);
         }
         h3.innerHTML = "SSH Plugin";
-        prefsPanel.appendChild(h3);
-        prefsPanel.appendChild(prefsPanelKnownHosts);
-        infoPanel.appendChild(h3);
-        infoPanel.appendChild(infoPanelDuplicateSession);
-        go.SSH.createKHPanel();
+        if (prefsPanel) {// Only add to the prefs panel if it actually exists (i.e. not in embedded mode) = u.getNode('#'+prefix+'panel_prefs'),
+            prefsPanel.appendChild(h3);
+            prefsPanel.appendChild(prefsPanelKnownHosts);
+            infoPanel.appendChild(h3);
+            infoPanel.appendChild(infoPanelDuplicateSession);
+            go.SSH.createKHPanel();
+        }
         go.Net.addAction('sshjs_connect', go.SSH.handleConnect);
         go.Net.addAction('sshjs_reconnect', go.SSH.handleReconnect);
         go.Terminal.newTermCallbacks.push(go.SSH.getConnectString);

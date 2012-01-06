@@ -6,7 +6,7 @@
 
 # TODO: Fix the flat log viewing format.  Doesn't work quite right.
 # TODO: Write search functions.
-# TODO: Add some search indexing capabilities.
+# TODO: Add some search indexing capabilities so that search will be fast.
 # TODO: Add a background process that cleans up old logs.
 
 __doc__ = """\
@@ -30,7 +30,7 @@ from functools import partial
 
 # Our stuff
 from gateone import BaseHandler, PLUGINS, COLORS_256
-from logviewer import flatten_log, playback_log, get_metadata
+from logviewer import flatten_log, playback_log, get_or_update_metadata
 from utils import get_translation
 
 _ = get_translation()
@@ -90,7 +90,8 @@ def enumerate_logs(limit=None, tws=None):
         PROCS[user] = {}
     else: # Cancel anything that's already running
         io_loop.remove_handler(PROCS[user]['queue']._reader.fileno())
-        PROCS[user]['process'].terminate()
+        if PROCS[user]['process']:
+            PROCS[user]['process'].terminate()
     PROCS[user]['queue'] = q = Queue()
     PROCS[user]['process'] = Process(
         target=_enumerate_logs, args=(q, user, users_dir, limit))
@@ -139,6 +140,7 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
     """
     logs_dir = os.path.join(users_dir, "logs")
     log_files = os.listdir(logs_dir)
+    log_files = [a for a in log_files if a.endswith('.golog')] # Only gologs
     log_files.sort() # Should put them in order by date
     log_files.reverse() # Make the newest ones first
     out_dict = {}
@@ -146,7 +148,7 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
         metadata = {}
         log_path = os.path.join(logs_dir, log)
         logfile = gzip.open(log_path)
-        metadata = get_metadata(log_path, user)
+        metadata = get_or_update_metadata(log_path, user)
         metadata['size'] = os.stat(log_path).st_size
         out_dict['log'] = metadata
         message = {'logging_log': out_dict}
@@ -225,7 +227,7 @@ def _retrieve_log_flat(queue, settings):
     logs_dir = os.path.join(users_dir, "logs")
     log_path = os.path.join(logs_dir, log_filename)
     if os.path.exists(log_path):
-        out_dict['metadata'] = get_metadata(log_path, user)
+        out_dict['metadata'] = get_or_update_metadata(log_path, user)
         out_dict['metadata']['filename'] = log_filename
         out_dict['result'] = "Success"
         # Use the terminal emulator to create nice HTML-formatted output
@@ -333,7 +335,7 @@ def _retrieve_log_playback(queue, settings, tws=None):
     # Actual method logic
     if os.path.exists(log_path):
         # First we setup the basics
-        out_dict['metadata'] = get_metadata(log_path, user)
+        out_dict['metadata'] = get_or_update_metadata(log_path, user)
         out_dict['metadata']['filename'] = log_filename
         try:
             rows = out_dict['metadata']['rows']

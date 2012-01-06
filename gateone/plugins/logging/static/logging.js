@@ -3,9 +3,6 @@ var document = window.document; // Have to do this because we're sandboxed
 
 // TODO: Move the parts that load and render logs in separate windows into Web Workers so they don't hang the browser while they're being rendered.
 
-// Tunable logging prefs
-GateOne.prefs.logLevel = 'INFO';
-
 // GateOne.Logging
 GateOne.Base.module(GateOne, "Logging", '0.9', ['Base', 'Net']);
 GateOne.Logging.levels = {
@@ -21,7 +18,11 @@ GateOne.Logging.levels = {
     'INFO': 20,
     'DEBUG': 10
 };
-GateOne.Logging.level = GateOne.prefs.logLevel;
+// Tunable logging prefs
+if (!GateOne.prefs.logLevel) {
+    GateOne.prefs.logLevel = 'INFO';
+}
+GateOne.Logging.level = GateOne.prefs.logLevel; // This allows it to be adjusted at the client
 GateOne.Logging.serverLogs = [];
 GateOne.Logging.sortToggle = false;
 GateOne.Logging.searchFilter = null;
@@ -719,6 +720,7 @@ GateOne.Base.update(GateOne.Logging, {
             metadata = message['metadata'],
             logViewContent = u.createElement('div', {'id': prefix+'logview_container'}),
             logContainer = u.createElement('div', {'id': prefix+'logview', 'class': 'terminal', 'style': {'width': '100%', 'height': '100%'}});
+        console.log("displayPlaybackLogAction()");
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
         } else {

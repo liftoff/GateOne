@@ -1,13 +1,6 @@
 (function(window, undefined) {
 var document = window.document; // Have to do this because we're sandboxed
 
-// Sandbox-wide shortcuts for each log level (actually assigned in init())
-// var logFatal = GateOne.Utils.noop;
-// var logError = GateOne.Utils.noop;
-// var logWarning = GateOne.Utils.noop;
-// var logInfo = GateOne.Utils.noop;
-// var logDebug = GateOne.Utils.noop;
-
 // This is so we can copy a whole function so there's no circular references
 Function.prototype.clone = function() {
     var fct = this;
@@ -50,17 +43,19 @@ GateOne.Base.update(GateOne.Playback, {
             prefsPanelPlaybackLabel = u.createElement('span', {'id': prefix+'prefs_playback_label', 'class':'paneltablelabel'}),
             prefsPanelPlayback = u.createElement('input', {'id': prefix+'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             infoPanelSaveRecording = u.createElement('button', {'id': prefix+'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
-        prefsPanelPlaybackLabel.innerHTML = "<b>Playback Frames:</b> ";
-        prefsPanelPlayback.value = go.prefs.playbackFrames;
-        prefsPanelRow.appendChild(prefsPanelPlaybackLabel);
-        prefsPanelRow.appendChild(prefsPanelPlayback);
-        prefsTableDiv2.appendChild(prefsPanelRow);
-        infoPanelSaveRecording.innerHTML = "View Session Recording";
-        infoPanelSaveRecording.title = "Open the current terminal's playback history in a new window (which you can save to a file)."
-        infoPanelSaveRecording.onclick = function() {
-            GateOne.Playback.saveRecording(localStorage[GateOne.prefs.prefix+'selectedTerminal']);
+        if (prefsTableDiv2) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
+            prefsPanelPlaybackLabel.innerHTML = "<b>Playback Frames:</b> ";
+            prefsPanelPlayback.value = go.prefs.playbackFrames;
+            prefsPanelRow.appendChild(prefsPanelPlaybackLabel);
+            prefsPanelRow.appendChild(prefsPanelPlayback);
+            prefsTableDiv2.appendChild(prefsPanelRow);
+            infoPanelSaveRecording.innerHTML = "View Session Recording";
+            infoPanelSaveRecording.title = "Open the current terminal's playback history in a new window (which you can save to a file)."
+            infoPanelSaveRecording.onclick = function() {
+                GateOne.Playback.saveRecording(localStorage[GateOne.prefs.prefix+'selectedTerminal']);
+            }
+            pTag.appendChild(infoPanelSaveRecording);
         }
-        pTag.appendChild(infoPanelSaveRecording);
         setTimeout(function() {
             GateOne.Playback.addPlaybackControls();
         }, 3000);

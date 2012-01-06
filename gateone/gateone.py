@@ -210,7 +210,7 @@ import sys
 import logging
 import threading
 import time
-from functools import partial
+from functools import partial, wraps
 from datetime import datetime, timedelta
 from platform import uname
 try:
@@ -557,14 +557,27 @@ COLORS_256 = {
     255: "eeeeee"
 }
 
+# Helper functions
+def require_auth(method):
+    """
+    An equivalent to tornado.web.authenticated for WebSockets
+    (TerminalWebSocket, specifically).
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        if not self.get_current_user():
+            self.write_message(_("Only valid users please.  Thanks!"))
+            self.close() # Close the WebSocket
+        return method(self, *args, **kwargs)
+    return wrapper
+
 # Classes
 class HTTPSRedirectHandler(tornado.web.RequestHandler):
     """
     A handler to redirect clients from HTTP to HTTPS.
     """
-    # Right now it's just the one...
     def get(self):
-        """Just redirects the client to HTTPS"""
+        """Just redirects the client from HTTP to HTTPS"""
         self.redirect('https://%s/' % self.request.headers['Host'])
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -580,6 +593,7 @@ class BaseHandler(tornado.web.RequestHandler):
             if user and 'upn' not in user:
                 return None
             return user
+    # More may be added in the future
 
 class MainHandler(BaseHandler):
     """
@@ -824,6 +838,7 @@ class TerminalWebSocket(WebSocketHandler):
                         if value:
                             self.commands[key](value)
                         else:
+                            # Try, try again
                             self.commands[key]()
                     except KeyError:
                         pass # Ignore commands we don't understand
@@ -835,11 +850,11 @@ class TerminalWebSocket(WebSocketHandler):
         NOTE: Normally self.refresh_screen() catches the disconnect first and
         this won't be called.
         """
-        # TODO: Make this detach all callbacks so they're not sticking around in memory
         logging.debug("on_close()")
         user = self.get_current_user()
-        # Remove all attached callbacks so we're not wasting memory/CPU
-        if user['session'] in SESSIONS:
+        # Remove all attached callbacks so we're not wasting memory/CPU on
+        # disconnected clients
+        if user and user['session'] in SESSIONS:
             for term in SESSIONS[user['session']]:
                 if isinstance(term, int):
                     multiplex = SESSIONS[user['session']][term]['multiplex']
@@ -1008,7 +1023,7 @@ class TerminalWebSocket(WebSocketHandler):
         message = {
             'terminals': terminals,
         # This is just so the client has a human-readable point of reference:
-            'set_username': self.get_current_user()['upn'],
+            'set_username': self.get_current_user()['upn']
         }
         # TODO: Add a hook here for plugins to send their own messages when a
         #       given terminal is reconnected.
@@ -1018,6 +1033,7 @@ class TerminalWebSocket(WebSocketHandler):
         for css_template in plugins['css']:
             self.write_message(json_encode({'load_css': css_template}))
 
+    @require_auth
     def new_terminal(self, settings):
         """
         Starts up a new terminal associated with the user's session using
@@ -1158,13 +1174,15 @@ class TerminalWebSocket(WebSocketHandler):
         #       SESSIONS[self.session][term]['multiplex'].alive is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
 
+    @require_auth
     def kill_terminal(self, term):
         """Kills *term* and any associated processes"""
         logging.debug("killing terminal: %s" % term)
         term = int(term)
         try:
-            SESSIONS[self.session][term]['multiplex'].die()
-            SESSIONS[self.session][term]['multiplex'].proc_kill()
+            if SESSIONS[self.session][term]['multiplex'].alive:
+                SESSIONS[self.session][term]['multiplex'].die()
+                SESSIONS[self.session][term]['multiplex'].proc_kill()
             if self.settings['dtach']:
                 kill_dtached_proc(self.session, term)
             del SESSIONS[self.session][term]
@@ -1172,10 +1190,12 @@ class TerminalWebSocket(WebSocketHandler):
             pass # The EVIL termio has killed my child!  Wait, that's good...
                  # Because now I don't have to worry about it!
 
+    @require_auth
     def set_terminal(self, term):
         """Sets self.current_term = *term*"""
         self.current_term = term
 
+    @require_auth
     def reset_terminal(self, term):
         """
         Tells the client to reset the terminal (clear the screen and remove
@@ -1184,6 +1204,7 @@ class TerminalWebSocket(WebSocketHandler):
         message = {'reset_terminal': term}
         self.write_message(json_encode(message))
 
+    @require_auth
     def set_title(self, term):
         """
         Sends a message to the client telling it to set the window title of
@@ -1204,6 +1225,7 @@ class TerminalWebSocket(WebSocketHandler):
             title_message = {'set_title': {'term': term, 'title': title}}
             self.write_message(json_encode(title_message))
 
+    @require_auth
     def bell(self, term):
         """
         Sends a message to the client indicating that a bell was encountered in
@@ -1214,6 +1236,7 @@ class TerminalWebSocket(WebSocketHandler):
         bell_message = {'bell': {'term': term}}
         self.write_message(json_encode(bell_message))
 
+    @require_auth
     def mode_handler(self, term, setting, boolean):
         """Handles mode settings that require an action on the client."""
         logging.debug(
@@ -1247,7 +1270,6 @@ class TerminalWebSocket(WebSocketHandler):
             scrollback, screen = multiplex.dumplines(
                 full=full, client_id=self.client_id)
         except KeyError as e: # Session died (i.e. command ended).
-            logging.debug("KeyError in _send_refresh: %s" % e)
             scrollback, screen = None, None
         if screen:
             output_dict = {
@@ -1267,6 +1289,7 @@ class TerminalWebSocket(WebSocketHandler):
                 multiplex.remove_callback( # Stop trying to write
                     multiplex.CALLBACK_UPDATE, self.callback_id)
 
+    @require_auth
     def refresh_screen(self, term, full=False):
         """
         Writes the state of the given terminal's screen and scrollback buffer to
@@ -1316,6 +1339,7 @@ class TerminalWebSocket(WebSocketHandler):
         except KeyError as e: # Session died (i.e. command ended).
             logging.debug(_("KeyError in refresh_screen: %s" % e))
 
+    @require_auth
     def full_refresh(self, term):
         """Calls self.refresh_screen(*term*, full=True)"""
         try:
@@ -1325,6 +1349,7 @@ class TerminalWebSocket(WebSocketHandler):
                 "Invalid terminal number given to full_refresh(): %s" % term))
         self.refresh_screen(term, full=True)
 
+    @require_auth
     def resize(self, resize_obj):
         """
         Resize the terminal window to the rows/cols specified in *resize_obj*
@@ -1360,6 +1385,7 @@ class TerminalWebSocket(WebSocketHandler):
         except KeyError: # Session doesn't exist yet, no biggie
             pass
 
+    @require_auth
     def char_handler(self, chars):
         """Writes *chars* (string) to the currently-selected terminal"""
         if type(chars) != unicode:
@@ -1373,6 +1399,7 @@ class TerminalWebSocket(WebSocketHandler):
                         session][term]['multiplex'].ratelimit = time.time()
                     SESSIONS[session][term]['multiplex'].proc_write(chars)
 
+    @require_auth
     def esc_opt_handler(self, chars):
         """
         Executes whatever function is registered matching the tuple returned by
@@ -1401,6 +1428,7 @@ class TerminalWebSocket(WebSocketHandler):
         message = {'load_webworker': go_process}
         self.write_message(tornado.escape.json_encode(message))
 
+    @require_auth
     def debug_terminal(self, term):
         """
         Prints the terminal's screen and renditions to stdout so they can be
@@ -1501,8 +1529,9 @@ class TidyThread(threading.Thread):
         # Clean up:
         for term in SESSIONS[session].keys():
             try:
-                SESSIONS[session][term]['multiplex'].die()
-                SESSIONS[session][term]['multiplex'].proc_kill()
+                if SESSIONS[session][term]['multiplex'].alive:
+                    SESSIONS[session][term]['multiplex'].die()
+                    SESSIONS[session][term]['multiplex'].proc_kill()
             except TypeError: # Ignore the TidyThread (i.e. ourselves)
                 pass
             except KeyError: # Already killed... Great!
