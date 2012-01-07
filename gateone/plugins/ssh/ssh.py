@@ -19,13 +19,12 @@ import logging
 
 # Our stuff
 from gateone import BaseHandler
-from utils import get_translation
+from utils import get_translation, json_encode
 
 _ = get_translation()
 
 # Tornado stuff
 import tornado.web
-from tornado.escape import json_encode
 
 # Helper functions
 # TODO: make execute_command() a user-configurable option...  So it will automatically run whatever command(s) the user likes via a back-end channel whenever they connect to a given server.  Maybe even differentiate between when they connect and when they start up a master or slave channel.

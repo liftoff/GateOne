@@ -31,7 +31,7 @@ from functools import partial
 # Our stuff
 from gateone import BaseHandler, PLUGINS, COLORS_256
 from logviewer import flatten_log, playback_log, get_or_update_metadata
-from utils import get_translation
+from utils import get_translation, json_encode
 
 _ = get_translation()
 
@@ -39,7 +39,7 @@ _ = get_translation()
 import tornado.web
 import tornado.template
 import tornado.ioloop
-from tornado.escape import json_encode, json_decode
+from tornado.escape import json_decode
 
 # Globals
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log

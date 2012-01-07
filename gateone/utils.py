@@ -33,6 +33,7 @@ from datetime import timedelta
 
 # Import 3rd party stuff
 from tornado import locale
+from tornado.escape import json_encode as _json_encode
 
 # Globals
 # This matches JUST the PIDs from the output of the pstree command
@@ -113,6 +114,14 @@ class MimeTypeFail(Exception):
 def noop(*args, **kwargs):
     'Do nothing (i.e. "No Operation")'
     pass
+
+def json_encode(obj):
+    """
+    On some platforms (CentOS 6.2, specifically) tornado.escape.json_decode
+    doesn't seem to work just right when it comes to returning unicode strings.
+    This is just a wrapper that ensures that the returned string is unicode.
+    """
+    return unicode(_json_encode(obj))
 
 def get_translation():
     """

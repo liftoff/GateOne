@@ -227,7 +227,7 @@ try:
     import tornado.auth
     import tornado.template
     from tornado.websocket import WebSocketHandler
-    from tornado.escape import json_encode, json_decode
+    from tornado.escape import json_decode
     from tornado.options import define, options
     from tornado import locale
     from tornado import version as tornado_version
@@ -256,7 +256,7 @@ from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
 from utils import create_plugin_links, merge_handlers, none_fix, short_hash
 from utils import convert_to_timedelta, kill_dtached_proc, FACILITIES
 from utils import process_opt_esc_sequence, create_data_uri, MimeTypeFail
-from utils import string_to_syslog_facility, fallback_bell
+from utils import string_to_syslog_facility, fallback_bell, json_encode
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -794,7 +794,7 @@ class TerminalWebSocket(WebSocketHandler):
         user_json = self.get_secure_cookie("gateone_user")
         if not user_json:
             return None
-        return tornado.escape.json_decode(user_json)
+        return json_decode(user_json)
 
     def open(self):
         """Called when a new WebSocket is opened."""
@@ -966,8 +966,7 @@ class TerminalWebSocket(WebSocketHandler):
                                     'upn': upn, # FYI: UPN == userPrincipalName
                                     'session': generate_session_id()
                                 }
-                                session_info_json = tornado.escape.json_encode(
-                                    self.api_user)
+                                session_info_json = json_encode(self.api_user)
                                 f.write(session_info_json)
                     else:
                         logging.error(_(
@@ -1426,7 +1425,7 @@ class TerminalWebSocket(WebSocketHandler):
         with open(webworker_path) as f:
             go_process = f.read()
         message = {'load_webworker': go_process}
-        self.write_message(tornado.escape.json_encode(message))
+        self.write_message(json_encode(message))
 
     @require_auth
     def debug_terminal(self, term):

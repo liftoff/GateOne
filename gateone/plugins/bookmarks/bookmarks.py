@@ -23,13 +23,13 @@ except ImportError: # Python 3.X
 
 # Our stuff
 from gateone import BaseHandler
-from utils import get_translation, mkdir_p, noop
+from utils import get_translation, mkdir_p, noop, json_encode
 
 _ = get_translation()
 
 # Tornado stuff
 import tornado.web
-from tornado.escape import json_encode, json_decode
+from tornado.escape import json_decode
 
 # 3rd party stuff
 # The following two lines let us import modules in the "dependencies" dir
