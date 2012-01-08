@@ -110,6 +110,13 @@ class MimeTypeFail(Exception):
     """
     pass
 
+class SSLGenerationError(Exception):
+    """
+    Raised by gen_self_signed_ssl() if an error is encountered generating a
+    self-signed SSL certificate.
+    """
+    pass
+
 # Functions
 def noop(*args, **kwargs):
     'Do nothing (i.e. "No Operation")'
@@ -149,7 +156,91 @@ def get_translation():
     user_locale = locale.get(locale_str)
     return user_locale.translate
 
-def gen_self_signed_ssl(notAfter=None):
+def gen_self_signed_ssl():
+    """
+    Generates a self-signed SSL certificate using pyOpenSSL if it is available.
+    The openssl commmand, if not.  In either case the key/certificate will use
+    the RSA algorithm at 4096 bits.
+    """
+    try:
+        import OpenSSL
+        # Direct OpenSSL library calls are better than executing commands...
+        gen_self_signed_func = gen_self_signed_pyopenssl
+    except ImportError:
+        gen_self_signed_func = gen_self_signed_openssl
+    try:
+        gen_self_signed_func()
+    except SSLGenerationError as e:
+        logging.error(_(
+            "Error generating self-signed SSL key/certificate: %s" % e))
+
+def gen_self_signed_openssl():
+    """
+    This method will generate a secure self-signed SSL key/certificate pair
+    (using the openssl command) saving the result as 'certificate.pem' and
+    'keyfile.pem' in the current working directory.  The certificate will be
+    valid for 10 years.
+    """
+    subject = (
+        '-subj "/OU=%s (Self-Signed)/CN=Gate One/O=Liftoff Software"' %
+        os.uname()[1] # Hostname
+    )
+    gen_command = (
+        "openssl genrsa -aes256 -out keyfile.pem.tmp -passout pass:password 4096"
+    )
+    decrypt_key_command = (
+        "openssl rsa -in keyfile.pem.tmp -passin pass:password -out keyfile.pem"
+    )
+    csr_command = (
+        "openssl req -new -key keyfile.pem -out temp.csr %s" % subject
+    )
+    cert_command = (
+        "openssl x509 -req "    # Create a new x509 certificate
+        "-days 3650 "           # That lasts 10 years
+        "-in temp.csr "         # Using the CSR we just generated
+        "-signkey keyfile.pem " # Sign it with keyfile.pem that we just created
+        "-out certificate.pem"  # Save it as certificate.pem
+    )
+    exitstatus, output = getstatusoutput(gen_command)
+    if exitstatus != 0:
+        error_msg = _(
+            "An error occurred trying to create private SSL key:\n%s" % output)
+        if os.path.exists('keyfile.pem.tmp'):
+            os.remove('keyfile.pem.tmp')
+        raise SSLGenerationError(error_msg)
+    exitstatus, output = getstatusoutput(decrypt_key_command)
+    if exitstatus != 0:
+        error_msg = _(
+            "An error occurred trying to decrypt private SSL key:\n%s" % output)
+        if os.path.exists('keyfile.pem.tmp'):
+            os.remove('keyfile.pem.tmp')
+        raise SSLGenerationError(error_msg)
+    exitstatus, output = getstatusoutput(csr_command)
+    if exitstatus != 0:
+        error_msg = _(
+            "An error occurred trying to create CSR:\n%s" % output)
+        if os.path.exists('keyfile.pem.tmp'):
+            os.remove('keyfile.pem.tmp')
+        if os.path.exists('temp.csr'):
+            os.remove('temp.csr')
+        raise SSLGenerationError(error_msg)
+    exitstatus, output = getstatusoutput(cert_command)
+    if exitstatus != 0:
+        error_msg = _(
+            "An error occurred trying to create certificate:\n%s" % output)
+        if os.path.exists('keyfile.pem.tmp'):
+            os.remove('keyfile.pem.tmp')
+        if os.path.exists('temp.csr'):
+            os.remove('temp.csr')
+        if os.path.exists('certificate.pem'):
+            os.remove('certificate.pem')
+        raise SSLGenerationError(error_msg)
+    # Clean up unnecessary leftovers
+    os.remove('keyfile.pem.tmp')
+    os.remove('temp.csr')
+
+
+def gen_self_signed_pyopenssl(notAfter=None):
     """
     This method will generate a secure self-signed SSL key/certificate pair
     saving the result as 'certificate.pem' and 'keyfile.pem' in the current
@@ -165,18 +256,16 @@ def gen_self_signed_ssl(notAfter=None):
     try:
         import OpenSSL
     except ImportError:
-        logging.error(
-            "ERROR: You do not have pyOpenSSL installed.  Either install "
-            "pyOpenSSL (sudo pip install pyopenssl) or generate a PEM-formatted"
-            " SSL keyfile and certificate then point to their respective "
-            "locations in server.conf.")
+        error_msg = _(
+            "Error: You do not have pyOpenSSL installed.  Please install "
+            "it (sudo pip install pyopenssl.")
+        raise SSLGenerationError(error_msg)
     pkey = OpenSSL.crypto.PKey()
-    pkey.generate_key(OpenSSL.crypto.TYPE_RSA, 2048)
+    pkey.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
     # Save the key as 'keyfile.pem':
-    f = open('keyfile.pem', 'w')
-    f.write(OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, pkey))
-    f.close()
-
+    with open('keyfile.pem', 'w') as f:
+        f.write(OpenSSL.crypto.dump_privatekey(
+            OpenSSL.crypto.FILETYPE_PEM, pkey))
     cert = OpenSSL.crypto.X509()
     cert.set_serial_number(random.randint(0, sys.maxint))
     cert.gmtime_adj_notBefore(0)
@@ -190,9 +279,9 @@ def gen_self_signed_ssl(notAfter=None):
     cert.get_issuer().O = 'Self-Signed'
     cert.set_pubkey(pkey)
     cert.sign(pkey, 'md5')
-    f = open('certificate.pem', 'w')
-    f.write(OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert))
-    f.close()
+    with open('certificate.pem', 'w') as f:
+        f.write(OpenSSL.crypto.dump_certificate(
+            OpenSSL.crypto.FILETYPE_PEM, cert))
 
 def none_fix(val):
     """
@@ -628,6 +717,31 @@ def human_readable_bytes(bytes):
         return '%.1fK' % (float(bytes)/K)
     else:
         return '%d' % bytes
+
+def timeout(func, args=(), kwargs={}, timeout_duration=5, default=None):
+    """
+    Sets a timeout on the given function, passing it the given args, kwargs,
+    and a default value to return in the event of a timeout.
+    """
+    import threading
+    class InterruptableThread(threading.Thread):
+        def __init__(self):
+            threading.Thread.__init__(self)
+            self.result = None
+
+        def run(self):
+            try:
+                self.result = func(*args, **kwargs)
+            except:
+                self.result = default
+
+    it = InterruptableThread()
+    it.start()
+    it.join(timeout_duration)
+    if it.isAlive():
+        return default
+    else:
+        return it.result
 
 # Misc
 # Used in case bell.ogg can't be found or can't be converted into a data URI

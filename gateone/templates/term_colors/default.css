@@ -29,7 +29,7 @@
 /* 8-color Backgrounds */
 #{{container}} span.b0  { background-color: #222; } /* Black (used when the rendition is set to 49) */
 #{{container}} span.b1  { background-color: #B21818; } /* Red */
-#{{container}} span.b2  { background-color: #00E40C; } /* Green */
+#{{container}} span.b2  { background-color: #00A40C; } /* Green */
 #{{container}} span.b3  { background-color: #FFFF00; } /* Yellow */
 #{{container}} span.b4  { background-color: #1818B2; } /* Blue */
 #{{container}} span.b5  { background-color: #B218B2; } /* Magenta */

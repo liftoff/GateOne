@@ -208,7 +208,10 @@ class Multiplex:
             >>> m.remove_callback(m.CALLBACK_BELL, "myref")
 
         """
-        del self.callbacks[event][identifier]
+        try:
+            del self.callbacks[event][identifier]
+        except KeyError:
+            pass # Doesn't exist anymore--nothing to do
 
     def remove_all_callbacks(self, identifier):
         """
@@ -378,13 +381,21 @@ class Multiplex:
             pass
         # Kick off a process that finalizes the log (updates metadata and
         # recompresses everything to save a ton of disk space)
-        pid, fd = pty.fork()
+        pid = os.fork()
         # Multiprocessing doesn't get much simpler than this!
         if pid == 0: # We're inside the child process
-            # Have to wait just a moment for the main thread to finish writing:
-            time.sleep(5)
-            get_or_update_metadata(self.log_path, self.user)
-            sys.exit(0)
+            os.setsid()
+            pid = os.fork()
+            if pid == 0: # We're inside the sub-child process
+                # Have to wait just a moment for the main thread to finish writing:
+                time.sleep(5)
+                try:
+                    get_or_update_metadata(self.log_path, self.user)
+                except Exception:
+                    pass # Whatever, the metadata will get fixed when enumerated
+                os._exit(0)
+            else:
+                os._exit(0)
 
     def term_write(self, chars):
         """

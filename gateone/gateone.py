@@ -888,11 +888,19 @@ class TerminalWebSocket(WebSocketHandler):
         if self.settings['auth'] and self.settings['auth'] != 'api':
             try:
                 user = self.get_current_user()
-                if user and user['upn'] == '%anonymous':
+                if not user:
                     logging.error(_("Unauthenticated WebSocket attempt."))
-                    # In case this is a legitimate client that simply lost its
-                    # cookie, tell it to re-auth by calling the appropriate
-                    # action on the other side.
+                    # This usually happens when the cookie_secret gets changed
+                    # resulting in "Invalid cookie..." errors.  If we tell the
+                    # client to re-auth the problem should correct itself.
+                    message = {'reauthenticate': True}
+                    self.write_message(json_encode(message))
+                    self.close() # Close the WebSocket
+                elif user and user['upn'] == '%anonymous':
+                    logging.error(_("Unauthenticated WebSocket attempt."))
+                    # This can happen when a client logs in with no auth type
+                    # configured and then later the server is configured to use
+                    # authentication.  The client must be told to re-auth:
                     message = {'reauthenticate': True}
                     self.write_message(json_encode(message))
                     self.close() # Close the WebSocket
@@ -1702,7 +1710,7 @@ def main():
         "session_logging",
         default=True,
         help=_("If enabled, logs of user sessions will be saved in "
-               "<user_dir>/logs.  Default: Enabled")
+               "<user_dir>/<user>/logs.  Default: Enabled")
     )
     define( # This is an easy way to support cetralized logging
         "syslog_session_logging",
@@ -1822,19 +1830,16 @@ def main():
     if os.path.exists(options.config):
         tornado.options.parse_config_file(options.config)
     else: # Generate a default server.conf with a random cookie secret
-        new_conf = True
-        if not os.path.exists(options.user_dir): # Make our user_dir
-            mkdir_p(options.user_dir)
-            os.chmod(options.user_dir, 0700)
-        if not os.path.exists(options.session_dir): # Make our session_dir
-            mkdir_p(options.session_dir)
-            os.chmod(options.session_dir, 0700)
+        logging.info(_(
+           "%s not found.  A new one will be generated with defaults." %
+           options.config))
         config_defaults = {}
         for key, value in options.items():
             config_defaults.update({key: value.default})
         # A few config defaults need special handling
         del config_defaults['kill'] # This shouldn't be in server.conf
         del config_defaults['help'] # Neither should this
+        del config_defaults['new_api_key'] # Ditto
         config_defaults.update({'cookie_secret': generate_session_id()})
         # NOTE: The next four options are specific to the Tornado framework
         config_defaults.update({'log_file_max_size': 100 * 1024 * 1024}) # 100MB
@@ -1854,6 +1859,41 @@ def main():
         config.close()
         tornado.options.parse_config_file(options.config)
     tornado.options.parse_command_line()
+    if not os.path.exists(options.user_dir): # Make our user_dir
+        try:
+            mkdir_p(options.user_dir)
+        except OSError:
+            logging.error(_(
+                "Error: Gate One could not create %s.  Please ensure that user,"
+                " %s has permission to create this directory or create it "
+                "yourself and make user, %s its owner." % (options.user_dir,
+                repr(os.getlogin()), repr(os.getlogin()))))
+            sys.exit(1)
+        # If we could create it we should be able to adjust its permissions:
+        os.chmod(options.user_dir, 0700)
+    if not os.access(options.user_dir, os.W_OK):
+        logging.error(_(
+            "Error: Gate One does not have permission to write to %s.  Please"
+            " ensure that user, %s has write permission to the directory." % (
+            options.user_dir, repr(os.getlogin()))))
+        sys.exit(1)
+    if not os.path.exists(options.session_dir): # Make our session_dir
+        try:
+            mkdir_p(options.session_dir)
+        except OSError:
+            logging.error(_(
+                "Error: Gate One could not create %s.  Please ensure that user,"
+                " %s has permission to create this directory or create it "
+                "yourself and make user, %s its owner." % (options.session_dir,
+                repr(os.getlogin()), repr(os.getlogin()))))
+            sys.exit(1)
+        os.chmod(options.session_dir, 0700)
+    if not os.access(options.session_dir, os.W_OK):
+        logging.error(_(
+            "Error: Gate One does not have permission to write to %s.  Please"
+            " ensure that user, %s has write permission to the directory." % (
+            options.session_dir, os.getlogin())))
+        sys.exit(1)
     # Re-do the locale in case the user supplied something as --locale
     user_locale = locale.get(options.locale)
     _ = user_locale.translate # Also replaces our wrapper so no more .encode()
@@ -1869,9 +1909,12 @@ def main():
                   "One as root, or create that directory and give the proper "
                   "user ownership of it."))
             sys.exit(1)
-    if new_conf:
-        logging.info(_("No server.conf found.  A new one was generated using "
-                     "defaults."))
+    if not os.access(log_dir, os.W_OK):
+        logging.error(_(
+            "Error: Gate One does not have permission to write to %s.  Please"
+            " ensure that user, %s has write permission to the directory." % (
+            log_dir, repr(os.getlogin()))))
+        sys.exit(1)
     if options.kill:
         # Kill all running dtach sessions (associated with Gate One anyway)
         killall(options.session_dir)
@@ -1894,10 +1937,10 @@ def main():
             if not existing:
                 server_conf += 'api_keys = "%s:%s"\n' % (api_key, secret)
         open(os.path.join(options.config), 'w').write(server_conf)
-        print(_("A new API key has been generated: %s" % api_key))
-        print(_("This key can now be used to embed Gate One into other "
+        logging.info(_("A new API key has been generated: %s" % api_key))
+        logging.info(_("This key can now be used to embed Gate One into other "
                 "applications."))
-        return
+        sys.exit(0)
     # Set our CMD variable to tell the multiplexer which command to execute
     global CMD
     CMD = options.command
