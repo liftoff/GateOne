@@ -3,6 +3,7 @@
 #       Copyright 2011 Liftoff Software Corporation
 #
 
+# TODO: Fix the up arrow key when in apps like 'less'
 # Meta
 __version__ = '0.9'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"

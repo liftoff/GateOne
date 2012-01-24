@@ -24,20 +24,29 @@ import errno
 import base64
 import uuid
 import logging
-import syslog
 import mimetypes
 import struct
 import binascii
-from commands import getstatusoutput
+import gzip
 from datetime import timedelta
 
 # Import 3rd party stuff
 from tornado import locale
-from tornado.escape import json_encode as _json_encode
+try:
+    from tornado.escape import json_encode as _json_encode
+    from tornado.escape import json_decode
+except ImportError: # Tornado isn't available
+    from json import dumps as _json_encode
+    from json import loads as json_encode
 
 # Globals
 # This matches JUST the PIDs from the output of the pstree command
 RE_PSTREE = re.compile(r'\(([0-9]*)\)')
+# Matches Gate One's special optional escape sequence
+RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)', re.MULTILINE)
+# Matches an xterm title sequence
+RE_TITLE_SEQ = re.compile(
+    r'.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)', re.DOTALL|re.MULTILINE)
 # This is used by the raw() function to show control characters
 REPLACEMENT_DICT = {
     0: u'^@',
@@ -74,27 +83,28 @@ REPLACEMENT_DICT = {
     31: u'^_',
     127: u'^?',
 }
-# Syslog string-to-int dict used by string_to_syslog_facility()
+# These should match what's in the syslog module (hopefully not platform-dependent)
 FACILITIES = {
-    'kern': syslog.LOG_KERN,
-    'user': syslog.LOG_USER,
-    'mail': syslog.LOG_MAIL,
-    'daemon': syslog.LOG_DAEMON,
-    'auth': syslog.LOG_AUTH,
-    'syslog': syslog.LOG_SYSLOG,
-    'lpr': syslog.LOG_LPR,
-    'news': syslog.LOG_NEWS,
-    'uucp': syslog.LOG_UUCP,
-    'cron': syslog.LOG_CRON,
-    'local0': syslog.LOG_LOCAL0,
-    'local1': syslog.LOG_LOCAL1,
-    'local2': syslog.LOG_LOCAL2,
-    'local3': syslog.LOG_LOCAL3,
-    'local4': syslog.LOG_LOCAL4,
-    'local5': syslog.LOG_LOCAL5,
-    'local6': syslog.LOG_LOCAL6,
-    'local7': syslog.LOG_LOCAL7
+    'auth': 32,
+    'cron': 72,
+    'daemon': 24,
+    'kern': 0,
+    'local0': 128,
+    'local1': 136,
+    'local2': 144,
+    'local3': 152,
+    'local4': 160,
+    'local5': 168,
+    'local6': 176,
+    'local7': 184,
+    'lpr': 48,
+    'mail': 16,
+    'news': 56,
+    'syslog': 40,
+    'user': 8,
+    'uucp': 64
 }
+SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
 
 # Exceptions
 class UnknownFacility(Exception):
@@ -119,8 +129,37 @@ class SSLGenerationError(Exception):
 
 # Functions
 def noop(*args, **kwargs):
-    'Do nothing (i.e. "No Operation")'
+    """Do nothing (i.e. "No Operation")"""
     pass
+
+def shell_command(cmd, timeout_duration=5):
+    """
+    Resets the SIGCHLD signal handler (if necessary), executes
+    commands.getstatusoutput(*cmd*), then re-enables the SIGCHLD handler (if it
+    was set to something other than SIG_DFL).  Returns the result of
+    getstatusoutput().
+
+    If the command takes longer than *timeout_duration* seconds, it will be
+    auto-killed and (255, _("ERROR: Timeout running shell command")) will be
+    returned.
+    """
+    try:
+        from commands import getstatusoutput
+    except ImportError: # Moved to subprocess in Python 3 (this is just preparation)
+        from subprocess import getstatusoutput
+    existing_handler = signal.getsignal(signal.SIGCHLD)
+    default = (255, _("ERROR: Timeout running shell command"))
+    if existing_handler != 0: # Something other than default
+        # Reset it to default so getstatusoutput will work properly
+        signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+    result = timeout_func(
+        getstatusoutput,
+        args=(cmd,),
+        default=default,
+        timeout_duration=timeout_duration
+    )
+    signal.signal(signal.SIGCHLD, existing_handler)
+    return result
 
 def json_encode(obj):
     """
@@ -201,21 +240,21 @@ def gen_self_signed_openssl():
         "-signkey keyfile.pem " # Sign it with keyfile.pem that we just created
         "-out certificate.pem"  # Save it as certificate.pem
     )
-    exitstatus, output = getstatusoutput(gen_command)
+    exitstatus, output = shell_command(gen_command)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to create private SSL key:\n%s" % output)
         if os.path.exists('keyfile.pem.tmp'):
             os.remove('keyfile.pem.tmp')
         raise SSLGenerationError(error_msg)
-    exitstatus, output = getstatusoutput(decrypt_key_command)
+    exitstatus, output = shell_command(decrypt_key_command)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to decrypt private SSL key:\n%s" % output)
         if os.path.exists('keyfile.pem.tmp'):
             os.remove('keyfile.pem.tmp')
         raise SSLGenerationError(error_msg)
-    exitstatus, output = getstatusoutput(csr_command)
+    exitstatus, output = shell_command(csr_command)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to create CSR:\n%s" % output)
@@ -224,7 +263,7 @@ def gen_self_signed_openssl():
         if os.path.exists('temp.csr'):
             os.remove('temp.csr')
         raise SSLGenerationError(error_msg)
-    exitstatus, output = getstatusoutput(cert_command)
+    exitstatus, output = shell_command(cert_command)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to create certificate:\n%s" % output)
@@ -392,25 +431,25 @@ def kill_dtached_proc(session, term):
     sub-processes.  Requires *session* so it can figure out the right
     processess to kill.
     """
-    cmd = (
-        "ps -ef | "
-        "grep %s/dtach:%s | " # Limit to those matching our session/term combo
-        "grep 'dtach -c' | " # Limit to the parent dtach process
-        "grep -v grep | " # Get rid of grep from the results (if present)
-        "awk '{print $2}'" % (session, term) # Just the PID please
-    )
-    retcode, pid = getstatusoutput(cmd)
-    if pid:
-        retcode, pstree = getstatusoutput('pstree -p %s' % pid)
-        # pstree will look something like:
-        #   dtach(19041)---python(19042)---ssh(19048)
-        pids = RE_PSTREE.findall(pstree)
-        # pids will be something like ['19041', '19042', '19048']
-        for pid in pids:
+    dtach_socket_name = 'dtach_%s' % term
+    for f in os.listdir('/proc'):
+        pid_dir = os.path.join('/proc', f)
+        if os.path.isdir(pid_dir):
             try:
-                os.kill(int(pid), signal.SIGTERM)
-            except OSError:
-                pass # No biggie; child died with parent
+                pid = int(f)
+            except ValueError:
+                continue # Not a PID
+            try:
+                with open(os.path.join(pid_dir, 'cmdline')) as f:
+                    cmdline = f.read()
+                if cmdline and session in cmdline:
+                    if dtach_socket_name in cmdline:
+                        os.kill(pid, signal.SIGTERM)
+            except Exception as e:
+                #logging.debug("Couldn't read the cmdline of PID %s" % pid)
+                #logging.debug(e)
+                pass # Already dead, no big deal.
+                # Uncomment above you think otherwise.
 
 def killall(session_dir):
     """
@@ -418,15 +457,30 @@ def killall(session_dir):
     sessions.
     *session_dir* - The path to Gate One's session directory.
     """
-    cmd = (
-        "for i in `ls %s`; "
-        "do ps -ef | grep $i | awk '{print $2}' | xargs kill; "
-        "done"
-        % session_dir
-    )
-    retcode, output = getstatusoutput(cmd)
-    cmd = "rm -rf %s/*" % session_dir
-    recode, output = getstatusoutput(cmd)
+    sessions = os.listdir(session_dir)
+    for f in os.listdir('/proc'):
+        pid_dir = os.path.join('/proc', f)
+        if os.path.isdir(pid_dir):
+            try:
+                pid = int(f)
+                if pid == os.getpid():
+                    continue # It would be suicide!
+            except ValueError:
+                continue # Not a PID
+            with open(os.path.join(pid_dir, 'cmdline')) as f:
+                cmdline = f.read()
+            for session in sessions:
+                if session in cmdline:
+                    try:
+                        os.kill(pid, signal.SIGTERM)
+                    except OSError:
+                        pass # PID is already dead--great
+                elif 'python' in cmdline:
+                    if 'gateone.py' in cmdline:
+                        try:
+                            os.kill(pid, signal.SIGTERM)
+                        except OSError:
+                            pass # PID is already dead--great
 
 def create_plugin_links(static_dir, templates_dir, plugin_dir):
     """
@@ -678,11 +732,12 @@ def string_to_syslog_facility(facility):
     Given a string (*facility*) such as, "daemon" returns the numeric
     syslog.LOG_* equivalent.
     """
+    import syslog
     if facility.lower() in FACILITIES:
         return FACILITIES[facility.lower()]
     else:
-        raise UnknownFacility(
-            "%s does not match a known syslog facility" % repr(facility))
+        raise UnknownFacility(_(
+            "%s does not match a known syslog facility" % repr(facility)))
 
 def create_data_uri(filepath):
     """
@@ -718,7 +773,127 @@ def human_readable_bytes(bytes):
     else:
         return '%d' % bytes
 
-def timeout(func, args=(), kwargs={}, timeout_duration=5, default=None):
+def retrieve_first_frame(golog_path):
+    """
+    Retrieves the first frame from the given *golog_path*.
+    """
+    found_first_frame = None
+    frame = ""
+    f = gzip.open(golog_path)
+    while not found_first_frame:
+        frame += f.read(1)
+        if frame.decode('UTF-8', "ignore").endswith(SEPARATOR):
+            # That's it; wrap this up
+            found_first_frame = True
+    f.close()
+    return frame.decode('UTF-8', "ignore").rstrip(SEPARATOR)
+
+def get_or_update_metadata(golog_path, user):
+    """
+    Retrieves or creates/updates the metadata inside of *golog_path*.
+
+    NOTE:  All logs will need "fixing" the first time they're enumerated since
+    they won't have an end_date.  Fortunately we only need to do this once per
+    golog.
+    """
+    first_frame = retrieve_first_frame(golog_path)
+    metadata = {}
+    if first_frame[14:].startswith('{'):
+        # This is JSON
+        metadata = json_decode(first_frame[14:])
+        if 'end_date' in metadata: # end_date gets added by this func
+            return metadata # All done
+    # '\xf3\xb0\xbc\x8f' <--UTF-8 encoded SEPARATOR (for reference)
+    encoded_separator = SEPARATOR.encode('UTF-8')
+    golog_frames = []
+    golog = gzip.open(golog_path)
+    # Loop over everything one byte at a time, separating the frames
+    frame = ""
+    byte = golog.read(1)
+    while byte:
+        frame += byte
+        if frame.endswith(encoded_separator):
+            # This is the end of the frame
+            golog_frames.append(frame[:-4]) # [:-4] omits the separator
+            if len(golog_frames) == 50: # Only look in the first 50 frames
+                break
+            frame = "" # Reset
+        byte = golog.read(1)
+    # Getting the start date is easy
+    start_date = golog_frames[0][:13]
+    golog.seek(0)
+    # Loop over the file in big chunks (which is faster than read() by an order
+    # of magnitude)
+    chunk_size = 1024*128 # 128k should be enough for a 100x300 terminal full
+    # of 4-byte unicode characters. That would be one BIG frame (i.e. unlikely).
+    # Sadly, we have to read the whole thing into memory (log_data) in order to
+    # perform this important work (creating proper metadata).
+    # On the plus side re-compressing the log can save a _lot_ of disk space
+    # Why?  Because termio.py writes the frames using gzip.open() in append mode
+    # which is a lot less efficient than compressing all the data in one go.
+    log_data = ''
+    while True:
+        chunk = golog.read(chunk_size)
+        log_data += chunk
+        if len(chunk) < chunk_size:
+            break
+    # NOTE: -2 below because split() leaves us with an empty string at the end
+    end_date = log_data.split(encoded_separator)[-2][:13]
+    version = "1.0"
+    connect_string = None
+    from gateone import PLUGINS
+    if 'ssh' in PLUGINS['py']:
+        # Try to find the host that was connected to by looking for the SSH
+        # plugin's special optional escape sequence.  It looks like this:
+        #   "\x1b]_;ssh|%s@%s:%s\007"
+        for frame in golog_frames:
+            match_obj = RE_OPT_SEQ.match(frame)
+            if match_obj:
+                connect_string = match_obj.group(1).split('|')[1]
+                break
+    if not connect_string:
+        # Try guessing it by looking for a title escape sequence
+        for frame in golog_frames:
+            match_obj = RE_TITLE_SEQ.match(frame)
+            if match_obj:
+                # The split() here is an attempt to remove the tail end of
+                # titles like this:  'someuser@somehost: ~'
+                connect_string = match_obj.group(1).split(':')[0]
+                break
+    # TODO: Add some hooks here for plugins to add their own metadata
+    metadata.update({
+        'user': user,
+        'start_date': start_date,
+        'end_date': end_date,
+        'frames': len(log_data.split(encoded_separator))-1,
+        'version': version,
+        'connect_string': connect_string,
+        'filename': os.path.split(golog_path)[1]
+    })
+    first_frame = "%s:%s%s" % (start_date, json_encode(metadata), SEPARATOR)
+    # Re-save the log with the metadata included.
+    gzip.open(golog_path, 'w').write(first_frame.encode('UTF-8') + log_data)
+    return metadata
+
+def which(binary, path=None):
+    """
+    Returns the full path of *binary* (string) just like the 'which' command.
+    Optionally, a *path* (colon-delimited string) may be given to use instead of
+    os.environ['PATH'].
+    """
+    if path:
+        paths = path.split(':')
+    else:
+        paths = os.environ['PATH'].split(':')
+    for path in paths:
+        if not os.path.exists(path):
+            continue
+        files = os.listdir(path)
+        if binary in files:
+            return os.path.join(path, binary)
+    return None
+
+def timeout_func(func, args=(), kwargs={}, timeout_duration=10, default=None):
     """
     Sets a timeout on the given function, passing it the given args, kwargs,
     and a default value to return in the event of a timeout.
@@ -744,5 +919,7 @@ def timeout(func, args=(), kwargs={}, timeout_duration=5, default=None):
         return it.result
 
 # Misc
+_ = get_translation()
+
 # Used in case bell.ogg can't be found or can't be converted into a data URI
 fallback_bell = "data:audio/ogg;base64,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"

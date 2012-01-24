@@ -63,6 +63,7 @@
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#J"><strong>J</strong></a>
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
@@ -401,7 +402,7 @@
 
       <dd><dl>
         
-  <dt><a href="Developer/termio.html#termio.Multiplex.add_callback">(termio.Multiplex method)</a>
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.add_callback">(termio.BaseMultiplex method)</a>
   </dt>
 
       </dl></dd>
@@ -439,6 +440,10 @@
   <dt><a href="Developer/authpam.html#module-authpam">authpam (module)</a>
   </dt>
 
+      
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.await">await() (termio.BaseMultiplex method)</a>
+  </dt>
+
   </dl></td>
 </tr></table>
 
@@ -449,10 +454,14 @@
   <dt><a href="Developer/auth.html#auth.BaseAuthHandler">BaseAuthHandler (class in auth)</a>
   </dt>
 
+      
+  <dt><a href="Developer/gateone.html#gateone.BaseHandler">BaseHandler (class in gateone)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.BaseHandler">BaseHandler (class in gateone)</a>
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex">BaseMultiplex (class in termio)</a>
   </dt>
 
   </dl></td>
@@ -461,6 +470,10 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Developer/termio.html#termio.Pattern.callback">callback (termio.Pattern attribute)</a>
+  </dt>
+
       
   <dt><a href="Developer/terminal.html#terminal.Terminal.clear_line">clear_line() (terminal.Terminal method)</a>
   </dt>
@@ -620,10 +633,6 @@
   <dt><a href="Developer/utils.html#utils.convert_to_timedelta">convert_to_timedelta() (in module utils)</a>
   </dt>
 
-      
-  <dt><a href="Developer/termio.html#termio.Multiplex.create">create() (termio.Multiplex method)</a>
-  </dt>
-
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
@@ -631,7 +640,11 @@
   </dt>
 
       
-  <dt><a href="Developer/utils.html#utils.create_plugin_static_links">create_plugin_static_links() (in module utils)</a>
+  <dt><a href="Developer/utils.html#utils.create_plugin_links">create_plugin_links() (in module utils)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.Pattern.created">created (termio.Pattern attribute)</a>
   </dt>
 
       
@@ -677,6 +690,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="Developer/termio.html#termio.debug_expect">debug_expect() (in module termio)</a>
+  </dt>
+
+      
   <dt><a href="Developer/terminal.html#terminal.Terminal.delete_characters">delete_characters() (terminal.Terminal method)</a>
   </dt>
 
@@ -685,13 +702,15 @@
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.Multiplex.die">die() (termio.Multiplex method)</a>
-  </dt>
-
-      
   <dt><a href="Developer/terminal.html#terminal.Terminal.dump">dump() (terminal.Terminal method)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.dump">(termio.BaseMultiplex method)</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
@@ -702,12 +721,14 @@
   <dt><a href="Developer/terminal.html#terminal.Terminal.dump_html">dump_html() (terminal.Terminal method)</a>
   </dt>
 
-      
-  <dt><a href="Developer/terminal.html#terminal.Terminal.dump_plain">dump_plain() (terminal.Terminal method)</a>
+      <dd><dl>
+        
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.dump_html">(termio.BaseMultiplex method)</a>
   </dt>
 
+      </dl></dd>
       
-  <dt><a href="Developer/termio.html#termio.Multiplex.dumplines">dumplines() (termio.Multiplex method)</a>
+  <dt><a href="Developer/terminal.html#terminal.Terminal.dump_plain">dump_plain() (terminal.Terminal method)</a>
   </dt>
 
   </dl></td>
@@ -717,7 +738,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="Developer/termio.html#termio.Pattern.errorback">errorback (termio.Pattern attribute)</a>
+  </dt>
+
+      
   <dt><a href="Developer/logviewer.html#logviewer.escape_escape_seq">escape_escape_seq() (in module logviewer)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.expect">expect() (termio.BaseMultiplex method)</a>
   </dt>
 
   </dl></td>
@@ -1034,12 +1065,12 @@
   <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].screen <Array()>">GateOne.terminals[num].screen &lt;Array()&gt; (GateOne.terminals[num] attribute)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].scrollback <Array()>">GateOne.terminals[num].scrollback &lt;Array()&gt; (GateOne.terminals[num] attribute)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].scrollbackVisible <boolean>">GateOne.terminals[num].scrollbackVisible &lt;boolean&gt; (GateOne.terminals[num] attribute)</a>
   </dt>
@@ -1285,6 +1316,14 @@
   </dt>
 
       
+  <dt><a href="Developer/utils.html#utils.gen_self_signed_openssl">gen_self_signed_openssl() (in module utils)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#utils.gen_self_signed_pyopenssl">gen_self_signed_pyopenssl() (in module utils)</a>
+  </dt>
+
+      
   <dt><a href="Developer/utils.html#utils.gen_self_signed_ssl">gen_self_signed_ssl() (in module utils)</a>
   </dt>
 
@@ -1309,6 +1348,10 @@
   <dt><a href="Developer/auth.html#auth.PAMAuthHandler.get">(auth.PAMAuthHandler method)</a>
   </dt>
 
+        
+  <dt><a href="Developer/gateone.html#gateone.HTTPSRedirectHandler.get">(gateone.HTTPSRedirectHandler method)</a>
+  </dt>
+
       </dl></dd>
       
   <dt><a href="Developer/sso.html#sso.KerberosAuthMixin.get_authenticated_user">get_authenticated_user() (sso.KerberosAuthMixin method)</a>
@@ -1326,6 +1369,10 @@
       </dl></dd>
       
   <dt><a href="Developer/terminal.html#terminal.Terminal.get_cursor_position">get_cursor_position() (terminal.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#utils.get_or_update_metadata">get_or_update_metadata() (in module utils)</a>
   </dt>
 
       
@@ -1354,6 +1401,16 @@
   <dt><a href="Developer/terminal.html#terminal.handle_special">handle_special() (in module terminal)</a>
   </dt>
 
+      
+  <dt><a href="Developer/gateone.html#gateone.HTTPSRedirectHandler">HTTPSRedirectHandler (class in gateone)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Developer/utils.html#utils.human_readable_bytes">human_readable_bytes() (in module utils)</a>
+  </dt>
+
   </dl></td>
 </tr></table>
 
@@ -1372,18 +1429,38 @@
   <dt><a href="Developer/terminal.html#terminal.Terminal.init_scrollback">init_scrollback() (terminal.Terminal method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Developer/sso.html#sso.KerberosAuthMixin.initialize">initialize() (sso.KerberosAuthMixin method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Developer/terminal.html#terminal.Terminal.insert_characters">insert_characters() (terminal.Terminal method)</a>
   </dt>
 
       
   <dt><a href="Developer/terminal.html#terminal.Terminal.insert_line">insert_line() (terminal.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.isalive">isalive() (termio.MultiplexPOSIXIOLoop method)</a>
+  </dt>
+
+  </dl></td>
+</tr></table>
+
+<h2 id="J">J</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Developer/utils.html#utils.json_encode">json_encode() (in module utils)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Developer/gateone.html#gateone.JSPluginsHandler">JSPluginsHandler (class in gateone)</a>
   </dt>
 
   </dl></td>
@@ -1455,7 +1532,11 @@
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.Multiplex">Multiplex (class in termio)</a>
+  <dt><a href="Developer/termio.html#termio.Multiplex">Multiplex (in module termio)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop">MultiplexPOSIXIOLoop (class in termio)</a>
   </dt>
 
   </dl></td>
@@ -1485,7 +1566,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/gateone.html#gateone.OpenLogHandler">OpenLogHandler (class in gateone)</a>
+  <dt><a href="Developer/termio.html#termio.Pattern.optional">optional (termio.Pattern attribute)</a>
   </dt>
 
   </dl></td>
@@ -1499,21 +1580,33 @@
   </dt>
 
       
+  <dt><a href="Developer/termio.html#termio.Pattern">Pattern (class in termio)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.Pattern.pattern">pattern (termio.Pattern attribute)</a>
+  </dt>
+
+      
   <dt><a href="Developer/logviewer.html#logviewer.playback_log">playback_log() (in module logviewer)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.Multiplex.proc_kill">proc_kill() (termio.Multiplex method)</a>
+  <dt><a href="Developer/gateone.html#gateone.PluginCSSTemplateHandler">PluginCSSTemplateHandler (class in gateone)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/termio.html#termio.Multiplex.proc_read">proc_read() (termio.Multiplex method)</a>
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.postprocess">postprocess() (termio.BaseMultiplex method)</a>
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.Multiplex.proc_write">proc_write() (termio.Multiplex method)</a>
+  <dt><a href="Developer/termio.html#termio.Pattern.preprocess">preprocess (termio.Pattern attribute)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.preprocess">preprocess() (termio.BaseMultiplex method)</a>
   </dt>
 
       
@@ -1531,33 +1624,57 @@
   </dt>
 
       
-  <dt><a href="Developer/termio.html#termio.Multiplex.redraw">redraw() (termio.Multiplex method)</a>
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.read">read() (termio.BaseMultiplex method)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.read">(termio.MultiplexPOSIXIOLoop method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="Developer/terminal.html#terminal.Terminal.remove_all_callbacks">remove_all_callbacks() (terminal.Terminal method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.remove_all_callbacks">(termio.BaseMultiplex method)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="Developer/terminal.html#terminal.Terminal.remove_callback">remove_callback() (terminal.Terminal method)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="Developer/termio.html#termio.Multiplex.remove_callback">(termio.Multiplex method)</a>
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.remove_callback">(termio.BaseMultiplex method)</a>
   </dt>
 
       </dl></dd>
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="Developer/gateone.html#gateone.require_auth">require_auth() (in module gateone)</a>
+  </dt>
+
+      
   <dt><a href="Developer/terminal.html#terminal.Terminal.resize">resize() (terminal.Terminal method)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="Developer/termio.html#termio.Multiplex.resize">(termio.Multiplex method)</a>
+  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.resize">(termio.MultiplexPOSIXIOLoop method)</a>
   </dt>
 
       </dl></dd>
       
   <dt><a href="Developer/terminal.html#terminal.Terminal.restore_cursor_position">restore_cursor_position() (terminal.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#utils.retrieve_first_frame">retrieve_first_frame() (in module utils)</a>
   </dt>
 
   </dl></td>
@@ -1594,12 +1711,16 @@
   <dt><a href="Developer/terminal.html#terminal.Terminal.set_led_state">set_led_state() (terminal.Terminal method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Developer/terminal.html#terminal.Terminal.set_title">set_title() (terminal.Terminal method)</a>
   </dt>
 
+      
+  <dt><a href="Developer/utils.html#utils.shell_command">shell_command() (in module utils)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Developer/utils.html#utils.short_hash">short_hash() (in module utils)</a>
   </dt>
@@ -1609,7 +1730,25 @@
   </dt>
 
       
+  <dt><a href="Developer/termio.html#termio.spawn">spawn() (in module termio)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.spawn">(termio.MultiplexPOSIXIOLoop method)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="Developer/utils.html#utils.SSLGenerationError">SSLGenerationError</a>
+  </dt>
+
+      
   <dt><a href="Developer/sso.html#module-sso">sso (module)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.Pattern.sticky">sticky (termio.Pattern attribute)</a>
   </dt>
 
       
@@ -1631,7 +1770,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="Developer/termio.html#termio.Multiplex.term_write">term_write() (termio.Multiplex method)</a>
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.term_write">term_write() (termio.BaseMultiplex method)</a>
   </dt>
 
       
@@ -1642,18 +1781,38 @@
   <dt><a href="Developer/terminal.html#module-terminal">terminal (module)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Developer/terminal.html#terminal.Terminal.terminal_reset">terminal_reset() (terminal.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.terminate">terminate() (termio.MultiplexPOSIXIOLoop method)</a>
   </dt>
 
       
   <dt><a href="Developer/termio.html#module-termio">termio (module)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Developer/gateone.html#gateone.TidyThread">TidyThread (class in gateone)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.Timeout">Timeout</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.Pattern.timeout">timeout (termio.Pattern attribute)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.timeout_check">timeout_check() (termio.BaseMultiplex method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/utils.html#utils.timeout_func">timeout_func() (in module utils)</a>
   </dt>
 
   </dl></td>
@@ -1663,15 +1822,27 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.unexpect">unexpect() (termio.BaseMultiplex method)</a>
+  </dt>
+
+      
   <dt><a href="Developer/utils.html#utils.UnknownFacility">UnknownFacility</a>
   </dt>
 
       
-  <dt><a href="Developer/auth.html#auth.BaseAuthHandler.user_login">user_login() (auth.BaseAuthHandler method)</a>
+  <dt><a href="Developer/terminal.html#terminal.Terminal.use_g0_charset">use_g0_charset() (terminal.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/terminal.html#terminal.Terminal.use_g1_charset">use_g1_charset() (terminal.Terminal method)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Developer/auth.html#auth.BaseAuthHandler.user_login">user_login() (auth.BaseAuthHandler method)</a>
+  </dt>
+
       
   <dt><a href="Developer/auth.html#auth.BaseAuthHandler.user_logout">user_logout() (auth.BaseAuthHandler method)</a>
   </dt>
@@ -1687,7 +1858,27 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="Developer/utils.html#utils.which">which() (in module utils)</a>
+  </dt>
+
+      
   <dt><a href="Developer/terminal.html#terminal.Terminal.write">write() (terminal.Terminal method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="Developer/termio.html#termio.MultiplexPOSIXIOLoop.write">(termio.MultiplexPOSIXIOLoop method)</a>
+  </dt>
+
+      </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.writeline">writeline() (termio.BaseMultiplex method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/termio.html#termio.BaseMultiplex.writelines">writelines() (termio.BaseMultiplex method)</a>
   </dt>
 
   </dl></td>

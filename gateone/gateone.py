@@ -212,11 +212,6 @@ import threading
 import time
 from functools import partial, wraps
 from datetime import datetime, timedelta
-from platform import uname
-try:
-    from commands import getstatusoutput
-except ImportError: # Moved to subprocess in Python 3 (this is just preparation)
-    from subprocess import getstatusoutput
 
 # Tornado modules (yeah, we use all this stuff)
 try:
@@ -254,7 +249,7 @@ from auth import PAMAuthHandler
 from utils import str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
 from utils import create_plugin_links, merge_handlers, none_fix, short_hash
-from utils import convert_to_timedelta, kill_dtached_proc, FACILITIES
+from utils import convert_to_timedelta, kill_dtached_proc, FACILITIES, which
 from utils import process_opt_esc_sequence, create_data_uri, MimeTypeFail
 from utils import string_to_syslog_facility, fallback_bell, json_encode
 
@@ -274,9 +269,11 @@ SESSIONS = {} # We store the crux of most session info here
 CMD = None # Will be overwritten by options.command
 TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
-PLUGINS = get_plugins(GATEONE_DIR + '/plugins')
+PLUGINS = get_plugins(os.path.join(GATEONE_DIR, 'plugins'))
 PLUGIN_WS_CMDS = {} # Gives plugins the ability to extend/enhance TerminalWebSocket
 PLUGIN_HOOKS = {} # Gives plugins the ability to hook into various things.
+PLUGIN_AUTH_HOOKS = [] # For plugins to register functions to be called after a
+                       # user successfully authenticates
 # Gate One registers a handler for for terminal.py's CALLBACK_OPT special escape
 # sequence callback.  Whenever this escape sequence is encountered, Gate One
 # will parse the sequence's contained characters looking for the following
@@ -610,7 +607,7 @@ class MainHandler(BaseHandler):
     # TODO: Add the ability for users to define their own individual bells.
     @tornado.web.authenticated
     def get(self):
-        hostname = uname()[1]
+        hostname = os.uname()[1]
         gateone_js = "/static/gateone.js"
         minified_js_abspath = "%s/static/gateone.min.js" % GATEONE_DIR
         bell = "%s/static/bell.ogg" % GATEONE_DIR
@@ -963,7 +960,7 @@ class TerminalWebSocket(WebSocketHandler):
                                 _("Creating user directory: %s" % user_dir))
                             mkdir_p(user_dir)
                             os.chmod(user_dir, 0700)
-                        session_file = user_dir + '/session'
+                        session_file = os.path.join(user_dir, 'session')
                         if os.path.exists(session_file):
                             session_data = open(session_file).read()
                             self.api_user = json_decode(session_data)
@@ -999,6 +996,13 @@ class TerminalWebSocket(WebSocketHandler):
             message = {'notice': _('AUTHENTICATION ERROR: %s' % e)}
             self.write_message(json_encode(message))
             return
+        try:
+            # Execute any post-authentication hooks that plugins have registered
+            if PLUGIN_AUTH_HOOKS:
+                for auth_hook in PLUGIN_AUTH_HOOKS:
+                    auth_hook(self.get_current_user(), self.settings)
+        except Exception as e:
+            logging.error(_("Exception in registered Auth hook: %s" % e))
         # Apply the container/prefix settings (if present)
         # NOTE:  Currently these are only used by the logging plugin
         if 'container' in settings:
@@ -1017,13 +1021,13 @@ class TerminalWebSocket(WebSocketHandler):
         # Check for any dtach'd terminals we might have missed
         if self.settings['dtach']:
             session_dir = self.settings['session_dir']
-            session_dir = session_dir + "/" + self.session
+            session_dir = os.path.join(session_dir, self.session)
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
                 os.chmod(session_dir, 0700)
             for item in os.listdir(session_dir):
-                if item.startswith('dtach:'):
-                    term = int(item.split(':')[1])
+                if item.startswith('dtach_'):
+                    term = int(item.split('_')[1])
                     if term not in terminals:
                         terminals.append(term)
         terminals.sort() # Put them in order so folks don't get confused
@@ -1039,6 +1043,42 @@ class TerminalWebSocket(WebSocketHandler):
         plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
         for css_template in plugins['css']:
             self.write_message(json_encode({'load_css': css_template}))
+
+    def new_multiplex(self, cmd, term_id):
+        """
+        Returns a new instance of termio.Multiplex with the proper global and
+        client-specific settings.
+
+            *cmd* - The command to execute inside of Multiplex.
+            *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).
+        """
+        user_dir = self.settings['user_dir']
+        try:
+            user = self.get_current_user()['upn']
+        except:
+            # No auth, use %anonymous (% is there to prevent conflicts)
+            user = r'%anonymous' # Don't get on this guy's bad side
+        session_dir = self.settings['session_dir']
+        session_dir = os.path.join(session_dir, self.session)
+        log_path = None
+        if self.settings['session_logging']:
+            log_dir = os.path.join(user_dir, user)
+            log_dir = os.path.join(log_dir, 'logs')
+            # Create the log dir if not already present
+            if not os.path.exists(log_dir):
+                mkdir_p(log_dir)
+            log_name = datetime.now().strftime('%Y%m%d%H%M%S%f.golog')
+            log_path = os.path.join(log_dir, log_name)
+        facility = string_to_syslog_facility(self.settings['syslog_facility'])
+        return termio.Multiplex(
+            cmd,
+            log_path=log_path,
+            user=user,
+            term_id=term_id,
+            syslog=self.settings['syslog_session_logging'],
+            syslog_facility=facility,
+            syslog_host=self.settings['syslog_host']
+        )
 
     @require_auth
     def new_terminal(self, settings):
@@ -1084,13 +1124,13 @@ class TerminalWebSocket(WebSocketHandler):
             )
             resumed_dtach = False
             session_dir = self.settings['session_dir']
-            session_dir = session_dir + "/" + self.session
+            session_dir = os.path.join(session_dir, self.session)
             # Create the session dir if not already present
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
                 os.chmod(session_dir, 0700)
             if self.settings['dtach']: # Wrap in dtach (love this tool!)
-                dtach_path = "%s/dtach:%s" % (session_dir, term)
+                dtach_path = "%s/dtach_%s" % (session_dir, term)
                 if os.path.exists(dtach_path):
                     # Using 'none' for the refresh because the EVIL termio
                     # likes to manage things like that on his own...
@@ -1098,24 +1138,8 @@ class TerminalWebSocket(WebSocketHandler):
                     resumed_dtach = True
                 else: # No existing dtach session...  Make a new one
                     cmd = "dtach -c %s -E -z -r none %s" % (dtach_path, cmd)
-            log_path = None
-            if self.settings['session_logging']:
-                log_dir = "%s/%s/logs" % (user_dir, user)
-                # Create the log dir if not already present
-                if not os.path.exists(log_dir):
-                    mkdir_p(log_dir)
-                log_path = "%s/%s" % (
-                    log_dir, datetime.now().strftime('%Y%m%d%H%M%S%f.golog'))
-            facility = string_to_syslog_facility(
-                self.settings['syslog_facility'])
-            SESSIONS[self.session][term]['multiplex'] = termio.Multiplex(
-                cmd,
-                log_path=log_path,
-                user=user,
-                term_num=term,
-                syslog=self.settings['syslog_session_logging'],
-                syslog_facility=facility
-            )
+            SESSIONS[self.session][term]['multiplex'] = self.new_multiplex(
+                cmd, term)
             # Set some environment variables so the programs we execute can use
             # them (very handy).  Allows for "tight integration" and "synergy"!
             env = {
@@ -1123,13 +1147,12 @@ class TerminalWebSocket(WebSocketHandler):
                 'GO_SESSION': self.session,
                 'GO_SESSION_DIR': session_dir
             }
-            SESSIONS[self.session][term]['multiplex'].create(
+            SESSIONS[self.session][term]['multiplex'].spawn(
                 rows, cols, env=env)
-            if resumed_dtach: # dtach sessions need a little extra love
-                SESSIONS[self.session][term]['multiplex'].redraw()
         else:
             # Terminal already exists
-            if SESSIONS[self.session][term]['multiplex'].alive: # It's ALIVE!
+            if SESSIONS[self.session][term]['multiplex'].isalive():
+                # It's ALIVE!!!
                 SESSIONS[self.session][term]['multiplex'].resize(rows, cols)
                 message = {'term_exists': term}
                 self.write_message(json_encode(message))
@@ -1175,11 +1198,18 @@ class TerminalWebSocket(WebSocketHandler):
             # user disconnects for like a week (by default anyway =)
             SESSIONS[self.session]['tidy_thread'] = TidyThread(self.session)
             SESSIONS[self.session]['tidy_thread'].start()
-        if self.settings['debug']:
-            tornado.autoreload.add_reload_hook(multiplex.proc_kill)
+        #if self.settings['debug']:
+            #tornado.autoreload.add_reload_hook(multiplex.terminate)
         # NOTE: refresh_screen will also take care of cleaning things up if
-        #       SESSIONS[self.session][term]['multiplex'].alive is False
+        #       SESSIONS[self.session][term]['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
+        if self.settings['logging'] == 'debug':
+            message = {
+                'notice': _(
+                    "WARNING: Logging is set to DEBUG.  All keystrokes will be "
+                    "logged!")
+            }
+            self.write_message(message)
 
     @require_auth
     def kill_terminal(self, term):
@@ -1187,9 +1217,8 @@ class TerminalWebSocket(WebSocketHandler):
         logging.debug("killing terminal: %s" % term)
         term = int(term)
         try:
-            if SESSIONS[self.session][term]['multiplex'].alive:
-                SESSIONS[self.session][term]['multiplex'].die()
-                SESSIONS[self.session][term]['multiplex'].proc_kill()
+            if SESSIONS[self.session][term]['multiplex'].isalive():
+                SESSIONS[self.session][term]['multiplex'].terminate()
             if self.settings['dtach']:
                 kill_dtached_proc(self.session, term)
             del SESSIONS[self.session][term]
@@ -1274,7 +1303,7 @@ class TerminalWebSocket(WebSocketHandler):
             tidy_thread = SESSIONS[self.session]['tidy_thread']
             tidy_thread.keepalive(now)
             m = multiplex = SESSIONS[self.session][term]['multiplex']
-            scrollback, screen = multiplex.dumplines(
+            scrollback, screen = multiplex.dump_html(
                 full=full, client_id=self.client_id)
         except KeyError as e: # Session died (i.e. command ended).
             scrollback, screen = None, None
@@ -1400,11 +1429,11 @@ class TerminalWebSocket(WebSocketHandler):
         term = self.current_term
         session = self.session
         if session in SESSIONS:
-            if SESSIONS[session][term]['multiplex'].alive:
+            if SESSIONS[session][term]['multiplex'].isalive():
                 if chars:
                     SESSIONS[ # Force an update
                         session][term]['multiplex'].ratelimit = time.time()
-                    SESSIONS[session][term]['multiplex'].proc_write(chars)
+                    SESSIONS[session][term]['multiplex'].write(chars)
 
     @require_auth
     def esc_opt_handler(self, chars):
@@ -1506,7 +1535,7 @@ class TidyThread(threading.Thread):
                 all_dead = True
                 for term in SESSIONS[session].keys():
                     if isinstance(term, int):
-                        if SESSIONS[session][term]['multiplex'].alive:
+                        if SESSIONS[session][term]['multiplex'].isalive():
                             all_dead = False
                             # Added a doublecheck value here because there's a
                             # gap between when the last terminal is closed and
@@ -1536,9 +1565,8 @@ class TidyThread(threading.Thread):
         # Clean up:
         for term in SESSIONS[session].keys():
             try:
-                if SESSIONS[session][term]['multiplex'].alive:
-                    SESSIONS[session][term]['multiplex'].die()
-                    SESSIONS[session][term]['multiplex'].proc_kill()
+                if SESSIONS[session][term]['multiplex'].isalive():
+                    SESSIONS[session][term]['multiplex'].terminate()
             except TypeError: # Ignore the TidyThread (i.e. ourselves)
                 pass
             except KeyError: # Already killed... Great!
@@ -1554,6 +1582,7 @@ class Application(tornado.web.Application):
         global PLUGIN_WS_CMDS
         global PLUGIN_HOOKS
         global PLUGIN_ESC_HANDLERS
+        global PLUGIN_AUTH_HOOKS
         # Base settings for our Tornado app
         tornado_settings = dict(
             cookie_secret=settings['cookie_secret'],
@@ -1581,6 +1610,9 @@ class Application(tornado.web.Application):
         else:
             logging.info(_("No authentication method configured. All users will "
                          "be %anonymous"))
+        docs_path = os.path.join(GATEONE_DIR, 'docs')
+        docs_path = os.path.join(docs_path, 'build')
+        docs_path = os.path.join(docs_path, 'html')
         # Setup our URL handlers
         handlers = [
             (r"/", MainHandler),
@@ -1590,7 +1622,7 @@ class Application(tornado.web.Application):
             (r"/cssrender", PluginCSSTemplateHandler),
             (r"/combined_js", JSPluginsHandler),
             (r"/docs/(.*)", tornado.web.StaticFileHandler, {
-                "path": GATEONE_DIR + '/docs/build/html/',
+                "path": docs_path,
                 "default_filename": "index.html"
             })
         ]
@@ -1598,13 +1630,22 @@ class Application(tornado.web.Application):
         for plugin_name, hooks in PLUGIN_HOOKS.items():
             if 'Web' in hooks:
                 # Apply the plugin's Web handlers
-                handlers.extend(hooks['Web'])
+                if isinstance(hooks['Web'], list):
+                    handlers.extend(hooks['Web'])
+                else:
+                    handlers.append(hooks['Web'])
             if 'WebSocket' in hooks:
                 # Apply the plugin's WebSocket commands
                 PLUGIN_WS_CMDS.update(hooks['WebSocket'])
             if 'Escape' in hooks:
                 # Apply the plugin's Escape handler
                 PLUGIN_ESC_HANDLERS.update({plugin_name: hooks['Escape']})
+            if 'Auth' in hooks:
+                # Apply the plugin's post-authentication functions
+                if isinstance(hooks['Auth'], list):
+                    PLUGIN_AUTH_HOOKS.extend(hooks['Auth'])
+                else:
+                    PLUGIN_AUTH_HOOKS.append(hooks['Auth'])
         # This removes duplicate handlers for the same regex, allowing plugins
         # to override defaults:
         handlers = merge_handlers(handlers)
@@ -1659,9 +1700,10 @@ def main():
         type=str
     )
     define("command",
+        # The default command assumes the SSH plugin is enabled
         default=GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
                 r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp "
-                "-a '-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'",
+                "-a '-oUserKnownHostsFile=%USERDIR%/%USER%/ssh/known_hosts'",
         help=_("Run the given command when a user connects (e.g. '/bin/login')."
                ),
         type=str
@@ -1696,7 +1738,7 @@ def main():
     )
     define(
         "user_dir",
-        default=GATEONE_DIR + "/users",
+        default=os.path.join(GATEONE_DIR, "users"),
         help=_("Path to the location where user files will be stored."),
         type=str
     )
@@ -1721,8 +1763,17 @@ def main():
         "syslog_facility",
         default="daemon",
         help=_("Syslog facility to use when logging to syslog (if "
-             "syslog_session_logging is enabled).  Must be one of: %s."
-             "  Default: daemon" % ", ".join(facilities)),
+               "syslog_session_logging is enabled).  Must be one of: %s."
+               "  Default: daemon" % ", ".join(facilities)),
+        type=str
+    )
+    define(
+        "syslog_host",
+        default=None,
+        help=_("Remote host to send syslog messages to if syslog_logging is "
+               "enabled.  Default: None (log to the local syslog daemon "
+               "directly).  NOTE:  This setting is required on platforms that "
+               "don't include Python's syslog module."),
         type=str
     )
     define(
@@ -1762,7 +1813,7 @@ def main():
     )
     define(
         "pam_realm",
-        default=uname()[1], # Defaults to hostname
+        default=os.uname()[1],
         help=_("Basic auth REALM to display when authenticating clients.  "
         "Default: hostname.  "
         "Only relevant if PAM authentication is enabled."),
@@ -1948,8 +1999,7 @@ def main():
     global TIMEOUT
     TIMEOUT = convert_to_timedelta(options.session_timeout)
     # Make sure dtach is available and if not, set dtach=False
-    retcode, result = getstatusoutput('which dtach')
-    if retcode != 0:
+    if not which('dtach'):
         logging.warning(
             _("dtach command not found.  dtach support has been disabled."))
         options.dtach = False
@@ -1972,10 +2022,12 @@ def main():
         'embedded': str2bool(options.embedded),
         'js_init': options.js_init,
         'user_dir': options.user_dir,
+        'logging': options.logging, # For reference, really
         'session_dir': options.session_dir,
         'session_logging': options.session_logging,
         'syslog_session_logging': options.syslog_session_logging,
         'syslog_facility': options.syslog_facility,
+        'syslog_host': options.syslog_host,
         'dtach': options.dtach,
         'sso_realm': options.sso_realm,
         'sso_service': options.sso_service,
@@ -2001,6 +2053,12 @@ def main():
     if os.path.exists(combined_plugins):
         os.remove(combined_plugins)
     create_plugin_links(static_dir, templates_dir, plugin_dir)
+    # When options.logging=="debug" it will display all user's keystrokes so
+    # make sure we warn about this.
+    if options.logging == "debug":
+        logging.warning(_(
+            "Logging is set to DEBUG.  Be aware that this will record the "
+            "keystrokes of all users.  Don't be evil!"))
     # Instantiate our Tornado web server
     ssl_options = {
         "certfile": options.certificate,

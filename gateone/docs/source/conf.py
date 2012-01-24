@@ -17,6 +17,7 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath('../'))
 # Insert plugins too
 for plugin_dir in os.listdir(os.path.abspath('../../plugins')):
     sys.path.append(os.path.abspath('../../plugins/%s' % plugin_dir))

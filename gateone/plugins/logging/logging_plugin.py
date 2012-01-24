@@ -21,7 +21,6 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
 import os
-import pty
 import logging
 import gzip
 import re
@@ -30,8 +29,8 @@ from functools import partial
 
 # Our stuff
 from gateone import BaseHandler, PLUGINS, COLORS_256
-from logviewer import flatten_log, playback_log, get_or_update_metadata
-from utils import get_translation, json_encode
+from logviewer import flatten_log, playback_log
+from utils import get_translation, json_encode, get_or_update_metadata
 
 _ = get_translation()
 
@@ -91,7 +90,11 @@ def enumerate_logs(limit=None, tws=None):
     else: # Cancel anything that's already running
         io_loop.remove_handler(PROCS[user]['queue']._reader.fileno())
         if PROCS[user]['process']:
-            PROCS[user]['process'].terminate()
+            try:
+                PROCS[user]['process'].terminate()
+            except OSError:
+                # process was already terminated...  Nothing to do
+                pass
     PROCS[user]['queue'] = q = Queue()
     PROCS[user]['process'] = Process(
         target=_enumerate_logs, args=(q, user, users_dir, limit))
@@ -182,7 +185,12 @@ def retrieve_log_flat(settings, tws=None):
         PROCS[user] = {}
     else: # Cancel anything that's already running
         io_loop.remove_handler(PROCS[user]['queue']._reader.fileno())
-        PROCS[user]['process'].terminate()
+        if PROCS[user]['process']:
+            try:
+                PROCS[user]['process'].terminate()
+            except OSError:
+                # process was already terminated...  Nothing to do
+                pass
     PROCS[user]['queue'] = q = Queue()
     PROCS[user]['process'] = Process(
         target=_retrieve_log_flat, args=(q, settings))
@@ -194,7 +202,7 @@ def retrieve_log_flat(settings, tws=None):
         """
         io_loop.remove_handler(fd)
         message = q.get()
-        tws.write_message(json_encode(message))
+        tws.write_message(message)
     # This is kind of neat:  multiprocessing.Queue() instances have an
     # underlying fd that you can access via the _reader:
     io_loop.add_handler(q._reader.fileno(), send_message, io_loop.READ)
@@ -268,7 +276,7 @@ def retrieve_log_playback(settings, tws=None):
         """
         io_loop.remove_handler(fd)
         message = q.get()
-        tws.write_message(json_encode(message))
+        tws.write_message(message)
     # This is kind of neat:  multiprocessing.Queue() instances have an
     # underlying fd that you can access via the _reader:
     io_loop.add_handler(q._reader.fileno(), send_message, io_loop.READ)

@@ -123,8 +123,11 @@ GateOne.Base.update = function (self, obj/*, ... */) {
     return self;
 };
 
-// Choose the appropriate WebSocket, BlobBuilder, and URL
+// Choose the appropriate WebSocket
 var WebSocket =  window.MozWebSocket || window.WebSocket || window.WebSocketDraft || null;
+// Choose the appropriate BlobBuilder and URL
+var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
+    URL = (window.URL || window.webkitURL);
 
 // GateOne Settings
 GateOne.prefs = { // Tunable prefs (things users can change)
@@ -190,7 +193,7 @@ GateOne.Base.update(GateOne, {
                 } else {
                     if (go.prefs.auth) {
                         // API authentication
-                        logDebug("Using API authtentiation object: " + go.prefs.auth);
+                        logDebug("Using API authentiation object: " + go.prefs.auth);
                         go.initialize();
                     } else {
                         // Regular auth.  Redirect the user...
@@ -556,10 +559,17 @@ GateOne.Base.update(GateOne, {
         goDiv.addEventListener(mousewheelevt, wheelFunc, true);
         var onResizeEvent = function(e) {
             // Update the Terminal if it is resized
-            if (u.getNode(go.prefs.goDiv).style.display != "none") {
-                go.Visual.updateDimensions();
-                go.Net.sendDimensions();
+            if (go.resizeEventTimer) {
+                clearTimeout(go.resizeEventTimer);
+                go.resizeEventTimer = null;
             }
+            go.resizeEventTimer = setTimeout(function() {
+                // Wrapped in a timeout to de-bounce
+                if (u.getNode(go.prefs.goDiv).style.display != "none") {
+                    go.Visual.updateDimensions();
+                    go.Net.sendDimensions();
+                }
+            }, 500);
         }
         window.onresize = onResizeEvent;
         // Check for support for WebSockets. NOTE: (IE with the Websocket add-on calls it "WebSocketDraft")
@@ -576,7 +586,7 @@ GateOne.Base.update(GateOne, {
         // Make sure the termwrapper is the proper width for 2 columns
         go.Visual.updateDimensions();
         // Connect to the server
-        go.ws = go.Net.connect(go.prefs.url);
+        go.Net.connect(go.prefs.url);
         // This calls plugins init() and postInit() functions:
         u.postOnLoad();
         // Start capturing keyboard input
@@ -592,6 +602,10 @@ if (!localStorage[GateOne.prefs.prefix+'selectedTerminal']) {
 // GateOne.Utils (generic utility functions)
 GateOne.Base.module(GateOne, "Utils", "0.9", ['Base']);
 GateOne.Base.update(GateOne.Utils, {
+    init: function() {
+        var go = GateOne;
+        go.Net.addAction('save_file', go.Utils.saveAsAction);
+    },
     getNode: function(elem) {
         // Given an element name (string) or node (in case we're not sure), lookup the node using document.querySelector and return it.
         // NOTE: The benefit of this over just querySelector() is that if it is given a node it will just return the node as-is (so functions can accept both without having to worry about such things).  See removeElement() below for a good example.
@@ -971,6 +985,47 @@ GateOne.Base.update(GateOne.Utils, {
             i = Math.floor(Math.random()*1000000000);
         }
         return i;
+    },
+    saveAs: function(blob, filename) {
+        // Saves the given *blob* (which must be a proper Blob object with data inside of it) as *filename* (as a file) in the browser.  Just as if you clicked on a link to download it.
+        // For reference, this is how to construct a "proper" Blob:
+        //      var bb = new BlobBuilder();
+        //      bb.append(<your data here>);
+        //      var blob = bb.getBlob("text/plain;charset=" + document.characterSet);
+        // NOTE:  Replace 'text/plain' with the actual mimetype of the file.
+        var go = GateOne,
+            u = go.Utils,
+            clickEvent = document.createEvent('MouseEvents'),
+            blobURL = URL.createObjectURL(blob),
+            save_link = u.createElement('a', {'href': blobURL, 'name': filename, 'download': filename});
+        clickEvent.initMouseEvent('click', true, true, document.defaultView, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+        save_link.dispatchEvent(clickEvent);
+    },
+    saveAsAction: function(message) {
+        // Meant to be called as one of our WebSocket 'actions', saves the file to disk contained in *message*.
+        // *message* should contain the following:
+        //      *message['result']* - Either 'Success' or a descriptive error message.
+        //      *message['filename']* - The name we'll give to the file when we save it.
+        //      *message['data']* - The content of the file we're saving.
+        //      *message['mimetype']* - Optional:  The mimetype we'll be instructing the browser to associate with the file (so it will handle it appropriately).  Will default to 'text/plain' if not given.
+        var go = GateOne,
+            u = go.Utils,
+            result = message['result'],
+            data = message['data'],
+            filename = message['filename'],
+            mimetype = 'text/plain';
+        if (result == 'Success') {
+            if (message['mimetype']) {
+                mimetype = message['mimetype'];
+            }
+            var bb = new BlobBuilder();
+            bb.append(message['data']);
+            var blob = bb.getBlob(mimetype);
+            u.saveAs(blob, message['filename']);
+        } else {
+            go.Visual.displayMessage('An error was encountered trying to save a file...');
+            go.Visual.displayMessage(message['result']);
+        }
     },
     // NOTE: The token-based approach prevents an attacker from copying a user's session ID to another host and using it to login but it has the disadvantage of requiring that the user re-login if they reload the page or close their tab.
     // NOTE: If we save the seed in sessionStorage, the user can see it but their session could persist as long as they didn't close the tab (saving them from the reload problem).  This would leave the seeds visible to attackers that had access to the JavaScript console on the client though.  So we would need to change the seeds on a fairly regular basis (say, every minute) to mitigate this.
@@ -2623,6 +2678,7 @@ var logWarning = GateOne.Utils.noop;
 var logInfo = GateOne.Utils.noop;
 var logDebug = GateOne.Utils.noop;
 
+// Choose the appropriate BlobBuilder and URL
 var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
     URL = (window.URL || window.webkitURL);
 
@@ -3024,9 +3080,12 @@ GateOne.Base.update(GateOne.Terminal, {
         GateOne.Visual.playBell();
         GateOne.Visual.displayMessage(message);
     },
-    newTerminal: function(/*Opt:*/term) {
+    newTerminal: function(/*Opt:*/term, /*Opt:*/type) {
         // Adds a new terminal to the grid and starts updates with the server.
         // If *term* is provided, the created terminal will use that number.
+        // If *type* is provided, the new terminal that is created will be of the given *type*.  Otherwise the default will be used.
+        // Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
+        // TODO: Finish supporting terminal types.
         logDebug("calling newTerminal(" + term + ")");
         var go = GateOne,
             u = go.Utils,

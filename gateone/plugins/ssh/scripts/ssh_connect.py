@@ -16,12 +16,12 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
-import os, sys, errno, readline, tempfile, base64, binascii, struct
+import os, sys, errno, readline, tempfile, base64, binascii, struct, signal
 from subprocess import Popen
 from optparse import OptionParser
 
 # Import 3rd party stuff
-from tornado.options import options
+#from tornado.options import options
 
 # Disable ESC autocomplete for local paths (prevents information disclosure)
 readline.parse_and_bind('esc: none')
@@ -29,6 +29,8 @@ readline.parse_and_bind('esc: none')
 # Globals
 wrapper_script = """\
 #!/bin/sh
+# This variable is for easy retrieval later
+SSH_SOCKET='{socket}'
 {cmd}
 echo '[Press Enter to close this terminal]'
 read waitforuser
@@ -48,6 +50,24 @@ def mkdir_p(path):
             pass
         else: raise
 
+def which(binary, path=None):
+    """
+    Returns the full path of *binary* (string) just like the 'which' command.
+    Optionally, a *path* (colon-delimited string) may be given to use instead of
+    os.environ['PATH'].
+    """
+    if path:
+        paths = path.split(':')
+    else:
+        paths = os.environ['PATH'].split(':')
+    for path in paths:
+        if not os.path.exists(path):
+            continue
+        files = os.listdir(path)
+        if binary in files:
+            return os.path.join(path, binary)
+    return None
+
 def short_hash(to_shorten):
     """
     Converts *to_shorten* into a really short hash depenendent on the length of
@@ -56,19 +76,23 @@ def short_hash(to_shorten):
     packed = struct.pack('i', binascii.crc32(to_shorten))
     return base64.urlsafe_b64encode(packed).replace('=', '')
 
-def connect_ssh(
+def openssh_connect(
         user,
         host,
         port,
-        command="/usr/bin/ssh",
+        command=None,
         password=None,
         env=None,
         socket=None,
         sshfp=False,
+        randomart=False,
         additional_args=None):
     """
     Starts an interactive SSH session to the given host as the given user on the
     given port.
+    If *command* isn't given, the equivalent of "which ssh" will be used to
+    determine the full path to the ssh executable.  Otherwise *command* will be
+    used.
     If a password is given, that will be passed to SSH when prompted.
     If *env* (dict) is given, that will be used for the shell env when opening
     the SSH connection.
@@ -76,9 +100,14 @@ def connect_ssh(
     as -S<socket>.  If the socket does not exist, ssh's Master mode switch will
     be set (-M) automatically.  This allows sessions to be duplicated
     automatically.
+    If *sshfp* resolves to True, SSHFP (DNS-based host verification) support
+    will be enabled.
+    If *randomart* resolves to True, the VisualHostKey (randomart hash) option
+    will be enabled.
     If *additional_args* is given this value (or values if it is a list) will be
     added to the arguments passed to the ssh command.
     """
+    signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies
     # NOTE: Figure out if we really want to use the env forwarding feature
     if not env: # Unless we enable SendEnv in ssh these will do nothing
         env = {
@@ -103,6 +132,14 @@ def connect_ssh(
     ]
     if sshfp:
         args.insert(3, "-oVerifyHostKeyDNS=yes")
+    if randomart:
+        args.insert(3, "-oVisualHostKey=yes")
+    if not command:
+        if 'PATH' in env:
+            command = which("ssh", path=env['PATH'])
+        else:
+            env['PATH'] = os.environ['PATH']
+            command = which("ssh")
     if socket:
         # Only set Master mode if we don't have a socket for this session.
         # This allows us to duplicate a session without having to code
@@ -169,7 +206,10 @@ def connect_ssh(
         script_path = "%s" % temp.name
         temp.close() # Will be written to below
     # Create our little shell script to wrap the SSH command
-    script = wrapper_script.format(cmd=" ".join(args), temp=script_path)
+    script = wrapper_script.format(
+        socket=socket,
+        cmd=" ".join(args),
+        temp=script_path)
     with open(script_path, 'w') as f:
         f.write(script) # Save it to disk
     # NOTE: We wrap in a shell script so we can execute it and immediately quit.
@@ -185,8 +225,12 @@ def connect_ssh(
             # Execute then immediately quit so we don't use up any more memory
             # than we need.
             os.execvpe(script_path, [], env)
+            os._exit(0)
+        else:
+            os._exit(0)
     else:
         os.execvpe(script_path, [], env)
+        os._exit(0)
 
 def parse_ssh_url(url):
     """
@@ -255,28 +299,38 @@ if __name__ == "__main__":
         help=("Enable the use of SSHFP in verifying host keys. See:  "
               "http://en.wikipedia.org/wiki/SSHFP#SSHFP")
     )
+    parser.add_option("--randomart",
+        dest="randomart",
+        default=False,
+        action="store_true",
+        help=("Enable the VisualHostKey (randomart hash host key) option when "
+              "connecting.")
+    )
     (options, args) = parser.parse_args()
     try:
         if len(args) == 1:
             (user, host, port, password) = parse_ssh_url(args[0])
-            connect_ssh(user, host, port,
+            openssh_connect(user, host, port,
                 command=options.command,
                 password=password,
                 sshfp=options.sshfp,
+                randomart=options.randomart,
                 additional_args=options.additional_args,
                 socket=options.socket
             )
         elif len(args) == 2: # No port given, assume 22
-            connect_ssh(args[0], args[1], '22',
+            openssh_connect(args[0], args[1], '22',
                 command=options.command,
                 sshfp=options.sshfp,
+                randomart=options.randomart,
                 additional_args=options.additional_args,
                 socket=options.socket
             )
         elif len(args) == 3:
-            connect_ssh(args[0], args[1], args[2],
+            openssh_connect(args[0], args[1], args[2],
                 command=options.command,
                 sshfp=options.sshfp,
+                randomart=options.randomart,
                 additional_args=options.additional_args,
                 socket=options.socket
             )
@@ -302,10 +356,11 @@ if __name__ == "__main__":
         print("\x1b]0;%s@%s\007" % (user, host))
         # Special escape handler:
         print("\x1b]_;ssh|%s@%s:%s\007" % (user, host, port))
-        connect_ssh(user, host, port,
+        openssh_connect(user, host, port,
             command=options.command,
             password=password,
             sshfp=options.sshfp,
+            randomart=options.randomart,
             additional_args=options.additional_args,
             socket=options.socket
         )

@@ -140,9 +140,9 @@ or just 'someuser'.</p>
 
 <dl class="method">
 <dt id="auth.BaseAuthHandler.user_logout">
-<tt class="descname">user_logout</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="../_modules/auth.html#BaseAuthHandler.user_logout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.BaseAuthHandler.user_logout" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called immediately after a user logs out.  Doesn't actually do
-anything.  Just potential future use at this point.</p>
+<tt class="descname">user_logout</tt><big>(</big><em>user</em>, <em>redirect=None</em><big>)</big><a class="reference internal" href="../_modules/auth.html#BaseAuthHandler.user_logout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.BaseAuthHandler.user_logout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called immediately after a user logs out, cleans up the user's session
+information and optionally, redirects them to <em>redirect</em> (URL).</p>
 </dd></dl>
 
 </dd></dl>
@@ -153,7 +153,7 @@ anything.  Just potential future use at this point.</p>
 <dd><p>A handler for when no authentication method is chosen (i.e. --auth=none).</p>
 <dl class="method">
 <dt id="auth.NullAuthHandler.get">
-<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/auth.html#NullAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.NullAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#NullAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.NullAuthHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the 'user' cookie with a new random session ID (<em>go_session</em>) and
 sets <em>go_upn</em> to '%anonymous'.</p>
 </dd></dl>
@@ -167,7 +167,7 @@ sets <em>go_upn</em> to '%anonymous'.</p>
 <dl class="method">
 <dt id="auth.GoogleAuthHandler.get">
 <tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#GoogleAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.GoogleAuthHandler.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the 'user' cookie with an appropriate <em>go_upn</em> and <em>go_session</em>.</p>
+<dd><p>Sets the 'user' cookie with an appropriate <em>upn</em> and <em>session</em>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -178,7 +178,7 @@ sets <em>go_upn</em> to '%anonymous'.</p>
 <dd><p>Handles authenticating users via Kerberos/GSSAPI/SSO.</p>
 <dl class="method">
 <dt id="auth.KerberosAuthHandler.get">
-<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/auth.html#KerberosAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.KerberosAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#KerberosAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.KerberosAuthHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks the user's request header for the proper Authorization data.
 If it checks out the user will be logged in via _on_auth().  If not,
 the browser will be redirected to login.</p>
@@ -192,7 +192,7 @@ the browser will be redirected to login.</p>
 <dd><p>Handles authenticating users via PAM.</p>
 <dl class="method">
 <dt id="auth.PAMAuthHandler.get">
-<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/auth.html#PAMAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.PAMAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#PAMAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.PAMAuthHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks the user's request header for the proper Authorization data.
 If it checks out the user will be logged in via _on_auth().  If not,
 the browser will be redirected to login.</p>

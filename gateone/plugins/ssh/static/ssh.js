@@ -52,27 +52,44 @@ GateOne.Base.update(GateOne.SSH, {
         }
         go.Net.addAction('sshjs_connect', go.SSH.handleConnect);
         go.Net.addAction('sshjs_reconnect', go.SSH.handleReconnect);
+        go.Net.addAction('sshjs_keygen_complete', go.SSH.keygenComplete);
+        go.Net.addAction('sshjs_display_fingerprint', go.SSH.displayHostFingerprint);
         go.Terminal.newTermCallbacks.push(go.SSH.getConnectString);
     },
     getConnectString: function(term) {
         // Asks the SSH plugin on the Gate One server what the SSH connection string is for the given *term*.
-        GateOne.ws.send(JSON.stringify({'sshjs_get_connect_string': term}));
+        GateOne.ws.send(JSON.stringify({'ssh_get_connect_string': term}));
     },
     handleConnect: function(connectString) {
         // Handles the 'sshjs_connect' action which should provide an SSH *connectString* in the form of user@host:port
         // The *connectString* will be stored in GateOne.terminals[term]['sshConnectString'] which is meant to be used in duplicating terminals (because you can't rely on the title).
         logDebug('sshjs_connect: ' + connectString);
-        var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
-        GateOne.terminals[term]['sshConnectString'] = connectString;
+        var go = GateOne,
+            host = connectString.split('@')[1].split(':')[0],
+            port = connectString.split('@')[1].split(':')[1],
+            message = {'host': host, 'port': port},
+            term = localStorage[go.prefs.prefix+'selectedTerminal'];
+        go.terminals[term]['sshConnectString'] = connectString;
+        go.ws.send(JSON.stringify({'ssh_get_host_fingerprint': message}));
     },
     handleReconnect: function(jsonDoc) {
         // Handles the 'sshjs_reconnect' action which should provide a JSON-encoded dictionary containing each terminal's SSH connection string.
         // Example *jsonDoc*: "{1: 'user@host1:22', 2: 'user@host2:22'}"
-        var dict = JSON.parse(jsonDoc);
+        var go = GateOne,
+            dict = JSON.parse(jsonDoc);
         for (var term in dict) {
-            GateOne.terminals[term]['sshConnectString'] = dict[term];
+            go.terminals[term]['sshConnectString'] = dict[term];
             // Also fix the title while we're at it
-            GateOne.Visual.setTitleAction({'term': term, 'title': dict[term]});
+            go.Visual.setTitleAction({'term': term, 'title': dict[term]});
+        }
+    },
+    keygenComplete: function(message) {
+        // Called when we receive a message from the server indicating a keypair was generated successfully
+        if (message['result'] == 'Success') {
+            GateOne.Visual.displayMessage('Keypair generation complete.');
+            GateOne.Visual.displayMessage('The fingerprint of the new key is: ' + message['fingerprint']);
+        } else {
+            GateOne.Visual.displayMessage(message['result']);
         }
     },
     duplicateSession: function(term) {
@@ -174,6 +191,42 @@ GateOne.Base.update(GateOne.SSH, {
         } else {
             sshPanel.appendChild(form);
             u.getNode(go.prefs.goDiv).appendChild(sshPanel);
+        }
+    },
+    displayUserKeysAction: function(message) {
+        // Opens a panel displaying a list of the user's SSH keys (aka identities) which should be contained within *message*:
+        // *message['keys']* - A list of the public and private SSH keys the user has stored in their user directory.
+        // *message['keys'][0]* (hypothetical) - An associative array conaining the key's metadata.  For example:
+        //      {'fingerprint': <key fingerprint>, 'public': <contents of the key if it's not a private key>, 'comment': <key comment (may be empty)>, 'certinfo': <certificate info (empty if it isn't a certificate)>, 'bubblebabble': <the bubblebabble hash of the key>}
+
+    },
+    displayHostFingerprint: function(message) {
+        // Displays the host's key as sent by the server via the sshjs_display_fingerprint action.
+        // The fingerprint will be colorized using the hex values of the fingerprint as the color code with the last value highlighted in bold.
+        // {"sshjs_display_fingerprint": {"result": "Success", "fingerprint": "cc:2f:b9:4f:f6:c0:e5:1d:1b:7a:86:7b:ff:86:97:5b"}}
+        var go = GateOne,
+            v = go.Visual;
+        if (message['result'] == 'Success') {
+            var fingerprint = message['fingerprint'],
+                hexes = fingerprint.split(':'),
+                text = '',
+                colorized = '',
+                count = 0;
+            colorized += '<span style="color: #';
+            hexes.forEach(function(hex) {
+                if (count == 3 || count == 6 || count == 9 || count == 12) {
+                    colorized += '">' + text + '</span><span style="color: #' + hex;
+                    text = hex;
+                } else if (count == 15) {
+                    colorized += '">' + text + '</span><span style="text-decoration: underline">' + hex + '</span>';
+                } else {
+                    colorized += hex;
+                    text += hex;
+                }
+                count += 1;
+            });
+            console.log('colorized: ' + colorized);
+            v.displayMessage('Fingerprint of <i>' + message['host'] + '</i>: ' + colorized);
         }
     }
 });

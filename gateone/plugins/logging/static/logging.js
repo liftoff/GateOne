@@ -332,6 +332,7 @@ GateOne.Base.update(GateOne.Logging, {
         logViewContent.appendChild(logListContainer);
         if (existingPanel) {
             // Remove everything first
+
             while (existingPanel.childNodes.length >= 1 ) {
                 existingPanel.removeChild(existingPanel.firstChild);
             }
@@ -645,24 +646,31 @@ GateOne.Base.update(GateOne.Logging, {
             logListContainer = u.getNode('#'+prefix+'log_listcontainer'),
             logItems = document.getElementsByClassName('logitem'),
             maxItems = l.getMaxLogItems(existingPanel) - 4; // -4 should account for the header with a bit of room at the bottom too
-        if (message['log']) { if (!message['log']['connect_string']) {
+        if (message['log']) {
+            if (!message['log']['connect_string']) {
                 message['log']['connect_string'] = "Title Unknown";
             }
             l.serverLogs.push(message['log']);
         }
         if (logItems.length >= maxItems) {
             l.delay = 500; // Reset it since we're no longer using it on this display
-            var paginationUL = l.loadPagination(l.serverLogs, l.page);
-            if (existingPaginationUL) {
-                if (existingPaginationUL.getElementsByClassName('log_page').length < paginationUL.getElementsByClassName('log_page').length) {
-                    pagination.replaceChild(paginationUL, existingPaginationUL);
-                }
-            } else {
-                pagination.appendChild(paginationUL);
+            if (l.paginationTimeout) {
+                clearTimeout(l.paginationTimeout);
+                l.paginationTimeout = null;
             }
+            l.paginationTimeout = setTimeout(function() {
+                // De-bouncing this so it doesn't get called 1000 times/sec causing the browser to hang while the loads load.
+                var paginationUL = l.loadPagination(l.serverLogs, l.page);
+                if (existingPaginationUL) {
+                    if (existingPaginationUL.getElementsByClassName('log_page').length < paginationUL.getElementsByClassName('log_page').length) {
+                        pagination.replaceChild(paginationUL, existingPaginationUL);
+                    }
+                } else {
+                    pagination.appendChild(paginationUL);
+                }
+            }, 500);
             return; // Don't add more than the panel can display
         }
-        l.serverLogs.push(message['log']);
         l.createLogItem(logListContainer, message['log'], l.delay);
         l.delay += 50;
     },
