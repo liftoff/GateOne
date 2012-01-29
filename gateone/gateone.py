@@ -609,11 +609,14 @@ class MainHandler(BaseHandler):
     def get(self):
         hostname = os.uname()[1]
         gateone_js = "/static/gateone.js"
-        minified_js_abspath = "%s/static/gateone.min.js" % GATEONE_DIR
-        bell = "%s/static/bell.ogg" % GATEONE_DIR
-        if os.path.exists(bell):
+        minified_js_abspath = os.path.join(GATEONE_DIR, 'static')
+        minified_js_abspath = os.path.join(
+            minified_js_abspath, 'gateone.min.js')
+        bell_path = os.path.join(GATEONE_DIR, 'static')
+        bell_path = os.path.join(bell_path, 'bell.ogg')
+        if os.path.exists(bell_path):
             try:
-                bell_data_uri = create_data_uri(bell)
+                bell_data_uri = create_data_uri(bell_path)
             except MimeTypeFail:
                 bell_data_uri = fallback_bell
         else: # There's always the fallback
@@ -622,8 +625,10 @@ class MainHandler(BaseHandler):
         # Use the minified version if it exists
         if os.path.exists(minified_js_abspath):
             gateone_js = "/static/gateone.min.js"
+        template_path = os.path.join(GATEONE_DIR, 'templates')
+        index_path = os.path.join(template_path, 'index.html')
         self.render(
-            "templates/index.html",
+            index_path,
             hostname=hostname,
             gateone_js=gateone_js,
             jsplugins=PLUGINS['js'],
@@ -710,7 +715,7 @@ class PluginCSSTemplateHandler(BaseHandler):
     CSS template rendering function in every plugin that needs to use {{prefix}}
     or {{container}}.
 
-    gateone.js will automatically load all *.css files in plugin template
+    gateone.js will automatically load all \*.css files in plugin template
     directories using this method.
     """
     # Had to disable authentication for this for the embedded stuff to work.
@@ -748,16 +753,19 @@ class JSPluginsHandler(BaseHandler):
         combined_plugins = os.path.join(static_dir, "combined_plugins.js")
         if os.path.exists(combined_plugins):
             with open(combined_plugins) as f:
-                self.write(f.read())
-        else: # Create it
-            out = ""
-            for js_plugin in plugins['js']:
-                js_path = os.path.join(GATEONE_DIR, js_plugin.lstrip('/'))
-                with open(js_path) as f:
-                    out += f.read()
-            with open(combined_plugins, 'w') as f:
-                f.write(out)
-            self.write(out)
+                js_data = f.read()
+                if len(js_data) < 100:
+                    self.write(js_data)
+                    return
+        # Create the combined_plugins.js file
+        out = ""
+        for js_plugin in plugins['js']:
+            js_path = os.path.join(GATEONE_DIR, js_plugin.lstrip('/'))
+            with open(js_path) as f:
+                out += f.read()
+        with open(combined_plugins, 'w') as f:
+            f.write(out)
+        self.write(out)
 
 class TerminalWebSocket(WebSocketHandler):
     def __init__(self, application, request):
@@ -824,20 +832,22 @@ class TerminalWebSocket(WebSocketHandler):
             message_obj = json_decode(message) # JSON FTW!
             if not isinstance(message_obj, dict):
                 self.write_message(_("'Error: Message bust be a JSON dict.'"))
+                return
         except ValueError: # We didn't get JSON
             self.write_message(_("'Error: We only accept JSON here.'"))
+            return
         if message_obj:
             for key, value in message_obj.items():
                 try: # Plugins first so they can override behavior if they wish
                     PLUGIN_WS_CMDS[key](value, tws=self)# tws==TerminalWebSocket
-                except KeyError:
+                except (KeyError, TypeError, AttributeError):
                     try:
                         if value:
                             self.commands[key](value)
                         else:
                             # Try, try again
                             self.commands[key]()
-                    except KeyError:
+                    except (KeyError, TypeError, AttributeError):
                         pass # Ignore commands we don't understand
 
     def on_close(self):
@@ -1143,6 +1153,8 @@ class TerminalWebSocket(WebSocketHandler):
             # Set some environment variables so the programs we execute can use
             # them (very handy).  Allows for "tight integration" and "synergy"!
             env = {
+                'GO_USER_DIR': user_dir,
+                'GO_USER': user,
                 'GO_TERM': str(term),
                 'GO_SESSION': self.session,
                 'GO_SESSION_DIR': session_dir
@@ -2069,6 +2081,9 @@ def main():
     https_server = tornado.httpserver.HTTPServer(
         Application(settings=app_settings), ssl_options=ssl_options)
     https_redirect = tornado.web.Application([(r"/", HTTPSRedirectHandler),])
+    # Make the server re-generate the combined_js if we update that file
+    gateone_js = os.path.join(static_dir, 'gateone.js')
+    tornado.autoreload.watch(gateone_js)
     try: # Start your engines!
         if options.address:
             for addr in options.address.split(';'):

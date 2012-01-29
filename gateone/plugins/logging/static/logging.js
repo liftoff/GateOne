@@ -35,7 +35,7 @@ GateOne.Base.update(GateOne.Logging, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             pTag = u.getNode('#'+prefix+'info_actions'),
-            infoPanelViewLogs = u.createElement('button', {'id': prefix+'logging_viewlogs', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
+            infoPanelViewLogs = u.createElement('button', {'id': 'logging_viewlogs', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
         infoPanelViewLogs.innerHTML = "Log Viewer";
         infoPanelViewLogs.title = "Opens a panel where you can browse, preview, and open all of your server-side session logs."
         infoPanelViewLogs.onclick = function() {
@@ -187,24 +187,24 @@ GateOne.Base.update(GateOne.Logging, {
             l = go.Logging,
             prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_logs'),
-            logPanel = u.createElement('div', {'id': prefix+'panel_logs', 'class': 'panel sectrans'}),
-            logHeader = u.createElement('div', {'id': prefix+'log_view_header', 'class': 'sectrans'}),
-            logHeaderH2 = u.createElement('h2', {'id': prefix+'logging_title'}),
+            logPanel = u.createElement('div', {'id': 'panel_logs', 'class': 'panel sectrans'}),
+            logHeader = u.createElement('div', {'id': 'log_view_header', 'class': 'sectrans'}),
+            logHeaderH2 = u.createElement('h2', {'id': 'logging_title'}),
             logHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
-            panelClose = u.createElement('div', {'id': prefix+'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
-            logViewContent = u.createElement('div', {'id': prefix+'logview_container', 'class': 'sectrans'}),
-            logPagination = u.createElement('div', {'id': prefix+'log_pagination', 'class': 'sectrans'}),
-            logInfoContainer = u.createElement('div', {'id': prefix+'log_info'}),
-            logListContainer = u.createElement('div', {'id': prefix+'log_listcontainer'}),
-            logPreviewIframe = u.createElement('iframe', {'id': prefix+'log_preview'}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
+            logViewContent = u.createElement('div', {'id': 'logview_container', 'class': 'sectrans'}),
+            logPagination = u.createElement('div', {'id': 'log_pagination', 'class': 'sectrans'}),
+            logInfoContainer = u.createElement('div', {'id': 'log_info'}),
+            logListContainer = u.createElement('div', {'id': 'log_listcontainer'}),
+            logPreviewIframe = u.createElement('iframe', {'id': 'log_preview'}),
             hr = u.createElement('hr'),
-            logElemHeader = u.createElement('div', {'id': prefix+'logitems_header', 'class':'logitem_header'}),
-            titleSpan = u.createElement('span', {'id': prefix+'log_titlespan', 'class':'logitem_cell logitem_header_cell'}),
-            dateSpan = u.createElement('span', {'id': prefix+'log_datespan', 'class':'logitem_cell logitem_header_cell'}),
-            sizeSpan = u.createElement('span', {'id': prefix+'log_sizespan', 'class':'logitem_cell logitem_header_cell'}),
-            sortOrder = u.createElement('span', {'id': prefix+'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
-            logMetadataDiv = u.createElement('div', {'id': prefix+'log_metadata'});
-        logHeaderH2.innerHTML = 'Logging Plugin: Loading...';
+            logElemHeader = u.createElement('div', {'id': 'logitems_header', 'class':'logitem_header'}),
+            titleSpan = u.createElement('span', {'id': 'log_titlespan', 'class':'logitem_cell logitem_header_cell'}),
+            dateSpan = u.createElement('span', {'id': 'log_datespan', 'class':'logitem_cell logitem_header_cell'}),
+            sizeSpan = u.createElement('span', {'id': 'log_sizespan', 'class':'logitem_cell logitem_header_cell'}),
+            sortOrder = u.createElement('span', {'id': 'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
+            logMetadataDiv = u.createElement('div', {'id': 'log_metadata'});
+        logHeaderH2.innerHTML = 'Log Viewer: Loading...';
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
             GateOne.Visual.togglePanel('#'+GateOne.prefs.prefix+'panel_logs'); // Scale away, scale away, scale away.
@@ -223,7 +223,7 @@ GateOne.Base.update(GateOne.Logging, {
             sortOrder.innerHTML = "▾";
         }
         titleSpan.onclick = function(e) {
-            var order = u.createElement('span', {'id': prefix+'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
+            var order = u.createElement('span', {'id': 'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
                 existingOrder = u.getNode('#'+prefix+'logs_sort_order');
             l.sortfunc = l.sortFunctions.alphabetical;
             if (localStorage[prefix+'logs_sort'] != 'alpha') {
@@ -253,7 +253,7 @@ GateOne.Base.update(GateOne.Logging, {
             l.loadLogs();
         }
         dateSpan.onclick = function(e) {
-            var order = u.createElement('span', {'id': prefix+'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
+            var order = u.createElement('span', {'id': 'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
                 existingOrder = u.getNode('#'+prefix+'logs_sort_order');
             l.sortfunc = l.sortFunctions.date;
             if (localStorage[prefix+'logs_sort'] != 'date') {
@@ -283,7 +283,7 @@ GateOne.Base.update(GateOne.Logging, {
             l.loadLogs();
         }
         sizeSpan.onclick = function(e) {
-            var order = u.createElement('span', {'id': prefix+'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
+            var order = u.createElement('span', {'id': 'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
                 existingOrder = u.getNode('#'+prefix+'logs_sort_order');
             l.sortfunc = l.sortFunctions.size;
             if (localStorage[prefix+'logs_sort'] != 'size') {
@@ -332,7 +332,6 @@ GateOne.Base.update(GateOne.Logging, {
         logViewContent.appendChild(logListContainer);
         if (existingPanel) {
             // Remove everything first
-
             while (existingPanel.childNodes.length >= 1 ) {
                 existingPanel.removeChild(existingPanel.firstChild);
             }
@@ -345,7 +344,7 @@ GateOne.Base.update(GateOne.Logging, {
         }
     },
     loadLogs: function() {
-        // After GateOne.Logging.logItems has been populated, this function will redraw the view depending on sort and pagination values
+        // After GateOne.Logging.serverLogs has been populated, this function will redraw the view depending on sort and pagination values
         var go = GateOne,
             u = go.Utils,
             l = go.Logging,
@@ -373,7 +372,7 @@ GateOne.Base.update(GateOne.Logging, {
             }, 1000); // Let the panel expand before we tell the server to start sending us logs
             return;
         }
-        existingPanel.style['overflow-y'] = "hidden"; // Only temporary while we're loading bookmarks
+        existingPanel.style['overflow-y'] = "hidden"; // Only temporary while we're loading
         setTimeout(function() {
             existingPanel.style['overflow-y'] = "auto"; // Set it back after everything is loaded
         }, 1000);
@@ -464,7 +463,7 @@ GateOne.Base.update(GateOne.Logging, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_logs'),
-            logPaginationUL = u.createElement('ul', {'id': prefix+'log_pagination_ul', 'class': 'log_pagination halfsectrans'}),
+            logPaginationUL = u.createElement('ul', {'id': 'log_pagination_ul', 'class': 'log_pagination halfsectrans'}),
             logViewContent = u.getNode('#'+prefix+'logview_container'),
             maxItems = l.getMaxLogItems(existingPanel) - 4,
             logPages = Math.ceil(logItems.length/maxItems),
@@ -633,7 +632,7 @@ GateOne.Base.update(GateOne.Logging, {
         return logElem;
     },
     incomingLogAction: function(message) {
-        // Adds *message['log']* to the view.
+        // Adds *message['log']* to GateOne.Logging.serverLogs and places it into the view.
         var go = GateOne,
             u = go.Utils,
             l = go.Logging,
@@ -653,7 +652,7 @@ GateOne.Base.update(GateOne.Logging, {
             l.serverLogs.push(message['log']);
         }
         if (logItems.length >= maxItems) {
-            l.delay = 500; // Reset it since we're no longer using it on this display
+            l.delay = 500; // Reset it since we're no longer using it
             if (l.paginationTimeout) {
                 clearTimeout(l.paginationTimeout);
                 l.paginationTimeout = null;
@@ -682,7 +681,7 @@ GateOne.Base.update(GateOne.Logging, {
             prefix = go.prefs.prefix,
             logViewHeader = u.getNode('#'+prefix+'logging_title');
         go.Visual.displayMessage('<b>Log listing complete:</b> ' + message['total_logs'] + ' logs representing ' + l.humanReadableBytes(message['total_bytes'], 1) + ' of disk space.');
-        logViewHeader.innerHTML = 'Logging Plugin: View Logs';
+        logViewHeader.innerHTML = 'Log Viewer';
     },
     displayFlatLogAction: function(message) {
         // Opens a new window displaying the (flat) log contained within *message* if there are no errors reported
@@ -694,8 +693,8 @@ GateOne.Base.update(GateOne.Logging, {
             result = message['result'],
             logLines = message['log'],
             metadata = message['metadata'],
-            logViewContent = u.createElement('div', {'id': prefix+'logview_container'}),
-            logContainer = u.createElement('div', {'id': prefix+'logview', 'class': 'terminal', 'style': {'width': '100%', 'height': '100%'}});
+            logViewContent = u.createElement('div', {'id': 'logview_container'}),
+            logContainer = u.createElement('div', {'id': 'logview', 'class': 'terminal', 'style': {'width': '100%', 'height': '100%'}});
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
         } else {
@@ -726,8 +725,8 @@ GateOne.Base.update(GateOne.Logging, {
             logHTML = message['html'],
             where = message['where'],
             metadata = message['metadata'],
-            logViewContent = u.createElement('div', {'id': prefix+'logview_container'}),
-            logContainer = u.createElement('div', {'id': prefix+'logview', 'class': 'terminal', 'style': {'width': '100%', 'height': '100%'}});
+            logViewContent = u.createElement('div', {'id': 'logview_container'}),
+            logContainer = u.createElement('div', {'id': 'logview', 'class': 'terminal', 'style': {'width': '100%', 'height': '100%'}});
         console.log("displayPlaybackLogAction()");
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
@@ -775,7 +774,7 @@ GateOne.Base.update(GateOne.Logging, {
     },
     sortFunctions: {
         date: function(a,b) {
-            // Sorts bookmarks by date (start_date) followed by alphabetical order of the title (connect_string)
+            // Sorts by date (start_date) followed by alphabetical order of the title (connect_string)
             if (a.start_date === b.start_date) {
                 var x = a.connect_string.toLowerCase(), y = b.connect_string.toLowerCase();
                 return x < y ? -1 : x > y ? 1 : 0;
@@ -788,7 +787,7 @@ GateOne.Base.update(GateOne.Logging, {
             }
         },
         alphabetical: function(a,b) {
-            // Sorts bookmarks alphabetically using the title (connect_string)
+            // Sorts alphabetically using the title (connect_string)
             var x = a.connect_string.toLowerCase(), y = b.connect_string.toLowerCase();
             return x < y ? -1 : x > y ? 1 : 0;
         },

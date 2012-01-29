@@ -40,9 +40,9 @@ GateOne.Base.update(GateOne.Playback, {
             pTag = u.getNode('#'+prefix+'info_actions'),
             prefsTableDiv2 = u.getNode('#'+prefix+'prefs_tablediv2'),
             prefsPanelRow = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelPlaybackLabel = u.createElement('span', {'id': prefix+'prefs_playback_label', 'class':'paneltablelabel'}),
-            prefsPanelPlayback = u.createElement('input', {'id': prefix+'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            infoPanelSaveRecording = u.createElement('button', {'id': prefix+'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
+            prefsPanelPlaybackLabel = u.createElement('span', {'id': 'prefs_playback_label', 'class':'paneltablelabel'}),
+            prefsPanelPlayback = u.createElement('input', {'id': 'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
         if (prefsTableDiv2) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
             prefsPanelPlaybackLabel.innerHTML = "<b>Playback Frames:</b> ";
             prefsPanelPlayback.value = go.prefs.playbackFrames;
@@ -213,13 +213,13 @@ GateOne.Base.update(GateOne.Playback, {
             u = go.Utils,
             p = go.Playback,
             prefix = go.prefs.prefix,
-            playPause = u.createElement('div', {'id': prefix+'playPause'}),
-            progressBar = u.createElement('div', {'id': prefix+'progressBar'}),
+            playPause = u.createElement('div', {'id': 'playPause'}),
+            progressBar = u.createElement('div', {'id': 'progressBar'}),
             progressBarContainer = u.createElement('div', {
-                'id': prefix+'progressBarContainer', 'onmouseover': 'this.style.cursor = "col-resize"'}),
-            clock = u.createElement('div', {'id': prefix+'clock'}),
-            playbackControls = u.createElement('div', {'id': prefix+'playbackControls'}),
-            controlsContainer = u.createElement('div', {'id': prefix+'controlsContainer'}),
+                'id': 'progressBarContainer', 'onmouseover': 'this.style.cursor = "col-resize"'}),
+            clock = u.createElement('div', {'id': 'clock'}),
+            playbackControls = u.createElement('div', {'id': 'playbackControls'}),
+            controlsContainer = u.createElement('div', {'id': 'controlsContainer'}),
             goDiv = u.getNode(go.prefs.goDiv),
             style = window.getComputedStyle(goDiv, null),
             emDimensions = u.getEmDimensions(goDiv),
@@ -345,19 +345,20 @@ GateOne.Base.update(GateOne.Playback, {
     saveRecording: function(term) {
         // Saves the session playback recording
         var go = GateOne,
+            u = go.Utils,
             recording = JSON.stringify(go.terminals[term]['playbackFrames']),
         // This creates a form to POST our saved session to /recording on the server
         // NOTE: The server just returns the same data wrapped in a easy-to-use template
-            form = go.Utils.createElement('form', {
+            form = u.createElement('form', {
                 'method': 'post',
                 'action': go.prefs.url + 'recording?r=' + new Date().getTime(),
                 'target': '_blank'
             }),
-            recordingField = go.Utils.createElement('textarea', {'name': 'recording'}),
-            themeField = go.Utils.createElement('input', {'name': 'theme'}),
-            colorsField = go.Utils.createElement('input', {'name': 'colors'}),
-            containerField = go.Utils.createElement('input', {'name': 'container'}),
-            prefixField = go.Utils.createElement('input', {'name': 'prefix'});
+            recordingField = u.createElement('textarea', {'name': 'recording'}),
+            themeField = u.createElement('input', {'name': 'theme'}),
+            colorsField = u.createElement('input', {'name': 'colors'}),
+            containerField = u.createElement('input', {'name': 'container'}),
+            prefixField = u.createElement('input', {'name': 'prefix'});
         recordingField.value = recording;
         form.appendChild(recordingField);
         themeField.value = go.prefs.theme;

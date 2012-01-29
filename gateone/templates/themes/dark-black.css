@@ -19,6 +19,9 @@
     /* Future CSS3 standard */
     transition: all 1.0s ease-in-out;
 }
+#{{container}} h1,h2,h3,h4,h5,h6,h7 {
+    font-family: sans-serif;
+}
 #{{container}} .pointer {
     cursor: pointer;
 }
@@ -783,7 +786,7 @@
     margin-right: 0.25em;
     border-radius: .5em;
     font-weight: bold;
-    font-size: 1em;
+    font-size: 0.9em;
 }
 #{{container}} .button:hover {
     text-decoration: none;
@@ -835,30 +838,64 @@
 #{{prefix}}user_info a:hover {
     cursor: pointer;
 }
+#{{prefix}}dialogcontainer {
+    position: fixed;
+    top: 25%;
+    left: 25%;
+    background-color: #CCC;
+    max-width: 50%;
+    max-height: 75%;
+    z-index: 750;
+    border: solid 1px #000;
+    color: #000;
+    border-radius: 0.5em;
+    box-shadow: 0.2em 0.2em 0.5em #000;
+    /* Firefox 3.6+ */
+    background-image: -moz-linear-gradient(#eee, #aaa);
+    /* Safari 5.1+, Chrome 10+ */
+    background-image: -webkit-linear-gradient(#eee, #aaa);
+    /* Opera 11.10+ */
+    background-image: -o-linear-gradient(#eee, #aaa);
+    /* Standard (future) */
+    background-image: -o-linear-gradient(#eee, #aaa);
+}
 #{{prefix}}dialogcontainer h3 {
     background-color: #1F5470;
     color: #fff;
-    padding-left: 0.2em;
+    padding-left: 0.5em;
     line-height: 1.5;
     margin-top: 0;
-    padding-right: 2em;
+    padding-right: 2em; /* Making room for the X */
+    padding-left: 2em; /* Balancing it out so the title stays centered */
     text-align: center;
-    font-size: 1.4em;
+    font-size: 1.1em;
+    border-radius: 0.25em 0.25em 0 0;
 }
 #{{prefix}}dialogtitle:hover {
     cursor: move;
 }
+/* dialogdiv wraps dialogcontent with this "left: 50%" and "left: -50%" mixture to ensure that everything stays centered. */
 #{{prefix}}dialogdiv {
-    text-align:left;
     margin: 0.2em;
+    float: left;
+    position: relative;
+    left: 50%;
+    width: 95%;
+}
+#{{prefix}}dialogcontent {
+    float: left;
+    position: relative;
+    left: -50%;
+    width: 100%;
 }
 #{{prefix}}dialog_close {
     position: absolute;
     top: 0;
     right: 0;
-    color: #fff;
+    margin-top: 0.2em;
     margin-right: 0.2em;
     cursor: pointer;
+    opacity: .75;
 }
 #{{prefix}}dialog_close:hover {
     text-shadow: 0.1em 0.1em 0.1em #000;
@@ -889,3 +926,8 @@
 .panelstop2 { stop-color: #2D61B4; }
 .panelstop3 { stop-color: #2E63B9; }
 .panelstop4 { stop-color: #1F5470; }
+/* Change the styling of the SVG close icon so it is white when inside dialogs */
+#{{prefix}}dialogtitle .panelstop1 { stop-color: #FFF; }
+#{{prefix}}dialogtitle .panelstop2 { stop-color: #CCC; }
+#{{prefix}}dialogtitle .panelstop3 { stop-color: #DDD; }
+#{{prefix}}dialogtitle .panelstop4 { stop-color: #FFF; }

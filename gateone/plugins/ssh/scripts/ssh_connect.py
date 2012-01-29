@@ -19,6 +19,11 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 import os, sys, errno, readline, tempfile, base64, binascii, struct, signal
 from subprocess import Popen
 from optparse import OptionParser
+# i18n support stuff
+import gettext
+gettext.bindtextdomain('ssh_connect', 'i18n')
+gettext.textdomain('ssh_connect')
+_ = gettext.gettext
 
 # Import 3rd party stuff
 #from tornado.options import options
@@ -27,10 +32,12 @@ from optparse import OptionParser
 readline.parse_and_bind('esc: none')
 
 # Globals
+POSIX = 'posix' in sys.builtin_module_names
 wrapper_script = """\
 #!/bin/sh
 # This variable is for easy retrieval later
 SSH_SOCKET='{socket}'
+echo ' ' # Just some whitespace to separate the pre-execution stuff
 {cmd}
 echo '[Press Enter to close this terminal]'
 read waitforuser
@@ -76,16 +83,49 @@ def short_hash(to_shorten):
     packed = struct.pack('i', binascii.crc32(to_shorten))
     return base64.urlsafe_b64encode(packed).replace('=', '')
 
+def get_identities(users_ssh_dir, only_defaults=False):
+    """
+    Returns a list of identities stored in the user's 'ssh' directory.  It does
+    this by examining os.environ['GO_USER'] os.environ['GO_USER_DIR'].  If
+    *only_defaults* is True and if a '.default_ids' file exists only identities
+    listed within it will be returned.
+    """
+    identities = []
+    if os.path.exists(users_ssh_dir):
+        ssh_files = os.listdir(users_ssh_dir)
+        defaults_present = False
+        defaults = []
+        if only_defaults and '.default_ids' in ssh_files:
+            defaults_present = True
+            with open(os.path.join(users_ssh_dir, '.default_ids')) as f:
+                defaults = f.read().splitlines()
+            # Fix empty entries
+            defaults = [a for a in defaults if a]
+            # Reduce absolute paths to short names (for easy matching)
+            defaults = [os.path.split(a)[1] for a in defaults]
+        for f in ssh_files:
+            if f.endswith('.pub'):
+                # If there's a public key there's probably a private one...
+                identity = f[:-4] # Will be the same name minus '.pub'
+                if identity in ssh_files:
+                    identities.append(os.path.join(users_ssh_dir, identity))
+    if defaults_present:
+        # Only include identities marked as default
+        identities = [a for a in identities if os.path.split(a)[1] in defaults]
+    return identities
+
 def openssh_connect(
         user,
         host,
-        port,
+        port=22,
+        config=None,
         command=None,
         password=None,
         env=None,
         socket=None,
         sshfp=False,
         randomart=False,
+        identities=None,
         additional_args=None):
     """
     Starts an interactive SSH session to the given host as the given user on the
@@ -103,7 +143,9 @@ def openssh_connect(
     If *sshfp* resolves to True, SSHFP (DNS-based host verification) support
     will be enabled.
     If *randomart* resolves to True, the VisualHostKey (randomart hash) option
-    will be enabled.
+    will be enabled to display randomart when the connection is made.
+    If *identities* given (may be a list or just a single string), it/those will
+    be passed to the ssh command to use when connecting (e.g. -i/identity/path).
     If *additional_args* is given this value (or values if it is a list) will be
     added to the arguments passed to the ssh command.
     """
@@ -120,16 +162,67 @@ def openssh_connect(
         env['COLUMNS'] = os.environ['COLUMNS']
     except KeyError:
         pass # These variables aren't set
+    # Get the user's ssh directory
+    if 'GO_USER' in os.environ: # Try to use Gate One's provided user first
+        go_user = os.environ['GO_USER']
+    else: # Fall back to the executing user (for testing outside of Gate One)
+        go_user = os.environ['USER']
+    if 'GO_USER_DIR' in os.environ:
+        users_dir = os.path.join(os.environ['GO_USER_DIR'], go_user)
+        users_ssh_dir = os.path.join(users_dir, 'ssh')
+    else: # Fall back to using the default OpenSSH location for ssh stuff
+        if POSIX:
+            users_ssh_dir = os.path.join(os.environ['HOME'], '.ssh')
+        else:
+            # Assume Windows.  TODO: Double-check this is the right default path
+            users_ssh_dir = os.path.join(os.environ['USERPROFILE'], '.ssh')
+    ssh_config_path = os.path.join(users_ssh_dir, 'config')
+    if not os.path.exists(ssh_config_path):
+        # Create it (an empty one so ssh doesn't error out)
+        with open(ssh_config_path, 'w') as f:
+            f.write('\n')
+    ssh_default_identity_path = os.path.join(users_ssh_dir, 'id_ecdsa')
     args = [
         "-x", # No X11 forwarding, thanks :)
-        "-F/dev/null", # No config dir (might change this is the future)
+        "-F%s" % ssh_config_path, # It's OK if it doesn't exist
         # This is so people won't have to worry about user management when
         # running one-Gate One-per-server...
         "-oNoHostAuthenticationForLocalhost=yes",
-        "-oPreferredAuthentications=keyboard-interactive,password",
+        # This ensure's that the executing user's identity won't be used:
+        "-oIdentityFile=%s" % ssh_default_identity_path,
         "-p", port,
         "-l", user,
     ]
+    # If we're given specific identities use them exclusively
+    if identities:
+        if isinstance(identities, (unicode, str)):
+            # Only one identity present, turn it into a list
+            if os.path.sep not in identities:
+                # Turn the short identity name into an absolute path
+                identities = os.path.join(users_ssh_dir, identities)
+            identities = [identities] # Make it a list
+    else:
+        # No identities given.  Get them from the user's dir (if any)
+        identities = get_identities(users_ssh_dir, only_defaults=True)
+    # Now make sure we use them in the connection...
+    if identities:
+        print(_(
+            "The following SSH identities are being used for this "
+            "connection:"))
+        for identity in identities:
+            if os.path.sep not in identity:
+                # Turn the short identity name into an absolute path
+                identity = os.path.join(users_ssh_dir, identity)
+            args.insert(3, "-i%s" % identity)
+            print(_("\t\x1b[1m%s\x1b[0m" % os.path.split(identity)[1]))
+        args.insert(3, # Make sure we're using publickey auth first
+        "-oPreferredAuthentications=publickey,keyboard-interactive,password"
+        )
+    else:
+        args.insert(
+            3, # Don't use publickey
+            "-oPreferredAuthentications=keyboard-interactive,password"
+        )
     if sshfp:
         args.insert(3, "-oVerifyHostKeyDNS=yes")
     if randomart:
@@ -160,10 +253,10 @@ def openssh_connect(
             args.insert(0, "-M")
         else:
             print("\x1b]0;%s@%s (child)\007" % (user, host))
-            print(
-                "NOTE: Existing ssh session detected for ssh://%s@%s:%s;"
-                " utilizing existing tunnel." % (user, host, port)
-            )
+            print(_(
+                "\x1b[1mNOTE: Existing ssh session detected for ssh://%s@%s:%s;"
+                " utilizing existing tunnel.\x1b[0m" % (user, host, port)
+            ))
         socket = socket.replace(r'%SHORT_SOCKET%', hashed)
         socket_arg = "-S%s" % socket
         # Also make sure the base directory exists
@@ -235,10 +328,17 @@ def openssh_connect(
 def parse_ssh_url(url):
     """
     Parses an ssh URL like, 'ssh://user@host:22' and returns a tuple of:
-        (user, host, port, password)
+        (user, host, port, password, identities)
 
-    NOTE: *password* may be None
+    If an ssh URL is given without a username, os.environ['USER'] will be used.
+
+    SSH Identities may be specified as a query string:
+
+        ssh://user@host:22/?identities=id_rsa,id_ecdsa
+
+    .. note:: *password* and *identities* may be returned as None and [], respectively.
     """
+    identities = []
     password = None
     if '@' in url: # user@host[:port]
         host = url.split('@')[1].split(':')[0]
@@ -250,15 +350,29 @@ def parse_ssh_url(url):
             port = '22'
         else:
             port = url.split('@')[1].split(':')[1]
+            port = port.split('/')[0] # In case there's a query string
     else: # Just host[:port] (assume $USER)
         user = os.environ['USER']
         url = url[6:] # Remove the protocol
         host = url.split(':')[0]
         if len(url.split(':')) == 2: # There's a port #
             port = url.split(':')[1]
+            port = port.split('/')[0] # In case there's a query string
         else:
             port = '22'
-    return (user, host, port, password)
+    # Parse out any query string parameters
+    if "?" in url:
+        query_string = url.split('?')[1]
+        options = query_string.split('&') # Looking to the future here
+        options_dict = {}
+        for option in options:
+            # 'identities=id_rsa,id_ecdsa' -> ['identities', 'id_rsa,id_ecdsa']
+            key, value = option.split('=')
+            options_dict[key] = value
+        # Capture the provided identities (if any)
+        if 'identities' in options_dict:
+            identities = options_dict['identities'].split(',')
+    return (user, host, port, password, identities)
 
 if __name__ == "__main__":
     """Parse command line arguments and execute ssh_connect()"""
@@ -274,21 +388,21 @@ if __name__ == "__main__":
     parser.add_option("-c", "--command",
         dest="command",
         default='ssh',
-        help=("Path to the ssh command.  Default: 'ssh' (which usually means "
+        help=_("Path to the ssh command.  Default: 'ssh' (which usually means "
               "/usr/bin/ssh)."),
         metavar="'<filepath>'"
     )
     parser.add_option("-a", "--args",
         dest="additional_args",
         default=None,
-        help=("Any additional arguments that should be passed to the ssh "
+        help=_("Any additional arguments that should be passed to the ssh "
              "command.  It is recommended to wrap these in quotes."),
         metavar="'<args>'"
     )
     parser.add_option("-S",
         dest="socket",
         default=None,
-        help=("Path to the control socket for connection sharing (see master "
+        help=_("Path to the control socket for connection sharing (see master "
               "mode and 'man ssh')."),
         metavar="'<filepath>'"
     )
@@ -296,25 +410,26 @@ if __name__ == "__main__":
         dest="sshfp",
         default=False,
         action="store_true",
-        help=("Enable the use of SSHFP in verifying host keys. See:  "
+        help=_("Enable the use of SSHFP in verifying host keys. See:  "
               "http://en.wikipedia.org/wiki/SSHFP#SSHFP")
     )
     parser.add_option("--randomart",
         dest="randomart",
         default=False,
         action="store_true",
-        help=("Enable the VisualHostKey (randomart hash host key) option when "
+        help=_("Enable the VisualHostKey (randomart hash host key) option when "
               "connecting.")
     )
     (options, args) = parser.parse_args()
     try:
         if len(args) == 1:
-            (user, host, port, password) = parse_ssh_url(args[0])
+            (user, host, port, password, identities) = parse_ssh_url(args[0])
             openssh_connect(user, host, port,
                 command=options.command,
                 password=password,
                 sshfp=options.sshfp,
                 randomart=options.randomart,
+                identities=identities,
                 additional_args=options.additional_args,
                 socket=options.socket
             )
@@ -338,10 +453,11 @@ if __name__ == "__main__":
         pass # Something ain't right.  Try the interactive entry method...
     password = None
     try:
-        url = raw_input(
-            "[Press Shift-F1 for help]\n\nHost/IP or SSH URL [localhost]: ")
+        identities = []
+        url = raw_input(_(
+            "[Press Shift-F1 for help]\n\nHost/IP or SSH URL [localhost]: "))
         if url.startswith('ssh://'): # This is an SSH URL
-            (user, host, port, password) = parse_ssh_url(url)
+            (user, host, port, password, identities) = parse_ssh_url(url)
         else:
             port = raw_input("Port [22]: ")
             if not port:
@@ -350,8 +466,7 @@ if __name__ == "__main__":
             host = url
         if not url:
             host = 'localhost'
-        print('Connecting to: ssh://%s@%s:%s' % (user, host, port))
-        # TODO: Add some way here to communicate to Gate One the specific SSH URL being connected to so it is easy to duplicate.
+        print(_('Connecting to: ssh://%s@%s:%s' % (user, host, port)))
         # Set title (might be redundant but doesn't hurt)
         print("\x1b]0;%s@%s\007" % (user, host))
         # Special escape handler:
@@ -361,9 +476,10 @@ if __name__ == "__main__":
             password=password,
             sshfp=options.sshfp,
             randomart=options.randomart,
+            identities=identities,
             additional_args=options.additional_args,
             socket=options.socket
         )
     except Exception as e: # Catch all
         print e
-        noop = raw_input("[Press Enter to close this terminal]")
+        noop = raw_input(_("[Press Enter to close this terminal]"))

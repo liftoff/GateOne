@@ -62,6 +62,23 @@ class SSHKeygenException(Exception):
     """
     pass
 
+class SSHKeypairException(Exception):
+    """
+    Called when there's an error trying to save public/private keypair or
+    certificate.
+    """
+    pass
+
+def get_ssh_dir(tws):
+    """
+    Given a TerminalWebSocket (*tws*) instance, return the current user's ssh
+    directory
+    """
+    user = tws.get_current_user()['upn']
+    users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
+    users_ssh_dir = os.path.join(users_dir, 'ssh')
+    return users_ssh_dir
+
 def open_sub_channel(term, tws):
     """
     Opens a sub-channel of communication by executing a new shell on the SSH
@@ -69,7 +86,7 @@ def open_sub_channel(term, tws):
     returns the resulting Multiplex instance.  If a slave has already been
     opened for this purpose it will re-use the existing channel.
     """
-    logging.debug("SSH Plugin: open_sub_channel() term: %s" % term)
+    logging.debug("open_sub_channel() term: %s" % term)
     global OPEN_SUBCHANNELS
     if term in OPEN_SUBCHANNELS and OPEN_SUBCHANNELS[term].isalive():
         # Use existing sub-channel (much faster this way)
@@ -109,6 +126,8 @@ def open_sub_channel(term, tws):
     # executes something like "ps -ef".
     fd = m.spawn(rows=100, cols=200) # Hopefully 100/200 lines/cols is enough
     # ...if it isn't, well, that's not really what this is for :)
+    # Set the term title so it gets a proper name in the logs
+    m.writeline(u'\x1b]0;Term %s sub-channel\007' % term)
     return m
 
 def wait_for_prompt(term, cmd, callback, m_instance, matched):
@@ -117,7 +136,7 @@ def wait_for_prompt(term, cmd, callback, m_instance, matched):
     and executes *cmd*.  Also, sets an expect() to call get_cmd_output() when
     the end of the command output is detected.
     """
-    logging.debug('SSH Plugin: wait_for_prompt()')
+    logging.debug('wait_for_prompt()')
     m_instance.term.clear_screen() # Makes capturing just what we need easier
     getoutput = partial(get_cmd_output, term, callback)
     m_instance.expect(READY_MATCH, getoutput, errorback=got_error, timeout=10)
@@ -129,7 +148,7 @@ def get_cmd_output(term, callback, m_instance, matched):
     Captures the output of the command executed inside of wait_for_prompt() and
     calls *callback* if it isn't None.
     """
-    logging.debug('SSH Plugin: get_cmd_output()')
+    logging.debug('get_cmd_output()')
     cmd_out = [a.rstrip() for a in m_instance.dump() if a.rstrip()]
     capture = False
     out = []
@@ -174,7 +193,7 @@ def timeout_sub_channel(m_instance):
     should never match anything.
     """
     logging.debug(_(
-        "SSH Plugin: Sub-channel on term %s closed due to inactivity."
+        "Sub-channel on term %s closed due to inactivity."
         % repr(m_instance.term_id)))
     terminate_sub_channel(m_instance)
 
@@ -185,7 +204,7 @@ def got_error(m_instance, match=None):
     *match* is here in case we want to use it for a positive match of an error.
     """
     logging.error(_(
-        "%s: SSH Plugin: Got an error trying to capture output inside of "
+        "%s: Got an error trying to capture output inside of "
         "execute_command() running: %s" % (m_instance.user, m_instance.cmd)))
     terminate_sub_channel(m_instance)
 
@@ -204,12 +223,12 @@ def execute_command(term, cmd, callback=None, tws=None):
     .. note:: This will not result in a new terminal being opened on the client--it simply executes a command and returns the result using the existing SSH tunnel.
     """
     logging.debug(
-        "SSH Plugin: execute_command(): term: %s, cmd: %s" % (term, cmd))
+        "execute_command(): term: %s, cmd: %s" % (term, cmd))
     try:
         m = open_sub_channel(term, tws)
     except SSHMultiplexingException as e:
         logging.error(_(
-            "%s: SSH Plugin: Got an error trying to open sub-channel on term %s..." %
+            "%s: Got an error trying to open sub-channel on term %s..." %
             (tws.get_current_user()['upn'], term)))
         logging.error(e)
     # NOTE: We can assume the IOLoop is started and automatically calling read()
@@ -352,9 +371,7 @@ def get_key(name, public, tws):
         'data': None,
         'mimetype': 'text/plain'
     }
-    user = tws.get_current_user()['upn']
-    users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
-    users_ssh_dir = os.path.join(users_dir, 'ssh')
+    users_ssh_dir = get_ssh_dir(tws)
     key_path = os.path.join(users_ssh_dir, name)
     if os.path.exists(key_path):
         with open(key_path) as f:
@@ -379,7 +396,7 @@ def get_private_key(name, tws):
     """
     get_key(name, False, tws)
 
-def get_host_public_key_hash(settings, tws):
+def get_host_fingerprint(settings, tws):
     """
     Returns a the hash of the given host's public key by making a remote
     connection to the server (not just by looking at known_hosts).
@@ -394,7 +411,7 @@ def get_host_public_key_hash(settings, tws):
         tws.write_message(message)
     else:
         host = settings['host']
-    logging.debug("get_host_public_key_hash(%s:%s)" % (host, port))
+    logging.debug("get_host_fingerprint(%s:%s)" % (host, port))
     out_dict = {
         'result': 'Success',
         'host': host,
@@ -433,14 +450,14 @@ def generate_new_keypair(settings, tws):
     """
     logging.debug('generate_new_keypair()')
     out_dict = {}
-    user = tws.get_current_user()['upn']
-    users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
-    users_ssh_dir = os.path.join(users_dir, 'ssh')
-    name = settings['name']
+    users_ssh_dir = get_ssh_dir(tws)
+    name = 'id_ecdsa'
     keytype = None
     bits = None
     passphrase = ''
     comment = ''
+    if 'name' in settings:
+        name = settings['name']
     if 'keytype' in settings:
         keytype = settings['keytype']
     if 'bits' in settings:
@@ -466,11 +483,12 @@ def generate_new_keypair(settings, tws):
 
 def errorback(tws, m_instance):
     logging.debug("keygen errorback()")
+    print(m_instance.dump())
     m_instance.terminate()
     message = {
         'sshjs_keygen_complete': {
             'result': _("There was a problem generating SSH keys: %s"
-                        % m.dump()),
+                        % m_instance.dump()),
         }
     }
     tws.write_message(message)
@@ -534,7 +552,8 @@ def openssh_generate_new_keypair(name, path,
         passphrase = ''
     hostname = os.uname()[1]
     if not comment:
-        comment = "Generated by Gate One on %s" % hostname
+        now = datetime.now().isoformat()
+        comment = "Generated by Gate One on %s %s" % (hostname, now)
     ssh_keygen_path = which('ssh-keygen')
     command = (
         "%s "       # Path to ssh-keygen
@@ -547,20 +566,20 @@ def openssh_generate_new_keypair(name, path,
     m = tws.new_multiplex(command, "gen_ssh_keypair")
     call_errorback = partial(errorback, tws)
     m.expect('^Overwrite.*',
-        overwrite, errorback=call_errorback, optional=True, timeout=5)
+        overwrite, optional=True, timeout=10)
     passphrase_handler = partial(enter_passphrase, passphrase)
     m.expect('^Enter passphrase',
-        passphrase_handler, errorback=call_errorback, timeout=5)
+        passphrase_handler, errorback=call_errorback, timeout=10)
     m.expect('^Enter same passphrase again',
-        passphrase_handler, errorback=call_errorback, timeout=5)
+        passphrase_handler, errorback=call_errorback, timeout=10)
     finalize = partial(finished, tws)
     # The regex below captures the md5 fingerprint which tells us the
     # operation was successful.
     m.expect(
         '(([0-9a-f][0-9a-f]\:){15}[0-9a-f][0-9a-f])',
         finalize,
-        errorback=errorback,
-        timeout=5 # Key generation can take a little while
+        errorback=call_errorback,
+        timeout=15 # Key generation can take a little while
     )
     m.spawn()
 
@@ -595,29 +614,188 @@ def openssh_generate_new_keypair(name, path,
     #ssh-dss AAAAB3NzaC1kc3MAAACBAJ5jU4izsZtJKEojw7gIcc6e3U4X6OENN6081YxSAanfTbKjR0V3Ho6aui2z8o039BVH4S5cVD51vEEvDjirKStM2aMvdrVZkjGH1iOMWY4MQrCl4EqMr7rWikeiZJN6BJ+xmPBUyZuicVDFkBwqC+dKgxml0RTpa7TYBWvp403XAAAAFQDg6vb3afaKM9+DvBW7I4xPxF8a8QAAAIEAjcNHYFrqcWK9lSsw2Oy+w1PEWQuxvWydXXk3MQyiZ/PYaeU/138iCB2pW1fgCksx5CHF8dgtQ7AsFv32gBlxuDgX3EYtPYR0wGJqyU7w9+qaq1T02zmDfW4k2WDfMNz+QWFYHuKzC/aeuEC0BRTLyPVQMHLNAd/F5beCqlIPRPcAAACAfUy1+yNgK2svox6aJRqtpxbMSPDRNTRMAjeTkCeLopesZFYbPvms2c19WkIk2qD9aw3gIxsR4wO+kkvI4BtOs8dXQWS+bc+svJbIYOqmPFo89BJHfbP9wvMhfTlp1uH9LxAG6ZiHHz5fseUgTrwYkSw1beUprikxlca8lQm5v7g= root@RouterStationPro
     #Fingerprint: md5 c6:f9:f2:95:b8:40:ac:f3:53:f1:39:e9:57:a0:58:18
 
-def store_keypair(name, private, public, tws):
+def store_id_file(settings, tws=None):
     """
-    Stores the given *private* and *public* keypair in the user's directory as
-    *name* and *name*.pub.
+    Stores the given *settings['private']* and/or *settings['public']* keypair
+    in the user's ssh directory as *settings['name']* and/or
+    *settings['name']*.pub, respectively.  Either file can be saved independent
+    of each other (in case this function needs to be called multiple times to
+    save each respective file).
+
+    Also, a *settings['certificate']* may be provided to be saved along
+    with the private and public keys.  It will be saved as
+    *settings['name']*-cert.pub.
+
+    .. note:: I found the following website helpful in understanding how to use OpenSSH with SSL certificates: http://blog.habets.pp.se/2011/07/OpenSSH-certificates
+
+    .. tip:: Using signed-by-a-CA certificates is very handy because allows you to revoke the user's SSH key(s).  e.g. If they left the company.
     """
-    logging.debug('generate_new_keypair()')
+    logging.debug('store_id_file()')
     out_dict = {'result': 'Success'}
-    user = tws.get_current_user()['upn']
-    users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
-    users_ssh_dir = os.path.join(users_dir, 'ssh')
-    private_key_path = os.path.join(users_ssh_dir, name)
-    public_key_path = os.path.join(users_ssh_dir, name+'.pub')
+    name, private, public, certificate = None, None, None, None
     try:
-        with open(private_key_path, 'w') as f:
-            f.write(private)
-        with open(public_key_path, 'w') as f:
-            f.write(public)
+        if 'name' in settings:
+            name = settings['name']
+        else:
+            raise SSHKeypairException(_("You must specify a valid *name*."))
+        if 'private' in settings:
+            private = settings['private']
+        if 'public' in settings:
+            public = settings['public']
+        if 'certificate' in settings:
+            certificate = settings['certificate']
+        if not private and not public and not certificate:
+            raise SSHKeypairException(_("No files were given to save!"))
+        users_ssh_dir = get_ssh_dir(tws)
+        private_key_path = os.path.join(users_ssh_dir, name)
+        public_key_path = os.path.join(users_ssh_dir, name+'.pub')
+        certificate_path = os.path.join(users_ssh_dir, name+'-cert.pub')
+        if private:
+            with open(private_key_path, 'w') as f:
+                f.write(private)
+        if public:
+            with open(public_key_path, 'w') as f:
+                f.write(public)
+        if certificate:
+            with open(certificate_path, 'w') as f:
+                f.write(certificate)
     except Exception as e:
-        out_dict['result'] = "Error saving keys: %s" % e
+        out_dict['result'] = _("Error saving keys: %s" % e)
     message = {
-        'sshjs_save_keypair_complete': out_dict
+        'sshjs_save_id_complete': out_dict
     }
     tws.write_message(message)
+
+def delete_identity(name, tws):
+    """
+    Removes the identity associated with *name*.  For example if *name* is
+    'testkey', 'testkey' and 'testkey.pub' would be removed from the user's
+    ssh directory (and 'testkey-cert.pub' if present).
+    """
+    logging.debug('delete_identity()')
+    out_dict = {'result': 'Success'}
+    users_ssh_dir = get_ssh_dir(tws)
+    private_key_path = os.path.join(users_ssh_dir, name)
+    public_key_path = os.path.join(users_ssh_dir, name+'.pub')
+    certificate_path = os.path.join(users_ssh_dir, name+'-cert.pub')
+    try:
+        if os.path.exists(private_key_path):
+            os.remove(private_key_path)
+        if os.path.exists(public_key_path):
+            os.remove(public_key_path)
+        if os.path.exists(certificate_path):
+            os.remove(certificate_path)
+    except Exception as e:
+        out_dict['result'] = _("Error deleting keypair: %s" % e)
+    message = {
+        'sshjs_delete_identity_complete': out_dict
+    }
+    tws.write_message(message)
+
+def get_identities(anything, tws):
+    """
+    Sends a message to the client with a list of the identities stored on the
+    server for the current user.
+
+    *anything* is just there because the client needs to send *something* along
+    with the 'action'.
+    """
+    logging.debug('get_identities()')
+    out_dict = {'result': 'Success'}
+    users_ssh_dir = get_ssh_dir(tws)
+    out_dict['identities'] = []
+    ssh_keygen_path = which('ssh-keygen')
+    keytype_re = re.compile('.*\(([A-Z]+)\)$', re.MULTILINE)
+    try:
+        if os.path.exists(users_ssh_dir):
+            ssh_files = os.listdir(users_ssh_dir)
+            for f in ssh_files:
+                if f.endswith('.pub'):
+                    # Double-check there's also a private key...
+                    identity = f[:-4] # Will be the same name minus '.pub'
+                    if identity in ssh_files:
+                        id_path = os.path.join(users_ssh_dir, identity)
+                        pub_key_path = os.path.join(users_ssh_dir, f)
+                        public_key_contents = open(pub_key_path).read()
+                        comment = ' '.join(public_key_contents.split(' ')[2:])
+                        keygen_cmd = "%s -vlf %s" % (ssh_keygen_path, id_path)
+                        retcode, key_info = shell_command(keygen_cmd)
+                        try:
+                            keytype = keytype_re.search(key_info).group(1)
+                        except AttributeError:
+                            # Couldn't match keytype? Something went wrong
+                            out_dict = {
+                                'result': _(
+                                    "Error: Couldn't determine keytype?")}
+                        # This will just wind up as an empty string if the
+                        # version of ssh doesn't support randomart:
+                        randomart = '\n'.join(key_info.splitlines()[1:])
+                        bits = key_info.split()[0]
+                        fingerprint = key_info.split()[1]
+                        retcode, bubblebabble = shell_command(
+                            "%s -Bf %s" % (ssh_keygen_path, id_path))
+                        bubblebabble = bubblebabble.split()[1]
+                        certinfo = ''
+                        cert_path = "%s-cert.pub" % id_path
+                        if os.path.exists(cert_path):
+                            retcode, certinfo = shell_command(
+                            "%s -Lf %s" % (ssh_keygen_path, cert_path))
+                        certinfo = ' '.join(certinfo.split(' ')[1:])
+                        fixed_certinfo = ''
+                        for i, line in enumerate(certinfo.splitlines()):
+                            if i == 0:
+                                line = line.lstrip()
+                            fixed_certinfo += line.replace('    ', ' ')
+                            fixed_certinfo += '\n'
+                        id_obj = {
+                            'name': identity,
+                            'public': public_key_contents,
+                            'keytype': keytype,
+                            'bubblebabble': bubblebabble,
+                            'fingerprint': fingerprint,
+                            'randomart': randomart,
+                            'certinfo': fixed_certinfo,
+                            'bits': bits,
+                            'comment': comment.rstrip(),
+                        }
+                        out_dict['identities'].append(id_obj)
+        # Figure out which identities are defaults
+        default_ids = []
+        default_ids_exists = False
+        users_ssh_dir = get_ssh_dir(tws)
+        default_ids_path = os.path.join(users_ssh_dir, '.default_ids')
+        if os.path.exists(default_ids_path):
+            default_ids_exists = True
+            with open(default_ids_path) as f:
+                default_ids = f.read().splitlines() # Why not readlines()? \n
+        # Convert any absolute paths inside default_ids to just the short names
+        default_ids = [os.path.split(a)[1] for a in default_ids]
+        if default_ids_exists:
+            for i, id_obj in enumerate(out_dict['identities']):
+                if id_obj['name'] in default_ids:
+                    out_dict['identities'][i]['default'] = True
+                else:
+                    out_dict['identities'][i]['default'] = False
+    except Exception as e:
+        out_dict['result'] = _("Error getting identities: %s" % e)
+    message = {
+        'sshjs_identities_list': out_dict
+    }
+    tws.write_message(message)
+
+def set_default_identities(identities, tws):
+    """
+    Given a list of *identities*, mark them as defaults to use in all outbound
+    SSH connections by writing them to <user's ssh dir>/.default_ids.  If
+    *identities* is empty, no identities will be used in outbound connections.
+
+    .. note:: Whenever this function is called it will overwrite whatever is in .default_ids.
+    """
+    if isinstance(identities, list): # Ignore anything else
+        users_ssh_dir = get_ssh_dir(tws)
+        default_ids_path = os.path.join(users_ssh_dir, '.default_ids')
+        with open(default_ids_path, 'w') as f:
+            f.write('\n'.join(identities) + '\n') # Need that trailing newline
 
 # Special optional escape sequence handler (see docs on how it works)
 def opt_esc_handler(text, tws):
@@ -648,20 +826,51 @@ hooks = {
     'Web': [(r"/ssh", KnownHostsHandler)],
     'WebSocket': {
         'ssh_get_connect_string': get_connect_string,
-        'ssh_gen_new_keypair': generate_new_keypair,
         'ssh_execute_command': ws_exec_command,
+        'ssh_get_identities': get_identities,
         'ssh_get_public_key': get_public_key,
         'ssh_get_private_key': get_private_key,
-        'ssh_get_host_fingerprint': get_host_public_key_hash
+        'ssh_get_host_fingerprint': get_host_fingerprint,
+        'ssh_gen_new_keypair': generate_new_keypair,
+        'ssh_store_id_file': store_id_file,
+        'ssh_delete_identity': delete_identity,
+        'ssh_set_default_identities': set_default_identities
     },
     'Escape': opt_esc_handler,
     'Auth': create_user_ssh_dir
 }
 
-# NOTE: *message['keys'][0]* (hypothetical) - An associative array conaining the key's metadata.  For example:
+# Certificate information (as output by ssh-keygen) for reference:
 #
-#  {'fingerprint': <key fingerprint>,
-#   'public': <contents of the key if it's not a private key>,
-#   'comment': <key comment (may be empty)>,
-#   'certinfo': <certificate info (empty if it isn't a certificate)>,
-#   'bubblebabble': <the bubblebabble hash of the key>}
+#$ ssh-keygen -Lf id_rsa-cert.pub
+#id_rsa-cert.pub:
+        #Type: ssh-rsa-cert-v01@openssh.com user certificate
+        #Public key: RSA-CERT 80:57:2c:18:f9:86:ab:8b:64:27:db:6f:5e:03:3f:d9
+        #Signing CA: RSA 86:25:b0:73:67:0f:51:2e:a7:96:63:08:fb:d6:69:94
+        #Key ID: "user_riskable"
+        #Serial: 0
+        #Valid: from 2012-01-08T13:38:00 to 2013-01-06T13:39:27
+        #Principals:
+                #riskable
+        #Critical Options: (none)
+        #Extensions:
+                #permit-agent-forwarding
+                #permit-port-forwarding
+                #permit-pty
+                #permit-user-rc
+                #permit-X11-forwarding
+
+
+# NOTE: *message['identities'][0]* - An associative array conaining the key's metadata.  For example:
+#
+#{
+    #'name': "testid",
+    #'public': "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAChqFprVjC0MKe3qpjjc+WdANOHMgcUl46dJxZ+s5soBTkO6thcJDAbFb36lg3YyzZi/PtDJV5CPp8Mv1SUXUYBqgFZJFBqWwkB0O1ohjtEVzC8+ybrY+hP0zLqykglhOi+6W66HgFwjJGn56uGE7s8UpnSRKtqGq2USyme5gopYlytTw== Generated by Gate One on somehost",
+    #'keytype': "ecdsa",
+    #'bubblebabble': "xevol-budez-difod-zumif-zofos-vezis-rilep-febel-tufok-lugud-dyxex",
+    #'fingerprint': "0e:69:0a:9e:2e:26:2b:91:23:3d:95:4b:65:31:a9:6f",
+    #'randomart': "+--[ECDSA  521]---+\n|      oo         |\n|      +.         |\n|     =           |\n|    =  .         |\n| o.o o+ S        |\n|=.oo.oEo         |\n|.oo...  .        |\n|+o               |\n|=o.              |\n+-----------------+",
+    #'certinfo': "",
+    #'bits': 521,
+    #'comment': "Generated by Gate One on somehost",
+#}

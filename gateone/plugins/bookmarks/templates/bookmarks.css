@@ -17,10 +17,10 @@
     -o-transform-origin: center center;
     /* KHTML */
     -khtml-transform-origin: center center;
-    -khtml-transition: all 1s ease-in-out;
+    -khtml-transition: -khtml-transform 1s ease-in-out;
     /* IE 9+ */
     -ms-transform-origin: center center;
-    -ms-transition: all 1s ease-in-out;
+    -ms-transition: -ms-transform 1s ease-in-out;
     /* Future CSS3 standard */
     transform-origin: center center;
     transition: transform 1s ease-in-out;

@@ -25,6 +25,7 @@ this file.
 // General TODOs
 // TODO: Finish embedded mode stuff.
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
+// TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated into the base themes.
 
 // Everything goes in GateOne
 (function(window, undefined) {
@@ -240,10 +241,10 @@ GateOne.Base.update(GateOne, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
-            pastearea = u.createElement('textarea', {'id': prefix+'pastearea', 'oninput': 'GateOne.Logging.log("pastearea Input"); GateOne.Input.queue(GateOne.Utils.getNode("#'+prefix+'pastearea").value); GateOne.Utils.getNode("#'+prefix+'pastearea").value = ""; GateOne.Net.sendChars();'}),
-            prefsPanel = u.createElement('div', {'id': prefix+'panel_prefs', 'class':'panel'}),
+            pastearea = u.createElement('textarea', {'id': 'pastearea', 'oninput': 'GateOne.Logging.log("pastearea Input"); GateOne.Input.queue(GateOne.Utils.getNode("#'+prefix+'pastearea").value); GateOne.Utils.getNode("#'+prefix+'pastearea").value = ""; GateOne.Net.sendChars();'}),
+            prefsPanel = u.createElement('div', {'id': 'panel_prefs', 'class':'panel'}),
             prefsPanelH2 = u.createElement('h2'),
-            prefsPanelForm = u.createElement('form', {'id': prefix+'prefs_form', 'name': prefix+'prefs_form'}),
+            prefsPanelForm = u.createElement('form', {'id': 'prefs_form', 'name': prefix+'prefs_form'}),
             prefsPanelStyleRow1 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelStyleRow2 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelStyleRow3 = u.createElement('div', {'class':'paneltablerow'}),
@@ -255,32 +256,32 @@ GateOne.Base.update(GateOne, {
             prefsPanelRow4 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow5 = u.createElement('div', {'class':'paneltablerow'}),
             hr = u.createElement('hr', {'style': {'width': '100%', 'margin-top': '0.5em', 'margin-bottom': '0.5em'}}),
-            tableDiv = u.createElement('div', {'id': prefix+'prefs_tablediv1', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            tableDiv2 = u.createElement('div', {'id': prefix+'prefs_tablediv2', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            prefsPanelThemeLabel = u.createElement('span', {'id': prefix+'prefs_theme_label', 'class':'paneltablelabel'}),
-            prefsPanelTheme = u.createElement('select', {'id': prefix+'prefs_theme', 'name': prefix+'prefs_theme', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelColorsLabel = u.createElement('span', {'id': prefix+'prefs_colors_label', 'class':'paneltablelabel'}),
-            prefsPanelColors = u.createElement('select', {'id': prefix+'prefs_colors', 'name':'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelFontSizeLabel = u.createElement('span', {'id': prefix+'prefs_fontsize_label', 'class':'paneltablelabel'}),
-            prefsPanelFontSize = u.createElement('input', {'id': prefix+'prefs_fontsize', 'name': prefix+'prefs_fontsize', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelDisableTermTransitionsLabel = u.createElement('span', {'id': prefix+'prefs_disabletermtrans_label', 'class':'paneltablelabel'}),
-            prefsPanelDisableTermTransitions = u.createElement('input', {'id': prefix+'prefs_disabletermtrans', 'name': prefix+'prefs_disabletermtrans', 'value': 'disabletermtrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelDisableAudibleBellLabel = u.createElement('span', {'id': prefix+'prefs_disableaudiblebell_label', 'class':'paneltablelabel'}),
-            prefsPanelDisableAudibleBell = u.createElement('input', {'id': prefix+'prefs_disableaudiblebell', 'name': prefix+'prefs_disableaudiblebell', 'value': 'disableaudiblebell', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelScrollbackLabel = u.createElement('span', {'id': prefix+'prefs_scrollback_label', 'class':'paneltablelabel'}),
-            prefsPanelScrollback = u.createElement('input', {'id': prefix+'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelRowsLabel = u.createElement('span', {'id': prefix+'prefs_rows_label', 'class':'paneltablelabel'}),
-            prefsPanelRows = u.createElement('input', {'id': prefix+'prefs_rows', 'name': prefix+'prefs_rows', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelColsLabel = u.createElement('span', {'id': prefix+'prefs_cols_label', 'class':'paneltablelabel'}),
-            prefsPanelCols = u.createElement('input', {'id': prefix+'prefs_cols', 'name': prefix+'prefs_cols', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelSave = u.createElement('button', {'id': prefix+'prefs_save', 'type': 'submit', 'value': 'Save', 'class': 'button black', 'style': {'float': 'right'}}),
-            noticeContainer = u.createElement('div', {'id': prefix+'noticecontainer', 'style': {'margin-right': '2em', 'background': 'transparent'}}),
-            toolbar = u.createElement('div', {'id': prefix+'toolbar'}),
-            toolbarIconPrefs = u.createElement('div', {'id': prefix+'icon_prefs', 'class':'toolbar', 'title': "Preferences"}),
+            tableDiv = u.createElement('div', {'id': 'prefs_tablediv1', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            tableDiv2 = u.createElement('div', {'id': 'prefs_tablediv2', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            prefsPanelThemeLabel = u.createElement('span', {'id': 'prefs_theme_label', 'class':'paneltablelabel'}),
+            prefsPanelTheme = u.createElement('select', {'id': 'prefs_theme', 'name': prefix+'prefs_theme', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelColorsLabel = u.createElement('span', {'id': 'prefs_colors_label', 'class':'paneltablelabel'}),
+            prefsPanelColors = u.createElement('select', {'id': 'prefs_colors', 'name':'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelFontSizeLabel = u.createElement('span', {'id': 'prefs_fontsize_label', 'class':'paneltablelabel'}),
+            prefsPanelFontSize = u.createElement('input', {'id': 'prefs_fontsize', 'name': prefix+'prefs_fontsize', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelDisableTermTransitionsLabel = u.createElement('span', {'id': 'prefs_disabletermtrans_label', 'class':'paneltablelabel'}),
+            prefsPanelDisableTermTransitions = u.createElement('input', {'id': 'prefs_disabletermtrans', 'name': prefix+'prefs_disabletermtrans', 'value': 'disabletermtrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelDisableAudibleBellLabel = u.createElement('span', {'id': 'prefs_disableaudiblebell_label', 'class':'paneltablelabel'}),
+            prefsPanelDisableAudibleBell = u.createElement('input', {'id': 'prefs_disableaudiblebell', 'name': prefix+'prefs_disableaudiblebell', 'value': 'disableaudiblebell', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelScrollbackLabel = u.createElement('span', {'id': 'prefs_scrollback_label', 'class':'paneltablelabel'}),
+            prefsPanelScrollback = u.createElement('input', {'id': 'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelRowsLabel = u.createElement('span', {'id': 'prefs_rows_label', 'class':'paneltablelabel'}),
+            prefsPanelRows = u.createElement('input', {'id': 'prefs_rows', 'name': prefix+'prefs_rows', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelColsLabel = u.createElement('span', {'id': 'prefs_cols_label', 'class':'paneltablelabel'}),
+            prefsPanelCols = u.createElement('input', {'id': 'prefs_cols', 'name': prefix+'prefs_cols', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelSave = u.createElement('button', {'id': 'prefs_save', 'type': 'submit', 'value': 'Save', 'class': 'button black', 'style': {'float': 'right'}}),
+            noticeContainer = u.createElement('div', {'id': 'noticecontainer', 'style': {'margin-right': '2em', 'background': 'transparent'}}),
+            toolbar = u.createElement('div', {'id': 'toolbar'}),
+            toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'toolbar', 'title': "Preferences"}),
             panels = document.getElementsByClassName('panel'),
             // Firefox doesn't support 'mousewheel'
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
-            sideinfo = u.createElement('div', {'id': prefix+'sideinfo', 'class':'sideinfo'}),
+            sideinfo = u.createElement('div', {'id': 'sideinfo', 'class':'sideinfo'}),
             themeList = [], // Gets filled out below
             colorsList = [],
             enumerateCSS = function(jsonObj) {
@@ -393,7 +394,7 @@ GateOne.Base.update(GateOne, {
                 go.prefs.cols = null;
             }
             if (disableTermTransitions) {
-                var newStyle = u.createElement('style', {'id': prefix+'disable_term_transitions'});
+                var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
                 newStyle.innerHTML = ".terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
                 u.getNode(goDiv).appendChild(newStyle);
             } else {
@@ -442,7 +443,7 @@ GateOne.Base.update(GateOne, {
         }
         // Disable terminal transitions if the user wants
         if (go.prefs.disableTermTransitions) {
-            var newStyle = u.createElement('style', {'id': prefix+'disable_term_transitions'});
+            var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
             newStyle.innerHTML = ".terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
             u.getNode(goDiv).appendChild(newStyle);
         }
@@ -457,7 +458,7 @@ GateOne.Base.update(GateOne, {
             go.Visual.togglePanel('#'+prefix+'panel_prefs');
         }
         toolbarIconPrefs.onclick = showPrefs;
-        var grid = go.Visual.createGrid(prefix+'termwrapper');
+        var grid = go.Visual.createGrid('termwrapper');
         goDiv.appendChild(grid);
         var style = window.getComputedStyle(goDiv, null),
             adjust = 0;
@@ -606,13 +607,21 @@ GateOne.Base.update(GateOne.Utils, {
         var go = GateOne;
         go.Net.addAction('save_file', go.Utils.saveAsAction);
     },
-    getNode: function(elem) {
-        // Given an element name (string) or node (in case we're not sure), lookup the node using document.querySelector and return it.
+    getNode: function(nodeOrSelector) {
+        // Given a CSS query selector (string, e.g. '#someid') or node (in case we're not sure), lookup the node using document.querySelector() and return it.
         // NOTE: The benefit of this over just querySelector() is that if it is given a node it will just return the node as-is (so functions can accept both without having to worry about such things).  See removeElement() below for a good example.
-        if (typeof(elem) == 'string') {
-            return document.querySelector(elem);
+        if (typeof(nodeOrSelector) == 'string') {
+            return document.querySelector(nodeOrSelector);
         }
-        return elem;
+        return nodeOrSelector;
+    },
+    getNodes: function(nodeListOrSelector) {
+        // Given a CSS query selector (string, e.g. 'input[name="foo"]') or nodeList (in case we're not sure), lookup the node using document.querySelectorAll() and return the result (which will be a nodeList).
+        // NOTE: The benefit of this over just querySelectorAll() is that if it is given a nodeList it will just return the nodeList as-is (so functions can accept both without having to worry about such things).
+        if (typeof(nodeListOrSelector) == 'string') {
+            return document.querySelectorAll(nodeListOrSelector);
+        }
+        return nodeListOrSelector;
     },
     partial: function(fn) {
         var args = Array.prototype.slice.call(arguments);
@@ -711,9 +720,11 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     createElement: function(tagname, properties) {
-        // Takes a string, *tagname* and creates a DOM element of that type and applies *properties* to it.
+        // Takes a string, *tagname* and creates a DOM element of that type and applies *properties* to it.  If an 'id' is given as a property it will automatically be prepended with GateOne.prefs.prefix.
         // Example: createElement('div', {'id': 'foo', 'style': {'opacity': 0.5, 'color': 'black'}});
-        var elem = document.createElement(tagname);
+        var go = GateOne,
+            u = go.Utils,
+            elem = document.createElement(tagname);
         for (var key in properties) {
             var value = properties[key];
             if (key == 'style') {
@@ -721,8 +732,15 @@ GateOne.Base.update(GateOne.Utils, {
                 for (var style in value) {
                     elem.style[style] = value[style];
                 }
-            } else if (GateOne.Utils.renames[key]) { // Why JS ended up with different names for things is beyond me
-                elem.setAttribute(GateOne.Utils.renames[key] = value);
+            } else if (key == 'id') {
+                // Prepend GateOne.prefs.prefix so we don't have to include it a million times everywhere.
+                if (!u.startsWith(go.prefs.prefix, value)) {
+                    // Only prepend if it doesn't already start with the prefix
+                    value = go.prefs.prefix + value;
+                }
+                elem.setAttribute(key, value);
+            } else if (u.renames[key]) { // Why JS ended up with different names for things is beyond me
+                elem.setAttribute(u.renames[key] = value);
             } else {
                 elem.setAttribute(key, value);
             }
@@ -1199,7 +1217,13 @@ GateOne.Base.update(GateOne.Net, {
     },
     onMessage: function (evt) {
         logDebug('message: ' + evt.data);
-        var messageObj = JSON.parse(evt.data);
+        var messageObj = null;
+        try {
+            messageObj = JSON.parse(evt.data);
+        } catch (e) {
+            // Non-JSON messages coming over the WebSocket are assumed to be errors, display them as-is (could be handy shortcut to display a message instead of using the 'notice' action).
+            GateOne.Visual.displayMessage('Message From Server: ' + evt.data);
+        }
         // Execute each respective action
         try {
             GateOne.Utils.items(messageObj).forEach(function(item) {
@@ -2072,9 +2096,9 @@ GateOne.Base.update(GateOne.Visual, {
             panels = u.getNode(go.prefs.goDiv).getElementsByClassName('panel');
         // Start by scaling all panels out
         for (var i in u.toArray(panels)) {
-            if (u.getNode(panels[i]).style['transform'] != 'scale(0)') {
+            if (go.Visual.getTransform(panels[i]) == "scale(1)") {
                 v.applyTransform(panels[i], 'scale(0)');
-                // Call any registered callbacks for all of these panels:
+                // Call any registered 'out' callbacks for all of these panels
                 if (v.panelToggleCallbacks['out']['#'+panels[i].id]) {
                     for (var ref in v.panelToggleCallbacks['out']['#'+panels[i].id]) {
                         if (typeof(v.panelToggleCallbacks['out']['#'+panels[i].id][ref]) == "function") {
@@ -2086,18 +2110,27 @@ GateOne.Base.update(GateOne.Visual, {
         }
         if (origState != 'scale(1)') {
             v.applyTransform(panel, 'scale(1)');
+            // Call any registered 'in' callbacks for all of these panels
+            if (v.panelToggleCallbacks['in']['#'+panel.id]) {
+                for (var ref in v.panelToggleCallbacks['in']['#'+panel.id]) {
+                    if (typeof(v.panelToggleCallbacks['in']['#'+panel.id][ref]) == "function") {
+                        v.panelToggleCallbacks['in']['#'+panel.id][ref]();
+                    }
+                }
+            }
         } else {
             // Send it away
             v.applyTransform(panel, 'scale(0)');
-        }
-        // Call any registered callbacks for all of these panels:
-        if (v.panelToggleCallbacks['in']['#'+panel.id]) {
-            for (var ref in v.panelToggleCallbacks['in']['#'+panel.id]) {
-                if (typeof(v.panelToggleCallbacks['in']['#'+panel.id][ref]) == "function") {
-                    v.panelToggleCallbacks['in']['#'+panel.id][ref]();
+            // Call any registered 'out' callbacks for all of these panels
+            if (v.panelToggleCallbacks['out']['#'+panel.id]) {
+                for (var ref in v.panelToggleCallbacks['out']['#'+panel.id]) {
+                    if (typeof(v.panelToggleCallbacks['out']['#'+panel.id][ref]) == "function") {
+                        v.panelToggleCallbacks['out']['#'+panel.id][ref]();
+                    }
                 }
             }
         }
+
     },
     displayTermInfo: function(term) {
         // Displays the given term's information as a psuedo tooltip that eventually fades away
@@ -2107,9 +2140,9 @@ GateOne.Base.update(GateOne.Visual, {
             prefix = go.prefs.prefix,
             termObj = u.getNode('#'+prefix+'term' + term),
             displayText = termObj.id.split('term')[1] + ": " + termObj.title,
-            termInfoDiv = u.createElement('div', {'id': prefix+'terminfo'}),
+            termInfoDiv = u.createElement('div', {'id': 'terminfo'}),
             marginFix = Math.round(termObj.title.length/2),
-            infoContainer = u.createElement('div', {'id': prefix+'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
+            infoContainer = u.createElement('div', {'id': 'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
         termInfoDiv.innerHTML = displayText;
         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer') }
         infoContainer.appendChild(termInfoDiv);
@@ -2498,9 +2531,9 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 termObj.onmouseover = function(e) {
                     var displayText = termObj.id.split(prefix+'term')[1] + ": " + termObj.title,
-                        termInfoDiv = u.createElement('div', {'id': prefix+'terminfo'}),
+                        termInfoDiv = u.createElement('div', {'id': 'terminfo'}),
                         marginFix = Math.round(termObj.title.length/2),
-                        infoContainer = u.createElement('div', {'id': prefix+'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
+                        infoContainer = u.createElement('div', {'id': 'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
                     if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer') }
                     termInfoDiv.innerHTML = displayText;
                     infoContainer.appendChild(termInfoDiv);
@@ -2555,7 +2588,7 @@ GateOne.Base.update(GateOne.Visual, {
         GateOne.Utils.loadCSS(url, plugin+'_'+file);
     },
     dialog: function(title, content, /*opt*/options) {
-        // Creates a dialog with the given *title* and *content*.  If given, *options* will determine various properties.
+        // Creates a dialog with the given *title* and *content*.  Returns a function that will close the dialog when called.
         // *title* - string: Will appear at the top of the dialog.
         // *content* - HTML string or JavaScript DOM node:  The content of the dialog.
         // *options* doesn't do anything for now.
@@ -2564,13 +2597,17 @@ GateOne.Base.update(GateOne.Visual, {
             u = go.Utils,
             v = go.Visual,
             goDiv = u.getNode(go.prefs.goDiv),
-            pastearea = u.getNode('#'+go.prefs.prefix+'pastearea'),
-            dialogContainer = u.createElement('div', {'id': prefix+'dialogcontainer', 'class': 'halfsectrans'}),
-            dialogDiv = u.createElement('div', {'id': prefix+'dialogdiv'}),
-            dialogTitle = u.createElement('h3', {'id': prefix+'dialogtitle'}),
-            close = u.createElement('div', {'id': prefix+'dialog_close'}),
+            pastearea = u.getNode('#'+prefix+'pastearea'),
+            dialogContainer = u.createElement('div', {'id': 'dialogcontainer', 'class': 'halfsectrans', 'title': title}),
+            // dialogContent is wrapped by dialogDiv with "float: left; position: relative; left: 50%" and "float: left; position: relative; left: -50%" to ensure the content stays centered (see the theme CSS).
+            dialogDiv = u.createElement('div', {'id': 'dialogdiv'}),
+            dialogConent = u.createElement('div', {'id': 'dialogcontent'}),
+            dialogTitle = u.createElement('h3', {'id': 'dialogtitle'}),
+            close = u.createElement('div', {'id': 'dialog_close'}),
             moveDialog = function(e) {
+                // Called when the title bar of a dialog is dragged
                 if (v.dragging) {
+                    dialogContainer.className = '';
                     var X = e.clientX + window.scrollX,
                         Y = e.clientY + window.scrollY,
                         xMoved = X - v.dragOrigin.X,
@@ -2593,6 +2630,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             closeDialog = function(e) {
                 if (e) { e.preventDefault() }
+                dialogContainer.className = 'sectrans';
                 dialogContainer.style.opacity = 0;
                 setTimeout(function() {
                     u.removeElement(dialogContainer);
@@ -2603,6 +2641,8 @@ GateOne.Base.update(GateOne.Visual, {
                 document.body.removeEventListener("mousemove", moveDialog, true);
                 document.body.removeEventListener("mouseup", function(e) {v.dragging = false;}, true);
             };
+        // Put the dialogContent inside the dialogDiv wrapper
+        dialogDiv.appendChild(dialogConent);
         if (pastearea) {
             u.hideElement(pastearea);
         }
@@ -2642,24 +2682,23 @@ GateOne.Base.update(GateOne.Visual, {
         document.body.addEventListener("mousemove", moveDialog, true);
         document.body.addEventListener("mouseup", function(e) {v.dragging = false;}, true);
         dialogContainer.style.opacity = 0;
-        dialogContainer.style.width = "50%";
-        dialogContainer.style.height = "50%";
         setTimeout(function() {
             // This fades the dialog in with a nice and smooth CSS3 transition (thanks to the 'halfsectrans' class)
             dialogContainer.style.opacity = 1;
         }, 100);
-        close.innerHTML = "X";
+        close.innerHTML = go.Icons['panelclose'];
         close.onclick = closeDialog;
         dialogTitle.innerHTML = title;
         dialogContainer.appendChild(dialogTitle);
         dialogTitle.appendChild(close);
         if (typeof(content) == "string") {
-            dialogDiv.innerHTML = content;
+            dialogConent.innerHTML = content;
         } else {
-            dialogDiv.appendChild(content);
+            dialogConent.appendChild(content);
         }
         dialogContainer.appendChild(dialogDiv);
-        document.body.appendChild(dialogContainer);
+        goDiv.appendChild(dialogContainer);
+        return closeDialog;
     }
 });
 
@@ -2697,31 +2736,31 @@ GateOne.Base.update(GateOne.Terminal, {
             t = go.Terminal,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            p = u.createElement('p', {'id': prefix+'info_actions', 'style': {'padding-bottom': '0.4em'}}),
+            p = u.createElement('p', {'id': 'info_actions', 'style': {'padding-bottom': '0.4em'}}),
             tableDiv = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            toolbarClose = u.createElement('div', {'id': prefix+'icon_closeterm', 'class': 'toolbar', 'title': "Close This Terminal"}),
-            toolbarNewTerm = u.createElement('div', {'id': prefix+'icon_newterm', 'class': 'toolbar', 'title': "New Terminal"}),
-            toolbarInfo = u.createElement('div', {'id': prefix+'icon_info', 'class': 'toolbar', 'title': "Terminal Info"}),
-            infoPanel = u.createElement('div', {'id': prefix+'panel_info', 'class': 'panel'}),
-            infoPanelRow1 = u.createElement('div', {'class': 'paneltablerow', 'id': prefix+'panel_inforow1'}),
-            infoPanelRow2 = u.createElement('div', {'class': 'paneltablerow', 'id': prefix+'panel_inforow2'}),
-            infoPanelRow3 = u.createElement('div', {'class': 'paneltablerow', 'id': prefix+'panel_inforow3'}),
-            infoPanelRow4 = u.createElement('div', {'class': 'paneltablerow', 'id': prefix+'panel_inforow4'}),
-            infoPanelH2 = u.createElement('h2', {'id': prefix+'termtitle'}),
-            infoPanelTimeLabel = u.createElement('span', {'id': prefix+'term_time_label', 'style': {'display': 'table-cell'}}),
-            infoPanelTime = u.createElement('span', {'id': prefix+'term_time', 'style': {'display': 'table-cell'}}),
-            infoPanelRowsLabel = u.createElement('span', {'id': prefix+'rows_label', 'style': {'display': 'table-cell'}}),
-            infoPanelRows = u.createElement('span', {'id': prefix+'rows', 'style': {'display': 'table-cell'}}),
-            infoPanelColsLabel = u.createElement('span', {'id': prefix+'cols_label', 'style': {'display': 'table-cell'}}),
-            infoPanelCols = u.createElement('span', {'id': prefix+'cols', 'style': {'display': 'table-cell'}}),
-//             infoPanelViewLog = u.createElement('button', {'id': prefix+'viewlog', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            infoPanelSaveRecording = u.createElement('button', {'id': prefix+'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            infoPanelMonitorActivity = u.createElement('input', {'id': prefix+'monitor_activity', 'type': 'checkbox', 'name': 'monitor_activity', 'value': 'monitor_activity', 'style': {'margin-right': '0.5em'}}),
+            toolbarClose = u.createElement('div', {'id': 'icon_closeterm', 'class': 'toolbar', 'title': "Close This Terminal"}),
+            toolbarNewTerm = u.createElement('div', {'id': 'icon_newterm', 'class': 'toolbar', 'title': "New Terminal"}),
+            toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': 'toolbar', 'title': "Info and Tools"}),
+            infoPanel = u.createElement('div', {'id': 'panel_info', 'class': 'panel'}),
+            infoPanelRow1 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow1'}),
+            infoPanelRow2 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow2'}),
+            infoPanelRow3 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow3'}),
+            infoPanelRow4 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow4'}),
+            infoPanelH2 = u.createElement('h2', {'id': 'termtitle'}),
+            infoPanelTimeLabel = u.createElement('span', {'id': 'term_time_label', 'style': {'display': 'table-cell'}}),
+            infoPanelTime = u.createElement('span', {'id': 'term_time', 'style': {'display': 'table-cell'}}),
+            infoPanelRowsLabel = u.createElement('span', {'id': 'rows_label', 'style': {'display': 'table-cell'}}),
+            infoPanelRows = u.createElement('span', {'id': 'rows', 'style': {'display': 'table-cell'}}),
+            infoPanelColsLabel = u.createElement('span', {'id': 'cols_label', 'style': {'display': 'table-cell'}}),
+            infoPanelCols = u.createElement('span', {'id': 'cols', 'style': {'display': 'table-cell'}}),
+//             infoPanelViewLog = u.createElement('button', {'id': 'viewlog', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            infoPanelMonitorActivity = u.createElement('input', {'id': 'monitor_activity', 'type': 'checkbox', 'name': 'monitor_activity', 'value': 'monitor_activity', 'style': {'margin-right': '0.5em'}}),
             infoPanelMonitorActivityLabel = u.createElement('span'),
-            infoPanelMonitorInactivity = u.createElement('input', {'id': prefix+'monitor_inactivity', 'type': 'checkbox', 'name': 'monitor_inactivity', 'value': 'monitor_inactivity', 'style': {'margin-right': '0.5em'}}),
+            infoPanelMonitorInactivity = u.createElement('input', {'id': 'monitor_inactivity', 'type': 'checkbox', 'name': 'monitor_inactivity', 'value': 'monitor_inactivity', 'style': {'margin-right': '0.5em'}}),
             infoPanelMonitorInactivityLabel = u.createElement('span'),
-            infoPanelInactivityInterval = u.createElement('input', {'id': prefix+'inactivity_interval', 'name': prefix+'inactivity_interval', 'size': 3, 'value': 10, 'style': {'margin-right': '0.5em', 'text-align': 'right', 'width': '4em'}}),
+            infoPanelInactivityInterval = u.createElement('input', {'id': 'inactivity_interval', 'name': prefix+'inactivity_interval', 'size': 3, 'value': 10, 'style': {'margin-right': '0.5em', 'text-align': 'right', 'width': '4em'}}),
             infoPanelInactivityIntervalLabel = u.createElement('span'),
             goDiv = u.getNode(go.prefs.goDiv),
             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
@@ -2913,7 +2952,7 @@ GateOne.Base.update(GateOne.Terminal, {
         if (screen) {
             var termContainer = GateOne.Utils.getNode('#'+prefix+'term'+term),
                 existingPre = GateOne.Utils.getNode('#'+prefix+'term'+term+'_pre'),
-                termPre = GateOne.Utils.createElement('pre', {'id': prefix+'term'+term+'_pre'});
+                termPre = GateOne.Utils.createElement('pre', {'id': 'term'+term+'_pre'});
             try {
                 GateOne.terminals[term]['screen'] = screen;
                 termPre.innerHTML = screen.join('\n') + '\n\n';
@@ -3304,9 +3343,9 @@ GateOne.Base.update(GateOne.User, {
             prefix = go.prefs.prefix,
             prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
             prefsPanelForm = u.getNode('#'+prefix+'prefs_form'),
-            prefsPanelUserInfo = u.createElement('div', {'id': prefix+'user_info'}),
-            prefsPanelUserID = u.createElement('span', {'id': prefix+'user_info_id'}),
-            prefsPanelUserLogout = u.createElement('a', {'id': prefix+'user_info_logout'});
+            prefsPanelUserInfo = u.createElement('div', {'id': 'user_info'}),
+            prefsPanelUserID = u.createElement('span', {'id': 'user_info_id'}),
+            prefsPanelUserLogout = u.createElement('a', {'id': 'user_info_logout'});
         if (prefsPanelForm) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
             prefsPanelUserLogout.innerHTML = "Sign Out";
             prefsPanelUserLogout.onclick = function(e) {
