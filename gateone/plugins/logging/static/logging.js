@@ -570,7 +570,7 @@ GateOne.Base.update(GateOne.Logging, {
             u = go.Utils,
             l = go.Logging,
             prefix = go.prefs.prefix,
-            logElem = u.createElement('div', {'class':'sectrans logitem', 'name': prefix+'logitem'}),
+            logElem = u.createElement('div', {'class':'halfsectrans logitem', 'name': prefix+'logitem'}),
             logViewOptions = u.createElement('span', {'class': 'logview_options'}),
             viewFlat = u.createElement('a'),
             viewPlayback = u.createElement('a'),
@@ -605,6 +605,12 @@ GateOne.Base.update(GateOne.Logging, {
             logElem.onclick = function(e) {
                 var previewIframe = u.getNode('#'+prefix+'log_preview'),
                     iframeDoc = previewIframe.contentWindow.document;
+                // Highlight the selected row and show the metadata
+                u.toArray(u.getNodes('.logitem')).forEach(function(node) {
+                    // Reset them all before we apply the 'active' class to just the one
+                    node.className = 'halfsectrans logitem';
+                });
+                this.className = 'halfsectrans logitem active';
                 iframeDoc.open();
                 iframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; background-image: none; color: #fff; font-size: 1.2em; font-weight: bold; font-style: italic;">Loading Preview...</body></html');
                 iframeDoc.close();

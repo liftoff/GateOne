@@ -102,7 +102,7 @@ GateOne.Base.update(GateOne.SSH, {
             bitsSpan = u.createElement('span', {'id': 'ssh_id_bitsspan', 'class':'ssh_id_cell ssh_id_header_cell'}),
             certSpan = u.createElement('span', {'id': 'ssh_id_certspan', 'class':'ssh_id_cell ssh_id_header_cell'}),
             sortOrder = u.createElement('span', {'id': 'ssh_ids_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
-            sshIDMetadataDiv = u.createElement('div', {'id': 'ssh_id_metadata'});
+            sshIDMetadataDiv = u.createElement('div', {'id': 'ssh_id_metadata', 'class': 'sectrans'});
         sshIDHeaderH2.innerHTML = 'SSH Identity Manager: Loading...';
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
@@ -121,6 +121,7 @@ GateOne.Base.update(GateOne.SSH, {
             // Show the upload identity dialog/form
             ssh.uploadIDForm();
         }
+        go.Visual.applyTransform(sshIDMetadataDiv, 'translate(300%)'); // It gets translated back in showIDs
         sshIDInfoContainer.appendChild(sshIDMetadataDiv);
         sshIDContent.appendChild(sshIDInfoContainer);
         if (ssh.sortToggle) {
@@ -310,6 +311,16 @@ GateOne.Base.update(GateOne.SSH, {
         while (sshIDMetadataDiv.childNodes.length >= 1 ) {
             sshIDMetadataDiv.removeChild(sshIDMetadataDiv.firstChild);
         }
+        sshIDMetadataDiv.innerHTML = '<p id="' + prefix + 'ssh_id_tip"><i><b>Tip:</b> Click on an identity to see its information.</i></p>';
+        setTimeout(function() {
+            go.Visual.applyTransform(sshIDMetadataDiv, '');
+            setTimeout(function() {
+                var tip = u.getNode('#'+prefix+'ssh_id_tip');
+                if (tip) {
+                    tip.style.opacity = 0;
+                }
+            }, 10000);
+        }, ssh.delay);
         // Apply the sort function
         ssh.identities.sort(ssh.sortfunc);
         if (ssh.sortToggle) {

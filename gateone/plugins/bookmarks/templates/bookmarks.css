@@ -622,24 +622,6 @@
 #{{container}} .search {
     color: maroon;
 }
-#{{prefix}}bm_dialog_form {
-    text-align: center;
-}
-#{{prefix}}bm_dialog_form input {
-    width: 95%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 0.2em;
-    display: block;
-    padding: 0.2em 0.2em;
-    border: 1px solid #bbb;
-    border-radius: 2px;
-    box-shadow: 0 1px 1px #fff;
-    color: #000;
-    position: relative;
-    z-index: 2;
-    font-size: 1em;
-}
 #{{container}} .sharebutton {
 /*     width: 75%; */
     height: 1.5em;
@@ -717,6 +699,13 @@
 }
 #{{prefix}}bookmarks_upload {
     height: 2.5em;
+}
+#{{prefix}}bm_new_form input {
+    width: 25em;
+}
+#{{prefix}}bm_new_form textarea {
+    width: 25em;
+    height: 8em;
 }
 /* Effects */
 #{{container}} div[name="{{prefix}}bookmark"]:hover {

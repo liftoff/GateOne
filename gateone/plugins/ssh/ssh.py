@@ -565,8 +565,7 @@ def openssh_generate_new_keypair(name, path,
     )
     m = tws.new_multiplex(command, "gen_ssh_keypair")
     call_errorback = partial(errorback, tws)
-    m.expect('^Overwrite.*',
-        overwrite, optional=True, timeout=10)
+    m.expect('^Overwrite.*', overwrite, optional=True, timeout=10)
     passphrase_handler = partial(enter_passphrase, passphrase)
     m.expect('^Enter passphrase',
         passphrase_handler, errorback=call_errorback, timeout=10)
@@ -653,6 +652,7 @@ def store_id_file(settings, tws=None):
         if private:
             with open(private_key_path, 'w') as f:
                 f.write(private)
+            os.chmod(private_key_path, 0600) # Without this you get a warning
         if public:
             with open(public_key_path, 'w') as f:
                 f.write(public)

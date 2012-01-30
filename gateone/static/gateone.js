@@ -2598,16 +2598,71 @@ GateOne.Base.update(GateOne.Visual, {
             v = go.Visual,
             goDiv = u.getNode(go.prefs.goDiv),
             pastearea = u.getNode('#'+prefix+'pastearea'),
-            dialogContainer = u.createElement('div', {'id': 'dialogcontainer', 'class': 'halfsectrans', 'title': title}),
+            unique = u.randomPrime(), // Need something unique to enable having more than one dialog on the same page.
+            dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': 'halfsectrans dialogcontainer', 'title': title}),
             // dialogContent is wrapped by dialogDiv with "float: left; position: relative; left: 50%" and "float: left; position: relative; left: -50%" to ensure the content stays centered (see the theme CSS).
             dialogDiv = u.createElement('div', {'id': 'dialogdiv'}),
             dialogConent = u.createElement('div', {'id': 'dialogcontent'}),
             dialogTitle = u.createElement('h3', {'id': 'dialogtitle'}),
             close = u.createElement('div', {'id': 'dialog_close'}),
+            dialogToForeground = function(e) {
+                // Move this dialog to the front of our array and fix all the z-index of all the dialogs
+                for (var i in v.dialogs) {
+                    if (dialogContainer == v.dialogs[i]) {
+                        v.dialogs.splice(i, 1); // Remove it
+                        v.dialogs.unshift(dialogContainer); // Add it to the front
+                        dialogContainer.style.opacity = 1; // Make sure it is visible
+                    }
+                }
+                // Set the z-index of each dialog to be its original z-index - its position in the array (should ensure the first item in the array has the highest z-index and so on)
+                for (var i in v.dialogs) {
+                    if (i != 0) {
+                        // Set all non-foreground dialogs opacity to be slightly less than 1 to make the active dialog more obvious
+                        v.dialogs[i].style.opacity = 0.75;
+                    }
+                    v.dialogs[i].style.zIndex = v.dialogZIndex - i;
+                }
+                // Remove the event that called us so we're not constantly looping over the dialogs array
+                dialogContainer.removeEventListener("mousedown", dialogToForeground, true);
+            },
+            containerMouseUp = function(e) {
+                // Reattach our mousedown function since it auto-removes itself the first time it runs (so we're not wasting cycles constantly looping over the dialogs array)
+                dialogContainer.addEventListener("mousedown", dialogToForeground, true);
+                dialogContainer.style.opacity = 1;
+            },
+            titleMouseDown = function(e) {
+                var m = go.Input.mouse(e); // Get the properties of the mouse event
+                if (m.button.left) { // Only if left button is depressed
+                    var left = window.getComputedStyle(dialogContainer, null)['left'],
+                        top = window.getComputedStyle(dialogContainer, null)['top'];
+                    dialogContainer.dragging = true;
+                    e.preventDefault();
+                    v.dragOrigin.X = e.clientX + window.scrollX;
+                    v.dragOrigin.Y = e.clientY + window.scrollY;
+                    if (left.indexOf('%') != -1) {
+                        // Have to convert a percent to an actual pixel value
+                        var percent = parseInt(left.substring(0, left.length-1)),
+                            bodyWidth = window.getComputedStyle(document.body, null)['width'],
+                            bodyWidth = parseInt(bodyWidth.substring(0, bodyWidth.length-2));
+                        v.dragOrigin.dialogX = Math.floor(bodyWidth * (percent*.01));
+                    } else {
+                        v.dragOrigin.dialogX = parseInt(dialogContainer.style.left.substring(0, dialogContainer.style.left.length-2)); // Remove the 'px'
+                    }
+                    if (top.indexOf('%') != -1) {
+                        // Have to convert a percent to an actual pixel value
+                        var percent = parseInt(top.substring(0, top.length-1)),
+                            bodyHeight = document.body.scrollHeight;
+                        v.dragOrigin.dialogY = Math.floor(bodyHeight * (percent*.01));
+                    } else {
+                        v.dragOrigin.dialogY = parseInt(dialogContainer.style.top.substring(0, dialogContainer.style.top.length-2));
+                    }
+                    dialogContainer.style.opacity = 0.75; // Make it see-through to make it possible to see things behind it for a quick glance.
+                }
+            },
             moveDialog = function(e) {
                 // Called when the title bar of a dialog is dragged
-                if (v.dragging) {
-                    dialogContainer.className = '';
+                if (dialogContainer.dragging) {
+                    dialogContainer.className = 'dialogcontainer'; // Have to get rid of the halfsectrans so it will drag smoothly.
                     var X = e.clientX + window.scrollX,
                         Y = e.clientY + window.scrollY,
                         xMoved = X - v.dragOrigin.X,
@@ -2622,7 +2677,7 @@ GateOne.Base.update(GateOne.Visual, {
                     }
                     newX = v.dragOrigin.dialogX + xMoved;
                     newY = v.dragOrigin.dialogY + yMoved;
-                    if (v.dragging) {
+                    if (dialogContainer.dragging) {
                         dialogContainer.style.left = newX + 'px';
                         dialogContainer.style.top = newY + 'px';
                     }
@@ -2630,7 +2685,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             closeDialog = function(e) {
                 if (e) { e.preventDefault() }
-                dialogContainer.className = 'sectrans';
+                dialogContainer.className = 'halfsectrans dialogcontainer';
                 dialogContainer.style.opacity = 0;
                 setTimeout(function() {
                     u.removeElement(dialogContainer);
@@ -2639,53 +2694,41 @@ GateOne.Base.update(GateOne.Visual, {
                     u.showElement(pastearea);
                 }
                 document.body.removeEventListener("mousemove", moveDialog, true);
-                document.body.removeEventListener("mouseup", function(e) {v.dragging = false;}, true);
+                document.body.removeEventListener("mouseup", function(e) {dialogContainer.dragging = false;}, true);
+                dialogContainer.removeEventListener("mousedown", dialogToForeground, true); // Just in case--to ensure garbage collection
+                dialogTitle.removeEventListener("mousedown", titleMouseDown, true); // Ditto
+                for (var i in v.dialogs) {
+                    if (dialogContainer == v.dialogs[i]) {
+                        v.dialogs.splice(i, 1);
+                    }
+                }
+                v.dialogs[0].style.opacity = 1; // Set the new-first dialog back to fully visible
             };
-        // Put the dialogContent inside the dialogDiv wrapper
+        // Keep track of all open dialogs so we can determine the foreground order
+        if (!v.dialogs) {
+            v.dialogs = [];
+        }
+        v.dialogs.push(dialogContainer);
         dialogDiv.appendChild(dialogConent);
         if (pastearea) {
             u.hideElement(pastearea);
         }
         // Enable drag-to-move on the dialog title
-        if (!v.dragging) {
-            v.dragging = false;
+        if (!dialogContainer.dragging) {
+            dialogContainer.dragging = false;
             v.dragOrigin = {};
         }
-        dialogTitle.onmousedown = function(e) {
-            var m = go.Input.mouse(e); // Get the properties of the mouse event
-            if (m.button.left) { // Only if left button is depressed
-                var left = window.getComputedStyle(dialogContainer, null)['left'],
-                    top = window.getComputedStyle(dialogContainer, null)['top'];
-                v.dragging = true;
-                e.preventDefault();
-                v.dragOrigin.X = e.clientX + window.scrollX;
-                v.dragOrigin.Y = e.clientY + window.scrollY;
-                if (left.indexOf('%') != -1) {
-                    // Have to convert a percent to an actual pixel value
-                    var percent = parseInt(left.substring(0, left.length-1)),
-                        bodyWidth = window.getComputedStyle(document.body, null)['width'],
-                        bodyWidth = parseInt(bodyWidth.substring(0, bodyWidth.length-2));
-                    v.dragOrigin.dialogX = Math.floor(bodyWidth * (percent*.01));
-                } else {
-                    v.dragOrigin.dialogX = parseInt(dialogContainer.style.left.substring(0, dialogContainer.style.left.length-2)); // Remove the 'px'
-                }
-                if (top.indexOf('%') != -1) {
-                    // Have to convert a percent to an actual pixel value
-                    var percent = parseInt(top.substring(0, top.length-1)),
-                        bodyHeight = document.body.scrollHeight;
-                    v.dragOrigin.dialogY = Math.floor(bodyHeight * (percent*.01));
-                } else {
-                    v.dragOrigin.dialogY = parseInt(dialogContainer.style.top.substring(0, dialogContainer.style.top.length-2));
-                }
-            }
-        }
+        dialogTitle.addEventListener("mousedown", titleMouseDown, true);
+        // These have to be attached to document.body otherwise the dialogs will be constrained within #gateone which could just be a small portion of a larger web page.
         document.body.addEventListener("mousemove", moveDialog, true);
-        document.body.addEventListener("mouseup", function(e) {v.dragging = false;}, true);
+        document.body.addEventListener("mouseup", function(e) {dialogContainer.dragging = false;}, true);
+        dialogContainer.addEventListener("mousedown", dialogToForeground, true); // Ensure that clicking on a dialog brings it to the foreground
+        dialogContainer.addEventListener("mouseup", containerMouseUp, true);
         dialogContainer.style.opacity = 0;
         setTimeout(function() {
             // This fades the dialog in with a nice and smooth CSS3 transition (thanks to the 'halfsectrans' class)
             dialogContainer.style.opacity = 1;
-        }, 100);
+        }, 50);
         close.innerHTML = go.Icons['panelclose'];
         close.onclick = closeDialog;
         dialogTitle.innerHTML = title;
@@ -2698,6 +2741,8 @@ GateOne.Base.update(GateOne.Visual, {
         }
         dialogContainer.appendChild(dialogDiv);
         goDiv.appendChild(dialogContainer);
+        v.dialogZIndex = parseInt(getComputedStyle(dialogContainer).zIndex); // Right now this is 750 in the themes but that could change in the future so I didn't want to hard-code that value
+        dialogToForeground();
         return closeDialog;
     }
 });

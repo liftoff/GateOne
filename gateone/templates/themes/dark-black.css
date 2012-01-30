@@ -793,8 +793,6 @@
 }
 #{{container}} .button:active {
     position: relative;
-    top: 1px;
-    border: solid 0.1em #FFF;
 }
 /* black buttons */
 #{{container}} .black {
@@ -838,8 +836,10 @@
 #{{prefix}}user_info a:hover {
     cursor: pointer;
 }
-#{{prefix}}dialogcontainer {
+#{{container}} .dialogcontainer {
+    font-family: sans-serif;
     position: fixed;
+    overflow-x: hidden;
     top: 25%;
     left: 25%;
     background-color: #CCC;
@@ -859,24 +859,48 @@
     /* Standard (future) */
     background-image: -o-linear-gradient(#eee, #aaa);
 }
-#{{prefix}}dialogcontainer h3 {
+#{{container}} .dialogcontainer h3 {
     background-color: #1F5470;
     color: #fff;
     padding-left: 0.5em;
     line-height: 1.5;
     margin-top: 0;
-    padding-right: 2em; /* Making room for the X */
-    padding-left: 2em; /* Balancing it out so the title stays centered */
+    padding-right: 1.5em; /* Making room for the X */
+    padding-left: 1.5em; /* Balancing it out so the title stays centered */
     text-align: center;
     font-size: 1.1em;
     border-radius: 0.25em 0.25em 0 0;
+}
+#{{container}} .dialogcontainer textarea {
+    margin-right: 1.3em;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    color: #000;
+    position: relative;
+}
+#{{container}} .dialogcontainer input {
+    margin-right: 1.3em;
+    margin-bottom: 0.2em;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    color: #000;
+    position: relative;
+    display: block;
+    width: 99%;
+}
+#{{container}} .dialogcontainer label {
+    font-size: 1.2em;
+    padding-top: 0.5em;
+    display: inline-block;
+    font-family: sans-serif;
 }
 #{{prefix}}dialogtitle:hover {
     cursor: move;
 }
 /* dialogdiv wraps dialogcontent with this "left: 50%" and "left: -50%" mixture to ensure that everything stays centered. */
 #{{prefix}}dialogdiv {
-    margin: 0.2em;
     float: left;
     position: relative;
     left: 50%;
