@@ -1008,7 +1008,6 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 } else {
                     b.searchFilter = null;
                     b.loadBookmarks();
-                    // TODO: Make this remove the search string from the URL
                 }
             }
         }
@@ -1040,7 +1039,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
         bmOptions.appendChild(bmImport);
         bmOptions.appendChild(bmExport);
         bmTags.appendChild(bmOptions);
-        bmNew.innerHTML = '+ New';
+        bmNew.innerHTML = '+ New Bookmark';
         bmNew.onclick = b.openNewBookmarkForm;
         bmDisplayOpts.appendChild(bmSortOpts);
         bmHeader.appendChild(bmTags);
@@ -1479,7 +1478,6 @@ GateOne.Base.update(GateOne.Bookmarks, {
             u.getNode('#'+prefix+'bm_newurl').focus();
         }, 1000);
         var closeDialog = go.Visual.dialog(formTitle, bmForm);
-        // TODO: Make sure user isn't making an identical bookmark
         bmForm.onsubmit = function(e) {
             // Don't actually submit it
             e.preventDefault();

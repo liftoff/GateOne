@@ -63,13 +63,17 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="c"># Import stdlib stuff</span>
-<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">gzip</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
 
 <span class="c"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">raw</span>
+<span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">PLUGINS</span>
+
+<span class="c"># 3rd party imports</span>
+<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_encode</span><span class="p">,</span> <span class="n">json_decode</span>
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s">.. _log_viewer:</span>
@@ -147,6 +151,9 @@
 
 <span class="c"># Globals</span>
 <span class="n">SEPARATOR</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="c"># The character used to separate frames in the log</span>
+<span class="n">RE_OPT_SEQ</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\x1b\]_\;(.+?)(\x07|\x1b</span><span class="se">\\</span><span class="s">)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+<span class="n">RE_TITLE_SEQ</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="s">r&#39;.*\x1b\][0-2]\;(.+?)(\x07|\x1b</span><span class="se">\\</span><span class="s">)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
 
 <span class="c"># TODO: Support Fast forward/rewind/pause like Gate One itself.</span>
 
@@ -161,7 +168,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">log</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
     <span class="n">prev_frame_time</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">log</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">log</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]):</span> <span class="c"># Skip first frame</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">])</span> <span class="c"># First 13 chars is the timestamp</span>
             <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span> <span class="c"># Skips the colon</span>
@@ -199,12 +206,6 @@
         <span class="s">r&#39;\x1b(.*\x1b</span><span class="se">\\</span><span class="s">|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=]|[()# %*+].)&#39;</span><span class="p">)</span>
     <span class="n">csi_sequence</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])&#39;</span><span class="p">)</span>
     <span class="n">esc_rstrip</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;[ </span><span class="se">\t</span><span class="s">]+</span><span class="se">\x1b</span><span class="s">.+$&#39;</span><span class="p">)</span>
-    <span class="c">#replacement_map = {</span>
-        <span class="c">#0: u&#39;␀&#39;,</span>
-        <span class="c">#7: u&#39;␇&#39;,</span>
-        <span class="c">#9: u&#39;␉&#39;,</span>
-        <span class="c">#24: u&#39;␘&#39;,</span>
-    <span class="c">#}</span>
     <span class="n">out</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
     <span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
     <span class="c"># If this seems confusing it is because text parsing is a black art! ARRR!</span>
@@ -212,6 +213,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">esc_buffer</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">&#39;</span><span class="p">:</span>
                 <span class="n">esc_buffer</span> <span class="o">=</span> <span class="n">char</span>
+            <span class="c"># TODO: Determine if we should bring this back:</span>
             <span class="c">#elif ord(char) in replacement_map:</span>
                 <span class="c">#out += replacement_map[ord(char)]</span>
             <span class="k">else</span><span class="p">:</span>
@@ -240,13 +242,13 @@
                 <span class="k">continue</span>
     <span class="k">if</span> <span class="n">rstrip</span><span class="p">:</span>
         <span class="c"># Remove trailing whitespace + trailing ESC sequences</span>
-        <span class="k">return</span> <span class="n">esc_rstrip</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">esc_rstrip</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span> <span class="c"># All these trailers better make for a good movie</span>
         <span class="k">return</span> <span class="n">out</span>
 </div>
 <div class="viewcode-block" id="flatten_log"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.flatten_log">[docs]</a><span class="k">def</span> <span class="nf">flatten_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">preserve_renditions</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">show_esc</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a log file at *log_path*, return a list of log lines contained within.</span>
+<span class="sd">    Given a log file at *log_path*, return a str of log lines contained within.</span>
 
 <span class="sd">    If *preserve_renditions* is True, CSI escape sequences for renditions will</span>
 <span class="sd">    be preserved as-is (e.g. font color, background, etc).  This is to make the</span>
@@ -263,12 +265,12 @@
     <span class="kn">import</span> <span class="nn">gzip</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">lines</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">lines</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]:</span> <span class="c"># Skip the first frame (metadata)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">])</span> <span class="c"># First 13 chars is the timestamp</span>
             <span class="c"># Convert to datetime object</span>
             <span class="n">frame_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">frame_time</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
-            <span class="k">if</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]:</span> <span class="c"># Skips the colon</span>
+            <span class="k">if</span> <span class="s">u&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]:</span> <span class="c"># Skips the colon</span>
                 <span class="n">frame_lines</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frame_lines</span><span class="p">):</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fl</span><span class="p">):</span>
@@ -276,28 +278,35 @@
                         <span class="c"># start of each line in case the previous line didn&#39;t</span>
                         <span class="c"># reset it on its own.</span>
                         <span class="k">if</span> <span class="n">show_esc</span><span class="p">:</span>
-                            <span class="n">out</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="c"># Standard Unix log format</span>
+                            <span class="n">out</span> <span class="o">+=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="c"># Standard Unix log format</span>
                                 <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[m%b %m %H:%M:%S&#39;</span><span class="p">),</span>
                                 <span class="n">raw</span><span class="p">(</span><span class="n">fl</span><span class="p">))</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="n">out</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="c"># Standard Unix log format</span>
+                            <span class="n">out</span> <span class="o">+=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="c"># Standard Unix log format</span>
                                 <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[m%b %m %H:%M:%S&#39;</span><span class="p">),</span>
                                 <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                             <span class="p">)</span>
                     <span class="k">elif</span> <span class="n">i</span><span class="p">:</span><span class="c"># Don&#39;t need this for the first empty line in a frame</span>
                         <span class="n">out</span> <span class="o">+=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[m%b %m %H:%M:%S </span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                <span class="n">out</span> <span class="o">+=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[m%b %m %H:%M:%S </span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">show_esc</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="ow">and</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="ow">and</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">u&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
                     <span class="n">out</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">raw</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">escaped_frame</span> <span class="o">=</span> <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:],</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="ow">and</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[H</span><span class="se">\x1b</span><span class="s">[2J&#39;</span> <span class="ow">in</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]:</span> <span class="c"># Clear screen sequence</span>
+                    <span class="n">out</span> <span class="o">+=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[m%b %m %H:%M:%S &#39;</span><span class="p">)</span>
+                    <span class="n">out</span> <span class="o">+=</span> <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:],</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+                    <span class="n">out</span> <span class="o">+=</span> <span class="s">&#39; ^L</span><span class="se">\n</span><span class="s">&#39;</span>
+                    <span class="k">continue</span>
+                <span class="n">escaped_frame</span> <span class="o">=</span> <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:],</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="ow">and</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">u&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+                    <span class="c"># Back up a line and add this character to it</span>
                     <span class="n">out</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">escaped_frame</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">escaped_frame</span><span class="p">:</span>
                     <span class="c"># This is pretty much always going to be the first line</span>
-                    <span class="n">out</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="c"># Standard Unix log format</span>
+                    <span class="n">out</span> <span class="o">+=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="c"># Standard Unix log format</span>
                         <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[m%b %m %H:%M:%S&#39;</span><span class="p">),</span>
-                        <span class="n">escaped_frame</span>
+                        <span class="n">escaped_frame</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
                     <span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">pass</span>

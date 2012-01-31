@@ -1,3 +1,5 @@
+.. _gateone-javascript:
+
 gateone.js
 ==========
 Gate One's JavaScript is made up of several modules (aka plugins), each pertaining to a specific type of activity.  These modules are laid out like so:
@@ -73,8 +75,8 @@ GateOne is the base object for all of GateOne's client-side JavaScript.  Besides
 
 .. _gateone-properties:
 
-Properties
-^^^^^^^^^^
+GateOne JavaScript Properties
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. note:: These are ordered by importance/usefulness.
 
 .. _GateOne.prefs:

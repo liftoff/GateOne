@@ -29,22 +29,22 @@ Here are some examples where Open Source licensing makes sense:
 
 Gate One Commercial Licensing
 -----------------------------
-The Commercial License offerings for Gate One are very flexible and afford businesses the flexibility to include Gate One as part of their products and services without any source code obligations.  It also provides licensees with a fully-supported solution and assurances.
+The Commercial License offerings for Gate One are very flexible and afford businesses the opportunity to include Gate One as part of their products and services without any source code obligations.  It also provides licensees with a fully-supported solution and assurances.
 
 Here are some examples where commercial licensing is typically necessary:
 
  * Including Gate One in software sold to customers who install it on their own equipment.
  * Selling software that requires the installation of Gate One.
  * Selling hardware that comes with Gate One pre-installed.
- * Bundling with or including Gate One in any product protected by patents whereby you do not wish to indemnify the end-user from all patent obligations related to the purchase or use of the product.
+ * Bundling with or including Gate One in any product protected by patents.
 
-If you merely install Gate One for production use in your business you do not need a commercial license.  For these situations, Liftoff Software offers a number of commercial support and assurance options.
+Even if you don't plan to embed Gate One into one of your own products, enterprise support options available.
 
-For more information on Gate One Commercial Licensing or support please visit our `website <http://liftoffsoftware.com>`_ (NOTE: Site may not be live yet).
+For more information on Gate One Commercial Licensing and support please visit our `website <http://liftoffsoftware.com>`_.
 
 Requirements
 ============
-In order to use Gate One you'll need to install the Tornado framework.  You'll get additional functionality if you also install pyOpenSSL and the python-kerberos module.  All three can usually be taken care of in a single command:
+In order to use Gate One you'll need to install the `Tornado framework <http://www.tornadoweb.org/>`_.  You'll get additional functionality if you also install `pyOpenSSL <https://launchpad.net/pyopenssl>`_ and the `python-kerberos <http://pypi.python.org/pypi/kerberos>`_ module.  All three can usually be taken care of in a single command:
 
 .. ansi-block::
     :string_escape:
@@ -91,29 +91,38 @@ Configuration
 =============
 The first time you execute gateone.py it will create a default configuration file as /opt/gateone/server.conf::
 
+    sso_service = "HTTP"
+    locale = "en_US"
+    https_redirect = False
+    pam_service = "login"
+    syslog_facility = "daemon"
+    disable_ssl = False
+    session_logging = True
+    syslog_host = None
+    cookie_secret = "NzZiNzVhYzA4M2JkNDNjNDliOGy0jjlkMGVkYMniZTcwz"
+    syslog_session_logging = False
+    address = ""
+    auth = None
+    port = 443
     user_dir = "/opt/gateone/users"
     log_file_num_backups = 10
-    certificate = "/opt/gateone/certificate.pem"
-    sso_service = "HTTP"
+    logging = "info"
     dtach = True
-    embedded = False
-    session_logging = True
-    sso_realm = "EXAMPLE.COM"
-    auth = None
-    log_file_prefix = "/var/log/gateone/webserver.log"
+    certificate = "certificate.pem"
+    command = "/opt/gateone/plugins/ssh/scripts/ssh_connect.py -S '/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp -a '-oUserKnownHostsFile=%USERDIR%/%USER%/ssh/known_hosts'"
+    log_to_stderr = False
+    session_timeout = "5d"
     log_file_max_size = 104857600
     session_dir = "/tmp/gateone"
-    cookie_secret = "A45CharacterStringGeneratedAtRandom012345678"
-    syslog_session_logging = False
-    syslog_facility = "daemon"
-    address = ""
+    sso_realm = None
+    embedded = False
+    keyfile = "keyfile.pem"
     debug = False
-    command = "/opt/gateone/plugins/ssh/scripts/ssh_connect.py -S '/tmp/gateone/%SESSION%/%r@%h:%p' -a '-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'"
-    session_timeout = "5d"
-    keyfile = "/opt/gateone/keyfile.pem"
-    port = 443
+    js_init = ""
+    log_file_prefix = "/opt/gateone/logs/webserver.log"
+    pam_realm = "portarisk"
 
-.. note:: The order of these settings does not matter.
+.. note:: These settings can appear in any order.
 
 These options match up directly with Gate One's command line options which you can view at any time by executing "gateone.py --help":
 
@@ -130,27 +139,34 @@ These options match up directly with Gate One's command line options which you c
       --log_file_num_backups           number of log files to keep
       --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
       --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
-      --logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
+      --logging=debug|info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
+    ./gateone.py
       --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. '127.0.0.1;::1;10.1.1.100').
-      --auth                           Authentication method to use.  Valid options are: none, kerberos, google.
+      --auth                           Authentication method to use.  Valid options are: none, api, google, kerberos, pam
       --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
-      --command                        Run the given command when a user connects (e.g. 'nethack').
+      --command                        Run the given command when a user connects (e.g. '/bin/login').
+      --config                         Path to the config file.  Default: /opt/gateone/server.conf
       --cookie_secret                  Use the given 45-character string for cookie encryption.
       --debug                          Enable debugging features such as auto-restarting when files are modified.
       --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
-      --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature =).
+      --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
       --embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
+      --https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
+      --js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init="{scheme: 'white'}" would result in GateOne.init({scheme: 'white'})
       --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
       --kill                           Kill any running Gate One terminal processes including dtach'd processes.
+      --locale                         The locale (e.g. pt_PT) Gate One should use for translations.  If not provided, will default to $LANG (which is 'en_US' in your current shell), or en_US if not set.
+      --new_api_key                    Generate a new API key that an external application can use toembed Gate One.
       --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
       --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
       --port                           Run on the given port.
       --session_dir                    Path to the location where session information will be stored.
-      --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/logs.  Default: Enabled
+      --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/<user>/logs.  Default: Enabled
       --session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts <num>X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is '5d' (5 days).
       --sso_realm                      Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only relevant if Kerberos authentication is enabled.
       --sso_service                    Kerberos service (aka application) to use. Defaults to HTTP. Only relevant if Kerberos authentication is enabled.
       --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
+      --syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
       --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
       --user_dir                       Path to the location where user files will be stored.
 
@@ -263,6 +279,12 @@ command
 
 This option specifies the command Gate One will run when a user connects or opens a new terminal.  The default is for Gate One to run the ssh_connect.py script.  Any interactive terminal application should work (e.g. 'nethack').
 
+config
+------
+.. option:: --config=string (file path)
+
+You may use this option to specify an alternate configuration file (e.g. something other than /opt/gateone/server.conf).
+
 cookie_secret
 -------------
 .. option:: --cookie_secret=string ([A-Za-z0-9])
@@ -322,9 +344,31 @@ embedded
 
     embedded = False
 
-This option tells Gate One to run in embedded mode:  No interface icons will be shown to the user and certain features such as opening additional terminal windows will be disabled.
+This option tells Gate One to run in embedded mode:  No interface icons will be displayed and the ability to open additional terminals will be disabled.
 
-.. note:: Doesn't actually do anything yet.  Should be available and working in the 1.0 release.
+https_redirect
+--------------
+.. option:: --https_redirect
+
+::
+
+    https_redirect = False
+
+If https_redirect is enabled, Gate One will listen on port 80 and redirect incoming connections to Gate One's configured port using HTTPS.
+
+js_init
+-------
+.. option:: --js_init=string (JavaScript Object)
+
+::
+
+    js_init = ""
+
+This option can be used to provide options to pass to the GateOne.init() function inside gateone.js whenever Gate One is opened in a browser.  For example::
+
+    js_init = "{'theme': 'white', 'fontSize': '120%'}"
+
+For a list of all the possible options see :attr:`GateOne.prefs` in the :ref:`developer-docs` under :ref:`gateone-properties`.
 
 keyfile
 -------
@@ -347,6 +391,22 @@ kill
     # It would be silly to set this in server.conf--but you could!  Gate One wouldn't start but hey, whatever floats your boat!
 
 If running with dtach support, this will kill all user's running terminal applications.  Giving everyone a fresh start, as it were.
+
+locale
+------
+.. option:: --locale=string (locale string)
+
+::
+
+    locale = "en_US"
+
+This option tells Gate One which local translation (native language) to use when rendering strings.  The first time you run Gate One it will attempt to automatically detect your locale using the `$LANG` environment variable.  If this variable is not set it will fall back to using `en_US`.
+
+new_api_key
+-----------
+.. option:: --new_api_key
+
+This command line option will generate a new, random API key and secret for use with applications that will be embedding Gate One.  Instructions on how to use API-based authentication can be found in the :ref:`embedded-docs`.
 
 pam_realm
 ---------
@@ -454,6 +514,18 @@ syslog_facility
     syslog_facility = "daemon"
 
 if `syslog_session_logging = True`, specifies the syslog facility that user session logs will use when syslog_session_logging is enabled.
+
+syslog_host
+-----------
+.. option:: --syslog_host=string (IP or FQDN)
+
+::
+
+    syslog_host = "loghost.company.com"
+
+This option will instruct Gate One to send log messages to the specified syslog server, bypassing the local syslog daemon (which could itself be configured to send logs to a syslog host).
+
+.. note:: This option may be used even if there is no syslog daemon available on the host running Gate One.  It makes outbound connections to the specified syslog host directly over UDP.
 
 syslog_session_logging
 ----------------------

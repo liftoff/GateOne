@@ -1,3 +1,5 @@
+.. _developer-docs:
+
 Developer Documentation
 =======================
 

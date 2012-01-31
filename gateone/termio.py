@@ -1083,7 +1083,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         # of Gate One that I have no idea how to isolate but this has proven to
         # be an effective workaround.
         import fcntl, termios
-        s = struct.pack("HHHH", rows-1, cols-1, 0, 0)
+        s = struct.pack("HHHH", rows, cols, 0, 0)
         fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
         if ctrl_l:
             self.write(u'\x0c') # ctrl-l

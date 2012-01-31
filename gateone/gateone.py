@@ -575,7 +575,8 @@ class HTTPSRedirectHandler(tornado.web.RequestHandler):
     """
     def get(self):
         """Just redirects the client from HTTP to HTTPS"""
-        self.redirect('https://%s/' % self.request.headers['Host'])
+        port = self.settings['port']
+        self.redirect('https://%s:%s/' % self.request.headers['Host'], port)
 
 class BaseHandler(tornado.web.RequestHandler):
     """
@@ -1903,6 +1904,7 @@ def main():
         del config_defaults['kill'] # This shouldn't be in server.conf
         del config_defaults['help'] # Neither should this
         del config_defaults['new_api_key'] # Ditto
+        del config_defaults['config'] # Re-ditto
         config_defaults.update({'cookie_secret': generate_session_id()})
         # NOTE: The next four options are specific to the Tornado framework
         config_defaults.update({'log_file_max_size': 100 * 1024 * 1024}) # 100MB
@@ -2081,9 +2083,6 @@ def main():
     https_server = tornado.httpserver.HTTPServer(
         Application(settings=app_settings), ssl_options=ssl_options)
     https_redirect = tornado.web.Application([(r"/", HTTPSRedirectHandler),])
-    # Make the server re-generate the combined_js if we update that file
-    gateone_js = os.path.join(static_dir, 'gateone.js')
-    tornado.autoreload.watch(gateone_js)
     try: # Start your engines!
         if options.address:
             for addr in options.address.split(';'):

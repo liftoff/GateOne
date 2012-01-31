@@ -58,7 +58,7 @@
           <div class="body">
             
   <div class="section" id="gateone-js">
-<h1>gateone.js<a class="headerlink" href="#gateone-js" title="Permalink to this headline">¶</a></h1>
+<span id="gateone-javascript"></span><h1>gateone.js<a class="headerlink" href="#gateone-js" title="Permalink to this headline">¶</a></h1>
 <p>Gate One's JavaScript is made up of several modules (aka plugins), each pertaining to a specific type of activity.  These modules are laid out like so:</p>
 <ul class="simple">
 <li><a class="reference internal" href="#gateone-base">GateOne.Base</a></li>
@@ -159,8 +159,8 @@
 <dd></dd></dl>
 
 <p>GateOne is the base object for all of GateOne's client-side JavaScript.  Besides the aforementioned modules (<tt class="xref py py-attr docutils literal"><span class="pre">Utils</span></tt>, <tt class="xref py py-attr docutils literal"><span class="pre">Net</span></tt>, <tt class="xref py py-attr docutils literal"><span class="pre">Input</span></tt>, <tt class="xref py py-attr docutils literal"><span class="pre">Visual</span></tt>, and <tt class="xref py py-attr docutils literal"><span class="pre">Terminal</span></tt>), it contains the following properties, objects, and methods:</p>
-<div class="section" id="properties">
-<span id="gateone-properties"></span><h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="gateone-javascript-properties">
+<span id="gateone-properties"></span><h3>GateOne JavaScript Properties<a class="headerlink" href="#gateone-javascript-properties" title="Permalink to this headline">¶</a></h3>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">These are ordered by importance/usefulness.</p>
@@ -488,7 +488,7 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>prefs</strong> (<em>object</em>) -- An object containing the settings that will be used by Gate One.  See <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.prefs</span></tt> under <a class="reference internal" href="#gateone-properties"><em>Properties</em></a> for details on what can be set.</li>
+<li><strong>prefs</strong> (<em>object</em>) -- An object containing the settings that will be used by Gate One.  See <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.prefs</span></tt> under <a class="reference internal" href="#gateone-properties"><em>GateOne JavaScript Properties</em></a> for details on what can be set.</li>
 </ul>
 </td>
 </tr>
@@ -1367,8 +1367,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dd></dd></dl>
 
 <p>Just about all of Gate One's communications with the server are handled inside this module.  It contains all the functions and properties to deal with setting up the WebSocket and issuing/receiving commands over it.  The most important facet of <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.Net</span></tt> is <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt> which holds the mapping of what function maps to which command.  More info on <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt> is below...</p>
-<div class="section" id="id2">
-<h3>Properties<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="properties">
+<h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="gateone-net-actions"></span><dl class="attribute">
 <dt id="GateOne.Net.actions">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">actions</tt><a class="headerlink" href="#GateOne.Net.actions" title="Permalink to this definition">¶</a></dt>
@@ -1411,8 +1411,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </pre></div>
 </div>
 </div>
-<div class="section" id="id3">
-<h3>Functions<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<h3>Functions<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="gateone-net-addaction"></span><dl class="function">
 <dt id="GateOne.Net.addAction">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">addAction</tt><big>(</big><em>name</em>, <em>func</em><big>)</big><a class="headerlink" href="#GateOne.Net.addAction" title="Permalink to this definition">¶</a></dt>
@@ -1577,8 +1577,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dd></dd></dl>
 
 <p>This module handles mouse and keyboard input for Gate One.  It consists of a few tables of information that tell Gate One how to act upon a given keystroke as well as functions that make working with keyboard and mouse events a bit easier.</p>
-<div class="section" id="id4">
-<h3>Properties<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>Properties<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Properties that have to do with temporary, internal states (e.g. <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.Input.metaHeld</span></tt>) were purposefully left out of this documentation since there's really no reason to ever reference them.</p>
@@ -1628,8 +1628,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 </div>
-<div class="section" id="id5">
-<h3>Functions<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>Functions<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="gateone-input-bufferescseq"></span><dl class="function">
 <dt id="GateOne.Input.bufferEscSeq">
 <tt class="descclassname">GateOne.Input.</tt><tt class="descname">bufferEscSeq</tt><big>(</big><em>chars</em><big>)</big><a class="headerlink" href="#GateOne.Input.bufferEscSeq" title="Permalink to this definition">¶</a></dt>
@@ -1866,8 +1866,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dd></dd></dl>
 
 <p>This module contains all of Gate One's visual effect functions.  It is just like <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.Utils</span></tt> but specific to visual effects and DOM manipulations.</p>
-<div class="section" id="id6">
-<h3>Properties<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>Properties<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="gateone-visual-godimensions"></span><dl class="attribute">
 <dt id="GateOne.Visual.goDimensions">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">goDimensions</tt><a class="headerlink" href="#GateOne.Visual.goDimensions" title="Permalink to this definition">¶</a></dt>
@@ -1875,8 +1875,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 </div>
-<div class="section" id="id7">
-<h3>Functions<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>Functions<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last">In most of Gate One's JavaScript, <em>term</em> refers to the terminal number (e.g. 1).</p>
@@ -2332,8 +2332,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dd></dd></dl>
 
 <p>GateOne.Terminal contains terminal-specific properties and functions.  Really, there's not much more to it than that :)</p>
-<div class="section" id="id8">
-<h3>Properties<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>Properties<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="gateone-terminal-closetermcallbacks"></span><dl class="attribute">
 <dt id="GateOne.Terminal.closeTermCallbacks">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">closeTermCallbacks</tt><a class="headerlink" href="#GateOne.Terminal.closeTermCallbacks" title="Permalink to this definition">¶</a></dt>
@@ -2377,8 +2377,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </dd></dl>
 
 </div>
-<div class="section" id="id9">
-<h3>Functions<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>Functions<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="gateone-terminal-closeterminal"></span><dl class="function">
 <dt id="GateOne.Terminal.closeTerminal">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">closeTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.closeTerminal" title="Permalink to this definition">¶</a></dt>
@@ -2592,7 +2592,7 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <li><a class="reference internal" href="#">gateone.js</a><ul>
 <li><a class="reference internal" href="#gateone-base">GateOne.Base</a></li>
 <li><a class="reference internal" href="#gateone">GateOne</a><ul>
-<li><a class="reference internal" href="#properties">Properties</a></li>
+<li><a class="reference internal" href="#gateone-javascript-properties">GateOne JavaScript Properties</a></li>
 <li><a class="reference internal" href="#functions">Functions</a></li>
 </ul>
 </li>
@@ -2601,23 +2601,23 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-net">GateOne.Net</a><ul>
-<li><a class="reference internal" href="#id2">Properties</a></li>
-<li><a class="reference internal" href="#id3">Functions</a></li>
+<li><a class="reference internal" href="#properties">Properties</a></li>
+<li><a class="reference internal" href="#id2">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-input">GateOne.Input</a><ul>
-<li><a class="reference internal" href="#id4">Properties</a></li>
-<li><a class="reference internal" href="#id5">Functions</a></li>
+<li><a class="reference internal" href="#id3">Properties</a></li>
+<li><a class="reference internal" href="#id4">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-visual">GateOne.Visual</a><ul>
-<li><a class="reference internal" href="#id6">Properties</a></li>
-<li><a class="reference internal" href="#id7">Functions</a></li>
+<li><a class="reference internal" href="#id5">Properties</a></li>
+<li><a class="reference internal" href="#id6">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-terminal">GateOne.Terminal</a><ul>
-<li><a class="reference internal" href="#id8">Properties</a></li>
-<li><a class="reference internal" href="#id9">Functions</a></li>
+<li><a class="reference internal" href="#id7">Properties</a></li>
+<li><a class="reference internal" href="#id8">Functions</a></li>
 </ul>
 </li>
 </ul>

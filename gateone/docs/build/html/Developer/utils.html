@@ -75,7 +75,7 @@ a known syslog facility.</p>
 
 <dl class="exception">
 <dt id="utils.SSLGenerationError">
-<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">SSLGenerationError</tt><a class="headerlink" href="#utils.SSLGenerationError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">SSLGenerationError</tt><a class="reference internal" href="../_modules/utils.html#SSLGenerationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.SSLGenerationError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Raised by gen_self_signed_ssl() if an error is encountered generating a
 self-signed SSL certificate.</p>
 </dd></dl>
@@ -88,7 +88,7 @@ self-signed SSL certificate.</p>
 
 <dl class="function">
 <dt id="utils.shell_command">
-<tt class="descclassname">utils.</tt><tt class="descname">shell_command</tt><big>(</big><em>cmd</em>, <em>timeout_duration=5</em><big>)</big><a class="headerlink" href="#utils.shell_command" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">shell_command</tt><big>(</big><em>cmd</em>, <em>timeout_duration=5</em><big>)</big><a class="reference internal" href="../_modules/utils.html#shell_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.shell_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resets the SIGCHLD signal handler (if necessary), executes
 commands.getstatusoutput(<em>cmd</em>), then re-enables the SIGCHLD handler (if it
 was set to something other than SIG_DFL).  Returns the result of
@@ -100,7 +100,7 @@ returned.</p>
 
 <dl class="function">
 <dt id="utils.json_encode">
-<tt class="descclassname">utils.</tt><tt class="descname">json_encode</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#utils.json_encode" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">json_encode</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/utils.html#json_encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.json_encode" title="Permalink to this definition">¶</a></dt>
 <dd><p>On some platforms (CentOS 6.2, specifically) tornado.escape.json_decode
 doesn't seem to work just right when it comes to returning unicode strings.
 This is just a wrapper that ensures that the returned string is unicode.</p>
@@ -128,7 +128,7 @@ the RSA algorithm at 4096 bits.</p>
 
 <dl class="function">
 <dt id="utils.gen_self_signed_openssl">
-<tt class="descclassname">utils.</tt><tt class="descname">gen_self_signed_openssl</tt><big>(</big><big>)</big><a class="headerlink" href="#utils.gen_self_signed_openssl" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">gen_self_signed_openssl</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/utils.html#gen_self_signed_openssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.gen_self_signed_openssl" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method will generate a secure self-signed SSL key/certificate pair
 (using the openssl command) saving the result as 'certificate.pem' and
 'keyfile.pem' in the current working directory.  The certificate will be
@@ -137,7 +137,7 @@ valid for 10 years.</p>
 
 <dl class="function">
 <dt id="utils.gen_self_signed_pyopenssl">
-<tt class="descclassname">utils.</tt><tt class="descname">gen_self_signed_pyopenssl</tt><big>(</big><em>notAfter=None</em><big>)</big><a class="headerlink" href="#utils.gen_self_signed_pyopenssl" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">gen_self_signed_pyopenssl</tt><big>(</big><em>notAfter=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#gen_self_signed_pyopenssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.gen_self_signed_pyopenssl" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method will generate a secure self-signed SSL key/certificate pair
 saving the result as 'certificate.pem' and 'keyfile.pem' in the current
 working directory.  By default the certificate will be valid for 10 years
@@ -248,7 +248,7 @@ sessions.
 
 <dl class="function">
 <dt id="utils.create_plugin_links">
-<tt class="descclassname">utils.</tt><tt class="descname">create_plugin_links</tt><big>(</big><em>static_dir</em>, <em>templates_dir</em>, <em>plugin_dir</em><big>)</big><a class="headerlink" href="#utils.create_plugin_links" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">create_plugin_links</tt><big>(</big><em>static_dir</em>, <em>templates_dir</em>, <em>plugin_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#create_plugin_links"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.create_plugin_links" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates symbolic links for all plugins in the ./static/ and ./templates/
 directories.  The equivalent of:</p>
 <pre class="ansi-block literal-block">
@@ -422,20 +422,20 @@ syslog.LOG_* equivalent.</p>
 
 <dl class="function">
 <dt id="utils.human_readable_bytes">
-<tt class="descclassname">utils.</tt><tt class="descname">human_readable_bytes</tt><big>(</big><em>bytes</em><big>)</big><a class="headerlink" href="#utils.human_readable_bytes" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">human_readable_bytes</tt><big>(</big><em>bytes</em><big>)</big><a class="reference internal" href="../_modules/utils.html#human_readable_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.human_readable_bytes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <em>bytes</em> as a human-readable string in a similar fashion to how it
 would be displayed by 'ls -lh' or 'df -h'.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="utils.retrieve_first_frame">
-<tt class="descclassname">utils.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="headerlink" href="#utils.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#retrieve_first_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the first frame from the given <em>golog_path</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="utils.get_or_update_metadata">
-<tt class="descclassname">utils.</tt><tt class="descname">get_or_update_metadata</tt><big>(</big><em>golog_path</em>, <em>user</em><big>)</big><a class="headerlink" href="#utils.get_or_update_metadata" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">get_or_update_metadata</tt><big>(</big><em>golog_path</em>, <em>user</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_or_update_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_or_update_metadata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves or creates/updates the metadata inside of <em>golog_path</em>.</p>
 <p>NOTE:  All logs will need &quot;fixing&quot; the first time they're enumerated since
 they won't have an end_date.  Fortunately we only need to do this once per
@@ -444,7 +444,7 @@ golog.</p>
 
 <dl class="function">
 <dt id="utils.which">
-<tt class="descclassname">utils.</tt><tt class="descname">which</tt><big>(</big><em>binary</em>, <em>path=None</em><big>)</big><a class="headerlink" href="#utils.which" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">which</tt><big>(</big><em>binary</em>, <em>path=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#which"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.which" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the full path of <em>binary</em> (string) just like the 'which' command.
 Optionally, a <em>path</em> (colon-delimited string) may be given to use instead of
 os.environ['PATH'].</p>
@@ -452,7 +452,7 @@ os.environ['PATH'].</p>
 
 <dl class="function">
 <dt id="utils.timeout_func">
-<tt class="descclassname">utils.</tt><tt class="descname">timeout_func</tt><big>(</big><em>func</em>, <em>args=()</em>, <em>kwargs={}</em>, <em>timeout_duration=10</em>, <em>default=None</em><big>)</big><a class="headerlink" href="#utils.timeout_func" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">timeout_func</tt><big>(</big><em>func</em>, <em>args=()</em>, <em>kwargs={}</em>, <em>timeout_duration=10</em>, <em>default=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#timeout_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.timeout_func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets a timeout on the given function, passing it the given args, kwargs,
 and a default value to return in the event of a timeout.</p>
 </dd></dl>

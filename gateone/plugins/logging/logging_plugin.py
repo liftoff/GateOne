@@ -4,7 +4,7 @@
 #
 # NOTE:  Named logging_plugin.py instead of "logging.py" to avoid conflics with the existing logging module
 
-# TODO: Fix the flat log viewing format.  Doesn't work quite right.
+# TODO: Fix the flat log viewing format.  Doesn't look quite right.
 # TODO: Write search functions.
 # TODO: Add some search indexing capabilities so that search will be fast.
 # TODO: Add a background process that cleans up old logs.
@@ -64,7 +64,7 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
             term.write(frame_screen)
             scrollback, screen = term.dump_html()
             out_frames.append({'screen': screen, 'time': frame_time})
-    return out_frames
+    return out_frames[1:] # Skip the first frame which is the metadata
 
 # Handlers
 
@@ -241,7 +241,7 @@ def _retrieve_log_flat(queue, settings):
         # Use the terminal emulator to create nice HTML-formatted output
         from terminal import Terminal
         terminal_emulator = Terminal
-        term = terminal_emulator(rows=50, cols=500)
+        term = terminal_emulator(rows=100, cols=300)
         flattened_log = flatten_log(log_path)
         flattened_log.replace('\n', '\r\n') # Needed to emulate an actual term
         term.write(flattened_log)

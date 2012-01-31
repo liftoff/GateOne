@@ -17,12 +17,12 @@ window.onload = function() {
 
     // Commented out below are a few examples of the various ways you can initialize Gate One...
     // Init Gate One (client) using the built-in white CSS scheme telling it to connect to a specific Gate One server (url):
-//     GateOne.init({url: 'https://shell.mycompany.com/', scheme: 'white'});
+//     GateOne.init({url: 'https://shell.mycompany.com/', 'theme': 'white'});
     // TIP: Did you know that the Gate One server doesn't have to be on the same domain as the page that loads gateone.js?  WebSockets don't have the same cross-domain restrictions that other DOM elements do.
 
     // Here's an example that limits the size of the #gateone element to demonstrate
     // how it can be embedded into another app/page...
-//     GateOne.init({fillContainer: false, style: {'width': '50em', 'height': '32em'}, scheme: 'white'});
+//     GateOne.init({fillContainer: false, style: {'width': '50em', 'height': '32em'}, 'theme': 'white'});
 
     // Gate One uses relative sizes for all fonts and icons (e.g. 1em or 100%).  If you embed Gate One into your app and the fonts/icons seem too small you can adjust this by passing the fontSize parameter in the init() function:
     //     GateOne.init({fontSize: '130%'});

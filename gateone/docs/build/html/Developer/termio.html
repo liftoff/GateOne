@@ -134,7 +134,7 @@ when the window title is set via that respective escape sequence):</p>
 <h2>Module Functions and Classes<a class="headerlink" href="#module-functions-and-classes" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="termio.debug_expect">
-<tt class="descclassname">termio.</tt><tt class="descname">debug_expect</tt><big>(</big><em>m_instance</em>, <em>match</em><big>)</big><a class="headerlink" href="#termio.debug_expect" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">termio.</tt><tt class="descname">debug_expect</tt><big>(</big><em>m_instance</em>, <em>match</em><big>)</big><a class="reference internal" href="../_modules/termio.html#debug_expect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.debug_expect" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method is used by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">BaseMultiplex.expect()</span></tt></a> if <tt class="xref py py-attr docutils literal"><span class="pre">BaseMultiplex.debug</span></tt> is True.  It
 facilitates easy debugging of regular expressions.  It will print out
 precisely what was matched and where.</p>
@@ -146,14 +146,14 @@ precisely what was matched and where.</p>
 
 <dl class="exception">
 <dt id="termio.Timeout">
-<em class="property">exception </em><tt class="descclassname">termio.</tt><tt class="descname">Timeout</tt><a class="headerlink" href="#termio.Timeout" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">termio.</tt><tt class="descname">Timeout</tt><a class="reference internal" href="../_modules/termio.html#Timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Timeout" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">BaseMultiplex.expect()</span></tt></a> and <a class="reference internal" href="#termio.BaseMultiplex.await" title="termio.BaseMultiplex.await"><tt class="xref py py-meth docutils literal"><span class="pre">BaseMultiplex.await()</span></tt></a>;
 called when a timeout is reached.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="termio.Pattern">
-<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">Pattern</tt><big>(</big><em>pattern</em>, <em>callback</em>, <em>optional=False</em>, <em>sticky=False</em>, <em>errorback=None</em>, <em>preprocess=False</em>, <em>timeout=30</em><big>)</big><a class="headerlink" href="#termio.Pattern" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">Pattern</tt><big>(</big><em>pattern</em>, <em>callback</em>, <em>optional=False</em>, <em>sticky=False</em>, <em>errorback=None</em>, <em>preprocess=False</em>, <em>timeout=30</em><big>)</big><a class="reference internal" href="../_modules/termio.html#Pattern"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Pattern" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">BaseMultiplex.expect()</span></tt></a>, an object to store patterns
 (regular expressions) and their associated properties.</p>
 <div class="admonition note">
@@ -229,11 +229,11 @@ determine if and when a timeout has been reached.</p>
 
 <dl class="class">
 <dt id="termio.BaseMultiplex">
-<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">BaseMultiplex</tt><big>(</big><em>cmd</em>, <em>terminal_emulator=None</em>, <em>log_path=None</em>, <em>user=None</em>, <em>term_id=None</em>, <em>syslog=False</em>, <em>syslog_host=None</em>, <em>syslog_facility=None</em>, <em>debug=False</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">BaseMultiplex</tt><big>(</big><em>cmd</em>, <em>terminal_emulator=None</em>, <em>log_path=None</em>, <em>user=None</em>, <em>term_id=None</em>, <em>syslog=False</em>, <em>syslog_host=None</em>, <em>syslog_facility=None</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex" title="Permalink to this definition">¶</a></dt>
 <dd><p>A base class that all Multiplex types will inherit from.</p>
 <dl class="method">
 <dt id="termio.BaseMultiplex.add_callback">
-<tt class="descname">add_callback</tt><big>(</big><em>event</em>, <em>callback</em>, <em>identifier=None</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.add_callback" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">add_callback</tt><big>(</big><em>event</em>, <em>callback</em>, <em>identifier=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.add_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.add_callback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attaches the given <em>callback</em> to the given <em>event</em>.  If given,
 <em>identifier</em> can be used to reference this callback leter (e.g. when you
 want to remove it).  Otherwise an identifier will be generated
@@ -258,7 +258,7 @@ callback at the given event, that callback will be replaced with
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.remove_callback">
-<tt class="descname">remove_callback</tt><big>(</big><em>event</em>, <em>identifier</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.remove_callback" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">remove_callback</tt><big>(</big><em>event</em>, <em>identifier</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.remove_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.remove_callback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the callback referenced by <em>identifier</em> that is attached to the
 given <em>event</em>.  Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">remove_callback</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">CALLBACK_BELL</span><span class="p">,</span> <span class="s">&quot;myref&quot;</span><span class="p">)</span>
@@ -268,13 +268,13 @@ given <em>event</em>.  Example:</p>
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.remove_all_callbacks">
-<tt class="descname">remove_all_callbacks</tt><big>(</big><em>identifier</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.remove_all_callbacks" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">remove_all_callbacks</tt><big>(</big><em>identifier</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.remove_all_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.remove_all_callbacks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes all callbacks associated with <em>identifier</em></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.term_write">
-<tt class="descname">term_write</tt><big>(</big><em>stream</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.term_write" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">term_write</tt><big>(</big><em>stream</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.term_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.term_write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes <tt class="xref py py-obj docutils literal"><span class="pre">stream</span></tt> to <tt class="xref py py-data docutils literal"><span class="pre">term</span></tt> and also takes care of
 logging to <tt class="xref py py-attr docutils literal"><span class="pre">log_path</span></tt> (if set) and/or syslog (if
 <tt class="xref py py-attr docutils literal"><span class="pre">syslog</span></tt> is <tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt>).  When complete, will call any
@@ -297,7 +297,7 @@ callbacks registered in <tt class="xref py py-obj docutils literal"><span class=
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.preprocess">
-<tt class="descname">preprocess</tt><big>(</big><em>stream</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.preprocess" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">preprocess</tt><big>(</big><em>stream</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.preprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.preprocess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles preprocess patterns registered by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">expect()</span></tt></a>.  That
 is, those patterns which have been marked with <tt class="xref py py-obj docutils literal"><span class="pre">preprocess</span> <span class="pre">=</span> <span class="pre">True</span></tt>.
 Patterns marked in this way get handled <em>before</em> the terminal emulator
@@ -316,13 +316,13 @@ processes the <tt class="xref py py-obj docutils literal"><span class="pre">stre
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.postprocess">
-<tt class="descname">postprocess</tt><big>(</big><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.postprocess" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">postprocess</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.postprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.postprocess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles post-process patterns registered by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">expect()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.writeline">
-<tt class="descname">writeline</tt><big>(</big><em>line=''</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.writeline" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">writeline</tt><big>(</big><em>line=''</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.writeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.writeline" title="Permalink to this definition">¶</a></dt>
 <dd><p>Just like Multiplex.write() but it writes a newline after writing
 <em>line</em>.</p>
 <p>If no <em>line</em> is given a newline will be written.</p>
@@ -330,14 +330,14 @@ processes the <tt class="xref py py-obj docutils literal"><span class="pre">stre
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.writelines">
-<tt class="descname">writelines</tt><big>(</big><em>lines</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.writelines" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">writelines</tt><big>(</big><em>lines</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.writelines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.writelines" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes <em>lines</em> (a list of strings) to the underlying program, appending
 a newline after each line.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.dump_html">
-<tt class="descname">dump_html</tt><big>(</big><em>full=False</em>, <em>client_id='0'</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.dump_html" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dump_html</tt><big>(</big><em>full=False</em>, <em>client_id='0'</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.dump_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.dump_html" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the difference of terminal lines (a list of lines, to be
 specific) and its scrollback buffer (which is also a list of lines) as a
 tuple, (scrollback, text).  If a line hasn't changed since the last dump
@@ -351,7 +351,7 @@ Multiplex instance).</p>
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.dump">
-<tt class="descname">dump</tt><big>(</big><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.dump" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dump</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.dump" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dumps whatever is currently on the screen of the terminal emulator as
 a list of plain strings (so they'll be escaped and look nice in an
 interactive Python interpreter).</p>
@@ -359,7 +359,7 @@ interactive Python interpreter).</p>
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.timeout_check">
-<tt class="descname">timeout_check</tt><big>(</big><em>timeout_now=False</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.timeout_check" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">timeout_check</tt><big>(</big><em>timeout_now=False</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.timeout_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.timeout_check" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterates over <tt class="xref py py-attr docutils literal"><span class="pre">_patterns</span></tt> checking each to determine if it has
 timed out.  If a timeout has occurred for a Pattern and said Pattern has
 an <em>errorback</em> function that function will be called.</p>
@@ -371,7 +371,7 @@ and will empty out self._patterns.</p>
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.expect">
-<tt class="descname">expect</tt><big>(</big><em>patterns</em>, <em>callback</em>, <em>optional=False</em>, <em>sticky=False</em>, <em>errorback=None</em>, <em>timeout=15</em>, <em>position=None</em>, <em>preprocess=False</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.expect" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">expect</tt><big>(</big><em>patterns</em>, <em>callback</em>, <em>optional=False</em>, <em>sticky=False</em>, <em>errorback=None</em>, <em>timeout=15</em>, <em>position=None</em>, <em>preprocess=False</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.expect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.expect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Watches the stream of output coming from the underlying terminal program
 for <em>patterns</em> and if there's a match <em>callback</em> will be called:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">callback</span><span class="p">(</span><span class="n">multiplex_instance</span><span class="p">,</span> <span class="n">matched_string</span><span class="p">)</span>
@@ -520,7 +520,7 @@ processed by the terminal emulator.  Example:</p>
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.unexpect">
-<tt class="descname">unexpect</tt><big>(</big><em>ref=None</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.unexpect" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unexpect</tt><big>(</big><em>ref=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.unexpect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.unexpect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes <em>ref</em> from self._patterns so it will no longer be checked
 against the incoming stream.  If <em>ref</em> is None (the default),
 self._patterns will be emptied.</p>
@@ -528,7 +528,7 @@ self._patterns will be emptied.</p>
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.await">
-<tt class="descname">await</tt><big>(</big><em>timeout=15</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.await" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">await</tt><big>(</big><em>timeout=15</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.await"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.await" title="Permalink to this definition">¶</a></dt>
 <dd><p>Blocks until all non-optional patterns inside self._patterns have been
 removed <em>or</em> if the given <em>timeout</em> is reached.  <em>timeout</em> may be an
 integer (in seconds) or a datetime.timedelta object.</p>
@@ -549,7 +549,7 @@ and <em>env</em> given as arguments.</p>
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.read">
-<tt class="descname">read</tt><big>(</big><em>bytes=-1</em><big>)</big><a class="headerlink" href="#termio.BaseMultiplex.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read</tt><big>(</big><em>bytes=-1</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls <tt class="xref py py-meth docutils literal"><span class="pre">_read()</span></tt> and checks if any timeouts have been reached
 in <tt class="xref py py-attr docutils literal"><span class="pre">_patterns</span></tt>.  Returns the result of
 <tt class="xref py py-meth docutils literal"><span class="pre">_read()</span></tt>.</p>
@@ -559,7 +559,7 @@ in <tt class="xref py py-attr docutils literal"><span class="pre">_patterns</spa
 
 <dl class="class">
 <dt id="termio.MultiplexPOSIXIOLoop">
-<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">MultiplexPOSIXIOLoop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">termio.</tt><tt class="descname">MultiplexPOSIXIOLoop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop" title="Permalink to this definition">¶</a></dt>
 <dd><p>The Multiplex class takes care of executing a child process and keeping
 track of its state via a terminal emulator (will use terminal.Terminal by
 default).  If there's a started instance of tornado.ioloop, handlers will be
@@ -572,7 +572,7 @@ stdin of the child).</p>
 <p>NOTE: Multiplex.read() is non-blocking.</p>
 <dl class="method">
 <dt id="termio.MultiplexPOSIXIOLoop.spawn">
-<tt class="descname">spawn</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.spawn" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">spawn</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.spawn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new virtual terminal (tty) and executes self.cmd within it.
 Also attaches _ioloop_read_handler() to the IOLoop so that the terminal
 emulator will automatically stay in sync with the output of the child
@@ -589,14 +589,14 @@ process.</p>
 
 <dl class="method">
 <dt id="termio.MultiplexPOSIXIOLoop.isalive">
-<tt class="descname">isalive</tt><big>(</big><big>)</big><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.isalive" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">isalive</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.isalive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.isalive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks the underlying process to see if it is alive and sets self._alive
 appropriately.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="termio.MultiplexPOSIXIOLoop.resize">
-<tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em>, <em>ctrl_l=True</em><big>)</big><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.resize" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em>, <em>ctrl_l=True</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.resize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resizes the child process's terminal window to <em>rows</em> and <em>cols</em> by
 first sending it a TIOCSWINSZ event and then sending ctrl-l.</p>
 <p>The sending of ctrl-l can be disabled by setting <em>ctrl_l</em> to False.</p>
@@ -604,14 +604,14 @@ first sending it a TIOCSWINSZ event and then sending ctrl-l.</p>
 
 <dl class="method">
 <dt id="termio.MultiplexPOSIXIOLoop.terminate">
-<tt class="descname">terminate</tt><big>(</big><big>)</big><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.terminate" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">terminate</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.terminate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Kill the child process associated with the given file descriptor (fd).</p>
 <p>NOTE: If dtach is being used this only kills the dtach process.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="termio.MultiplexPOSIXIOLoop.read">
-<tt class="descname">read</tt><big>(</big><em>bytes=-1</em><big>)</big><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read</tt><big>(</big><em>bytes=-1</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.read" title="Permalink to this definition">¶</a></dt>
 <dd><div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This is an override of BaseMultiplex.read() in order to take advantage of the IOLoop for ensuring expect() patterns timeout properly.</p>
@@ -626,7 +626,7 @@ there are no more non-sticky patterns in <tt class="xref py py-attr docutils lit
 
 <dl class="method">
 <dt id="termio.MultiplexPOSIXIOLoop.write">
-<tt class="descname">write</tt><big>(</big><em>chars</em><big>)</big><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.write" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">write</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls self._write(<em>chars</em>) via self._call_callback() to ensure thread
 safety.</p>
 </dd></dl>
@@ -635,7 +635,7 @@ safety.</p>
 
 <dl class="function">
 <dt id="termio.spawn">
-<tt class="descclassname">termio.</tt><tt class="descname">spawn</tt><big>(</big><em>cmd</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#termio.spawn" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">termio.</tt><tt class="descname">spawn</tt><big>(</big><em>cmd</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/termio.html#spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.spawn" title="Permalink to this definition">¶</a></dt>
 <dd><p>A shortcut to:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
@@ -646,7 +646,7 @@ safety.</p>
 
 <dl class="attribute">
 <dt id="termio.Multiplex">
-<tt class="descclassname">termio.</tt><tt class="descname">Multiplex</tt><a class="reference internal" href="../_modules/termio.html#Multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.Multiplex" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">termio.</tt><tt class="descname">Multiplex</tt><a class="headerlink" href="#termio.Multiplex" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop" title="termio.MultiplexPOSIXIOLoop"><tt class="xref py py-class docutils literal"><span class="pre">MultiplexPOSIXIOLoop</span></tt></a></p>
 </dd></dl>
 
@@ -670,10 +670,10 @@ safety.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="terminal.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="utils.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/termio.txt"

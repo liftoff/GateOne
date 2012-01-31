@@ -1,8 +1,6 @@
 (function(window, undefined) {
 var document = window.document; // Have to do this because we're sandboxed
 
-// NOTE: This plugin is a work-in-progress.
-
 // Useful sandbox-wide stuff
 var noop = GateOne.Utils.noop;
 
@@ -44,7 +42,6 @@ GateOne.Base.update(GateOne.Help, {
         helpPanelH2.innerHTML = "Gate One Help";
         helpPanelClose.innerHTML = go.Icons['panelclose'];
         helpPanelH2.appendChild(helpPanelClose);
-//         helpPanelSections.innerHTML = "<b>Sections:</b>";
         helpPanelAboutAnchor.innerHTML = "About Gate One";
         helpPanelAbout.appendChild(helpPanelAboutAnchor);
         helpPanelDocsAnchor.innerHTML = "Gate One's Documentation";
@@ -68,7 +65,7 @@ GateOne.Base.update(GateOne.Help, {
         helpPanelDocsAnchor.onclick = function(e) {
             e.preventDefault(); // No need to change the hash
             GateOne.Visual.togglePanel('#'+GateOne.prefs.prefix+'panel_help');
-            window.open('/docs/index.html');
+            window.open(GateOne.prefs.url+'docs/index.html');
         };
         helpPanelDocsAnchor.onmouseover = function(e) {
             this.style.cursor = "pointer";
@@ -82,10 +79,22 @@ GateOne.Base.update(GateOne.Help, {
     aboutGateOne: function() { // Displays our credits
         // First we create our settings object to pass to showHelpSection()
         var settingsObj = {
-            'helpURL': go.prefs.url+'static/about.html',
+            'helpURL': GateOne.prefs.url+'static/about.html',
             'title': 'About Gate One'
         };
         GateOne.Help.showHelpSection(settingsObj);
+    },
+    showFirstTimeDialog: function() {
+        // Pops up a dialog for first-time users that shows them the basics of Gate One
+        var go = GateOne,
+            u = go.Utils,
+            firstTimeDiv = u.createElement('div', {'id': 'help_firsttime'}),
+            dismiss = u.createElement('button', {'id': 'dismiss', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'});
+        firstTimeDiv.innerHTML = 'Gate One is an HTML5 web-based terminal emulator...';
+        dismiss.innerHTML = "Dismiss";
+        firstTimeDiv.appendChild(dismiss);
+        var closeDialog = go.Visual.dialog('Welcome to Gate One', firstTimeDiv);
+        dismiss.onclick = closeDialog;
     },
     showHelp: function() {
         // Just displays the help panel

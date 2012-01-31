@@ -207,6 +207,17 @@ GateOne.Base.update(GateOne.Logging, {
         logHeaderH2.innerHTML = 'Log Viewer: Loading...';
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
+            // Stop the playing iframe so it doesn't eat up cycles while no one is watching it
+            var previewIframe = u.getNode('#'+prefix+'log_preview'),
+                logMetadataDiv = u.getNode('#'+prefix+'log_metadata'),
+                iframeDoc = previewIframe.contentWindow.document;
+            // Remove existing content first
+            while (logMetadataDiv.childNodes.length >= 1 ) {
+                logMetadataDiv.removeChild(logMetadataDiv.firstChild);
+            }
+            iframeDoc.open();
+            iframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">Click on a log to view a preview and metadata.</body></html>');
+            iframeDoc.close();
             GateOne.Visual.togglePanel('#'+GateOne.prefs.prefix+'panel_logs'); // Scale away, scale away, scale away.
         }
         logHeader.appendChild(logHeaderH2);
@@ -342,6 +353,10 @@ GateOne.Base.update(GateOne.Logging, {
             logPanel.appendChild(logViewContent);
             u.getNode(go.prefs.goDiv).appendChild(logPanel);
         }
+        var logPreviewIframeDoc = logPreviewIframe.contentWindow.document;
+        logPreviewIframeDoc.open();
+        logPreviewIframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">Click on a log to view a preview and metadata.</body></html>');
+        logPreviewIframeDoc.close();
     },
     loadLogs: function() {
         // After GateOne.Logging.serverLogs has been populated, this function will redraw the view depending on sort and pagination values
@@ -525,7 +540,6 @@ GateOne.Base.update(GateOne.Logging, {
             l = go.Logging,
             prefix = go.prefs.prefix,
             logMetadataDiv = u.getNode('#'+prefix+'log_metadata'),
-            previewIframe = u.getNode('#'+prefix+'log_preview'),
             logObj = null;
         // Retreive the metadata on the log in question
         for (var i in l.serverLogs) {
@@ -705,7 +719,7 @@ GateOne.Base.update(GateOne.Logging, {
             v.displayMessage("Could not retrieve log: " + result);
         } else {
             var newWindow = window.open('', '_newtab'),
-                goDiv = u.createElement('div', {'id': go.prefs.goDiv.split('#')[1]}),
+                goDiv = u.createElement('div', {'id': go.prefs.goDiv.split('#')[1]}, true),
                 cssTheme = u.getNode('#'+prefix+'go_css_theme').cloneNode(true),
                 cssColors = u.getNode('#'+prefix+'go_css_colors').cloneNode(true),
                 newContent = "<html><head><title>Gate One Log (Flat): " + metadata['filename'] + "</title></head><body></body></html>";
@@ -733,7 +747,6 @@ GateOne.Base.update(GateOne.Logging, {
             metadata = message['metadata'],
             logViewContent = u.createElement('div', {'id': 'logview_container'}),
             logContainer = u.createElement('div', {'id': 'logview', 'class': 'terminal', 'style': {'width': '100%', 'height': '100%'}});
-        console.log("displayPlaybackLogAction()");
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
         } else {

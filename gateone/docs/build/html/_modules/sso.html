@@ -115,7 +115,7 @@
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Standard library modules</span>
-<span class="kn">import</span> <span class="nn">httplib</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">base64</span>
 
 <span class="c"># Import our own stuff</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
@@ -126,14 +126,7 @@
 <span class="kn">import</span> <span class="nn">tornado.httpserver</span>
 <span class="kn">import</span> <span class="nn">tornado.ioloop</span>
 <span class="kn">import</span> <span class="nn">tornado.web</span>
-<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">utf8</span>
-<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="kn">import</span> <span class="n">b</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">kerberos</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[31;1mERROR:</span><span class="se">\x1b</span><span class="s">[0m The sso (Kerberos authentication) module &quot;</span>
-          <span class="s">&quot;requires the Python kerberos module.  You probably want to run &quot;</span>
-          <span class="s">&quot;something like, </span><span class="se">\x1b</span><span class="s">[1m&#39;pip install kerberos&#39;</span><span class="se">\x1b</span><span class="s">[0m.&quot;</span><span class="p">))</span>
+<span class="kn">import</span> <span class="nn">kerberos</span>
 
 <span class="c"># NOTE: For some reason if I set this as just an &#39;object&#39; it doesn&#39;t work.</span>
 <div class="viewcode-block" id="KerberosAuthMixin"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin">[docs]</a><span class="k">class</span> <span class="nc">KerberosAuthMixin</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>

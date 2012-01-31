@@ -49,7 +49,7 @@ GateOne.Base.update(GateOne.Playback, {
             prefsPanelRow.appendChild(prefsPanelPlaybackLabel);
             prefsPanelRow.appendChild(prefsPanelPlayback);
             prefsTableDiv2.appendChild(prefsPanelRow);
-            infoPanelSaveRecording.innerHTML = "View Session Recording";
+            infoPanelSaveRecording.innerHTML = "Export Current Session";
             infoPanelSaveRecording.title = "Open the current terminal's playback history in a new window (which you can save to a file)."
             infoPanelSaveRecording.onclick = function() {
                 GateOne.Playback.saveRecording(localStorage[GateOne.prefs.prefix+'selectedTerminal']);

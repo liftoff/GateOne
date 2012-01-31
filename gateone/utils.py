@@ -59,10 +59,10 @@ REPLACEMENT_DICT = {
     7: u'^G',
     8: u'^H',
     9: u'^I',
-    #10: u'^J',
+    #10: u'^J', # Newline (\n)
     11: u'^K',
     12: u'^L',
-    #13: u'^M',
+    #13: u'^M', # Carriage return (\r)
     14: u'^N',
     15: u'^O',
     16: u'^P',
@@ -805,23 +805,7 @@ def get_or_update_metadata(golog_path, user):
             return metadata # All done
     # '\xf3\xb0\xbc\x8f' <--UTF-8 encoded SEPARATOR (for reference)
     encoded_separator = SEPARATOR.encode('UTF-8')
-    golog_frames = []
     golog = gzip.open(golog_path)
-    # Loop over everything one byte at a time, separating the frames
-    frame = ""
-    byte = golog.read(1)
-    while byte:
-        frame += byte
-        if frame.endswith(encoded_separator):
-            # This is the end of the frame
-            golog_frames.append(frame[:-4]) # [:-4] omits the separator
-            if len(golog_frames) == 50: # Only look in the first 50 frames
-                break
-            frame = "" # Reset
-        byte = golog.read(1)
-    # Getting the start date is easy
-    start_date = golog_frames[0][:13]
-    golog.seek(0)
     # Loop over the file in big chunks (which is faster than read() by an order
     # of magnitude)
     chunk_size = 1024*128 # 128k should be enough for a 100x300 terminal full
@@ -837,23 +821,26 @@ def get_or_update_metadata(golog_path, user):
         log_data += chunk
         if len(chunk) < chunk_size:
             break
-    # NOTE: -2 below because split() leaves us with an empty string at the end
-    end_date = log_data.split(encoded_separator)[-2][:13]
-    version = "1.0"
+    # NOTE: -1 below because split() leaves us with an empty string at the end
+    golog_frames = log_data.split(encoded_separator)[:-1]
+    # Getting the start date is easy
+    start_date = golog_frames[0][:13]
+    end_date = golog_frames[-1][:13]
+    version = u"1.0"
     connect_string = None
     from gateone import PLUGINS
     if 'ssh' in PLUGINS['py']:
         # Try to find the host that was connected to by looking for the SSH
         # plugin's special optional escape sequence.  It looks like this:
         #   "\x1b]_;ssh|%s@%s:%s\007"
-        for frame in golog_frames:
+        for frame in golog_frames[:50]: # Only look inside the first 50 or so
             match_obj = RE_OPT_SEQ.match(frame)
             if match_obj:
                 connect_string = match_obj.group(1).split('|')[1]
                 break
     if not connect_string:
         # Try guessing it by looking for a title escape sequence
-        for frame in golog_frames:
+        for frame in golog_frames[:50]:
             match_obj = RE_TITLE_SEQ.match(frame)
             if match_obj:
                 # The split() here is an attempt to remove the tail end of
@@ -862,17 +849,22 @@ def get_or_update_metadata(golog_path, user):
                 break
     # TODO: Add some hooks here for plugins to add their own metadata
     metadata.update({
-        'user': user,
-        'start_date': start_date,
-        'end_date': end_date,
-        'frames': len(log_data.split(encoded_separator))-1,
-        'version': version,
-        'connect_string': connect_string,
-        'filename': os.path.split(golog_path)[1]
+        u'user': user,
+        u'start_date': start_date,
+        u'end_date': end_date,
+        u'frames': len(golog_frames),
+        u'version': version,
+        u'connect_string': connect_string,
+        u'filename': os.path.split(golog_path)[1]
     })
-    first_frame = "%s:%s%s" % (start_date, json_encode(metadata), SEPARATOR)
+    first_frame = u"%s:%s" % (start_date, json_encode(metadata))
+    golog_frames[0] = first_frame.encode('UTF-8') # Replace existing metadata
     # Re-save the log with the metadata included.
-    gzip.open(golog_path, 'w').write(first_frame.encode('UTF-8') + log_data)
+    log_data = ''
+    for frame in golog_frames:
+        log_data += frame + encoded_separator
+    #log_data = encoded_separator.join(golog_frames)
+    gzip.open(golog_path, 'w').write(log_data)
     return metadata
 
 def which(binary, path=None):

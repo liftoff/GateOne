@@ -23,7 +23,6 @@ this file.
 // TODO: TEST TEST TEST.
 
 // General TODOs
-// TODO: Finish embedded mode stuff.
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
 // TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated into the base themes.
 
@@ -719,8 +718,9 @@ GateOne.Base.update(GateOne.Utils, {
             node.parentNode.removeChild(node);
         }
     },
-    createElement: function(tagname, properties) {
+    createElement: function(tagname, properties, noprefix) {
         // Takes a string, *tagname* and creates a DOM element of that type and applies *properties* to it.  If an 'id' is given as a property it will automatically be prepended with GateOne.prefs.prefix.
+        // If *noprefix* is false, the prefix will not be prepended to the 'id' of the created element.
         // Example: createElement('div', {'id': 'foo', 'style': {'opacity': 0.5, 'color': 'black'}});
         var go = GateOne,
             u = go.Utils,
@@ -734,9 +734,11 @@ GateOne.Base.update(GateOne.Utils, {
                 }
             } else if (key == 'id') {
                 // Prepend GateOne.prefs.prefix so we don't have to include it a million times everywhere.
-                if (!u.startsWith(go.prefs.prefix, value)) {
-                    // Only prepend if it doesn't already start with the prefix
-                    value = go.prefs.prefix + value;
+                if (!noprefix) {
+                    if (!u.startsWith(go.prefs.prefix, value)) {
+                        // Only prepend if it doesn't already start with the prefix
+                        value = go.prefs.prefix + value;
+                    }
                 }
                 elem.setAttribute(key, value);
             } else if (u.renames[key]) { // Why JS ended up with different names for things is beyond me
@@ -1709,6 +1711,33 @@ GateOne.Base.update(GateOne.Input, {
             // Create a new shortcut with the given parameters
             GateOne.Input.shortcuts[keyString] = [shortcutObj];
         }
+    },
+    humanReadableShortcuts: function() {
+        // Returns a human-readable string representing the objects inside of GateOne.Input.shortcuts. Each string will be in the form of:
+        //  <modifiers>-<key>
+        // Example:
+        //  Ctrl-Alt-Delete
+        var goIn = GateOne.Input,
+            out = [];
+        for (var i in goIn.shortcuts) {
+            console.log('i: ' + i);
+            var splitKey = i.split('_'),
+                keyName = '',
+                outStr = '';
+            splitKey.splice(0,1); // Get rid of the KEY part
+            for (var j in splitKey) {
+                keyName += splitKey[j].toLowerCase() + ' ';
+            }
+            keyName.trim();
+            for (var j in goIn.shortcuts[i]) {
+                if (goIn.shortcuts[i][j].modifiers) {
+                    outStr += j + '-';
+                }
+            }
+            outStr += keyName;
+            out.push(outStr);
+        }
+        return out;
     },
     emulateKey: function(e, skipF11check) {
         // This method handles all regular keys registered via onkeydown events (not onkeypress)
@@ -2702,7 +2731,9 @@ GateOne.Base.update(GateOne.Visual, {
                         v.dialogs.splice(i, 1);
                     }
                 }
-                v.dialogs[0].style.opacity = 1; // Set the new-first dialog back to fully visible
+                if (v.dialogs.length) {
+                    v.dialogs[0].style.opacity = 1; // Set the new-first dialog back to fully visible
+                }
             };
         // Keep track of all open dialogs so we can determine the foreground order
         if (!v.dialogs) {
@@ -2939,7 +2970,7 @@ GateOne.Base.update(GateOne.Terminal, {
             go.Terminal.closeTerminal(localStorage[prefix+'selectedTerminal']);
         }
         toolbarClose.onclick = closeCurrentTerm;
-        // TODO: Get showInfo() displaying the proper status of the activity monitory checkboxes
+        // TODO: Get showInfo() displaying the proper status of the activity monitor checkboxes
         var showInfo = function() {
             var term = localStorage[prefix+'selectedTerminal'],
                 termObj = go.terminals[term];

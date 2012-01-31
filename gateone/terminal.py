@@ -3,7 +3,6 @@
 #       Copyright 2011 Liftoff Software Corporation
 #
 
-# TODO: Fix the up arrow key when in apps like 'less'
 # Meta
 __version__ = '0.9'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
@@ -606,7 +605,6 @@ class Terminal(object):
             self.ASCII_ESC: self._escape,
             self.ASCII_CSI: self._csi,
         }
-        # TODO: Finish these:
         self.esc_handlers = {
             # TODO: Make a different set of these for each respective emulation mode (VT-52, VT-100, VT-200, etc etc)
             '#': self._set_line_params, # Varies
@@ -912,7 +910,6 @@ class Terminal(object):
         if self.cursorY >= self.rows:
             self.cursorY = self.rows - 1
 
-        # TODO: Test these to make sure they're sane in all situations
         if cols < self.cols: # Remove cols to the right
             for i in xrange(self.rows):
                 self.screen[i] = self.screen[i][:cols - self.cols]
@@ -1022,7 +1019,8 @@ class Terminal(object):
     def _dcs_handler(self, string=None):
         """
         Handles Device Control String sequences.  Still haven't figured out if
-        these really need to be implemented.
+        these really need to be implemented (they might not make sense for
+        Gate One).
         """
         pass
         #print("TODO: Handle this DCS: %s" % string)
@@ -1132,9 +1130,6 @@ class Terminal(object):
         if *special_checks* is True (default), Gate One will perform checks for
         special things like image files coming in via *chars*.
         """
-        # TODO: See how much faster this could be if it were all inside of one
-        # giant function instead of having it call all the little ones.  It
-        # surely wouldn't be as neat but I bet all these function calls add up.
         # NOTE: This is the slowest function in all of Gate One.  All
         # suggestions on how to speed it up are welcome!
 
@@ -1236,7 +1231,6 @@ class Terminal(object):
                             self.esc_buffer = ''
                     continue # We're done here
 # TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
-                #if self.local_echo:
                 changed = True
                 if self.cursorX >= self.cols:
                     # Start a newline but NOTE: Not really the best way to

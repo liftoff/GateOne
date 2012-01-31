@@ -11,8 +11,6 @@ var logWarning = noop;
 var logInfo = noop;
 var logDebug = noop;
 
-// TODO: Add the ability for users to generate/modify their keys
-
 // GateOne.SSH (ssh client functions)
 GateOne.Base.module(GateOne, "SSH", "0.9", ['Base']);
 GateOne.SSH.identities = []; // SSH identity objects end up in here
@@ -50,11 +48,10 @@ GateOne.Base.update(GateOne.SSH, {
         }
         h3.innerHTML = "SSH Plugin";
         if (prefsPanel) {// Only add to the prefs panel if it actually exists (i.e. not in embedded mode) = u.getNode('#'+prefix+'panel_prefs'),
-            prefsPanel.appendChild(h3);
-            prefsPanel.appendChild(prefsPanelKnownHosts);
             infoPanel.appendChild(h3);
             infoPanel.appendChild(infoPanelDuplicateSession);
             infoPanel.appendChild(infoPanelManageIdentities);
+            infoPanel.appendChild(prefsPanelKnownHosts);
             go.SSH.createKHPanel();
         }
         // Setup a callback that runs disableCapture() whenever the panel is opened
@@ -433,7 +430,6 @@ GateOne.Base.update(GateOne.SSH, {
     createIDItem: function(container, IDObj, delay) {
         // Creates an SSH identity element using *IDObj* and places it into *container*.
         // *delay* controls how long it will wait before using a CSS3 effect to move it into view.
-        // TODO: Find somewhere to put the randomart (because it is neat).
         var go = GateOne,
             u = go.Utils,
             ssh = go.SSH,

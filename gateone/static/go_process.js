@@ -17,7 +17,6 @@ var linkify = function(text, pattern, newString) {
     }
     return text.replace(pattern, newString);
 };
-// NOTE: This function is a work in progress...  When I'm done it should make Gate One even more responsive.
 var processScreen = function(terminalObj, termUpdateObj, prevScrollback, prefs, textTransforms) {
     // Do all the necessary client-side processing of the terminal screen and scrollback buffer.  The idea being that a web worker doing this stuff should make Gate One more responsive (at the client).
     // terminalObj: go.terminals[term]

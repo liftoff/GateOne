@@ -38,9 +38,6 @@ READY_STRING = "GATEONE_SSH_EXEC_CMD_CHANNEL_READY"
 READY_MATCH = re.compile("^%s$" % READY_STRING, re.MULTILINE)
 # TODO: make execute_command() a user-configurable option...  So it will automatically run whatever command(s) the user likes whenever they connect to a given server.  Differentiate between when they connect and when they start up a master or slave channel.
 # TODO: Make it so that equivalent KnownHostsHandler functionality works over the WebSocket.
-# TODO: Add support for key-based auth.
-# TODO: Fix the paths throughout to use os.path.join()
-# TODO: Change the use of /dev/null to something more portable (open an empty tempfile maybe?)
 
 # Exceptions
 class SSHMultiplexingException(Exception):
@@ -114,12 +111,17 @@ def open_sub_channel(term, tws):
     if not socket_path:
         raise SSHMultiplexingException(_(
             "SSH Plugin: Unable to open slave sub-channel."))
-    #import termio
-    #from utils import string_to_syslog_facility
+    users_ssh_dir = get_ssh_dir(tws)
+    ssh_config_path = os.path.join(users_ssh_dir, 'config')
+    if not os.path.exists(ssh_config_path):
+        # Create it (an empty one so ssh doesn't error out)
+        with open(ssh_config_path, 'w') as f:
+            f.write('\n')
     # Hopefully 'go_ssh_remote_cmd' will be a clear enough indication of
     # what is going on by anyone that has to review the logs...
     ssh = which('ssh')
-    ssh_command = '%s -x -S%s -F/dev/null go_ssh_remote_cmd' % (ssh,socket_path)
+    ssh_command = '%s -x -S%s -F%s go_ssh_remote_cmd' % (
+        ssh, socket_path, ssh_config_path)
     OPEN_SUBCHANNELS[term] = m = tws.new_multiplex(
         ssh_command, "%s (sub)" % term)
     # Using huge numbers here so we don't miss much (if anything) if the user
@@ -309,7 +311,9 @@ class KnownHostsHandler(BaseHandler):
         """Returns the user's known_hosts file in text/plain format."""
         user = self.get_current_user()['upn']
         logging.debug("known_hosts requested by %s" % user)
-        kh_path = "%s/%s/known_hosts" % (self.settings['user_dir'], user)
+        users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
+        users_ssh_dir = os.path.join(users_dir, 'ssh')
+        kh_path = os.path.join(users_ssh_dir, 'known_hosts')
         known_hosts = ""
         if os.path.exists(kh_path):
             known_hosts = open(kh_path).read()
@@ -319,7 +323,9 @@ class KnownHostsHandler(BaseHandler):
     def _save_known_hosts(self, known_hosts):
         """Save the given *known_hosts* file."""
         user = self.get_current_user()['upn']
-        kh_path = "%s/%s/known_hosts" % (self.settings['user_dir'], user)
+        users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
+        users_ssh_dir = os.path.join(users_dir, 'ssh')
+        kh_path = os.path.join(users_ssh_dir, 'known_hosts')
         # Letting Tornado's exception handler deal with errors here
         f = open(kh_path, 'w')
         f.write(known_hosts)

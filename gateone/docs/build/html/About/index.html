@@ -85,23 +85,23 @@
 </div>
 <div class="section" id="gate-one-commercial-licensing">
 <h3>Gate One Commercial Licensing<a class="headerlink" href="#gate-one-commercial-licensing" title="Permalink to this headline">¶</a></h3>
-<p>The Commercial License offerings for Gate One are very flexible and afford businesses the flexibility to include Gate One as part of their products and services without any source code obligations.  It also provides licensees with a fully-supported solution and assurances.</p>
+<p>The Commercial License offerings for Gate One are very flexible and afford businesses the opportunity to include Gate One as part of their products and services without any source code obligations.  It also provides licensees with a fully-supported solution and assurances.</p>
 <p>Here are some examples where commercial licensing is typically necessary:</p>
 <blockquote>
 <div><ul class="simple">
 <li>Including Gate One in software sold to customers who install it on their own equipment.</li>
 <li>Selling software that requires the installation of Gate One.</li>
 <li>Selling hardware that comes with Gate One pre-installed.</li>
-<li>Bundling with or including Gate One in any product protected by patents whereby you do not wish to indemnify the end-user from all patent obligations related to the purchase or use of the product.</li>
+<li>Bundling with or including Gate One in any product protected by patents.</li>
 </ul>
 </div></blockquote>
-<p>If you merely install Gate One for production use in your business you do not need a commercial license.  For these situations, Liftoff Software offers a number of commercial support and assurance options.</p>
-<p>For more information on Gate One Commercial Licensing or support please visit our <a class="reference external" href="http://liftoffsoftware.com">website</a> (NOTE: Site may not be live yet).</p>
+<p>Even if you don't plan to embed Gate One into one of your own products, enterprise support options available.</p>
+<p>For more information on Gate One Commercial Licensing and support please visit our <a class="reference external" href="http://liftoffsoftware.com">website</a>.</p>
 </div>
 </div>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>In order to use Gate One you'll need to install the Tornado framework.  You'll get additional functionality if you also install pyOpenSSL and the python-kerberos module.  All three can usually be taken care of in a single command:</p>
+<p>In order to use Gate One you'll need to install the <a class="reference external" href="http://www.tornadoweb.org/">Tornado framework</a>.  You'll get additional functionality if you also install <a class="reference external" href="https://launchpad.net/pyopenssl">pyOpenSSL</a> and the <a class="reference external" href="http://pypi.python.org/pypi/kerberos">python-kerberos</a> module.  All three can usually be taken care of in a single command:</p>
 <pre class="ansi-block literal-block">
 <span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> sudo pip install tornado pyopenssl kerberos
 </pre>
@@ -140,32 +140,41 @@
 <div class="section" id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
 <p>The first time you execute gateone.py it will create a default configuration file as /opt/gateone/server.conf:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">user_dir</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/users&quot;</span>
-<span class="n">log_file_num_backups</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">certificate</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/certificate.pem&quot;</span>
-<span class="n">sso_service</span> <span class="o">=</span> <span class="s">&quot;HTTP&quot;</span>
-<span class="n">dtach</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="n">embedded</span> <span class="o">=</span> <span class="bp">False</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sso_service</span> <span class="o">=</span> <span class="s">&quot;HTTP&quot;</span>
+<span class="n">locale</span> <span class="o">=</span> <span class="s">&quot;en_US&quot;</span>
+<span class="n">https_redirect</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">pam_service</span> <span class="o">=</span> <span class="s">&quot;login&quot;</span>
+<span class="n">syslog_facility</span> <span class="o">=</span> <span class="s">&quot;daemon&quot;</span>
+<span class="n">disable_ssl</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="n">session_logging</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="n">sso_realm</span> <span class="o">=</span> <span class="s">&quot;EXAMPLE.COM&quot;</span>
+<span class="n">syslog_host</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">cookie_secret</span> <span class="o">=</span> <span class="s">&quot;NzZiNzVhYzA4M2JkNDNjNDliOGy0jjlkMGVkYMniZTcwz&quot;</span>
+<span class="n">syslog_session_logging</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">address</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
 <span class="n">auth</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="n">log_file_prefix</span> <span class="o">=</span> <span class="s">&quot;/var/log/gateone/webserver.log&quot;</span>
+<span class="n">port</span> <span class="o">=</span> <span class="mi">443</span>
+<span class="n">user_dir</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/users&quot;</span>
+<span class="n">log_file_num_backups</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">logging</span> <span class="o">=</span> <span class="s">&quot;info&quot;</span>
+<span class="n">dtach</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">certificate</span> <span class="o">=</span> <span class="s">&quot;certificate.pem&quot;</span>
+<span class="n">command</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/plugins/ssh/scripts/ssh_connect.py -S &#39;/tmp/gateone/%SESSION%/%SHORT_SOCKET%&#39; --sshfp -a &#39;-oUserKnownHostsFile=%USERDIR%/%USER%/ssh/known_hosts&#39;&quot;</span>
+<span class="n">log_to_stderr</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">session_timeout</span> <span class="o">=</span> <span class="s">&quot;5d&quot;</span>
 <span class="n">log_file_max_size</span> <span class="o">=</span> <span class="mi">104857600</span>
 <span class="n">session_dir</span> <span class="o">=</span> <span class="s">&quot;/tmp/gateone&quot;</span>
-<span class="n">cookie_secret</span> <span class="o">=</span> <span class="s">&quot;A45CharacterStringGeneratedAtRandom012345678&quot;</span>
-<span class="n">syslog_session_logging</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">syslog_facility</span> <span class="o">=</span> <span class="s">&quot;daemon&quot;</span>
-<span class="n">address</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+<span class="n">sso_realm</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">embedded</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">keyfile</span> <span class="o">=</span> <span class="s">&quot;keyfile.pem&quot;</span>
 <span class="n">debug</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">command</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/plugins/ssh/scripts/ssh_connect.py -S &#39;/tmp/gateone/%SESSION%/</span><span class="si">%r</span><span class="s">@%h:%p&#39; -a &#39;-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts&#39;&quot;</span>
-<span class="n">session_timeout</span> <span class="o">=</span> <span class="s">&quot;5d&quot;</span>
-<span class="n">keyfile</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/keyfile.pem&quot;</span>
-<span class="n">port</span> <span class="o">=</span> <span class="mi">443</span>
+<span class="n">js_init</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+<span class="n">log_file_prefix</span> <span class="o">=</span> <span class="s">&quot;/opt/gateone/logs/webserver.log&quot;</span>
+<span class="n">pam_realm</span> <span class="o">=</span> <span class="s">&quot;portarisk&quot;</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The order of these settings does not matter.</p>
+<p class="last">These settings can appear in any order.</p>
 </div>
 <p>These options match up directly with Gate One's command line options which you can view at any time by executing &quot;gateone.py --help&quot;:</p>
 <pre class="ansi-block literal-block">
@@ -178,27 +187,34 @@ Options:
 &nbsp;&nbsp;--log_file_num_backups           number of log files to keep
 &nbsp;&nbsp;--log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
 &nbsp;&nbsp;--log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
-&nbsp;&nbsp;--logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
+&nbsp;&nbsp;--logging=debug|info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
+./gateone.py
 &nbsp;&nbsp;--address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. '127.0.0.1;::1;10.1.1.100').
-&nbsp;&nbsp;--auth                           Authentication method to use.  Valid options are: none, kerberos, google.
+&nbsp;&nbsp;--auth                           Authentication method to use.  Valid options are: none, api, google, kerberos, pam
 &nbsp;&nbsp;--certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
-&nbsp;&nbsp;--command                        Run the given command when a user connects (e.g. 'nethack').
+&nbsp;&nbsp;--command                        Run the given command when a user connects (e.g. '/bin/login').
+&nbsp;&nbsp;--config                         Path to the config file.  Default: /opt/gateone/server.conf
 &nbsp;&nbsp;--cookie_secret                  Use the given 45-character string for cookie encryption.
 &nbsp;&nbsp;--debug                          Enable debugging features such as auto-restarting when files are modified.
 &nbsp;&nbsp;--disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
-&nbsp;&nbsp;--dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature =).
+&nbsp;&nbsp;--dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
 &nbsp;&nbsp;--embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
+&nbsp;&nbsp;--https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
+&nbsp;&nbsp;--js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init=&quot;{scheme: 'white'}&quot; would result in GateOne.init({scheme: 'white'})
 &nbsp;&nbsp;--keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
 &nbsp;&nbsp;--kill                           Kill any running Gate One terminal processes including dtach'd processes.
+&nbsp;&nbsp;--locale                         The locale (e.g. pt_PT) Gate One should use for translations.  If not provided, will default to $LANG (which is 'en_US' in your current shell), or en_US if not set.
+&nbsp;&nbsp;--new_api_key                    Generate a new API key that an external application can use toembed Gate One.
 &nbsp;&nbsp;--pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
 &nbsp;&nbsp;--pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
 &nbsp;&nbsp;--port                           Run on the given port.
 &nbsp;&nbsp;--session_dir                    Path to the location where session information will be stored.
-&nbsp;&nbsp;--session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/logs.  Default: Enabled
+&nbsp;&nbsp;--session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default: Enabled
 &nbsp;&nbsp;--session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts &lt;num&gt;X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is '5d' (5 days).
 &nbsp;&nbsp;--sso_realm                      Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only relevant if Kerberos authentication is enabled.
 &nbsp;&nbsp;--sso_service                    Kerberos service (aka application) to use. Defaults to HTTP. Only relevant if Kerberos authentication is enabled.
 &nbsp;&nbsp;--syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
+&nbsp;&nbsp;--syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
 &nbsp;&nbsp;--syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
 &nbsp;&nbsp;--user_dir                       Path to the location where user files will be stored.
 </pre>
@@ -339,6 +355,15 @@ Options:
 </div>
 <p>This option specifies the command Gate One will run when a user connects or opens a new terminal.  The default is for Gate One to run the ssh_connect.py script.  Any interactive terminal application should work (e.g. 'nethack').</p>
 </div>
+<div class="section" id="config">
+<h3>config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--config">
+<tt class="descname">--config</tt><tt class="descclassname">=string (file path)</tt><a class="headerlink" href="#cmdoption--config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>You may use this option to specify an alternate configuration file (e.g. something other than /opt/gateone/server.conf).</p>
+</div>
 <div class="section" id="cookie-secret">
 <h3>cookie_secret<a class="headerlink" href="#cookie-secret" title="Permalink to this headline">¶</a></h3>
 <dl class="option">
@@ -416,11 +441,35 @@ Options:
 <div class="highlight-python"><div class="highlight"><pre><span class="n">embedded</span> <span class="o">=</span> <span class="bp">False</span>
 </pre></div>
 </div>
-<p>This option tells Gate One to run in embedded mode:  No interface icons will be shown to the user and certain features such as opening additional terminal windows will be disabled.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Doesn't actually do anything yet.  Should be available and working in the 1.0 release.</p>
+<p>This option tells Gate One to run in embedded mode:  No interface icons will be displayed and the ability to open additional terminals will be disabled.</p>
 </div>
+<div class="section" id="https-redirect">
+<h3>https_redirect<a class="headerlink" href="#https-redirect" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--https_redirect">
+<tt class="descname">--https_redirect</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--https_redirect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">https_redirect</span> <span class="o">=</span> <span class="bp">False</span>
+</pre></div>
+</div>
+<p>If https_redirect is enabled, Gate One will listen on port 80 and redirect incoming connections to Gate One's configured port using HTTPS.</p>
+</div>
+<div class="section" id="js-init">
+<h3>js_init<a class="headerlink" href="#js-init" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--js_init">
+<tt class="descname">--js_init</tt><tt class="descclassname">=string (JavaScript Object)</tt><a class="headerlink" href="#cmdoption--js_init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">js_init</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+</pre></div>
+</div>
+<p>This option can be used to provide options to pass to the GateOne.init() function inside gateone.js whenever Gate One is opened in a browser.  For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">js_init</span> <span class="o">=</span> <span class="s">&quot;{&#39;theme&#39;: &#39;white&#39;, &#39;fontSize&#39;: &#39;120%&#39;}&quot;</span>
+</pre></div>
+</div>
+<p>For a list of all the possible options see <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.prefs</span></tt> in the <a class="reference internal" href="../Developer/index.html#developer-docs"><em>Developer Documentation</em></a> under <a class="reference internal" href="../Developer/js_gateone.html#gateone-properties"><em>GateOne JavaScript Properties</em></a>.</p>
 </div>
 <div class="section" id="keyfile">
 <h3>keyfile<a class="headerlink" href="#keyfile" title="Permalink to this headline">¶</a></h3>
@@ -449,6 +498,27 @@ Options:
 </pre></div>
 </div>
 <p>If running with dtach support, this will kill all user's running terminal applications.  Giving everyone a fresh start, as it were.</p>
+</div>
+<div class="section" id="locale">
+<h3>locale<a class="headerlink" href="#locale" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--locale">
+<tt class="descname">--locale</tt><tt class="descclassname">=string (locale string)</tt><a class="headerlink" href="#cmdoption--locale" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">locale</span> <span class="o">=</span> <span class="s">&quot;en_US&quot;</span>
+</pre></div>
+</div>
+<p>This option tells Gate One which local translation (native language) to use when rendering strings.  The first time you run Gate One it will attempt to automatically detect your locale using the <tt class="xref py py-obj docutils literal"><span class="pre">$LANG</span></tt> environment variable.  If this variable is not set it will fall back to using <tt class="xref py py-obj docutils literal"><span class="pre">en_US</span></tt>.</p>
+</div>
+<div class="section" id="new-api-key">
+<h3>new_api_key<a class="headerlink" href="#new-api-key" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--new_api_key">
+<tt class="descname">--new_api_key</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--new_api_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>This command line option will generate a new, random API key and secret for use with applications that will be embedding Gate One.  Instructions on how to use API-based authentication can be found in the <em class="xref std std-ref">embedded-docs</em>.</p>
 </div>
 <div class="section" id="pam-realm">
 <h3>pam_realm<a class="headerlink" href="#pam-realm" title="Permalink to this headline">¶</a></h3>
@@ -607,6 +677,22 @@ Options:
 </div>
 <p>if <tt class="xref py py-obj docutils literal"><span class="pre">syslog_session_logging</span> <span class="pre">=</span> <span class="pre">True</span></tt>, specifies the syslog facility that user session logs will use when syslog_session_logging is enabled.</p>
 </div>
+<div class="section" id="syslog-host">
+<h3>syslog_host<a class="headerlink" href="#syslog-host" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--syslog_host">
+<tt class="descname">--syslog_host</tt><tt class="descclassname">=string (IP or FQDN)</tt><a class="headerlink" href="#cmdoption--syslog_host" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">syslog_host</span> <span class="o">=</span> <span class="s">&quot;loghost.company.com&quot;</span>
+</pre></div>
+</div>
+<p>This option will instruct Gate One to send log messages to the specified syslog server, bypassing the local syslog daemon (which could itself be configured to send logs to a syslog host).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This option may be used even if there is no syslog daemon available on the host running Gate One.  It makes outbound connections to the specified syslog host directly over UDP.</p>
+</div>
+</div>
 <div class="section" id="syslog-session-logging">
 <h3>syslog_session_logging<a class="headerlink" href="#syslog-session-logging" title="Permalink to this headline">¶</a></h3>
 <dl class="option">
@@ -680,13 +766,18 @@ Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]_;ssh|user@somehost:22#007</p
 <li><a class="reference internal" href="#auth">auth</a></li>
 <li><a class="reference internal" href="#certificate">certificate</a></li>
 <li><a class="reference internal" href="#command">command</a></li>
+<li><a class="reference internal" href="#config">config</a></li>
 <li><a class="reference internal" href="#cookie-secret">cookie_secret</a></li>
 <li><a class="reference internal" href="#debug">debug</a></li>
 <li><a class="reference internal" href="#disable-ssl">disable_ssl</a></li>
 <li><a class="reference internal" href="#dtach">dtach</a></li>
 <li><a class="reference internal" href="#embedded">embedded</a></li>
+<li><a class="reference internal" href="#https-redirect">https_redirect</a></li>
+<li><a class="reference internal" href="#js-init">js_init</a></li>
 <li><a class="reference internal" href="#keyfile">keyfile</a></li>
 <li><a class="reference internal" href="#kill">kill</a></li>
+<li><a class="reference internal" href="#locale">locale</a></li>
+<li><a class="reference internal" href="#new-api-key">new_api_key</a></li>
 <li><a class="reference internal" href="#pam-realm">pam_realm</a></li>
 <li><a class="reference internal" href="#pam-service">pam_service</a></li>
 <li><a class="reference internal" href="#port">port</a></li>
@@ -696,6 +787,7 @@ Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]_;ssh|user@somehost:22#007</p
 <li><a class="reference internal" href="#sso-realm">sso_realm</a></li>
 <li><a class="reference internal" href="#sso-service">sso_service</a></li>
 <li><a class="reference internal" href="#syslog-facility">syslog_facility</a></li>
+<li><a class="reference internal" href="#syslog-host">syslog_host</a></li>
 <li><a class="reference internal" href="#syslog-session-logging">syslog_session_logging</a></li>
 <li><a class="reference internal" href="#user-dir">user_dir</a></li>
 </ul>

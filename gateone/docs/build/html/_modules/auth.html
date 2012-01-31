@@ -129,7 +129,7 @@
     <span class="sd">&quot;&quot;&quot;The base class for all Gate One authentication handlers.&quot;&quot;&quot;</span>
 <div class="viewcode-block" id="BaseAuthHandler.get_current_user"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler.get_current_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Tornado standard method--implemented our way.&quot;&quot;&quot;</span>
-        <span class="n">user_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">)</span>
+        <span class="n">user_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&quot;gateone_user&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">user_json</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
         <span class="k">return</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_decode</span><span class="p">(</span><span class="n">user_json</span><span class="p">)</span>
 </div>
@@ -143,9 +143,10 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;user_login(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
         <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
         <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
-        <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mo">0700</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">user_dir</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
+            <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mo">0700</span><span class="p">)</span>
         <span class="n">session_file</span> <span class="o">=</span> <span class="n">user_dir</span> <span class="o">+</span> <span class="s">&#39;/session&#39;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">session_file</span><span class="p">):</span>
             <span class="n">session_data</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
@@ -154,24 +155,31 @@
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="c"># Save it so we can keep track across multiple clients</span>
                 <span class="n">session_info</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s">&#39;go_upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span> <span class="c"># FYI: UPN == userPrincipalName</span>
-                    <span class="s">&#39;go_session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
+                    <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span> <span class="c"># FYI: UPN == userPrincipalName</span>
+                    <span class="s">&#39;session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
                 <span class="p">}</span>
                 <span class="n">session_info_json</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">)</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">session_info_json</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&quot;gateone_user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">))</span>
 </div>
-<div class="viewcode-block" id="BaseAuthHandler.user_logout"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler.user_logout">[docs]</a>    <span class="k">def</span> <span class="nf">user_logout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseAuthHandler.user_logout"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler.user_logout">[docs]</a>    <span class="k">def</span> <span class="nf">user_logout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">redirect</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Called immediately after a user logs out.  Doesn&#39;t actually do</span>
-<span class="sd">        anything.  Just potential future use at this point.</span>
+<span class="sd">        Called immediately after a user logs out, cleans up the user&#39;s session</span>
+<span class="sd">        information and optionally, redirects them to *redirect* (URL).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span> <span class="c"># Nothing here yet but someone might want to override it</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;user_logout(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">redirect</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">redirect</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
 </div></div>
 <div class="viewcode-block" id="NullAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.NullAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">NullAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A handler for when no authentication method is chosen (i.e. --auth=none).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@tornado.web.asynchronous</span>
 <div class="viewcode-block" id="NullAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.NullAuthHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the &#39;user&#39; cookie with a new random session ID (*go_session*) and</span>
@@ -181,12 +189,25 @@
         <span class="c"># This ensures we won&#39;t have a conflict at some point with an actual</span>
         <span class="c"># user.</span>
         <span class="n">user</span> <span class="o">=</span> <span class="s">r&#39;%anonymous&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="c"># Takes care of the user&#39;s settings dir</span>
-        <span class="n">user_cookie</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;go_upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span>
-            <span class="s">&#39;go_session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
-        <span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">user_cookie</span><span class="p">))</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+            <span class="c"># This lets any origin check if the user has been authenticated</span>
+            <span class="c"># (necessary to prevent &quot;not allowed ...&quot; XHR errors)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
         <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
@@ -200,8 +221,25 @@
     <span class="nd">@tornado.web.asynchronous</span>
 <div class="viewcode-block" id="GoogleAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.GoogleAuthHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sets the &#39;user&#39; cookie with an appropriate *go_upn* and *go_session*.</span>
+<span class="sd">        Sets the &#39;user&#39; cookie with an appropriate *upn* and *session*.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="n">logout_url</span> <span class="o">=</span> <span class="s">&quot;https://accounts.google.com/Logout&quot;</span>
+        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">logout_url</span><span class="p">)</span>
+            <span class="k">return</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;openid.mode&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
             <span class="k">return</span>
@@ -221,16 +259,12 @@
         <span class="c">#     &#39;first_name&#39;: u&#39;Dan&#39;,</span>
         <span class="c">#     &#39;last_name&#39;: u&#39;McDougall&#39;,</span>
         <span class="c">#     &#39;name&#39;: u&#39;Dan McDougall&#39;,</span>
-        <span class="c">#     &#39;email&#39;: u&#39;riskable@gmail.com&#39;}</span>
+        <span class="c">#     &#39;email&#39;: u&#39;daniel.mcdougall@liftoffsoftware.com&#39;}</span>
         <span class="c"># Named these &#39;go_&lt;whatever&gt;&#39; since that is less likely to conflict with</span>
         <span class="c"># anything in the future (should some auth mechanism start returning</span>
         <span class="c"># session IDs of some sort).</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">])</span> <span class="c"># Takes care of the user&#39;s settings dir</span>
-        <span class="n">user_cookie</span> <span class="o">=</span> <span class="p">{</span> <span class="c"># Don&#39;t need all that other stuff</span>
-            <span class="s">&#39;go_session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">(),</span>
-            <span class="s">&#39;go_upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">]</span> <span class="c"># Just an equivalent for standardization</span>
-        <span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">user_cookie</span><span class="p">))</span>
+        <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">])</span>
         <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
@@ -245,12 +279,29 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handles authenticating users via Kerberos/GSSAPI/SSO.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nd">@tornado.web.asynchronous</span>
 <div class="viewcode-block" id="KerberosAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.KerberosAuthHandler.get">[docs]</a>        <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Checks the user&#39;s request header for the proper Authorization data.</span>
 <span class="sd">            If it checks out the user will be logged in via _on_auth().  If not,</span>
 <span class="sd">            the browser will be redirected to login.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+                <span class="k">return</span>
+            <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+                <span class="k">return</span>
             <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">auth_header</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
@@ -260,7 +311,8 @@
         <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Kerberos auth failed&quot;</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="c"># This takes care of the user&#39;s settings dir</span>
+            <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
             <span class="c"># TODO: Add some LDAP or local DB lookups here to add more detail to user objects</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;KerberosAuthHandler user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">))</span>
             <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
@@ -279,12 +331,29 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handles authenticating users via PAM.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nd">@tornado.web.asynchronous</span>
 <div class="viewcode-block" id="PAMAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.PAMAuthHandler.get">[docs]</a>        <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Checks the user&#39;s request header for the proper Authorization data.</span>
 <span class="sd">            If it checks out the user will be logged in via _on_auth().  If not,</span>
 <span class="sd">            the browser will be redirected to login.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+                <span class="k">return</span>
+            <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+                <span class="k">return</span>
             <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">auth_header</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
@@ -294,7 +363,8 @@
         <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;PAM auth failed&quot;</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="c"># This takes care of the user&#39;s settings dir</span>
+            <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;PAMAuthHandler user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">))</span>
             <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>

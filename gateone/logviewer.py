@@ -218,7 +218,7 @@ def flatten_log(log_path, preserve_renditions=True, show_esc=False):
             frame_time = float(frame[:13]) # First 13 chars is the timestamp
             # Convert to datetime object
             frame_time = datetime.fromtimestamp(frame_time/1000)
-            if '\n' in frame[14:]: # Skips the colon
+            if u'\n' in frame[14:]: # Skips the colon
                 frame_lines = frame[14:].splitlines()
                 for i, fl in enumerate(frame_lines):
                     if len(fl):
@@ -232,16 +232,23 @@ def flatten_log(log_path, preserve_renditions=True, show_esc=False):
                         else:
                             out += u"%s %s\n" % ( # Standard Unix log format
                                 frame_time.strftime(u'\x1b[m%b %m %H:%M:%S'),
-                                escape_escape_seq(fl, rstrip=True).rstrip()
+                                escape_escape_seq(fl, rstrip=True)
                             )
                     elif i:# Don't need this for the first empty line in a frame
                         out += frame_time.strftime(u'\x1b[m%b %m %H:%M:%S \n')
+                out += frame_time.strftime(u'\x1b[m%b %m %H:%M:%S \n')
             elif show_esc:
                 if len(out) and out[-1] == u'\n':
                     out = u"%s%s\n" % (out[:-1], raw(frame[14:]))
             else:
-                escaped_frame = escape_escape_seq(frame[14:], rstrip=True).rstrip()
+                if '\x1b[H\x1b[2J' in frame[14:]: # Clear screen sequence
+                    out += frame_time.strftime(u'\x1b[m%b %m %H:%M:%S ')
+                    out += escape_escape_seq(frame[14:], rstrip=True).rstrip()
+                    out += ' ^L\n'
+                    continue
+                escaped_frame = escape_escape_seq(frame[14:], rstrip=True)
                 if len(out) and out[-1] == u'\n':
+                    # Back up a line and add this character to it
                     out = u"%s%s\n" % (out[:-1], escaped_frame)
                 elif escaped_frame:
                     # This is pretty much always going to be the first line
