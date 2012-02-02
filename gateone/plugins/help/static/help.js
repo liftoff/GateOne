@@ -75,6 +75,9 @@ GateOne.Base.update(GateOne.Help, {
         }
         // Register our keyboard shortcut (Alt-F1)
         go.Input.registerShortcut('KEY_F1', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Help.showHelp()'});
+        // These shortcuts just add some helpful messages to regular keyboard shortcuts
+        go.Input.registerShortcut('KEY_S', {'modifiers': {'ctrl': true, 'alt': false, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.displayMessage("Terminal output has been suspended (Ctrl-s). Type Ctrl-q to resume."); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();'});
+
     },
     aboutGateOne: function() { // Displays our credits
         // First we create our settings object to pass to showHelpSection()

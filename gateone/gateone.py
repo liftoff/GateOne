@@ -233,8 +233,8 @@ except ImportError:
           "--upgrade tornado'\x1b[0m.")
     sys.exit(1)
 
-if tornado_version_info[0] < 2 and tornado_version_info[1] < 1:
-    print("\x1b[31;1mERROR:\x1b[0m Gate One requires version 2.1+ of the "
+if tornado_version_info[0] < 2 and tornado_version_info[1] < 2:
+    print("\x1b[31;1mERROR:\x1b[0m Gate One requires version 2.2+ of the "
             "Tornado framework.  The installed version of Tornado is version "
             "%s." % tornado_version)
     sys.exit(1)
@@ -755,10 +755,22 @@ class JSPluginsHandler(BaseHandler):
         if os.path.exists(combined_plugins):
             with open(combined_plugins) as f:
                 js_data = f.read()
-                if len(js_data) < 100:
-                    self.write(js_data)
+                print("length of js_data: %s" % len(js_data))
+                if len(js_data) < 100: # Needs to be created
+                    self.write(self._combine_plugins())
                     return
-        # Create the combined_plugins.js file
+                else: # It hasn't changed, send it as-is
+                    self.write(js_data)
+        else: # File doesn't exist, create it and send it to the client
+            self.write(self._combine_plugins())
+
+    def _combine_plugins(self):
+        """
+        Combines all plugin .js files into one (combined_plugins.js)
+        """
+        plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
+        static_dir = os.path.join(GATEONE_DIR, "static")
+        combined_plugins = os.path.join(static_dir, "combined_plugins.js")
         out = ""
         for js_plugin in plugins['js']:
             js_path = os.path.join(GATEONE_DIR, js_plugin.lstrip('/'))
@@ -766,7 +778,7 @@ class JSPluginsHandler(BaseHandler):
                 out += f.read()
         with open(combined_plugins, 'w') as f:
             f.write(out)
-        self.write(out)
+        return out
 
 class TerminalWebSocket(WebSocketHandler):
     def __init__(self, application, request):
@@ -1320,7 +1332,7 @@ class TerminalWebSocket(WebSocketHandler):
                 full=full, client_id=self.client_id)
         except KeyError as e: # Session died (i.e. command ended).
             scrollback, screen = None, None
-        if screen:
+        if [a for a in screen if a]:
             output_dict = {
                 'termupdate': {
                     'term': term,

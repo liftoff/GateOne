@@ -240,7 +240,7 @@ GateOne.Base.update(GateOne, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
-            pastearea = u.createElement('textarea', {'id': 'pastearea', 'oninput': 'GateOne.Logging.log("pastearea Input"); GateOne.Input.queue(GateOne.Utils.getNode("#'+prefix+'pastearea").value); GateOne.Utils.getNode("#'+prefix+'pastearea").value = ""; GateOne.Net.sendChars();'}),
+            pastearea = u.createElement('textarea', {'id': 'pastearea', 'oninput': 'GateOne.Input.queue(GateOne.Utils.getNode("#'+prefix+'pastearea").value); GateOne.Utils.getNode("#'+prefix+'pastearea").value = ""; GateOne.Net.sendChars();'}),
             prefsPanel = u.createElement('div', {'id': 'panel_prefs', 'class':'panel'}),
             prefsPanelH2 = u.createElement('h2'),
             prefsPanelForm = u.createElement('form', {'id': 'prefs_form', 'name': prefix+'prefs_form'}),
@@ -807,7 +807,7 @@ GateOne.Base.update(GateOne.Utils, {
             txt = window.getSelection();
         } else if (document.getSelection) {
             txt = document.getSelection();
-        } else if (document.selection) {
+        } else if (document.selection) {
             txt = document.selection.createRange().text;
         } else {
             return;
@@ -820,7 +820,7 @@ GateOne.Base.update(GateOne.Utils, {
         //      {'w': <width in px>, 'h': <height in px>}
         var node = GateOne.Utils.getNode(elem),
             sizingDiv = document.createElement("pre");
-        sizingDiv.innerHTML = "█"; // Fill it with a single character
+        sizingDiv.innerHTML = "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  Using the \u syntax because minifiers don't seem to like unicode characters to be in the source as-is.
         // We need two lines so we can factor in the line height and character spacing (if it has been messed with).
         // Set the attributes of our copy to reflect a minimal-size block element
         sizingDiv.style.display = 'block';
@@ -2192,6 +2192,7 @@ GateOne.Base.update(GateOne.Visual, {
         If multiple messages appear at the same time they will be stacked.
         NOTE: The show/hide effect is expected to be controlled via CSS based on the DIV ID.
         */
+        logInfo('displayMessage(): ' + message); // Useful for looking at previous messages
         if (!id) {
             id = 'notice';
         }

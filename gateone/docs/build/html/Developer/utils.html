@@ -121,9 +121,9 @@ this:</p>
 <dl class="function">
 <dt id="utils.gen_self_signed_ssl">
 <tt class="descclassname">utils.</tt><tt class="descname">gen_self_signed_ssl</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/utils.html#gen_self_signed_ssl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.gen_self_signed_ssl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates a self-signed SSL certificate using pyOpenSSL if it is available.
-The openssl commmand, if not.  In either case the key/certificate will use
-the RSA algorithm at 4096 bits.</p>
+<dd><p>Generates a self-signed SSL certificate using pyOpenSSL or the openssl
+command depending on what's available,  The resulting key/certificate will
+use the RSA algorithm at 4096 bits.</p>
 </dd></dl>
 
 <dl class="function">
@@ -467,7 +467,7 @@ and a default value to return in the event of a timeout.</p>
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="termio.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="js_gateone.html"
                         title="next chapter">gateone.js</a></p>

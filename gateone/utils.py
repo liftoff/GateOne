@@ -197,9 +197,9 @@ def get_translation():
 
 def gen_self_signed_ssl():
     """
-    Generates a self-signed SSL certificate using pyOpenSSL if it is available.
-    The openssl commmand, if not.  In either case the key/certificate will use
-    the RSA algorithm at 4096 bits.
+    Generates a self-signed SSL certificate using pyOpenSSL or the openssl
+    command depending on what's available,  The resulting key/certificate will
+    use the RSA algorithm at 4096 bits.
     """
     try:
         import OpenSSL

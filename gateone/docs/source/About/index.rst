@@ -42,21 +42,41 @@ Even if you don't plan to embed Gate One into one of your own products, enterpri
 
 For more information on Gate One Commercial Licensing and support please visit our `website <http://liftoffsoftware.com>`_.
 
-Requirements
-============
-In order to use Gate One you'll need to install the `Tornado framework <http://www.tornadoweb.org/>`_.  You'll get additional functionality if you also install `pyOpenSSL <https://launchpad.net/pyopenssl>`_ and the `python-kerberos <http://pypi.python.org/pypi/kerberos>`_ module.  All three can usually be taken care of in a single command:
+Prerequisites
+=============
+Before installing Gate One your system must meet the following requirements:
+
+=================================================   =================================================
+Requirement                                         Version
+=================================================   =================================================
+Python                                              2.6+ (3.x support is forthcoming)
+`Tornado Framework <http://www.tornadoweb.org/>`_   2.2+
+=================================================   =================================================
+
+The following commands can be used to verify which version of each are installed:
 
 .. ansi-block::
     :string_escape:
 
-    \x1b[1;34muser\x1b[0m@modern-host\x1b[1;34m:~ $\x1b[0m sudo pip install tornado pyopenssl kerberos
+    \x1b[1;34muser\x1b[0m@modern-host\x1b[1;34m:~ $\x1b[0m python -V
+    Python 2.7.2+
+    \x1b[1;34muser\x1b[0m@modern-host\x1b[1;34m:~ $\x1b[0m python -c "import tornado; print(tornado.version)"
+    2.2
+    \x1b[1;34muser\x1b[0m@modern-host\x1b[1;34m:~ $\x1b[0m
+
+Addditionally, if you wish to use Kerberos/Active Directory authentication you'll need the `python-kerberos <http://pypi.python.org/pypi/kerberos>`_ module.  On most systems both Tornado and the Kerberos module can be installed with via a single command:
+
+.. ansi-block::
+    :string_escape:
+
+    \x1b[1;34muser\x1b[0m@modern-host\x1b[1;34m:~ $\x1b[0m sudo pip install tornado kerberos
 
 ...or if you have an older operating system:
 
 .. ansi-block::
     :string_escape:
 
-    \x1b[1;34muser\x1b[0m@legacy-host\x1b[1;34m:~ $\x1b[0m sudo easy_install tornado pyopenssl kerberos
+    \x1b[1;34muser\x1b[0m@legacy-host\x1b[1;34m:~ $\x1b[0m sudo easy_install tornado kerberos
 
 .. note:: The use of pip is recommended.  See http://www.pip-installer.org/en/latest/installing.html if you don't have it.
 

@@ -4,8 +4,24 @@
 from distutils.core import setup
 import sys, os
 
+# Globals
+POSIX = 'posix' in sys.builtin_module_names
 version = '0.9'
-prefix = '/opt'
+# Some paths we can reference
+setup_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join('gateone', 'static')
+plugins_dir = os.path.join('gateone', 'plugins')
+templates_dir = os.path.join('gateone', 'templates')
+docs_dir = os.path.join('gateone', 'docs')
+tests_dir = os.path.join('gateone', 'tests')
+i18n_dir = os.path.join('gateone', 'i18n')
+
+if POSIX:
+    prefix = '/opt'
+else:
+    prefix = os.environ['PROGRAMFILES']
+print("Gate One will be installed in %s" % prefix)
+
 for arg in sys.argv:
     if arg.startswith('--prefix') or arg.startswith('--home'):
         prefix = arg.split('=')[1]
@@ -23,7 +39,7 @@ def walk_data_files(path, install_path=prefix):
             del dirs[dirs.index(".git")]
         thesefiles = []
         final_path = os.path.join(install_path, dirpath)
-        print("final path: %s" % final_path)
+        #print("final path: %s" % final_path)
         for fname in filenames:
             file_path = os.path.join(dirpath, fname)
             thesefiles.append(file_path)
@@ -31,27 +47,30 @@ def walk_data_files(path, install_path=prefix):
     return out
 
 # Take care of our data files
+# Yes, we're treating Python files as data files. Why bother?  Because users are
+# familiar with the setup.py method *and* it can create .rpm files for us (among
+# other things).  Gate One is not a module, after all.
 gateone_files=[ # Start with the basics...
-    (prefix + '/gateone', [
-        'gateone/auth.py',      # Yes, we're treating Python files as data files
-        'gateone/gateone.py',   # ...because Gate One is not a module.
-        'LICENSE.txt',          # Why bother?  Because users are familiar with
-        'gateone/logviewer.py', # the setup.py method *and* it can create .rpm
-        'gateone/sso.py',       # files for us (among other things).
-        'gateone/terminal.py',
-        'gateone/termio.py',
-        'gateone/utils.py',
-        'gateone/authpam.py',
+    (os.path.join(prefix, 'gateone'), [
+        os.path.join('gateone', 'auth.py'),
+        os.path.join('gateone', 'gateone.py'),
+        os.path.join('gateone', 'logviewer.py'),
+        os.path.join('gateone', 'sso.py'),
+        os.path.join('gateone', 'terminal.py'),
+        os.path.join('gateone', 'termio.py'),
+        os.path.join('gateone', 'utils.py'),
+        os.path.join('gateone', 'authpam.py'),
         'README.rst',
+        'LICENSE.txt',
         'babel_gateone.cfg'
     ])
 ]
-static_files = walk_data_files('gateone/static')
-template_files = walk_data_files('gateone/templates')
-docs_files = walk_data_files('gateone/docs')
-plugin_files = walk_data_files('gateone/plugins')
-test_files = walk_data_files('gateone/tests')
-i18n_files = walk_data_files('gateone/i18n')
+static_files = walk_data_files(static_dir)
+template_files = walk_data_files(templates_dir)
+docs_files = walk_data_files(docs_dir)
+plugin_files = walk_data_files(plugins_dir)
+test_files = walk_data_files(tests_dir)
+i18n_files = walk_data_files(i18n_dir)
 # Put it all together
 data_files = (
     gateone_files +
@@ -72,25 +91,27 @@ setup(
         'Gate One is a web-based terminal emulator and SSH client with many '
         'unique and advanced features.'),
     classifiers = [
-    "Development Status : 4 - Beta",
-    "Operating System :: Unix",
-    "Environment :: Console",
-    "Environment :: Web Environment",
-    "Intended Audience :: End Users/Desktop",
-    "Intended Audience :: Developers",
-    "Intended Audience :: System Administrators",
-    # NOTE: Wish there was a "Tornado" framework option
-    "Programming Language :: Python :: 2.6",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
-    "License :: Other/Proprietary License",
-    "Topic :: Internet :: WWW/HTTP",
-    "Topic :: Terminals"
+        "Development Status : 4 - Beta",
+        "Operating System :: Unix",
+        "Environment :: Console",
+        "Environment :: Web Environment",
+        "Intended Audience :: End Users/Desktop",
+        "Intended Audience :: Developers",
+        "Intended Audience :: System Administrators",
+        # NOTE: Wish there was a "Tornado" framework option
+        "Programming Language :: Python :: 2.6",
+        "License :: OSI Approved :: GNU Affero General Public License v3",
+        "License :: Other/Proprietary License",
+        "Topic :: Internet :: WWW/HTTP",
+        "Topic :: Terminals"
     ], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-    keywords = 'web administration terminal vt100 xterm emulation',
-    url = "http:/liftoffsoftware.com/",
+    keywords = (
+        'web administration terminal vt100 xterm emulation html5 console '
+        'web-to-host'),
+    url = "http:/liftoffsoftware.com/Products/GateOne",
     author = 'Dan McDougall',
     author_email = 'daniel.mcdougall@liftoffsoftware.com',
-    requires=["tornado (>=2.1)"],
+    requires=["tornado (>=2.2)"],
     provides = ['gateone'],
     data_files = data_files,
 )

@@ -2,6 +2,7 @@
 var document = window.document; // Have to do this because we're sandboxed
 
 // TODO: Move the parts that load and render logs in separate windows into Web Workers so they don't hang the browser while they're being rendered.
+// TODO: Bring back *some* client-side logging so things like displayMessage() have somewhere to temporarily store messages so users can look back to re-read them (e.g. Which terminal was that bell just in?).  Probably put it in sessionStorage
 
 // GateOne.Logging
 GateOne.Base.module(GateOne, "Logging", '0.9', ['Base', 'Net']);

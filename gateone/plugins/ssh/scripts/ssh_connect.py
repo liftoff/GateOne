@@ -37,7 +37,6 @@ wrapper_script = """\
 #!/bin/sh
 # This variable is for easy retrieval later
 SSH_SOCKET='{socket}'
-echo ' ' # Just some whitespace to separate the pre-execution stuff
 {cmd}
 echo '[Press Enter to close this terminal]'
 read waitforuser
@@ -254,8 +253,8 @@ def openssh_connect(
         else:
             print("\x1b]0;%s@%s (child)\007" % (user, host))
             print(_(
-                "\x1b[1mNOTE: Existing ssh session detected for ssh://%s@%s:%s;"
-                " utilizing existing tunnel.\x1b[0m" % (user, host, port)
+                "\x1b]_;notice|Existing ssh session detected for ssh://%s@%s:%s;"
+                " utilizing existing tunnel.\007" % (user, host, port)
             ))
         socket = socket.replace(r'%SHORT_SOCKET%', hashed)
         socket_arg = "-S%s" % socket

@@ -99,15 +99,43 @@
 <p>For more information on Gate One Commercial Licensing and support please visit our <a class="reference external" href="http://liftoffsoftware.com">website</a>.</p>
 </div>
 </div>
-<div class="section" id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>In order to use Gate One you'll need to install the <a class="reference external" href="http://www.tornadoweb.org/">Tornado framework</a>.  You'll get additional functionality if you also install <a class="reference external" href="https://launchpad.net/pyopenssl">pyOpenSSL</a> and the <a class="reference external" href="http://pypi.python.org/pypi/kerberos">python-kerberos</a> module.  All three can usually be taken care of in a single command:</p>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>Before installing Gate One your system must meet the following requirements:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Requirement</th>
+<th class="head">Version</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Python</td>
+<td>2.6+ (3.x support is forthcoming)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference external" href="http://www.tornadoweb.org/">Tornado Framework</a></td>
+<td>2.2+</td>
+</tr>
+</tbody>
+</table>
+<p>The following commands can be used to verify which version of each are installed:</p>
 <pre class="ansi-block literal-block">
-<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> sudo pip install tornado pyopenssl kerberos
+<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> python -V
+Python 2.7.2+
+<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> python -c &quot;import tornado; print(tornado.version)&quot;
+2.2
+<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span>
+</pre>
+<p>Addditionally, if you wish to use Kerberos/Active Directory authentication you'll need the <a class="reference external" href="http://pypi.python.org/pypi/kerberos">python-kerberos</a> module.  On most systems both Tornado and the Kerberos module can be installed with via a single command:</p>
+<pre class="ansi-block literal-block">
+<span class="ansi-bold ansi-blue">user</span>&#64;modern-host<span class="ansi-bold ansi-blue">:~ $</span> sudo pip install tornado kerberos
 </pre>
 <p>...or if you have an older operating system:</p>
 <pre class="ansi-block literal-block">
-<span class="ansi-bold ansi-blue">user</span>&#64;legacy-host<span class="ansi-bold ansi-blue">:~ $</span> sudo easy_install tornado pyopenssl kerberos
+<span class="ansi-bold ansi-blue">user</span>&#64;legacy-host<span class="ansi-bold ansi-blue">:~ $</span> sudo easy_install tornado kerberos
 </pre>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -749,7 +777,7 @@ Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]_;ssh|user@somehost:22#007</p
 <li><a class="reference internal" href="#gate-one-commercial-licensing">Gate One Commercial Licensing</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li><a class="reference internal" href="#installation">Installation</a><ul>
 <li><a class="reference internal" href="#rpm-based-linux-distributions">RPM-based Linux Distributions</a></li>
 <li><a class="reference internal" href="#debian-based-linux-distributions">Debian-based Linux Distributions</a></li>

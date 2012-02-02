@@ -1391,7 +1391,7 @@ class Terminal(object):
     def _backspace(self):
         """Execute a backspace (\x08)"""
         try:
-            self.renditions[self.cursorY][self.cursorX] = None
+            self.renditions[self.cursorY][self.cursorX] = [0]
         except IndexError:
             pass # At the edge, no biggie
         self.cursor_left(1)
@@ -1743,7 +1743,7 @@ class Terminal(object):
         n = min(n, distance)
         for i in xrange(n):
             self.screen[self.cursorY][self.cursorX+i] = u' '
-            self.renditions[self.cursorY][self.cursorX+i] = []
+            self.renditions[self.cursorY][self.cursorX+i] = [0]
 
     def cursor_left(self, n=1):
         """ESCnD CUB (Cursor Back)"""
@@ -2107,6 +2107,11 @@ class Terminal(object):
         for rend in new_renditions:
             if rend == 0:
                 out_renditions = [0]
+                # A 0 indicates reset so we don't want the last rendition to be
+                # combined with this new one.  By setting the last rendition to
+                # just [0] we're ensuring that _reduce_renditions() returns just
+                # this rendition and not the previous one + this one.
+                self.last_rendition = [0]
             else:
                 out_renditions.append(rend)
         if out_renditions == [0]:
