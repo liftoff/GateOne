@@ -26,6 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="next" title="Developer Documentation" href="../Developer/index.html" />
     <link rel="prev" title="About Gate One" href="../About/index.html" /> 
@@ -132,8 +133,8 @@
 <p class="last">If you close the last open terminal a new one will be opened.</p>
 </div>
 </div>
-<div class="section" id="terminal-info">
-<h3>Terminal Info<a class="headerlink" href="#terminal-info" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="terminal-info-and-tools">
+<h3>Terminal Info and Tools<a class="headerlink" href="#terminal-info-and-tools" title="Permalink to this headline">¶</a></h3>
 <div class="figure align-center">
 <img alt="../_images/gateone_infopanel.png" class="screenshot" src="../_images/gateone_infopanel.png" />
 <p class="caption">This is what you see when you click on the magnifying glass icon</p>
@@ -143,12 +144,28 @@
 <p class="first admonition-title">Tip</p>
 <p class="last">You can manually change the current terminal title by clicking on it.</p>
 </div>
-<div class="section" id="view-session-recording">
-<h4>View Session Recording<a class="headerlink" href="#view-session-recording" title="Permalink to this headline">¶</a></h4>
-<p>When this button is clicked it will open up the current session recording in a new browser tab.  This recording is self-contained and can be saved to your computer for playback later.  Everything needed to play back the recording is contained within the HTML file itself.  You can share it with friends, plop it into an iframe on a website, or just email it to someone.  It will even auto-scale itself (down) if necessary to fit within the current frame or window.</p>
+<div class="section" id="log-viewer">
+<h4>Log Viewer<a class="headerlink" href="#log-viewer" title="Permalink to this headline">¶</a></h4>
+<p>Gate One's log viewer provides a mechanism for viewing the logs of terminal sessions stored on the server.  Log metadata as well as a preview can be viewed by simply clicking on any given log.  Playback and flat (traditional) viewing options are also available.  These will open in a new window.</p>
+<div class="figure align-center">
+<img alt="UserGuide/screenshots/log_viewer.png" class="screenshot" src="UserGuide/screenshots/log_viewer.png" />
+<p class="caption">Gate One's log viewer</p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">When you open the log viewer it will display a message indicating how many logs there are associated with your user account along with the total amount of space the logs are taking up on the server.</p>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This kind of session recording is not the same as what gets logged on the server.  Though both can be played back in a similar fashion.</p>
+<p class="last">Gate One's log format is pre-compressed using gzip.  There's no need to compress them.</p>
+</div>
+</div>
+<div class="section" id="export-current-session">
+<h4>Export Current Session<a class="headerlink" href="#export-current-session" title="Permalink to this headline">¶</a></h4>
+<p>When this button is clicked it will open up a new browser tab that will play back the current terminal's session.  This recording is self-contained and can be saved to your computer for playback later.  Everything needed to play back the recording is contained within the HTML file itself.  You can share it with friends, plop it into an iframe on a website, or just email it to someone.  It will even auto-scale itself (down) if necessary to fit within the current frame or window.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This kind of session recording is merely a shortcut to quickly exporting the current terminal session.  You can always access your server-side session logs from within the log viewer.</p>
 </div>
 </div>
 <div class="section" id="monitor-for-activity-inactivity">
@@ -167,6 +184,31 @@
 <p class="caption">After duplicating an SSH session.  No password required!</p>
 </div>
 </div>
+<div class="section" id="ssh-plugin-manage-identities">
+<h4>SSH Plugin: Manage Identities<a class="headerlink" href="#ssh-plugin-manage-identities" title="Permalink to this headline">¶</a></h4>
+<p>The SSH plugin includes an interface for managing all of your SSH identities (aka SSH keys).  Here, SSH identities (private and public key files) can be generated, downloaded, uploaded, or deleted.  There is also support for uploading (or replacing existing) X.509 certificates that may be associated with a given identity.  X.509 support is important because it provides the ability for keys to be revoked (e.g. in the event that an employee leaves your company).  X.509 certificates can also restrict what privileges a user has when logging into a server via SSH (e.g. disallowing port forwarding).  If any of these restrictions are present in a given Identity's X.509 certificate they will be displayed in place of the randomart field.</p>
+<div class="figure align-center">
+<img alt="UserGuide/screenshots/ssh_identity_manager.png" class="screenshot" src="UserGuide/screenshots/ssh_identity_manager.png" />
+<p class="caption">SSH Identity Manager</p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">If you hover your mouse over the title of each column it will provide detailed description of what it means.</p>
+</div>
+<p>When you click on an identity you'll see a view such as this:</p>
+<div class="figure align-center">
+<img alt="UserGuide/screenshots/ssh_identity_manager_idview.png" class="screenshot" src="UserGuide/screenshots/ssh_identity_manager_idview.png" />
+<p class="caption">Identity Information</p>
+</div>
+</div>
+<div class="section" id="edit-known-hosts">
+<h4>Edit Known Hosts<a class="headerlink" href="#edit-known-hosts" title="Permalink to this headline">¶</a></h4>
+<p>Clicking this button will bring up an editor for Gate One's equivalent of ~/.ssh/known_hosts (same file, different location).  This will be handy if some server you connect to on a regular basis ever changes its host key...  You'll need to delete the corresponding line.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Line numbers in the textarea are forthcoming (to make finding the appropriate host line easier).</p>
+</div>
+</div>
 </div>
 <div class="section" id="the-settings-panel">
 <h3>The Settings Panel<a class="headerlink" href="#the-settings-panel" title="Permalink to this headline">¶</a></h3>
@@ -175,21 +217,29 @@
 <p class="caption">Gate One's Settings Panel</p>
 </div>
 <p>These options are detailed below...</p>
-<div class="section" id="css-scheme-theme">
-<h4>CSS Scheme (Theme)<a class="headerlink" href="#css-scheme-theme" title="Permalink to this headline">¶</a></h4>
-<p>This controls the look and feel of Gate One.  Right now there's only two options:  Black or White.  Future versions of Gate One will include more and eventually users will be able to change and customize CSS schemes on an ad-hoc basis, per-terminal.</p>
+<div class="section" id="theme">
+<h4>Theme<a class="headerlink" href="#theme" title="Permalink to this headline">¶</a></h4>
+<p>This controls the look and feel of Gate One.  When selected, the chosen theme will take effect right away.</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p class="last">The CSS schemes can be edited; css_black.css and css_white.css are in &lt;path to gateone&gt;/templates.</p>
+<p class="last">The CSS schemes can be edited; css_black.css and css_white.css are in &lt;path to gateone&gt;/templates/themes.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The black scheme doesn't actually have a black background (it's #222)...  Why?  So the panels can have shadows which provides important contrast.  Essentially, it is easier on the eyes.</p>
 </div>
 </div>
+<div class="section" id="color-scheme">
+<h4>Color Scheme<a class="headerlink" href="#color-scheme" title="Permalink to this headline">¶</a></h4>
+<p>This is similar to the &quot;Theme&quot; option above but it only controls the colors of terminal text (aka renditions).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">CSS color schemes can be found in &lt;path to gateone&gt;/templates/term_colors.</p>
+</div>
+</div>
 <div class="section" id="scrollback-buffer-lines">
 <h4>Scrollback Buffer Lines<a class="headerlink" href="#scrollback-buffer-lines" title="Permalink to this headline">¶</a></h4>
-<p>This option tells Gate One how many lines to keep in the scrollback buffer (in memory).  When you're typing or when a terminal is updating itself Gate One only updates the browser window with what falls within the terminals rows and columns.  Only after a timeout of 3.5 seconds does it re-attach the scrollback buffer.  When this happens the browser has to render all that text; the more there is the longer it takes.</p>
+<p>This option tells Gate One how many lines to keep in the scrollback buffer (in memory).  When you're typing or when a terminal is updating itself Gate One only updates the browser window with what falls within the terminal's rows and columns.  Only after a timeout of 3.5 seconds does it re-attach the scrollback buffer.  When this happens the browser has to render all that text; the more there is the longer it takes (milliseconds).  Even on a slow system 500 lines (the default) should be unnoticably speedy.</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last">You don't have to wait for the 3.5 second timeout:  Just start scrolling and the timeout will be cancelled and the scrollback buffer will be immediately prepended to the current view.</p>
@@ -199,13 +249,13 @@
 <p class="last">Why the complexity?  The more text that is being rendered, the slower the browser will be able to update your terminal window.  If we updated the current number of rows + the number of lines in the scrollback buffer every time you pressed a key this would quickly bog down your browser and make Gate One considerably less responsive.</p>
 </div>
 </div>
-<div class="section" id="terminal-log-lines">
-<h4>Terminal Log Lines<a class="headerlink" href="#terminal-log-lines" title="Permalink to this headline">¶</a></h4>
-<p>Doesn't do anything...  This option <em>used</em> to control how many lines of terminal output were saved by your browser in localStorage/indexedDB.  Turns out this is slow as heck since JavaScript provides no (fast) mechanism to limit the size of such storage.  All this logic will soon be replaced by some simple AJAX calls that download the user's current terminal log from the Gate One server using log_viewer.py.</p>
-</div>
 <div class="section" id="playback-frames">
 <h4>Playback Frames<a class="headerlink" href="#playback-frames" title="Permalink to this headline">¶</a></h4>
-<p>This option controls how many frames of session playback will be kept in working memory.  The higher the number, the more memory it will use.  Also, the more terminals you have open, the higher the memory use as well.  Having said that, 200-500 frames per terminal shouldn't be of any concern to a modern computer.</p>
+<p>This option controls how many frames of real-time session playback will be kept in working memory.  The higher the number, the more memory it will use.  Also, the more terminals you have open the higher the memory use as well.  Having said that, 200-500 frames per terminal shouldn't be of any concern for a modern computer.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">If you hold down the Ctrl key while scrolling with your mouse it will move backwards and forwards in the playback buffer instead of scrolling up and down.  It is a handy way to see the history of full-screen applications such as 'top'.</p>
+</div>
 </div>
 <div class="section" id="terminal-rows-and-terminal-columns">
 <h4>Terminal Rows and Terminal Columns<a class="headerlink" href="#terminal-rows-and-terminal-columns" title="Permalink to this headline">¶</a></h4>
@@ -213,14 +263,6 @@
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Why would anyone bother?  Some legacy/poorly-written terminal programs only work properly in a terminal window of 24 rows and 80 columns.</p>
-</div>
-</div>
-<div class="section" id="edit-known-hosts">
-<h4>Edit Known Hosts<a class="headerlink" href="#edit-known-hosts" title="Permalink to this headline">¶</a></h4>
-<p>You'll see this button if the SSH plugin is enabled.  It allows the user to edit the equivalent of ~/.ssh/known_hosts.  This will be handy if some server you connect to on a regular basis ever changes its host key...  You'll need to delete the corresponding line.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Plans are in the works to provide line numbers in the textarea to make finding the appropriate host line easier.</p>
 </div>
 </div>
 </div>
@@ -263,7 +305,7 @@
 <p>Bookmarks can be added by clicking on &quot;New&quot;:</p>
 <div class="figure align-center">
 <img alt="../_images/gateone_new_bookmark1.png" class="screenshot" src="../_images/gateone_new_bookmark1.png" />
-<p class="caption">The New Bookmark Form.  NOTE: The text zoom level resulted in a graphical glitch in the notes area... Ignore that :)</p>
+<p class="caption">The New Bookmark Form.</p>
 </div>
 <p>Here's an example of the new bookmark form, filled out with a new SSH bookmark:</p>
 <div class="figure align-center">
@@ -300,6 +342,9 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">User Guide</a><ul>
@@ -308,19 +353,21 @@
 <li><a class="reference internal" href="#keyboard-shortcuts">Keyboard Shortcuts</a></li>
 <li><a class="reference internal" href="#the-toolbar">The Toolbar</a><ul>
 <li><a class="reference internal" href="#close-terminal-and-new-terminal">Close Terminal and New Terminal</a></li>
-<li><a class="reference internal" href="#terminal-info">Terminal Info</a><ul>
-<li><a class="reference internal" href="#view-session-recording">View Session Recording</a></li>
+<li><a class="reference internal" href="#terminal-info-and-tools">Terminal Info and Tools</a><ul>
+<li><a class="reference internal" href="#log-viewer">Log Viewer</a></li>
+<li><a class="reference internal" href="#export-current-session">Export Current Session</a></li>
 <li><a class="reference internal" href="#monitor-for-activity-inactivity">Monitor for Activity/Inactivity</a></li>
 <li><a class="reference internal" href="#ssh-plugin-duplicate-session">SSH Plugin: Duplicate Session</a></li>
+<li><a class="reference internal" href="#ssh-plugin-manage-identities">SSH Plugin: Manage Identities</a></li>
+<li><a class="reference internal" href="#edit-known-hosts">Edit Known Hosts</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#the-settings-panel">The Settings Panel</a><ul>
-<li><a class="reference internal" href="#css-scheme-theme">CSS Scheme (Theme)</a></li>
+<li><a class="reference internal" href="#theme">Theme</a></li>
+<li><a class="reference internal" href="#color-scheme">Color Scheme</a></li>
 <li><a class="reference internal" href="#scrollback-buffer-lines">Scrollback Buffer Lines</a></li>
-<li><a class="reference internal" href="#terminal-log-lines">Terminal Log Lines</a></li>
 <li><a class="reference internal" href="#playback-frames">Playback Frames</a></li>
 <li><a class="reference internal" href="#terminal-rows-and-terminal-columns">Terminal Rows and Terminal Columns</a></li>
-<li><a class="reference internal" href="#edit-known-hosts">Edit Known Hosts</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gate-one-s-grid">Gate One's Grid</a></li>

@@ -13,31 +13,37 @@ __doc__ = """\
 About This Module
 =================
 This crux of this module is the Terminal class which is a pure-Python
-implementation of a quintessential Unix-style terminal emulator.  It actually
-does its best to emulate an xterm.  This means it supports the majority of the
+implementation of the quintessential Unix terminal emulator.  It does its best
+to emulate an xterm and along with that comes support for the majority of the
 relevant portions of ECMA-48.  This includes support for emulating varous VT-*
 terminal types as well as the "linux" terminal type.
 
-The Terminal class's emulation support is not complete but it should suffice for
-most terminal emulation needs.  If additional support for certain escape
-sequences or modes are required please feel free to provide a patch or to simply
-ask for something to be added.
+The Terminal class's VT-* emulation support is not complete but it should
+suffice for most terminal emulation needs (e.g. all your typical command line
+programs should work wonderfully).  If something doesn't look quite right or you
+need support for certain modes added please feel free to open a ticket on Gate
+One's issue tracker:  https://github.com/liftoff/GateOne/issues
 
 Note that Terminal was written from scratch in order to be as fast as possible.
-Comments have been placed where different implementations/development patterns
-have been tried and ultimately failed to provide speed improvements.  Any and
-all suggestions or patches to improve speed (or emulation support) are welcome!
+It is extensively commented and implements some interesting patterns in order to
+maximize execution speed (most notably for things that loop).  Some bits of code
+may seem "un-Pythonic" and/or difficult to grok but understand that this is
+probably due to optimizations.  If you know "a better way" please feel free to
+submit a patch, open a ticket, or send us an email.  There's a reason why open
+source software is a superior development model!
 
 Supported Emulation Types
 -------------------------
-Without any special mode settings or parameters, Terminal should be able to
-support most applications under the following terminal types (e.g.
-"export TERM=<terminal type>"):
+Without any special mode settings or parameters Terminal should effectively
+emulate the following terminal types:
 
  * xterm (the most important one)
  * ECMA-48/ANSI X3.64
  * Nearly all the VT-* types:  VT-52, VT-100, VT-220, VT-320, VT-420, and VT-520
  * Linux console ("linux")
+
+If you want Terminal to support something else or it's missing a feature from
+any given terminal type please let us know.  We'll implement it!
 
 What Terminal Doesn't Do
 ------------------------
@@ -47,7 +53,7 @@ codes--you'll have to take care of that in your application (or at the
 client-side like Gate One).  It does, however, keep track of many
 keystroke-specific modes of operation such as Application Cursor Keys and the G0
 and G1 charset modes *with* callbacks that can be used to notify your
-application when something changes.
+application when such things change.
 
 Special Considerations
 ----------------------
@@ -63,18 +69,20 @@ To support asynchronous usage (and make everything faster), Terminal was written
 to support extensive callbacks that are called when certain events are
 encountered.  Here are the events and their callbacks:
 
-============================    ========================================================================
-Callback                        Called when...
-============================    ========================================================================
-CALLBACK_SCROLL_UP              The terminal is scrolled up (back).
-CALLBACK_CHANGED                The screen is changed/updated.
-CALLBACK_CURSOR_POS             The cursor position changes.
-CALLBACK_DSR                    A Device Status Report (DSR) is requested (via the DSR escape sequence).
-CALLBACK_TITLE                  The terminal title changes (xterm-style)
-CALLBACK_BELL                   The bell character (^G) is encountered.
-CALLBACK_OPT                    The special optional escape sequence is encountered.
-CALLBACK_MODE                   The terminal mode setting changes (e.g. use alternate screen buffer).
-============================    ========================================================================
+.. _callback_constants:
+
+====================================    ========================================================================
+Callback Constant (ID)                  Called when...
+====================================    ========================================================================
+:attr:`terminal.CALLBACK_SCROLL_UP`     The terminal is scrolled up (back).
+:attr:`terminal.CALLBACK_CHANGED`       The screen is changed/updated.
+:attr:`terminal.CALLBACK_CURSOR_POS`    The cursor position changes.
+:attr:`terminal.CALLBACK_DSR`           A Device Status Report (DSR) is requested (via the DSR escape sequence).
+:attr:`terminal.CALLBACK_TITLE`         The terminal title changes (xterm-style)
+:attr:`terminal.CALLBACK_BELL`          The bell character (^G) is encountered.
+:attr:`terminal.CALLBACK_OPT`           The special optional escape sequence is encountered.
+:attr:`terminal.CALLBACK_MODE`          The terminal mode setting changes (e.g. use alternate screen buffer).
+====================================    ========================================================================
 
 Note that CALLBACK_DSR is special in that it in most cases it will be called with arguments.  See the code for examples of how and when this happens.
 
@@ -115,19 +123,21 @@ Here's an example with some basic callbacks:
 About The Scrollback Bufffer
 ----------------------------
 The Terminal class implements a scrollback buffer.  Here's how it works:
-Whenever a scroll_up() event occurs, the line (or lines) that will be removed
-from the top of the screen will be placed into Terminal.scrollback_buf.  Then,
-whenever dump_html() is called, the scrollback buffer will be returned along
-with the screen output and reset to an empty state.
+Whenever a :meth:`Terminal.scroll_up` event occurs, the line (or lines) that
+will be removed from the top of the screen will be placed into
+:attr:`Terminal.scrollback_buf`. Then whenever :meth:`Terminal.dump_html` is
+called the scrollback buffer will be returned along with the screen output and
+reset to an empty state.
 
-Why do this?  In the event that a very large write() occurs (e.g. 'ps aux'), it
-gives the controlling program the ability to capture what went past the screen
-without some fancy tracking logic surrounding Terminal.write().
+Why do this?  In the event that a very large :meth:`Terminal.write` occurs (e.g.
+'ps aux'), it gives the controlling program the ability to capture what went
+past the screen without some fancy tracking logic surrounding
+:meth:`Terminal.write`.
 
-More information about how this works can be had by looking at the dump_html()
-function itself.
+More information about how this works can be had by looking at the
+:meth:`Terminal.dump_html` function itself.
 
-.. note:: There's more than one function that empties Terminal.scrollback_buf when called.  You'll just have to have a look around =)
+.. note:: There's more than one function that empties :attr:`Terminal.scrollback_buf` when called.  You'll just have to have a look around =)
 
 Class Docstrings
 ================
@@ -439,26 +449,26 @@ codecs.register_error('handle_special', handle_special)
 
 # TODO List:
 #
-#   * Needs tests!
+#   * We need unit tests!
 
 # Helper functions
 def _reduce_renditions(renditions):
     """
     Takes a list, *renditions*, and reduces it to its logical equivalent (as
-    far as renditions go).  Example:
+    far as renditions go).  Example::
 
         [0, 32, 0, 34, 0, 32]
 
-    Would become:
+    Would become::
 
         [0, 32]
 
-    Other Examples:
+    Other Examples::
 
-        [0, 1, 36, 36] -> [0, 1, 36]
-        [0, 30, 42, 30, 42] -> [0, 30, 42]
-        [36, 32, 44, 42] -> [32, 42]
-        [36, 35] -> [35]
+        [0, 1, 36, 36]      ->  [0, 1, 36]
+        [0, 30, 42, 30, 42] ->  [0, 30, 42]
+        [36, 32, 44, 42]    ->  [32, 42]
+        [36, 35]            ->  [35]
     """
     out_renditions = []
     foreground = None
@@ -556,19 +566,23 @@ class Terminal(object):
 
     def __init__(self, rows=24, cols=80):
         """
-        Initializes the terminal by calling self.initialize(rows, cols).  This
+        Initializes the terminal by calling *self.initialize(rows, cols)*.  This
         is so we can have an equivalent function in situations where __init__()
         gets overridden.
         """
         self.initialize(rows, cols)
 
     def initialize(self, rows=24, cols=80):
+        """
+        Initializes the terminal (the actual equivalent to :meth:`__init__`).
+        """
         self.cols = cols
         self.rows = rows
         self.scrollback_buf = []
         self.scrollback_renditions = []
         self.title = "Gate One"
-        # Use to tell if we actually made a change or just moved the cursor:
+        # This variable can be referenced by programs implementing Terminal() to
+        # determine if anything has changed since the last dump*()
         self.modified = False
         self.local_echo = True
         self.esc_buffer = '' # For holding escape sequences as they're typed.
@@ -762,12 +776,10 @@ class Terminal(object):
 
     def init_screen(self):
         """
-        Fills self.screen with empty lines of (unicode) spaces using self.cols
-        and self.rows for the dimensions.
+        Fills :attr:`screen` with empty lines of (unicode) spaces using
+        :attr:`self.cols` and :attr:`self.rows` for the dimensions.
 
-        NOTE: Just because each line starts out with a uniform length does not
-        mean it will stay that way.  Processing of escape sequences is handled
-        when an output function is called.
+        .. note:: Just because each line starts out with a uniform length does not mean it will stay that way.  Processing of escape sequences is handled when an output function is called.
         """
         self.screen = [
             [u' ' for a in xrange(self.cols)] for b in xrange(self.rows)
@@ -783,8 +795,8 @@ class Terminal(object):
 
     def init_renditions(self):
         """
-        Fills self.renditions with lists of None using self.cols and self.rows
-        for the dimenions.
+        Fills :attr:`self.renditions` with lists of [0] using :attr:`self.cols`
+        and :attr:`self.rows` for the dimenions.
         """
         self.renditions = [
             [[0] for a in xrange(self.cols)] for b in xrange(self.rows)
@@ -792,7 +804,8 @@ class Terminal(object):
 
     def init_scrollback(self):
         """
-        Empties out the scrollback buffers
+        Empties the scrollback buffers (:attr:`self.scrollback_buf` and
+        :attr:`self.scrollback_renditions`).
         """
         self.scrollback_buf = []
         self.scrollback_renditions = []
@@ -803,22 +816,21 @@ class Terminal(object):
         *identifier* can be used to reference this callback leter (e.g. when you
         want to remove it).  Otherwise an identifier will be generated
         automatically.  If the given *identifier* is already attached to a
-        callback at the given event, that callback will be replaced with
+        callback at the given event that callback will be replaced with
         *callback*.
 
-        *event* - The numeric ID of the event you're attaching *callback* to.
-        *callback* - The function you're attaching to the *event*.
-        *identifier* - A string or number to be used as a reference point should you wish to remove or update this callback later.
+            :event: The numeric ID of the event you're attaching *callback* to. The :ref:`callback constants <callback_constants>` should be used as the numerical IDs.
+            :callback: The function you're attaching to the *event*.
+            :identifier: A string or number to be used as a reference point should you wish to remove or update this callback later.
 
-        Returns the identifier of the callback.  to Example:
+        Returns the identifier of the callback.  to Example::
 
             >>> term = Terminal()
             >>> def somefunc(): pass
             >>> id = "myref"
-            >>> ref = term.add_callback(CALLBACK_BELL, somefunc, id)
+            >>> ref = term.add_callback(term.CALLBACK_BELL, somefunc, id)
 
-        NOTE: This allows the controlling program to have multiple callbacks for
-        the same event.
+        .. note:: This allows the controlling program to have multiple callbacks for the same event.
         """
         if not identifier:
             identifier = callback.__hash__()
@@ -828,10 +840,9 @@ class Terminal(object):
     def remove_callback(self, event, identifier):
         """
         Removes the callback referenced by *identifier* that is attached to the
-        given *event*.  Example:
+        given *event*.  Example::
 
             >>> term.remove_callback(CALLBACK_BELL, "myref")
-
         """
         del self.callbacks[event][identifier]
 
@@ -848,7 +859,9 @@ class Terminal(object):
     def terminal_reset(self, *args, **kwargs):
         """
         Resets the terminal back to an empty screen with all defaults.  Calls
-        self.callbacks[CALLBACK_RESET]() when finished.
+        :meth:`Terminal.callbacks[CALLBACK_RESET]` when finished.
+
+        .. note:: If terminal output has been suspended (e.g. via ctrl-s) this will not un-suspend it (you need to issue ctrl-q to the underlying program to do that).
         """
         logging.debug('terminal_reset(%s)' % args)
         self.leds = {
@@ -883,12 +896,15 @@ class Terminal(object):
             pass
 
     def __ignore(self, *args, **kwargs):
-        """Do nothing"""
+        """
+        Does nothing (on purpose!).  Used as a placeholder for unimplemented
+        functions.
+        """
         pass
 
     def resize(self, rows, cols):
         """
-        Resizes the terminal window, adding or removing rows or columns as
+        Resizes the terminal window, adding or removing *rows* or *cols* as
         needed.
         """
         logging.debug("resize(%s, %s)" % (rows, cols))
@@ -928,10 +944,10 @@ class Terminal(object):
 
     def _set_top_bottom(self, settings):
         """
-        DECSTBM - Sets self.top_margin and self.bottom_margin using the provided
-        settings in the form of '<top_margin>;<bottom_margin>'.
+        DECSTBM - Sets :attr:`self.top_margin` and :attr:`self.bottom_margin`
+        using the provided settings in the form of '<top_margin>;<bottom_margin>'.
 
-        NOTE: This also handles restore/set "DEC Private Mode Values"
+        .. note:: This also handles restore/set "DEC Private Mode Values".
         """
         # NOTE: Used by screen and vi so this needs to work and work well!
         if len(settings):
@@ -948,14 +964,16 @@ class Terminal(object):
 
     def get_cursor_position(self):
         """
-        Returns the current cursor positition as a tuple, (row, col)
+        Returns the current cursor positition as a tuple::
+
+            (row, col)
         """
         return (self.cursorY, self.cursorX)
 
     def set_title(self, title):
         """
-        Sets self.title to *title* and executes
-        self.callbacks[CALLBACK_TITLE]()
+        Sets :attr:`self.title` to *title* and executes
+        :meth:`Terminal.callbacks[CALLBACK_TITLE]`
         """
         self.title = title
         try:
@@ -967,7 +985,7 @@ class Terminal(object):
             logging.error(e)
 
     def get_title(self):
-        """Returns self.title"""
+        """Returns :attr:`self.title`"""
         return self.title
 
 # TODO: put some logic in these save/restore functions to walk the current
@@ -975,9 +993,10 @@ class Terminal(object):
     def save_cursor_position(self, mode=None):
         """
         Saves the cursor position and current rendition settings to
-        self.saved_cursorX, self.saved_cursorY, and self.saved_rendition
+        :attr:`self.saved_cursorX`, :attr:`self.saved_cursorY`, and
+        :attr:`self.saved_rendition`
 
-        NOTE: Also handles the set/restore "Private Mode Settings" sequence.
+        .. note:: Also handles the set/restore "Private Mode Settings" sequence.
         """
         if mode: # Set DEC private mode
             # TODO: Need some logic here to save the current expanded mode
@@ -992,8 +1011,8 @@ class Terminal(object):
     def restore_cursor_position(self, *args, **kwargs):
         """
         Restores the cursor position and rendition settings from
-        self.saved_cursorX, self.saved_cursorY, and self.saved_rendition (if
-        they're set).
+        :attr:`self.saved_cursorX`, :attr:`self.saved_cursorY`, and
+        :attr:`self.saved_rendition` (if they're set).
         """
         if self.saved_cursorX and self.saved_cursorY:
             self.cursorX = self.saved_cursorX
@@ -1002,9 +1021,12 @@ class Terminal(object):
 
     def _dsr_get_cursor_position(self):
         """
-        Returns the current cursor positition as a DSR response in the form of:
-        '\x1b<self.cursorY>;<self.cursorX>R'.  Also executes CALLBACK_DSR with
-        the same output as the first argument.  Example:
+        Returns the current cursor positition as a DSR response in the form of::
+
+            '\x1b<self.cursorY>;<self.cursorX>R'
+
+        Also executes CALLBACK_DSR with the same output as the first argument.
+        Example::
 
             self.callbacks[CALLBACK_DSR]('\x1b20;123R')
         """
@@ -1018,9 +1040,9 @@ class Terminal(object):
 
     def _dcs_handler(self, string=None):
         """
-        Handles Device Control String sequences.  Still haven't figured out if
-        these really need to be implemented (they might not make sense for
-        Gate One).
+        Handles Device Control String sequences.  Unimplemented.  Probablye not
+        appropriate for Gate One.  If you believe this to be false please open
+        a ticket in the issue tracker.
         """
         pass
         #print("TODO: Handle this DCS: %s" % string)
@@ -1030,6 +1052,8 @@ class Terminal(object):
         This function handles the control sequences that set double and single
         line heights and widths.  It also handles the "screen alignment test" (
         fill the screen with Es).
+
+        .. note:: Double-line height text is currently unimplemented (does anything actually use it?).
         """
         try:
             param = int(param)
@@ -1041,13 +1065,15 @@ class Terminal(object):
             self.screen = [
                 [u'E' for a in xrange(self.cols)] for b in xrange(self.rows)
             ]
-        # TODO: Get this handling double line height stuff
+        # TODO: Get this handling double line height stuff...  For kicks
 
     def set_G0_charset(self, char):
         """
-        Sets the terminal's G0 (default) charset to the type specified by *char*
+        Sets the terminal's G0 (default) charset to the type specified by
+        *char*.
 
-        Here's the possibilities:
+        Here's the possibilities::
+
             0    DEC Special Character and Line Drawing Set
             A    United Kingdom (UK)
             B    United States (USASCII)
@@ -1075,9 +1101,10 @@ class Terminal(object):
 
     def set_G1_charset(self, char):
         """
-        Sets the terminal's G1 (alt) charset to the type specified by *char*
+        Sets the terminal's G1 (alt) charset to the type specified by *char*.
 
-        Here's the possibilities:
+        Here's the possibilities::
+
             0    DEC Special Character and Line Drawing Set
             A    United Kingdom (UK)
             B    United States (USASCII)
@@ -1159,8 +1186,8 @@ class Terminal(object):
                             self.matched_header].split(self.image)
                     # Eliminate anything before the match
                     self.image = match.group()
-                    self._capture_image(self.image)
-                    self.image = bytearray() # Empty it out
+                    self._capture_image()
+                    self.image = bytearray() # Empty it now that is is captured
                     self.matched_header = None # Ditto
                 if before_chars:
                     self.write(before_chars, special_checks=False)
@@ -1288,8 +1315,7 @@ class Terminal(object):
         CALLBACK_CHANGED and CALLBACK_SCROLL_UP are called after scrolling the
         screen.
 
-        NOTE: This will only scroll up the region within self.top_margin and
-        self.bottom_margin (if set).
+        .. note:: This will only scroll up the region within self.top_margin and self.bottom_margin (if set).
         """
         for x in xrange(int(n)):
             line = self.screen.pop(self.top_margin) # Remove the top line
@@ -1389,7 +1415,7 @@ class Terminal(object):
                 self.bottom_margin, [[0] for a in xrange(self.cols)])
 
     def _backspace(self):
-        """Execute a backspace (\x08)"""
+        """Execute a backspace (\\x08)"""
         try:
             self.renditions[self.cursorY][self.cursorX] = [0]
         except IndexError:
@@ -1397,7 +1423,7 @@ class Terminal(object):
         self.cursor_left(1)
 
     def _horizontal_tab(self):
-        """Execute horizontal tab (\x09)"""
+        """Execute horizontal tab (\\x09)"""
         next_tabstop = self.cols -1
         for tabstop in self.tabstops:
             if tabstop > self.cursorX:
@@ -1406,7 +1432,7 @@ class Terminal(object):
         self.cursorX = next_tabstop
 
     def _set_tabstop(self):
-        """Sets a tabstop at the current position of self.cursorX."""
+        """Sets a tabstop at the current position of :attr:`self.cursorX`."""
         if self.cursorX not in self.tabstops:
             for tabstop in self.tabstops:
                 if self.cursorX > tabstop:
@@ -1415,7 +1441,11 @@ class Terminal(object):
                     break
 
     def _linefeed(self):
-        """Execute line feed"""
+        """
+        Execute line feed (LF)
+
+        .. note:: This actually just calls :meth:`Terminal._newline`.
+        """
         self._newline()
 
     def _next_line(self):
@@ -1432,7 +1462,9 @@ class Terminal(object):
 
     def _newline(self):
         """
-        Adds a new line to self.screen and sets self.cursorX to 0.
+        Increases :attr:`self.cursorY` by 1 and calls :meth:`Terminal.scroll_up`
+        if that action will move the curor past :attr:`self.bottom_margin`
+        (usually the bottom of the screen).
         """
         self.cursorY += 1
         if self.cursorY > self.bottom_margin:
@@ -1442,39 +1474,49 @@ class Terminal(object):
 
     def _carriage_return(self):
         """
-        Execute carriage return (set self.cursorX to 0)
+        Execute carriage return (set :attr:`self.cursorX` to 0)
         """
         self.cursorX = 0
 
     def _xon(self):
         """
-        Handle XON character (stop ignoring)
+        Handles the XON character (stop ignoring).
+
+        .. note:: Doesn't actually do anything (this terminal feature was probably meant for the underlying terminal program).
         """
         logging.debug('_xon()')
         self.local_echo = True
 
     def _xoff(self):
         """
-        Handle XOFF character (start ignoring)
+        Handles the XOFF character (start ignoring)
+
+        .. note:: Doesn't actually do anything (this terminal feature was probably meant for the underlying terminal program).
         """
         logging.debug('_xoff()')
         self.local_echo = False
 
     def _cancel_esc_sequence(self):
-        """Cancels any escape sequence currently in progress."""
+        """
+        Cancels any escape sequence currently being processed.  In other words
+        it empties :attr:`self.esc_buffer`.
+        """
         self.esc_buffer = ''
 
     def _sub_esc_sequence(self):
         """
-        Cancels any escape sequence currently in progress and substitutes it
-        with single question mark (?).
+        Cancels any escape sequence currently in progress and replaces
+        :attr:`self.esc_buffer` with single question mark (?).
+
+        .. note:: Nothing presently uses this function and I can't remember what it was supposed to be part of (LOL!).  Obviously it isn't very important.
         """
         self.esc_buffer = ''
         self.write('?')
 
     def _escape(self):
         """
-        Handle escape character as well as escape sequences.
+        Handles the escape character as well as escape sequences that may end
+        with an escape character.
         """
         buf = self.esc_buffer
         if buf.startswith('\x1bP') or buf.startswith('\x1b]'):
@@ -1487,31 +1529,43 @@ class Terminal(object):
 
     def _csi(self):
         """
-        Starts a CSI sequence.
+        Marks the start of a CSI escape sequence (which is itself a character)
+        by setting :attr:`self.esc_buffer` to '\\\\x1b[' (which is the CSI escape
+        sequence).
         """
         self.esc_buffer = '\x1b['
 
-    def _capture_image(self, image_data):
+    def _capture_image(self):
         """
-        Starts looking at the intput to see if this is a PNG file.  If it is,
-        sets self.image to 'Ë' which will tell self.write() to put all characters
-        into a bufer until the 'IEND\xaeB`\x82' sequence is encountered.
+        This gets called when an image (PNG or JPEG) was detected by
+        :meth:`Terminal.write` and captured in :attr:`self.image`.  It cleans up
+        the data inside :attr:`self.image` (getting rid of carriage returns) and
+        stores self.image as if it were a single character in
+        :attr:`self.screen` at the current cursor position.
+
+        It also moves the cursor to the beginning of the last line before doing
+        this in order to ensure that the captured image stays within the
+        browser's current window.
+
+        .. note:: The :meth:`Terminal._spanify_screen` function is aware of this logic and knows that a 'character' longer than an actual character indicates the presence of something like an image that needs special processing.
         """
         logging.debug("_capture_image() len(self.image): %s" % len(image_data))
-        # Remove the extra \r's that the terminal adds:
-        image_data = self.image.replace('\r\n', '\n')
         self.cursorY = self.rows - 1 # Move to the end of the screen
         # NOTE: If we don't move to the end of the screen the image can end up
         # partially above the visible screen (since it will rest on the current
         # row).
         self.cursorX = 0
-        self.screen[self.cursorY][self.cursorX] = image_data
-        self._newline()
+        # Remove the extra \r's that the terminal adds:
+        self.screen[self.cursorY][self.cursorX] = self.image.replace(
+            '\r\n', '\n')
+        self._newline() # Make some space at the bottom too just in case
         self._newline()
 
     def _string_terminator(self):
         """
-        Handle the string terminator.
+        Handle the string terminator (ST).
+
+        .. note:: Doesn't actually do anything at the moment.  Probably not needed since :meth:`Terminal._escape` and/or :meth:`Terminal._bell` will end up handling any sort of sequence that would end in an ST anyway.
         """
         # TODO: This.
         # NOTE: Might this just call _cancel_esc_sequence?  I need to double-check.
@@ -1520,11 +1574,11 @@ class Terminal(object):
     def _osc_handler(self):
         """
         Handles Operating System Command (OSC) escape sequences which need
-        special care since they are of indeterminiate length and end with either
-        a bell (\x07) or a sequence terminator (\x9c aka ST).  This will usually
-        called from self._bell() to set the title of the terminal (just like an
-        xterm) but it is also possible to be called directly whenever an ST is
-        encountered.
+        special care since they are of indeterminiate length and end with
+        either a bell (\\\\x07) or a sequence terminator (\\\\x9c aka ST).  This
+        will usually be called from :meth:`Terminal._bell` to set the title of
+        the terminal (just like an xterm) but it is also possible to be called
+        directly whenever an ST is encountered.
         """
         # Try the title sequence first
         match_obj = self.RE_TITLE_SEQ.match(self.esc_buffer)
@@ -1538,7 +1592,7 @@ class Terminal(object):
         if match_obj:
             self.esc_buffer = ''
             text = match_obj.group(1)
-            self.__opt_handler(text)
+            self._opt_handler(text)
             return
         # At this point we've encountered something unusual
         #logging.warning(_("Warning: No ESC sequence handler for %s" %
@@ -1547,10 +1601,12 @@ class Terminal(object):
 
     def _bell(self):
         """
-        Handle bell character and execute self.callbacks[CALLBACK_BELL]() if we
-        are not in the middle of an escape sequence.  If we *are* in the middle
-        of an escape sequence, call self._osc_handler() since we can be nearly
-        certain that we're simply terminating an OSC sequence.
+        Handles the bell character and executes
+        :meth:`Terminal.callbacks[CALLBACK_BELL]` (if we are not in the middle
+        of an escape sequence that ends with a bell character =).  If we *are*
+        in the middle of an escape sequence, calls :meth:`self._osc_handler`
+        since we can be nearly certain that we're simply terminating an OSC
+        sequence. Isn't terminal emulation grand? ⨀_⨀
         """
         # NOTE: A little explanation is in order: The bell character (\x07) by
         #       itself should play a bell (pretty straighforward).  However, if
@@ -1569,8 +1625,11 @@ class Terminal(object):
 
     def _device_status_report(self):
         """
-        Returns '\x1b[0n' (terminal OK) and executes
-        self.callbacks[CALLBACK_DSR]("\x1b[0n").
+        Returns '\x1b[0n' (terminal OK) and executes:
+
+        .. code-block:: python
+
+            self.callbacks[CALLBACK_DSR]("\\x1b[0n")
         """
         response = "\x1b[0n"
         try:
@@ -1582,8 +1641,12 @@ class Terminal(object):
 
     def _csi_device_status_report(self, request):
         """
-        Returns '\x1b[1;2c' (Meaning: I'm a vt220 terminal, version 1.0) and
-        executes self.callbacks[self.CALLBACK_DSR]("\x1b[1;2c").
+        Returns '\\\\x1b[1;2c' (Meaning: I'm a vt220 terminal, version 1.0) and
+        executes:
+
+        .. code-block:: python
+
+            self.callbacks[self.CALLBACK_DSR]("\\x1b[1;2c")
         """
         response = "\x1b[1;2c"
         try:
@@ -1595,9 +1658,10 @@ class Terminal(object):
 
     def _set_expanded_mode(self, setting):
         """
-        Accepts "standard mode" settings.  Typically '\x1b[?25h' to hide cursor.
+        Accepts "standard mode" settings.  Typically '\\\\x1b[?25h' to hide cursor.
 
         Notes on modes::
+
             '?1h' - Application Cursor Keys
             '?5h' - DECSCNM (default off): Set reverse-video mode.
             '?12h' - Local echo (SRM or Send Receive Mode)
@@ -1625,7 +1689,8 @@ class Terminal(object):
 
     def _reset_expanded_mode(self, setting):
         """
-        Accepts "standard mode" settings.  Typically '\x1b[?25l' to show cursor.
+        Accepts "standard mode" settings.  Typically '\\\\x1b[?25l' to show
+        cursor.
         """
         setting = setting[1:] # Don't need the ?
         settings = setting.split(';')
@@ -1641,16 +1706,23 @@ class Terminal(object):
             pass
 
     def application_mode(self, boolean):
-        """self.application_keys = *boolean*"""
+        """
+        Sets :attr:`self.application_keys` equal to *boolean*.  Literally:
+
+        .. code-block:: python
+
+            self.application_keys = boolean
+        """
         self.application_keys = boolean
 
     def alternate_screen_buffer(self, alt):
         """
         If *alt* is True, copy the current screen and renditions to
-        self.alt_screen and self.alt_renditions then re-init self.screen and
-        self.renditions.
+        :attr:`self.alt_screen` and :attr:`self.alt_renditions` then re-init
+        :attr:`self.screen` and :attr:`self.renditions`.
+
         If *alt* is False, restore the saved screen buffer and renditions then
-        nullify self.alt_screen and self.alt_renditions.
+        nullify :attr:`self.alt_screen` and :attr:`self.alt_renditions`.
         """
         if alt:
             # Save the existing screen and renditions
@@ -1669,8 +1741,8 @@ class Terminal(object):
 
     def alternate_screen_buffer_cursor(self, alt):
         """
-        Same as self.alternate_screen_buffer but saves/restores the cursor
-        location.
+        Same as :meth:`Terminal.alternate_screen_buffer` but saves/restores the
+        cursor location.
         """
         if alt:
             self.alt_cursorX = self.cursorX
@@ -1681,14 +1753,22 @@ class Terminal(object):
         self.alternate_screen_buffer(alt)
 
     def show_hide_cursor(self, boolean):
-        """self.show_cursor = boolean"""
+        """
+        Literally:
+
+        .. code-block:: python
+
+            self.show_cursor = boolean
+        """
         self.show_cursor = boolean
 
     def send_receive_mode(self, onoff):
         """
-        Turns on or off local echo dependong on the value of *onoff*
+        Turns on or off local echo dependong on the value of *onoff*:
 
-        self.local_echo = *onoff*
+        .. code-block:: python
+
+            self.local_echo = onoff
         """
         logging.debug("send_receive_mode(%s)" % repr(onoff))
         # This has been disabled because it might only be meant for the
@@ -1699,7 +1779,7 @@ class Terminal(object):
             #self.local_echo = True
 
     def insert_characters(self, n=1):
-        """Inserts the specified number of characters at the cursor position"""
+        """Inserts the specified number of characters at the cursor position."""
         n = int(n)
         for i in xrange(n):
             self.screen[self.cursorY].pop() # Take one down, pass it around
@@ -1714,7 +1794,7 @@ class Terminal(object):
         blank spaces with no visual character attributes at the right margin.
         DCH has no effect outside the scrolling margins.
 
-        NOTE: Deletes renditions too.
+        .. note:: Deletes renditions too.  You'd *think* that would be in one of the VT-* manuals...  Nope!
         """
         if not n: # e.g. n == ''
             n = 1
@@ -1733,7 +1813,9 @@ class Terminal(object):
     def _erase_characters(self, n=1):
         """
         Erases (to the right) the specified number of characters at the cursor
-        position.  NOTE: Deletes renditions too.
+        position.
+
+        .. note:: Deletes renditions too.
         """
         if not n: # e.g. n == ''
             n = 1
@@ -1838,10 +1920,9 @@ class Terminal(object):
         """
         ESCnH CUP (Cursor Position).  Move the cursor to the given coordinates.
 
-        *coordinates*: Should be something like, 'row;col' (1-based) but,
-        'row', 'row;', and ';col' are also valid (assumes 1 on missing value).
+            :coordinates: Should be something like, 'row;col' (1-based) but, 'row', 'row;', and ';col' are also valid (assumes 1 on missing value).
 
-        If coordinates is '', the cursor will be moved to the top left (1;1).
+        .. note:: If coordinates is '' (an empty string), the cursor will be moved to the top left (1;1).
         """
         # NOTE: Since this is 1-based we have to subtract 1 from everything to
         #       match how we store these values internally.
@@ -1901,7 +1982,7 @@ class Terminal(object):
 
     def clear_screen_from_cursor_up(self):
         """
-        Clears the screen from the cursor up (Esc[1J).
+        Clears the screen from the cursor up (ESC[1J).
         """
         self.screen[:self.cursorY+1] = [
            [u' ' for a in xrange(self.cols)] for a in self.screen[:self.cursorY]
@@ -1914,14 +1995,14 @@ class Terminal(object):
 
     def clear_screen_from_cursor(self, n):
         """
-        CSI*n*J ED (Erase Data).  This escape sequence uses the following rules:
+        CSI *n* J ED (Erase Data).  This escape sequence uses the following rules:
 
-            ======  =============================   ===
-            Esc[J   Clear screen from cursor down   ED0
-            Esc[0J  Clear screen from cursor down   ED0
-            Esc[1J  Clear screen from cursor up     ED1
-            Esc[2J  Clear entire screen             ED2
-            ======  =============================   ===
+        ======  =============================   ===
+        Esc[J   Clear screen from cursor down   ED0
+        Esc[0J  Clear screen from cursor down   ED0
+        Esc[1J  Clear screen from cursor up     ED1
+        Esc[2J  Clear entire screen             ED2
+        ======  =============================   ===
         """
         try:
             n = int(n)
@@ -1950,7 +2031,7 @@ class Terminal(object):
 
     def clear_line_from_cursor_right(self):
         """
-        Clears the screen from the cursor right (Esc[K or Esc[0K).
+        Clears the screen from the cursor right (ESC[K or ESC[0K).
         """
         self.screen[self.cursorY][self.cursorX:] = [
             u' ' for a in self.screen[self.cursorY][self.cursorX:]]
@@ -1960,7 +2041,7 @@ class Terminal(object):
 
     def clear_line_from_cursor_left(self):
         """
-        Clears the screen from the cursor left (Esc[1K).
+        Clears the screen from the cursor left (ESC[1K).
         """
         saved = self.screen[self.cursorY][self.cursorX:]
         saved_renditions = self.renditions[self.cursorY][self.cursorX:]
@@ -1973,7 +2054,7 @@ class Terminal(object):
 
     def clear_line(self):
         """
-        Clears the entire line (Esc[2K).
+        Clears the entire line (ESC[2K).
         """
         self.screen[self.cursorY] = [u' ' for a in xrange(self.cols)]
         self.renditions[self.cursorY] = [[0] for a in xrange(self.cols)]
@@ -1982,12 +2063,14 @@ class Terminal(object):
     def clear_line_from_cursor(self, n):
         """
         CSI*n*K EL (Erase in Line).  This escape sequence uses the following
-        rules::
+        rules:
 
-            Esc[K   Clear screen from cursor right  EL0
-            Esc[0K  Clear screen from cursor right  EL0
-            Esc[1K  Clear screen from cursor left   EL1
-            Esc[2K  Clear entire line               ED2
+        ======  ==============================  ===
+        Esc[K   Clear screen from cursor right  EL0
+        Esc[0K  Clear screen from cursor right  EL0
+        Esc[1K  Clear screen from cursor left   EL1
+        Esc[2K  Clear entire line               ED2
+        ======  ==============================  ===
         """
         try:
             n = int(n)
@@ -2020,11 +2103,15 @@ class Terminal(object):
         Sets the values the dict, self.leds depending on *n* using the following
         rules:
 
-            Esc[0q  Turn off all four leds  DECLL0
-            Esc[1q  Turn on LED #1          DECLL1
-            Esc[2q  Turn on LED #2          DECLL2
-            Esc[3q  Turn on LED #3          DECLL3
-            Esc[4q  Turn on LED #4          DECLL4
+        ======  ======================  ======
+        Esc[0q  Turn off all four leds  DECLL0
+        Esc[1q  Turn on LED #1          DECLL1
+        Esc[2q  Turn on LED #2          DECLL2
+        Esc[3q  Turn on LED #3          DECLL3
+        Esc[4q  Turn on LED #4          DECLL4
+        ======  ======================  ======
+
+        .. note:: These aren't implemented in Gate One's GUI (yet) but they certainly kept track of!
         """
         states = n.split(';')
         for state in states:
@@ -2044,11 +2131,16 @@ class Terminal(object):
 
     def _set_rendition(self, n):
         """
-        Sets self.renditions[self.cursorY][self.cursorX] equal to n.split(';').
+        Sets :attr:`self.renditions[self.cursorY][self.cursorX]` equal to
+        *n.split(';')*.
+
         *n* is expected to be a string of ECMA-48 rendition numbers separated by
-        semicolons.  Example:
+        semicolons.  Example::
+
             '0;1;31'
-        ...will result in:
+
+        ...will result in::
+
             [0, 1, 31]
 
         Note that the numbers were converted to integers and the order was
@@ -2121,10 +2213,11 @@ class Terminal(object):
         self.last_rendition = _reduce_renditions(
             self.last_rendition + new_renditions)
 
-    def __opt_handler(self, chars):
+    def _opt_handler(self, chars):
         """
         Optional special escape sequence handler for sequences matching
-        RE_OPT_SEQ.  If CALLBACK_OPT is defined it will be called like so:
+        RE_OPT_SEQ.  If CALLBACK_OPT is defined it will be called like so::
+
             self.callbacks[CALLBACK_OPT](chars)
 
         Applications can use this escape sequence to define whatever special
@@ -2134,10 +2227,7 @@ class Terminal(object):
 
         Applications can then do what they wish with *chars*.
 
-        NOTE: I added this functionality so that plugin authors would have a
-        mechanism to communicate with terminal applications.  See the SSH plugin
-        for an example of how this can be done (there's channels of
-        communication amongst ssh_connect.py, ssh.js, and ssh.py).
+        .. note:: I added this functionality so that plugin authors would have a mechanism to communicate with terminal applications.  See the SSH plugin for an example of how this can be done (there's channels of communication amongst ssh_connect.py, ssh.js, and ssh.py).
         """
         try:
             for callback in self.callbacks[CALLBACK_OPT].values():
@@ -2146,7 +2236,7 @@ class Terminal(object):
             # High likelyhood that nothing is defined.  No biggie.
             pass
 
-    def __spanify_screen(self):
+    def _spanify_screen(self):
         """
         Iterates over the lines in *screen* and *renditions*, applying HTML
         markup (span tags) where appropriate and returns the result as a list of
@@ -2287,13 +2377,13 @@ class Terminal(object):
             results[-1] += "</span>"
         return results
 
-    def __spanify_scrollback(self):
+    def _spanify_scrollback(self):
         """
         Spanifies everything inside *screen* using *renditions*.  This differs
-        from __spanify_screen() in that it doesn't apply any logic to detect the
+        from _spanify_screen() in that it doesn't apply any logic to detect the
         location of the cursor (to make it just a tiny bit faster).
         """
-        # NOTE: See the comments in __spanify_screen() for details on this logic
+        # NOTE: See the comments in _spanify_screen() for details on this logic
         results = []
         screen = self.scrollback_buf
         renditions = self.scrollback_renditions
@@ -2405,16 +2495,15 @@ class Terminal(object):
         """
         Dumps the terminal screen as a list of HTML-formatted lines.
 
-        Note: This places <span class="cursor">(current character)</span> around
-        the cursor location.
+        .. note:: This places <span class="cursor">(current character)</span> around the cursor location.
         """
         # NOTE: On my laptop this function will take about 30ms to complete
         # a full-screen 'top' refresh on a 57x209 screen.
         # In other words, it is pretty fast...  Not much optimization necessary
-        results = self.__spanify_screen()
+        results = self._spanify_screen()
         scrollback = []
         if self.scrollback_buf:
-            scrollback = self.__spanify_scrollback()
+            scrollback = self._spanify_scrollback()
         # Empty the scrollback buffer:
         self.init_scrollback()
         self.modified = False
@@ -2437,14 +2526,13 @@ class Terminal(object):
         Dumps the screen and renditions as-is, the scrollback buffer as HTML,
         and the current cursor coordinates.  Also, empties the scrollback buffer
 
-        NOTE: Was used in some performance-related experiments but might be
-        useful for other patterns in the future so I've left it here.
+        .. note:: This was used in some performance-related experiments but might be useful for other patterns in the future so I've left it here.
         """
         screen = [a.tounicode() for a in self.screen]
         scrollback = []
         if self.scrollback_buf:
             # Process the scrollback buffer into HTML
-            scrollback = self.__spanify_scrollback(
+            scrollback = self._spanify_scrollback(
                 self.scrollback_buf, self.scrollback_renditions)
         # Empty the scrollback buffer:
         self.init_scrollback()
@@ -2454,12 +2542,13 @@ class Terminal(object):
     def dump(self):
         """
         Returns self.screen as a list of strings with no formatting.
-        No scrollback buffer.  No renditions.
-
-        NOTE: Does not empty the scrollback buffer.  Primarily used to get a
+        No scrollback buffer.  No renditions.  It is meant to be used to get a
         quick glance of what is being displayed (when debugging).
+
+        .. note:: This method does not empty the scrollback buffer.
         """
         out = []
         for line in self.screen:
             out.append("".join(line))
+        self.modified = False
         return out

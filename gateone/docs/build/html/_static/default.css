@@ -74,6 +74,7 @@ div.sphinxsidebar h3 {
     font-weight: normal;
     margin: 0;
     padding: 0;
+    text-align: center;
 }
 
 div.sphinxsidebar h3 a {
@@ -118,12 +119,12 @@ div.sphinxsidebar input {
 /* -- hyperlink styles ------------------------------------------------------ */
 
 a {
-    color: maroon;
+    color: #005A8C;
     text-decoration: none;
 }
 
 a:visited {
-    color: maroon;
+    color: #005A8C;
     text-decoration: none;
 }
 
@@ -142,7 +143,7 @@ div.body h6 {
     font-family: Dejavu Sans, Verdana, sans-serif;
 /*     background-color: #f2f2f2; */
     font-weight: normal;
-    color: maroon;
+    color: #005A8C;
     border-bottom: 1px solid #ccc;
     margin: 20px -20px 10px -20px;
     padding: 3px 0 3px 10px;
@@ -168,8 +169,6 @@ a.headerlink:hover {
 }
 
 div.body p, div.body dd, div.body li {
-/*     text-align: justify; */
-/*     line-height: 130%; */
     margin-bottom: 0.5em;
 }
 
@@ -200,7 +199,7 @@ div.seealso {
 }
 
 div.admonition-todo {
-    background-color: maroon;
+    background-color: #005A8C;
     border: 1px solid #ccc;
     color: white;
 }
@@ -216,6 +215,7 @@ div.warning {
 
 p.admonition-title {
     display: inline;
+    color: maroon;
 }
 
 p.admonition-title:after {
@@ -224,10 +224,9 @@ p.admonition-title:after {
 
 pre {
     padding: 5px;
-    background-color: #eeffcc;
-    color: #333333;
+    color: #222;
     line-height: 120%;
-    border: 1px solid #ac9;
+    border: 1px solid #005A8C;
     border-left: none;
     border-right: none;
 }
@@ -239,13 +238,12 @@ tt {
 }
 
 th {
-/*     background-color: maroon; */
-    color: maroon;
+    background-color: #EEE;
+    color: #005A8C;
 }
 
 dt {
-    font-style: italic;
-    font-size: 110%;
+    font-size: 1.2em;
 }
 
 .warning tt {
@@ -268,6 +266,9 @@ div.viewcode-block:target {
 
 .logo {
     text-align: center;
+    margin: 0 auto;
+    padding-bottom: 0.5em;
+    width: 75%;
 }
 
 /* This makes :term: elements non-italic (which was hard to figure out!) */
@@ -285,4 +286,27 @@ div.viewcode-block:target {
 .footnote-reference {
     font-size: xx-small;
     vertical-align: top;
+}
+/* Overrides of pygments highlighting */
+.body .highlight .go {
+    color: #004064;
+}
+.body .highlight .nf {
+    color: #8A3083;
+    text-shadow: 1px 1px 2px #999;
+}
+.body .highlight .s {
+    color: #A40002;
+}
+.body .highlight .mi {
+    color: #0D8A00;
+}
+.body .highlight .gp {
+    color: #8A3083;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #999;
+}
+.body .highlight .nn {
+    color: #000;
+    font-weight: bold;
 }

@@ -26,6 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
@@ -85,15 +86,16 @@
 <span class="s">Gate One requires Python 2.6+ but runs best with Python 2.7+.  It also depends</span>
 <span class="s">on the following 3rd party Python modules:</span>
 
-<span class="s"> * `Tornado &lt;http://www.tornadoweb.org/&gt;`_ 2.1+ - Non-blocking web server framework that powers FriendFeed.</span>
+<span class="s"> * `Tornado &lt;http://www.tornadoweb.org/&gt;`_ 2.2+ - A non-blocking web server framework that powers FriendFeed.</span>
 
 <span class="s">The following modules are optional and can provide Gate One with additional</span>
 <span class="s">functionality:</span>
 
-<span class="s"> * `pyOpenSSL &lt;https://launchpad.net/pyopenssl&gt;`_ 0.10+ - OpenSSL wrapper for Python.  Only used to generate self-signed SSL keys and certificates.</span>
+<span class="s"> * `pyOpenSSL &lt;https://launchpad.net/pyopenssl&gt;`_ 0.10+ - An OpenSSL module/wrapper for Python.  Only used to generate self-signed SSL keys and certificates.  If pyOpenSSL isn&#39;t available Gate One will fall back to using the &#39;openssl&#39; command to generate self-signed certificates.</span>
 <span class="s"> * `kerberos &lt;http://pypi.python.org/pypi/kerberos&gt;`_ 1.0+ - A high-level Kerberos interface for Python.  Only necessary if you plan to use the Kerberos authentication module.</span>
+<span class="s"> * `python-pam &lt;http://packages.debian.org/lenny/python-pam&gt;`_ 0.4.2+ - A Python module for interacting with PAM (the Pluggable Authentication Module present on nearly every Unix).  Only necessary if you plan to use PAM authentication.</span>
 
-<span class="s">On most platforms both the required and optional modules can be installed via one of these commands:</span>
+<span class="s">With the exception of python-pam, both the required and optional modules can usually be installed via one of these commands:</span>
 
 <span class="s">    .. ansi-block::</span>
 
@@ -106,6 +108,24 @@
 <span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@legacy-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo easy_install tornado pyopenssl kerberos</span>
 
 <span class="s">.. note:: The use of pip is recommended.  See http://www.pip-installer.org/en/latest/installing.html if you don&#39;t have it.</span>
+
+<span class="s">The python-pam module is available in most Linux distribution repositories.  Simply executing one of the following should take care of it:</span>
+
+<span class="s">    .. ansi-block::</span>
+
+<span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@debian-or-ubuntu-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo apt-get install python-pam</span>
+
+<span class="s">    .. ansi-block::</span>
+
+<span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@redhat-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo yum install python-pam</span>
+
+<span class="s">    .. ansi-block::</span>
+
+<span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@gentoo-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo emerge python-pam</span>
+
+<span class="s">    .. ansi-block::</span>
+
+<span class="s">        </span><span class="se">\x1b</span><span class="s">[1;34muser</span><span class="se">\x1b</span><span class="s">[0m@suse-host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m sudo yast -i python-pam</span>
 
 <span class="s">Settings</span>
 <span class="s">--------</span>
@@ -128,7 +148,7 @@
 
 <span class="s">    debug = True # Booleans don&#39;t need quotes either</span>
 
-<span class="s">.. note:: server.conf is case sensitive for &quot;True&quot;, &quot;False&quot; and &quot;None&quot;.</span>
+<span class="s">.. note:: The following values in server.conf are case sensitive: True, False and None (and should not be placed in quotes).</span>
 
 <span class="s">Running gateone.py with the --help switch will print the usage information as</span>
 <span class="s">well as descriptions of what each configurable option does:</span>
@@ -144,27 +164,34 @@
 <span class="s">      --log_file_num_backups           number of log files to keep</span>
 <span class="s">      --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)</span>
 <span class="s">      --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.</span>
-<span class="s">      --logging=info|warning|error|none Set the Python log level. If &#39;none&#39;, tornado won&#39;t touch the logging configuration.</span>
+<span class="s">      --logging=debug|info|warning|error|none Set the Python log level. If &#39;none&#39;, tornado won&#39;t touch the logging configuration.</span>
+<span class="s">    ./gateone.py</span>
 <span class="s">      --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. &#39;127.0.0.1;::1;10.1.1.100&#39;).</span>
-<span class="s">      --auth                           Authentication method to use.  Valid options are: none, kerberos, google</span>
+<span class="s">      --auth                           Authentication method to use.  Valid options are: none, api, google, kerberos, pam</span>
 <span class="s">      --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.</span>
-<span class="s">      --command                        Run the given command when a user connects (e.g. &#39;nethack&#39;).</span>
+<span class="s">      --command                        Run the given command when a user connects (e.g. &#39;/bin/login&#39;).</span>
+<span class="s">      --config                         Path to the config file.  Default: /opt/gateone/server.conf</span>
 <span class="s">      --cookie_secret                  Use the given 45-character string for cookie encryption.</span>
 <span class="s">      --debug                          Enable debugging features such as auto-restarting when files are modified.</span>
 <span class="s">      --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).</span>
-<span class="s">      --dtach                          Wrap terminals with dtach.  Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature =).</span>
+<span class="s">      --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).</span>
 <span class="s">      --embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).</span>
+<span class="s">      --https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.</span>
+<span class="s">      --js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init=&quot;{scheme: &#39;white&#39;}&quot; would result in GateOne.init({scheme: &#39;white&#39;})</span>
 <span class="s">      --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.</span>
 <span class="s">      --kill                           Kill any running Gate One terminal processes including dtach&#39;d processes.</span>
-<span class="s">      --pam_realm                      Basic auth REALM to display when authenticating clients.  Default to hostname.  Only relevant if PAM authentication is enabled.</span>
+<span class="s">      --locale                         The locale (e.g. pt_PT) Gate One should use for translations.  If not provided, will default to $LANG (which is &#39;en_US&#39; in your current shell), or en_US if not set.</span>
+<span class="s">      --new_api_key                    Generate a new API key that an external application can use toembed Gate One.</span>
+<span class="s">      --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.</span>
 <span class="s">      --pam_service                    PAM service to use.  Defaults to &#39;login&#39;. Only relevant if PAM authentication is enabled.</span>
 <span class="s">      --port                           Run on the given port.</span>
 <span class="s">      --session_dir                    Path to the location where session information will be stored.</span>
-<span class="s">      --session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/logs.  Default: Enabled</span>
+<span class="s">      --session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default: Enabled</span>
 <span class="s">      --session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts &lt;num&gt;X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is &#39;5d&#39; (5 days).</span>
 <span class="s">      --sso_realm                      Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only relevant if Kerberos authentication is enabled.</span>
 <span class="s">      --sso_service                    Kerberos service (aka application) to use. Defaults to HTTP. Only relevant if Kerberos authentication is enabled.</span>
 <span class="s">      --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon</span>
+<span class="s">      --syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don&#39;t include Python&#39;s syslog module.</span>
 <span class="s">      --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.</span>
 <span class="s">      --user_dir                       Path to the location where user files will be stored.</span>
 
@@ -178,19 +205,24 @@
 <span class="s">================= ==================================================================================</span>
 <span class="s">File/Directory      Description</span>
 <span class="s">================= ==================================================================================</span>
+<span class="s">authpam.py        Contains the PAM authentication Mixin used by auth.py.</span>
+<span class="s">auth.py           Authentication classes.</span>
+<span class="s">certificate.pem   The default certificate Gate One will use in SSL communications.</span>
+<span class="s">docs/             Gate One&#39;s documentation.</span>
 <span class="s">gateone.py        Gate One&#39;s primary executable/script. Also, the file containing this documentation</span>
-<span class="s">auth.py           Authentication classes</span>
-<span class="s">logviewer.py      A utility to view Gate One session logs</span>
-<span class="s">server.conf       Gate One&#39;s configuration file</span>
-<span class="s">sso.py            A Kerberos Single Sign-on module for Tornado (used by auth.py)</span>
-<span class="s">terminal.py       A Pure Python terminal emulator module</span>
-<span class="s">termio.py         Terminal input/output control module</span>
-<span class="s">utils.py          Various supporting functions</span>
-<span class="s">docs/             Gate One documentation</span>
-<span class="s">static/           Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc)</span>
-<span class="s">templates/        Tornado template files such as index.html</span>
-<span class="s">tests/            Gate One-specific automated unit/acceptance tests</span>
+<span class="s">i18n/             Gate One&#39;s internationalization (i18n) support and locale/translation files.</span>
+<span class="s">keyfile.pem       The default private key used with SSL communications.</span>
+<span class="s">logviewer.py      A utility to view Gate One session logs.</span>
 <span class="s">plugins/          Plugins go here in the form of ./plugins/&lt;plugin name&gt;/&lt;plugin files|directories&gt;</span>
+<span class="s">remote_syslog.py  A module that supports sending syslog messages over UDP to a remote syslog host.</span>
+<span class="s">server.conf       Gate One&#39;s configuration file.</span>
+<span class="s">sso.py            A Kerberos Single Sign-on module for Tornado (used by auth.py)</span>
+<span class="s">static/           Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc).</span>
+<span class="s">templates/        Tornado template files such as index.html.</span>
+<span class="s">terminal.py       A Pure Python terminal emulator module.</span>
+<span class="s">termio.py         Terminal input/output control module.</span>
+<span class="s">tests/            Various scripts and tools to test Gate One&#39;s functionality.</span>
+<span class="s">utils.py          Various supporting functions.</span>
 <span class="s">users/            Persistent user data in the form of ./users/&lt;username&gt;/&lt;user-specific files&gt;</span>
 <span class="s">users/&lt;user&gt;/logs This is where session logs get stored if session_logging is set.</span>
 <span class="s">/tmp/gateone      Temporary session data in the form of /tmp/gateone/&lt;session ID&gt;/&lt;files&gt;</span>
@@ -204,8 +236,7 @@
 
 <span class="s">    </span><span class="se">\x1b</span><span class="s">[1;31mroot</span><span class="se">\x1b</span><span class="s">[0m@host</span><span class="se">\x1b</span><span class="s">[1;34m:~ $</span><span class="se">\x1b</span><span class="s">[0m ./gateone.py</span>
 
-<span class="s">NOTE: By default Gate One will run on port 443 which requires root on most</span>
-<span class="s">systems.  Use --port=&lt;something greater than 1024&gt; for non-root users.</span>
+<span class="s">.. note:: By default Gate One will run on port 443 which requires root on most systems.  Use `--port=(something higher than 1024)` for non-root users.</span>
 
 <span class="s">Plugins</span>
 <span class="s">-------</span>
@@ -222,26 +253,30 @@
 <span class="s"> * Adding special plugin-specific escape sequence handlers (see the plugin development documentation for details on what/how these are/work).</span>
 
 <span class="s">JavaScript plugins will be added to the &lt;body&gt; tag of Gate One&#39;s base index.html</span>
-<span class="s">template like so:</span>
+<span class="s">template by way of a single file (`{{gateone_js}}` below) that is the</span>
+<span class="s">concatenation of all plugins&#39; JS templates:</span>
 
 <span class="s">.. code-block:: html</span>
 
-<span class="s">    &lt;!-- Begin JS files from plugins --&gt;</span>
-<span class="s">    {</span><span class="si">% f</span><span class="s">or jsplugin in jsplugins %}</span>
-<span class="s">    &lt;script type=&quot;text/javascript&quot; src=&quot;{{jsplugin}}&quot;&gt;&lt;/script&gt;</span>
-<span class="s">    {</span><span class="si">% e</span><span class="s">nd %}</span>
-<span class="s">    &lt;!-- End JS files from plugins --&gt;</span>
+<span class="s">    &lt;script type=&quot;text/javascript&quot; src=&quot;{{gateone_js}}&quot;&gt;&lt;/script&gt;</span>
 
 <span class="s">CSS plugins are similar to JavaScript but instead of being appended to the</span>
-<span class="s">&lt;body&gt; they are added to the &lt;head&gt;:</span>
+<span class="s">&lt;body&gt; they are added to the &lt;head&gt; by way of a WebSocket download and some</span>
+<span class="s">fancy JavaScript inside of gateone.js:</span>
 
-<span class="s">.. code-block:: html</span>
+<span class="s">.. code-block:: javascript</span>
 
-<span class="s">    &lt;!-- Begin CSS files from plugins --&gt;</span>
-<span class="s">    {</span><span class="si">% f</span><span class="s">or cssplugin in cssplugins %}</span>
-<span class="s">    &lt;link rel=&quot;stylesheet&quot; href=&quot;{{cssplugin}}&quot; type=&quot;text/css&quot; media=&quot;screen&quot; /&gt;</span>
-<span class="s">    {</span><span class="si">% e</span><span class="s">nd %}</span>
-<span class="s">    &lt;!-- End CSS files from plugins --&gt;</span>
+<span class="s">    CSSPluginAction: function(url) {</span>
+<span class="s">        // Loads the CSS for a given plugin by adding a &lt;link&gt; tag to the &lt;head&gt;</span>
+<span class="s">        var queries = url.split(&#39;?&#39;)[1].split(&#39;&amp;&#39;), // So we can parse out the plugin name and the template</span>
+<span class="s">            plugin = queries[0].split(&#39;=&#39;)[1],</span>
+<span class="s">            file = queries[1].split(&#39;=&#39;)[1].split(&#39;.&#39;)[0];</span>
+<span class="s">        // The /cssrender method needs the prefix and the container</span>
+<span class="s">        url = url + &#39;&amp;container=&#39; + GateOne.prefs.goDiv.substring(1);</span>
+<span class="s">        url = url + &#39;&amp;prefix=&#39; + GateOne.prefs.prefix;</span>
+<span class="s">        url = GateOne.prefs.url + url.substring(1);</span>
+<span class="s">        GateOne.Utils.loadCSS(url, plugin+&#39;_&#39;+file);</span>
+<span class="s">    }</span>
 
 <span class="s">There are also hooks throughout Gate One&#39;s code for plugins to add or override</span>
 <span class="s">Gate One&#39;s functionality.  Documentation on how to write plugins can be found in</span>
@@ -285,8 +320,8 @@
           <span class="s">&quot;--upgrade tornado&#39;</span><span class="se">\x1b</span><span class="s">[0m.&quot;</span><span class="p">)</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="n">tornado_version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">tornado_version_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[31;1mERROR:</span><span class="se">\x1b</span><span class="s">[0m Gate One requires version 2.1+ of the &quot;</span>
+<span class="k">if</span> <span class="n">tornado_version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">tornado_version_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[31;1mERROR:</span><span class="se">\x1b</span><span class="s">[0m Gate One requires version 2.2+ of the &quot;</span>
             <span class="s">&quot;Tornado framework.  The installed version of Tornado is version &quot;</span>
             <span class="s">&quot;</span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="n">tornado_version</span><span class="p">)</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -308,7 +343,7 @@
 <span class="c"># Setup the locale functions before anything else</span>
 <span class="n">locale</span><span class="o">.</span><span class="n">set_default_locale</span><span class="p">(</span><span class="s">&#39;en_US&#39;</span><span class="p">)</span>
 <span class="n">user_locale</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Replaced with the actual user locale object in __main__</span>
-<span class="k">def</span> <span class="nf">_</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+<div class="viewcode-block" id="_"><a class="viewcode-back" href="../Developer/gateone.html#gateone._">[docs]</a><span class="k">def</span> <span class="nf">_</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wraps user_locale.translate so we can .encode(&#39;UTF-8&#39;) when writing to</span>
 <span class="sd">    stdout.  This function will get overridden by the regular translate()</span>
@@ -316,7 +351,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">user_locale</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
 
-<span class="c"># Globals</span>
+<span class="c"># Globals</span></div>
 <span class="n">SESSIONS</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># We store the crux of most session info here</span>
 <span class="n">CMD</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Will be overwritten by options.command</span>
 <span class="n">TIMEOUT</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="c"># Gets overridden by options.session_timeout</span>
@@ -807,10 +842,22 @@
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">combined_plugins</span><span class="p">):</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">combined_plugins</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">js_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">js_data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">js_data</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;length of js_data: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">js_data</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">js_data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span> <span class="c"># Needs to be created</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_combine_plugins</span><span class="p">())</span>
                     <span class="k">return</span>
-        <span class="c"># Create the combined_plugins.js file</span>
+                <span class="k">else</span><span class="p">:</span> <span class="c"># It hasn&#39;t changed, send it as-is</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">js_data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c"># File doesn&#39;t exist, create it and send it to the client</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_combine_plugins</span><span class="p">())</span>
+
+<div class="viewcode-block" id="JSPluginsHandler._combine_plugins"><a class="viewcode-back" href="../Developer/gateone.html#gateone.JSPluginsHandler._combine_plugins">[docs]</a>    <span class="k">def</span> <span class="nf">_combine_plugins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Combines all plugin .js files into one (combined_plugins.js)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plugins</span> <span class="o">=</span> <span class="n">get_plugins</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;plugins&quot;</span><span class="p">))</span>
+        <span class="n">static_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">)</span>
+        <span class="n">combined_plugins</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">static_dir</span><span class="p">,</span> <span class="s">&quot;combined_plugins.js&quot;</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
         <span class="k">for</span> <span class="n">js_plugin</span> <span class="ow">in</span> <span class="n">plugins</span><span class="p">[</span><span class="s">&#39;js&#39;</span><span class="p">]:</span>
             <span class="n">js_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="n">js_plugin</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">))</span>
@@ -818,9 +865,15 @@
                 <span class="n">out</span> <span class="o">+=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">combined_plugins</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-</div>
-<span class="k">class</span> <span class="nc">TerminalWebSocket</span><span class="p">(</span><span class="n">WebSocketHandler</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">out</span>
+</div></div>
+<div class="viewcode-block" id="TerminalWebSocket"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket">[docs]</a><span class="k">class</span> <span class="nc">TerminalWebSocket</span><span class="p">(</span><span class="n">WebSocketHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The main WebSocket interface for Gate One, this class is setup to call</span>
+<span class="sd">    &#39;commands&#39; which are methods registered in self.commands.  Methods that are</span>
+<span class="sd">    registered this way will be exposed and directly callable over the</span>
+<span class="sd">    WebSocket.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
         <span class="n">WebSocketHandler</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">commands</span> <span class="o">=</span> <span class="p">{</span>
@@ -841,7 +894,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">titles</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">api_user</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalWebSocket.get_current_user"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.get_current_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Mostly identical to the function of the same name in MainHandler.  The</span>
 <span class="sd">        difference being that when API authentication is enabled the WebSocket</span>
@@ -853,8 +906,8 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">user_json</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
         <span class="k">return</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">user_json</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="TerminalWebSocket.open"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Called when a new WebSocket is opened.&quot;&quot;&quot;</span>
         <span class="c"># TODO: Make it so that idle WebSockets that haven&#39;t passed authentication tests get auto-closed within N seconds in order to prevent a DoS scenario where the attacker keeps all possible ports open indefinitely.</span>
         <span class="c"># client_id is unique to the browser/client whereas session_id is unique</span>
@@ -875,8 +928,8 @@
             <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Close the WebSocket</span>
-
-    <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="TerminalWebSocket.on_message"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.on_message">[docs]</a>    <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Called when we receive a message from the client.&quot;&quot;&quot;</span>
         <span class="c"># This is super useful when debugging:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;message: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
@@ -902,13 +955,12 @@
                             <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">[</span><span class="n">key</span><span class="p">]()</span>
                     <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
                         <span class="k">pass</span> <span class="c"># Ignore commands we don&#39;t understand</span>
-
-    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="TerminalWebSocket.on_close"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.on_close">[docs]</a>    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called when the client terminates the connection.</span>
 
-<span class="sd">        NOTE: Normally self.refresh_screen() catches the disconnect first and</span>
-<span class="sd">        this won&#39;t be called.</span>
+<span class="sd">        .. note:: Normally self.refresh_screen() catches the disconnect first and this method won&#39;t end up being called.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;on_close()&quot;</span><span class="p">)</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
@@ -926,16 +978,16 @@
                 <span class="n">_</span><span class="p">(</span><span class="s">&quot;WebSocket closed (</span><span class="si">%s</span><span class="s">).&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;WebSocket closed (unknown user).&quot;</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">pong</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="TerminalWebSocket.pong"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.pong">[docs]</a>    <span class="k">def</span> <span class="nf">pong</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Responds to a client &#39;ping&#39; request...  Just returns the given</span>
 <span class="sd">        timestamp back to the client so it can measure round-trip time.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="TerminalWebSocket.authenticate"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.authenticate">[docs]</a>    <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Authenticates the client by first trying to use the &#39;gateone_user&#39;</span>
 <span class="sd">        cookie or if Gate One is configured to use API authentication it will</span>
@@ -1106,14 +1158,14 @@
         <span class="n">plugins</span> <span class="o">=</span> <span class="n">get_plugins</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;plugins&quot;</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">css_template</span> <span class="ow">in</span> <span class="n">plugins</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">({</span><span class="s">&#39;load_css&#39;</span><span class="p">:</span> <span class="n">css_template</span><span class="p">}))</span>
-
-    <span class="k">def</span> <span class="nf">new_multiplex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="TerminalWebSocket.new_multiplex"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.new_multiplex">[docs]</a>    <span class="k">def</span> <span class="nf">new_multiplex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">term_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a new instance of termio.Multiplex with the proper global and</span>
+<span class="sd">        Returns a new instance of :py:class:`termio.Multiplex` with the proper global and</span>
 <span class="sd">        client-specific settings.</span>
 
-<span class="sd">            *cmd* - The command to execute inside of Multiplex.</span>
-<span class="sd">            *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it&#39;s only used for logging purposes).</span>
+<span class="sd">            * *cmd* - The command to execute inside of Multiplex.</span>
+<span class="sd">            * *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it&#39;s only used for logging purposes).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">user_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">]</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1142,9 +1194,9 @@
             <span class="n">syslog_facility</span><span class="o">=</span><span class="n">facility</span><span class="p">,</span>
             <span class="n">syslog_host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;syslog_host&#39;</span><span class="p">]</span>
         <span class="p">)</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">new_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalWebSocket.new_terminal"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.new_terminal">[docs]</a>    <span class="k">def</span> <span class="nf">new_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Starts up a new terminal associated with the user&#39;s session using</span>
 <span class="sd">        *settings* as the parameters.  If a terminal already exists with the</span>
@@ -1275,10 +1327,12 @@
                     <span class="s">&quot;logged!&quot;</span><span class="p">)</span>
             <span class="p">}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">kill_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Kills *term* and any associated processes&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TerminalWebSocket.kill_terminal"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.kill_terminal">[docs]</a>    <span class="k">def</span> <span class="nf">kill_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kills *term* and any associated processes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;killing terminal: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
         <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1290,29 +1344,33 @@
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">pass</span> <span class="c"># The EVIL termio has killed my child!  Wait, that&#39;s good...</span>
                  <span class="c"># Because now I don&#39;t have to worry about it!</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">set_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Sets self.current_term = *term*&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TerminalWebSocket.set_terminal"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.set_terminal">[docs]</a>    <span class="k">def</span> <span class="nf">set_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets `self.current_term = *term*` so we can determine where to send</span>
+<span class="sd">        keystrokes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span> <span class="o">=</span> <span class="n">term</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">reset_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalWebSocket.reset_terminal"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.reset_terminal">[docs]</a>    <span class="k">def</span> <span class="nf">reset_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Tells the client to reset the terminal (clear the screen and remove</span>
 <span class="sd">        scrollback).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;reset_terminal&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">set_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalWebSocket.set_title"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.set_title">[docs]</a>    <span class="k">def</span> <span class="nf">set_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends a message to the client telling it to set the window title of</span>
-<span class="sd">        *term* to...</span>
-<span class="sd">        SESSIONS[self.session][term][&#39;multiplex&#39;].proc[fd][&#39;term&#39;].title.</span>
+<span class="sd">        *term* to whatever comes out of::</span>
 
-<span class="sd">        Example output:</span>
+<span class="sd">            SESSIONS[self.session][term][&#39;multiplex&#39;].term.get_title() #(Whew! Say that three times fast!).</span>
+
+<span class="sd">        Example message::</span>
 
 <span class="sd">            {&#39;set_title&#39;: {&#39;term&#39;: 1, &#39;title&#39;: &quot;user@host&quot;}}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1325,21 +1383,32 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="p">[</span><span class="n">term</span><span class="p">]</span> <span class="o">=</span> <span class="n">title</span>
             <span class="n">title_message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;set_title&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="n">title</span><span class="p">}}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">title_message</span><span class="p">))</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">bell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalWebSocket.bell"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.bell">[docs]</a>    <span class="k">def</span> <span class="nf">bell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends a message to the client indicating that a bell was encountered in</span>
-<span class="sd">        the given terminal (*term*).  Example output:</span>
+<span class="sd">        the given terminal (*term*).  Example message::</span>
 
-<span class="sd">        {&#39;bell&#39;: {&#39;term&#39;: 1}}</span>
+<span class="sd">            {&#39;bell&#39;: {&#39;term&#39;: 1}}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">bell_message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">}}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">bell_message</span><span class="p">))</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">mode_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">setting</span><span class="p">,</span> <span class="n">boolean</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Handles mode settings that require an action on the client.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TerminalWebSocket.mode_handler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.mode_handler">[docs]</a>    <span class="k">def</span> <span class="nf">mode_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">setting</span><span class="p">,</span> <span class="n">boolean</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles mode settings that require an action on the client by pasing it</span>
+<span class="sd">        a message like::</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &#39;set_mode&#39;: {</span>
+<span class="sd">                    &#39;mode&#39;: setting,</span>
+<span class="sd">                    &#39;bool&#39;: True,</span>
+<span class="sd">                    &#39;term&#39;: term</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
             <span class="s">&quot;mode_handler() term: </span><span class="si">%s</span><span class="s">, setting: </span><span class="si">%s</span><span class="s">, boolean: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
             <span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">setting</span><span class="p">,</span> <span class="n">boolean</span><span class="p">))</span>
@@ -1360,8 +1429,8 @@
                     <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span>
                 <span class="p">}}</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">mode_message</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_send_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="TerminalWebSocket._send_refresh"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket._send_refresh">[docs]</a>    <span class="k">def</span> <span class="nf">_send_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sends a screen update to the client.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
@@ -1372,7 +1441,7 @@
                 <span class="n">full</span><span class="o">=</span><span class="n">full</span><span class="p">,</span> <span class="n">client_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">client_id</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="c"># Session died (i.e. command ended).</span>
             <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="n">screen</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">screen</span> <span class="k">if</span> <span class="n">a</span><span class="p">]:</span>
             <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s">&#39;termupdate&#39;</span><span class="p">:</span> <span class="p">{</span>
                     <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
@@ -1389,12 +1458,12 @@
                 <span class="n">multiplex</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span>
                 <span class="n">multiplex</span><span class="o">.</span><span class="n">remove_callback</span><span class="p">(</span> <span class="c"># Stop trying to write</span>
                     <span class="n">multiplex</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback_id</span><span class="p">)</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">refresh_screen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalWebSocket.refresh_screen"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.refresh_screen">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_screen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Writes the state of the given terminal&#39;s screen and scrollback buffer to</span>
-<span class="sd">        the client using self._send_refresh().  Also ensures that screen updates</span>
+<span class="sd">        the client using `_send_refresh()`.  Also ensures that screen updates</span>
 <span class="sd">        don&#39;t get sent too fast to the client by instituting a rate limiter that</span>
 <span class="sd">        also forces a refresh every 150ms.  This keeps things smooth on the</span>
 <span class="sd">        client side and also reduces the bandwidth used by the application (CPU</span>
@@ -1439,19 +1508,19 @@
                     <span class="n">msec</span><span class="p">,</span> <span class="n">refresh</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="c"># Session died (i.e. command ended).</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;KeyError in refresh_screen: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">full_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Calls self.refresh_screen(*term*, full=True)&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TerminalWebSocket.full_refresh"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.full_refresh">[docs]</a>    <span class="k">def</span> <span class="nf">full_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calls `self.refresh_screen(*term*, full=True)`&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;Invalid terminal number given to full_refresh(): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refresh_screen</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">resize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resize_obj</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalWebSocket.resize"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.resize">[docs]</a>    <span class="k">def</span> <span class="nf">resize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resize_obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resize the terminal window to the rows/cols specified in *resize_obj*</span>
 
@@ -1485,9 +1554,9 @@
                         <span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="c"># Session doesn&#39;t exist yet, no biggie</span>
             <span class="k">pass</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">char_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalWebSocket.char_handler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.char_handler">[docs]</a>    <span class="k">def</span> <span class="nf">char_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Writes *chars* (string) to the currently-selected terminal&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">unicode</span><span class="p">:</span>
             <span class="n">chars</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
@@ -1499,9 +1568,9 @@
                     <span class="n">SESSIONS</span><span class="p">[</span> <span class="c"># Force an update</span>
                         <span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ratelimit</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
                     <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">esc_opt_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalWebSocket.esc_opt_handler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.esc_opt_handler">[docs]</a>    <span class="k">def</span> <span class="nf">esc_opt_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes whatever function is registered matching the tuple returned by</span>
 <span class="sd">        process_opt_esc_sequence().</span>
@@ -1516,8 +1585,8 @@
                     <span class="s">&quot;Got exception trying to execute plugin&#39;s optional ESC &quot;</span>
                     <span class="s">&quot;sequence handler...&quot;</span><span class="p">))</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">get_webworker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="TerminalWebSocket.get_webworker"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.get_webworker">[docs]</a>    <span class="k">def</span> <span class="nf">get_webworker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the text of our go_process.js to get around the limitations of</span>
 <span class="sd">        loading remote Web Worker URLs (for embedding Gate One into other apps).</span>
@@ -1528,14 +1597,14 @@
             <span class="n">go_process</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;load_webworker&#39;</span><span class="p">:</span> <span class="n">go_process</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-
+</div>
     <span class="nd">@require_auth</span>
-    <span class="k">def</span> <span class="nf">debug_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+<div class="viewcode-block" id="TerminalWebSocket.debug_terminal"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.debug_terminal">[docs]</a>    <span class="k">def</span> <span class="nf">debug_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Prints the terminal&#39;s screen and renditions to stdout so they can be</span>
 <span class="sd">        examined more closely.</span>
 
-<span class="sd">        NOTE: Can only be called from a JavaScript console like so:</span>
+<span class="sd">        .. note:: Can only be called from a JavaScript console like so...</span>
 
 <span class="sd">        .. code-block:: javascript</span>
 
@@ -1547,7 +1616,7 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="p">)))</span>
             <span class="k">print</span><span class="p">(</span><span class="n">renditions</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
 
-<span class="c"># Thread classes</span>
+<span class="c"># Thread classes</span></div></div>
 <div class="viewcode-block" id="TidyThread"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TidyThread">[docs]</a><span class="k">class</span> <span class="nc">TidyThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Kills a user&#39;s termio session if the client hasn&#39;t updated the keepalive</span>
@@ -2173,6 +2242,9 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">

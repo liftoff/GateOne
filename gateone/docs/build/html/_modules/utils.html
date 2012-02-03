@@ -26,6 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
@@ -249,9 +250,9 @@
 </div>
 <div class="viewcode-block" id="gen_self_signed_ssl"><a class="viewcode-back" href="../Developer/utils.html#utils.gen_self_signed_ssl">[docs]</a><span class="k">def</span> <span class="nf">gen_self_signed_ssl</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generates a self-signed SSL certificate using pyOpenSSL if it is available.</span>
-<span class="sd">    The openssl commmand, if not.  In either case the key/certificate will use</span>
-<span class="sd">    the RSA algorithm at 4096 bits.</span>
+<span class="sd">    Generates a self-signed SSL certificate using pyOpenSSL or the openssl</span>
+<span class="sd">    command depending on what&#39;s available,  The resulting key/certificate will</span>
+<span class="sd">    use the RSA algorithm at 4096 bits.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">OpenSSL</span>
@@ -974,6 +975,9 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">

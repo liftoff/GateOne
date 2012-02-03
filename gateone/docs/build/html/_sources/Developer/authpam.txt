@@ -5,3 +5,5 @@
 
 .. automodule:: authpam
     :members:
+    :special-members:
+    :private-members:

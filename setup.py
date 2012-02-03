@@ -60,6 +60,7 @@ gateone_files=[ # Start with the basics...
         os.path.join('gateone', 'termio.py'),
         os.path.join('gateone', 'utils.py'),
         os.path.join('gateone', 'authpam.py'),
+        os.path.join('gateone', 'remote_syslog.py'),
         'README.rst',
         'LICENSE.txt',
         'babel_gateone.cfg'

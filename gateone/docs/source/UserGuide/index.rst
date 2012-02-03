@@ -12,13 +12,13 @@ When you first connect to a Gate One server you should see something like this:
     :align: center
 
     The default login screen with the SSH plugin enabled.
-    
+
 .. note:: The text zoom level was increased for all of these screenshots to make them easier to read.
 
 Detailed Interface Overview
 ===========================
 Here's an overview of what each GUI element does:
-    
+
 .. figure:: screenshots/gateone_login_explained.png
     :class: screenshot
     :align: center
@@ -27,7 +27,7 @@ Here's an overview of what each GUI element does:
 
 Keyboard Shortcuts
 ==================
-    
+
 =================================== =======================
 Function                            Shortcut
 =================================== =======================
@@ -53,8 +53,8 @@ These icons do precisely what you'd expect from a modern GUI:  The X icon closes
 
 .. note:: If you close the last open terminal a new one will be opened.
 
-Terminal Info
--------------
+Terminal Info and Tools
+-----------------------
 
 .. figure:: screenshots/gateone_infopanel.png
     :class: screenshot
@@ -63,14 +63,28 @@ Terminal Info
     This is what you see when you click on the magnifying glass icon
 
 Gate One's information panel is the place to get information about the current terminal.  By default, it will display the current terminal title, how long the terminal has been open, and the number of rows and columns.  It also presents some options to the user which are outlined below...
-    
+
 .. tip:: You can manually change the current terminal title by clicking on it.
 
-View Session Recording
-^^^^^^^^^^^^^^^^^^^^^^
-When this button is clicked it will open up the current session recording in a new browser tab.  This recording is self-contained and can be saved to your computer for playback later.  Everything needed to play back the recording is contained within the HTML file itself.  You can share it with friends, plop it into an iframe on a website, or just email it to someone.  It will even auto-scale itself (down) if necessary to fit within the current frame or window.
+Log Viewer
+^^^^^^^^^^
+Gate One's log viewer provides a mechanism for viewing the logs of terminal sessions stored on the server.  Log metadata as well as a preview can be viewed by simply clicking on any given log.  Playback and flat (traditional) viewing options are also available.  These will open in a new window.
 
-.. note:: This kind of session recording is not the same as what gets logged on the server.  Though both can be played back in a similar fashion.
+.. figure:: screenshots/log_viewer.png
+    :class: screenshot
+    :align: center
+
+    Gate One's log viewer
+
+.. tip:: When you open the log viewer it will display a message indicating how many logs there are associated with your user account along with the total amount of space the logs are taking up on the server.
+
+.. note:: Gate One's log format is pre-compressed using gzip.  There's no need to compress them.
+
+Export Current Session
+^^^^^^^^^^^^^^^^^^^^^^
+When this button is clicked it will open up a new browser tab that will play back the current terminal's session.  This recording is self-contained and can be saved to your computer for playback later.  Everything needed to play back the recording is contained within the HTML file itself.  You can share it with friends, plop it into an iframe on a website, or just email it to someone.  It will even auto-scale itself (down) if necessary to fit within the current frame or window.
+
+.. note:: This kind of session recording is merely a shortcut to quickly exporting the current terminal session.  You can always access your server-side session logs from within the log viewer.
 
 Monitor for Activity/Inactivity
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -81,12 +95,38 @@ This feature allows you to monitor the current terminal for either activity (e.g
 SSH Plugin: Duplicate Session
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 You'll see this option if the SSH plugin is enabled...  This button allows you to duplicate your current SSH session.  It will open a new SSH connection to the current server using the exact same SSH connect string (e.g. ssh://user@host:22) that was used to connect originally.  Also, if possible, it will utilize the existing SSH tunnel for this connection which means you won't have to re-enter your password.  When this (awesome) feature is invoked you'll see a message indicating as such in the terminal:
-    
+
 .. figure:: screenshots/gateone_second_session_no_password.png
     :class: screenshot
     :align: center
 
     After duplicating an SSH session.  No password required!
+
+SSH Plugin: Manage Identities
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The SSH plugin includes an interface for managing all of your SSH identities (aka SSH keys).  Here, SSH identities (private and public key files) can be generated, downloaded, uploaded, or deleted.  There is also support for uploading (or replacing existing) X.509 certificates that may be associated with a given identity.  X.509 support is important because it provides the ability for keys to be revoked (e.g. in the event that an employee leaves your company).  X.509 certificates can also restrict what privileges a user has when logging into a server via SSH (e.g. disallowing port forwarding).  If any of these restrictions are present in a given Identity's X.509 certificate they will be displayed in place of the randomart field.
+
+.. figure:: screenshots/ssh_identity_manager.png
+    :class: screenshot
+    :align: center
+
+    SSH Identity Manager
+
+.. tip:: If you hover your mouse over the title of each column it will provide detailed description of what it means.
+
+When you click on an identity you'll see a view such as this:
+
+.. figure:: screenshots/ssh_identity_manager_idview.png
+    :class: screenshot
+    :align: center
+
+    Identity Information
+
+Edit Known Hosts
+^^^^^^^^^^^^^^^^
+Clicking this button will bring up an editor for Gate One's equivalent of ~/.ssh/known_hosts (same file, different location).  This will be handy if some server you connect to on a regular basis ever changes its host key...  You'll need to delete the corresponding line.
+
+.. note:: Line numbers in the textarea are forthcoming (to make finding the appropriate host line easier).
 
 The Settings Panel
 ------------------
@@ -98,41 +138,39 @@ The Settings Panel
 
 These options are detailed below...
 
-CSS Scheme (Theme)
-^^^^^^^^^^^^^^^^^^
-This controls the look and feel of Gate One.  Right now there's only two options:  Black or White.  Future versions of Gate One will include more and eventually users will be able to change and customize CSS schemes on an ad-hoc basis, per-terminal.
+Theme
+^^^^^
+This controls the look and feel of Gate One.  When selected, the chosen theme will take effect right away.
 
-.. tip:: The CSS schemes can be edited; css_black.css and css_white.css are in <path to gateone>/templates.
+.. tip:: The CSS schemes can be edited; css_black.css and css_white.css are in <path to gateone>/templates/themes.
 
 .. note:: The black scheme doesn't actually have a black background (it's #222)...  Why?  So the panels can have shadows which provides important contrast.  Essentially, it is easier on the eyes.
 
+Color Scheme
+^^^^^^^^^^^^
+This is similar to the "Theme" option above but it only controls the colors of terminal text (aka renditions).
+
+.. note:: CSS color schemes can be found in <path to gateone>/templates/term_colors.
+
 Scrollback Buffer Lines
 ^^^^^^^^^^^^^^^^^^^^^^^
-This option tells Gate One how many lines to keep in the scrollback buffer (in memory).  When you're typing or when a terminal is updating itself Gate One only updates the browser window with what falls within the terminals rows and columns.  Only after a timeout of 3.5 seconds does it re-attach the scrollback buffer.  When this happens the browser has to render all that text; the more there is the longer it takes.
+This option tells Gate One how many lines to keep in the scrollback buffer (in memory).  When you're typing or when a terminal is updating itself Gate One only updates the browser window with what falls within the terminal's rows and columns.  Only after a timeout of 3.5 seconds does it re-attach the scrollback buffer.  When this happens the browser has to render all that text; the more there is the longer it takes (milliseconds).  Even on a slow system 500 lines (the default) should be unnoticably speedy.
 
 .. tip:: You don't have to wait for the 3.5 second timeout:  Just start scrolling and the timeout will be cancelled and the scrollback buffer will be immediately prepended to the current view.
 
 .. note:: Why the complexity?  The more text that is being rendered, the slower the browser will be able to update your terminal window.  If we updated the current number of rows + the number of lines in the scrollback buffer every time you pressed a key this would quickly bog down your browser and make Gate One considerably less responsive.
 
-Terminal Log Lines
-^^^^^^^^^^^^^^^^^^
-Doesn't do anything...  This option *used* to control how many lines of terminal output were saved by your browser in localStorage/indexedDB.  Turns out this is slow as heck since JavaScript provides no (fast) mechanism to limit the size of such storage.  All this logic will soon be replaced by some simple AJAX calls that download the user's current terminal log from the Gate One server using log_viewer.py.
-
 Playback Frames
 ^^^^^^^^^^^^^^^
-This option controls how many frames of session playback will be kept in working memory.  The higher the number, the more memory it will use.  Also, the more terminals you have open, the higher the memory use as well.  Having said that, 200-500 frames per terminal shouldn't be of any concern to a modern computer.
+This option controls how many frames of real-time session playback will be kept in working memory.  The higher the number, the more memory it will use.  Also, the more terminals you have open the higher the memory use as well.  Having said that, 200-500 frames per terminal shouldn't be of any concern for a modern computer.
+
+.. tip:: If you hold down the Ctrl key while scrolling with your mouse it will move backwards and forwards in the playback buffer instead of scrolling up and down.  It is a handy way to see the history of full-screen applications such as 'top'.
 
 Terminal Rows and Terminal Columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 By default these are blank which means Gate One will automatically figure out how many rows and columns will fit in a given terminal window.  If you set these, Gate One will force these values on all running terminal programs.  The ability to set this on a per-terminal basis is forthcoming.
 
 .. note:: Why would anyone bother?  Some legacy/poorly-written terminal programs only work properly in a terminal window of 24 rows and 80 columns.
-
-Edit Known Hosts
-^^^^^^^^^^^^^^^^
-You'll see this button if the SSH plugin is enabled.  It allows the user to edit the equivalent of ~/.ssh/known_hosts.  This will be handy if some server you connect to on a regular basis ever changes its host key...  You'll need to delete the corresponding line.
-
-.. note:: Plans are in the works to provide line numbers in the textarea to make finding the appropriate host line easier.
 
 Gate One's Grid
 ---------------
@@ -169,7 +207,7 @@ Bookmarks can be added by clicking on "New":
     :class: screenshot
     :align: center
 
-    The New Bookmark Form.  NOTE: The text zoom level resulted in a graphical glitch in the notes area... Ignore that :)
+    The New Bookmark Form.
 
 Here's an example of the new bookmark form, filled out with a new SSH bookmark:
 

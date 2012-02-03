@@ -20,7 +20,7 @@ GateOne.Base.update(GateOne.Help, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             helpContent = u.createElement('p', {'id': prefix+'help_content', 'class': 'sectrans', 'style': {'padding-bottom': '0.4em'}}),
-            helpPanel = u.createElement('div', {'id': prefix+'panel_help', 'class': 'panel', 'style': {'width': '90%'}}),
+            helpPanel = u.createElement('div', {'id': prefix+'panel_help', 'class': 'panel', 'style': {'width': '60%'}}),
             helpPanelH2 = u.createElement('h2', {'id': prefix+'help_title'}),
             helpPanelClose = u.createElement('div', {'id': prefix+'icon_closehelp', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
             helpPanelSections = u.createElement('span', {'id': prefix+'help_sections'}),
@@ -76,7 +76,7 @@ GateOne.Base.update(GateOne.Help, {
         // Register our keyboard shortcut (Alt-F1)
         go.Input.registerShortcut('KEY_F1', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Help.showHelp()'});
         // These shortcuts just add some helpful messages to regular keyboard shortcuts
-        go.Input.registerShortcut('KEY_S', {'modifiers': {'ctrl': true, 'alt': false, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.displayMessage("Terminal output has been suspended (Ctrl-s). Type Ctrl-q to resume."); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();'});
+        go.Input.registerShortcut('KEY_S', {'modifiers': {'ctrl': true, 'alt': false, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.displayMessage("Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume."); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();'});
 
     },
     aboutGateOne: function() { // Displays our credits

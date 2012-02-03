@@ -26,6 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
@@ -324,7 +325,7 @@
             <span class="c">#   Sep 28 19:45:02 &lt;hostname&gt; gateone: &lt;log message&gt;</span>
             <span class="n">syslog</span><span class="o">.</span><span class="n">openlog</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">syslog_facility</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseMultiplex.__del__"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.__del__">[docs]</a>    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Makes sure that the underlying terminal program is terminated so we</span>
 <span class="sd">        don&#39;t leave things hanging around.</span>
@@ -332,14 +333,14 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Calling Multiplex.__del__()&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isalive</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="BaseMultiplex.__repr__"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns self.__str__()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s">&quot;&lt;</span><span class="si">%s</span><span class="s">&gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__str__</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="BaseMultiplex.__str__"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a string representation of this Multiplex instance and the</span>
 <span class="sd">        current state of things.</span>
@@ -361,7 +362,7 @@
             <span class="p">)</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">out</span>
-
+</div>
 <div class="viewcode-block" id="BaseMultiplex.add_callback"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.add_callback">[docs]</a>    <span class="k">def</span> <span class="nf">add_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">identifier</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Attaches the given *callback* to the given *event*.  If given,</span>
@@ -412,14 +413,14 @@
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                 <span class="k">pass</span> <span class="c"># Doesn&#39;t exist--nothing to worry about</span>
 </div>
-    <span class="k">def</span> <span class="nf">_call_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseMultiplex._call_callback"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex._call_callback">[docs]</a>    <span class="k">def</span> <span class="nf">_call_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method is here in the event that subclasses of BaseMultiplex need</span>
 <span class="sd">        to call callbacks in an implementation-specific way.  It just calls</span>
 <span class="sd">        *callback*.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">callback</span><span class="p">()</span>
-
+</div>
     <span class="k">def</span> <span class="nf">spawn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;spawn() *must* be overridden by subclasses.&quot;</span><span class="p">))</span>
@@ -562,7 +563,7 @@
                 <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_handle_match</span><span class="p">(</span><span class="n">pattern_obj</span><span class="p">,</span> <span class="n">match</span><span class="p">)</span>
 </div>
-    <span class="k">def</span> <span class="nf">_handle_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern_obj</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseMultiplex._handle_match"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex._handle_match">[docs]</a>    <span class="k">def</span> <span class="nf">_handle_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern_obj</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handles a matched regex detected by :py:meth:`postprocess`.  It calls the :py:obj:`Pattern.callback` and takes care of removing it from :py:attr:`_patterns` (if it isn&#39;t sticky).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -577,7 +578,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">pattern_obj</span><span class="o">.</span><span class="n">optional</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pattern_obj</span><span class="o">.</span><span class="n">sticky</span><span class="p">:</span>
             <span class="c"># We only match the first non-optional pattern</span>
             <span class="n">finished_non_sticky</span> <span class="o">=</span> <span class="bp">True</span>
-
+</div>
 <div class="viewcode-block" id="BaseMultiplex.writeline"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.writeline">[docs]</a>    <span class="k">def</span> <span class="nf">writeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Just like Multiplex.write() but it writes a newline after writing</span>
@@ -933,7 +934,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;terminate() *must* be overridden by subclasses.&quot;</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseMultiplex._read"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex._read">[docs]</a>    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function must be overridden by subclasses of</span>
 <span class="sd">        :py:class:`BaseMultiplex`.  It is expected that this method read the</span>
@@ -942,7 +943,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;_read() *must* be overridden by subclasses.&quot;</span><span class="p">))</span>
-
+</div>
 <div class="viewcode-block" id="BaseMultiplex.read"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calls :py:meth:`_read` and checks if any timeouts have been reached</span>
@@ -983,7 +984,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">ioloop</span><span class="o">.</span><span class="n">PeriodicCallback</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_timeout_checker</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_call_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiplexPOSIXIOLoop._call_callback"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop._call_callback">[docs]</a>    <span class="k">def</span> <span class="nf">_call_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If the IOLoop is started, adds the callback via IOLoop.add_callback() to</span>
 <span class="sd">        ensure it gets called at the next IOLoop iteration (which is thread</span>
@@ -997,8 +998,8 @@
                 <span class="n">callback</span><span class="p">()</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="k">del</span> <span class="n">callback</span>
-
-    <span class="k">def</span> <span class="nf">_reenable_output</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="MultiplexPOSIXIOLoop._reenable_output"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop._reenable_output">[docs]</a>    <span class="k">def</span> <span class="nf">_reenable_output</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Restarts capturing output from the underlying terminal program by</span>
 <span class="sd">        disengaging the rate limiter and re-instantiating the terminal emulator.</span>
@@ -1018,8 +1019,8 @@
         <span class="c"># TODO: Consider restoring the mode/state of the terminal emulator.</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_output</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">prev_output</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">i</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="o">-</span><span class="mi">1</span><span class="p">)]})</span>
-
-    <span class="k">def</span> <span class="nf">_blocked_io_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="MultiplexPOSIXIOLoop._blocked_io_handler"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop._blocked_io_handler">[docs]</a>    <span class="k">def</span> <span class="nf">_blocked_io_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handles the situation where a terminal is blocking IO with too much</span>
 <span class="sd">        output.  Normally this gets called automatically by IOLoop&#39;s signal</span>
@@ -1038,7 +1039,7 @@
         <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_call_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reenable_output</span><span class="p">)</span>
-
+</div>
 <div class="viewcode-block" id="MultiplexPOSIXIOLoop.spawn"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop.spawn">[docs]</a>    <span class="k">def</span> <span class="nf">spawn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a new virtual terminal (tty) and executes self.cmd within it.</span>
@@ -1202,7 +1203,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">_exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 </div>
-    <span class="k">def</span> <span class="nf">_ioloop_read_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiplexPOSIXIOLoop._ioloop_read_handler"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop._ioloop_read_handler">[docs]</a>    <span class="k">def</span> <span class="nf">_ioloop_read_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read in the output of the process associated with *fd* and write it to</span>
 <span class="sd">        self.term.</span>
@@ -1224,8 +1225,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_EXIT</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_call_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="MultiplexPOSIXIOLoop._read"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop._read">[docs]</a>    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reads at most *bytes* from the incoming stream, writes the result to</span>
 <span class="sd">        the terminal emulator using self.term_write(), and returns what was</span>
@@ -1268,8 +1269,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">result</span>
-
-    <span class="k">def</span> <span class="nf">_timeout_checker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="MultiplexPOSIXIOLoop._timeout_checker"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop._timeout_checker">[docs]</a>    <span class="k">def</span> <span class="nf">_timeout_checker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Runs :py:meth:`timeout_check` and if there are no more non-sticky</span>
 <span class="sd">        patterns in :py:attr:`_patterns`, stops :py:attr:`scheduler`.</span>
@@ -1287,7 +1288,7 @@
                 <span class="c"># instance of _timeout_checker() *except* inside the main</span>
                 <span class="c"># thread.  It is absolutely wacky but it works and works well :)</span>
                 <span class="k">pass</span>
-
+</div>
 <div class="viewcode-block" id="MultiplexPOSIXIOLoop.read"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: This is an override of BaseMultiplex.read() in order to take advantage of the IOLoop for ensuring expect() patterns timeout properly.</span>
@@ -1307,7 +1308,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">result</span>
 </div>
-    <span class="k">def</span> <span class="nf">_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiplexPOSIXIOLoop._write"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop._write">[docs]</a>    <span class="k">def</span> <span class="nf">_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Writes *chars* to self.fd (pretty straightforward).  If IOError or</span>
 <span class="sd">        OSError exceptions are encountered, will run self.die() and</span>
@@ -1328,7 +1329,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;write() exception: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
-
+</div>
 <div class="viewcode-block" id="MultiplexPOSIXIOLoop.write"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calls self._write(*chars*) via self._call_callback() to ensure thread</span>
@@ -1361,6 +1362,9 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">

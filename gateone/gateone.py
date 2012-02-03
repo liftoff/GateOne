@@ -33,15 +33,16 @@ Dependencies
 Gate One requires Python 2.6+ but runs best with Python 2.7+.  It also depends
 on the following 3rd party Python modules:
 
- * `Tornado <http://www.tornadoweb.org/>`_ 2.1+ - Non-blocking web server framework that powers FriendFeed.
+ * `Tornado <http://www.tornadoweb.org/>`_ 2.2+ - A non-blocking web server framework that powers FriendFeed.
 
 The following modules are optional and can provide Gate One with additional
 functionality:
 
- * `pyOpenSSL <https://launchpad.net/pyopenssl>`_ 0.10+ - OpenSSL wrapper for Python.  Only used to generate self-signed SSL keys and certificates.
+ * `pyOpenSSL <https://launchpad.net/pyopenssl>`_ 0.10+ - An OpenSSL module/wrapper for Python.  Only used to generate self-signed SSL keys and certificates.  If pyOpenSSL isn't available Gate One will fall back to using the 'openssl' command to generate self-signed certificates.
  * `kerberos <http://pypi.python.org/pypi/kerberos>`_ 1.0+ - A high-level Kerberos interface for Python.  Only necessary if you plan to use the Kerberos authentication module.
+ * `python-pam <http://packages.debian.org/lenny/python-pam>`_ 0.4.2+ - A Python module for interacting with PAM (the Pluggable Authentication Module present on nearly every Unix).  Only necessary if you plan to use PAM authentication.
 
-On most platforms both the required and optional modules can be installed via one of these commands:
+With the exception of python-pam, both the required and optional modules can usually be installed via one of these commands:
 
     .. ansi-block::
 
@@ -54,6 +55,24 @@ On most platforms both the required and optional modules can be installed via on
         \x1b[1;34muser\x1b[0m@legacy-host\x1b[1;34m:~ $\x1b[0m sudo easy_install tornado pyopenssl kerberos
 
 .. note:: The use of pip is recommended.  See http://www.pip-installer.org/en/latest/installing.html if you don't have it.
+
+The python-pam module is available in most Linux distribution repositories.  Simply executing one of the following should take care of it:
+
+    .. ansi-block::
+
+        \x1b[1;34muser\x1b[0m@debian-or-ubuntu-host\x1b[1;34m:~ $\x1b[0m sudo apt-get install python-pam
+
+    .. ansi-block::
+
+        \x1b[1;34muser\x1b[0m@redhat-host\x1b[1;34m:~ $\x1b[0m sudo yum install python-pam
+
+    .. ansi-block::
+
+        \x1b[1;34muser\x1b[0m@gentoo-host\x1b[1;34m:~ $\x1b[0m sudo emerge python-pam
+
+    .. ansi-block::
+
+        \x1b[1;34muser\x1b[0m@suse-host\x1b[1;34m:~ $\x1b[0m sudo yast -i python-pam
 
 Settings
 --------
@@ -76,7 +95,7 @@ configured in server.conf::
 
     debug = True # Booleans don't need quotes either
 
-.. note:: server.conf is case sensitive for "True", "False" and "None".
+.. note:: The following values in server.conf are case sensitive: True, False and None (and should not be placed in quotes).
 
 Running gateone.py with the --help switch will print the usage information as
 well as descriptions of what each configurable option does:
@@ -92,27 +111,34 @@ well as descriptions of what each configurable option does:
       --log_file_num_backups           number of log files to keep
       --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
       --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
-      --logging=info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
+      --logging=debug|info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
+    ./gateone.py
       --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. '127.0.0.1;::1;10.1.1.100').
-      --auth                           Authentication method to use.  Valid options are: none, kerberos, google
+      --auth                           Authentication method to use.  Valid options are: none, api, google, kerberos, pam
       --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
-      --command                        Run the given command when a user connects (e.g. 'nethack').
+      --command                        Run the given command when a user connects (e.g. '/bin/login').
+      --config                         Path to the config file.  Default: /opt/gateone/server.conf
       --cookie_secret                  Use the given 45-character string for cookie encryption.
       --debug                          Enable debugging features such as auto-restarting when files are modified.
       --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
-      --dtach                          Wrap terminals with dtach.  Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature =).
+      --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
       --embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
+      --https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
+      --js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init="{scheme: 'white'}" would result in GateOne.init({scheme: 'white'})
       --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
       --kill                           Kill any running Gate One terminal processes including dtach'd processes.
-      --pam_realm                      Basic auth REALM to display when authenticating clients.  Default to hostname.  Only relevant if PAM authentication is enabled.
+      --locale                         The locale (e.g. pt_PT) Gate One should use for translations.  If not provided, will default to $LANG (which is 'en_US' in your current shell), or en_US if not set.
+      --new_api_key                    Generate a new API key that an external application can use toembed Gate One.
+      --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
       --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
       --port                           Run on the given port.
       --session_dir                    Path to the location where session information will be stored.
-      --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/logs.  Default: Enabled
+      --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/<user>/logs.  Default: Enabled
       --session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts <num>X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is '5d' (5 days).
       --sso_realm                      Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only relevant if Kerberos authentication is enabled.
       --sso_service                    Kerberos service (aka application) to use. Defaults to HTTP. Only relevant if Kerberos authentication is enabled.
       --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
+      --syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
       --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
       --user_dir                       Path to the location where user files will be stored.
 
@@ -126,19 +152,24 @@ data in the following locations (Note: Many of these are configurable):
 ================= ==================================================================================
 File/Directory      Description
 ================= ==================================================================================
+authpam.py        Contains the PAM authentication Mixin used by auth.py.
+auth.py           Authentication classes.
+certificate.pem   The default certificate Gate One will use in SSL communications.
+docs/             Gate One's documentation.
 gateone.py        Gate One's primary executable/script. Also, the file containing this documentation
-auth.py           Authentication classes
-logviewer.py      A utility to view Gate One session logs
-server.conf       Gate One's configuration file
-sso.py            A Kerberos Single Sign-on module for Tornado (used by auth.py)
-terminal.py       A Pure Python terminal emulator module
-termio.py         Terminal input/output control module
-utils.py          Various supporting functions
-docs/             Gate One documentation
-static/           Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc)
-templates/        Tornado template files such as index.html
-tests/            Gate One-specific automated unit/acceptance tests
+i18n/             Gate One's internationalization (i18n) support and locale/translation files.
+keyfile.pem       The default private key used with SSL communications.
+logviewer.py      A utility to view Gate One session logs.
 plugins/          Plugins go here in the form of ./plugins/<plugin name>/<plugin files|directories>
+remote_syslog.py  A module that supports sending syslog messages over UDP to a remote syslog host.
+server.conf       Gate One's configuration file.
+sso.py            A Kerberos Single Sign-on module for Tornado (used by auth.py)
+static/           Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc).
+templates/        Tornado template files such as index.html.
+terminal.py       A Pure Python terminal emulator module.
+termio.py         Terminal input/output control module.
+tests/            Various scripts and tools to test Gate One's functionality.
+utils.py          Various supporting functions.
 users/            Persistent user data in the form of ./users/<username>/<user-specific files>
 users/<user>/logs This is where session logs get stored if session_logging is set.
 /tmp/gateone      Temporary session data in the form of /tmp/gateone/<session ID>/<files>
@@ -152,8 +183,7 @@ Executing Gate One is as simple as:
 
     \x1b[1;31mroot\x1b[0m@host\x1b[1;34m:~ $\x1b[0m ./gateone.py
 
-NOTE: By default Gate One will run on port 443 which requires root on most
-systems.  Use --port=<something greater than 1024> for non-root users.
+.. note:: By default Gate One will run on port 443 which requires root on most systems.  Use `--port=(something higher than 1024)` for non-root users.
 
 Plugins
 -------
@@ -170,26 +200,30 @@ Python plugins can integrate with Gate One in three ways:
  * Adding special plugin-specific escape sequence handlers (see the plugin development documentation for details on what/how these are/work).
 
 JavaScript plugins will be added to the <body> tag of Gate One's base index.html
-template like so:
+template by way of a single file (`{{gateone_js}}` below) that is the
+concatenation of all plugins' JS templates:
 
 .. code-block:: html
 
-    <!-- Begin JS files from plugins -->
-    {% for jsplugin in jsplugins %}
-    <script type="text/javascript" src="{{jsplugin}}"></script>
-    {% end %}
-    <!-- End JS files from plugins -->
+    <script type="text/javascript" src="{{gateone_js}}"></script>
 
 CSS plugins are similar to JavaScript but instead of being appended to the
-<body> they are added to the <head>:
+<body> they are added to the <head> by way of a WebSocket download and some
+fancy JavaScript inside of gateone.js:
 
-.. code-block:: html
+.. code-block:: javascript
 
-    <!-- Begin CSS files from plugins -->
-    {% for cssplugin in cssplugins %}
-    <link rel="stylesheet" href="{{cssplugin}}" type="text/css" media="screen" />
-    {% end %}
-    <!-- End CSS files from plugins -->
+    CSSPluginAction: function(url) {
+        // Loads the CSS for a given plugin by adding a <link> tag to the <head>
+        var queries = url.split('?')[1].split('&'), // So we can parse out the plugin name and the template
+            plugin = queries[0].split('=')[1],
+            file = queries[1].split('=')[1].split('.')[0];
+        // The /cssrender method needs the prefix and the container
+        url = url + '&container=' + GateOne.prefs.goDiv.substring(1);
+        url = url + '&prefix=' + GateOne.prefs.prefix;
+        url = GateOne.prefs.url + url.substring(1);
+        GateOne.Utils.loadCSS(url, plugin+'_'+file);
+    }
 
 There are also hooks throughout Gate One's code for plugins to add or override
 Gate One's functionality.  Documentation on how to write plugins can be found in
@@ -781,6 +815,12 @@ class JSPluginsHandler(BaseHandler):
         return out
 
 class TerminalWebSocket(WebSocketHandler):
+    """
+    The main WebSocket interface for Gate One, this class is setup to call
+    'commands' which are methods registered in self.commands.  Methods that are
+    registered this way will be exposed and directly callable over the
+    WebSocket.
+    """
     def __init__(self, application, request):
         WebSocketHandler.__init__(self, application, request)
         self.commands = {
@@ -867,8 +907,7 @@ class TerminalWebSocket(WebSocketHandler):
         """
         Called when the client terminates the connection.
 
-        NOTE: Normally self.refresh_screen() catches the disconnect first and
-        this won't be called.
+        .. note:: Normally self.refresh_screen() catches the disconnect first and this method won't end up being called.
         """
         logging.debug("on_close()")
         user = self.get_current_user()
@@ -1069,11 +1108,11 @@ class TerminalWebSocket(WebSocketHandler):
 
     def new_multiplex(self, cmd, term_id):
         """
-        Returns a new instance of termio.Multiplex with the proper global and
+        Returns a new instance of :py:class:`termio.Multiplex` with the proper global and
         client-specific settings.
 
-            *cmd* - The command to execute inside of Multiplex.
-            *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).
+            * *cmd* - The command to execute inside of Multiplex.
+            * *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).
         """
         user_dir = self.settings['user_dir']
         try:
@@ -1238,7 +1277,9 @@ class TerminalWebSocket(WebSocketHandler):
 
     @require_auth
     def kill_terminal(self, term):
-        """Kills *term* and any associated processes"""
+        """
+        Kills *term* and any associated processes.
+        """
         logging.debug("killing terminal: %s" % term)
         term = int(term)
         try:
@@ -1253,7 +1294,10 @@ class TerminalWebSocket(WebSocketHandler):
 
     @require_auth
     def set_terminal(self, term):
-        """Sets self.current_term = *term*"""
+        """
+        Sets `self.current_term = *term*` so we can determine where to send
+        keystrokes.
+        """
         self.current_term = term
 
     @require_auth
@@ -1269,10 +1313,11 @@ class TerminalWebSocket(WebSocketHandler):
     def set_title(self, term):
         """
         Sends a message to the client telling it to set the window title of
-        *term* to...
-        SESSIONS[self.session][term]['multiplex'].proc[fd]['term'].title.
+        *term* to whatever comes out of::
 
-        Example output:
+            SESSIONS[self.session][term]['multiplex'].term.get_title() #(Whew! Say that three times fast!).
+
+        Example message::
 
             {'set_title': {'term': 1, 'title': "user@host"}}
         """
@@ -1290,16 +1335,27 @@ class TerminalWebSocket(WebSocketHandler):
     def bell(self, term):
         """
         Sends a message to the client indicating that a bell was encountered in
-        the given terminal (*term*).  Example output:
+        the given terminal (*term*).  Example message::
 
-        {'bell': {'term': 1}}
+            {'bell': {'term': 1}}
         """
         bell_message = {'bell': {'term': term}}
         self.write_message(json_encode(bell_message))
 
     @require_auth
     def mode_handler(self, term, setting, boolean):
-        """Handles mode settings that require an action on the client."""
+        """
+        Handles mode settings that require an action on the client by pasing it
+        a message like::
+
+            {
+                'set_mode': {
+                    'mode': setting,
+                    'bool': True,
+                    'term': term
+                }
+            }
+        """
         logging.debug(
             "mode_handler() term: %s, setting: %s, boolean: %s" %
             (term, setting, boolean))
@@ -1354,7 +1410,7 @@ class TerminalWebSocket(WebSocketHandler):
     def refresh_screen(self, term, full=False):
         """
         Writes the state of the given terminal's screen and scrollback buffer to
-        the client using self._send_refresh().  Also ensures that screen updates
+        the client using `_send_refresh()`.  Also ensures that screen updates
         don't get sent too fast to the client by instituting a rate limiter that
         also forces a refresh every 150ms.  This keeps things smooth on the
         client side and also reduces the bandwidth used by the application (CPU
@@ -1402,7 +1458,7 @@ class TerminalWebSocket(WebSocketHandler):
 
     @require_auth
     def full_refresh(self, term):
-        """Calls self.refresh_screen(*term*, full=True)"""
+        """Calls `self.refresh_screen(*term*, full=True)`"""
         try:
             term = int(term)
         except ValueError:
@@ -1495,7 +1551,7 @@ class TerminalWebSocket(WebSocketHandler):
         Prints the terminal's screen and renditions to stdout so they can be
         examined more closely.
 
-        NOTE: Can only be called from a JavaScript console like so:
+        .. note:: Can only be called from a JavaScript console like so...
 
         .. code-block:: javascript
 

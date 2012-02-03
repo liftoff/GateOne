@@ -19,6 +19,7 @@ This module contains Gate One's authentication classes.  They map to Gate One's
 --auth=none     NullAuthHandler
 --auth=kerberos KerberosAuthHandler
 --auth=google   GoogleAuthHandler
+--auth=pam      PAMAuthHandler
 =============== ===================
 
 None or Anonymous
@@ -126,6 +127,7 @@ class BaseAuthHandler(tornado.web.RequestHandler):
 class NullAuthHandler(BaseAuthHandler):
     """
     A handler for when no authentication method is chosen (i.e. --auth=none).
+    With this handler all users will show up as "%anonymous".
     """
     @tornado.web.asynchronous
     def get(self):
@@ -164,7 +166,8 @@ class NullAuthHandler(BaseAuthHandler):
 
 class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
     """
-    Google authentication handler.
+    Google authentication handler using Tornado's built-in GoogleMixin (fairly
+    boilerplate).
     """
     @tornado.web.asynchronous
     def get(self):

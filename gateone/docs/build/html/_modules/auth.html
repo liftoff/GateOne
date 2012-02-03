@@ -26,6 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
@@ -71,6 +72,7 @@
 <span class="s">--auth=none     NullAuthHandler</span>
 <span class="s">--auth=kerberos KerberosAuthHandler</span>
 <span class="s">--auth=google   GoogleAuthHandler</span>
+<span class="s">--auth=pam      PAMAuthHandler</span>
 <span class="s">=============== ===================</span>
 
 <span class="s">None or Anonymous</span>
@@ -178,6 +180,7 @@
 <div class="viewcode-block" id="NullAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.NullAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">NullAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A handler for when no authentication method is chosen (i.e. --auth=none).</span>
+<span class="sd">    With this handler all users will show up as &quot;%anonymous&quot;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@tornado.web.asynchronous</span>
 <div class="viewcode-block" id="NullAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.NullAuthHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -216,7 +219,8 @@
 </div></div>
 <div class="viewcode-block" id="GoogleAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.GoogleAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">GoogleAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">auth</span><span class="o">.</span><span class="n">GoogleMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Google authentication handler.</span>
+<span class="sd">    Google authentication handler using Tornado&#39;s built-in GoogleMixin (fairly</span>
+<span class="sd">    boilerplate).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@tornado.web.asynchronous</span>
 <div class="viewcode-block" id="GoogleAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.GoogleAuthHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -246,7 +250,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">(</span>
             <span class="n">ax_attrs</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="s">&quot;email&quot;</span><span class="p">,</span><span class="s">&quot;language&quot;</span><span class="p">,</span><span class="s">&quot;username&quot;</span><span class="p">])</span>
 </div>
-    <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+<div class="viewcode-block" id="GoogleAuthHandler._on_auth"><a class="viewcode-back" href="../Developer/auth.html#auth.GoogleAuthHandler._on_auth">[docs]</a>    <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Just a continuation of the get() method (the final step where it</span>
 <span class="sd">        actually sets the cookie).</span>
@@ -271,7 +275,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)</span>
 
-<span class="c"># Add our KerberosAuthHandler if sso is available</span></div>
+<span class="c"># Add our KerberosAuthHandler if sso is available</span></div></div>
 <span class="n">KerberosAuthHandler</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">sso</span> <span class="kn">import</span> <span class="n">KerberosAuthMixin</span>
@@ -380,6 +384,9 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">

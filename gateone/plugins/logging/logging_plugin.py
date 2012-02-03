@@ -8,6 +8,7 @@
 # TODO: Write search functions.
 # TODO: Add some search indexing capabilities so that search will be fast.
 # TODO: Add a background process that cleans up old logs.
+# TODO: Write a handler that displays a page where users can drag & drop .golog files to have them played back in their browser.
 
 __doc__ = """\
 logging.py - A plugin for Gate One that provides logging-related functionality.
@@ -401,17 +402,33 @@ def _retrieve_log_playback(queue, settings, tws=None):
     message = {'logging_log_playback': out_dict}
     queue.put(message)
 
-def retrieve_log_file(log_filename, tws):
-    """
-    Returns the given *log_filename* (as a regular file) so the user can save it
-    to disk.
-    """
-    print("Running retrieve_log_file()");
+# Temporarily disabled while I work around the problem of gzip files not being
+# downloadable over the websocket.
+#def get_log_file(log_filename, tws):
+    #"""
+    #Returns the given *log_filename* (as a regular file) so the user can save it
+    #to disk.
+    #"""
+    #user = tws.get_current_user()['upn']
+    #logging.debug("%s: get_log_file(%s)" % (user, log_filename))
+    #users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
+    #users_log_dir = os.path.join(users_dir, 'logs')
+    #log_path = os.path.join(users_log_dir, log_filename)
+    #out_dict = {'result': 'Success'}
+    #if os.path.exists(log_path):
+        #with open(log_path) as f:
+            #out_dict['data'] = f.read()
+    #else:
+        #out_dict['result'] = _(
+            #'SSH Plugin Error: Log not found at %s' % log_path)
+    #message = {'save_file': out_dict}
+    #tws.write_message(message)
 
 hooks = {
     'WebSocket': {
         'logging_get_logs': enumerate_logs,
         'logging_get_log_flat': retrieve_log_flat,
-        'logging_get_log_playback': retrieve_log_playback
+        'logging_get_log_playback': retrieve_log_playback,
+        #'logging_get_log_file': get_log_file,
     }
 }

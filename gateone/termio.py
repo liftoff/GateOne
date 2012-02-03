@@ -20,7 +20,8 @@ About termio
 This module provides a Multiplex class that can perform the following:
 
  * Fork a child process that opens a given terminal program.
- * Read and write data to and from the child process.
+ * Read and write data to and from the child process (asynchronously).
+ * Examine the output of the child process in real-time and perform actions (also asynchronously!) based on what is "expected" (aka non-blocking, pexpect-like functionality).
  * Log the output of the child process to a file and/or syslog.
 
 The Multiplex class is meant to be used in conjunction with a running Tornado
@@ -35,6 +36,8 @@ like so::
         syslog=True
     )
 
+.. note:: Support for event loops other than Tornado is in the works!
+
 Then *multiplexer* can create and launch a new controlling terminal (tty)
 running the given command (e.g. 'nethack')::
 
@@ -48,18 +51,18 @@ running the given command (e.g. 'nethack')::
 Input and output from the controlled program is asynchronous and gets handled
 via IOLoop.  It will automatically write all output from the terminal program to
 an instance of self.terminal_emulator (which defaults to Gate One's
-terminal.Terminal).  So if you want to perform an action whenever the running
+`terminal.Terminal`).  So if you want to perform an action whenever the running
 terminal application has output (like, say, sending a message to a client)
 you'll need to attach a callback::
 
     def screen_update():
         'Called when new output is ready to send to the client'
-        output = multiplexer.dumplines()
+        output = multiplexer.dump_html()
         socket_or_something.write(output)
     multiplexer.callbacks[multiplexer.CALLBACK_UPDATE] = screen_update
 
-In this example, screen_update() will write() the output of
-multiplexer.dumplines() to *socket_or_something* whenever the terminal program
+In this example, `screen_update()` will `write()` the output of
+`multiplexer.dump_html()` to *socket_or_something* whenever the terminal program
 has some sort of output.  You can also make calls directly to the terminal
 emulator (if you're using a custom one)::
 
@@ -70,13 +73,14 @@ emulator (if you're using a custom one)::
 Writing characters to the controlled terminal application is pretty
 straightforward::
 
-    multiplexer.write('some text')
+    multiplexer.write(u'some text')
 
 Typically you'd pass in keystrokes or commands from your application to the
 underlying program this way and the screen/terminal emulator would get updated
-automatically.  If using Gate One's Terminal() you can also attach callbacks
-to perform further actions when more specific situations are encountered (e.g.
-when the window title is set via that respective escape sequence)::
+automatically.  If using Gate One's `terminal.Terminal()` you can also attach
+callbacks to perform further actions when more specific situations are
+encountered (e.g. when the window title is set via its respective escape
+sequence)::
 
     def set_title():
         'Hypothetical title-setting function'

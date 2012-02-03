@@ -541,7 +541,12 @@ GateOne.Base.update(GateOne.Logging, {
             l = go.Logging,
             prefix = go.prefs.prefix,
             logMetadataDiv = u.getNode('#'+prefix+'log_metadata'),
+            downloadButton = u.createElement('button', {'id': 'log_download', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             logObj = null;
+        downloadButton.innerHTML = "Download";
+        downloadButton.onclick = function(e) {
+            go.ws.send(JSON.stringify({'logging_get_log_file': logFile}));
+        }
         // Retreive the metadata on the log in question
         for (var i in l.serverLogs) {
             if (l.serverLogs[i]['filename'] == logFile) {
@@ -567,6 +572,8 @@ GateOne.Base.update(GateOne.Logging, {
         while (logMetadataDiv.childNodes.length >= 1 ) {
             logMetadataDiv.removeChild(logMetadataDiv.firstChild);
         }
+        // Downloads of log files temporarily disabled while I work out some kinks in the code for downloading binary files
+//         logMetadataDiv.appendChild(downloadButton);
         for (var i in metadataNames) {
             var row = u.createElement('div', {'class': 'metadata_row'}),
                 title = u.createElement('div', {'class':'metadata_title'}),

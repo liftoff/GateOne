@@ -26,6 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
@@ -65,31 +66,37 @@
 <span class="s">About This Module</span>
 <span class="s">=================</span>
 <span class="s">This crux of this module is the Terminal class which is a pure-Python</span>
-<span class="s">implementation of a quintessential Unix-style terminal emulator.  It actually</span>
-<span class="s">does its best to emulate an xterm.  This means it supports the majority of the</span>
+<span class="s">implementation of the quintessential Unix terminal emulator.  It does its best</span>
+<span class="s">to emulate an xterm and along with that comes support for the majority of the</span>
 <span class="s">relevant portions of ECMA-48.  This includes support for emulating varous VT-*</span>
 <span class="s">terminal types as well as the &quot;linux&quot; terminal type.</span>
 
-<span class="s">The Terminal class&#39;s emulation support is not complete but it should suffice for</span>
-<span class="s">most terminal emulation needs.  If additional support for certain escape</span>
-<span class="s">sequences or modes are required please feel free to provide a patch or to simply</span>
-<span class="s">ask for something to be added.</span>
+<span class="s">The Terminal class&#39;s VT-* emulation support is not complete but it should</span>
+<span class="s">suffice for most terminal emulation needs (e.g. all your typical command line</span>
+<span class="s">programs should work wonderfully).  If something doesn&#39;t look quite right or you</span>
+<span class="s">need support for certain modes added please feel free to open a ticket on Gate</span>
+<span class="s">One&#39;s issue tracker:  https://github.com/liftoff/GateOne/issues</span>
 
 <span class="s">Note that Terminal was written from scratch in order to be as fast as possible.</span>
-<span class="s">Comments have been placed where different implementations/development patterns</span>
-<span class="s">have been tried and ultimately failed to provide speed improvements.  Any and</span>
-<span class="s">all suggestions or patches to improve speed (or emulation support) are welcome!</span>
+<span class="s">It is extensively commented and implements some interesting patterns in order to</span>
+<span class="s">maximize execution speed (most notably for things that loop).  Some bits of code</span>
+<span class="s">may seem &quot;un-Pythonic&quot; and/or difficult to grok but understand that this is</span>
+<span class="s">probably due to optimizations.  If you know &quot;a better way&quot; please feel free to</span>
+<span class="s">submit a patch, open a ticket, or send us an email.  There&#39;s a reason why open</span>
+<span class="s">source software is a superior development model!</span>
 
 <span class="s">Supported Emulation Types</span>
 <span class="s">-------------------------</span>
-<span class="s">Without any special mode settings or parameters, Terminal should be able to</span>
-<span class="s">support most applications under the following terminal types (e.g.</span>
-<span class="s">&quot;export TERM=&lt;terminal type&gt;&quot;):</span>
+<span class="s">Without any special mode settings or parameters Terminal should effectively</span>
+<span class="s">emulate the following terminal types:</span>
 
 <span class="s"> * xterm (the most important one)</span>
 <span class="s"> * ECMA-48/ANSI X3.64</span>
 <span class="s"> * Nearly all the VT-* types:  VT-52, VT-100, VT-220, VT-320, VT-420, and VT-520</span>
 <span class="s"> * Linux console (&quot;linux&quot;)</span>
+
+<span class="s">If you want Terminal to support something else or it&#39;s missing a feature from</span>
+<span class="s">any given terminal type please let us know.  We&#39;ll implement it!</span>
 
 <span class="s">What Terminal Doesn&#39;t Do</span>
 <span class="s">------------------------</span>
@@ -99,7 +106,7 @@
 <span class="s">client-side like Gate One).  It does, however, keep track of many</span>
 <span class="s">keystroke-specific modes of operation such as Application Cursor Keys and the G0</span>
 <span class="s">and G1 charset modes *with* callbacks that can be used to notify your</span>
-<span class="s">application when something changes.</span>
+<span class="s">application when such things change.</span>
 
 <span class="s">Special Considerations</span>
 <span class="s">----------------------</span>
@@ -491,26 +498,26 @@
 
 <span class="c"># TODO List:</span>
 <span class="c">#</span>
-<span class="c">#   * Needs tests!</span>
+<span class="c">#   * We need unit tests!</span>
 
 <span class="c"># Helper functions</span>
-<span class="k">def</span> <span class="nf">_reduce_renditions</span><span class="p">(</span><span class="n">renditions</span><span class="p">):</span>
+<div class="viewcode-block" id="_reduce_renditions"><a class="viewcode-back" href="../Developer/terminal.html#terminal._reduce_renditions">[docs]</a><span class="k">def</span> <span class="nf">_reduce_renditions</span><span class="p">(</span><span class="n">renditions</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Takes a list, *renditions*, and reduces it to its logical equivalent (as</span>
-<span class="sd">    far as renditions go).  Example:</span>
+<span class="sd">    far as renditions go).  Example::</span>
 
 <span class="sd">        [0, 32, 0, 34, 0, 32]</span>
 
-<span class="sd">    Would become:</span>
+<span class="sd">    Would become::</span>
 
 <span class="sd">        [0, 32]</span>
 
-<span class="sd">    Other Examples:</span>
+<span class="sd">    Other Examples::</span>
 
-<span class="sd">        [0, 1, 36, 36] -&gt; [0, 1, 36]</span>
-<span class="sd">        [0, 30, 42, 30, 42] -&gt; [0, 30, 42]</span>
-<span class="sd">        [36, 32, 44, 42] -&gt; [32, 42]</span>
-<span class="sd">        [36, 35] -&gt; [35]</span>
+<span class="sd">        [0, 1, 36, 36]      -&gt;  [0, 1, 36]</span>
+<span class="sd">        [0, 30, 42, 30, 42] -&gt;  [0, 30, 42]</span>
+<span class="sd">        [36, 32, 44, 42]    -&gt;  [32, 42]</span>
+<span class="sd">        [36, 35]            -&gt;  [35]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">out_renditions</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">foreground</span> <span class="o">=</span> <span class="bp">None</span>
@@ -538,7 +545,7 @@
     <span class="k">if</span> <span class="n">background</span><span class="p">:</span>
         <span class="n">out_renditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">background</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out_renditions</span>
-
+</div>
 <div class="viewcode-block" id="Terminal"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal">[docs]</a><span class="k">class</span> <span class="nc">Terminal</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Terminal controller class.</span>
@@ -606,21 +613,22 @@
     <span class="n">RE_OPT_SEQ</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;\x1b\]_\;(.+?)(\x07|\x1b</span><span class="se">\\</span><span class="s">)&#39;</span><span class="p">)</span>
     <span class="n">RE_NUMBERS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;\d*&#39;</span><span class="p">)</span> <span class="c"># Matches any number</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
+<div class="viewcode-block" id="Terminal.__init__"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the terminal by calling self.initialize(rows, cols).  This</span>
 <span class="sd">        is so we can have an equivalent function in situations where __init__()</span>
 <span class="sd">        gets overridden.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal.initialize"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="n">rows</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scrollback_buf</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scrollback_renditions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;Gate One&quot;</span>
-        <span class="c"># Use to tell if we actually made a change or just moved the cursor:</span>
+        <span class="c"># This variable can be referenced by programs implementing Terminal() to</span>
+        <span class="c"># determine if anything has changed since the last dump*()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">modified</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">local_echo</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="c"># For holding escape sequences as they&#39;re typed.</span>
@@ -811,7 +819,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">saved_rendition</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">application_keys</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
-
+</div>
 <div class="viewcode-block" id="Terminal.init_screen"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.init_screen">[docs]</a>    <span class="k">def</span> <span class="nf">init_screen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fills self.screen with empty lines of (unicode) spaces using self.cols</span>
@@ -978,7 +986,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rendition_set</span> <span class="o">=</span> <span class="bp">False</span>
 </div>
-    <span class="k">def</span> <span class="nf">_set_top_bottom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="Terminal._set_top_bottom"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._set_top_bottom">[docs]</a>    <span class="k">def</span> <span class="nf">_set_top_bottom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        DECSTBM - Sets self.top_margin and self.bottom_margin using the provided</span>
 <span class="sd">        settings in the form of &#39;&lt;top_margin&gt;;&lt;bottom_margin&gt;&#39;.</span>
@@ -997,7 +1005,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c"># Reset to defaults (full screen margins)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">top_margin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bottom_margin</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">-</span> <span class="mi">1</span>
-
+</div>
 <div class="viewcode-block" id="Terminal.get_cursor_position"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.get_cursor_position">[docs]</a>    <span class="k">def</span> <span class="nf">get_cursor_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the current cursor positition as a tuple, (row, col)</span>
@@ -1052,7 +1060,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">saved_cursorY</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">saved_rendition</span>
 </div>
-    <span class="k">def</span> <span class="nf">_dsr_get_cursor_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Terminal._dsr_get_cursor_position"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._dsr_get_cursor_position">[docs]</a>    <span class="k">def</span> <span class="nf">_dsr_get_cursor_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the current cursor positition as a DSR response in the form of:</span>
 <span class="sd">        &#39;\x1b&lt;self.cursorY&gt;;&lt;self.cursorX&gt;R&#39;.  Also executes CALLBACK_DSR with</span>
@@ -1067,8 +1075,8 @@
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">esc_cursor_pos</span>
-
-    <span class="k">def</span> <span class="nf">_dcs_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._dcs_handler"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._dcs_handler">[docs]</a>    <span class="k">def</span> <span class="nf">_dcs_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handles Device Control String sequences.  Still haven&#39;t figured out if</span>
 <span class="sd">        these really need to be implemented (they might not make sense for</span>
@@ -1076,8 +1084,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
         <span class="c">#print(&quot;TODO: Handle this DCS: %s&quot; % string)</span>
-
-    <span class="k">def</span> <span class="nf">_set_line_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._set_line_params"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._set_line_params">[docs]</a>    <span class="k">def</span> <span class="nf">_set_line_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function handles the control sequences that set double and single</span>
 <span class="sd">        line heights and widths.  It also handles the &quot;screen alignment test&quot; (</span>
@@ -1094,7 +1102,7 @@
                 <span class="p">[</span><span class="s">u&#39;E&#39;</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span>
             <span class="p">]</span>
         <span class="c"># TODO: Get this handling double line height stuff</span>
-
+</div>
 <div class="viewcode-block" id="Terminal.set_G0_charset"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.set_G0_charset">[docs]</a>    <span class="k">def</span> <span class="nf">set_G0_charset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">char</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets the terminal&#39;s G0 (default) charset to the type specified by *char*</span>
@@ -1440,15 +1448,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">bottom_margin</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)])</span>
 </div>
-    <span class="k">def</span> <span class="nf">_backspace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Terminal._backspace"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._backspace">[docs]</a>    <span class="k">def</span> <span class="nf">_backspace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Execute a backspace (\x08)&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
             <span class="k">pass</span> <span class="c"># At the edge, no biggie</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cursor_left</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_horizontal_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._horizontal_tab"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._horizontal_tab">[docs]</a>    <span class="k">def</span> <span class="nf">_horizontal_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Execute horizontal tab (\x09)&quot;&quot;&quot;</span>
         <span class="n">next_tabstop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">for</span> <span class="n">tabstop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabstops</span><span class="p">:</span>
@@ -1456,8 +1464,8 @@
                 <span class="n">next_tabstop</span> <span class="o">=</span> <span class="n">tabstop</span>
                 <span class="k">break</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span> <span class="o">=</span> <span class="n">next_tabstop</span>
-
-    <span class="k">def</span> <span class="nf">_set_tabstop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._set_tabstop"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._set_tabstop">[docs]</a>    <span class="k">def</span> <span class="nf">_set_tabstop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sets a tabstop at the current position of self.cursorX.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabstops</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">tabstop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabstops</span><span class="p">:</span>
@@ -1465,16 +1473,16 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">tabstops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">tabstops</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span> <span class="c"># Put them in order :)</span>
                     <span class="k">break</span>
-
-    <span class="k">def</span> <span class="nf">_linefeed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._linefeed"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._linefeed">[docs]</a>    <span class="k">def</span> <span class="nf">_linefeed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Execute line feed&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_newline</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_next_line</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._next_line"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._next_line">[docs]</a>    <span class="k">def</span> <span class="nf">_next_line</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Moves cursor down one line&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span> <span class="o">+=</span> <span class="mi">1</span>
-
+</div>
     <span class="k">def</span> <span class="nf">_reverse_linefeed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span> <span class="o">-=</span> <span class="mi">1</span>
@@ -1482,7 +1490,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">scroll_down</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_margin</span>
 
-    <span class="k">def</span> <span class="nf">_newline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Terminal._newline"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._newline">[docs]</a>    <span class="k">def</span> <span class="nf">_newline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a new line to self.screen and sets self.cursorX to 0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1491,40 +1499,40 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">scroll_up</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bottom_margin</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">clear_line</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_carriage_return</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._carriage_return"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._carriage_return">[docs]</a>    <span class="k">def</span> <span class="nf">_carriage_return</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute carriage return (set self.cursorX to 0)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span> <span class="o">=</span> <span class="mi">0</span>
-
-    <span class="k">def</span> <span class="nf">_xon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._xon"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._xon">[docs]</a>    <span class="k">def</span> <span class="nf">_xon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle XON character (stop ignoring)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;_xon()&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">local_echo</span> <span class="o">=</span> <span class="bp">True</span>
-
-    <span class="k">def</span> <span class="nf">_xoff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._xoff"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._xoff">[docs]</a>    <span class="k">def</span> <span class="nf">_xoff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle XOFF character (start ignoring)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;_xoff()&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">local_echo</span> <span class="o">=</span> <span class="bp">False</span>
-
-    <span class="k">def</span> <span class="nf">_cancel_esc_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._cancel_esc_sequence"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._cancel_esc_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">_cancel_esc_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Cancels any escape sequence currently in progress.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-
-    <span class="k">def</span> <span class="nf">_sub_esc_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._sub_esc_sequence"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._sub_esc_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">_sub_esc_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Cancels any escape sequence currently in progress and substitutes it</span>
 <span class="sd">        with single question mark (?).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;?&#39;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_escape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._escape"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._escape">[docs]</a>    <span class="k">def</span> <span class="nf">_escape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle escape character as well as escape sequences.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1536,14 +1544,14 @@
             <span class="c"># Get rid of whatever&#39;s there since we obviously didn&#39;t know what to</span>
             <span class="c"># do with it</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">&#39;</span>
-
-    <span class="k">def</span> <span class="nf">_csi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._csi"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._csi">[docs]</a>    <span class="k">def</span> <span class="nf">_csi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Starts a CSI sequence.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[&#39;</span>
-
-    <span class="k">def</span> <span class="nf">_capture_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_data</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._capture_image"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._capture_image">[docs]</a>    <span class="k">def</span> <span class="nf">_capture_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Starts looking at the intput to see if this is a PNG file.  If it is,</span>
 <span class="sd">        sets self.image to &#39;Ë&#39; which will tell self.write() to put all characters</span>
@@ -1560,16 +1568,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_newline</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_newline</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_string_terminator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._string_terminator"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._string_terminator">[docs]</a>    <span class="k">def</span> <span class="nf">_string_terminator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle the string terminator.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># TODO: This.</span>
         <span class="c"># NOTE: Might this just call _cancel_esc_sequence?  I need to double-check.</span>
         <span class="k">pass</span>
-
-    <span class="k">def</span> <span class="nf">_osc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._osc_handler"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._osc_handler">[docs]</a>    <span class="k">def</span> <span class="nf">_osc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handles Operating System Command (OSC) escape sequences which need</span>
 <span class="sd">        special care since they are of indeterminiate length and end with either</span>
@@ -1596,8 +1604,8 @@
         <span class="c">#logging.warning(_(&quot;Warning: No ESC sequence handler for %s&quot; %</span>
             <span class="c">#`self.esc_buffer`))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-
-    <span class="k">def</span> <span class="nf">_bell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._bell"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._bell">[docs]</a>    <span class="k">def</span> <span class="nf">_bell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handle bell character and execute self.callbacks[CALLBACK_BELL]() if we</span>
 <span class="sd">        are not in the middle of an escape sequence.  If we *are* in the middle</span>
@@ -1618,8 +1626,8 @@
         <span class="k">else</span><span class="p">:</span> <span class="c"># We&#39;re (likely) setting a title</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">esc_buffer</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\x07</span><span class="s">&#39;</span> <span class="c"># Add the bell char so we don&#39;t lose it</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_osc_handler</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_device_status_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._device_status_report"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._device_status_report">[docs]</a>    <span class="k">def</span> <span class="nf">_device_status_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns &#39;\x1b[0n&#39; (terminal OK) and executes</span>
 <span class="sd">        self.callbacks[CALLBACK_DSR](&quot;\x1b[0n&quot;).</span>
@@ -1631,8 +1639,8 @@
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">response</span>
-
-    <span class="k">def</span> <span class="nf">_csi_device_status_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._csi_device_status_report"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._csi_device_status_report">[docs]</a>    <span class="k">def</span> <span class="nf">_csi_device_status_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns &#39;\x1b[1;2c&#39; (Meaning: I&#39;m a vt220 terminal, version 1.0) and</span>
 <span class="sd">        executes self.callbacks[self.CALLBACK_DSR](&quot;\x1b[1;2c&quot;).</span>
@@ -1644,8 +1652,8 @@
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">response</span>
-
-    <span class="k">def</span> <span class="nf">_set_expanded_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setting</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._set_expanded_mode"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._set_expanded_mode">[docs]</a>    <span class="k">def</span> <span class="nf">_set_expanded_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setting</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Accepts &quot;standard mode&quot; settings.  Typically &#39;\x1b[?25h&#39; to hide cursor.</span>
 
@@ -1674,8 +1682,8 @@
                 <span class="n">callback</span><span class="p">(</span><span class="n">setting</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">pass</span>
-
-    <span class="k">def</span> <span class="nf">_reset_expanded_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setting</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Terminal._reset_expanded_mode"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._reset_expanded_mode">[docs]</a>    <span class="k">def</span> <span class="nf">_reset_expanded_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setting</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Accepts &quot;standard mode&quot; settings.  Typically &#39;\x1b[?25l&#39; to show cursor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1691,7 +1699,7 @@
                 <span class="n">callback</span><span class="p">(</span><span class="n">setting</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">pass</span>
-
+</div>
 <div class="viewcode-block" id="Terminal.application_mode"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.application_mode">[docs]</a>    <span class="k">def</span> <span class="nf">application_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">boolean</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;self.application_keys = *boolean*&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">application_keys</span> <span class="o">=</span> <span class="n">boolean</span>
@@ -1782,7 +1790,7 @@
                 <span class="c"># At edge of screen, ignore</span>
                 <span class="k">pass</span>
 </div>
-    <span class="k">def</span> <span class="nf">_erase_characters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="Terminal._erase_characters"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._erase_characters">[docs]</a>    <span class="k">def</span> <span class="nf">_erase_characters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Erases (to the right) the specified number of characters at the cursor</span>
 <span class="sd">        position.  NOTE: Deletes renditions too.</span>
@@ -1795,8 +1803,8 @@
         <span class="n">n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">distance</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s">u&#39; &#39;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
+            <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</div>
 <div class="viewcode-block" id="Terminal.cursor_left"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.cursor_left">[docs]</a>    <span class="k">def</span> <span class="nf">cursor_left</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;ESCnD CUB (Cursor Back)&quot;&quot;&quot;</span>
         <span class="c"># Commented out to save CPU (and the others below too)</span>
@@ -2094,13 +2102,16 @@
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">pass</span>
 </div>
-    <span class="k">def</span> <span class="nf">_set_rendition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+<div class="viewcode-block" id="Terminal._set_rendition"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal._set_rendition">[docs]</a>    <span class="k">def</span> <span class="nf">_set_rendition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets self.renditions[self.cursorY][self.cursorX] equal to n.split(&#39;;&#39;).</span>
 <span class="sd">        *n* is expected to be a string of ECMA-48 rendition numbers separated by</span>
-<span class="sd">        semicolons.  Example:</span>
+<span class="sd">        semicolons.  Example::</span>
+
 <span class="sd">            &#39;0;1;31&#39;</span>
-<span class="sd">        ...will result in:</span>
+
+<span class="sd">        ...will result in::</span>
+
 <span class="sd">            [0, 1, 31]</span>
 
 <span class="sd">        Note that the numbers were converted to integers and the order was</span>
@@ -2159,6 +2170,11 @@
         <span class="k">for</span> <span class="n">rend</span> <span class="ow">in</span> <span class="n">new_renditions</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">rend</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">out_renditions</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="c"># A 0 indicates reset so we don&#39;t want the last rendition to be</span>
+                <span class="c"># combined with this new one.  By setting the last rendition to</span>
+                <span class="c"># just [0] we&#39;re ensuring that _reduce_renditions() returns just</span>
+                <span class="c"># this rendition and not the previous one + this one.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_rendition</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">out_renditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rend</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">out_renditions</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
@@ -2167,11 +2183,12 @@
         <span class="n">new_renditions</span> <span class="o">=</span> <span class="n">out_renditions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_rendition</span> <span class="o">=</span> <span class="n">_reduce_renditions</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">last_rendition</span> <span class="o">+</span> <span class="n">new_renditions</span><span class="p">)</span>
-
+</div>
     <span class="k">def</span> <span class="nf">__opt_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Optional special escape sequence handler for sequences matching</span>
-<span class="sd">        RE_OPT_SEQ.  If CALLBACK_OPT is defined it will be called like so:</span>
+<span class="sd">        RE_OPT_SEQ.  If CALLBACK_OPT is defined it will be called like so::</span>
+
 <span class="sd">            self.callbacks[CALLBACK_OPT](chars)</span>
 
 <span class="sd">        Applications can use this escape sequence to define whatever special</span>
@@ -2501,14 +2518,15 @@
 <div class="viewcode-block" id="Terminal.dump"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns self.screen as a list of strings with no formatting.</span>
-<span class="sd">        No scrollback buffer.  No renditions.</span>
-
-<span class="sd">        NOTE: Does not empty the scrollback buffer.  Primarily used to get a</span>
+<span class="sd">        No scrollback buffer.  No renditions.  It is meant to be used to get a</span>
 <span class="sd">        quick glance of what is being displayed (when debugging).</span>
+
+<span class="sd">        .. note:: This method does not empty the scrollback buffer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">:</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">modified</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">return</span> <span class="n">out</span></div></div>
 </pre></div>
 
@@ -2517,6 +2535,9 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">

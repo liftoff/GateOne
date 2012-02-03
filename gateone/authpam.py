@@ -17,7 +17,7 @@ It was originally written by Alan Schmitz.
 
 The only non-obvious aspect of this module is that the pam_realm setting is only
 used when the user is asked to authenticate and when the user's information is
-store in the 'users' directory.  It isn't actually used in any part of the
+stored in the 'users' directory.  It isn't actually used in any part of the
 authentication (PAM doesn't take a "realm" setting).
 """
 
@@ -32,6 +32,9 @@ import tornado.web
 
 
 class PAMAuthMixin(tornado.web.RequestHandler):
+    """
+    This is used by PAMAuthHandler in auth.py to authenticate users via PAM.
+    """
     def initialize(self):
         """
         Print out helpful error messages if the requisite settings aren't

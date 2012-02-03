@@ -338,6 +338,7 @@ GateOne.Base.update(GateOne.SSH, {
             u = go.Utils,
             ssh = go.SSH,
             prefix = go.prefs.prefix,
+            downloadButton = u.createElement('button', {'id': 'ssh_id_download', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             deleteIDButton = u.createElement('button', {'id': 'ssh_id_delete', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             uploadCertificateButton = u.createElement('button', {'id': 'ssh_id_upload_cert', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             sshIDMetadataDiv = u.getNode('#'+prefix+'ssh_id_metadata'),
@@ -351,6 +352,11 @@ GateOne.Base.update(GateOne.SSH, {
         if (!IDObj) {
             // Not found, nothing to display
             return;
+        }
+        downloadButton.innerHTML = "Download";
+        downloadButton.onclick = function(e) {
+            go.ws.send(JSON.stringify({'ssh_get_private_key': IDObj['name']}));
+            go.ws.send(JSON.stringify({'ssh_get_public_key': IDObj['name']}));
         }
         deleteIDButton.innerHTML = "Delete " + IDObj['name'];
         deleteIDButton.title = "Delete this identity";
@@ -399,6 +405,7 @@ GateOne.Base.update(GateOne.SSH, {
             actionstitle = u.createElement('div', {'class':'ssh_id_metadata_title'});
         actionstitle.innerHTML = 'Actions';
         actionsrow.appendChild(actionstitle);
+        actionsrow.appendChild(downloadButton);
         actionsrow.appendChild(deleteIDButton);
         actionsrow.appendChild(uploadCertificateButton);
         sshIDMetadataDiv.appendChild(actionsrow);

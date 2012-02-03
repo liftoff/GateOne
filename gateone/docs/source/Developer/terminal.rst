@@ -5,3 +5,5 @@
 
 .. automodule:: terminal
     :members:
+    :special-members:
+    :private-members:

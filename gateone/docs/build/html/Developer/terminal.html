@@ -26,6 +26,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="termio.py - Terminal Input/Output Module" href="termio.html" />
@@ -62,23 +63,26 @@
 <div class="section" id="about-this-module">
 <h2>About This Module<a class="headerlink" href="#about-this-module" title="Permalink to this headline">¶</a></h2>
 <p>This crux of this module is the Terminal class which is a pure-Python
-implementation of a quintessential Unix-style terminal emulator.  It actually
-does its best to emulate an xterm.  This means it supports the majority of the
+implementation of the quintessential Unix terminal emulator.  It does its best
+to emulate an xterm and along with that comes support for the majority of the
 relevant portions of ECMA-48.  This includes support for emulating varous VT-*
 terminal types as well as the &quot;linux&quot; terminal type.</p>
-<p>The Terminal class's emulation support is not complete but it should suffice for
-most terminal emulation needs.  If additional support for certain escape
-sequences or modes are required please feel free to provide a patch or to simply
-ask for something to be added.</p>
+<p>The Terminal class's VT-* emulation support is not complete but it should
+suffice for most terminal emulation needs (e.g. all your typical command line
+programs should work wonderfully).  If something doesn't look quite right or you
+need support for certain modes added please feel free to open a ticket on Gate
+One's issue tracker:  <a class="reference external" href="https://github.com/liftoff/GateOne/issues">https://github.com/liftoff/GateOne/issues</a></p>
 <p>Note that Terminal was written from scratch in order to be as fast as possible.
-Comments have been placed where different implementations/development patterns
-have been tried and ultimately failed to provide speed improvements.  Any and
-all suggestions or patches to improve speed (or emulation support) are welcome!</p>
+It is extensively commented and implements some interesting patterns in order to
+maximize execution speed (most notably for things that loop).  Some bits of code
+may seem &quot;un-Pythonic&quot; and/or difficult to grok but understand that this is
+probably due to optimizations.  If you know &quot;a better way&quot; please feel free to
+submit a patch, open a ticket, or send us an email.  There's a reason why open
+source software is a superior development model!</p>
 <div class="section" id="supported-emulation-types">
 <h3>Supported Emulation Types<a class="headerlink" href="#supported-emulation-types" title="Permalink to this headline">¶</a></h3>
-<p>Without any special mode settings or parameters, Terminal should be able to
-support most applications under the following terminal types (e.g.
-&quot;export TERM=&lt;terminal type&gt;&quot;):</p>
+<p>Without any special mode settings or parameters Terminal should effectively
+emulate the following terminal types:</p>
 <blockquote>
 <div><ul class="simple">
 <li>xterm (the most important one)</li>
@@ -87,6 +91,8 @@ support most applications under the following terminal types (e.g.
 <li>Linux console (&quot;linux&quot;)</li>
 </ul>
 </div></blockquote>
+<p>If you want Terminal to support something else or it's missing a feature from
+any given terminal type please let us know.  We'll implement it!</p>
 </div>
 <div class="section" id="what-terminal-doesn-t-do">
 <h3>What Terminal Doesn't Do<a class="headerlink" href="#what-terminal-doesn-t-do" title="Permalink to this headline">¶</a></h3>
@@ -96,7 +102,7 @@ codes--you'll have to take care of that in your application (or at the
 client-side like Gate One).  It does, however, keep track of many
 keystroke-specific modes of operation such as Application Cursor Keys and the G0
 and G1 charset modes <em>with</em> callbacks that can be used to notify your
-application when something changes.</p>
+application when such things change.</p>
 </div>
 <div class="section" id="special-considerations">
 <h3>Special Considerations<a class="headerlink" href="#special-considerations" title="Permalink to this headline">¶</a></h3>
@@ -111,39 +117,39 @@ omitted.</p>
 <p>To support asynchronous usage (and make everything faster), Terminal was written
 to support extensive callbacks that are called when certain events are
 encountered.  Here are the events and their callbacks:</p>
-<table border="1" class="docutils">
+<table border="1" class="docutils" id="callback-constants">
 <colgroup>
-<col width="28%" />
-<col width="72%" />
+<col width="33%" />
+<col width="67%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Callback</th>
+<tr class="row-odd"><th class="head">Callback Constant (ID)</th>
 <th class="head">Called when...</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>CALLBACK_SCROLL_UP</td>
+<tr class="row-even"><td><tt class="xref py py-attr docutils literal"><span class="pre">terminal.CALLBACK_SCROLL_UP</span></tt></td>
 <td>The terminal is scrolled up (back).</td>
 </tr>
-<tr class="row-odd"><td>CALLBACK_CHANGED</td>
+<tr class="row-odd"><td><tt class="xref py py-attr docutils literal"><span class="pre">terminal.CALLBACK_CHANGED</span></tt></td>
 <td>The screen is changed/updated.</td>
 </tr>
-<tr class="row-even"><td>CALLBACK_CURSOR_POS</td>
+<tr class="row-even"><td><tt class="xref py py-attr docutils literal"><span class="pre">terminal.CALLBACK_CURSOR_POS</span></tt></td>
 <td>The cursor position changes.</td>
 </tr>
-<tr class="row-odd"><td>CALLBACK_DSR</td>
+<tr class="row-odd"><td><tt class="xref py py-attr docutils literal"><span class="pre">terminal.CALLBACK_DSR</span></tt></td>
 <td>A Device Status Report (DSR) is requested (via the DSR escape sequence).</td>
 </tr>
-<tr class="row-even"><td>CALLBACK_TITLE</td>
+<tr class="row-even"><td><tt class="xref py py-attr docutils literal"><span class="pre">terminal.CALLBACK_TITLE</span></tt></td>
 <td>The terminal title changes (xterm-style)</td>
 </tr>
-<tr class="row-odd"><td>CALLBACK_BELL</td>
+<tr class="row-odd"><td><tt class="xref py py-attr docutils literal"><span class="pre">terminal.CALLBACK_BELL</span></tt></td>
 <td>The bell character (^G) is encountered.</td>
 </tr>
-<tr class="row-even"><td>CALLBACK_OPT</td>
+<tr class="row-even"><td><tt class="xref py py-attr docutils literal"><span class="pre">terminal.CALLBACK_OPT</span></tt></td>
 <td>The special optional escape sequence is encountered.</td>
 </tr>
-<tr class="row-odd"><td>CALLBACK_MODE</td>
+<tr class="row-odd"><td><tt class="xref py py-attr docutils literal"><span class="pre">terminal.CALLBACK_MODE</span></tt></td>
 <td>The terminal mode setting changes (e.g. use alternate screen buffer).</td>
 </tr>
 </tbody>
@@ -189,18 +195,20 @@ straightforward:</p>
 <div class="section" id="about-the-scrollback-bufffer">
 <h3>About The Scrollback Bufffer<a class="headerlink" href="#about-the-scrollback-bufffer" title="Permalink to this headline">¶</a></h3>
 <p>The Terminal class implements a scrollback buffer.  Here's how it works:
-Whenever a scroll_up() event occurs, the line (or lines) that will be removed
-from the top of the screen will be placed into Terminal.scrollback_buf.  Then,
-whenever dump_html() is called, the scrollback buffer will be returned along
-with the screen output and reset to an empty state.</p>
-<p>Why do this?  In the event that a very large write() occurs (e.g. 'ps aux'), it
-gives the controlling program the ability to capture what went past the screen
-without some fancy tracking logic surrounding Terminal.write().</p>
-<p>More information about how this works can be had by looking at the dump_html()
-function itself.</p>
+Whenever a <a class="reference internal" href="#terminal.Terminal.scroll_up" title="terminal.Terminal.scroll_up"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.scroll_up()</span></tt></a> event occurs, the line (or lines) that
+will be removed from the top of the screen will be placed into
+<tt class="xref py py-attr docutils literal"><span class="pre">Terminal.scrollback_buf</span></tt>. Then whenever <a class="reference internal" href="#terminal.Terminal.dump_html" title="terminal.Terminal.dump_html"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.dump_html()</span></tt></a> is
+called the scrollback buffer will be returned along with the screen output and
+reset to an empty state.</p>
+<p>Why do this?  In the event that a very large <a class="reference internal" href="#terminal.Terminal.write" title="terminal.Terminal.write"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.write()</span></tt></a> occurs (e.g.
+'ps aux'), it gives the controlling program the ability to capture what went
+past the screen without some fancy tracking logic surrounding
+<a class="reference internal" href="#terminal.Terminal.write" title="terminal.Terminal.write"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.write()</span></tt></a>.</p>
+<p>More information about how this works can be had by looking at the
+<a class="reference internal" href="#terminal.Terminal.dump_html" title="terminal.Terminal.dump_html"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.dump_html()</span></tt></a> function itself.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">There's more than one function that empties Terminal.scrollback_buf when called.  You'll just have to have a look around =)</p>
+<p class="last">There's more than one function that empties <tt class="xref py py-attr docutils literal"><span class="pre">Terminal.scrollback_buf</span></tt> when called.  You'll just have to have a look around =)</p>
 </div>
 </div>
 </div>
@@ -214,34 +222,70 @@ characters such as 0xDA and 0xc4 (which are used by ncurses) with their
 Unicode equivalents.</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="terminal._reduce_renditions">
+<tt class="descclassname">terminal.</tt><tt class="descname">_reduce_renditions</tt><big>(</big><em>renditions</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#_reduce_renditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal._reduce_renditions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a list, <em>renditions</em>, and reduces it to its logical equivalent (as
+far as renditions go).  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Would become:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Other Examples:</p>
+<div class="highlight-python"><pre>[0, 1, 36, 36]      -&gt;  [0, 1, 36]
+[0, 30, 42, 30, 42] -&gt;  [0, 30, 42]
+[36, 32, 44, 42]    -&gt;  [32, 42]
+[36, 35]            -&gt;  [35]</pre>
+</div>
+</dd></dl>
+
 <dl class="class">
 <dt id="terminal.Terminal">
 <em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">Terminal</tt><big>(</big><em>rows=24</em>, <em>cols=80</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminal controller class.</p>
-<p>Initializes the terminal by calling self.initialize(rows, cols).  This
+<p>Initializes the terminal by calling <em>self.initialize(rows, cols)</em>.  This
 is so we can have an equivalent function in situations where __init__()
 gets overridden.</p>
 <dl class="method">
+<dt id="terminal.Terminal.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>rows=24</em>, <em>cols=80</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the terminal by calling <em>self.initialize(rows, cols)</em>.  This
+is so we can have an equivalent function in situations where __init__()
+gets overridden.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.initialize">
+<tt class="descname">initialize</tt><big>(</big><em>rows=24</em>, <em>cols=80</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the terminal (the actual equivalent to <a class="reference internal" href="#terminal.Terminal.__init__" title="terminal.Terminal.__init__"><tt class="xref py py-meth docutils literal"><span class="pre">__init__()</span></tt></a>).</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="terminal.Terminal.init_screen">
 <tt class="descname">init_screen</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.init_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.init_screen" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fills self.screen with empty lines of (unicode) spaces using self.cols
-and self.rows for the dimensions.</p>
-<p>NOTE: Just because each line starts out with a uniform length does not
-mean it will stay that way.  Processing of escape sequences is handled
-when an output function is called.</p>
+<dd><p>Fills <tt class="xref py py-attr docutils literal"><span class="pre">screen</span></tt> with empty lines of (unicode) spaces using
+<tt class="xref py py-attr docutils literal"><span class="pre">self.cols</span></tt> and <tt class="xref py py-attr docutils literal"><span class="pre">self.rows</span></tt> for the dimensions.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Just because each line starts out with a uniform length does not mean it will stay that way.  Processing of escape sequences is handled when an output function is called.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.init_renditions">
 <tt class="descname">init_renditions</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.init_renditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.init_renditions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fills self.renditions with lists of None using self.cols and self.rows
-for the dimenions.</p>
+<dd><p>Fills <tt class="xref py py-attr docutils literal"><span class="pre">self.renditions</span></tt> with lists of [0] using <tt class="xref py py-attr docutils literal"><span class="pre">self.cols</span></tt>
+and <tt class="xref py py-attr docutils literal"><span class="pre">self.rows</span></tt> for the dimenions.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.init_scrollback">
 <tt class="descname">init_scrollback</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.init_scrollback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.init_scrollback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Empties out the scrollback buffers</p>
+<dd><p>Empties the scrollback buffers (<tt class="xref py py-attr docutils literal"><span class="pre">self.scrollback_buf</span></tt> and
+<tt class="xref py py-attr docutils literal"><span class="pre">self.scrollback_renditions</span></tt>).</p>
 </dd></dl>
 
 <dl class="method">
@@ -251,20 +295,33 @@ for the dimenions.</p>
 <em>identifier</em> can be used to reference this callback leter (e.g. when you
 want to remove it).  Otherwise an identifier will be generated
 automatically.  If the given <em>identifier</em> is already attached to a
-callback at the given event, that callback will be replaced with
+callback at the given event that callback will be replaced with
 <em>callback</em>.</p>
-<p><em>event</em> - The numeric ID of the event you're attaching <em>callback</em> to.
-<em>callback</em> - The function you're attaching to the <em>event</em>.
-<em>identifier</em> - A string or number to be used as a reference point should you wish to remove or update this callback later.</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">event:</th><td class="field-body">The numeric ID of the event you're attaching <em>callback</em> to. The <a class="reference internal" href="#callback-constants"><em>callback constants</em></a> should be used as the numerical IDs.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">callback:</th><td class="field-body">The function you're attaching to the <em>event</em>.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">identifier:</th><td class="field-body">A string or number to be used as a reference point should you wish to remove or update this callback later.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
 <p>Returns the identifier of the callback.  to Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">term</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">somefunc</span><span class="p">():</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">id</span> <span class="o">=</span> <span class="s">&quot;myref&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">CALLBACK_BELL</span><span class="p">,</span> <span class="n">somefunc</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">CALLBACK_BELL</span><span class="p">,</span> <span class="n">somefunc</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>NOTE: This allows the controlling program to have multiple callbacks for
-the same event.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This allows the controlling program to have multiple callbacks for the same event.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -287,58 +344,114 @@ given <em>event</em>.  Example:</p>
 <dt id="terminal.Terminal.terminal_reset">
 <tt class="descname">terminal_reset</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.terminal_reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.terminal_reset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resets the terminal back to an empty screen with all defaults.  Calls
-self.callbacks[CALLBACK_RESET]() when finished.</p>
+<tt class="xref py py-meth docutils literal"><span class="pre">Terminal.callbacks[CALLBACK_RESET]()</span></tt> when finished.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If terminal output has been suspended (e.g. via ctrl-s) this will not un-suspend it (you need to issue ctrl-q to the underlying program to do that).</p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.resize">
 <tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.resize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resizes the terminal window, adding or removing rows or columns as
+<dd><p>Resizes the terminal window, adding or removing <em>rows</em> or <em>cols</em> as
 needed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._set_top_bottom">
+<tt class="descname">_set_top_bottom</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._set_top_bottom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._set_top_bottom" title="Permalink to this definition">¶</a></dt>
+<dd><p>DECSTBM - Sets <tt class="xref py py-attr docutils literal"><span class="pre">self.top_margin</span></tt> and <tt class="xref py py-attr docutils literal"><span class="pre">self.bottom_margin</span></tt>
+using the provided settings in the form of '&lt;top_margin&gt;;&lt;bottom_margin&gt;'.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This also handles restore/set &quot;DEC Private Mode Values&quot;.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.get_cursor_position">
 <tt class="descname">get_cursor_position</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.get_cursor_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.get_cursor_position" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the current cursor positition as a tuple, (row, col)</p>
+<dd><p>Returns the current cursor positition as a tuple:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.set_title">
 <tt class="descname">set_title</tt><big>(</big><em>title</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.set_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.set_title" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets self.title to <em>title</em> and executes
-self.callbacks[CALLBACK_TITLE]()</p>
+<dd><p>Sets <tt class="xref py py-attr docutils literal"><span class="pre">self.title</span></tt> to <em>title</em> and executes
+<tt class="xref py py-meth docutils literal"><span class="pre">Terminal.callbacks[CALLBACK_TITLE]()</span></tt></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.get_title">
 <tt class="descname">get_title</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.get_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.get_title" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns self.title</p>
+<dd><p>Returns <tt class="xref py py-attr docutils literal"><span class="pre">self.title</span></tt></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.save_cursor_position">
 <tt class="descname">save_cursor_position</tt><big>(</big><em>mode=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.save_cursor_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.save_cursor_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the cursor position and current rendition settings to
-self.saved_cursorX, self.saved_cursorY, and self.saved_rendition</p>
-<p>NOTE: Also handles the set/restore &quot;Private Mode Settings&quot; sequence.</p>
+<tt class="xref py py-attr docutils literal"><span class="pre">self.saved_cursorX</span></tt>, <tt class="xref py py-attr docutils literal"><span class="pre">self.saved_cursorY</span></tt>, and
+<tt class="xref py py-attr docutils literal"><span class="pre">self.saved_rendition</span></tt></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Also handles the set/restore &quot;Private Mode Settings&quot; sequence.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.restore_cursor_position">
 <tt class="descname">restore_cursor_position</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.restore_cursor_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.restore_cursor_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restores the cursor position and rendition settings from
-self.saved_cursorX, self.saved_cursorY, and self.saved_rendition (if
-they're set).</p>
+<tt class="xref py py-attr docutils literal"><span class="pre">self.saved_cursorX</span></tt>, <tt class="xref py py-attr docutils literal"><span class="pre">self.saved_cursorY</span></tt>, and
+<tt class="xref py py-attr docutils literal"><span class="pre">self.saved_rendition</span></tt> (if they're set).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._dsr_get_cursor_position">
+<tt class="descname">_dsr_get_cursor_position</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._dsr_get_cursor_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._dsr_get_cursor_position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current cursor positition as a DSR response in the form of:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="s">&#39;&lt;self.cursorY&gt;;&lt;self.cursorX&gt;R&#39;</span>
+</pre></div>
+</div>
+<p>Also executes CALLBACK_DSR with the same output as the first argument.
+Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">CALLBACK_DSR</span><span class="p">](</span><span class="s">&#39;20;123R&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._dcs_handler">
+<tt class="descname">_dcs_handler</tt><big>(</big><em>string=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._dcs_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._dcs_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles Device Control String sequences.  Unimplemented.  Probablye not
+appropriate for Gate One.  If you believe this to be false please open
+a ticket in the issue tracker.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._set_line_params">
+<tt class="descname">_set_line_params</tt><big>(</big><em>param</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._set_line_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._set_line_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function handles the control sequences that set double and single
+line heights and widths.  It also handles the &quot;screen alignment test&quot; (
+fill the screen with Es).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Double-line height text is currently unimplemented (does anything actually use it?).</p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.set_G0_charset">
 <tt class="descname">set_G0_charset</tt><big>(</big><em>char</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.set_G0_charset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.set_G0_charset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the terminal's G0 (default) charset to the type specified by <em>char</em></p>
-<dl class="docutils">
-<dt>Here's the possibilities:</dt>
-<dd>0    DEC Special Character and Line Drawing Set
+<dd><p>Sets the terminal's G0 (default) charset to the type specified by
+<em>char</em>.</p>
+<p>Here's the possibilities:</p>
+<div class="highlight-python"><pre>0    DEC Special Character and Line Drawing Set
 A    United Kingdom (UK)
 B    United States (USASCII)
 4    Dutch
@@ -353,17 +466,16 @@ E    Norwegian/Danish
 Z    Spanish
 H    Swedish
 7    Swedish
-=    Swiss</dd>
-</dl>
+=    Swiss</pre>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.set_G1_charset">
 <tt class="descname">set_G1_charset</tt><big>(</big><em>char</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.set_G1_charset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.set_G1_charset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the terminal's G1 (alt) charset to the type specified by <em>char</em></p>
-<dl class="docutils">
-<dt>Here's the possibilities:</dt>
-<dd>0    DEC Special Character and Line Drawing Set
+<dd><p>Sets the terminal's G1 (alt) charset to the type specified by <em>char</em>.</p>
+<p>Here's the possibilities:</p>
+<div class="highlight-python"><pre>0    DEC Special Character and Line Drawing Set
 A    United Kingdom (UK)
 B    United States (USASCII)
 4    Dutch
@@ -378,8 +490,8 @@ E    Norwegian/Danish
 Z    Spanish
 H    Swedish
 7    Swedish
-=    Swiss</dd>
-</dl>
+=    Swiss</pre>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -419,8 +531,10 @@ file-like methods.</p>
 <dd><p>Scrolls up the terminal screen by <em>n</em> lines (default: 1). The callbacks
 CALLBACK_CHANGED and CALLBACK_SCROLL_UP are called after scrolling the
 screen.</p>
-<p>NOTE: This will only scroll up the region within self.top_margin and
-self.bottom_margin (if set).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This will only scroll up the region within self.top_margin and self.bottom_margin (if set).</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -444,45 +558,242 @@ scrolling the screen.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="terminal.Terminal._backspace">
+<tt class="descname">_backspace</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._backspace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._backspace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a backspace (x08)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._horizontal_tab">
+<tt class="descname">_horizontal_tab</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._horizontal_tab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._horizontal_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute horizontal tab (x09)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._set_tabstop">
+<tt class="descname">_set_tabstop</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._set_tabstop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._set_tabstop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a tabstop at the current position of <tt class="xref py py-attr docutils literal"><span class="pre">self.cursorX</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._linefeed">
+<tt class="descname">_linefeed</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._linefeed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._linefeed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute line feed (LF)</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This actually just calls <a class="reference internal" href="#terminal.Terminal._newline" title="terminal.Terminal._newline"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal._newline()</span></tt></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._next_line">
+<tt class="descname">_next_line</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._next_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._next_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves cursor down one line</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._newline">
+<tt class="descname">_newline</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._newline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._newline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increases <tt class="xref py py-attr docutils literal"><span class="pre">self.cursorY</span></tt> by 1 and calls <a class="reference internal" href="#terminal.Terminal.scroll_up" title="terminal.Terminal.scroll_up"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.scroll_up()</span></tt></a>
+if that action will move the curor past <tt class="xref py py-attr docutils literal"><span class="pre">self.bottom_margin</span></tt>
+(usually the bottom of the screen).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._carriage_return">
+<tt class="descname">_carriage_return</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._carriage_return"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._carriage_return" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute carriage return (set <tt class="xref py py-attr docutils literal"><span class="pre">self.cursorX</span></tt> to 0)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._xon">
+<tt class="descname">_xon</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._xon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._xon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the XON character (stop ignoring).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Doesn't actually do anything (this terminal feature was probably meant for the underlying terminal program).</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._xoff">
+<tt class="descname">_xoff</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._xoff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._xoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the XOFF character (start ignoring)</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Doesn't actually do anything (this terminal feature was probably meant for the underlying terminal program).</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._cancel_esc_sequence">
+<tt class="descname">_cancel_esc_sequence</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._cancel_esc_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._cancel_esc_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cancels any escape sequence currently being processed.  In other words
+it empties <tt class="xref py py-attr docutils literal"><span class="pre">self.esc_buffer</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._sub_esc_sequence">
+<tt class="descname">_sub_esc_sequence</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._sub_esc_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._sub_esc_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cancels any escape sequence currently in progress and replaces
+<tt class="xref py py-attr docutils literal"><span class="pre">self.esc_buffer</span></tt> with single question mark (?).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Nothing presently uses this function and I can't remember what it was supposed to be part of (LOL!).  Obviously it isn't very important.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._escape">
+<tt class="descname">_escape</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._escape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._escape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the escape character as well as escape sequences that may end
+with an escape character.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._csi">
+<tt class="descname">_csi</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._csi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._csi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Marks the start of a CSI escape sequence (which is itself a character)
+by setting <tt class="xref py py-attr docutils literal"><span class="pre">self.esc_buffer</span></tt> to '\x1b[' (which is the CSI escape
+sequence).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._capture_image">
+<tt class="descname">_capture_image</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._capture_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._capture_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets called when an image (PNG or JPEG) was detected by
+<a class="reference internal" href="#terminal.Terminal.write" title="terminal.Terminal.write"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.write()</span></tt></a> and captured in <tt class="xref py py-attr docutils literal"><span class="pre">self.image</span></tt>.  It cleans up
+the data inside <tt class="xref py py-attr docutils literal"><span class="pre">self.image</span></tt> (getting rid of carriage returns) and
+stores self.image as if it were a single character in
+<tt class="xref py py-attr docutils literal"><span class="pre">self.screen</span></tt> at the current cursor position.</p>
+<p>It also moves the cursor to the beginning of the last line before doing
+this in order to ensure that the captured image stays within the
+browser's current window.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="#terminal.Terminal._spanify_screen" title="terminal.Terminal._spanify_screen"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal._spanify_screen()</span></tt></a> function is aware of this logic and knows that a 'character' longer than an actual character indicates the presence of something like an image that needs special processing.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._string_terminator">
+<tt class="descname">_string_terminator</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._string_terminator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._string_terminator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle the string terminator (ST).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Doesn't actually do anything at the moment.  Probably not needed since <a class="reference internal" href="#terminal.Terminal._escape" title="terminal.Terminal._escape"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal._escape()</span></tt></a> and/or <a class="reference internal" href="#terminal.Terminal._bell" title="terminal.Terminal._bell"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal._bell()</span></tt></a> will end up handling any sort of sequence that would end in an ST anyway.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._osc_handler">
+<tt class="descname">_osc_handler</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._osc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._osc_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles Operating System Command (OSC) escape sequences which need
+special care since they are of indeterminiate length and end with
+either a bell (\x07) or a sequence terminator (\x9c aka ST).  This
+will usually be called from <a class="reference internal" href="#terminal.Terminal._bell" title="terminal.Terminal._bell"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal._bell()</span></tt></a> to set the title of
+the terminal (just like an xterm) but it is also possible to be called
+directly whenever an ST is encountered.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._bell">
+<tt class="descname">_bell</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._bell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._bell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the bell character and executes
+<tt class="xref py py-meth docutils literal"><span class="pre">Terminal.callbacks[CALLBACK_BELL]()</span></tt> (if we are not in the middle
+of an escape sequence that ends with a bell character =).  If we <em>are</em>
+in the middle of an escape sequence, calls <tt class="xref py py-meth docutils literal"><span class="pre">self._osc_handler()</span></tt>
+since we can be nearly certain that we're simply terminating an OSC
+sequence. Isn't terminal emulation grand? ⨀_⨀</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._device_status_report">
+<tt class="descname">_device_status_report</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._device_status_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._device_status_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns '[0n' (terminal OK) and executes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">CALLBACK_DSR</span><span class="p">](</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[0n&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._csi_device_status_report">
+<tt class="descname">_csi_device_status_report</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._csi_device_status_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._csi_device_status_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns '\x1b[1;2c' (Meaning: I'm a vt220 terminal, version 1.0) and
+executes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_DSR</span><span class="p">](</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[1;2c&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._set_expanded_mode">
+<tt class="descname">_set_expanded_mode</tt><big>(</big><em>setting</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._set_expanded_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._set_expanded_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accepts &quot;standard mode&quot; settings.  Typically '\x1b[?25h' to hide cursor.</p>
+<p>Notes on modes:</p>
+<div class="highlight-python"><pre>'?1h' - Application Cursor Keys
+'?5h' - DECSCNM (default off): Set reverse-video mode.
+'?12h' - Local echo (SRM or Send Receive Mode)
+'?25h' - Hide cursor
+'?1049h' - Save cursor and screen</pre>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._reset_expanded_mode">
+<tt class="descname">_reset_expanded_mode</tt><big>(</big><em>setting</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._reset_expanded_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._reset_expanded_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accepts &quot;standard mode&quot; settings.  Typically '\x1b[?25l' to show
+cursor.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="terminal.Terminal.application_mode">
 <tt class="descname">application_mode</tt><big>(</big><em>boolean</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.application_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.application_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>self.application_keys = <em>boolean</em></p>
+<dd><p>Sets <tt class="xref py py-attr docutils literal"><span class="pre">self.application_keys</span></tt> equal to <em>boolean</em>.  Literally:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">application_keys</span> <span class="o">=</span> <span class="n">boolean</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.alternate_screen_buffer">
 <tt class="descname">alternate_screen_buffer</tt><big>(</big><em>alt</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.alternate_screen_buffer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.alternate_screen_buffer" title="Permalink to this definition">¶</a></dt>
 <dd><p>If <em>alt</em> is True, copy the current screen and renditions to
-self.alt_screen and self.alt_renditions then re-init self.screen and
-self.renditions.
-If <em>alt</em> is False, restore the saved screen buffer and renditions then
-nullify self.alt_screen and self.alt_renditions.</p>
+<tt class="xref py py-attr docutils literal"><span class="pre">self.alt_screen</span></tt> and <tt class="xref py py-attr docutils literal"><span class="pre">self.alt_renditions</span></tt> then re-init
+<tt class="xref py py-attr docutils literal"><span class="pre">self.screen</span></tt> and <tt class="xref py py-attr docutils literal"><span class="pre">self.renditions</span></tt>.</p>
+<p>If <em>alt</em> is False, restore the saved screen buffer and renditions then
+nullify <tt class="xref py py-attr docutils literal"><span class="pre">self.alt_screen</span></tt> and <tt class="xref py py-attr docutils literal"><span class="pre">self.alt_renditions</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.alternate_screen_buffer_cursor">
 <tt class="descname">alternate_screen_buffer_cursor</tt><big>(</big><em>alt</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.alternate_screen_buffer_cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.alternate_screen_buffer_cursor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Same as self.alternate_screen_buffer but saves/restores the cursor
-location.</p>
+<dd><p>Same as <a class="reference internal" href="#terminal.Terminal.alternate_screen_buffer" title="terminal.Terminal.alternate_screen_buffer"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.alternate_screen_buffer()</span></tt></a> but saves/restores the
+cursor location.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.show_hide_cursor">
 <tt class="descname">show_hide_cursor</tt><big>(</big><em>boolean</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.show_hide_cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.show_hide_cursor" title="Permalink to this definition">¶</a></dt>
-<dd><p>self.show_cursor = boolean</p>
+<dd><p>Literally:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">show_cursor</span> <span class="o">=</span> <span class="n">boolean</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.send_receive_mode">
 <tt class="descname">send_receive_mode</tt><big>(</big><em>onoff</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.send_receive_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.send_receive_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Turns on or off local echo dependong on the value of <em>onoff</em></p>
-<p>self.local_echo = <em>onoff</em></p>
+<dd><p>Turns on or off local echo dependong on the value of <em>onoff</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">local_echo</span> <span class="o">=</span> <span class="n">onoff</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.insert_characters">
 <tt class="descname">insert_characters</tt><big>(</big><em>n=1</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.insert_characters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.insert_characters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Inserts the specified number of characters at the cursor position</p>
+<dd><p>Inserts the specified number of characters at the cursor position.</p>
 </dd></dl>
 
 <dl class="method">
@@ -494,7 +805,21 @@ between the cursor and right margin move to the left. Character
 attributes (renditions) move with the characters.  The terminal adds
 blank spaces with no visual character attributes at the right margin.
 DCH has no effect outside the scrolling margins.</p>
-<p>NOTE: Deletes renditions too.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Deletes renditions too.  You'd <em>think</em> that would be in one of the VT-* manuals...  Nope!</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._erase_characters">
+<tt class="descname">_erase_characters</tt><big>(</big><em>n=1</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._erase_characters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._erase_characters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Erases (to the right) the specified number of characters at the cursor
+position.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Deletes renditions too.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -543,9 +868,20 @@ DCH has no effect outside the scrolling margins.</p>
 <dt id="terminal.Terminal.cursor_position">
 <tt class="descname">cursor_position</tt><big>(</big><em>coordinates</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.cursor_position"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.cursor_position" title="Permalink to this definition">¶</a></dt>
 <dd><p>ESCnH CUP (Cursor Position).  Move the cursor to the given coordinates.</p>
-<p><em>coordinates</em>: Should be something like, 'row;col' (1-based) but,
-'row', 'row;', and ';col' are also valid (assumes 1 on missing value).</p>
-<p>If coordinates is '', the cursor will be moved to the top left (1;1).</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">coordinates:</th><td class="field-body">Should be something like, 'row;col' (1-based) but, 'row', 'row;', and ';col' are also valid (assumes 1 on missing value).</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If coordinates is '' (an empty string), the cursor will be moved to the top left (1;1).</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -569,13 +905,13 @@ DCH has no effect outside the scrolling margins.</p>
 <dl class="method">
 <dt id="terminal.Terminal.clear_screen_from_cursor_up">
 <tt class="descname">clear_screen_from_cursor_up</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.clear_screen_from_cursor_up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.clear_screen_from_cursor_up" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clears the screen from the cursor up (Esc[1J).</p>
+<dd><p>Clears the screen from the cursor up (ESC[1J).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.clear_screen_from_cursor">
 <tt class="descname">clear_screen_from_cursor</tt><big>(</big><em>n</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.clear_screen_from_cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.clear_screen_from_cursor" title="Permalink to this definition">¶</a></dt>
-<dd><p>CSI*n*J ED (Erase Data).  This escape sequence uses the following rules:</p>
+<dd><p>CSI <em>n</em> J ED (Erase Data).  This escape sequence uses the following rules:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="16%" />
@@ -606,19 +942,19 @@ DCH has no effect outside the scrolling margins.</p>
 <dl class="method">
 <dt id="terminal.Terminal.clear_line_from_cursor_right">
 <tt class="descname">clear_line_from_cursor_right</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.clear_line_from_cursor_right"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.clear_line_from_cursor_right" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clears the screen from the cursor right (Esc[K or Esc[0K).</p>
+<dd><p>Clears the screen from the cursor right (ESC[K or ESC[0K).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.clear_line_from_cursor_left">
 <tt class="descname">clear_line_from_cursor_left</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.clear_line_from_cursor_left"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.clear_line_from_cursor_left" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clears the screen from the cursor left (Esc[1K).</p>
+<dd><p>Clears the screen from the cursor left (ESC[1K).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.clear_line">
 <tt class="descname">clear_line</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.clear_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.clear_line" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clears the entire line (Esc[2K).</p>
+<dd><p>Clears the entire line (ESC[2K).</p>
 </dd></dl>
 
 <dl class="method">
@@ -626,11 +962,31 @@ DCH has no effect outside the scrolling margins.</p>
 <tt class="descname">clear_line_from_cursor</tt><big>(</big><em>n</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.clear_line_from_cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.clear_line_from_cursor" title="Permalink to this definition">¶</a></dt>
 <dd><p>CSI*n*K EL (Erase in Line).  This escape sequence uses the following
 rules:</p>
-<div class="highlight-python"><pre>Esc[K   Clear screen from cursor right  EL0
-Esc[0K  Clear screen from cursor right  EL0
-Esc[1K  Clear screen from cursor left   EL1
-Esc[2K  Clear entire line               ED2</pre>
-</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="77%" />
+<col width="8%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Esc[K</td>
+<td>Clear screen from cursor right</td>
+<td>EL0</td>
+</tr>
+<tr class="row-even"><td>Esc[0K</td>
+<td>Clear screen from cursor right</td>
+<td>EL0</td>
+</tr>
+<tr class="row-odd"><td>Esc[1K</td>
+<td>Clear screen from cursor left</td>
+<td>EL1</td>
+</tr>
+<tr class="row-even"><td>Esc[2K</td>
+<td>Clear entire line</td>
+<td>ED2</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -638,20 +994,103 @@ Esc[2K  Clear entire line               ED2</pre>
 <tt class="descname">set_led_state</tt><big>(</big><em>n</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.set_led_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.set_led_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the values the dict, self.leds depending on <em>n</em> using the following
 rules:</p>
-<blockquote>
-<div>Esc[0q  Turn off all four leds  DECLL0
-Esc[1q  Turn on LED #1          DECLL1
-Esc[2q  Turn on LED #2          DECLL2
-Esc[3q  Turn on LED #3          DECLL3
-Esc[4q  Turn on LED #4          DECLL4</div></blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="65%" />
+<col width="18%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Esc[0q</td>
+<td>Turn off all four leds</td>
+<td>DECLL0</td>
+</tr>
+<tr class="row-even"><td>Esc[1q</td>
+<td>Turn on LED #1</td>
+<td>DECLL1</td>
+</tr>
+<tr class="row-odd"><td>Esc[2q</td>
+<td>Turn on LED #2</td>
+<td>DECLL2</td>
+</tr>
+<tr class="row-even"><td>Esc[3q</td>
+<td>Turn on LED #3</td>
+<td>DECLL3</td>
+</tr>
+<tr class="row-odd"><td>Esc[4q</td>
+<td>Turn on LED #4</td>
+<td>DECLL4</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These aren't implemented in Gate One's GUI (yet) but they certainly kept track of!</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._set_rendition">
+<tt class="descname">_set_rendition</tt><big>(</big><em>n</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._set_rendition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._set_rendition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets <tt class="xref py py-attr docutils literal"><span class="pre">self.renditions[self.cursorY][self.cursorX]</span></tt> equal to
+<em>n.split(';')</em>.</p>
+<p><em>n</em> is expected to be a string of ECMA-48 rendition numbers separated by
+semicolons.  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="s">&#39;0;1;31&#39;</span>
+</pre></div>
+</div>
+<p>...will result in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Note that the numbers were converted to integers and the order was
+preserved.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._opt_handler">
+<tt class="descname">_opt_handler</tt><big>(</big><em>chars</em><big>)</big><a class="headerlink" href="#terminal.Terminal._opt_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optional special escape sequence handler for sequences matching
+RE_OPT_SEQ.  If CALLBACK_OPT is defined it will be called like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">CALLBACK_OPT</span><span class="p">](</span><span class="n">chars</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Applications can use this escape sequence to define whatever special
+handlers they like.  It works like this: If an escape sequence is
+encountered matching RE_OPT_SEQ this method will be called with the
+inbetween <em>chars</em> (e.g. ]_;&lt;chars&gt;) as the argument.</p>
+<p>Applications can then do what they wish with <em>chars</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">I added this functionality so that plugin authors would have a mechanism to communicate with terminal applications.  See the SSH plugin for an example of how this can be done (there's channels of communication amongst ssh_connect.py, ssh.js, and ssh.py).</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._spanify_screen">
+<tt class="descname">_spanify_screen</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal._spanify_screen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates over the lines in <em>screen</em> and <em>renditions</em>, applying HTML
+markup (span tags) where appropriate and returns the result as a list of
+lines. It also marks the cursor position via a &lt;span&gt; tag at the
+appropriate location.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._spanify_scrollback">
+<tt class="descname">_spanify_scrollback</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal._spanify_scrollback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Spanifies everything inside <em>screen</em> using <em>renditions</em>.  This differs
+from _spanify_screen() in that it doesn't apply any logic to detect the
+location of the cursor (to make it just a tiny bit faster).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.dump_html">
 <tt class="descname">dump_html</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.dump_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.dump_html" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dumps the terminal screen as a list of HTML-formatted lines.</p>
-<p>Note: This places &lt;span class=&quot;cursor&quot;&gt;(current character)&lt;/span&gt; around
-the cursor location.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This places &lt;span class=&quot;cursor&quot;&gt;(current character)&lt;/span&gt; around the cursor location.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -666,17 +1105,35 @@ scrollback buffer.</p>
 <tt class="descname">dump_components</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.dump_components"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.dump_components" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dumps the screen and renditions as-is, the scrollback buffer as HTML,
 and the current cursor coordinates.  Also, empties the scrollback buffer</p>
-<p>NOTE: Was used in some performance-related experiments but might be
-useful for other patterns in the future so I've left it here.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This was used in some performance-related experiments but might be useful for other patterns in the future so I've left it here.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="terminal.Terminal.dump">
 <tt class="descname">dump</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.dump" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns self.screen as a list of strings with no formatting.
-No scrollback buffer.  No renditions.</p>
-<p>NOTE: Does not empty the scrollback buffer.  Primarily used to get a
+No scrollback buffer.  No renditions.  It is meant to be used to get a
 quick glance of what is being displayed (when debugging).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method does not empty the scrollback buffer.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._Terminal__ignore">
+<tt class="descname">_Terminal__ignore</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#terminal.Terminal._Terminal__ignore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does nothing (on purpose!).  Used as a placeholder for unimplemented
+functions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="terminal.Terminal.__weakref__">
+<tt class="descname">__weakref__</tt><a class="headerlink" href="#terminal.Terminal.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
 </dd></dl>
 
 </dd></dl>
@@ -690,6 +1147,9 @@ quick glance of what is being displayed (when debugging).</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a><ul>
@@ -709,7 +1169,7 @@ quick glance of what is being displayed (when debugging).</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="sso.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="termio.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>
