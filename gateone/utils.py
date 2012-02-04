@@ -40,6 +40,7 @@ except ImportError: # Tornado isn't available
     from json import loads as json_encode
 
 # Globals
+MACOS = os.uname()[0] == 'Darwin'
 # This matches JUST the PIDs from the output of the pstree command
 RE_PSTREE = re.compile(r'\(([0-9]*)\)')
 # Matches Gate One's special optional escape sequence
@@ -109,20 +110,20 @@ SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
 # Exceptions
 class UnknownFacility(Exception):
     """
-    Raised if string_to_syslog_facility() is given a string that doesn't match
+    Raised if `string_to_syslog_facility` is given a string that doesn't match
     a known syslog facility.
     """
     pass
 
 class MimeTypeFail(Exception):
     """
-    Raised by create_data_uri() if the mimetype of a file could not be guessed.
+    Raised by `create_data_uri` if the mimetype of a file could not be guessed.
     """
     pass
 
 class SSLGenerationError(Exception):
     """
-    Raised by gen_self_signed_ssl() if an error is encountered generating a
+    Raised by `gen_self_signed_ssl` if an error is encountered generating a
     self-signed SSL certificate.
     """
     pass
@@ -134,14 +135,17 @@ def noop(*args, **kwargs):
 
 def shell_command(cmd, timeout_duration=5):
     """
-    Resets the SIGCHLD signal handler (if necessary), executes
-    commands.getstatusoutput(*cmd*), then re-enables the SIGCHLD handler (if it
+    Resets the SIGCHLD signal handler (if necessary), executes *cmd* via
+    :func:`commands.getstatusoutput`, then re-enables the SIGCHLD handler (if it
     was set to something other than SIG_DFL).  Returns the result of
-    getstatusoutput().
+    `getstatusoutput` which is a tuple in the form of::
+
+        (exitstatus, output)
 
     If the command takes longer than *timeout_duration* seconds, it will be
-    auto-killed and (255, _("ERROR: Timeout running shell command")) will be
-    returned.
+    auto-killed and the following will be returned::
+
+        (255, _("ERROR: Timeout running shell command"))
     """
     try:
         from commands import getstatusoutput
@@ -163,7 +167,7 @@ def shell_command(cmd, timeout_duration=5):
 
 def json_encode(obj):
     """
-    On some platforms (CentOS 6.2, specifically) tornado.escape.json_decode
+    On some platforms (CentOS 6.2, specifically) `tornado.escape.json_decode`
     doesn't seem to work just right when it comes to returning unicode strings.
     This is just a wrapper that ensures that the returned string is unicode.
     """
@@ -216,9 +220,9 @@ def gen_self_signed_ssl():
 def gen_self_signed_openssl():
     """
     This method will generate a secure self-signed SSL key/certificate pair
-    (using the openssl command) saving the result as 'certificate.pem' and
-    'keyfile.pem' in the current working directory.  The certificate will be
-    valid for 10 years.
+    (using the `openssl <http://www.openssl.org/docs/apps/openssl.html>`_
+    command) saving the result as 'certificate.pem' and 'keyfile.pem' in the
+    current working directory.  The certificate will be valid for 10 years.
     """
     subject = (
         '-subj "/OU=%s (Self-Signed)/CN=Gate One/O=Liftoff Software"' %
@@ -282,15 +286,15 @@ def gen_self_signed_openssl():
 def gen_self_signed_pyopenssl(notAfter=None):
     """
     This method will generate a secure self-signed SSL key/certificate pair
-    saving the result as 'certificate.pem' and 'keyfile.pem' in the current
-    working directory.  By default the certificate will be valid for 10 years
-    but this can be overridden by passing a valid timestamp via the *notAfter*
-    argument.
+    (using pyOpenSSL) saving the result as 'certificate.pem' and 'keyfile.pem'
+    in the current working directory.  By default the certificate will be valid
+    for 10 years but this can be overridden by passing a valid timestamp via the
+    *notAfter* argument.
 
     Examples::
 
-        gen_self_signed_ssl(60 * 60 * 24 * 365) # 1-year certificate
-        gen_self_signed_ssl() # 10-year certificate
+        >>> gen_self_signed_ssl(60 * 60 * 24 * 365) # 1-year certificate
+        >>> gen_self_signed_ssl() # 10-year certificate
     """
     try:
         import OpenSSL
@@ -324,15 +328,14 @@ def gen_self_signed_pyopenssl(notAfter=None):
 
 def none_fix(val):
     """
-    If *val* is a string meaning 'none', return None.  Otherwise just return
-    *val* as-is.  Examples::
+    If *val* is a string that utlimately means 'none', return None.  Otherwise
+    return *val* as-is.  Examples::
 
-        >>> import utils
-        >>> utils.none_fix('none')
+        >>> none_fix('none')
         None
-        >>> utils.none_fix('0')
+        >>> none_fix('0')
         None
-        >>> utils.none_fix('whatever')
+        >>> none_fix('whatever')
         'whatever'
     """
     if isinstance(val, basestring) and val.lower() in ['none', '0', 'no']:
@@ -345,12 +348,11 @@ def str2bool(val):
     Converts strings like, 'false', 'true', '0', and '1' into their boolean
     equivalents.  If no logical match is found, return False.  Examples::
 
-        >>> import utils
-        >>> utils.str2bool('false')
+        >>> str2bool('false')
         False
-        >>> utils.str2bool('1')
+        >>> str2bool('1')
         True
-        >>> utils.st2bool('whatever')
+        >>> st2bool('whatever')
         False
     """
     if isinstance(val, basestring) and val.lower() in ['1', 'true', 'yes']:
@@ -364,7 +366,7 @@ def generate_session_id():
 
     .. code-block:: python
 
-        >>> utils.generate_session_id()
+        >>> generate_session_id()
         "NzY4YzFmNDdhMTM1NDg3Y2FkZmZkMWJmYjYzNjBjM2Y5O"
         >>>
     """
@@ -374,9 +376,11 @@ def mkdir_p(path):
     """
     Pythonic version of "mkdir -p".  Example equivalents::
 
-        >>> import commands, utils
-        >>> utils.mkdir_p('/tmp/test/testing') # Does the same thing as below:
+        >>> import commands
+        >>> mkdir_p('/tmp/test/testing') # Does the same thing as below:
         >>> commands.getstatusoutput('mkdir -p /tmp/test/testing')
+
+    .. note:: This doesn't actually call any external commands.
     """
     try:
         os.makedirs(path)
@@ -391,14 +395,16 @@ def cmd_var_swap(cmd,
     Returns *cmd* with special inline variables swapped out for their respective
     argument values.  The special variables are as follows:
 
-        %SESSION% - *session*
-        %SESSION_HASH% - *session_hash*
-        %USERDIR% - *user_dir*
-        %USER% - *user*
-        %TIME% - *time*
+        ==============  ==============
+        %SESSION%       *session*
+        %SESSION_HASH%  *session_hash*
+        %USERDIR%       *user_dir*
+        %USER%          *user*
+        %TIME%          *time*
+        ==============  ==============
 
     This allows for unique or user-specific values to be swapped into command
-    line arguments like so:
+    line arguments like so::
 
         ssh_connect.py -M -S '/tmp/gateone/%SESSION%/%r@%L:%p'
 
@@ -427,7 +433,7 @@ def short_hash(to_shorten):
 
 def kill_dtached_proc(session, term):
     """
-    Kills the dtach session associated with the given *term* and all its
+    Kills the dtach processes associated with the given *term* and all its
     sub-processes.  Requires *session* so it can figure out the right
     processess to kill.
     """
@@ -451,11 +457,26 @@ def kill_dtached_proc(session, term):
                 pass # Already dead, no big deal.
                 # Uncomment above you think otherwise.
 
+def kill_dtached_proc_macos(session, term):
+    """
+    A Mac OS-specific implementation of `kill_dtached_proc` since Macs don't
+    have /proc.
+    """
+    cmd = (
+        "ps -ef | "
+        "grep %s/dtach_%s | " # Limit to those matching our session/term combo
+        "grep -v grep | " # Get rid of grep from the results (if present)
+        "awk '{print $2}' | " # Just the PID please
+        "xargs kill" % (session, term) # Kill em'
+    )
+    exitstatus, output = shell_command(cmd)
+
 def killall(session_dir):
     """
     Kills all running Gate One terminal processes including any detached dtach
     sessions.
-    *session_dir* - The path to Gate One's session directory.
+
+    :session_dir: The path to Gate One's session directory.
     """
     sessions = os.listdir(session_dir)
     for f in os.listdir('/proc'):
@@ -481,6 +502,23 @@ def killall(session_dir):
                             os.kill(pid, signal.SIGTERM)
                         except OSError:
                             pass # PID is already dead--great
+
+def killall_macos(session_dir):
+    """
+    A Mac OS X-specific version of `killall` since Macs don't have /proc.
+    """
+    # TODO: See if there's a better way to keep track of subprocesses so we
+    # don't have to enumerate the process table at all.
+    sessions = os.listdir(session_dir)
+    for session in sessions:
+        cmd = (
+            "ps -ef | "
+            "grep %s | " # Limit to those matching the session
+            "grep -v grep | " # Get rid of grep from the results (if present)
+            "awk '{print $2}' | " # Just the PID please
+            "xargs kill" % session # Kill em'
+        )
+        exitstatus, output = shell_command(cmd)
 
 def create_plugin_links(static_dir, templates_dir, plugin_dir):
     """
@@ -531,7 +569,7 @@ def create_plugin_links(static_dir, templates_dir, plugin_dir):
 
 def get_plugins(plugin_dir):
     """
-    Adds plugins' Python files to sys.path and returns a dictionary of
+    Adds plugins' Python files to `sys.path` and returns a dictionary of
     JavaScript, CSS, and Python files contained in *plugin_dir* like so::
 
         {
@@ -602,7 +640,8 @@ def get_plugins(plugin_dir):
 def load_plugins(plugins):
     """
     Given a list of *plugins*, imports them.
-    NOTE:  Assumes they're all in sys.path.
+
+    .. note::  Assumes they're all in `sys.path`.
     """
     out_list = []
     for plugin in plugins:
@@ -652,7 +691,7 @@ def merge_handlers(handlers):
 # See: http://code.activestate.com/recipes/577894-convert-strings-like-5d-and-60s-to-timedelta-objec/
 def convert_to_timedelta(time_val):
     """
-    Given a *time_val* (string) such as '5d', returns a timedelta object
+    Given a *time_val* (string) such as '5d', returns a `datetime.timedelta` object
     representing the given value (e.g. timedelta(days=5)).  Accepts the
     following '<num><char>' formats:
 
@@ -667,14 +706,13 @@ def convert_to_timedelta(time_val):
 
     Examples::
 
-        >>> import utils
-        >>> utils.convert_to_timedelta('7d')
+        >>> convert_to_timedelta('7d')
         datetime.timedelta(7)
-        >>> utils.convert_to_timedelta('24h')
+        >>> convert_to_timedelta('24h')
         datetime.timedelta(1)
-        >>> utils.convert_to_timedelta('60m')
+        >>> convert_to_timedelta('60m')
         datetime.timedelta(0, 3600)
-        >>> utils.convert_to_timedelta('120s')
+        >>> convert_to_timedelta('120s')
         datetime.timedelta(0, 120)
     """
     num = int(time_val[:-1])
@@ -689,12 +727,11 @@ def convert_to_timedelta(time_val):
 
 def process_opt_esc_sequence(chars):
     """
-    Parse the *chars* passed from terminal.py by way of the special,
+    Parse the *chars* passed from `terminal.Terminal` by way of the special,
     optional escape sequence handler (e.g. '<plugin>|<text>') into a tuple of
     (<plugin name>, <text>).  Here's an example::
 
-        >>> import utils
-        >>> utils.process_opt_esc_sequence('ssh|user@host:22')
+        >>> process_opt_esc_sequence('ssh|user@host:22')
         ('ssh', 'user@host:22')
     """
     plugin = None
@@ -711,9 +748,8 @@ def raw(text, replacement_dict=None):
     equivalents using *replacement_dict*.  If *replacement_dict* is None or
     False the global REPLACEMENT_DICT will be used.  Example::
 
-        >>> import utils
         >>> test = '\\x1b]0;Some xterm title\x07'
-        >>> print(utils.raw(test))
+        >>> print(raw(test))
         '^[]0;Some title^G'
     """
     if not replacement_dict:
@@ -732,7 +768,6 @@ def string_to_syslog_facility(facility):
     Given a string (*facility*) such as, "daemon" returns the numeric
     syslog.LOG_* equivalent.
     """
-    import syslog
     if facility.lower() in FACILITIES:
         return FACILITIES[facility.lower()]
     else:
@@ -743,7 +778,7 @@ def create_data_uri(filepath):
     """
     Given a file at *filepath*, return that file as a data URI.
 
-    Raises a MimeTypeFail exception if the mimetype could not be guessed.
+    Raises a `MimeTypeFail` exception if the mimetype could not be guessed.
     """
     mimetype = mimetypes.guess_type(filepath)[0]
     if not mimetype:
@@ -792,9 +827,7 @@ def get_or_update_metadata(golog_path, user):
     """
     Retrieves or creates/updates the metadata inside of *golog_path*.
 
-    NOTE:  All logs will need "fixing" the first time they're enumerated since
-    they won't have an end_date.  Fortunately we only need to do this once per
-    golog.
+    .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.
     """
     first_frame = retrieve_first_frame(golog_path)
     metadata = {}
@@ -871,7 +904,7 @@ def which(binary, path=None):
     """
     Returns the full path of *binary* (string) just like the 'which' command.
     Optionally, a *path* (colon-delimited string) may be given to use instead of
-    os.environ['PATH'].
+    `os.environ` ['PATH'].
     """
     if path:
         paths = path.split(':')
@@ -912,6 +945,9 @@ def timeout_func(func, args=(), kwargs={}, timeout_duration=10, default=None):
 
 # Misc
 _ = get_translation()
+if MACOS: # Apply mac-specific stuff
+    kill_dtached_proc = kill_dtached_proc_macos
+    killall = killall_macos
 
 # Used in case bell.ogg can't be found or can't be converted into a data URI
 fallback_bell = "data:audio/ogg;base64,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"

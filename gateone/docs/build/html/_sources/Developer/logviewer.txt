@@ -5,5 +5,4 @@
 
 .. automodule:: logviewer
     :members:
-    :special-members:
     :private-members:

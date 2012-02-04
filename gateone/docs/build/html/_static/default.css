@@ -70,7 +70,7 @@ div.sphinxsidebar {
 div.sphinxsidebar h3 {
     font-family: Dejavu Sans, Verdana, sans-serif;
     color: white;
-    font-size: 1.4em;
+    font-size: 1.3em;
     font-weight: normal;
     margin: 0;
     padding: 0;
@@ -84,7 +84,7 @@ div.sphinxsidebar h3 a {
 div.sphinxsidebar h4 {
     font-family: Dejavu Sans, Verdana, sans-serif;
     color: white;
-    font-size: 1.3em;
+    font-size: 1.2em;
     font-weight: normal;
     margin: 5px 0 0 0;
     padding: 0;
@@ -188,6 +188,12 @@ div.admonition ul, div.admonition ol {
     margin-bottom: 5px;
 }
 
+div.tip {
+    border: 1px #005A8C solid;
+    border-left: none;
+    border-right: none;
+}
+
 div.note {
     background-color: #eee;
     border: 1px solid #ccc;
@@ -241,9 +247,14 @@ th {
     background-color: #EEE;
     color: #005A8C;
 }
+th.field-name {
+    font-style: italic;
+    white-space: pre; /* Works around the wrapping that occurs as a result of a space going between an attribute and a colon */
+    font-size: 0.9em;
+}
 
 dt {
-    font-size: 1.2em;
+/*     font-size: 1.1em; */
 }
 
 .warning tt {
@@ -293,7 +304,7 @@ div.viewcode-block:target {
 }
 .body .highlight .nf {
     color: #8A3083;
-    text-shadow: 1px 1px 2px #999;
+/*     text-shadow: 1px 1px 2px #999; */
 }
 .body .highlight .s {
     color: #A40002;

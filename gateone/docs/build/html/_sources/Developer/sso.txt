@@ -5,5 +5,4 @@
 
 .. automodule:: sso
     :members:
-    :special-members:
     :private-members:

@@ -323,7 +323,7 @@ table.docutils td, table.docutils th {
 
 table.field-list td, table.field-list th {
 /*     border: 0 !important; */
-    font-style: italic;
+/*     font-style: italic; */
 }
 
 table.footnote td, table.footnote th {

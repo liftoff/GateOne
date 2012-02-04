@@ -5,5 +5,4 @@
 
 .. automodule:: utils
     :members:
-    :special-members:
     :private-members:

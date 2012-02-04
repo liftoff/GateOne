@@ -24,9 +24,9 @@ This module provides a Multiplex class that can perform the following:
  * Examine the output of the child process in real-time and perform actions (also asynchronously!) based on what is "expected" (aka non-blocking, pexpect-like functionality).
  * Log the output of the child process to a file and/or syslog.
 
-The Multiplex class is meant to be used in conjunction with a running Tornado
-IOLoop instance.  It can be instantiated from within your Tornado application
-like so::
+The Multiplex class is meant to be used in conjunction with a running
+:class:`tornado.ioloop.IOLoop` instance.  It can be instantiated from within
+your Tornado application like so::
 
     multiplexer = termio.Multiplex(
         'nethack',
@@ -100,7 +100,7 @@ import logging
 
 # Import our own stuff
 from utils import get_translation, human_readable_bytes, noop, which
-from utils import get_or_update_metadata, json_encode
+from utils import get_or_update_metadata, json_encode, shell_command
 
 _ = get_translation()
 
@@ -110,13 +110,14 @@ SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
 # of the PUA.  I hereby dub thee, "U+F0F0F0, The Separator."
 CALLBACK_THREAD = None # Used by add_callback()
 POSIX = 'posix' in sys.builtin_module_names
+MACOS = os.uname()[0] == 'Darwin'
 
 # Helper functions
 def debug_expect(m_instance, match):
     """
-    This method is used by :py:meth:`BaseMultiplex.expect` if :py:attr:`BaseMultiplex.debug` is True.  It
-    facilitates easy debugging of regular expressions.  It will print out
-    precisely what was matched and where.
+    This method is used by :meth:`BaseMultiplex.expect` if :attr:`self.debug` is
+    True.  It facilitates easy debugging of regular expressions.  It will print
+    out precisely what was matched and where.
 
     .. note::  This function only works with post-process patterns.
     """
@@ -135,7 +136,7 @@ def debug_expect(m_instance, match):
 # Exceptions
 class Timeout(Exception):
     """
-    Used by :py:meth:`BaseMultiplex.expect` and :py:meth:`BaseMultiplex.await`;
+    Used by :meth:`BaseMultiplex.expect` and :meth:`BaseMultiplex.await`;
     called when a timeout is reached.
     """
     pass
@@ -143,57 +144,30 @@ class Timeout(Exception):
 # Classes
 class Pattern(object):
     """
-    Used by :py:meth:`BaseMultiplex.expect`, an object to store patterns
+    Used by :meth:`BaseMultiplex.expect`, an object to store patterns
     (regular expressions) and their associated properties.
 
     .. note:: The variable *m_instance* is used below to mean the current instance of BaseMultiplex (or a subclass thereof).
 
-    .. py:attribute:: pattern
+    :pattern: A regular expression or iterable of regular expressions that will be checked against the output stream.
 
-        A regular expression or iterable of regular expressions that will be
-        checked against the output stream.
+    :callback: A function that will be called when the pattern is matched.  Callbacks are called like so:
 
-    .. py:attribute:: callback
+        >>> callback(m_instance, matched_string)
 
-        A function that will be called when the pattern is matched.  Callbacks
-        are called like so:
+    :optional: Indicates that this pattern is optional.  Meaning that it isn't required to match before the next pattern in :attr:`BaseMultiplex._patterns` is checked.
 
-            >>> callback(m_instance, matched_string)
+    :sticky: Indicates that the pattern will not time out and won't be automatically removed from self._patterns when it is matched.
 
-    .. py:attribute:: optional
+    :errorback: A function to call in the event of a timeout or if an exception is encountered.  Errorback functions are called like so:
 
-        Indicates that this pattern is optional.  Meaning that it isn't required
-        to match before the next pattern in :py:attr:`BaseMultiplex._patterns`
-        is checked.
+        >>> errorback(m_instance)
 
-    .. py:attribute:: sticky
+    :preprocess: Indicates that this pattern is to be checked against the incoming stream before it is processed by the terminal emulator.  Useful if you need to match non-printable characters like control codes and escape sequences.
 
-        Indicates that the pattern will not time out and won't be automatically
-        removed from self._patterns when it is matched.
+    :timeout: A :obj:`datetime.timedelta` object indicating how long we should wait before calling :meth:`errorback`.
 
-    .. py:attribute:: errorback
-
-        A function to call in the event of a timeout or if an exception is
-        encountered.  Errorback functions are called like so:
-
-            >>> errorback(m_instance)
-
-    .. py:attribute:: preprocess
-
-        Indicates that this pattern is to be checked against the incoming stream
-        before it is processed by the terminal emulator.  Useful if you need to
-        match non-printable characters like control codes and escape sequences.
-
-    .. py:attribute:: timeout
-
-        A :py:obj:`datetime.timedelta` object indicating how long we should wait
-        before calling :py:meth:`errorback`.
-
-    .. py:attribute:: created
-
-        A :py:obj:`datetime.datetime` object that gets set when the Pattern is
-        instantiated by :py:meth:`BaseMultiplex.expect`.  It is used to
-        determine if and when a timeout has been reached.
+    :created: A :obj:`datetime.datetime` object that gets set when the Pattern is instantiated by :meth:`BaseMultiplex.expect`.  It is used to determine if and when a timeout has been reached.
     """
     def __init__(self, pattern, callback,
             optional=False,
@@ -213,6 +187,15 @@ class Pattern(object):
 class BaseMultiplex(object):
     """
     A base class that all Multiplex types will inherit from.
+
+    :cmd: *string* - The command to execute when calling :meth:`spawn`.
+    :terminal_emulator: *terminal.Terminal or similar* - The terminal emulator to write to when capturing the incoming output stream from *cmd*.
+    :log_path: *string* - The absolute path to the log file where the output from *cmd* will be saved.
+    :term_id: *string* - The terminal identifier to associated with this instance (only used in the logs to identify terminals).
+    :syslog: *boolean* - Whether or not the session should be logged using the local syslog daemon.
+    :syslog_host: *string* - An optional syslog host to send session log information to (this is independent of the *syslog* option above--it does not require a syslog daemon be present on the host running Gate One).
+    :syslog_facility: *integer* - The syslog facility to use when logging messages.  All possible facilities can be found in `utils.FACILITIES` (if you need a reference other than the syslog module).
+    :debug: *boolean* - Used by the `expect` methods...  If set, extra debugging information will be output whenever a regular expression is matched.
     """
     CALLBACK_UPDATE = 1 # Screen update
     CALLBACK_EXIT = 2   # When the underlying program exits
@@ -366,28 +349,38 @@ class BaseMultiplex(object):
 
     def _call_callback(self, callback):
         """
-        This method is here in the event that subclasses of BaseMultiplex need
+        This method is here in the event that subclasses of `BaseMultiplex` need
         to call callbacks in an implementation-specific way.  It just calls
         *callback*.
         """
         callback()
 
     def spawn(self, rows=24, cols=80, env=None):
+        """
+        This method must be overridden by suclasses of `BaseMultiplex`.  It is
+        expected to execute a child process in a way that allows non-blocking
+        reads to be performed.
+        """
         raise NotImplementedError(_(
             "spawn() *must* be overridden by subclasses."))
 
     def isalive(self):
+        """
+        This method must be overridden by suclasses of `BaseMultiplex`.  It is
+        expected to return True if the child process is still alive and False
+        otherwise.
+        """
         raise NotImplementedError(_(
             "isalive() *must* be overridden by subclasses."))
 
     def term_write(self, stream):
         """
-        Writes :py:obj:`stream` to :py:data:`term` and also takes care of
-        logging to :py:attr:`log_path` (if set) and/or syslog (if
-        :py:attr:`syslog` is `True`).  When complete, will call any
-        callbacks registered in :py:obj:`CALLBACK_UPDATE`.
+        Writes :obj:`stream` to `BaseMultiplex.term` and also takes care of
+        logging to :attr:`log_path` (if set) and/or syslog (if
+        :attr:`syslog` is `True`).  When complete, will call any
+        callbacks registered in :obj:`CALLBACK_UPDATE`.
 
-            :stream: A string or bytes containing the incoming output stream from the underlying terminal program.
+        :stream: A string or bytes containing the incoming output stream from the underlying terminal program.
 
         .. note:: This kind of logging doesn't capture user keystrokes.  This is intentional as we don't want passwords winding up in the logs.
         """
@@ -453,12 +446,12 @@ class BaseMultiplex(object):
 
     def preprocess(self, stream):
         """
-        Handles preprocess patterns registered by :py:meth:`expect`.  That
+        Handles preprocess patterns registered by :meth:`expect`.  That
         is, those patterns which have been marked with `preprocess = True`.
         Patterns marked in this way get handled *before* the terminal emulator
-        processes the :py:obj:`stream`.
+        processes the :obj:`stream`.
 
-            :stream: A string or bytes containing the incoming output stream from the underlying terminal program.
+        :stream: A string or bytes containing the incoming output stream from the underlying terminal program.
         """
         preprocess_patterns = (a for a in self._patterns if a.preprocess)
         finished_non_sticky = False
@@ -480,7 +473,7 @@ class BaseMultiplex(object):
 # TODO: Figure out why we're not catching our ready_string
     def postprocess(self):
         """
-        Handles post-process patterns registered by :py:meth:`expect`.
+        Handles post-process patterns registered by :meth:`expect`.
         """
         # Check the terminal emulator screen for any matching patterns.
         post_patterns = (a for a in self._patterns if not a.preprocess)
@@ -516,7 +509,7 @@ class BaseMultiplex(object):
 
     def _handle_match(self, pattern_obj, match):
         """
-        Handles a matched regex detected by :py:meth:`postprocess`.  It calls the :py:obj:`Pattern.callback` and takes care of removing it from :py:attr:`_patterns` (if it isn't sticky).
+        Handles a matched regex detected by :meth:`postprocess`.  It calls :obj:`Pattern.callback` and takes care of removing it from :attr:`_patterns` (if it isn't sticky).
         """
         callback = partial(pattern_obj.callback, self, match.group())
         self._call_callback(callback)
@@ -532,8 +525,7 @@ class BaseMultiplex(object):
 
     def writeline(self, line=''):
         """
-        Just like Multiplex.write() but it writes a newline after writing
-        *line*.
+        Just like :meth:`write` but it writes a newline after writing *line*.
 
         If no *line* is given a newline will be written.
         """
@@ -555,8 +547,12 @@ class BaseMultiplex(object):
         """
         Returns the difference of terminal lines (a list of lines, to be
         specific) and its scrollback buffer (which is also a list of lines) as a
-        tuple, (scrollback, text).  If a line hasn't changed since the last dump
-        said line will be replaced with an empty string in the output.
+        tuple::
+
+            (scrollback, screen)
+
+        If a line hasn't changed since the last dump said line will be replaced
+        with an empty string in the output.
 
         If *full*, will return the entire screen (not just the diff).
         if *client_id* is given (string), this will be used as a unique client
@@ -615,9 +611,10 @@ class BaseMultiplex(object):
 
     def timeout_check(self, timeout_now=False):
         """
-        Iterates over :py:attr:`_patterns` checking each to determine if it has
-        timed out.  If a timeout has occurred for a Pattern and said Pattern has
-        an *errorback* function that function will be called.
+        Iterates over :attr:`BaseMultiplex._patterns` checking each to
+        determine if it has timed out.  If a timeout has occurred for a
+        `Pattern` and said Pattern has an *errorback* function that function
+        will be called.
 
         Returns True if there are still non-sticky patterns remaining.  False
         otherwise.
@@ -657,14 +654,14 @@ class BaseMultiplex(object):
 
             callback(multiplex_instance, matched_string)
 
-        *patterns* can be a string, an :py:obj:`re.SRE_Pattern` (as created by
-        :py:func:`re.compile`), or a iterator of either/or.  Returns a reference
+        *patterns* can be a string, an :class:`re.RegexObject` (as created by
+        :func:`re.compile`), or a iterator of either/or.  Returns a reference
         object that can be used to remove the registered pattern/callback at any
-        time using the :py:meth:`unexpect` method (see below).
+        time using the :meth:`unexpect` method (see below).
 
         .. note::  This function is non-blocking!
 
-        .. warning::  The *timeout* value gets compared against the time :py:meth:`expect` was called to create it.  So don't wait too long if you're planning on using :py:meth:`await`!
+        .. warning::  The *timeout* value gets compared against the time :meth:`expect` was called to create it.  So don't wait too long if you're planning on using :meth:`await`!
 
         Here's a simple example that changes a user's password::
 
@@ -684,14 +681,13 @@ class BaseMultiplex(object):
             False
             >>> # All done!
 
-        .. tip:: The :py:meth:`await` method will automatically call :py:meth:`spawn` if not :py:meth:`isalive`.
+        .. tip:: The :meth:`await` method will automatically call :meth:`spawn` if not :meth:`isalive`.
 
-        This would result in the password of 'someuser' being changed to 'somepassword'.  How is the order determined?  Every time :py:meth:`expect` is called it creates a new :py:class:`Pattern` using the given parameters and appends it to :py:attr:`_patterns` (which is a list).  As each :py:class:`Pattern` is matched its *callback* gets called and the :py:class:`Pattern` is removed from :py:attr:`_patterns` (unless *sticky* is set to True).  So even though the patterns and callbacks listed above were identical they will get executed and removed in the order they were created as each respective :py:class:`Pattern` is matched.
+        This would result in the password of 'someuser' being changed to 'somepassword'.  How is the order determined?  Every time :meth:`expect` is called it creates a new :class:`Pattern` using the given parameters and appends it to `self._patterns` (which is a list).  As each :class:`Pattern` is matched its *callback* gets called and the :class:`Pattern` is removed from `self._patterns` (unless *sticky* is `True`).  So even though the patterns and callbacks listed above were identical they will get executed and removed in the order they were created as each respective :class:`Pattern` is matched.
 
-        .. note:: Only the first pattern or patterns marked as *sticky* are checked against the incoming stream.  If the first non-sticky pattern is marked *optional* then the proceeding pattern will be checked (and so on).  All other patterns will sit in self._patterns until their predecessors are matched/removed.
+        .. note:: Only the first pattern, or patterns marked as *sticky* are checked against the incoming stream.  If the first non-sticky pattern is marked *optional* then the proceeding pattern will be checked (and so on).  All other patterns will sit in `self._patterns` until their predecessors are matched/removed.
 
-        Patterns can be removed from self._patterns as needed by calling
-        unexpect(<reference>).  Here's an example::
+        Patterns can be removed from `self._patterns` as needed by calling `unexpect(<reference>)`.  Here's an example::
 
             >>> def handle_accepting_ssh_key(m_instance, matched):
             ...     m_instance.writeline(u'yes')
@@ -705,7 +701,7 @@ class BaseMultiplex(object):
 
         The example above would send 'yes' if asked by the SSH program to accept
         the host's public key (which would result in it being automatically
-        removed from self._patterns).  However, if this condition isn't met
+        removed from `self._patterns`).  However, if this condition isn't met
         before send_password() is called, send_password() will use the reference
         object to remove it directly.  This ensures that the pattern won't be
         accidentally matched later on in the program's execution.
@@ -713,9 +709,9 @@ class BaseMultiplex(object):
         .. note:: Even if we didn't match the "Are you sure..." pattern it would still get auto-removed after its timeout was reached.
 
         **About pattern ordering:** The position at which the given pattern will
-        be inserted in self._patterns can be specified via the *position*
-        argument.  The default is to simply append which should be appropriate
-        in most cases.
+        be inserted in `self._patterns` can be specified via the
+        *position* argument.  The default is to simply append which should be
+        appropriate in most cases.
 
         **About Timeouts:** The *timeout* value passed to expect() will be used
         to determine how long to wait before the pattern is removed from
@@ -730,7 +726,7 @@ class BaseMultiplex(object):
         incoming stream.  This means that the number of rows and columns of the
         terminal determines the size of the search.  So if your pattern needs to
         look for something inside of 50 lines of text you need to make sure that
-        when you call spawn() you specify at least rows=50.  Example::
+        when you call `spawn` you specify at least `rows = 50`.  Example::
 
             >>> def handle_long_search(m_instance, matched)
             ...     do_stuff(matched)
@@ -742,7 +738,7 @@ class BaseMultiplex(object):
             >>> # Call m.read(), m.spawn() or just let an event loop (e.g. Tornado's IOLoop) take care of things...
 
         **About non-printable characters:** If the *postprocess* argument is
-        True (default), patterns will be checked against the current screen as
+        True (the default), patterns will be checked against the current screen as
         output by the terminal emulator.  This means that things like control
         codes and escape sequences will be handled and discarded by the terminal
         emulator and as such won't be available for patterns to be checked
@@ -754,12 +750,12 @@ class BaseMultiplex(object):
             ...     print("Caught title: %s" % matched)
             >>> m = Multiplex('echo -e "\\033]0;Some Title\\007"')
             >>> title_seq_regex = re.compile(r'\\x1b\\][0-2]\;(.*?)(\\x07|\\x1b\\\\)')
-            >>> m.expect(title_seq_regex, handle_xterm_title, preprocess=True)
+            >>> m.expect(title_seq_regex, handle_xterm_title, preprocess=True) # <-- 'preprocess=True'
             >>> m.await()
             Caught title: Some Title
             >>>
 
-        **Notes about debugging:** Instead of using await() to wait for all of your patterns to be matched at once you can make individual calls to read() to determine if your patterns are being matched in the way that you want.  For example::
+        **Notes about debugging:** Instead of using `await` to wait for all of your patterns to be matched at once you can make individual calls to `read` to determine if your patterns are being matched in the way that you want.  For example::
 
             >>> def do_stuff(m_instance, matched):
             ...     print("Debug: do_stuff() got %s" % repr(matched))
@@ -779,7 +775,7 @@ class BaseMultiplex(object):
             >>> m.expect('some other pattern', do_stuff) # This time this one will be first
             >>> m.expect('some pattern', do_stuff)
             >>> m.spawn()
-            >>> print(repr(m.read())) # This time I watied a moment :)
+            >>> print(repr(m.read())) # This time I waited a moment :)
             'Debug: do_stuff() got "some other pattern"'
             'some other pattern'
             >>> # Huzzah!  Now let's see if 'some pattern' matches...
@@ -788,7 +784,7 @@ class BaseMultiplex(object):
             'some pattern'
             >>> # As you can see, calling read() at-will in an interactive interpreter can be very handy.
 
-        **About asynchronous use:**  This mechanism is non-blocking (with the exception of await()) and is meant to be used asynchronously.  This means that if the running program has no output, m.read() won't result in any patterns being matched.  So you must be careful about timing *or* you need to ensure that read() gets called either automatically when there's data to be read (IOLoop, EPoll, select, etc) or at regular intervals via a loop.  Also, if you're not calling read() at an interval (i.e. you're using a mechanism to detect when there's output to be read before calling it e.g. IOLoop) you need to ensure that timeout_check() is called regularly anyway or timeouts won't get detected if there's no output from the underlying program.  See the MultiplexPOSIXIOLoop.read() override for an example of what this means and how to do it.
+        **About asynchronous use:**  This mechanism is non-blocking (with the exception of `await`) and is meant to be used asynchronously.  This means that if the running program has no output, `read` won't result in any patterns being matched.  So you must be careful about timing *or* you need to ensure that `read` gets called either automatically when there's data to be read (IOLoop, EPoll, select, etc) or at regular intervals via a loop.  Also, if you're not calling `read` at an interval (i.e. you're using a mechanism to detect when there's output to be read before calling it e.g. IOLoop) you need to ensure that `timeout_check` is called regularly anyway or timeouts won't get detected if there's no output from the underlying program.  See the `MultiplexPOSIXIOLoop.read` override for an example of what this means and how to do it.
         """
         # Create the Pattern object before we do anything else
         if isinstance(patterns, (str, unicode)):
@@ -828,7 +824,7 @@ class BaseMultiplex(object):
         """
         Removes *ref* from self._patterns so it will no longer be checked
         against the incoming stream.  If *ref* is None (the default),
-        self._patterns will be emptied.
+        `self._patterns` will be emptied.
         """
         if not ref:
             self._patterns = [] # Reset
@@ -841,15 +837,15 @@ class BaseMultiplex(object):
         """
         Blocks until all non-optional patterns inside self._patterns have been
         removed *or* if the given *timeout* is reached.  *timeout* may be an
-        integer (in seconds) or a datetime.timedelta object.
+        integer (in seconds) or a `datetime.timedelta` object.
 
         Returns True if all non-optional, non-sticky patterns were handled
         successfully.
 
-        .. warning:: The timeouts attached to Patterns are set when they are created.  Not when when you call :py:meth:`await`!
+        .. warning:: The timeouts attached to Patterns are set when they are created.  Not when when you call :meth:`await`!
 
-        As a convenience, if :py:meth:`isalive` resolves to False,
-        :py:meth:`spawn` will be called automatically with *rows*, *cols*,
+        As a convenience, if :meth:`isalive` resolves to False,
+        :meth:`spawn` will be called automatically with *rows*, *cols*,
         and *env* given as arguments.
 
         await
@@ -882,24 +878,27 @@ class BaseMultiplex(object):
         return True
 
     def terminate(self):
+        """
+        This method must be overridden by suclasses of `BaseMultiplex`.  It is
+        expected to terminate/kill the child process.
+        """
         raise NotImplementedError(_(
             "terminate() *must* be overridden by subclasses."))
 
     def _read(self, bytes=-1):
         """
-        This function must be overridden by subclasses of
-        :py:class:`BaseMultiplex`.  It is expected that this method read the
-        output from the running terminal program in a non-blocking way, pass the
-        result into :py:meth:`term_write`, and then return the result.
+        This method must be overridden by subclasses of `BaseMultiplex`.  It is
+        expected that this method read the output from the running terminal
+        program in a non-blocking way, pass the result into `term_write`, and
+        then return the result.
         """
         raise NotImplementedError(_(
             "_read() *must* be overridden by subclasses."))
 
     def read(self, bytes=-1):
         """
-        Calls :py:meth:`_read` and checks if any timeouts have been reached
-        in :py:attr:`_patterns`.  Returns the result of
-        :py:meth:`_read`.
+        Calls `_read` and checks if any timeouts have been reached in
+        `self._patterns`.  Returns the result of `_read`.
         """
         result = self._read(bytes)
         # Perform checks for timeouts in self._patterns (used by self.expect())
@@ -912,18 +911,19 @@ class BaseMultiplex(object):
 
 class MultiplexPOSIXIOLoop(BaseMultiplex):
     """
-    The Multiplex class takes care of executing a child process and keeping
-    track of its state via a terminal emulator (will use terminal.Terminal by
-    default).  If there's a started instance of tornado.ioloop, handlers will be
-    added to it that automatically keep the terminal emulator synchronized with
-    the output of the child process.
+    The MultiplexPOSIXIOLoop class takes care of executing a child process on
+    POSIX (aka Unix) systems and keeping track of its state via a terminal
+    emulator (`terminal.Terminal` by default).  If there's a started instance
+    of :class:`tornado.ioloop.IOLoop`, handlers will be added to it that
+    automatically keep the terminal emulator synchronized with the output of the
+    child process.
 
     If there's no IOLoop (or it just isn't started), terminal applications can
-    be interacted with by calling Multiplex.read() (to write any pending output
-    to the terminal emulator) and Multiplex.write() (which writes directly to
-    stdin of the child).
+    be interacted with by calling `MultiplexPOSIXIOLoop.read` (to write any
+    pending output to the terminal emulator) and `MultiplexPOSIXIOLoop.write`
+    (which writes directly to stdin of the child).
 
-    NOTE: Multiplex.read() is non-blocking.
+    .. note:: `MultiplexPOSIXIOLoop.read` is non-blocking.
     """
     def __init__(self, *args, **kwargs):
         super(Multiplex, self).__init__(*args, **kwargs)
@@ -937,10 +937,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
     def _call_callback(self, callback):
         """
-        If the IOLoop is started, adds the callback via IOLoop.add_callback() to
-        ensure it gets called at the next IOLoop iteration (which is thread
-        safe).  If the IOLoop isn't started *callback* will get called
-        immediately and directly.
+        If the IOLoop is started, adds the callback via
+        :meth:`IOLoop.add_callback` to ensure it gets called at the next IOLoop
+        iteration (which is thread safe).  If the IOLoop isn't started
+        *callback* will get called immediately and directly.
         """
         try:
             if self.io_loop.running():
@@ -973,9 +973,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
     def _blocked_io_handler(self, signum=None, frame=None):
         """
-        Handles the situation where a terminal is blocking IO with too much
-        output.  Normally this gets called automatically by IOLoop's signal
-        threshold mechanism (IOLoop.set_blocking_signal_threshold()).
+        Handles the situation where a terminal is blocking IO (usually because
+        of too much output).  This method would typically get called
+        automatically by IOLoop's signal threshold mechanism
+        (:meth:`IOLoop.set_blocking_signal_threshold`).
         """
         logging.warning(
             "Noisy process kicked off rate limiter.  Sending Ctrl-c.")
@@ -994,16 +995,13 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
     def spawn(self, rows=24, cols=80, env=None):
         """
         Creates a new virtual terminal (tty) and executes self.cmd within it.
-        Also attaches _ioloop_read_handler() to the IOLoop so that the terminal
-        emulator will automatically stay in sync with the output of the child
-        process.
+        Also attaches :meth:`self._ioloop_read_handler` to the IOLoop so that
+        the terminal emulator will automatically stay in sync with the output of
+        the child process.
 
-        *cols*
-            The number of columns to emulate on the virtual terminal (width)
-        *rows*
-            The number of rows to emulate (height).
-        *env*
-            A dictionary of environment variables to set when executing self.cmd.
+        :cols: The number of columns to emulate on the virtual terminal (width)
+        :rows: The number of rows to emulate (height).
+        :env: A dictionary of environment variables to set when executing self.cmd.
         """
         self.started = datetime.now()
         signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies allowed
@@ -1096,9 +1094,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
     def terminate(self):
         """
-        Kill the child process associated with the given file descriptor (fd).
+        Kill the child process associated with `self.fd`.
 
-        NOTE: If dtach is being used this only kills the dtach process.
+        .. note:: If dtach is being used this only kills the dtach process.
         """
         if not self.terminating:
             self.terminating = True
@@ -1157,16 +1155,12 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
     def _ioloop_read_handler(self, fd, event):
         """
         Read in the output of the process associated with *fd* and write it to
-        self.term.
+        `self.term`.
 
-        This method will also keep an eye on the output rate of the underlying
-        terminal application.  If it goes to high (which would gobble up CPU) it
-        will engage a rate limiter.  So if someone thinks it would be funny to
-        run 'top' with a refresh rate of 0.01 they'll really only be getting
-        updates every ~2 seconds (and it won't bog down the server =).
+        :fd: The file descriptor of the child process.
+        :event: An IOLoop event (e.g. IOLoop.READ).
 
-        NOTE: This method is not meant to be called directly...  The IOLoop
-        should be the one calling it when it detects an io_loop.READ event.
+        .. note:: This method is not meant to be called directly...  The IOLoop should be the one calling it when it detects any given event on the fd.
         """
         if event == self.io_loop.READ:
             self._call_callback(self.read)
@@ -1180,13 +1174,13 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
     def _read(self, bytes=-1):
         """
         Reads at most *bytes* from the incoming stream, writes the result to
-        the terminal emulator using self.term_write(), and returns what was
-        read.  If *bytes* is -1 (default) it will read self.fd until there's no
-        more output.
+        the terminal emulator using `term_write`, and returns what was read.
+        If *bytes* is -1 (default) it will read `self.fd` until there's no more
+        output.
 
-        Returns the result of all the reads.
+        Returns the result of all that reading.
 
-        NOTE: Non-blocking.
+        .. note:: Non-blocking.
         """
         result = ""
         try:
@@ -1223,8 +1217,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
     def _timeout_checker(self):
         """
-        Runs :py:meth:`timeout_check` and if there are no more non-sticky
-        patterns in :py:attr:`_patterns`, stops :py:attr:`scheduler`.
+        Runs `timeout_check` and if there are no more non-sticky
+        patterns in :attr:`self._patterns`, stops :attr:`scheduler`.
         """
         remaining_patterns = self.timeout_check()
         if not remaining_patterns:
@@ -1242,14 +1236,15 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
     def read(self, bytes=-1):
         """
-        .. note:: This is an override of BaseMultiplex.read() in order to take advantage of the IOLoop for ensuring expect() patterns timeout properly.
+        .. note:: This is an override of `BaseMultiplex.read` in order to take advantage of the IOLoop for ensuring `BaseMultiplex.expect` patterns timeout properly.
 
-        Calls :py:meth:`_read` and checks if any timeouts have been reached
-        in :py:attr:`_patterns`.  Returns the result of :py:meth:`_read`.  This
-        is an override of BaseMultiplex.read() that will create a
-        `PeriodicCallback` that executes :py:attr:`timeout_check` at a regular
-        interval.  The `PeriodicCallback` will automatically cancel itself if
-        there are no more non-sticky patterns in :py:attr:`_patterns`.
+        Calls `_read` and checks if any timeouts have been reached
+        in :attr:`self._patterns`.  Returns the result of :meth:`_read`.  This
+        is an override of `BaseMultiplex.read` that will create a
+        :class:`tornado.ioloop.PeriodicCallback` (as `self.scheduler`) that
+        executes :attr:`timeout_check` at a regular interval.  The
+        `PeriodicCallback` will automatically cancel itself if there are no more
+        non-sticky patterns in :attr:`self._patterns`.
         """
         result = self._read(bytes)
         remaining_patterns = self.timeout_check()
@@ -1261,10 +1256,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
     def _write(self, chars):
         """
-        Writes *chars* to self.fd (pretty straightforward).  If IOError or
-        OSError exceptions are encountered, will run self.die() and
-        self.terminate().  All other exceptions are logged but no action will
-        be taken.
+        Writes *chars* to `self.fd` (pretty straightforward).  If IOError or
+        OSError exceptions are encountered, will run `terminate`.  All other
+        exceptions are logged but no action will be taken.
         """
         try:
             with io.open(
@@ -1283,11 +1277,30 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
     def write(self, chars):
         """
-        Calls self._write(*chars*) via self._call_callback() to ensure thread
-        safety.
+        Calls `_write(*chars*)` via `_call_callback` to ensure thread safety.
         """
         write = partial(self._write, chars)
         self._call_callback(write)
+
+class MultiplexMacOSIOLoop(MultiplexPOSIXIOLoop):
+    """
+    This class is a subclass of `MultiplexPOSIXIOLoop` that overrides the
+    `isalive` function since Mac OS X doesn't have /proc.
+    """
+    def isalive(self):
+        """
+        A Mac OS X-specific version of `MultiplexPOSIXIOLoop.isalive` that
+        checks the underlying process to see if it is alive and sets
+        `self._alive` appropriately.
+        """
+        # sub-subprocesses are inefficient (and blocking) but what can you do?
+        exitstatus, output = shell_command(
+            "ps aux | awk '{print $2}' | grep %s" % self.pid)
+        if exitstatus != 0:
+            self._alive = True
+        else:
+            self._alive = False
+        return self._alive
 
 def spawn(cmd, rows=24, cols=80, env=None, *args, **kwargs):
     """
@@ -1302,7 +1315,10 @@ def spawn(cmd, rows=24, cols=80, env=None, *args, **kwargs):
     return m
 
 if POSIX:
-    Multiplex = MultiplexPOSIXIOLoop
+    if MACOS:
+        Multiplex = MultiplexMacOSIOLoop
+    else:
+        Multiplex = MultiplexPOSIXIOLoop
 else:
     raise NotImplementedError(_(
         "termio currently only works on Unix platforms."))

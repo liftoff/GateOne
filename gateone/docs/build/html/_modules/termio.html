@@ -421,14 +421,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">callback</span><span class="p">()</span>
 </div>
-    <span class="k">def</span> <span class="nf">spawn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseMultiplex.spawn"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.spawn">[docs]</a>    <span class="k">def</span> <span class="nf">spawn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;spawn() *must* be overridden by subclasses.&quot;</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">isalive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="BaseMultiplex.isalive"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.isalive">[docs]</a>    <span class="k">def</span> <span class="nf">isalive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;isalive() *must* be overridden by subclasses.&quot;</span><span class="p">))</span>
-
+</div>
 <div class="viewcode-block" id="BaseMultiplex.term_write"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.term_write">[docs]</a>    <span class="k">def</span> <span class="nf">term_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Writes :py:obj:`stream` to :py:data:`term` and also takes care of</span>
@@ -930,10 +930,10 @@
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span> <span class="c"># So we don&#39;t eat up all the CPU</span>
         <span class="k">return</span> <span class="bp">True</span>
 </div>
-    <span class="k">def</span> <span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseMultiplex.terminate"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.terminate">[docs]</a>    <span class="k">def</span> <span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;terminate() *must* be overridden by subclasses.&quot;</span><span class="p">))</span>
-
+</div>
 <div class="viewcode-block" id="BaseMultiplex._read"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex._read">[docs]</a>    <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function must be overridden by subclasses of</span>

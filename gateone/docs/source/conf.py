@@ -40,6 +40,7 @@ extensions = [
     #'sphinx.ext.coverage',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
     'sphinxcontrib.ansi', # Displays text codes as they would appear in a shell
 ]
 
@@ -275,3 +276,9 @@ epub_copyright = u'2011, Liftoff Software Corporation'
 
 # Allow duplicate toc entries.
 #epub_tocdup = True
+
+# -- Intersphinx stuff ---------------------------------------------------------
+intersphinx_mapping = {
+    'python': ('http://docs.python.org/2.7', None),
+    'tornado': ('http://www.tornadoweb.org/documentation/', None)
+}
