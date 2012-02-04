@@ -926,7 +926,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
     .. note:: `MultiplexPOSIXIOLoop.read` is non-blocking.
     """
     def __init__(self, *args, **kwargs):
-        super(Multiplex, self).__init__(*args, **kwargs)
+        super(MultiplexPOSIXIOLoop, self).__init__(*args, **kwargs)
         from tornado import ioloop
         self.terminating = False
         self.io_loop = ioloop.IOLoop.instance() # Monitors child for activity

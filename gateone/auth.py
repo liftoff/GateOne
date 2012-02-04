@@ -29,7 +29,7 @@ will be tied to their browser cookie and users will not be able to resume their
 sessions from another computer/browser.  Most useful for situations where
 session persistence and logging aren't important.
 
-*All* users will show up as %anonymous using this authentication type.
+*All* users will show up as ANONYMOUS using this authentication type.
 
 .. note:: The % is there to avoid name conflicts.
 
@@ -127,18 +127,18 @@ class BaseAuthHandler(tornado.web.RequestHandler):
 class NullAuthHandler(BaseAuthHandler):
     """
     A handler for when no authentication method is chosen (i.e. --auth=none).
-    With this handler all users will show up as "%anonymous".
+    With this handler all users will show up as "ANONYMOUS".
     """
     @tornado.web.asynchronous
     def get(self):
         """
         Sets the 'user' cookie with a new random session ID (*go_session*) and
-        sets *go_upn* to '%anonymous'.
+        sets *go_upn* to 'ANONYMOUS'.
         """
         # % is valid on the filesystem but invalid for an actual username.
         # This ensures we won't have a conflict at some point with an actual
         # user.
-        user = r'%anonymous'
+        user = r'ANONYMOUS'
         check = self.get_argument("check", None)
         if check:
             # This lets any origin check if the user has been authenticated

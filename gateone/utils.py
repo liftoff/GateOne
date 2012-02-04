@@ -155,7 +155,12 @@ def shell_command(cmd, timeout_duration=5):
     default = (255, _("ERROR: Timeout running shell command"))
     if existing_handler != 0: # Something other than default
         # Reset it to default so getstatusoutput will work properly
-        signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+        try:
+            signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+        except ValueError:
+            # "Signal only works in the main thread" - no big deal.  This just
+            # means we never needed to call signal in the first place.
+            pass
     result = timeout_func(
         getstatusoutput,
         args=(cmd,),

@@ -196,9 +196,8 @@ GateOne.Base.update(GateOne, {
                         logDebug("Using API authentiation object: " + go.prefs.auth);
                         go.initialize();
                     } else {
-                        // Regular auth.  Redirect the user...
-                        var currentLocation = window.location.href;
-                        window.location.href = go.prefs.url + 'auth?next=' + currentLocation;
+                        // Regular auth.  Clear the cookie and redirect the user...
+                        GateOne.Net.reauthenticate();
                     }
                 }
             };
@@ -1117,7 +1116,7 @@ GateOne.Base.update(GateOne.Net, {
         // This is a courtesy from the Gate One server telling us to re-auth since it is about to close the WebSocket.
         // Delete our session ID as it obviously isn't valid
         // Also delete our 'user' cookie
-        GateOne.Utils.deleteCookie('user', '/', '');
+        GateOne.Utils.deleteCookie('gateone_user', '/', '');
         window.location.reload(); // This *should* force a re-auth if we simply had our session expire (or similar)
     },
     sendDimensions: function(term) {

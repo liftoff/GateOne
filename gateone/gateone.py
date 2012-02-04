@@ -789,7 +789,6 @@ class JSPluginsHandler(BaseHandler):
         if os.path.exists(combined_plugins):
             with open(combined_plugins) as f:
                 js_data = f.read()
-                print("length of js_data: %s" % len(js_data))
                 if len(js_data) < 100: # Needs to be created
                     self.write(self._combine_plugins())
                     return
@@ -955,7 +954,7 @@ class TerminalWebSocket(WebSocketHandler):
                     message = {'reauthenticate': True}
                     self.write_message(json_encode(message))
                     self.close() # Close the WebSocket
-                elif user and user['upn'] == '%anonymous':
+                elif user and user['upn'] == 'ANONYMOUS':
                     logging.error(_("Unauthenticated WebSocket attempt."))
                     # This can happen when a client logs in with no auth type
                     # configured and then later the server is configured to use
@@ -1043,11 +1042,11 @@ class TerminalWebSocket(WebSocketHandler):
         else:
             # Double-check there isn't a user set in the cookie (i.e. we have
             # recently changed Gate One's settings).  If there is, force it
-            # back to %anonymous.
+            # back to ANONYMOUS.
             user = self.get_current_user()
             if user:
                 user = user['upn']
-            if user != '%anonymous':
+            if user != 'ANONYMOUS':
                 message = {'reauthenticate': True}
                 self.write_message(json_encode(message))
                 self.close() # Close the WebSocket
@@ -1118,8 +1117,8 @@ class TerminalWebSocket(WebSocketHandler):
         try:
             user = self.get_current_user()['upn']
         except:
-            # No auth, use %anonymous (% is there to prevent conflicts)
-            user = r'%anonymous' # Don't get on this guy's bad side
+            # No auth, use ANONYMOUS (% is there to prevent conflicts)
+            user = r'ANONYMOUS' # Don't get on this guy's bad side
         session_dir = self.settings['session_dir']
         session_dir = os.path.join(session_dir, self.session)
         log_path = None
@@ -1175,8 +1174,8 @@ class TerminalWebSocket(WebSocketHandler):
             try:
                 user = self.get_current_user()['upn']
             except:
-                # No auth, use %anonymous (% is there to prevent conflicts)
-                user = r'%anonymous' # Don't get on this guy's bad side
+                # No auth, use ANONYMOUS (% is there to prevent conflicts)
+                user = r'ANONYMOUS' # Don't get on this guy's bad side
             cmd = cmd_var_swap(CMD,   # Swap out variables like %USER% in CMD
                 session=self.session, # with their real-world values.
                 session_hash=short_hash(self.session),
@@ -1690,7 +1689,7 @@ class Application(tornado.web.Application):
             logging.info(_("Using %s authentication" % settings['auth']))
         else:
             logging.info(_("No authentication method configured. All users will "
-                         "be %anonymous"))
+                         "be ANONYMOUS"))
         docs_path = os.path.join(GATEONE_DIR, 'docs')
         docs_path = os.path.join(docs_path, 'build')
         docs_path = os.path.join(docs_path, 'html')

@@ -90,7 +90,7 @@
 will be tied to their browser cookie and users will not be able to resume their
 sessions from another computer/browser.  Most useful for situations where
 session persistence and logging aren't important.</p>
-<p><em>All</em> users will show up as %anonymous using this authentication type.</p>
+<p><em>All</em> users will show up as ANONYMOUS using this authentication type.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The % is there to avoid name conflicts.</p>
@@ -155,12 +155,12 @@ information and optionally, redirects them to <em>redirect</em> (URL).</p>
 <dt id="auth.NullAuthHandler">
 <em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">NullAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#NullAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.NullAuthHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>A handler for when no authentication method is chosen (i.e. --auth=none).
-With this handler all users will show up as &quot;%anonymous&quot;.</p>
+With this handler all users will show up as &quot;ANONYMOUS&quot;.</p>
 <dl class="method">
 <dt id="auth.NullAuthHandler.get">
 <tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#NullAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.NullAuthHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the 'user' cookie with a new random session ID (<em>go_session</em>) and
-sets <em>go_upn</em> to '%anonymous'.</p>
+sets <em>go_upn</em> to 'ANONYMOUS'.</p>
 </dd></dl>
 
 </dd></dl>
