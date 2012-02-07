@@ -199,10 +199,10 @@ GateOne.Base.update(GateOne.Logging, {
             logListContainer = u.createElement('div', {'id': 'log_listcontainer'}),
             logPreviewIframe = u.createElement('iframe', {'id': 'log_preview'}),
             hr = u.createElement('hr'),
-            logElemHeader = u.createElement('div', {'id': 'logitems_header', 'class':'logitem_header'}),
-            titleSpan = u.createElement('span', {'id': 'log_titlespan', 'class':'logitem_cell logitem_header_cell'}),
-            dateSpan = u.createElement('span', {'id': 'log_datespan', 'class':'logitem_cell logitem_header_cell'}),
-            sizeSpan = u.createElement('span', {'id': 'log_sizespan', 'class':'logitem_cell logitem_header_cell'}),
+            logElemHeader = u.createElement('div', {'id': 'logitems_header', 'class':'table_header_row'}),
+            titleSpan = u.createElement('span', {'id': 'log_titlespan', 'class':'table_cell table_header_cell'}),
+            dateSpan = u.createElement('span', {'id': 'log_datespan', 'class':'table_cell table_header_cell'}),
+            sizeSpan = u.createElement('span', {'id': 'log_sizespan', 'class':'table_cell table_header_cell'}),
             sortOrder = u.createElement('span', {'id': 'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
             logMetadataDiv = u.createElement('div', {'id': 'log_metadata'});
         logHeaderH2.innerHTML = 'Log Viewer: Loading...';
@@ -252,10 +252,10 @@ GateOne.Base.update(GateOne.Logging, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(logElemHeader.getElementsByClassName('logitem_header_cell')).forEach(function(item) {
-                item.className = 'logitem_cell logitem_header_cell';
+            u.toArray(logElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
+                item.className = 'table_cell table_header_cell';
             });
-            this.className = 'logitem_cell logitem_header_cell active';
+            this.className = 'table_cell table_header_cell active';
             if (l.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -282,10 +282,10 @@ GateOne.Base.update(GateOne.Logging, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(logElemHeader.getElementsByClassName('logitem_header_cell')).forEach(function(item) {
-                item.className = 'logitem_cell logitem_header_cell';
+            u.toArray(logElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
+                item.className = 'table_cell table_header_cell';
             });
-            this.className = 'logitem_cell logitem_header_cell active';
+            this.className = 'table_cell table_header_cell active';
             if (l.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -312,10 +312,10 @@ GateOne.Base.update(GateOne.Logging, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(logElemHeader.getElementsByClassName('logitem_header_cell')).forEach(function(item) {
-                item.className = 'logitem_cell logitem_header_cell';
+            u.toArray(logElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
+                item.className = 'table_cell table_header_cell';
             });
-            this.className = 'logitem_cell logitem_header_cell active';
+            this.className = 'table_cell table_header_cell active';
             if (l.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -328,13 +328,13 @@ GateOne.Base.update(GateOne.Logging, {
         dateSpan.innerHTML = "Date";
         sizeSpan.innerHTML = "Size";
         if (localStorage[prefix+'logs_sort'] == 'alpha') {
-            titleSpan.className = 'logitem_cell logitem_header_cell active';
+            titleSpan.className = 'table_cell table_header_cell active';
             titleSpan.appendChild(sortOrder);
         } else if (localStorage[prefix+'logs_sort'] == 'date') {
-            dateSpan.className = 'logitem_cell logitem_header_cell active';
+            dateSpan.className = 'table_cell table_header_cell active';
             dateSpan.appendChild(sortOrder);
         } else if (localStorage[prefix+'logs_sort'] == 'size') {
-            sizeSpan.className = 'logitem_cell logitem_header_cell active';
+            sizeSpan.className = 'table_cell table_header_cell active';
             sizeSpan.appendChild(sortOrder);
         }
         logElemHeader.appendChild(titleSpan);
@@ -374,7 +374,7 @@ GateOne.Base.update(GateOne.Logging, {
             paginationUL = u.getNode('#'+prefix+'log_pagination_ul'),
             logInfoContainer = u.getNode('#'+prefix+'log_info'),
             logListContainer = u.getNode('#'+prefix+'log_listcontainer'),
-            logElements = u.toArray(document.getElementsByClassName('logitem')),
+            logElements = u.toArray(document.getElementsByClassName('table_row')),
             maxItems = l.getMaxLogItems(existingPanel) - 4; // -4 should account for the header with a bit of room at the bottom too
         l.delay = 500; // Reset it
         // Make sure the panel is visible
@@ -592,13 +592,13 @@ GateOne.Base.update(GateOne.Logging, {
             u = go.Utils,
             l = go.Logging,
             prefix = go.prefs.prefix,
-            logElem = u.createElement('div', {'class':'halfsectrans logitem', 'name': prefix+'logitem'}),
+            logElem = u.createElement('div', {'class':'halfsectrans table_row', 'name': prefix+'logitem'}),
             logViewOptions = u.createElement('span', {'class': 'logview_options'}),
             viewFlat = u.createElement('a'),
             viewPlayback = u.createElement('a'),
-            titleSpan = u.createElement('span', {'class':'logitem_cell logitem_title'}),
-            dateSpan = u.createElement('span', {'class':'logitem_cell'}),
-            sizeSpan = u.createElement('span', {'class':'logitem_cell'}),
+            titleSpan = u.createElement('span', {'class':'table_cell logitem_title'}),
+            dateSpan = u.createElement('span', {'class':'table_cell'}),
+            sizeSpan = u.createElement('span', {'class':'table_cell'}),
             dateObj = new Date(parseInt(logObj['start_date'])),
             dateString = l.dateFormatter(dateObj);
         logViewOptions.innerHTML = "<b>View:</b> ";
@@ -628,11 +628,11 @@ GateOne.Base.update(GateOne.Logging, {
                 var previewIframe = u.getNode('#'+prefix+'log_preview'),
                     iframeDoc = previewIframe.contentWindow.document;
                 // Highlight the selected row and show the metadata
-                u.toArray(u.getNodes('.logitem')).forEach(function(node) {
+                u.toArray(u.getNodes('.table_row')).forEach(function(node) {
                     // Reset them all before we apply the 'active' class to just the one
-                    node.className = 'halfsectrans logitem';
+                    node.className = 'halfsectrans table_row';
                 });
-                this.className = 'halfsectrans logitem active';
+                this.className = 'halfsectrans table_row active';
                 iframeDoc.open();
                 iframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; background-image: none; color: #fff; font-size: 1.2em; font-weight: bold; font-style: italic;">Loading Preview...</body></html');
                 iframeDoc.close();
@@ -671,7 +671,7 @@ GateOne.Base.update(GateOne.Logging, {
             pagination = u.getNode('#'+prefix+'log_pagination'),
             existingPaginationUL = u.getNode('#'+prefix+'log_pagination_ul'),
             logListContainer = u.getNode('#'+prefix+'log_listcontainer'),
-            logItems = document.getElementsByClassName('logitem'),
+            logItems = document.getElementsByClassName('table_row'),
             maxItems = l.getMaxLogItems(existingPanel) - 4; // -4 should account for the header with a bit of room at the bottom too
         if (message['log']) {
             if (!message['log']['connect_string']) {

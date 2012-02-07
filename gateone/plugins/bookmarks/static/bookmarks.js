@@ -981,7 +981,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmPagination = u.createElement('div', {'id': 'bm_pagination', 'class': 'sectrans'}),
             bmTagCloud = u.createElement('div', {'id': 'bm_tagcloud', 'class': 'sectrans'}),
             bmTags = u.createElement('div', {'id': 'bm_tags', 'class': 'sectrans'}),
-            bmNew = u.createElement('div', {'id': 'bm_new', 'class': 'sectransform'}),
+            bmNew = u.createElement('a', {'id': 'bm_new', 'class': 'quartersectrans'}),
             bmHRFix = u.createElement('hr', {'style': {'opacity': 0, 'margin-bottom': 0}}),
             bmDisplayOpts = u.createElement('div', {'id': 'bm_display_opts', 'class': 'sectransform'}),
             bmSortOpts = b.createSortOpts(),

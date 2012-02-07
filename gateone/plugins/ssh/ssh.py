@@ -132,7 +132,7 @@ def open_sub_channel(term, tws):
     m.writeline(u'\x1b]0;Term %s sub-channel\007' % term)
     return m
 
-def wait_for_prompt(term, cmd, callback, m_instance, matched):
+def wait_for_prompt(term, cmd, errorback, callback, m_instance, matched):
     """
     Called by Multiplex.expect() inside of execute_command(), clears the screen
     and executes *cmd*.  Also, sets an expect() to call get_cmd_output() when
@@ -140,12 +140,12 @@ def wait_for_prompt(term, cmd, callback, m_instance, matched):
     """
     logging.debug('wait_for_prompt()')
     m_instance.term.clear_screen() # Makes capturing just what we need easier
-    getoutput = partial(get_cmd_output, term, callback)
-    m_instance.expect(READY_MATCH, getoutput, errorback=got_error, timeout=10)
+    getoutput = partial(get_cmd_output, term, errorback, callback)
+    m_instance.expect(READY_MATCH, getoutput, errorback=errorback, timeout=10)
     # Run our command immediately followed by our separation/ready string
     m_instance.writeline(u'%s; echo "%s"' % (cmd, READY_STRING))
 
-def get_cmd_output(term, callback, m_instance, matched):
+def get_cmd_output(term, errorback, callback, m_instance, matched):
     """
     Captures the output of the command executed inside of wait_for_prompt() and
     calls *callback* if it isn't None.
@@ -199,9 +199,9 @@ def timeout_sub_channel(m_instance):
         % repr(m_instance.term_id)))
     terminate_sub_channel(m_instance)
 
-def got_error(m_instance, match=None):
+def got_error(m_instance, match=None, cmd=None, tws=None):
     """
-    Called if execute_command() encounters a problem.
+    Called if execute_command() encounters a problem/timeout.
 
     *match* is here in case we want to use it for a positive match of an error.
     """
@@ -209,6 +209,15 @@ def got_error(m_instance, match=None):
         "%s: Got an error trying to capture output inside of "
         "execute_command() running: %s" % (m_instance.user, m_instance.cmd)))
     terminate_sub_channel(m_instance)
+    if tws:
+        message = {
+            'sshjs_cmd_output': {
+                'cmd': cmd,
+                'output': None,
+                'result': 'Error: Timeout exceeded.'
+            }
+        }
+        tws.write_message(message)
 
 def execute_command(term, cmd, callback=None, tws=None):
     """
@@ -226,13 +235,12 @@ def execute_command(term, cmd, callback=None, tws=None):
     """
     logging.debug(
         "execute_command(): term: %s, cmd: %s" % (term, cmd))
-    try:
-        m = open_sub_channel(term, tws)
-    except SSHMultiplexingException as e:
-        logging.error(_(
-            "%s: Got an error trying to open sub-channel on term %s..." %
-            (tws.get_current_user()['upn'], term)))
-        logging.error(e)
+    #try:
+    m = open_sub_channel(term, tws)
+    #except SSHMultiplexingException as e:
+        #logging.error(_(
+            #"%s: Got an error trying to open sub-channel on term %s..." %
+            #(tws.get_current_user()['upn'], term)))
     # NOTE: We can assume the IOLoop is started and automatically calling read()
     m.unexpect() # Clear out any existing patterns (if existing sub-channel)
     m.term.clear_screen() # Clear the screen so nothing mucks up our regexes
@@ -241,8 +249,9 @@ def execute_command(term, cmd, callback=None, tws=None):
     # using a regular expression to match a shell prompt (which could be set
     # to anything).  It also gives us a clear indication as to where the command
     # output begins and ends.
-    wait = partial(wait_for_prompt, term, cmd, callback)
-    m.expect(READY_MATCH, callback=wait, errorback=got_error, timeout=10)
+    errorback = partial(got_error, cmd=cmd, tws=tws)
+    wait = partial(wait_for_prompt, term, cmd, errorback, callback)
+    m.expect(READY_MATCH, callback=wait, errorback=errorback, timeout=10)
     m.writeline(u'echo "%s"' % READY_STRING)
 
 def send_result(tws, cmd, output, m_instance):

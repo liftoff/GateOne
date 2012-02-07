@@ -84,20 +84,20 @@ GateOne.Base.update(GateOne.SSH, {
             sshIDPanel = u.createElement('div', {'id': 'panel_ssh_ids', 'class': 'panel sectrans'}),
             sshIDHeader = u.createElement('div', {'id': 'ssh_ids_header', 'class': 'sectrans'}),
             sshIDHeaderH2 = u.createElement('h2', {'id': 'ssh_ids_title', 'class': 'sectrans'}),
-            sshNewID = u.createElement('div', {'id': 'ssh_new_id', 'class': 'halfsectrans ssh_panel_link'}),
-            sshUploadID = u.createElement('div', {'id': 'ssh_upload_id', 'class': 'halfsectrans ssh_panel_link'}),
+            sshNewID = u.createElement('a', {'id': 'ssh_new_id', 'class': 'halfsectrans ssh_panel_link'}),
+            sshUploadID = u.createElement('a', {'id': 'ssh_upload_id', 'class': 'halfsectrans ssh_panel_link'}),
             sshIDHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
             sshIDContent = u.createElement('div', {'id': 'ssh_ids_container', 'class': 'sectrans'}),
             sshIDInfoContainer = u.createElement('div', {'id': 'ssh_id_info', 'class': 'sectrans'}),
             sshIDListContainer = u.createElement('div', {'id': 'ssh_ids_listcontainer', 'class': 'sectrans'}),
-            sshIDElemHeader = u.createElement('div', {'id': 'ssh_id_header', 'class':'ssh_id_header sectrans'}),
-            defaultSpan = u.createElement('span', {'id': 'ssh_id_defaultspan', 'class':'ssh_id_cell ssh_id_header_cell'}),
-            nameSpan = u.createElement('span', {'id': 'ssh_id_namespan', 'class':'ssh_id_cell ssh_id_header_cell'}),
-            keytypeSpan = u.createElement('span', {'id': 'ssh_id_keytypespan', 'class':'ssh_id_cell ssh_id_header_cell'}),
-            commentSpan = u.createElement('span', {'id': 'ssh_id_commentspan', 'class':'ssh_id_cell ssh_id_header_cell'}),
-            bitsSpan = u.createElement('span', {'id': 'ssh_id_bitsspan', 'class':'ssh_id_cell ssh_id_header_cell'}),
-            certSpan = u.createElement('span', {'id': 'ssh_id_certspan', 'class':'ssh_id_cell ssh_id_header_cell'}),
+            sshIDElemHeader = u.createElement('div', {'id': 'ssh_id_header', 'class':'table_header_row sectrans'}),
+            defaultSpan = u.createElement('span', {'id': 'ssh_id_defaultspan', 'class':'table_cell table_header_cell'}),
+            nameSpan = u.createElement('span', {'id': 'ssh_id_namespan', 'class':'table_cell table_header_cell'}),
+            keytypeSpan = u.createElement('span', {'id': 'ssh_id_keytypespan', 'class':'table_cell table_header_cell'}),
+            commentSpan = u.createElement('span', {'id': 'ssh_id_commentspan', 'class':'table_cell table_header_cell'}),
+            bitsSpan = u.createElement('span', {'id': 'ssh_id_bitsspan', 'class':'table_cell table_header_cell'}),
+            certSpan = u.createElement('span', {'id': 'ssh_id_certspan', 'class':'table_cell table_header_cell'}),
             sortOrder = u.createElement('span', {'id': 'ssh_ids_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
             sshIDMetadataDiv = u.createElement('div', {'id': 'ssh_id_metadata', 'class': 'sectrans'});
         sshIDHeaderH2.innerHTML = 'SSH Identity Manager: Loading...';
@@ -144,10 +144,10 @@ GateOne.Base.update(GateOne.SSH, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(sshIDElemHeader.getElementsByClassName('ssh_id_header_cell')).forEach(function(item) {
-                item.className = 'ssh_id_cell ssh_id_header_cell';
+            u.toArray(sshIDElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
+                item.className = 'table_cell table_header_cell';
             });
-            this.className = 'ssh_id_cell ssh_id_header_cell active';
+            this.className = 'table_cell table_header_cell active';
             if (ssh.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -174,10 +174,10 @@ GateOne.Base.update(GateOne.SSH, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(sshIDElemHeader.getElementsByClassName('ssh_id_header_cell')).forEach(function(item) {
-                item.className = 'ssh_id_cell ssh_id_header_cell';
+            u.toArray(sshIDElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
+                item.className = 'table_cell table_header_cell';
             });
-            this.className = 'ssh_id_cell ssh_id_header_cell active';
+            this.className = 'table_cell table_header_cell active';
             if (ssh.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -204,10 +204,10 @@ GateOne.Base.update(GateOne.SSH, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(sshIDElemHeader.getElementsByClassName('ssh_id_header_cell')).forEach(function(item) {
-                item.className = 'ssh_id_cell ssh_id_header_cell';
+            u.toArray(sshIDElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
+                item.className = 'table_cell table_header_cell';
             });
-            this.className = 'ssh_id_cell ssh_id_header_cell active';
+            this.className = 'table_cell table_header_cell active';
             if (ssh.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -229,13 +229,13 @@ GateOne.Base.update(GateOne.SSH, {
         commentSpan.innerHTML = "Comment";
         commentSpan.title = "This field will contain the comment from the identity's public key.  It comes after the key itself inside its .pub file and if the key was generated by OpenSSH it will typically be something like, 'user@host'.";
         if (localStorage[prefix+'ssh_ids_sort'] == 'alpha') {
-            nameSpan.className = 'ssh_id_cell ssh_id_header_cell active';
+            nameSpan.className = 'table_cell table_header_cell active';
             nameSpan.appendChild(sortOrder);
         } else if (localStorage[prefix+'ssh_ids_sort'] == 'date') {
-            bitsSpan.className = 'ssh_id_cell ssh_id_header_cell active';
+            bitsSpan.className = 'table_cell table_header_cell active';
             bitsSpan.appendChild(sortOrder);
         } else if (localStorage[prefix+'ssh_ids_sort'] == 'size') {
-            keytypeSpan.className = 'ssh_id_cell ssh_id_header_cell active';
+            keytypeSpan.className = 'table_cell table_header_cell active';
             keytypeSpan.appendChild(sortOrder);
         }
         sshIDElemHeader.appendChild(defaultSpan);
@@ -444,13 +444,13 @@ GateOne.Base.update(GateOne.SSH, {
             elem = u.createElement('div', {'class':'sectrans ssh_id', 'name': prefix+'ssh_id'}),
             IDViewOptions = u.createElement('span', {'class': 'ssh_id_options'}),
             viewPubKey = u.createElement('a'),
-            defaultSpan = u.createElement('span', {'class':'ssh_id_cell ssh_id_default'}),
+            defaultSpan = u.createElement('span', {'class':'table_cell ssh_id_default'}),
             defaultCheckbox = u.createElement('input', {'type': 'checkbox', 'name': 'ssh_id_default', 'value': IDObj['name']}),
-            nameSpan = u.createElement('span', {'class':'ssh_id_cell ssh_id_name'}),
-            keytypeSpan = u.createElement('span', {'class':'ssh_id_cell'}),
-            certSpan = u.createElement('span', {'class':'ssh_id_cell'}),
-            bitsSpan = u.createElement('span', {'class':'ssh_id_cell'}),
-            commentSpan = u.createElement('span', {'class':'ssh_id_cell'}),
+            nameSpan = u.createElement('span', {'class':'table_cell ssh_id_name'}),
+            keytypeSpan = u.createElement('span', {'class':'table_cell'}),
+            certSpan = u.createElement('span', {'class':'table_cell'}),
+            bitsSpan = u.createElement('span', {'class':'table_cell'}),
+            commentSpan = u.createElement('span', {'class':'table_cell'}),
             isCertificate = "No";
         defaultCheckbox.checked = IDObj['default'];
         defaultCheckbox.onchange = function(e) {

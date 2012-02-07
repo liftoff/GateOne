@@ -94,7 +94,7 @@
     border-radius: .7em;
     -moz-border-radius: 1em;
     display: inline-block;
-    margin-right: -0.2em; /* Because we scale it down to make the box normal-sized we have to move it to the left slightly to have it line up properly */
+    margin-right: -0.15em; /* Because we scale it down to make the box normal-sized we have to move it to the left slightly to have it line up properly */
     border-color: #BBB;
     border-style: solid;
     /* WebKit */

@@ -17,7 +17,6 @@ time, mark, audio, video {
   padding: 0;
   border: 0;
   font-size: 1em;
-  text-rendering: optimizeLegibility;
 }
 html, body { min-height:100%; }
 body {

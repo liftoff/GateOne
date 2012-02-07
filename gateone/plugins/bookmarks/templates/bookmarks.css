@@ -99,47 +99,16 @@
     }
 }
 #{{container}} .openbookmark {
-    -webkit-transform: translate(15%, 0px);
-    -khtml-transform: translate(15%, 0px);
-    -moz-transform: translate(15%, 0px);
-    -ms-transform: translate(15%, 0px);
-    -o-transform: translate(15%, 0px);
-    transform: translate(15%, 0px);
+    -webkit-transform: translate(800%, 0px) scale(10);
+    -khtml-transform: translate(800%, 0px) scale(10);
+    -moz-transform: translate(800%, 0px) scale(10);
+    -ms-transform: translate(800%, 0px) scale(10);
+    -o-transform: translate(800%, 0px) scale(10);
+    transform: translate(800%, 0px) scale(10);
     background-image: none;
     background-color: grey;
     opacity: 1;
     box-shadow: 0.2em 0.2em 0.5em #000;
-}
-#{{prefix}}bm_noticecontainer {
-    display: block;
-    position: absolute;
-    bottom: 1em;
-    right: 0;
-    background-color: #000;
-    z-index: 100;
-}
-#{{prefix}}bm_notice {
-    /* WebKit */
-    -webkit-transition: all 5.0s ease-in-out;
-    /* Firefox */
-    -moz-transition: all 5.0s ease-in-out;
-    /* Opera */
-    -o-transition-property: all;
-    -o-transition-duration: 5s;
-    -o-transition-timing-function: ease-in-out;
-    /* KHTML */
-    -khtml-transition: all 5s ease-in-out;
-    /* IE 9+ */
-    -ms-transition: all 5s ease-in-out;
-    /* Future CSS3 standard */
-    transition: all 5.0s ease-in-out;
-    color: #fff;
-    background-color: #000;
-    font-weight: bold;
-    font-size: 1.1em;
-    border: 1px #FFF solid;
-    padding: 0.5em;
-    margin: 1em;
 }
 #{{container}} .bookmark {
     font-family: 'Istok Web', Dejavu Sans, Verdana, Arial, sans-serif;
@@ -457,7 +426,7 @@
     content: " ";
     font-size: 1.75em;
     margin-left: 0.2em;
-    color: #1F5470;
+/*     color: #1F5470; */
     background-color: transparent;
     position: absolute;
     bottom: 0.5em;
@@ -466,7 +435,7 @@
     width: 69%;
     text-align: right;
     font-size: 0.9em;
-    color: #1F5470;
+/*     color: #1F5470; */
     margin-left: 0.45em;
 }
 #{{prefix}}bm_display_opts a {
@@ -515,15 +484,11 @@
 }
 #{{prefix}}bm_new {
     float: left;
-    color: #1F5470;
     font-size: 0.9em;
     font-weight: bold;
-    cursor: pointer;
     padding-left: 0.2em;
 }
 #{{prefix}}bm_new:hover {
-    color: #fff;
-    background-color: #1F5470;
     -webkit-transition: -webkit-transform 0.1s ease-in-out;
     -moz-transition: -webkit-transform 0.1s ease-in-out;
     -o-transition-property: all;
@@ -541,7 +506,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1;
+    z-index: 100;
 }
 #{{container}} .linkfloat:hover {
     cursor: pointer;
@@ -708,7 +673,7 @@
     height: 8em;
 }
 /* Effects */
-#{{container}} div[name="{{prefix}}bookmark"]:hover {
+#{{container}} div.bookmark:hover {
     background-color: rgba(0, 0, 0, 0.2);
     cursor: pointer;
     -webkit-transform-origin: center center;

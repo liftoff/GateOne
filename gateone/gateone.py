@@ -915,10 +915,15 @@ class TerminalWebSocket(WebSocketHandler):
         if user and user['session'] in SESSIONS:
             for term in SESSIONS[user['session']]:
                 if isinstance(term, int):
-                    multiplex = SESSIONS[user['session']][term]['multiplex']
-                    multiplex.remove_all_callbacks(self.callback_id)
-                    term_emulator = multiplex.term
-                    term_emulator.remove_all_callbacks(self.callback_id)
+                    try:
+                        multiplex = SESSIONS[user['session']][term]['multiplex']
+                        multiplex.remove_all_callbacks(self.callback_id)
+                        term_emulator = multiplex.term
+                        term_emulator.remove_all_callbacks(self.callback_id)
+                    except AttributeError:
+                        # User never completed opening a terminal so
+                        # self.callback_id is missing.  Nothing to worry about
+                        pass
         if user and 'upn' in user:
             logging.info(
                 _("WebSocket closed (%s).") % user['upn'])
@@ -1286,10 +1291,11 @@ class TerminalWebSocket(WebSocketHandler):
                 SESSIONS[self.session][term]['multiplex'].terminate()
             if self.settings['dtach']:
                 kill_dtached_proc(self.session, term)
-            del SESSIONS[self.session][term]
         except KeyError as e:
             pass # The EVIL termio has killed my child!  Wait, that's good...
                  # Because now I don't have to worry about it!
+        finally:
+            del SESSIONS[self.session][term]
 
     @require_auth
     def set_terminal(self, term):
@@ -1382,11 +1388,11 @@ class TerminalWebSocket(WebSocketHandler):
             now = datetime.now()
             tidy_thread = SESSIONS[self.session]['tidy_thread']
             tidy_thread.keepalive(now)
-            m = multiplex = SESSIONS[self.session][term]['multiplex']
+            multiplex = SESSIONS[self.session][term]['multiplex']
             scrollback, screen = multiplex.dump_html(
                 full=full, client_id=self.client_id)
         except KeyError as e: # Session died (i.e. command ended).
-            scrollback, screen = None, None
+            scrollback, screen = [], []
         if [a for a in screen if a]:
             output_dict = {
                 'termupdate': {
@@ -1508,7 +1514,7 @@ class TerminalWebSocket(WebSocketHandler):
             chars = unicode(chars)
         term = self.current_term
         session = self.session
-        if session in SESSIONS:
+        if session in SESSIONS and term in SESSIONS[session]:
             if SESSIONS[session][term]['multiplex'].isalive():
                 if chars:
                     SESSIONS[ # Force an update
@@ -1561,6 +1567,13 @@ class TerminalWebSocket(WebSocketHandler):
         for i, line in enumerate(screen):
             print("%s:%s" % (i, "".join(line)))
             print(renditions[i])
+        # Also check if there's anything that's uncollectable
+        import gc
+        gc.set_debug(gc.DEBUG_UNCOLLECTABLE|gc.DEBUG_OBJECTS)
+        from pprint import pprint
+        pprint(gc.garbage)
+        print("gc.collect(): %s" % gc.collect())
+        pprint(gc.garbage)
 
 # Thread classes
 class TidyThread(threading.Thread):
@@ -1601,9 +1614,9 @@ class TidyThread(threading.Thread):
         self.quitting = True
 
     def run(self):
+        session = self.session
         while not self.quitting:
             try:
-                session = self.session
                 if datetime.now() > self.last_keepalive + TIMEOUT:
                     logging.info(
                         "{session} timeout.".format(

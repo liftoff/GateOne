@@ -92,7 +92,7 @@ Module Functions and Classes
 """
 
 # Stdlib imports
-import signal, threading, os, sys, time, struct, io, gzip, re
+import signal, threading, os, sys, time, struct, io, gzip, re, weakref
 from datetime import timedelta, datetime
 from functools import partial
 from itertools import izip
@@ -259,14 +259,15 @@ class BaseMultiplex(object):
             #   Sep 28 19:45:02 <hostname> gateone: <log message>
             syslog.openlog('gateone', 0, syslog_facility)
 
-    def __del__(self):
-        """
-        Makes sure that the underlying terminal program is terminated so we
-        don't leave things hanging around.
-        """
-        logging.debug("Calling Multiplex.__del__()")
-        if self.isalive():
-            self.terminate()
+    # Commented this out since it was preventing garbage collection
+    #def __del__(self):
+        #"""
+        #Makes sure that the underlying terminal program is terminated so we
+        #don't leave things hanging around.
+        #"""
+        #logging.debug("Multiplex.__del__()")
+        #if self._alive:
+            #self.terminate()
 
     def __repr__(self):
         """
@@ -284,12 +285,14 @@ class BaseMultiplex(object):
             started = self.started.isoformat()
         out = (
             "%s.%s:  "
+            "term_id: %s, "
             "alive: %s, "
             "command: %s, "
             "started: %s"
             % (
                 self.__module__,
                 self.__class__.__name__,
+                self.term_id,
                 self._alive,
                 repr(self.cmd),
                 started
@@ -339,7 +342,7 @@ class BaseMultiplex(object):
 
     def remove_all_callbacks(self, identifier):
         """
-        Removes all callbacks associated with *identifier*
+        Removes all callbacks associated with *identifier*.
         """
         for event, identifiers in self.callbacks.items():
             try:
@@ -441,8 +444,9 @@ class BaseMultiplex(object):
         # Handle post-process patterns (for expect())
         if self._patterns:
             self.postprocess()
-        for callback in self.callbacks[self.CALLBACK_UPDATE].values():
-            self._call_callback(callback)
+        if self.CALLBACK_UPDATE in self.callbacks:
+            for callback in self.callbacks[self.CALLBACK_UPDATE].values():
+                self._call_callback(callback)
 
     def preprocess(self, stream):
         """
@@ -470,7 +474,6 @@ class BaseMultiplex(object):
                     # We only match the first non-optional pattern
                     finished_non_sticky = True
 
-# TODO: Figure out why we're not catching our ready_string
     def postprocess(self):
         """
         Handles post-process patterns registered by :meth:`expect`.
@@ -930,10 +933,17 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         from tornado import ioloop
         self.terminating = False
         self.io_loop = ioloop.IOLoop.instance() # Monitors child for activity
-        self.io_loop.set_blocking_signal_threshold(5, self._blocked_io_handler)
+        #self.io_loop.set_blocking_signal_threshold(5, self._blocked_io_handler)
         interval = 100 # 0.1 seconds
         self.scheduler = ioloop.PeriodicCallback(
-            self._timeout_checker, interval, io_loop=self.io_loop)
+            weakref.proxy(self._timeout_checker), interval)
+
+    def __del__(self):
+        """
+        Makes sure that the underlying terminal program is terminated so we
+        don't leave things hanging around.
+        """
+        logging.debug("MultiplexPOSIXIOLoop.__del__()")
 
     def _call_callback(self, callback):
         """
@@ -1103,15 +1113,23 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         else:
             return # Something else already called it
         logging.debug("terminate() self.pid: %s" % self.pid)
+        # Unset our blocked IO handler so there's no references to self hanging
+        # around preventing us from freeing up memory
+        #try:
+            #self.io_loop.set_blocking_signal_threshold(None, None)
+        #except ValueError:
+            #pass # Can happen if this instance winds up in a thread
+        for callback in self.callbacks[self.CALLBACK_EXIT].values():
+            self._call_callback(callback)
         if self._patterns:
             self.timeout_check(timeout_now=True)
-        if self.scheduler._running:
-            self.scheduler.stop()
-            # NOTE: Without this 'del' we end up with a memory leak every time
-            # a new instance of Multiplex is created.  Apparently the references
-            # inside of PeriodicCallback pointing to self prevent proper garbage
-            # collection.
-            del self.scheduler
+            self.unexpect()
+        self.scheduler.stop()
+        # NOTE: Without this 'del' we end up with a memory leak every time
+        # a new instance of Multiplex is created.  Apparently the references
+        # inside of PeriodicCallback pointing to self prevent proper garbage
+        # collection.
+        del self.scheduler
         try:
             self.io_loop.remove_handler(self.fd)
             os.close(self.fd)
@@ -1128,12 +1146,12 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         except OSError:
             # The process is already dead--great.
             pass
-        # Unset our blocked IO handler so there's no references to self hanging
-        # around preventing us from freeing up memory
-        try:
-            self.io_loop.set_blocking_signal_threshold(5, None)
-        except ValueError:
-            pass # Can happen if this instance winds up in a thread
+        # Reset all callbacks so there's nothing to prevent GC
+        self.callbacks = {
+            self.CALLBACK_UPDATE: {},
+            self.CALLBACK_EXIT: {},
+        }
+        #del self.term
         # Kick off a process that finalizes the log (updates metadata and
         # recompresses everything to save disk space)
         pid = os.fork()
@@ -1168,8 +1186,6 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             logging.debug(_(
                 "Apparently fd %s just died (event: %s)" % (self.fd, event)))
             self.terminate()
-            for callback in self.callbacks[self.CALLBACK_EXIT].values():
-                self._call_callback(callback)
 
     def _read(self, bytes=-1):
         """

@@ -167,7 +167,12 @@ def shell_command(cmd, timeout_duration=5):
         default=default,
         timeout_duration=timeout_duration
     )
-    signal.signal(signal.SIGCHLD, existing_handler)
+    try:
+        signal.signal(signal.SIGCHLD, existing_handler)
+    except ValueError:
+        # Like above, signal only works from within the main thread but our use
+        # of it here would only matter if we were in the main thread.
+        pass
     return result
 
 def json_encode(obj):

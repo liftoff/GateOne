@@ -1,3 +1,27 @@
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: bold;
+  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('/static/ubuntumono-bold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('/static/ubuntumono-normal.woff') format('woff');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: bold;
+  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('/static/ubuntumono-bold-italic.woff') format('woff');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: normal;
+  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('/static/ubuntumono-italic.woff') format('woff');
+}
 #{{container}} {
     position: absolute;
     overflow: hidden;
@@ -9,15 +33,6 @@
     padding: 0.1em;
     z-index: 0;
     font-size: 1em;
-    font-family: monospace;
-    /* WebKit */
-    -webkit-transition: all 1.0s ease-in-out;
-    /* Firefox */
-    -moz-transition: all 1.0s ease-in-out;
-    /* Opera */
-    -o-transition: all 1.0s ease-in-out;
-    /* Future CSS3 standard */
-    transition: all 1.0s ease-in-out;
 }
 #{{container}} h1,h2,h3,h4,h5,h6,h7 {
     font-family: sans-serif;
@@ -33,6 +48,28 @@
 }
 #{{container}} .about_gateone li:before {
     content: "⎚ ";
+}
+#{{container}} .twosectrans {
+    /* WebKit */
+    -webkit-transform-origin: top right;
+    -webkit-transition: all 2s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 2s ease-in-out;
+    -moz-transform-origin: top right;
+    /* Opera */
+    -o-transition-property: all;
+    -o-transition-duration: 2s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: right top;
+    /* KHTML */
+    -khtml-transform-origin: top right;
+    -khtml-transition: all 2s ease-in-out;
+    /* IE 9+ */
+    -ms-transform-origin: top right;
+    -ms-transition: all 2s ease-in-out;
+    /* Future CSS3 standard */
+    transform-origin: top right;
+    transition: all 2s ease-in-out;
 }
 #{{container}} .sectrans {
     /* WebKit */
@@ -146,38 +183,41 @@
     transition: all 0.1s ease-in-out;
 }
 #{{container}} textarea {
-    background-color: #000;
-    color: #fff;
+    background-color: #fff;
+    color: #000;
     outline: none;
     resize: none;
-    font-family: monospace;
-    font-size: 0.8em;
+    font-family: 'Ubuntu Mono', monospace; /* For consistency */
+    line-height: 1;
 }
 #{{container}} .terminal {
+    line-height: 1;
     background-color: #000; /* Black - dark black! */
     color: #fff;
-    position:static;
+    position: static;
     float: left;
     top: 0;
     /* WebKit */
-    -webkit-transition: all 1.0s ease-in-out;
+    -webkit-transition: -webkit-transform 1s ease-in-out;
     /* Firefox */
-    -moz-transition: all 1.0s ease-in-out;
+    -moz-transition: -moz-transform 1s ease-in-out;
     /* IE9+ */
-    -ms-transition: all 1.0s ease-in-out;
+    -ms-transition: -ms-transform 1s ease-in-out;
     /* Opera */
-    -o-transition: all 1.0s ease-in-out;
+    -o-transition: -o-transform 1s ease-in-out;
     /* Future CSS3 standard */
-    transition: all 1.0s ease-in-out;
+    transition: transform 1s ease-in-out;
 }
 #{{container}} .terminal a {
-    color: #90A3C5;
+    color: #fff;
 }
 #{{container}} .terminal a:visited {
-    color: #90A3C5;
+    color: #fff;
 }
 #{{container}} .terminal pre {
-    font-family: monospace;
+    font-family: 'Ubuntu Mono', monospace;
+    font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */
+    line-height: 1;
     /*height: auto;*/ /* Needs to be 100% when scrollback is enabled */
     width: 100%;
     overflow-y: auto;
@@ -192,7 +232,7 @@
     z-index:600;
     position:absolute;
     top:0;
-    right:1.8em;
+    right:1.5em;
     color: #fff;
     text-align: right;
 }
@@ -259,14 +299,14 @@
     position: absolute;
     top: 0;
     left: 0;
-    bottom: 2em;
+    bottom: 1.5em;
     padding: 0;
-    right: 5em;
+    right: 3em;
     z-index: 500;
     margin: 0;
     opacity: 0;
-    width: 95%;
-    height: 95%;
+/*     width: 95%; */
+/*     height: 95%; */
 }
 /* This is to work around a Chrome/Windows bug where pasting gets disabled if you use JS to set display: none */
 .go_none { /* No prefix on this one because of issues with that in the JS code */
@@ -363,7 +403,7 @@
     margin-bottom: 0.2em;
 }
 #{{container}} .panel a {
-    color: #1F5470;
+    color: #fff;
     text-decoration: none;
     font-weight: bold;
 }
@@ -372,7 +412,7 @@
     cursor: pointer;
 }
 #{{container}} .panel a:visited {
-    color: #1F5470;
+    color: #fff;
 }
 #{{container}} .paneltable {
     position: relative;
@@ -411,231 +451,51 @@
     opacity: 1;
     cursor:pointer;
 }
-#{{prefix}}panel_bookmarks {
-    min-width: 50%;
-    min-height: 50%;
+#{{container}} .bookmark { /* Override the bookmark plugin's CSS to make it really dark */
+    color: white;
+    border: 0.1em #fff solid;
+    background-image: -moz-linear-gradient(top, #000, rgba(12, 12, 12, 0.7));
+    background-image: -webkit-linear-gradient(top, #000, rgba(12, 12, 12, 0.7));
+    background-image: -o-linear-gradient(top, #000, rgba(12, 12, 12, 0.7));
+    background-image: -khtml-linear-gradient(top, #000, rgba(12, 12, 12, 0.7));
+    background: -ms-linear-gradient(top, #000, rgba(12, 12, 12, 0.7));
 }
-#{{container}} .bookmark {
-    position: relative;
-    background-color: #000;
-    color: #fff;
-    padding-bottom: 0.5em;
-    margin-bottom: 0.2em;
+#{{prefix}}bm_pagination a {
+    border: 0.1em #fff solid;
+}
+#{{prefix}}bm_pagination a:link,
+#{{prefix}}bm_pagination a:visited {
+    float: left;
+}
+#{{prefix}}bm_pagination a:hover{
+    border: solid 1px #fff;
+}
+#{{container}} #{{prefix}}bm_pagination .active {
+    color: #FFF;
+    background-color: #111;
     border: 0.1em #000 solid;
-    font-size: 0.9em;
-    /* Firefox 3.6+ */
-   background-image: -moz-linear-gradient(#000, #222);
-   /* Safari 5.1+, Chrome 10+ */
-   background-image: -webkit-linear-gradient(#000, #222);
-   /* Opera 11.10+ */
-   background-image: -o-linear-gradient(#000, #222);
 }
-#{{container}} .bookmark a {
-    color: #1F5470;
-    display: inline;
-    text-decoration: none;
+#{{container}} #{{prefix}}bm_pagination .inactive a {
+    border: solid 1px #fff;
+    color: #888;
 }
-#{{container}} .bookmark a:hover {
-    color: #fff;
-    background-color: #1F5470;
-}
-#{{container}} .bookmark a:visited {
-    color: #1F5470;
-}
-#{{container}} .bookmark ul {
-    display: inline;
-    font-size: 0.8em;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-}
-#{{container}} .bookmark ul li {
-    margin-left: 0.1em;
-    padding-left: 0.2em;
-    padding-right: 0.2em;
-    padding-top: 0.1em;
-    list-style: none;
-    display: inline;
-    background-color: #333;
-    color: white;
-}
-#{{container}} .bookmark ul li:hover {
-    color: #fff;
-    background-color: #1F5470;
+#{{container}} div[name="{{prefix}}bookmark"]:hover {
+    background-color: rgba(0, 0, 0, 1);
     cursor: pointer;
-}
-#{{container}} .bookmark ul li.first {
-    margin-left: 0;
-    border-left: none;
-    list-style: none;
-    display: inline;
-    background-color: #333;
-    color: white;
-}
-#{{prefix}}bm_container {
-    width: 70%;
-    float: left;
-}
-#{{prefix}}bm_tagcloud {
-    width: 29%;
-    float: right;
-    display: block;
-    font-size: 0.8em;
-}
-#{{prefix}}bm_tagcloud_ul {
-    display: inline;
-}
-#{{container}} .bm_tag {
-    margin: 0.2em;
-    padding-left: 0.2em;
-    padding-right: 0.2em;
-    padding-top: 0.1em;
-    list-style: none;
-    display: inline-block;
-    background-color: #333;
-    color: white;
-}
-#{{container}} .bm_tag:hover {
-    color: #fff;
-    background-color: #1F5470;
-    cursor: pointer;
-}
-#{{container}} .bm_controls {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    font-size: 0.6em;
-    text-transform: uppercase;
-}
-#{{container}} .bm_controls a {
-    padding-left: 0.1em;
-    padding-right: 0.1em;
-}
-#{{container}} .bm_controls a:hover {
-    color: #fff;
-    background-color: #CC0003;
-}
-#{{container}} .bm_uri {
-    float: left;
-    padding-left: 0.2em;
-}
-#{{container}} .bm_uri a:hover {
-    color: #fff;
-    background-color: #1F5470;
-}
-#{{container}} .bm_url {
-    font-weight: bold;
-}
-#{{container}} .bm_visited {
-    float: right;
-    clear: right;
-    padding: 0.2em;
-    background-color: #1F5470;
-    color: white;
-    font-size: 0.9em;
-}
-#{{container}} .bm_visited:hover {
-    background-color: #000;
-    cursor: pointer;
-}
-#{{prefix}}bm_tags {
-    width: 100%;
-    position: relative;
-    float: left;
-    padding-bottom: 0.2em;
-    padding-top: 0.2em;
-    font-size: 0.9em;
-    border-bottom: 0.1em #000 solid;
-}
-#{{prefix}}bm_tags ul {
-    margin-left: 0;
-    padding-left: 0;
-    display: inline;
-}
-#{{prefix}}bm_tags ul li {
-    margin-right: -0.5em;
-    padding-left: 0.1em;
-    padding-right: 1.6em;
-    list-style: none;
-    display: inline;
-    background-color: #1F5470;
-    color: #fff;
-}
-#{{prefix}}bm_tags ul li:hover {
-    background-color: #fff;
-    cursor: pointer;
-    color: #000;
-}
-#{{prefix}}bm_tags ul li:hover:after {
-    content: "X";
-    font-size: 1.4em;
-    bottom: 0.45em;
-    color: #1F5470;
-}
-#{{prefix}}bm_tags ul li:after {
-    font-size: 2em;
-    font-weight: bold;
-    content: "⚡";
-    line-height: 20%;
-    position: absolute;
-    bottom: 0.3em;
-    color: #DDD;
-}
-#{{prefix}}bm_tags ul li:last-child {
-    padding-right: 0.3em;
-}
-#{{prefix}}bm_tags ul li:last-child:hover:after {
-    content: "X";
-    font-size: 1.4em;
-    bottom: 0.45em;
-    color: #1F5470;
-}
-#{{prefix}}bm_tags ul li:last-child:after {
-    content: " ▶";
-    font-size: 1.5em;
-    margin-left: 0.3em;
-    color: #1F5470;
-    background-color: transparent;
-    position: absolute;
-    bottom: 0.56em;
-}
-#{{prefix}}bm_display_opts {
-    width: 70%;
-    text-align: right;
-    font-size: 0.8em;
-    color: #1F5470;
-    padding-bottom: 0.2em;
-}
-#{{container}} .bm_desc {
-    padding: 0.4em;
-}
-#{{prefix}}bm_sort_direction {
-    float: right;
-    margin-left: 0.5em;
-    -webkit-transition: -webkit-transform 0.5s ease-in-out;
-    -moz-transition: -moz-transform 0.5s ease-in-out;
-    -o-transition: -o-transform 0.5s ease-in-out;
-    transition: transform 0.5s ease-in-out;
-    cursor: pointer;
-}
-#{{prefix}}bm_sort_direction:hover {
-    color: #fff;
-}
-#{{prefix}}bm_search {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 10em;
-}
-#{{prefix}}bm_new {
-    float: left;
-    color: #1F5470;
-    font-size: 0.8em;
-    font-weight: bold;
-    cursor: pointer;
-}
-#{{prefix}}bm_new:hover {
-    background-color: #fff;
+    -webkit-transform-origin: center center;
+    -webkit-transition: all 0.05s ease-in-out;
+    -moz-transition: all 0.05s ease-in-out;
+    -moz-transform-origin: center center;
+    -o-transition-property: all;
+    -o-transition-duration: 0.05s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: center center;
+    -khtml-transform-origin: center center;
+    -khtml-transition: all 0.05s ease-in-out;
+    -ms-transform-origin: center center;
+    -ms-transition: all 0.05s ease-in-out;
+    transform-origin: top left;
+    transition: all 0.05s ease-in-out;
 }
 #{{container}} form { margin: 0 0 1em; }
 #{{container}} label {
@@ -788,25 +648,16 @@
     overflow-x: hidden;
     top: 25%;
     left: 25%;
-    background-color: #CCC;
+    background-color: #000;
     max-width: 50%;
     max-height: 75%;
     z-index: 750;
-    border: solid 1px #000;
-    color: #000;
+    border: solid 1px #fff;
+    color: #FFF;
     border-radius: 0.5em;
-    box-shadow: 0.2em 0.2em 0.5em #000;
-    /* Firefox 3.6+ */
-    background-image: -moz-linear-gradient(#eee, #aaa);
-    /* Safari 5.1+, Chrome 10+ */
-    background-image: -webkit-linear-gradient(#eee, #aaa);
-    /* Opera 11.10+ */
-    background-image: -o-linear-gradient(#eee, #aaa);
-    /* Standard (future) */
-    background-image: -o-linear-gradient(#eee, #aaa);
 }
 #{{container}} .dialogcontainer h3 {
-    background-color: #1F5470;
+    background-color: transparent;
     color: #fff;
     padding-left: 0.5em;
     line-height: 1.5;
@@ -816,22 +667,25 @@
     text-align: center;
     font-size: 1.1em;
     border-radius: 0.25em 0.25em 0 0;
+    border-bottom: 1px #fff solid;
 }
 #{{container}} .dialogcontainer textarea {
     margin-right: 1.3em;
     padding: 0.2em 0.2em;
     border: 1px solid #bbb;
     border-radius: 2px;
-    color: #000;
+    color: #FFF;
+    background-color: #000;
     position: relative;
 }
 #{{container}} .dialogcontainer input {
+    background-color: #000;
     margin-right: 1.3em;
     margin-bottom: 0.2em;
     padding: 0.2em 0.2em;
     border: 1px solid #bbb;
     border-radius: 2px;
-    color: #000;
+    color: #FFF;
     position: relative;
     display: block;
     width: 99%;
@@ -877,13 +731,78 @@
     margin-bottom: 0.2em;
     display: block;
     padding: 0.2em 0.2em;
-    border: 1px solid #bbb;
+    border: 1px solid #fff;
     border-radius: 2px;
-    box-shadow: 0 1px 1px #fff;
-    color: #000;
+    color: #FFF;
+    background-color: #000;
     position: relative;
     z-index: 2;
     font-size: 1em;
+}
+#{{container}} .table_row {
+    display: table-row;
+    height: 1.2em;
+    overflow: hidden;
+    color: #fff;
+    border: 0.1em #fff solid;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+#{{container}} .active.table_row {
+    -webkit-transform: skew(-10deg) translate(0.5%);
+}
+#{{container}} .table_cell {
+    display: table-cell;
+    max-width: 10em;
+    padding-right: 0.5em;
+    /* Firefox 3.6+ */
+    background-image: -moz-linear-gradient(top, #000, rgba(120, 120, 120, 0.5));
+    /* Safari 5.1+, Chrome 10+ */
+    background-image: -webkit-linear-gradient(top, #000, rgba(120, 120, 120, 0.5));
+    /* Opera 11.10+ */
+    background-image: -o-linear-gradient(top, #000, rgba(120, 120, 120, 0.5));
+    /* Konqueror */
+    background-image: -khtml-linear-gradient(top,  #000, rgba(120, 120, 120, 0.5));
+    /* IE 9+ */
+    background: -ms-linear-gradient(top,  #000, rgba(120, 120, 120, 0.5));
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+#{{container}} .table_header_row {
+    display: table-header-group;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+#{{container}} .table_header_cell {
+    color: #fff;
+    background-color: #222;
+}
+#{{container}} .table_header_cell.active {
+    color: maroon;
+}
+#{{container}} .table_header_cell:hover {
+    color: maroon;
+    cursor: pointer;
+}
+#{{container}} .metadata_row {
+    display: table-row;
+    height: 1.2em;
+    overflow: hidden;
+/*     color: #000; */
+    border: 0.1em #fff solid;
+    font-size: 0.9em;
+}
+#{{container}} .metadata_value {
+    display: table-cell;
+    padding-right: 0.5em;
+}
+#{{container}} .metadata_title {
+    display: table-cell;
+    font-weight: bold;
+    padding-right: 0.5em;
+    text-align: right;
+    width: 50%; /* Ensures things are centered */
 }
 /* SVG Styling */
 .svgtext { letter-spacing:0px; text-anchor:middle; word-spacing:0px; text-align:center; color: #FFF; fill: #fff; }
@@ -901,3 +820,57 @@
 #{{prefix}}dialogtitle .panelstop2 { stop-color: #CCC; }
 #{{prefix}}dialogtitle .panelstop3 { stop-color: #DDD; }
 #{{prefix}}dialogtitle .panelstop4 { stop-color: #FFF; }
+
+/* Plugin-specific CSS (will get ignored if plugin is missing) */
+#{{prefix}}playbackControls {
+    padding: 0;
+    border: 0;
+}
+#{{prefix}}controlsContainer {
+    display: block;
+    position: absolute;
+    z-index: 100;
+    bottom: 0;
+    white-space: normal;
+    padding: 0;
+    border: 0;
+    left: 0;
+    right: 2em;
+    font-family: 'Ubuntu Mono', monospace;
+}
+#{{prefix}}playPause {
+    float: left;
+    color: white;
+    opacity: 0.7;
+    font-size: 1.2em;
+    margin-left: 0.2em;
+}
+#{{prefix}}playPause:hover {
+    cursor: pointer;
+}
+#{{prefix}}progressBar {
+    background: black;
+    padding: 0;
+    margin: 0.1em;
+    border: 0;
+    width: 0%;
+    height: 0.4em;
+}
+#{{prefix}}progressBarContainer {
+    position: absolute;
+    bottom: 0;
+    right: 1.3em;
+    left: 1.4em;
+    margin-bottom: 0.3em;
+    background: white;
+    border: 0;
+    opacity: 0.7;
+}
+#{{prefix}}clock {
+    float: right;
+    margin-right: 1.3em;
+    margin-top: -0.5em;
+    color: white;
+    opacity: 0.7;
+    font-size: 0.7em;
+}

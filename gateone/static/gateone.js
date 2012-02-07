@@ -19,7 +19,6 @@ this file.
 */
 
 // 1.0 TODO:
-// TODO: Add a first-time user splash screen that explains how Gate One works and how special features like copy & paste work.
 // TODO: TEST TEST TEST.
 
 // General TODOs
@@ -156,7 +155,7 @@ GateOne.noSavePrefs = {
     url: null,
     fillContainer: null,
     style: null,
-    goDiv: null,
+    goDiv: null, // Why an object and not an array?  So the logic is simpler:  "for (var objName in noSavePrefs) ..."
     prefix: null,
     autoConnectURL: null,
     embedded: null,
@@ -818,27 +817,30 @@ GateOne.Base.update(GateOne.Utils, {
         // The returned object will be in the form of:
         //      {'w': <width in px>, 'h': <height in px>}
         var node = GateOne.Utils.getNode(elem),
-            sizingDiv = document.createElement("pre");
-        sizingDiv.innerHTML = "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  Using the \u syntax because minifiers don't seem to like unicode characters to be in the source as-is.
+            sizingDiv = document.createElement("div"),
+            sizingPre = document.createElement("pre"),
+            fillerX = '', fillerY = [],
+            lineCounter = 0;
+//         sizingDiv.innerHTML = "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  Using the \u syntax because minifiers don't seem to like unicode characters to be in the source as-is.
         // We need two lines so we can factor in the line height and character spacing (if it has been messed with).
+        sizingDiv.className = "terminal";
+        for (var i=0; i <= 15; i++) {
+            fillerX += "\u2588";
+        }
+        for (var i=0; i <= 15; i++) {
+            fillerY.push(fillerX);
+        }
+        sizingPre.innerHTML = fillerY.join('\n');
         // Set the attributes of our copy to reflect a minimal-size block element
-        sizingDiv.style.display = 'block';
-        sizingDiv.style.position = 'absolute';
-        sizingDiv.style.top = '0';
-        sizingDiv.style.left = '0';
-//         sizingDiv.style.margin = '0';
-//         sizingDiv.style.padding = '0';
-        sizingDiv.style.width = 'auto';
-        sizingDiv.style.height = 'auto';
-//         sizingDiv.style.fontSize = GateOne.prefs.fontSize;
+        sizingPre.style.width = 'auto';
+        sizingPre.style.height = 'auto';
         // Add in our sizingDiv and grab its height
+        sizingDiv.appendChild(sizingPre);
         node.appendChild(sizingDiv);
-        var nodeHeight = sizingDiv.getClientRects()[0].height,
-            nodeWidth = sizingDiv.getClientRects()[0].width;
-        nodeHeight = parseInt(nodeHeight);
-        nodeWidth = parseInt(nodeWidth);
-//         nodeHeight = Math.floor(nodeHeight/2);
-//         nodeWidth = Math.floor(nodeWidth/2);
+        var nodeHeight = sizingPre.getClientRects()[0].height,
+            nodeWidth = sizingPre.getClientRects()[0].width;
+        nodeHeight = parseInt(nodeHeight)/16;
+        nodeWidth = parseInt(nodeWidth)/16;
         node.removeChild(sizingDiv);
         return {'w': nodeWidth, 'h': nodeHeight};
     },
@@ -906,13 +908,18 @@ GateOne.Base.update(GateOne.Utils, {
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            container = GateOne.prefs.goDiv.split('#')[1],
+            container = go.prefs.goDiv.split('#')[1],
             cssNode = u.createElement('link', {'id': prefix+id, 'type': 'text/css', 'rel': 'stylesheet', 'href': url, 'media': 'screen'}),
             existing = u.getNode('#'+prefix+id);
         if (existing) {
             u.removeElement(existing);
         }
-        document.getElementsByTagName("head")[0].appendChild(cssNode);
+        var themeCSS = u.getNode('#'+prefix+'go_css_theme'); // Theme should always be last
+        if (themeCSS) {
+            u.getNode("head").insertBefore(cssNode, themeCSS);
+        } else {
+            u.getNode("head").appendChild(cssNode);
+        }
     },
     loadThemeCSS: function(schemeObj) {
         // Loads the GateOne CSS for the given *schemeObj* which should be in the form of:
@@ -1087,12 +1094,6 @@ GateOne.Base.update(GateOne.Net, {
             setTimeout(go.Net.sendChars, 100); // Wait 0.1 seconds and retry.
         }
     },
-    testing: function() {
-        // Sends a 'ping' to the server over the WebSocket.  The response from the server is handled by 'pong' below.
-        var now = new Date(),
-            timestamp = now.toISOString();
-        GateOne.ws.send(JSON.stringify({'testing': timestamp}));
-    },
     log: function(msg) {
         // Just logs the message (use for debugging plugins and whatnot)
         GateOne.Logging.logInfo(msg);
@@ -1127,8 +1128,8 @@ GateOne.Base.update(GateOne.Net, {
             dimensions = go.Utils.getRowsAndColumns(go.prefs.goDiv),
             prefs = {
                 'term': term,
-                'rows': dimensions.rows - 1,
-                'cols': dimensions.cols - 6 // -6 for the sidebar + scrollbar
+                'rows': dimensions.rows -1,
+                'cols': dimensions.cols -6 // -6 for the sidebar + scrollbar
             }
         if (!go.prefs.showToolbar && !go.prefs.showTitle) {
             prefs['cols'] = dimensions.cols - 1; // If there's no toolbar and no title there's no reason to have empty space on the right.
