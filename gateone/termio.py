@@ -1151,7 +1151,6 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             self.CALLBACK_UPDATE: {},
             self.CALLBACK_EXIT: {},
         }
-        #del self.term
         # Kick off a process that finalizes the log (updates metadata and
         # recompresses everything to save disk space)
         pid = os.fork()
@@ -1160,8 +1159,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             os.setsid() # This prevents defunct processes (zombies)
             pid = os.fork()
             if pid == 0: # We're inside the sub-child process
-                # Have to wait just a moment for the main thread to finish writing:
-                time.sleep(5)
+                # So we don't have to wait to restart Gate One:
+                self.io_loop.stop() # Closes the listening TCP/IP port
+# Have to wait just a moment for the main thread to finish writing to the log:
+                time.sleep(5) # 5 seconds should be plenty of time
                 try:
                     get_or_update_metadata(self.log_path, self.user)
                 except Exception:

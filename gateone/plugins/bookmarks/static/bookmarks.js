@@ -372,8 +372,10 @@ GateOne.Base.update(GateOne.Bookmarks, {
                         localStorage[prefix+'USN'] = b.highestUSN();
                     }
                 } else {
-                    go.Visual.displayMessage("First-Time Synchronization Complete");
-                    go.Visual.displayMessage("Missing bookmark icons will be retrieved in the background");
+                    if (localStorage[prefix+'USN'] != 0) {
+                        go.Visual.displayMessage("First-Time Synchronization Complete");
+                        go.Visual.displayMessage("Missing bookmark icons will be retrieved in the background");
+                    }
                     b.createPanel();
                     localStorage[prefix+'USN'] = b.highestUSN();
                 }

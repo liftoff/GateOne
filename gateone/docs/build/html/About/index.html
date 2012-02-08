@@ -245,6 +245,7 @@ Options:
 &nbsp;&nbsp;--syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
 &nbsp;&nbsp;--syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
 &nbsp;&nbsp;--syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
+&nbsp;&nbsp;--url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
 &nbsp;&nbsp;--user_dir                       Path to the location where user files will be stored.
 </pre>
 <p>These options are detailed below in the format of:</p>
@@ -742,6 +743,23 @@ Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]_;ssh|user@somehost:22#007</p
 <p class="last">This option enables centralized logging if your syslog daemon is configurd to use a remote log host.</p>
 </div>
 </div>
+<div class="section" id="url-prefix">
+<h3>url_prefix<a class="headerlink" href="#url-prefix" title="Permalink to this headline">¶</a></h3>
+<dl class="option">
+<dt id="cmdoption--url_prefix">
+<tt class="descname">--url_prefix</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--url_prefix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="n">url_prefix</span> <span class="o">=</span> <span class="s">&quot;/&quot;</span>
+</pre></div>
+</div>
+<p>This specifies the URL path Gate One will live when it is accessed from a browser.  By default Gate One will use &quot;/&quot; as its base URL; this means that you can connect to it using a URL like so:  <a class="reference external" href="https://mygateone.company.com/">https://mygateone.company.com/</a></p>
+<p>That &quot;/&quot; at the end of the above URL is what the <tt class="docutils literal"><span class="pre">url_prefix</span></tt> is specifying.  If you wanted your Gate One server to live at <a class="reference external" href="https://mygateone.company.com/gateone/">https://mygateone.company.com/gateone/</a> you could set <tt class="docutils literal"><span class="pre">url_prefix=&quot;/gateone/&quot;</span></tt>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This feature was added for users running Gate One behind a reverse proxy so that many apps (like Gate One) can all live behind a single base URL.</p>
+</div>
+</div>
 <div class="section" id="user-dir">
 <span id="id2"></span><h3>user_dir<a class="headerlink" href="#user-dir" title="Permalink to this headline">¶</a></h3>
 <dl class="option">
@@ -821,6 +839,7 @@ Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]_;ssh|user@somehost:22#007</p
 <li><a class="reference internal" href="#syslog-facility">syslog_facility</a></li>
 <li><a class="reference internal" href="#syslog-host">syslog_host</a></li>
 <li><a class="reference internal" href="#syslog-session-logging">syslog_session_logging</a></li>
+<li><a class="reference internal" href="#url-prefix">url_prefix</a></li>
 <li><a class="reference internal" href="#user-dir">user_dir</a></li>
 </ul>
 </li>

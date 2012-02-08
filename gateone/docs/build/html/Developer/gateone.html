@@ -183,6 +183,7 @@ Options:
 &nbsp;&nbsp;--syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
 &nbsp;&nbsp;--syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
 &nbsp;&nbsp;--syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
+&nbsp;&nbsp;--url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
 &nbsp;&nbsp;--user_dir                       Path to the location where user files will be stored.
 </pre>
 <div class="admonition note">
@@ -650,6 +651,12 @@ background.</p>
 <p><em>datetime_obj</em> - A datetime object that will be used to measure <em>TIMEOUT</em> against.  Will end up defaulting to datetime.now() (if None) which is what you'd want 99% of the time.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="gateone.ErrorHandler">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">ErrorHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>status_code</em><big>)</big><a class="headerlink" href="#gateone.ErrorHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates an error response with status_code for all requests.</p>
 </dd></dl>
 
 </div>

@@ -188,6 +188,7 @@ These options match up directly with Gate One's command line options which you c
       --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
       --syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
       --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
+      --url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
       --user_dir                       Path to the location where user files will be stored.
 
 These options are detailed below in the format of:
@@ -564,6 +565,20 @@ This option tells Gate One to send logs of user sessions to the host's syslog da
 .. note:: This option enables centralized logging if your syslog daemon is configurd to use a remote log host.
 
 .. Why must I prepend ".. _user_dir:" before a section title just so I can link to it from within the same document?  There's got to be a better way.
+
+url_prefix
+----------------------
+.. option:: --url_prefix
+
+::
+
+    url_prefix = "/"
+
+This specifies the URL path Gate One will live when it is accessed from a browser.  By default Gate One will use "/" as its base URL; this means that you can connect to it using a URL like so:  https://mygateone.company.com/
+
+That "/" at the end of the above URL is what the ``url_prefix`` is specifying.  If you wanted your Gate One server to live at https://mygateone.company.com/gateone/ you could set ``url_prefix="/gateone/"``.
+
+.. note:: This feature was added for users running Gate One behind a reverse proxy so that many apps (like Gate One) can all live behind a single base URL.
 
 .. _user_dir:
 

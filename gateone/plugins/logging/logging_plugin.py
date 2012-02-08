@@ -265,6 +265,7 @@ def retrieve_log_playback(settings, tws=None):
     settings['user'] = user = tws.get_current_user()['upn']
     settings['users_dir'] = os.path.join(tws.settings['user_dir'], user)
     settings['gateone_dir'] = tws.settings['gateone_dir']
+    settings['url_prefix'] = tws.settings['url_prefix']
     q = Queue()
     global PROC
     PROC = Process(target=_retrieve_log_playback, args=(q, settings))
@@ -324,6 +325,7 @@ def _retrieve_log_playback(queue, settings, tws=None):
     users_dir = settings['users_dir']
     container = settings['container']
     prefix = settings['prefix']
+    url_prefix = settings['url_prefix']
     log_filename = settings['log_filename']
     theme = "%s.css" % settings['theme']
     colors = "%s.css" % settings['colors']
@@ -361,7 +363,10 @@ def _retrieve_log_playback(queue, settings, tws=None):
             colors_file = f.read()
         colors_template = tornado.template.Template(colors_file)
         rendered_colors = colors_template.generate(
-            container=container, prefix=prefix)
+            container=container,
+            prefix=prefix,
+            url_prefix=url_prefix
+        )
         with open(os.path.join(themes_path, theme)) as f:
             theme_file = f.read()
         theme_template = tornado.template.Template(theme_file)
@@ -375,7 +380,11 @@ def _retrieve_log_playback(queue, settings, tws=None):
             colors_256 += "%s %s" % (fg, bg)
         colors_256 += "\n"
         rendered_theme = theme_template.generate(
-            container=container, prefix=prefix, colors_256=colors_256)
+            container=container,
+            prefix=prefix,
+            colors_256=colors_256,
+            url_prefix=url_prefix
+        )
         # NOTE: 'colors' are customizable but colors_256 is universal.  That's
         # why they're separate.
         # Lastly we render the actual HTML template file
@@ -395,7 +404,9 @@ def _retrieve_log_playback(queue, settings, tws=None):
             theme=rendered_theme,
             colors=rendered_colors,
             preview=preview,
-            recording=json_encode(recording))
+            recording=json_encode(recording),
+            url_prefix=url_prefix
+        )
         out_dict['html'] = playback_html
     else:
         out_dict['result'] = "ERROR: Log not found"

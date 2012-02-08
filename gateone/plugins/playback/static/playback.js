@@ -70,7 +70,7 @@ GateOne.Base.update(GateOne.Playback, {
             progressBarElement = null,
             term = termNum,
             playbackFrames = null,
-            frame = {'screen': GateOne.terminals[term]['screen'], 'time': new Date()};
+            frame = {'screen': GateOne.terminals[term]['screen'].slice(0), 'time': new Date()};
         if (!progressBarElement) {
             progressBarElement = GateOne.Utils.getNode('#'+prefix+'progressBar');
         }
@@ -199,7 +199,8 @@ GateOne.Base.update(GateOne.Playback, {
         if (playPause.innerHTML == '▶') {
             p.startPlayback(localStorage[prefix+'selectedTerminal']);
             playPause.innerHTML = '=';
-            go.Visual.applyTransform(playPause, 'rotate(90deg)');
+            // NOTE:  Using a transform here to increase the size and move the element because these changes are *relative* to the current state.
+            go.Visual.applyTransform(playPause, 'rotate(90deg) scale(1.5) translate(0%, -20%)');
         } else {
             playPause.innerHTML = '▶';
             clearInterval(p.frameUpdater);
@@ -219,7 +220,7 @@ GateOne.Base.update(GateOne.Playback, {
                 'id': 'progressBarContainer', 'onmouseover': 'this.style.cursor = "col-resize"'}),
             clock = u.createElement('div', {'id': 'clock'}),
             playbackControls = u.createElement('div', {'id': 'playbackControls'}),
-            controlsContainer = u.createElement('div', {'id': 'controlsContainer'}),
+            controlsContainer = u.createElement('div', {'id': 'controlsContainer', 'class': 'centertrans'}),
             goDiv = u.getNode(go.prefs.goDiv),
             style = window.getComputedStyle(goDiv, null),
             emDimensions = u.getEmDimensions(goDiv),

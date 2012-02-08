@@ -3,7 +3,7 @@ NOTE: All of Gate One's dynamically-loaded CSS uses relative font sizes (e.g. 1e
 
 If you embed Gate One into your app and the fonts/icons appear too small you can adjust this without having to adjust *all* the other font sizes by passing the fontSize parameter to Gate One when it is initialized.  There's an example of this in templates/index.html.
 */
-* { margin:0; padding:0 }
+/* * { margin:0; padding:0 } */
 html, body, div, span, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp,

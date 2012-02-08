@@ -246,7 +246,7 @@
     top: 4.8em;
     bottom: 0;
     padding-left: 0.2em;
-    background: url(/static/bookmarks/images/star.svg);
+    background: url({{url_prefix}}static/bookmarks/images/star.svg);
     background-repeat: no-repeat;
     background-origin: padding-box;
     background-position: 0 0;

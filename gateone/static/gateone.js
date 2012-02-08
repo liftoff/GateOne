@@ -249,10 +249,8 @@ GateOne.Base.update(GateOne, {
             prefsPanelStyleRow5 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow1 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow2 = u.createElement('div', {'class':'paneltablerow'}),
-//             prefsPanelRow3 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow4 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow5 = u.createElement('div', {'class':'paneltablerow'}),
-            hr = u.createElement('hr', {'style': {'width': '100%', 'margin-top': '0.5em', 'margin-bottom': '0.5em'}}),
             tableDiv = u.createElement('div', {'id': 'prefs_tablediv1', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'id': 'prefs_tablediv2', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             prefsPanelThemeLabel = u.createElement('span', {'id': 'prefs_theme_label', 'class':'paneltablelabel'}),
@@ -351,7 +349,6 @@ GateOne.Base.update(GateOne, {
         prefsPanelSave.innerHTML = "Save";
         prefsPanelForm.appendChild(prefsPanelSave);
         prefsPanel.appendChild(prefsPanelForm);
-        prefsPanel.appendChild(hr);
         if (!go.prefs.embedded) {
             goDiv.appendChild(prefsPanel); // Doesn't really matter where it goes
         }
@@ -3038,7 +3035,7 @@ GateOne.Base.update(GateOne.Terminal, {
                 } else {
                     termContainer.appendChild(termPre);
                 }
-                GateOne.Utils.scrollToBottom(termPre);
+//                 GateOne.Utils.scrollToBottom(termPre);
                 screenUpdate = true;
                 GateOne.terminals[term]['scrollbackVisible'] = false;
             } catch (e) { // Likely the terminal just closed

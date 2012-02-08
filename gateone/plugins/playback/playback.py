@@ -72,14 +72,19 @@ class RecordingHandler(BaseHandler):
             colors_256 += "%s %s" % (fg, bg)
         colors_256 += "\n"
         rendered_theme = theme.generate(
-            container=container, prefix=prefix, colors_256=colors_256)
+            container=container,
+            prefix=prefix,
+            colors_256=colors_256,
+            url_prefix=self.settings['url_prefix']
+        )
         self.render(
             "templates/self_contained_recording.html",
             recording=recording,
             container=container,
             prefix=prefix,
             theme=rendered_theme,
-            colors=rendered_colors
+            colors=rendered_colors,
+            url_prefix=self.settings['url_prefix']
         )
 
 hooks = {

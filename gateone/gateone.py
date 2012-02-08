@@ -140,6 +140,7 @@ well as descriptions of what each configurable option does:
       --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
       --syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
       --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
+      --url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
       --user_dir                       Path to the location where user files will be stored.
 
 .. note:: Some of these options (e.g. log_file_prefix) are inherent to the Tornado framework.  You won't find them anywhere in gateone.py.
@@ -643,7 +644,7 @@ class MainHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         hostname = os.uname()[1]
-        gateone_js = "/static/gateone.js"
+        gateone_js = "%sstatic/gateone.js" % self.settings['url_prefix']
         minified_js_abspath = os.path.join(GATEONE_DIR, 'static')
         minified_js_abspath = os.path.join(
             minified_js_abspath, 'gateone.min.js')
@@ -659,7 +660,7 @@ class MainHandler(BaseHandler):
         js_init = self.settings['js_init']
         # Use the minified version if it exists
         if os.path.exists(minified_js_abspath):
-            gateone_js = "/static/gateone.min.js"
+            gateone_js = "%sstatic/gateone.min.js" % self.settings['url_prefix']
         template_path = os.path.join(GATEONE_DIR, 'templates')
         index_path = os.path.join(template_path, 'index.html')
         self.render(
@@ -669,7 +670,8 @@ class MainHandler(BaseHandler):
             jsplugins=PLUGINS['js'],
             cssplugins=PLUGINS['css'],
             js_init=js_init,
-            bell_data_uri=bell_data_uri
+            bell_data_uri=bell_data_uri,
+            url_prefix=self.settings['url_prefix']
         )
 
 class StyleHandler(BaseHandler):
@@ -726,7 +728,8 @@ class StyleHandler(BaseHandler):
                         theme_path,
                         container=container,
                         prefix=prefix,
-                        colors_256=colors_256
+                        colors_256=colors_256,
+                        url_prefix=self.settings['url_prefix']
                     )
                 except IOError:
                     # Given theme was not found
@@ -737,7 +740,8 @@ class StyleHandler(BaseHandler):
                     self.render(
                         color_path,
                         container=container,
-                        prefix=prefix
+                        prefix=prefix,
+                        url_prefix=self.settings['url_prefix']
                     )
                 except IOError:
                     # Given theme was not found
@@ -769,7 +773,8 @@ class PluginCSSTemplateHandler(BaseHandler):
             self.render(
                 plugin_template,
                 container=container,
-                prefix=prefix
+                prefix=prefix,
+                url_prefix=self.settings['url_prefix']
             )
         except IOError:
             # The provided plugin/template combination was not found
@@ -1666,6 +1671,34 @@ class TidyThread(threading.Thread):
                 pass
         del SESSIONS[session]
 
+class ErrorHandler(tornado.web.RequestHandler):
+    """
+    Generates an error response with status_code for all requests.
+    """
+    def __init__(self, application, request, status_code):
+        tornado.web.RequestHandler.__init__(self, application, request)
+        self.set_status(status_code)
+
+    def get_error_html(self, status_code, **kwargs):
+        self.require_setting("static_path")
+        if status_code in [404, 500, 503, 403]:
+            filename = os.path.join(self.settings['static_path'], '%d.html' % status_code)
+            print("filename: %s" % filename)
+            if os.path.exists(filename):
+                f = open(filename, 'r')
+                data = f.read()
+                f.close()
+                return data
+        import httplib
+        return "<html><title>%(code)d: %(message)s</title>" \
+                "<body class='bodyErrorPage'>%(code)d: %(message)s</body></html>" % {
+            "code": status_code,
+            "message": httplib.responses[status_code],
+        }
+
+    def prepare(self):
+        raise tornado.web.HTTPError(self._status_code)
+
 class Application(tornado.web.Application):
     def __init__(self, settings):
         """
@@ -1680,6 +1713,7 @@ class Application(tornado.web.Application):
         tornado_settings = dict(
             cookie_secret=settings['cookie_secret'],
             static_path=os.path.join(GATEONE_DIR, "static"),
+            static_url_prefix="%sstatic/" % settings['url_prefix'],
             gzip=True,
             login_url="/auth"
         )
@@ -1706,27 +1740,43 @@ class Application(tornado.web.Application):
         docs_path = os.path.join(GATEONE_DIR, 'docs')
         docs_path = os.path.join(docs_path, 'build')
         docs_path = os.path.join(docs_path, 'html')
+        url_prefix = tornado_settings['url_prefix']
         # Setup our URL handlers
         handlers = [
-            (r"/", MainHandler),
-            (r"/ws", TerminalWebSocket),
-            (r"/auth", AuthHandler),
-            (r"/style", StyleHandler),
-            (r"/cssrender", PluginCSSTemplateHandler),
-            (r"/combined_js", JSPluginsHandler),
-            (r"/docs/(.*)", tornado.web.StaticFileHandler, {
+            (r"%s" % url_prefix, MainHandler),
+            (r"%sws" % url_prefix, TerminalWebSocket),
+            (r"%sauth" % url_prefix, AuthHandler),
+            (r"%sstyle" % url_prefix, StyleHandler),
+            (r"%scssrender" % url_prefix, PluginCSSTemplateHandler),
+            (r"%scombined_js" % url_prefix, JSPluginsHandler),
+            (r"%sdocs/(.*)" % url_prefix, tornado.web.StaticFileHandler, {
                 "path": docs_path,
                 "default_filename": "index.html"
             })
         ]
-        # Connect the hooks
+        # Hook up the hooks
         for plugin_name, hooks in PLUGIN_HOOKS.items():
             if 'Web' in hooks:
                 # Apply the plugin's Web handlers
-                if isinstance(hooks['Web'], list):
-                    handlers.extend(hooks['Web'])
+                fixed_hooks = []
+                if isinstance(hooks['Web'], (list, tuple)):
+                    for h in hooks['Web']:
+                        # h == (regex, Handler)
+                        if not h[0].startswith(url_prefix): # Fix it
+                            h = (url_prefix + h[0].lstrip('/'), h[1])
+                            fixed_hooks.append(h)
+                        else:
+                            fixed_hooks.append(h)
                 else:
-                    handlers.append(hooks['Web'])
+                    if not hooks['Web'][0].startswith(url_prefix): # Fix it
+                        hooks['Web'] = (
+                            url_prefix + hooks['Web'][0].lstrip('/'),
+                            hooks['Web'][1]
+                        )
+                        fixed_hooks.append(hooks['Web'])
+                    else:
+                        fixed_hooks.append(hooks['Web'])
+                handlers.extend(fixed_hooks)
             if 'WebSocket' in hooks:
                 # Apply the plugin's WebSocket commands
                 PLUGIN_WS_CMDS.update(hooks['WebSocket'])
@@ -1961,6 +2011,15 @@ def main():
         help=_("If enabled, a separate listener will be started on port 80 that"
                " redirects users to the configured port using HTTPS.")
     )
+    define(
+        "url_prefix",
+        default="/",
+        help=_("An optional prefix to place before all Gate One URLs. e.g. "
+               "'/gateone/'.  Use this if Gate One will be running behind a "
+               "reverse proxy where you want it to be located at some sub-"
+               "URL path."),
+        type=str
+    )
     # Before we do anythong else, load plugins and assign their hooks.  This
     # allows plugins to add their own define() statements/options.
     imported = load_plugins(PLUGINS['py'])
@@ -2107,6 +2166,9 @@ def main():
                 for pair in pairs:
                     api_key, secret = pair.split(':')
                     api_keys.update({api_key: secret})
+    # Fix the url_prefix if the user forgot the trailing slash
+    if not options.url_prefix.endswith('/'):
+        options.url_prefix += '/'
     # Define our Application settings
     app_settings = {
         'gateone_dir': GATEONE_DIR, # Only here so plugins can reference it
@@ -2128,7 +2190,8 @@ def main():
         'pam_realm': options.pam_realm,
         'pam_service': options.pam_service,
         'locale': options.locale,
-        'api_keys': api_keys
+        'api_keys': api_keys,
+        'url_prefix': options.url_prefix
     }
     # Check to make sure we have a certificate and keyfile and generate fresh
     # ones if not.
@@ -2163,6 +2226,7 @@ def main():
     https_server = tornado.httpserver.HTTPServer(
         Application(settings=app_settings), ssl_options=ssl_options)
     https_redirect = tornado.web.Application([(r"/", HTTPSRedirectHandler),])
+    tornado.web.ErrorHandler = ErrorHandler
     try: # Start your engines!
         if options.address:
             for addr in options.address.split(';'):

@@ -1549,7 +1549,7 @@ class Terminal(object):
 
         .. note:: The :meth:`Terminal._spanify_screen` function is aware of this logic and knows that a 'character' longer than an actual character indicates the presence of something like an image that needs special processing.
         """
-        logging.debug("_capture_image() len(self.image): %s" % len(image_data))
+        logging.debug("_capture_image() len(self.image): %s" % len(self.image))
         self.cursorY = self.rows - 1 # Move to the end of the screen
         # NOTE: If we don't move to the end of the screen the image can end up
         # partially above the visible screen (since it will rest on the current

@@ -974,13 +974,6 @@ GateOne.Base.update(GateOne.SSH, {
             u.getNode(go.prefs.goDiv).appendChild(sshPanel);
         }
     },
-    displayUserKeysAction: function(message) {
-        // Opens a panel displaying a list of the user's SSH keys (aka identities) which should be contained within *message*:
-        // *message['keys']* - A list of the public and private SSH keys the user has stored in their user directory.
-        // *message['keys'][0]* (hypothetical) - An associative array conaining the key's metadata.  For example:
-        //      {'fingerprint': <key fingerprint>, 'public': <contents of the key if it's not a private key>, 'comment': <key comment (may be empty)>, 'certinfo': <certificate info (empty if it isn't a certificate)>, 'bubblebabble': <the bubblebabble hash of the key>}
-
-    },
     displayHostFingerprint: function(message) {
         // Displays the host's key as sent by the server via the sshjs_display_fingerprint action.
         // The fingerprint will be colorized using the hex values of the fingerprint as the color code with the last value highlighted in bold.
