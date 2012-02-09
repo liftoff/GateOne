@@ -435,7 +435,8 @@ def get_host_fingerprint(settings, tws):
     ssh = which('ssh')
     m = tws.new_multiplex(
         '%s -p %s -oUserKnownHostsFile=none -F. %s' % (ssh, port, host),
-        'get_host_key')
+        'get_host_key',
+        logging=False) # Logging is false so we don't make tons of silly logs
     def grab_fingerprint(m_instance, match):
         out_dict['fingerprint'] = match.split()[-1][:-1]
         m_instance.terminate()

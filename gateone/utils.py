@@ -839,6 +839,7 @@ def get_or_update_metadata(golog_path, user):
 
     .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.
     """
+    logging.debug('get_or_update_metadata()')
     first_frame = retrieve_first_frame(golog_path)
     metadata = {}
     if first_frame[14:].startswith('{'):

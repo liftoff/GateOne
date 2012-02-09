@@ -34,6 +34,7 @@ GateOne.Bookmarks.sortToggle = false;
 GateOne.Bookmarks.searchFilter = null;
 GateOne.Bookmarks.page = 0; // Used to tracking pagination
 GateOne.Bookmarks.dateTags = [];
+GateOne.Bookmarks.URLTypeTags = [];
 GateOne.Bookmarks.toUpload = []; // Used for tracking what needs to be uploaded to the server
 GateOne.Bookmarks.loginSync = true; // Makes sure we don't display "Synchronization Complete" if the user just logged in (unless it is the first time).
 GateOne.Bookmarks.temp = ""; // Just a temporary holding space for things like drag & drop
@@ -506,7 +507,17 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 bmTaglist.appendChild(tag);
             }
         }
-        if (b.tags) {
+        if (b.URLTypeTags) {
+            for (var i in b.URLTypeTags) {
+                var tag = u.createElement('li', {'id': 'bm_autotag bm_urltype_tag'});
+                tag.onclick = function(e) {
+                    b.removeFilterURLTypeTag(bookmarks, this.innerHTML);
+                };
+                tag.innerHTML = b.URLTypeTags[i];
+                bmTaglist.appendChild(tag);
+            }
+        }
+        if (b.tags.length) {
             for (var i in b.tags) { // Recreate the tag filter list
                 var tag = u.createElement('li', {'id': 'bm_tag'});
                 tag.innerHTML = b.tags[i];
@@ -516,7 +527,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 bmTaglist.appendChild(tag);
             }
         }
-        if (b.tags) {
+        if (b.tags.length) {
         // Remove all bookmarks that don't have matching *Bookmarks.tags*
             bookmarks.forEach(function(bookmark) {
                 var bookmarkTags = bookmark.tags,
@@ -535,7 +546,19 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bookmarks = filteredBookmarks;
             filteredBookmarks = []; // Have to reset this for use further down
         }
-        if (b.dateTags) {
+        if (b.URLTypeTags.length) {
+        // Remove all bookmarks that don't have matching URL type
+            bookmarks.forEach(function(bookmark) {
+                var urlType = bookmark.url.split(':')[0];
+                if (b.URLTypeTags.indexOf(urlType) == 0) {
+                    // Add the bookmark to the list
+                    filteredBookmarks.push(bookmark);
+                }
+            });
+            bookmarks = filteredBookmarks;
+            filteredBookmarks = []; // Have to reset this for use further down
+        }
+        if (b.dateTags.length) {
         // Remove from the bookmarks array all bookmarks that don't measure up to *Bookmarks.dateTags*
             bookmarks.forEach(function(bookmark) {
                 var dateObj = new Date(parseInt(bookmark.created)),
@@ -738,7 +761,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 xhr.send(params);
             } else {
                 // Check if this is an SSH URL and use the SSH icon for it
-                if (bookmark.url.slice(0,3) == "ssh") {
+                if (u.startsWith('telnet', bookmark.url) || u.startsWith('ssh', bookmark.url)) {
                     b.storeFavicon(bookmark, go.Icons['ssh']);
                 }
                 // Ignore everything else (until we add suitable favicons)
@@ -867,8 +890,11 @@ GateOne.Base.update(GateOne.Bookmarks, {
         bmElement.appendChild(bmContent);
         bmDesc.innerHTML = bookmark.notes;
         bmContent.appendChild(bmDesc);
+        // TODO: Get this adding the autotags to the taglist
         if (!ad && b.bookmarks.length) {
             var bmDateTag = u.createElement('li', {'class': 'bm_autotag'}),
+                goTag = u.createElement('li', {'class': 'bm_autotag bm_urltype_tag'}),
+                urlType = bookmark.url.split(':')[0],
                 dateTag = b.getDateTag(dateObj);
             bmVisited.innerHTML = bookmark.visits;
             bmElement.appendChild(bmVisited);
@@ -881,6 +907,11 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 };
                 bmTaglist.appendChild(bmTag);
             });
+            goTag.innerHTML = urlType; // The ★ gets added via CSS
+            goTag.onclick = function(e) {
+                b.addFilterURLTypeTag(b.filteredBookmarks, urlType);
+            }
+            bmTaglist.appendChild(goTag);
             bmDateTag.innerHTML = dateTag;
             bmDateTag.onclick = function(e) {
                 b.addFilterDateTag(b.filteredBookmarks, dateTag);
@@ -981,7 +1012,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmHeader = u.createElement('div', {'id': 'bm_header', 'class': 'sectrans'}),
             bmContainer = u.createElement('div', {'id': 'bm_container', 'class': 'sectrans'}),
             bmPagination = u.createElement('div', {'id': 'bm_pagination', 'class': 'sectrans'}),
-            bmTagCloud = u.createElement('div', {'id': 'bm_tagcloud', 'class': 'sectrans'}),
+//             bmTagCloud = u.createElement('div', {'id': 'bm_tagcloud', 'class': 'sectrans'}),
             bmTags = u.createElement('div', {'id': 'bm_tags', 'class': 'sectrans'}),
             bmNew = u.createElement('a', {'id': 'bm_new', 'class': 'quartersectrans'}),
             bmHRFix = u.createElement('hr', {'style': {'opacity': 0, 'margin-bottom': 0}}),
@@ -993,11 +1024,14 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmSync = u.createElement('a', {'id': 'bm_sync', 'title': 'Synchronize your bookmarks with the server.'}),
             bmH2 = u.createElement('h2'),
             bmHeaderImage = u.createElement('span', {'id': 'bm_header_star'}),
-            bmTagCloudUL = u.createElement('ul', {'id': 'bm_tagcloud_ul'}),
-            bmTagCloudTip = u.createElement('span', {'id': 'bm_tagcloud_tip', 'class': 'sectrans'}),
-            bmTagsHeader = u.createElement('h3', {'class': 'sectrans'}),
+//             bmTagCloudUL = u.createElement('ul', {'id': 'bm_tagcloud_ul'}),
+//             bmTagCloudTip = u.createElement('span', {'id': 'bm_tagcloud_tip', 'class': 'sectrans'}),
+//             bmTagsHeader = u.createElement('h3', {'class': 'sectrans'}),
+//             pipeSeparator = u.createElement('span'),
+//             bmTagsHeaderTagsLink = u.createElement('a'),
+//             bmTagsHeaderAutotagsLink = u.createElement('a', {'class': 'inactive'}),
             bmSearch = u.createElement('input', {'id': 'bm_search', 'name': prefix+'search', 'type': 'search', 'tabindex': 1, 'placeholder': 'Search Bookmarks'}),
-            allTags = b.getTags(b.bookmarks),
+//             allTags = b.getTags(b.bookmarks),
             toggleSort = u.partial(b.toggleSortOrder, b.bookmarks);
         bmH2.innerHTML = 'Bookmarks';
         if (!embedded) {
@@ -1046,14 +1080,20 @@ GateOne.Base.update(GateOne.Bookmarks, {
         bmDisplayOpts.appendChild(bmSortOpts);
         bmHeader.appendChild(bmTags);
         bmHeader.appendChild(bmHRFix); // The HR here fixes an odd rendering bug with Chrome on Mac OS X
-        bmTagsHeader.innerHTML = '<a id="bm_user_tags" href="javascript:void(0)">Tags</a>';
-        go.Visual.applyTransform(bmTagsHeader, 'translate(300%, 0)');
+//         bmTagsHeaderAutotagsLink.innerHTML = "Autotags";
+//         pipeSeparator.innerHTML = " | ";
+//         bmTagsHeaderTagsLink.innerHTML = "Tags";
+//         bmTagsHeader.appendChild(bmTagsHeaderTagsLink);
+//         bmTagsHeader.appendChild(pipeSeparator);
+//         bmTagsHeader.appendChild(bmTagsHeaderAutotagsLink);
+//         bmTagsHeader.innerHTML = '<a id="bm_user_tags" href="javascript:void(0)">Tags</a> | <a id="bm_user_tags" class="inactive" href="javascript:void(0)">Autotags</a>';
+//         go.Visual.applyTransform(bmTagsHeader, 'translate(300%, 0)');
         go.Visual.applyTransform(bmPagination, 'translate(300%, 0)');
-        bmTagCloud.appendChild(bmTagsHeader);
-        bmTagCloud.appendChild(bmTagCloudUL);
-        bmTagCloudTip.style.opacity = 0;
-        bmTagCloudTip.innerHTML = "<br><b>Tip:</b> " + b.generateTip();
-        bmTagCloud.appendChild(bmTagCloudTip);
+//         bmTagCloud.appendChild(bmTagsHeader);
+//         bmTagCloud.appendChild(bmTagCloudUL);
+//         bmTagCloudTip.style.opacity = 0;
+//         bmTagCloudTip.innerHTML = "<br><b>Tip:</b> " + b.generateTip();
+//         bmTagCloud.appendChild(bmTagCloudTip);
         if (existingPanel) {
             // Remove everything first
             while (existingPanel.childNodes.length >= 1 ) {
@@ -1086,20 +1126,141 @@ GateOne.Base.update(GateOne.Bookmarks, {
             }
         }
         if (!embedded) {
+            b.loadTagCloud('tags');
             setTimeout(function() { // Fade them in and load the bookmarks
-                go.Visual.applyTransform(bmTagsHeader, '');
+//                 go.Visual.applyTransform(bmTagsHeader, '');
                 go.Visual.applyTransform(bmPagination, '');
                 b.loadBookmarks(1);
             }, 800); // Needs to be just a bit longer than the previous setTimeout
-            setTimeout(function() { // This one looks nicer if it comes last
-                bmTagCloudTip.style.opacity = 1;
-            }, 3000);
-            setTimeout(function() { // Make it go away after a while
-                bmTagCloudTip.style.opacity = 0;
+//             setTimeout(function() { // This one looks nicer if it comes last
+//                 bmTagCloudTip.style.opacity = 1;
+//             }, 3000);
+//             setTimeout(function() { // Make it go away after a while
+//                 bmTagCloudTip.style.opacity = 0;
+//                 setTimeout(function() {
+//                     u.removeElement(bmTagCloudTip);
+//                 }, 1000);
+//             }, 30000);
+//             allTags.forEach(function(tag) {
+//                 var li = u.createElement('li', {'class': 'bm_tag sectrans', 'title': 'Click to filter or drop on a bookmark to tag it.', 'draggable': true});
+//                 li.innerHTML = tag;
+//                 li.addEventListener('dragstart', b.handleDragStart, false);
+//                 go.Visual.applyTransform(li, 'translateX(700px)');
+//                 li.onclick = function(e) {
+//                     b.addFilterTag(b.bookmarks, tag);
+//                 };
+//                 li.oncontextmenu = function(e) {
+//                     // Bring up the context menu
+//                     e.preventDefault(); // Prevent regular context menu
+//                     b.tagContextMenu(li);
+//                 }
+//                 bmTagCloudUL.appendChild(li);
+//                 if (tag == "Untagged") {
+//                     li.className = 'bm_tag sectrans untagged';
+//                 }
+//                 setTimeout(function unTrans() {
+//                     go.Visual.applyTransform(li, '');
+//                 }, delay);
+//                 delay += 50;
+//             });
+//             if (existingPanel) {
+//                 existingPanel.appendChild(bmTagCloud);
+//             } else {
+//                 bmPanel.appendChild(bmTagCloud);
+//             }
+        }
+    },
+    loadTagCloud: function(active) {
+        // Loads the tag cloud.  If *active* is given it must be one of 'tags' or 'autotags'.  It will mark the appropriate header as inactive and load the respective tags.
+        var go = GateOne,
+            u = go.Utils,
+            b = go.Bookmarks,
+            prefix = go.prefs.prefix,
+            delay = 1000,
+            existingPanel = u.getNode('#'+prefix+'panel_bookmarks'),
+            existingTagCloud = u.getNode('#'+prefix+'bm_tagcloud'),
+            existingTagCloudUL = u.getNode('#'+prefix+'bm_tagcloud_ul'),
+            existingTip = u.getNode('#'+prefix+'bm_tagcloud_tip'),
+            existingTagsLink = u.getNode('#'+prefix+'bm_tags_header_link'),
+            existingAutotagsLink = u.getNode('#'+prefix+'bm_autotags_header_link'),
+            bmTagCloud = u.createElement('div', {'id': 'bm_tagcloud', 'class': 'sectrans'}),
+            bmTagCloudUL = u.createElement('ul', {'id': 'bm_tagcloud_ul'}),
+            bmTagCloudTip = u.createElement('span', {'id': 'bm_tagcloud_tip', 'class': 'sectrans'}),
+            bmTagsHeader = u.createElement('h3', {'class': 'sectrans'}),
+            pipeSeparator = u.createElement('span'),
+            bmTagsHeaderTagsLink = u.createElement('a', {'id': 'bm_tags_header_link'}),
+            bmTagsHeaderAutotagsLink = u.createElement('a', {'id': 'bm_autotags_header_link'}),
+            allTags = b.getTags(b.bookmarks),
+            allAutotags = b.getAutotags(b.bookmarks);
+        bmTagsHeaderTagsLink.onclick = function(e) {
+            b.loadTagCloud('tags');
+        }
+        bmTagsHeaderAutotagsLink.onclick = function(e) {
+            b.loadTagCloud('autotags');
+        }
+        if (active) {
+            if (active == 'tags') {
+                if (existingAutotagsLink) {
+                    existingTagsLink.className = '';
+                    existingAutotagsLink.className = 'inactive';
+                } else {
+                    bmTagsHeaderAutotagsLink.className = 'inactive';
+                }
+            } else if (active == 'autotags') {
+                if (existingTagsLink) {
+                    existingTagsLink.className = 'inactive';
+                    existingAutotagsLink.className = '';
+                } else {
+                    bmTagsHeaderTagsLink.className = 'inactive';
+                }
+            }
+        }
+        if (existingTagCloudUL) {
+            // Send all the tags away
+            u.toArray(existingTagCloudUL.childNodes).forEach(function(elem) {
+                elem.style.opacity = 0;
                 setTimeout(function() {
-                    u.removeElement(bmTagCloudTip);
+                    u.removeElement(elem);
                 }, 1000);
-            }, 30000);
+            });
+            setTimeout(function() {
+                u.removeElement(existingTagCloudUL);
+            }, 1000);
+        }
+        if (existingTip) {
+            existingTip.style.opacity = 0;
+            setTimeout(function() {
+                u.removeElement(existingTip);
+            }, 800);
+        }
+        setTimeout(function() { // This looks nicer if it comes last
+            bmTagCloudTip.style.opacity = 1;
+        }, 3000);
+        setTimeout(function() { // Make it go away after a while
+            bmTagCloudTip.style.opacity = 0;
+            setTimeout(function() {
+                u.removeElement(bmTagCloudTip);
+            }, 1000);
+        }, 30000);
+        go.Visual.applyTransform(bmTagsHeader, 'translate(300%, 0)');
+        bmTagsHeaderAutotagsLink.innerHTML = "Autotags";
+        pipeSeparator.innerHTML = " | ";
+        bmTagsHeaderTagsLink.innerHTML = "Tags";
+        bmTagsHeader.appendChild(bmTagsHeaderTagsLink);
+        bmTagsHeader.appendChild(pipeSeparator);
+        bmTagsHeader.appendChild(bmTagsHeaderAutotagsLink);
+        bmTagCloudTip.style.opacity = 0;
+        bmTagCloudTip.innerHTML = "<br><b>Tip:</b> " + b.generateTip();
+        if (existingTagCloud) {
+            existingTagCloud.appendChild(bmTagCloudUL);
+            existingTagCloud.appendChild(bmTagCloudTip);
+        } else {
+            bmTagCloud.appendChild(bmTagsHeader);
+            bmTagCloud.appendChild(bmTagCloudUL);
+            bmTagCloud.appendChild(bmTagCloudTip);
+            existingPanel.appendChild(bmTagCloud);
+        }
+        if (active == 'tags') {
             allTags.forEach(function(tag) {
                 var li = u.createElement('li', {'class': 'bm_tag sectrans', 'title': 'Click to filter or drop on a bookmark to tag it.', 'draggable': true});
                 li.innerHTML = tag;
@@ -1122,12 +1283,42 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 }, delay);
                 delay += 50;
             });
-            if (existingPanel) {
-                existingPanel.appendChild(bmTagCloud);
-            } else {
-                bmPanel.appendChild(bmTagCloud);
-            }
+        } else if (active == 'autotags') {
+            allAutotags.forEach(function(tag) {
+                var li = u.createElement('li', {'title': 'Click to filter.'});
+                li.innerHTML = tag;
+                go.Visual.applyTransform(li, 'translateX(700px)');
+                if (u.startsWith('<', tag) || u.startsWith('>', tag)) { // Date tag
+                    li.className = 'bm_autotag sectrans';
+                    li.onclick = function(e) {
+                        b.addFilterDateTag(b.bookmarks, tag);
+                    };
+                    setTimeout(function unTrans() {
+                        go.Visual.applyTransform(li, '');
+                        setTimeout(function() {
+                            li.className = 'bm_autotag';
+                        }, 1000);
+                    }, delay);
+                } else { // URL type tag
+                    li.className = 'bm_autotag bm_urltype_tag sectrans';
+                    li.onclick = function(e) {
+                        b.addFilterURLTypeTag(b.bookmarks, tag);
+                    }
+                    setTimeout(function unTrans() {
+                        go.Visual.applyTransform(li, '');
+                        setTimeout(function() {
+                            li.className = 'bm_autotag bm_urltype_tag';
+                        }, 1000);
+                    }, delay);
+                }
+                bmTagCloudUL.appendChild(li);
+
+                delay += 50;
+            });
         }
+        setTimeout(function() {
+            go.Visual.applyTransform(bmTagsHeader, '');
+        }, 800);
     },
     openBookmark: function(URL) {
         // If the current terminal is in a disconnected state, connects to *URL* in the current terminal.
@@ -1143,26 +1334,27 @@ GateOne.Base.update(GateOne.Bookmarks, {
             b.openSearchDialog(URL, bookmark.name);
             return;
         }
-        if (URL.slice(0,4) == "http") { // NOTE: Includes https URLs
-            // This is a regular URL, open in a new window
+        if (u.startsWith('ssh', URL) || u.startsWith('telnet', URL)) {
+            // This is a URL that will be handled by Gate One.  Send it to the terminal:
+            if (termTitle == 'Gate One') {
+                // Foreground terminal has yet to be connected, use it
+                b.incrementVisits(URL);
+                go.Input.queue(URL+'\n');
+                go.Net.sendChars();
+            } else {
+                b.incrementVisits(URL);
+                go.Terminal.newTerminal();
+                setTimeout(function() {
+                    go.Input.queue(URL+'\n');
+                    go.Net.sendChars();
+                }, 250);
+            }
+        } else {
+            // This is a regular URL, open in a new window and let the browser handle it
             b.incrementVisits(URL);
             go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
             window.open(URL);
             return; // All done
-        }
-        // Proceed as if this is an SSH URL...
-        if (termTitle == 'Gate One') {
-            // Foreground terminal has yet to be connected, use it
-            b.incrementVisits(URL);
-            go.Input.queue(URL+'\n');
-            go.Net.sendChars();
-        } else {
-            b.incrementVisits(URL);
-            go.Terminal.newTerminal();
-            setTimeout(function() {
-                go.Input.queue(URL+'\n');
-                go.Net.sendChars();
-            }, 250);
         }
         go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
     },
@@ -1264,6 +1456,34 @@ GateOne.Base.update(GateOne.Bookmarks, {
         }
         b.loadBookmarks();
     },
+    addFilterURLTypeTag: function(bookmarks, tag) {
+        // Adds the given dateTag to the filter list
+        logDebug('addFilterURLTypeTag: ' + tag);
+        var go = GateOne,
+            b = go.Bookmarks;
+        for (var i in b.URLTypeTags) {
+            if (b.URLTypeTags[i] == tag) {
+                // Tag already exists, ignore.
+                return;
+            }
+        }
+        b.URLTypeTags.push(tag);
+        // Reset the pagination since our bookmark list will change
+        b.page = 0;
+        b.loadBookmarks();
+    },
+    removeFilterURLTypeTag: function(bookmarks, tag) {
+        // Removes the given dateTag from the filter list
+        logDebug("removeFilterURLTypeTag: " + tag);
+        var go = GateOne,
+            b = go.Bookmarks;
+        for (var i in b.URLTypeTags) {
+            if (b.URLTypeTags[i] == tag) {
+                b.URLTypeTags.splice(i, 1);
+            }
+        }
+        b.loadBookmarks();
+    },
     getTags: function(/*opt*/bookmarks) {
         // Returns an array of all the tags in Bookmarks.bookmarks or *bookmarks* if given.
         // NOTE: Ordered alphabetically
@@ -1286,6 +1506,31 @@ GateOne.Base.update(GateOne.Bookmarks, {
         });
         tagList.sort();
         return tagList;
+    },
+    getAutotags: function(/*opt*/bookmarks) {
+        // Returns an array of all the autotags in Bookmarks.bookmarks or *bookmarks* if given.
+        // NOTE: Ordered alphabetically with the URL types coming before date tags
+        var go = GateOne,
+            b = go.Bookmarks,
+            autoTagList = [],
+            dateTagList = [];
+        if (!bookmarks) {
+            bookmarks = b.bookmarks;
+        }
+        bookmarks.forEach(function(bookmark) {
+            var dateObj = new Date(parseInt(bookmark.created)),
+                dateTag = b.getDateTag(dateObj),
+                urlType = bookmark.url.split(':')[0];
+            if (dateTagList.indexOf(dateTag) == -1) {
+                dateTagList.push(dateTag);
+            }
+            if (autoTagList.indexOf(urlType) == -1) {
+                autoTagList.push(urlType);
+            }
+        });
+        autoTagList.sort();
+        dateTagList.sort();
+        return autoTagList.concat(dateTagList);
     },
     openImportDialog: function() {
         // Displays the form where a user can create or edit a bookmark.

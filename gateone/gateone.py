@@ -611,7 +611,10 @@ class HTTPSRedirectHandler(tornado.web.RequestHandler):
     def get(self):
         """Just redirects the client from HTTP to HTTPS"""
         port = self.settings['port']
-        self.redirect('https://%s:%s/' % self.request.headers['Host'], port)
+        url_prefix = self.settings['url_prefix']
+        self.redirect(
+            'https://%s:%s%s' % (
+                self.request.headers['Host'], port, url_prefix))
 
 class BaseHandler(tornado.web.RequestHandler):
     """
@@ -1115,13 +1118,14 @@ class TerminalWebSocket(WebSocketHandler):
         for css_template in plugins['css']:
             self.write_message(json_encode({'load_css': css_template}))
 
-    def new_multiplex(self, cmd, term_id):
+    def new_multiplex(self, cmd, term_id, logging=True):
         """
         Returns a new instance of :py:class:`termio.Multiplex` with the proper global and
         client-specific settings.
 
             * *cmd* - The command to execute inside of Multiplex.
             * *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).
+            * *logging* - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).
         """
         user_dir = self.settings['user_dir']
         try:
@@ -1132,21 +1136,24 @@ class TerminalWebSocket(WebSocketHandler):
         session_dir = self.settings['session_dir']
         session_dir = os.path.join(session_dir, self.session)
         log_path = None
-        if self.settings['session_logging']:
-            log_dir = os.path.join(user_dir, user)
-            log_dir = os.path.join(log_dir, 'logs')
-            # Create the log dir if not already present
-            if not os.path.exists(log_dir):
-                mkdir_p(log_dir)
-            log_name = datetime.now().strftime('%Y%m%d%H%M%S%f.golog')
-            log_path = os.path.join(log_dir, log_name)
+        syslog_logging = False
+        if logging:
+            syslog_logging = self.settings['syslog_session_logging']
+            if self.settings['session_logging']:
+                log_dir = os.path.join(user_dir, user)
+                log_dir = os.path.join(log_dir, 'logs')
+                # Create the log dir if not already present
+                if not os.path.exists(log_dir):
+                    mkdir_p(log_dir)
+                log_name = datetime.now().strftime('%Y%m%d%H%M%S%f.golog')
+                log_path = os.path.join(log_dir, log_name)
         facility = string_to_syslog_facility(self.settings['syslog_facility'])
         return termio.Multiplex(
             cmd,
             log_path=log_path,
             user=user,
             term_id=term_id,
-            syslog=self.settings['syslog_session_logging'],
+            syslog=syslog_logging,
             syslog_facility=facility,
             syslog_host=self.settings['syslog_host']
         )
@@ -1683,7 +1690,6 @@ class ErrorHandler(tornado.web.RequestHandler):
         self.require_setting("static_path")
         if status_code in [404, 500, 503, 403]:
             filename = os.path.join(self.settings['static_path'], '%d.html' % status_code)
-            print("filename: %s" % filename)
             if os.path.exists(filename):
                 f = open(filename, 'r')
                 data = f.read()
@@ -1715,7 +1721,7 @@ class Application(tornado.web.Application):
             static_path=os.path.join(GATEONE_DIR, "static"),
             static_url_prefix="%sstatic/" % settings['url_prefix'],
             gzip=True,
-            login_url="/auth"
+            login_url="%sauth" % settings['url_prefix']
         )
         # Make sure all the provided settings wind up in self.settings
         for k, v in settings.items():
@@ -1740,7 +1746,7 @@ class Application(tornado.web.Application):
         docs_path = os.path.join(GATEONE_DIR, 'docs')
         docs_path = os.path.join(docs_path, 'build')
         docs_path = os.path.join(docs_path, 'html')
-        url_prefix = tornado_settings['url_prefix']
+        url_prefix = settings['url_prefix']
         # Setup our URL handlers
         handlers = [
             (r"%s" % url_prefix, MainHandler),
@@ -2225,7 +2231,11 @@ def main():
         ssl_options = None
     https_server = tornado.httpserver.HTTPServer(
         Application(settings=app_settings), ssl_options=ssl_options)
-    https_redirect = tornado.web.Application([(r"/", HTTPSRedirectHandler),])
+    https_redirect = tornado.web.Application(
+        [(r".*", HTTPSRedirectHandler),],
+        port=options.port,
+        url_prefix=options.url_prefix
+    )
     tornado.web.ErrorHandler = ErrorHandler
     try: # Start your engines!
         if options.address:

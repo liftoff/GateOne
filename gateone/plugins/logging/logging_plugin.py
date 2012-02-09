@@ -285,7 +285,7 @@ def retrieve_log_playback(settings, tws=None):
     PROC.start()
     return
 
-def _retrieve_log_playback(queue, settings, tws=None):
+def _retrieve_log_playback(queue, settings):
     """
     Writes a JSON-encoded message to the client containing the log in a
     self-contained HTML format similar to::
@@ -298,7 +298,6 @@ def _retrieve_log_playback(queue, settings, tws=None):
     *settings['colors']* - The CSS color scheme to use when generating output.
     *settings['theme']* - The CSS theme to use when generating output.
     *settings['where']* - Whether or not the result should go into a new window or an iframe.
-    *tws* - TerminalWebSocket instance.
 
     The output will look like this::
 
@@ -413,6 +412,159 @@ def _retrieve_log_playback(queue, settings, tws=None):
     message = {'logging_log_playback': out_dict}
     queue.put(message)
 
+def save_log_playback(settings, tws=None):
+    """
+    Calls _save_log_playback() via a multiprocessing Process() so it doesn't
+    cause the IOLoop to block.
+    """
+    settings['container'] = tws.container
+    settings['prefix'] = tws.prefix
+    settings['user'] = user = tws.get_current_user()['upn']
+    settings['users_dir'] = os.path.join(tws.settings['user_dir'], user)
+    settings['gateone_dir'] = tws.settings['gateone_dir']
+    settings['url_prefix'] = tws.settings['url_prefix']
+    q = Queue()
+    global PROC
+    PROC = Process(target=_save_log_playback, args=(q, settings))
+    io_loop = tornado.ioloop.IOLoop.instance()
+    def send_message(fd, event):
+        """
+        Sends the log enumeration result to the client.  Necessary because
+        IOLoop doesn't pass anything other than *fd* and *event* when it handles
+        file descriptor events.
+        """
+        io_loop.remove_handler(fd)
+        message = q.get()
+        tws.write_message(message)
+    # This is kind of neat:  multiprocessing.Queue() instances have an
+    # underlying fd that you can access via the _reader:
+    io_loop.add_handler(q._reader.fileno(), send_message, io_loop.READ)
+    PROC.start()
+    return
+
+def _save_log_playback(queue, settings):
+    """
+    Writes a JSON-encoded message to the client containing the log in a
+    self-contained HTML format similar to::
+
+        ./logviewer.py log_filename
+
+    The difference between this function and :py:meth:`_retrieve_log_playback`
+    is that this one instructs the client to save the file to disk instead of
+    opening it in a new window.
+
+    *settings* - A dict containing the *log_filename*, *colors*, and *theme* to
+    use when generating the HTML output.
+    *settings['log_filename']* - The name of the log to display.
+    *settings['colors']* - The CSS color scheme to use when generating output.
+    *settings['theme']* - The CSS theme to use when generating output.
+
+    The output will look like this::
+
+        {
+            'result': "Success",
+            'data': <HTML rendered output>,
+            'mimetype': 'text/html'
+            'filename': <filename of the log recording>
+        }
+    It is expected that the client will create a new window with the result of
+    this method.
+    """
+    #print("Running retrieve_log_playback(%s)" % settings);
+    out_dict = {
+        'result': "Success",
+        'mimetype': 'text/html',
+        'data': "", # Will be replace with the rendered template
+    }
+    # Local variables
+    gateone_dir = settings['gateone_dir']
+    user = settings['user']
+    users_dir = settings['users_dir']
+    container = settings['container']
+    prefix = settings['prefix']
+    url_prefix = settings['url_prefix']
+    log_filename = settings['log_filename']
+    short_logname = log_filename.split('.golog')[0]
+    out_dict['filename'] = "%s.html" % short_logname
+    theme = "%s.css" % settings['theme']
+    colors = "%s.css" % settings['colors']
+    # Important paths
+    # NOTE: Using os.path.join() in case Gate One can actually run on Windows
+    # some day.
+    logs_dir = os.path.join(users_dir, "logs")
+    log_path = os.path.join(logs_dir, log_filename)
+    templates_path = os.path.join(gateone_dir, 'templates')
+    colors_path = os.path.join(templates_path, 'term_colors')
+    themes_path = os.path.join(templates_path, 'themes')
+    plugins_path = os.path.join(gateone_dir, 'plugins')
+    logging_plugin_path = os.path.join(plugins_path, 'logging')
+    template_path = os.path.join(logging_plugin_path, 'templates')
+    playback_template_path = os.path.join(template_path, 'playback_log.html')
+    # recording format:
+    # {"screen": [log lines], "time":"2011-12-20T18:00:01.033Z"}
+    # Actual method logic
+    if os.path.exists(log_path):
+        # Next we render the theme and color templates so we can pass them to
+        # our final template
+        out_dict['metadata'] = get_or_update_metadata(log_path, user)
+        try:
+            rows = out_dict['metadata']['rows']
+            cols = out_dict['metadata']['cols']
+        except KeyError:
+        # Log was created before rows/cols metadata was included via termio.py
+        # Use some large values to ensure nothing wraps and hope for the best:
+            rows = 40
+            cols = 500
+        with open(os.path.join(colors_path, colors)) as f:
+            colors_file = f.read()
+        colors_template = tornado.template.Template(colors_file)
+        rendered_colors = colors_template.generate(
+            container=container,
+            prefix=prefix,
+            url_prefix=url_prefix
+        )
+        with open(os.path.join(themes_path, theme)) as f:
+            theme_file = f.read()
+        theme_template = tornado.template.Template(theme_file)
+        # Setup our 256-color support CSS:
+        colors_256 = ""
+        for i in xrange(256):
+            fg = "#%s span.fx%s {color: #%s;}" % (
+                container, i, COLORS_256[i])
+            bg = "#%s span.bx%s {background-color: #%s;} " % (
+                container, i, COLORS_256[i])
+            colors_256 += "%s %s" % (fg, bg)
+        colors_256 += "\n"
+        rendered_theme = theme_template.generate(
+            container=container,
+            prefix=prefix,
+            colors_256=colors_256,
+            url_prefix=url_prefix
+        )
+        # NOTE: 'colors' are customizable but colors_256 is universal.  That's
+        # why they're separate.
+        # Lastly we render the actual HTML template file
+        # NOTE: Using Loader() directly here because I was getting strange EOF
+        # errors trying to do it the other way :)
+        loader = tornado.template.Loader(template_path)
+        playback_template = loader.load('playback_log.html')
+        recording = retrieve_log_frames(log_path, rows, cols)
+        preview = 'false'
+        playback_html = playback_template.generate(
+            prefix=prefix,
+            container=container,
+            theme=rendered_theme,
+            colors=rendered_colors,
+            preview=preview,
+            recording=json_encode(recording),
+            url_prefix=url_prefix
+        )
+        out_dict['data'] = playback_html
+    else:
+        out_dict['result'] = "ERROR: Log not found"
+    message = {'save_file': out_dict}
+    queue.put(message)
+
 # Temporarily disabled while I work around the problem of gzip files not being
 # downloadable over the websocket.
 #def get_log_file(log_filename, tws):
@@ -440,6 +592,6 @@ hooks = {
         'logging_get_logs': enumerate_logs,
         'logging_get_log_flat': retrieve_log_flat,
         'logging_get_log_playback': retrieve_log_playback,
-        #'logging_get_log_file': get_log_file,
+        'logging_get_log_file': save_log_playback,
     }
 }

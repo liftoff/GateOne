@@ -1160,7 +1160,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             pid = os.fork()
             if pid == 0: # We're inside the sub-child process
                 # So we don't have to wait to restart Gate One:
-                self.io_loop.stop() # Closes the listening TCP/IP port
+                #self.io_loop.stop() # Closes the listening TCP/IP port
 # Have to wait just a moment for the main thread to finish writing to the log:
                 time.sleep(5) # 5 seconds should be plenty of time
                 try:

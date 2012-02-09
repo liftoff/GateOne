@@ -96,7 +96,7 @@ class BaseAuthHandler(tornado.web.RequestHandler):
             logging.info(_("Creating user directory: %s" % user_dir))
             mkdir_p(user_dir)
             os.chmod(user_dir, 0700)
-        session_file = user_dir + '/session'
+        session_file = os.path.join(user_dir, 'session')
         if os.path.exists(session_file):
             session_data = open(session_file).read()
             session_info = tornado.escape.json_decode(session_data)
@@ -117,11 +117,12 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         information and optionally, redirects them to *redirect* (URL).
         """
         logging.debug("user_logout(%s)" % user)
+        url_prefix = self.settings['url_prefix']
         if redirect:
             self.write(redirect)
             self.finish()
         else:
-            self.write("/")
+            self.write(url_prefix)
             self.finish()
 
 class NullAuthHandler(BaseAuthHandler):
@@ -162,7 +163,7 @@ class NullAuthHandler(BaseAuthHandler):
         if next_url:
             self.redirect(next_url)
         else:
-            self.redirect("/")
+            self.redirect(self.settings['url_prefix'])
 
 class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
     """
@@ -220,7 +221,7 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
         if next_url:
             self.redirect(next_url)
         else:
-            self.redirect("/")
+            self.redirect(self.settings['url_prefix'])
 
 # Add our KerberosAuthHandler if sso is available
 KerberosAuthHandler = None
@@ -270,7 +271,7 @@ try:
             if next_url:
                 self.redirect(next_url)
             else:
-                self.redirect("/")
+                self.redirect(self.settings['url_prefix'])
 except ImportError:
     pass # No SSO available.
 
@@ -321,6 +322,6 @@ try:
             if next_url:
                 self.redirect(next_url)
             else:
-                self.redirect("/")
+                self.redirect(self.settings['url_prefix'])
 except ImportError:
     pass # No PAM auth available.

@@ -23,7 +23,7 @@ this file.
 
 // General TODOs
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
-// TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated into the base themes.
+// TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated with the base themes.
 
 // Everything goes in GateOne
 (function(window, undefined) {
@@ -1216,21 +1216,24 @@ GateOne.Base.update(GateOne.Net, {
     },
     onMessage: function (evt) {
         logDebug('message: ' + evt.data);
-        var messageObj = null;
+        var v = GateOne.Visual,
+            n = GateOne.Net,
+            u = GateOne.Utils,
+            messageObj = null;
         try {
             messageObj = JSON.parse(evt.data);
         } catch (e) {
             // Non-JSON messages coming over the WebSocket are assumed to be errors, display them as-is (could be handy shortcut to display a message instead of using the 'notice' action).
-            GateOne.Visual.displayMessage('Message From Server: ' + evt.data);
+            v.displayMessage('Message From Server: ' + evt.data);
         }
         // Execute each respective action
         try {
-            GateOne.Utils.items(messageObj).forEach(function(item) {
+            u.items(messageObj).forEach(function(item) {
                 var key = item[0],
                     val = item[1];
                 try {
-                    if (GateOne.Net.actions[key]) {
-                        GateOne.Net.actions[key](val);
+                    if (n.actions[key]) {
+                        n.actions[key](val);
                     }
                 } finally {
                     key = null;

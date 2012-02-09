@@ -32,7 +32,7 @@ body {
 {{theme}}
 {{colors}}
 /* Need a few custom overrides of the defaults for session playback since it isn't being controlled by gateone.js */
-.terminal pre {
+#{{container}} .terminal pre {
     height: 100%;
     width: 100%;
 }
@@ -43,14 +43,14 @@ body {
     right: 0;
     bottom: 0;
 }
-.sidetitle {
+#{{container}} .sidetitle {
     right: 1.3em;
     top: 4.5em;
     bottom: auto;
     left: auto;
     font-size: 2em;
 }
-.full {
+#{{container}} .full {
     width: 100%;
     height: 100%;
 }
@@ -89,6 +89,9 @@ function setTransform(node, transform) {
     for (prefix in transforms) {
         node.style[prefix] = transform;
     }
+    if (node.style.MozTransform != undefined) {
+        node.style.MozTransform = transform; // Firefox doesn't like node.style['-moz-transform'] for some reason
+    }
 }
 function fitWindow(node) {
     // Scales the recording to fit within the browser view
@@ -105,8 +108,11 @@ function fitWindow(node) {
     }
 }
 function scrollToBottom(elem) {
-    var node = document.getElementById(elem);
-    node.scrollTop = node.scrollHeight;
+    var node = document.getElementById(elem),
+        preview = {{preview}};
+    if (!preview) {
+        node.scrollTop = node.scrollHeight;
+    }
 }
 function addPlaybackControls() {
     // Add the session playback controls to the given terminal
@@ -118,6 +124,7 @@ function addPlaybackControls() {
     var playPause = document.createElement("div");
     playPause.id = "{{prefix}}playPause";
     playPause.innerHTML = "▶";
+    playPause.className = "centertrans";
     playPause.onclick = function (e) {
         clearInterval(frameUpdater);
         startRealtimePlayback();
@@ -202,7 +209,8 @@ function playbackRealtime() {
     // Plays back the session recording in real-time
     var selectedFrameIndex = selectFrame(milliseconds),
         selectedFrame = terminals[1]['playbackFrames'][selectedFrameIndex],
-        frameTime = new Date(terminals[1]['playbackFrames'][0]['time']);
+        frameTime = new Date(terminals[1]['playbackFrames'][0]['time']),
+        preview = {{preview}};
     frameTime.setMilliseconds(frameTime.getMilliseconds() + milliseconds);
     var lastFrame = terminals[1]['playbackFrames'].length - 1,
         lastDateTime = new Date(terminals[1]['playbackFrames'][lastFrame]['time']);
@@ -210,6 +218,9 @@ function playbackRealtime() {
         if (selectedFrameIndex >= (terminals[1]['playbackFrames'].length-1)) { // All done
             document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + terminals[1]['playbackFrames'][lastFrame]['screen'].join('\n') + "</pre>";
             document.getElementById('{{prefix}}clock').innerHTML = lastDateTime.toLocaleTimeString();
+            if (!preview) {
+                document.getElementById('{{prefix}}sideinfo').innerHTML = lastDateTime.toLocaleDateString();
+            }
             document.getElementById('{{prefix}}progressBar').style.width = '100%';
             scrollToBottom('{{prefix}}term1_pre');
             clearInterval(frameUpdater);
@@ -218,6 +229,9 @@ function playbackRealtime() {
             return;
         }
         document.getElementById('{{prefix}}clock').innerHTML = frameTime.toLocaleTimeString();
+        if (!preview) {
+            document.getElementById('{{prefix}}sideinfo').innerHTML = frameTime.toLocaleDateString();
+        }
         document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "</pre>";
         scrollToBottom('{{prefix}}term1_pre');
         // Update progress bar
@@ -237,7 +251,7 @@ function playbackRealtime() {
 function startRealtimePlayback() {
     var playPause = document.getElementById("{{prefix}}playPause");
     playPause.innerHTML = '<b>=</b>';
-    setTransform(playPause, 'rotate(90deg) scale(1.3)');
+    setTransform(playPause, 'rotate(90deg) scale(1.5) translate(0%, -20%)');
     playPause.onclick = pauseRealtimePlayback;
     frameUpdater = setInterval('playbackRealtime()', frameInterval);
     paused = false;
@@ -275,6 +289,7 @@ window.onload = function() {
     var terminal = document.createElement("div"),
         sideinfo = document.createElement("div"),
         sidetitle = document.createElement("div"),
+        preview = {{preview}},
         selectedFrame = terminals[1]['playbackFrames'][0],
         dateTime = new Date(selectedFrame['time']);
     terminal.id = '{{prefix}}term1';
@@ -290,8 +305,10 @@ window.onload = function() {
     sideinfo.className = 'sideinfo';
     sidetitle.id = '{{prefix}}sidetitle';
     sidetitle.className = 'sideinfo sidetitle';
-    sidetitle.innerHTML = "Playback";
-    sideinfo.innerHTML = dateTime.toLocaleDateString();
+    if (!preview) {
+        sidetitle.innerHTML = "Playback";
+        sideinfo.innerHTML = dateTime.toLocaleDateString();
+    }
     document.getElementById('{{container}}').appendChild(sidetitle);
     document.getElementById('{{container}}').appendChild(sideinfo);
     startRealtimePlayback();

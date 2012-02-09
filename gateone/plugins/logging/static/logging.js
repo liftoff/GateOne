@@ -543,9 +543,9 @@ GateOne.Base.update(GateOne.Logging, {
             logMetadataDiv = u.getNode('#'+prefix+'log_metadata'),
             downloadButton = u.createElement('button', {'id': 'log_download', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             logObj = null;
-        downloadButton.innerHTML = "Download";
+        downloadButton.innerHTML = "Download (HTML)";
         downloadButton.onclick = function(e) {
-            go.ws.send(JSON.stringify({'logging_get_log_file': logFile}));
+            l.saveRenderedLog(logFile);
         }
         // Retreive the metadata on the log in question
         for (var i in l.serverLogs) {
@@ -572,8 +572,7 @@ GateOne.Base.update(GateOne.Logging, {
         while (logMetadataDiv.childNodes.length >= 1 ) {
             logMetadataDiv.removeChild(logMetadataDiv.firstChild);
         }
-        // Downloads of log files temporarily disabled while I work out some kinks in the code for downloading binary files
-//         logMetadataDiv.appendChild(downloadButton);
+        logMetadataDiv.appendChild(downloadButton);
         for (var i in metadataNames) {
             var row = u.createElement('div', {'class': 'metadata_row'}),
                 title = u.createElement('div', {'class':'metadata_title'}),
@@ -798,6 +797,17 @@ GateOne.Base.update(GateOne.Logging, {
             go.Visual.displayMessage(logFile + ' will be opened in a new window when rendering is complete.  Large logs can take some time so please be patient.');
         }
         go.ws.send(JSON.stringify({'logging_get_log_playback': message}));
+    },
+    saveRenderedLog: function(logFile) {
+        // Tells the server to open *logFile*, rendere it as a self-contained recording, and send it back to the browser for saving (using the save_file action).
+        var go = GateOne,
+            message = {
+                'log_filename': logFile,
+                'theme': go.prefs.theme,
+                'colors': go.prefs.colors
+            };
+        go.ws.send(JSON.stringify({'logging_get_log_file': message}));
+        go.Visual.displayMessage(logFile + ' will be downloaded when rendering is complete.  Large logs can take some time so please be patient.');
     },
     sortFunctions: {
         date: function(a,b) {

@@ -291,7 +291,6 @@ def openssh_connect(
             ssh_session = 'ssh:%s:%s@%s:%s' % (term, user, host, port)
             script_path = os.path.join(
                 os.environ['GO_SESSION_DIR'], ssh_session)
-            #script_path = os.environ['GO_SESSION_DIR'] + '/%s' % ssh_session
     if not script_path:
         # Just use a generic temp file
         temp = tempfile.NamedTemporaryFile(prefix="ssh_connect", delete=False)
@@ -324,9 +323,96 @@ def openssh_connect(
         os.execvpe(script_path, [], env)
         os._exit(0)
 
+def telnet_connect(user, host, port=22, env=None):
+    """
+    Starts an interactive Telnet session to the given host as the given user on
+    the given port.  *user* may be None, False, or an empty string.
+
+    If *env* (dict) is given it will be set before excuting the telnet command.
+
+    .. note:: Some telnet servers don't support sending the username in the connection.  In these cases it will simply ask for it after the connection is established.
+    """
+    signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies
+    if not env:
+        env = {
+            'TERM': 'xterm',
+            'LANG': 'en_US.UTF-8',
+        }
+    # Get the default rows/cols right from the start
+    try:
+        env['LINES'] = os.environ['LINES']
+        env['COLUMNS'] = os.environ['COLUMNS']
+    except KeyError:
+        pass # These variables aren't set
+    if 'PATH' in env:
+        command = which("telnet", path=env['PATH'])
+    else:
+        env['PATH'] = os.environ['PATH']
+        command = which("telnet")
+    args = [host, port]
+    if user:
+        args.insert(0, user)
+        args.insert(0, "-l")
+    args.insert(0, command) # Command has to go first
+    script_path = None
+    if 'GO_TERM' in os.environ.keys():
+        if 'GO_SESSION_DIR' in os.environ.keys():
+            # Save a file indicating our session is attached to GO_TERM
+            term = os.environ['GO_TERM']
+            telnet_session = 'telnet:%s:%s@%s:%s' % (term, user, host, port)
+            script_path = os.path.join(
+                os.environ['GO_SESSION_DIR'], telnet_session)
+    if not script_path:
+        # Just use a generic temp file
+        temp = tempfile.NamedTemporaryFile(prefix="ssh_connect", delete=False)
+        script_path = "%s" % temp.name
+        temp.close() # Will be written to below
+    # Create our little shell script to wrap the SSH command
+    script = wrapper_script.format(
+        socket="NO SOCKET",
+        cmd=" ".join(args),
+        temp=script_path)
+    with open(script_path, 'w') as f:
+        f.write(script) # Save it to disk
+    # NOTE: We wrap in a shell script so we can execute it and immediately quit.
+    # By doing this instead of keeping ssh_connect.py running we can save a lot
+    # of memory (depending on how many terminals are open).
+    os.chmod(script_path, 0700) # 0700 for good security practices
+    os.execvpe(script_path, [], env)
+    os._exit(0)
+
+def parse_telent_url(url):
+    """
+    Parses a telnet URL like, 'telnet://user@host:23' and returns a tuple of::
+
+        (user, host, port)
+    """
+    user = None # Default
+    if '@' in url: # user@host[:port]
+        host = url.split('@')[1].split(':')[0]
+        user = url.split('@')[0][9:]
+        if ':' in user: # Password was included (not secure but it could be useful)
+            password = user.split(':')[1]
+            user = user.split(':')[0]
+        if len(url.split('@')[1].split(':')) == 1: # No port given, assume 22
+            port = '23'
+        else:
+            port = url.split('@')[1].split(':')[1]
+            port = port.split('/')[0] # In case there's a query string
+    else: # Just host[:port] (assume $GO_USER)
+        url = url[9:] # Remove the protocol
+        host = url.split(':')[0]
+        if len(url.split(':')) == 2: # There's a port #
+            port = url.split(':')[1]
+            port = port.split('/')[0] # In case there's a query string
+        else:
+            port = '23'
+    return (user, host, port)
+
 def parse_ssh_url(url):
     """
-    Parses an ssh URL like, 'ssh://user@host:22' and returns a tuple of:
+    Parses an ssh URL like, 'ssh://user@host:22' and returns a tuple of::
+
         (user, host, port, password, identities)
 
     If an ssh URL is given without a username, os.environ['USER'] will be used.
@@ -350,8 +436,11 @@ def parse_ssh_url(url):
         else:
             port = url.split('@')[1].split(':')[1]
             port = port.split('/')[0] # In case there's a query string
-    else: # Just host[:port] (assume $USER)
-        user = os.environ['USER']
+    else: # Just host[:port] (assume $GO_USER)
+        try:
+            user = os.environ['GO_USER']
+        except KeyError: # Fall back to $USER
+            user = os.environ['USER']
         url = url[6:] # Remove the protocol
         host = url.split(':')[0]
         if len(url.split(':')) == 2: # There's a port #
@@ -457,7 +546,14 @@ if __name__ == "__main__":
             "[Press Shift-F1 for help]\n\nHost/IP or SSH URL [localhost]: "))
         if url.startswith('ssh://'): # This is an SSH URL
             (user, host, port, password, identities) = parse_ssh_url(url)
+            protocol = 'ssh'
+        elif url.startswith('telnet://'): # This is a telnet URL
+            (user, host, port) = parse_telent_url(url)
+            protocol = 'telnet'
         else:
+            protocol = raw_input("Protocol [ssh]: ")
+            if not protocol:
+                protocol = 'ssh'
             port = raw_input("Port [22]: ")
             if not port:
                 port = '22'
@@ -465,20 +561,33 @@ if __name__ == "__main__":
             host = url
         if not url:
             host = 'localhost'
-        print(_('Connecting to: ssh://%s@%s:%s' % (user, host, port)))
-        # Set title (might be redundant but doesn't hurt)
-        print("\x1b]0;%s@%s\007" % (user, host))
-        # Special escape handler:
-        print("\x1b]_;ssh|%s@%s:%s\007" % (user, host, port))
-        openssh_connect(user, host, port,
-            command=options.command,
-            password=password,
-            sshfp=options.sshfp,
-            randomart=options.randomart,
-            identities=identities,
-            additional_args=options.additional_args,
-            socket=options.socket
-        )
+        if protocol == 'ssh':
+            print(_('Connecting to ssh://%s@%s:%s' % (user, host, port)))
+            # Set title
+            print("\x1b]0;ssh://%s@%s\007" % (user, host))
+            # Special escape handler:
+            print("\x1b]_;ssh|%s@%s:%s\007" % (user, host, port))
+            openssh_connect(user, host, port,
+                command=options.command,
+                password=password,
+                sshfp=options.sshfp,
+                randomart=options.randomart,
+                identities=identities,
+                additional_args=options.additional_args,
+                socket=options.socket
+            )
+        elif protocol == 'telnet':
+            if user:
+                print(_('Connecting to telnet://%s@%s:%s' % (user, host, port)))
+                # Set title
+                print("\x1b]0;telnet://%s@%s\007" % (user, host))
+            else:
+                print(_('Connecting to telnet://%s:%s' % (host, port)))
+                # Set title
+                print("\x1b]0;telnet://%s\007" % host)
+            telnet_connect(user, host, port)
+
+
     except Exception as e: # Catch all
         print e
         noop = raw_input(_("[Press Enter to close this terminal]"))

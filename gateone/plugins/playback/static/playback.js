@@ -70,20 +70,20 @@ GateOne.Base.update(GateOne.Playback, {
             progressBarElement = null,
             term = termNum,
             playbackFrames = null,
-            frame = {'screen': GateOne.terminals[term]['screen'].slice(0), 'time': new Date()};
+            frame = {'screen': GateOne.terminals[term]['screen'], 'time': new Date()};
         if (!progressBarElement) {
             progressBarElement = GateOne.Utils.getNode('#'+prefix+'progressBar');
         }
         if (!GateOne.terminals[term]['playbackFrames']) {
             GateOne.terminals[term]['playbackFrames'] = [];
         }
-        playbackFrames = GateOne.terminals[term]['playbackFrames'];
+        playbackFrames = GateOne.terminals[term]['playbackFrames'].slice(0);
         // Add the new playback frame to the terminal object
         playbackFrames.push(frame);
         frame = null; // Clean up
         if (playbackFrames.length > GateOne.prefs.playbackFrames) {
             // Reduce it to fit within the user's configured max
-//             GateOne.terminals[term]['playbackFrames'].shift();
+//             playbackFrames.shift(); // NOTE: This won't work if the user reduced their playbackFrames preference by more than 1
             playbackFrames.reverse(); // Have to reverse it before we truncate
             playbackFrames.length = GateOne.prefs.playbackFrames; // Love that length is assignable!
             playbackFrames.reverse(); // Put it back in the right order
@@ -101,6 +101,7 @@ GateOne.Base.update(GateOne.Playback, {
                 GateOne.Utils.showElement('#'+prefix+'pastearea');
             }
         }
+        playbackFrames = null; // Immediate cleanup
     },
     savePrefsCallback: function() {
         // Called when the user clicks the "Save" button in the prefs panel
@@ -343,39 +344,48 @@ GateOne.Base.update(GateOne.Playback, {
         }
         goDiv.addEventListener(mousewheelevt, wheelFunc, true);
     },
+//     saveRecording: function(term) {
+//         // Saves the session playback recording
+//         var go = GateOne,
+//             u = go.Utils,
+//             recording = JSON.stringify(go.terminals[term]['playbackFrames']),
+//         // This creates a form to POST our saved session to /recording on the server
+//         // NOTE: The server just returns the same data wrapped in a easy-to-use template
+//             form = u.createElement('form', {
+//                 'method': 'post',
+//                 'action': go.prefs.url + 'recording?r=' + new Date().getTime(),
+//                 'target': '_blank'
+//             }),
+//             recordingField = u.createElement('textarea', {'name': 'recording'}),
+//             themeField = u.createElement('input', {'name': 'theme'}),
+//             colorsField = u.createElement('input', {'name': 'colors'}),
+//             containerField = u.createElement('input', {'name': 'container'}),
+//             prefixField = u.createElement('input', {'name': 'prefix'});
+//         recordingField.value = recording;
+//         form.appendChild(recordingField);
+//         themeField.value = go.prefs.theme;
+//         form.appendChild(themeField);
+//         colorsField.value = go.prefs.colors;
+//         form.appendChild(colorsField);
+//         containerField.value = go.prefs.goDiv.split('#')[1];
+//         form.appendChild(containerField);
+//         prefixField.value = go.prefs.prefix;
+//         form.appendChild(prefixField);
+//         document.body.appendChild(form);
+//         form.submit();
+//         setTimeout(function() {
+//             // No reason to keep this around
+//             document.body.removeChild(form);
+//         }, 1000);
+//     },
     saveRecording: function(term) {
-        // Saves the session playback recording
+        // Saves the session playback recording by sending the playbackFrames to the server to have them rendered.
+        // When the server is done rendering the recording it will be sent back to the client via the save_file action.
         var go = GateOne,
             u = go.Utils,
             recording = JSON.stringify(go.terminals[term]['playbackFrames']),
-        // This creates a form to POST our saved session to /recording on the server
-        // NOTE: The server just returns the same data wrapped in a easy-to-use template
-            form = u.createElement('form', {
-                'method': 'post',
-                'action': go.prefs.url + 'recording?r=' + new Date().getTime(),
-                'target': '_blank'
-            }),
-            recordingField = u.createElement('textarea', {'name': 'recording'}),
-            themeField = u.createElement('input', {'name': 'theme'}),
-            colorsField = u.createElement('input', {'name': 'colors'}),
-            containerField = u.createElement('input', {'name': 'container'}),
-            prefixField = u.createElement('input', {'name': 'prefix'});
-        recordingField.value = recording;
-        form.appendChild(recordingField);
-        themeField.value = go.prefs.theme;
-        form.appendChild(themeField);
-        colorsField.value = go.prefs.colors;
-        form.appendChild(colorsField);
-        containerField.value = go.prefs.goDiv.split('#')[1];
-        form.appendChild(containerField);
-        prefixField.value = go.prefs.prefix;
-        form.appendChild(prefixField);
-        document.body.appendChild(form);
-        form.submit();
-        setTimeout(function() {
-            // No reason to keep this around
-            document.body.removeChild(form);
-        }, 1000);
+            settings = {'recording': recording, 'prefix': go.prefs.prefix, 'container': go.prefs.goDiv.split('#')[1], 'theme': go.prefs.theme, 'colors': go.prefs.colors};
+        go.ws.send(JSON.stringify({'playback_save_recording': settings}));
     }
 });
 

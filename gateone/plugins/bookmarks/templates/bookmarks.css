@@ -206,7 +206,7 @@
     padding-right: 0.2em;
     padding-top: 0.1em;
     list-style: none;
-/*     display: inline-block; */
+    display: inline-block;
     color: #fff;
     background-color: #1F5470;
     font-size: 0.95em;
@@ -265,10 +265,10 @@
 #{{prefix}}bm_tagcloud h3 {
     font-family: 'Istok Web', Dejavu Sans, Verdana, Arial, sans-serif;
 }
-#{{prefix}}bm_tagcloud a.inactive {
+#{{container}} #{{prefix}}bm_tagcloud a.inactive {
     color: #777;
 }
-#{{prefix}}bm_tagcloud a.inactive:hover {
+#{{container}} #{{prefix}}bm_tagcloud a.inactive:hover {
     color: #1F5470;
 }
 #{{prefix}}bm_tagcloud_ul {
@@ -285,6 +285,28 @@
     color: #fff;
     font-size: 0.95em;
     cursor: move;
+}
+#{{container}} .bm_autotag {
+    color: #fff;
+    background-color: #1F5470;
+    margin-left: 0.2em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    list-style: none;
+    display: inline-block;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+#{{container}} .bm_autotag:hover {
+    color: #fff;
+    background-color: maroon;
+    cursor: pointer;
+}
+#{{container}} .bm_urltype_tag {
+    font-style: italic;
+}
+#{{container}} .bm_urltype_tag:before {
+    content: "★";
 }
 #{{container}} .bm_tag:hover {
     color: #fff;
@@ -321,10 +343,10 @@
     padding-left: 0.3em;
     padding-right: 0.3em;
 }
-#{{container}} .bm_controls a:hover {
+/*#{{container}} .bm_controls a:hover {
     color: #fff;
     background-color: #CC0003;
-}
+}*/
 #{{container}} .bm_content {
     top: 0;
     left: 0;
@@ -505,7 +527,7 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 2em; /* Just big enough to cover most of the bookmark element but not enough to cover the tags */
     z-index: 100;
 }
 #{{container}} .linkfloat:hover {

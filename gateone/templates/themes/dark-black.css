@@ -459,7 +459,6 @@ hr {
     padding-bottom: 0.3em;
 }
 #{{container}} .paneltablerow select, input {
-/*     margin-right: 1em; */
     background-color: #000;
     color: #fff;
 }
