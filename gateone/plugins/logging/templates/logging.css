@@ -130,3 +130,9 @@
     border: solid 1px #DEDEDE;
     color: #888;
 }
+#{{container}} .log_actions_title {
+    display: table-cell;
+    font-weight: bold;
+    padding-right: 0.5em;
+    text-align: right;
+}

@@ -9,7 +9,7 @@ Gate One utility functions and classes.
 """
 
 # Meta
-__version__ = '1.0'
+__version__ = '1.0rc1'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
@@ -43,8 +43,9 @@ except ImportError: # Tornado isn't available
 MACOS = os.uname()[0] == 'Darwin'
 # This matches JUST the PIDs from the output of the pstree command
 RE_PSTREE = re.compile(r'\(([0-9]*)\)')
-# Matches Gate One's special optional escape sequence
-RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)', re.MULTILINE)
+# Matches Gate One's special optional escape sequence (ssh plugin only)
+RE_OPT_SSH_SEQ = re.compile(
+    r'.*\x1b\]_\;(ssh\|.+?)(\x07|\x1b\\)', re.MULTILINE|re.DOTALL)
 # Matches an xterm title sequence
 RE_TITLE_SEQ = re.compile(
     r'.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)', re.DOTALL|re.MULTILINE)
@@ -833,9 +834,12 @@ def retrieve_first_frame(golog_path):
     f.close()
     return frame.decode('UTF-8', "ignore").rstrip(SEPARATOR)
 
-def get_or_update_metadata(golog_path, user):
+def get_or_update_metadata(golog_path, user, force_update=False):
     """
     Retrieves or creates/updates the metadata inside of *golog_path*.
+
+    If *force_update* the metadata inside the golog will be updated even if it
+    already exists.
 
     .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.
     """
@@ -843,9 +847,10 @@ def get_or_update_metadata(golog_path, user):
     first_frame = retrieve_first_frame(golog_path)
     metadata = {}
     if first_frame[14:].startswith('{'):
-        # This is JSON
+        # This is JSON, capture existing metadata
         metadata = json_decode(first_frame[14:])
-        if 'end_date' in metadata: # end_date gets added by this func
+        # end_date gets added by this function
+        if not force_update and 'end_date' in metadata:
             return metadata # All done
     # '\xf3\xb0\xbc\x8f' <--UTF-8 encoded SEPARATOR (for reference)
     encoded_separator = SEPARATOR.encode('UTF-8')
@@ -878,7 +883,7 @@ def get_or_update_metadata(golog_path, user):
         # plugin's special optional escape sequence.  It looks like this:
         #   "\x1b]_;ssh|%s@%s:%s\007"
         for frame in golog_frames[:50]: # Only look inside the first 50 or so
-            match_obj = RE_OPT_SEQ.match(frame)
+            match_obj = RE_OPT_SSH_SEQ.match(frame)
             if match_obj:
                 connect_string = match_obj.group(1).split('|')[1]
                 break
@@ -889,7 +894,7 @@ def get_or_update_metadata(golog_path, user):
             if match_obj:
                 # The split() here is an attempt to remove the tail end of
                 # titles like this:  'someuser@somehost: ~'
-                connect_string = match_obj.group(1).split(':')[0]
+                connect_string = match_obj.group(1)
                 break
     # TODO: Add some hooks here for plugins to add their own metadata
     metadata.update({

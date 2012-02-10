@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>gateone.py - Gate One&#39;s Main Script &mdash; Gate One 0.9 documentation</title>
+    <title>gateone.py - Gate One&#39;s Main Script &mdash; Gate One 1.0rc1 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.9',
+        VERSION:     '1.0rc1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.0rc1 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="logviewer.py - Session Log Viewer" href="logviewer.html" />
     <link rel="prev" title="authpam.py - A PAM Authentication Module" href="authpam.html" /> 
@@ -483,13 +483,14 @@ equivalent properties (self.container and self.prefix).</p>
 
 <dl class="method">
 <dt id="gateone.TerminalWebSocket.new_multiplex">
-<tt class="descname">new_multiplex</tt><big>(</big><em>cmd</em>, <em>term_id</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.new_multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.new_multiplex" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">new_multiplex</tt><big>(</big><em>cmd</em>, <em>term_id</em>, <em>logging=True</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.new_multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.new_multiplex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a new instance of <a class="reference internal" href="termio.html#termio.Multiplex" title="termio.Multiplex"><tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt></a> with the proper global and
 client-specific settings.</p>
 <blockquote>
 <div><ul class="simple">
 <li><em>cmd</em> - The command to execute inside of Multiplex.</li>
 <li><em>term_id</em> - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).</li>
+<li><em>logging</em> - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).</li>
 </ul>
 </div></blockquote>
 </dd></dl>
@@ -689,7 +690,7 @@ background.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="authpam.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="logviewer.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>

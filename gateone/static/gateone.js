@@ -18,9 +18,6 @@ and functions that are absolutely essential to Gate One should be placed within
 this file.
 */
 
-// 1.0 TODO:
-// TODO: TEST TEST TEST.
-
 // General TODOs
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
 // TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated with the base themes.
@@ -56,7 +53,7 @@ function stopBenchmark(msg) {
 // Define GateOne
 var GateOne = GateOne || {};
 GateOne.NAME = "GateOne";
-GateOne.VERSION = "0.9";
+GateOne.VERSION = "1.0";
 GateOne.__repr__ = function () {
     return "[" + this.NAME + " " + this.VERSION + "]";
 };
@@ -105,7 +102,7 @@ GateOne.Base.module = function (parent, name, version, deps) {
     GateOne.loadedModules.push(module.NAME);
     return module;
 };
-GateOne.Base.module(GateOne, "Base", "0.9", []);
+GateOne.Base.module(GateOne, "Base", "1.0", []);
 
 GateOne.Base.update = function (self, obj/*, ... */) {
     if (self === null || self === undefined) {
@@ -215,7 +212,11 @@ GateOne.Base.update(GateOne, {
         }
         if (!go.prefs.url) {
             go.prefs.url = window.location.href;
-            go.prefs.url = go.prefs.url.split('#')[0]; // Get rid of any hash at the end
+            if (go.prefs.url.indexOf('?') != -1) {
+                // Gotta get rid of the query string
+                go.prefs.url = go.prefs.url.split('?')[0];
+            }
+            go.prefs.url = go.prefs.url.split('#')[0]; // Get rid of any hash at the end (just in case)
         }
         // Load our CSS theme
         u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
@@ -273,7 +274,7 @@ GateOne.Base.update(GateOne, {
             noticeContainer = u.createElement('div', {'id': 'noticecontainer', 'style': {'margin-right': '2em', 'background': 'transparent'}}),
             toolbar = u.createElement('div', {'id': 'toolbar'}),
             toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'toolbar', 'title': "Preferences"}),
-            panels = document.getElementsByClassName('panel'),
+            panels = u.getNodes(go.prefs.goDiv + ' .panel'),
             // Firefox doesn't support 'mousewheel'
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
             sideinfo = u.createElement('div', {'id': 'sideinfo', 'class':'sideinfo'}),
@@ -595,7 +596,7 @@ if (!localStorage[GateOne.prefs.prefix+'selectedTerminal']) {
 }
 
 // GateOne.Utils (generic utility functions)
-GateOne.Base.module(GateOne, "Utils", "0.9", ['Base']);
+GateOne.Base.module(GateOne, "Utils", "1.0", ['Base']);
 GateOne.Base.update(GateOne.Utils, {
     init: function() {
         var go = GateOne;
@@ -755,6 +756,7 @@ GateOne.Base.update(GateOne.Utils, {
         GateOne.Utils.getNode(elem).className += " go_none";
     },
     getOffset: function(el) {
+        // Returns {top: <offsetTop>, left: <offsetLeft>}
         var _x = 0;
         var _y = 0;
         while( el && !isNaN( el.offsetLeft ) && !isNaN( el.offsetTop ) ) {
@@ -1068,7 +1070,7 @@ GateOne.Base.update(GateOne.Utils, {
     }
 });
 
-GateOne.Base.module(GateOne, 'Net', '0.9', ['Base', 'Utils']);
+GateOne.Base.module(GateOne, 'Net', '1.0', ['Base', 'Utils']);
 GateOne.Base.update(GateOne.Net, {
     sendChars: function() {
         // pop()s out the current charBuffer and sends it to the server.
@@ -1140,9 +1142,9 @@ GateOne.Base.update(GateOne.Net, {
     connectionError: function() {
         var go = GateOne,
             u = go.Utils,
-            terms = u.getNode(go.prefs.goDiv).getElementsByClassName('terminal');
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         logError("Error communicating with server... ");
-        u.toArray(terms).forEach(function(termObj) {
+        terms.forEach(function(termObj) {
             // Passing 'true' here to keep the stuff in localStorage for this term.
             go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
         });
@@ -1266,7 +1268,7 @@ GateOne.Base.update(GateOne.Net, {
         GateOne.ws.send(JSON.stringify({'full_refresh': term}));
     }
 });
-GateOne.Base.module(GateOne, "Input", '0.9', ['Base', 'Utils']);
+GateOne.Base.module(GateOne, "Input", '1.0', ['Base', 'Utils']);
 GateOne.Input.charBuffer = []; // Queue for sending characters to the server
 GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since some browsers/platforms don't get it right.
 // F11 toggles fullscreen mode in most browsers.  If F11 is pressed once it will act as a regular F11 keystroke in the terminal.  If it is pressed twice rapidly in succession (within 0.750 seconds) it will execute the regular browser keystroke (enabling or disabling fullscreen mode).
@@ -1294,20 +1296,20 @@ GateOne.Base.update(GateOne.Input, {
                 go.Input.queue(selectedText);
                 go.Net.sendChars();
             }
-        } else {
-            var panels = u.getNode(go.prefs.goDiv).getElementsByClassName('panel'),
-                visiblePanel = false;
+        } /*else {*/
+//             var panels = u.getNodes(go.prefs.goDiv + ' .panel'),
+//                 visiblePanel = false;
 //                 u.getNode(go.prefs.goDiv).focus();
             // Hide all the panels
-            for (var i in u.toArray(panels)) {
-                if (panels[i].style['transform'] != 'scale(0)') {
-                    visiblePanel = true;
-                }
-            }
+//             for (var i in u.toArray(panels)) {
+//                 if (v.getTransform(panel) != 'scale(0)') {
+//                     visiblePanel = true;
+//                 }
+//             }
 //                 if (!visiblePanel) {
 //                     goDiv.contentEditable = true;
 //                 }
-        }
+//         }
     },
     capture: function() {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
@@ -1982,7 +1984,7 @@ GateOne.Base.update(GateOne.Input, {
     }
 })();
 
-GateOne.Base.module(GateOne, 'Visual', '0.9', ['Base', 'Net', 'Utils']);
+GateOne.Base.module(GateOne, 'Visual', '1.0', ['Base', 'Net', 'Utils']);
 GateOne.Visual.scrollbackToggle = false;
 GateOne.Visual.gridView = false;
 GateOne.Visual.goDimensions = {};
@@ -2027,7 +2029,7 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv),
-            terms = goDiv.getElementsByClassName('terminal'),
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             wrapperDiv = u.getNode('#'+go.prefs.prefix+'termwrapper'),
             style = window.getComputedStyle(goDiv, null),
             rightAdjust = 0;
@@ -2041,7 +2043,7 @@ GateOne.Base.update(GateOne.Visual, {
             wrapperDiv.style.width = ((go.Visual.goDimensions.w+rightAdjust)*2) + 'px';
         }
         if (terms.length) {
-            u.toArray(terms).forEach(function(termObj) {
+            terms.forEach(function(termObj) {
                 termObj.style.height = go.Visual.goDimensions.h + 'px';
                 termObj.style.width = go.Visual.goDimensions.w + 'px';
                 termObj.style['margin-right'] = style['padding-right'];
@@ -2121,8 +2123,11 @@ GateOne.Base.update(GateOne.Visual, {
             u = go.Utils,
             panelID = panel,
             panel = u.getNode(panel),
-            origState = v.getTransform(panel),
-            panels = u.getNode(go.prefs.goDiv).getElementsByClassName('panel');
+            origState = null,
+            panels = u.getNodes(go.prefs.goDiv + ' .panel');
+        if (panel) {
+            origState = v.getTransform(panel);
+        }
         // Start by scaling all panels out
         for (var i in u.toArray(panels)) {
             if (go.Visual.getTransform(panels[i]) == "scale(1)") {
@@ -2136,6 +2141,10 @@ GateOne.Base.update(GateOne.Visual, {
                     }
                 }
             }
+        }
+        if (!panel) {
+            // All done
+            return;
         }
         if (origState != 'scale(1)') {
             v.applyTransform(panel, 'scale(1)');
@@ -2294,7 +2303,7 @@ GateOne.Base.update(GateOne.Visual, {
             var termPre = u.getNode('#'+prefix+'term' + term + '_pre');
             u.scrollToBottom(termPre);
         } else {
-            var terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
+            var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
                     replacement_html = '<pre id="' + termObj.id + '_pre" style="height: 100%">' + go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
@@ -2315,7 +2324,7 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             textTransforms = go.Terminal.textTransforms;
         if (term) {
             var replacement_html = '<pre id="'+prefix+'term' + term + '_pre">' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
@@ -2353,7 +2362,7 @@ GateOne.Base.update(GateOne.Visual, {
             count = 0,
             wPX = 0,
             hPX = 0,
-            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             style = window.getComputedStyle(u.getNode(go.prefs.goDiv), null),
             rightAdjust = 0,
             bottomAdjust = 0,
@@ -2406,7 +2415,7 @@ GateOne.Base.update(GateOne.Visual, {
             prefix = go.prefs.prefix,
             count = 0,
             term = 0,
-            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         terms.forEach(function(termObj) {
             if (termObj.id == prefix+'term' + localStorage[prefix+'selectedTerminal']) {
                 term = count;
@@ -2423,7 +2432,7 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             count = 0,
             term = 0;
         if (terms.length > 1) {
@@ -2444,7 +2453,7 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             count = 0,
             term = 0;
         if (terms.length > 2) {
@@ -2465,7 +2474,7 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal')),
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             count = 0,
             term = 0;
         if (localStorage[prefix+'selectedTerminal'] > 1) {
@@ -2490,7 +2499,7 @@ GateOne.Base.update(GateOne.Visual, {
             prefix = go.prefs.prefix,
             pastearea = u.getNode('#'+prefix+'pastearea'),
             controlsContainer = u.getNode('#'+prefix+'controlsContainer'),
-            terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         if (goBack == null) {
             goBack == true;
         }
@@ -2798,7 +2807,7 @@ var logDebug = GateOne.Utils.noop;
 var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
     URL = (window.URL || window.webkitURL);
 
-GateOne.Base.module(GateOne, "Terminal", "0.9", ['Base', 'Utils', 'Visual']);
+GateOne.Base.module(GateOne, "Terminal", "1.0", ['Base', 'Utils', 'Visual']);
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
 GateOne.Terminal.updateTermCallbacks = [];
@@ -3299,7 +3308,7 @@ GateOne.Base.update(GateOne.Terminal, {
         // Also remove it from working memory
         delete go.terminals[term];
         // Now find out what the previous terminal was and move to it
-        var terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
+        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         go.Visual.displayMessage(message);
         terms.forEach(function(termObj) {
             lastTerm = termObj;
@@ -3410,7 +3419,7 @@ GateOne.Base.update(GateOne.Terminal, {
     }
 });
 
-GateOne.Base.module(GateOne, "User", "0.9", ['Base', 'Utils', 'Visual']);
+GateOne.Base.module(GateOne, "User", "1.0", ['Base', 'Utils', 'Visual']);
 GateOne.User.userLoginCallbacks = []; // Each of these will get called after the server sends us the user's username, providing the username as the only argument.
 GateOne.Base.update(GateOne.User, {
     // The User module is for things like logging out, synchronizing preferences with the server, and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.

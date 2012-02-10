@@ -783,7 +783,7 @@ hr {
 }
 #{{container}} .table_cell {
     display: table-cell;
-    max-width: 10em;
+    max-width: 15em;
     padding-right: 0.5em;
     /* Firefox 3.6+ */
     background-image: -moz-linear-gradient(top, #000, rgba(120, 120, 120, 0.5));
@@ -832,6 +832,7 @@ hr {
     font-weight: bold;
     padding-right: 0.5em;
     text-align: right;
+    vertical-align: top;
     width: 50%; /* Ensures things are centered */
 }
 /* SVG Styling */

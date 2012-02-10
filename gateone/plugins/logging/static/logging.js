@@ -5,7 +5,7 @@ var document = window.document; // Have to do this because we're sandboxed
 // TODO: Bring back *some* client-side logging so things like displayMessage() have somewhere to temporarily store messages so users can look back to re-read them (e.g. Which terminal was that bell just in?).  Probably put it in sessionStorage
 
 // GateOne.Logging
-GateOne.Base.module(GateOne, "Logging", '0.9', ['Base', 'Net']);
+GateOne.Base.module(GateOne, "Logging", '1.0', ['Base', 'Net']);
 GateOne.Logging.levels = {
     // Forward and backward
     50: 'FATAL',
@@ -40,7 +40,7 @@ GateOne.Base.update(GateOne.Logging, {
         infoPanelViewLogs.innerHTML = "Log Viewer";
         infoPanelViewLogs.title = "Opens a panel where you can browse, preview, and open all of your server-side session logs."
         infoPanelViewLogs.onclick = function() {
-            l.loadLogs();
+            l.loadLogs(true);
         }
         pTag.appendChild(infoPanelViewLogs);
         l.createPanel();
@@ -359,8 +359,9 @@ GateOne.Base.update(GateOne.Logging, {
         logPreviewIframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">Click on a log to view a preview and metadata.</body></html>');
         logPreviewIframeDoc.close();
     },
-    loadLogs: function() {
+    loadLogs: function(forceUpdate) {
         // After GateOne.Logging.serverLogs has been populated, this function will redraw the view depending on sort and pagination values
+        // If *forceUpdate*, empty out GateOne.Logging.serverLogs and tell the server to send us a new list.
         var go = GateOne,
             u = go.Utils,
             l = go.Logging,
@@ -381,13 +382,6 @@ GateOne.Base.update(GateOne.Logging, {
         if (go.Visual.getTransform(existingPanel) != "scale(1)") {
             go.Visual.togglePanel('#'+prefix+'panel_logs');
         }
-        if (!l.serverLogs.length) {
-            // Kick off the process to list them
-            setTimeout(function() {
-                go.ws.send(JSON.stringify({'logging_get_logs': true}));
-            }, 1000); // Let the panel expand before we tell the server to start sending us logs
-            return;
-        }
         existingPanel.style['overflow-y'] = "hidden"; // Only temporary while we're loading
         setTimeout(function() {
             existingPanel.style['overflow-y'] = "auto"; // Set it back after everything is loaded
@@ -404,6 +398,14 @@ GateOne.Base.update(GateOne.Logging, {
         if (paginationUL) {
             u.removeElement(paginationUL);
         };
+        if (!l.serverLogs.length || forceUpdate) {
+            // Make sure GateOne.Logging.serverLogs is empty and kick off the process to list them
+            l.serverLogs = [];
+            setTimeout(function() {
+                go.ws.send(JSON.stringify({'logging_get_logs': true}));
+            }, 1000); // Let the panel expand before we tell the server to start sending us logs
+            return;
+        }
         // Apply the sort function
         serverLogs.sort(l.sortfunc);
         if (l.sortToggle) {
@@ -540,10 +542,32 @@ GateOne.Base.update(GateOne.Logging, {
             u = go.Utils,
             l = go.Logging,
             prefix = go.prefs.prefix,
+            infoDiv = u.getNode('#'+prefix+'log_info'),
             logMetadataDiv = u.getNode('#'+prefix+'log_metadata'),
+            previewIframe = u.getNode('#'+prefix+'log_preview'),
+            existingButtonRow = u.getNode('#'+prefix+'log_actions_row'),
+            buttonRowTitle = u.createElement('div', {'class':'log_actions_title'}),
+            buttonRow = u.createElement('div', {'id': 'log_actions_row', 'class': 'metadata_row'}),
+            viewFlatButton = u.createElement('button', {'id': 'log_view_flat', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            viewPlaybackButton = u.createElement('button', {'id': 'log_view_playback', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             downloadButton = u.createElement('button', {'id': 'log_download', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             logObj = null;
-        downloadButton.innerHTML = "Download (HTML)";
+        if (existingButtonRow) {
+            u.removeElement(existingButtonRow);
+        }
+        buttonRowTitle.innerHTML = "Actions";
+        viewFlatButton.innerHTML = "View Log (Flat)";
+        viewFlatButton.title = "Opens a new window with a traditional flat view of the log.";
+        viewFlatButton.onclick = function(e) {
+            l.openLogFlat(logFile);
+        }
+        viewPlaybackButton.innerHTML = "View Log (Playback)";
+        viewPlaybackButton.title = "Opens a new window with a realtime playback of the log.";
+        viewPlaybackButton.onclick = function(e) {
+            l.openLogPlayback(logFile);
+        }
+        downloadButton.innerHTML = "Save Log (HTML)";
+        downloadButton.title = "Save a pre-rendered, self-contained recording of this log to disk in HTML format.";
         downloadButton.onclick = function(e) {
             l.saveRenderedLog(logFile);
         }
@@ -572,7 +596,11 @@ GateOne.Base.update(GateOne.Logging, {
         while (logMetadataDiv.childNodes.length >= 1 ) {
             logMetadataDiv.removeChild(logMetadataDiv.firstChild);
         }
-        logMetadataDiv.appendChild(downloadButton);
+        buttonRow.appendChild(buttonRowTitle);
+        buttonRow.appendChild(viewFlatButton);
+        buttonRow.appendChild(viewPlaybackButton);
+        buttonRow.appendChild(downloadButton);
+        infoDiv.insertBefore(buttonRow, previewIframe);
         for (var i in metadataNames) {
             var row = u.createElement('div', {'class': 'metadata_row'}),
                 title = u.createElement('div', {'class':'metadata_title'}),
@@ -592,36 +620,17 @@ GateOne.Base.update(GateOne.Logging, {
             l = go.Logging,
             prefix = go.prefs.prefix,
             logElem = u.createElement('div', {'class':'halfsectrans table_row', 'name': prefix+'logitem'}),
-            logViewOptions = u.createElement('span', {'class': 'logview_options'}),
-            viewFlat = u.createElement('a'),
-            viewPlayback = u.createElement('a'),
             titleSpan = u.createElement('span', {'class':'table_cell logitem_title'}),
             dateSpan = u.createElement('span', {'class':'table_cell'}),
             sizeSpan = u.createElement('span', {'class':'table_cell'}),
             dateObj = new Date(parseInt(logObj['start_date'])),
             dateString = l.dateFormatter(dateObj);
-        logViewOptions.innerHTML = "<b>View:</b> ";
-        viewFlat.innerHTML = "Flat | ";
-        viewFlat.onclick = function(e) {
-            with ({ filename: logObj['filename'] }) {
-                l.openLogFlat(filename);
-            }
-        }
-        viewPlayback.innerHTML = "Playback";
-        viewPlayback.onclick = function(e) {
-            with ({ filename: logObj['filename'] }) {
-                l.openLogPlayback(filename);
-            }
-        }
-        logViewOptions.appendChild(viewFlat);
-        logViewOptions.appendChild(viewPlayback);
         titleSpan.innerHTML = "<b>" + logObj['connect_string'] + "</b>";
         dateSpan.innerHTML = dateString;
         sizeSpan.innerHTML = l.humanReadableBytes(logObj['size'], 1);
         logElem.appendChild(titleSpan);
         logElem.appendChild(sizeSpan);
         logElem.appendChild(dateSpan);
-        logElem.appendChild(logViewOptions);
         with ({ filename: logObj['filename'] }) {
             logElem.onclick = function(e) {
                 var previewIframe = u.getNode('#'+prefix+'log_preview'),

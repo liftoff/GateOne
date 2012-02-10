@@ -9,9 +9,9 @@
 # TODO: Make the environment variables used before launching self.cmd configurable
 
 # Meta
-__version__ = '0.9'
+__version__ = '1.0rc1'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (0, 9)
+__version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
@@ -1032,6 +1032,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             env["LINES"] = str(rows)
             env["TERM"] = "xterm" # TODO: This needs to be configurable on-the-fly
             env["PATH"] = os.environ['PATH']
+            env["LANG"] = os.environ.get('LANG', 'en_US.UTF-8')
+            env["PYTHONIOENCODING"] = "utf_8"
             # The sleep statement below ensures we capture all output from the
             # fd before it is closed...  It turns out that IOLoop's response to
             # changes in the fd is so fast that it can result in the fd being
@@ -1160,11 +1162,14 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             pid = os.fork()
             if pid == 0: # We're inside the sub-child process
                 # So we don't have to wait to restart Gate One:
-                #self.io_loop.stop() # Closes the listening TCP/IP port
+                self.io_loop.stop() # Closes the listening TCP/IP port
 # Have to wait just a moment for the main thread to finish writing to the log:
                 time.sleep(5) # 5 seconds should be plenty of time
                 try:
-                    get_or_update_metadata(self.log_path, self.user)
+                    # force_update is used here in case the user listed the log
+                    # in the log viewer before the log was finalized.
+                    get_or_update_metadata(
+                        self.log_path, self.user, force_update=True)
                 except Exception:
                     pass # Whatever, the metadata will get fixed when enumerated
                 os._exit(0)

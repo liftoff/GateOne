@@ -22,7 +22,7 @@ if (!GateOne.prefs.playbackFrames) {
 }
 
 // GateOne.Playback
-GateOne.Base.module(GateOne, 'Playback', '0.9', ['Base', 'Net', 'Logging']);
+GateOne.Base.module(GateOne, 'Playback', '1.0', ['Base', 'Net', 'Logging']);
 GateOne.Playback.clockElement = null; // Set with a global scope so we don't have to keep looking it up every time the clock is updated
 GateOne.Playback.progressBarElement = null; // Set with a global scope so we don't have to keep looking it up every time we update a terminal
 GateOne.Playback.progressBarMouseDown = false;
@@ -344,40 +344,6 @@ GateOne.Base.update(GateOne.Playback, {
         }
         goDiv.addEventListener(mousewheelevt, wheelFunc, true);
     },
-//     saveRecording: function(term) {
-//         // Saves the session playback recording
-//         var go = GateOne,
-//             u = go.Utils,
-//             recording = JSON.stringify(go.terminals[term]['playbackFrames']),
-//         // This creates a form to POST our saved session to /recording on the server
-//         // NOTE: The server just returns the same data wrapped in a easy-to-use template
-//             form = u.createElement('form', {
-//                 'method': 'post',
-//                 'action': go.prefs.url + 'recording?r=' + new Date().getTime(),
-//                 'target': '_blank'
-//             }),
-//             recordingField = u.createElement('textarea', {'name': 'recording'}),
-//             themeField = u.createElement('input', {'name': 'theme'}),
-//             colorsField = u.createElement('input', {'name': 'colors'}),
-//             containerField = u.createElement('input', {'name': 'container'}),
-//             prefixField = u.createElement('input', {'name': 'prefix'});
-//         recordingField.value = recording;
-//         form.appendChild(recordingField);
-//         themeField.value = go.prefs.theme;
-//         form.appendChild(themeField);
-//         colorsField.value = go.prefs.colors;
-//         form.appendChild(colorsField);
-//         containerField.value = go.prefs.goDiv.split('#')[1];
-//         form.appendChild(containerField);
-//         prefixField.value = go.prefs.prefix;
-//         form.appendChild(prefixField);
-//         document.body.appendChild(form);
-//         form.submit();
-//         setTimeout(function() {
-//             // No reason to keep this around
-//             document.body.removeChild(form);
-//         }, 1000);
-//     },
     saveRecording: function(term) {
         // Saves the session playback recording by sending the playbackFrames to the server to have them rendered.
         // When the server is done rendering the recording it will be sent back to the client via the save_file action.

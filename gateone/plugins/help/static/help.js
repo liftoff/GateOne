@@ -12,7 +12,7 @@ var logInfo = noop;
 var logDebug = noop;
 
 // GateOne.Help (functions related to the help menu/panel)
-GateOne.Base.module(GateOne, "Help", "0.9", ['Base']);
+GateOne.Base.module(GateOne, "Help", "1.0", ['Base']);
 GateOne.Base.update(GateOne.Help, {
     init: function() {
         // Setup the help panel

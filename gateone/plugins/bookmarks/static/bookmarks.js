@@ -27,7 +27,7 @@ var logInfo = noop;
 var logDebug = noop;
 
 // GateOne.Bookmarks (bookmark management functions)
-GateOne.Base.module(GateOne, "Bookmarks", "0.9", ['Base']);
+GateOne.Base.module(GateOne, "Bookmarks", "1.0", ['Base']);
 GateOne.Bookmarks.bookmarks = [];
 GateOne.Bookmarks.tags = [];
 GateOne.Bookmarks.sortToggle = false;

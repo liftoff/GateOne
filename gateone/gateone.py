@@ -10,9 +10,9 @@
 # * Write init scripts to stop/start/restart Gate One safely.  Also make sure that .deb and .rpm packages safely restart Gate One without impacting running sessions.  The setup.py should also attempt to minify the .css and .js files.
 
 # Meta
-__version__ = '0.9'
+__version__ = '1.0rc1'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (0, 9)
+__version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
@@ -2262,6 +2262,7 @@ def main():
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
         logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
+        tornado.ioloop.IOLoop.instance().stop()
         for t in threading.enumerate():
             if t.getName().startswith('TidyThread'):
                 t.quit()

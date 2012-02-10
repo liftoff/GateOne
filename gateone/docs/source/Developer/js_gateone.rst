@@ -35,9 +35,9 @@ The Base module is mostly copied from `MochiKit <http://mochikit.com/>`_ and con
 
         .. code-block:: javascript
 
-            > GateOne.Base.module(GateOne, 'Net', '0.9', ['Base', 'Utils']);
+            > GateOne.Base.module(GateOne, 'Net', '1.0', ['Base', 'Utils']);
             > GateOne.Net.__repr__();
-            "[GateOne.Net 0.9]"
+            "[GateOne.Net 1.0]"
             > GateOne.Net.NAME;
             "GateOne.Net"
 
@@ -486,6 +486,10 @@ This module consists of a collection of utility functions used throughout Gate O
 Functions
 ^^^^^^^^^
 
+.. js:function:: GateOne.Utils.init
+
+    Like all plugin init() functions this gets called from :js:func:`GateOne.Utils.postOnLoad` which itself is called at the end of :js:func:`GateOne.initialize`.  It simply attaches the 'save_file' (WebSocket) action to :js:func:`GateOne.Utils.saveAsAction` (in :js:attr:`GateOne.Net.actions`).
+
 .. js:function:: GateOne.Utils.createElement(tagname, properties)
 
     A simplified version of MochiKit's `createDOM <http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-createdom>`_ function, it creates a *tagname* (e.g. "div") element using the given *properties*.
@@ -553,13 +557,13 @@ Functions
         > GateOne.Utils.getEmDimensions('#gateone');
         {'w': 8, 'h': 15}
 
-.. js:function:: GateOne.Utils.getNode(elem)
+.. js:function:: GateOne.Utils.getNode(nodeOrSelector)
 
     Returns a DOM node if given a querySelector-style string or an existing DOM node (will return the node as-is).
 
     .. note:: The benefit of this over just ``document.querySelector()`` is that if it is given a node it will return the node as-is (so functions can accept both without having to worry about such things).  See :js:func:`~GateOne.Utils.removeElement` below for a good example.
 
-    :param elem: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param nodeOrSelector: A querySelector string like ``#some_element_id`` or a DOM node.
     :returns: A DOM node or ``null`` if not found.
 
     Example:
@@ -567,6 +571,24 @@ Functions
     .. code-block:: javascript
 
         goDivNode = GateOne.Utils.getNode('#gateone');
+
+        > GateOne.Utils.getEmDimensions('#gateone');
+        {'w': 8, 'h': 15}
+
+.. js:function:: GateOne.Utils.getNodes(nodeListOrSelector)
+
+    Given a CSS querySelectorAll-like string (e.g. '.some_class') or `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ (in case we're not sure), lookup the node using ``document.querySelectorAll()`` and return the result (which will be a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_).
+
+    .. note:: The benefit of this over just ``document.querySelectorAll()`` is that if it is given a nodeList it will just return the nodeList as-is (so functions can accept both without having to worry about such things).
+
+    :param nodeListOrSelector: A querySelectorAll string like ``.some_class`` or a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_.
+    :returns: A `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ or ``[]`` (an empty Array) if not found.
+
+    Example:
+
+    .. code-block:: javascript
+
+        panels = GateOne.Utils.getNodes('#gateone .panel');
 
 .. js:function:: GateOne.Utils.getRowsAndColumns(elem)
 
@@ -589,6 +611,17 @@ Functions
 
         > GateOne.Utils.getRowsAndColumns('#gateone');
         {'cols': 165, 'rows': 45}
+
+.. js:function:: GateOne.Utils.getOffset(elem)
+
+    :returns: An object representing ``elem.offsetTop`` and ``elem.offsetLeft``.
+
+    Example:
+
+    .. code-block:: javascript
+
+        > GateOne.Utils.getOffset(someNode);
+        {"top":130, "left":50}
 
 .. js:function:: GateOne.Utils.getSelText()
 
@@ -793,7 +826,7 @@ Functions
 
 .. js:function:: GateOne.Utils.loadPrefs
 
-    Populates :js:attr:`GateOne.prefs` with values from ``localStorage['prefs']``.
+    Populates :js:attr:`GateOne.prefs` with values from ``localStorage[GateOne.prefs.prefix+'prefs']``.
 
 .. js:function:: GateOne.Utils.loadScript(URL, callback)
 
@@ -808,6 +841,20 @@ Functions
 
         var myfunc = function() { console.log("finished loading whatever.js"); };
         GateOne.Utils.loadScript("/static/someplugin/whatever.js", myfunc);
+
+.. js:function:: GateOne.Utils.loadThemeCSS(schemeObj)
+
+    Loads the GateOne CSS theme(s) for the given *schemeObj* which should be in the form of:
+
+    .. code-block:: javascript
+
+        {'theme': 'black'}
+        // or:
+        {'colors': 'gnome-terminal'}
+        // ...or an object containing both:
+        {'theme': 'black', 'colors': 'gnome-terminal'}
+
+    If *schemeObj* is not provided, will load the defaults.
 
 .. js:function:: GateOne.Utils.noop(a)
 
@@ -846,6 +893,10 @@ Functions
 
     .. note:: This function can also be useful to simply save yourself a lot of typing.  If you're planning on calling a function with the same parameters a number of times it is a good idea to use partial() to create a new function with all the parameters pre-applied.  Can make code easier to read too.
 
+.. js:function:: GateOne.Utils.postOnLoad
+
+    Called by :js:func:`GateOne.init()`, iterates over the list of plugins in :js:attr:`GateOne.loadedModules` calling the ``init()`` function of each (if present).  When that's done it does the same thing with each respective plugin's ``postInit()`` function.
+
 .. js:function:: GateOne.Utils.randomPrime()
 
     :returns: A random prime number <= 9 digits.
@@ -883,6 +934,31 @@ Functions
 
         > GateOne.Utils.replaceURLWithHTMLLinks('Downloading http://foo.bar.com/some/file.zip');
         "Downloading <a href='http://foo.bar.com/some/file.zip'>http://foo.bar.com/some/file.zip</a>"
+
+.. js:function:: GateOne.Utils.saveAs(blob, filename)
+
+    Saves the given *blob* (which must be a proper `Blob <https://developer.mozilla.org/en/DOM/Blob>`_ object with data inside of it) as *filename* (as a file) in the browser.  Just as if you clicked on a link to download it.
+
+    .. note:: This is amazingly handy for downloading files over the WebSocket.
+
+    For reference, this is how to construct a "proper" Blob (assming the file you're saving is just text):
+
+    .. code-block:: javascript
+
+        var bb = new BlobBuilder();
+        bb.append(<your data here>);
+        var blob = bb.getBlob("text/plain;charset=" + document.characterSet);
+
+.. js:function:: GateOne.Utils.saveAsAction(message)
+
+    .. note:: This function is attached to the 'save_file' WebSocket action (in :js:attr:`GateOne.Net.actions`) via :js:func:`GateOne.Utils.init`.
+
+    Saves to disk the file contained in *message*.  *message* should contain the following:
+
+        * *message['result']* - Either 'Success' or a descriptive error message.
+        * *message['filename']* - The name we'll give to the file when we save it.
+        * *message['data']* - The content of the file we're saving.
+        * *message['mimetype']* - Optional:  The mimetype we'll be instructing the browser to associate with the file (so it will handle it appropriately).  Will default to 'text/plain' if not given.
 
 .. js:function:: GateOne.Utils.savePrefs
 

@@ -12,7 +12,7 @@ var logInfo = noop;
 var logDebug = noop;
 
 // GateOne.SSH (ssh client functions)
-GateOne.Base.module(GateOne, "SSH", "0.9", ['Base']);
+GateOne.Base.module(GateOne, "SSH", "1.0", ['Base']);
 GateOne.SSH.identities = []; // SSH identity objects end up in here
 GateOne.Base.update(GateOne.SSH, {
     init: function() {
@@ -73,6 +73,9 @@ GateOne.Base.update(GateOne.SSH, {
         go.Net.addAction('sshjs_identities_list', go.SSH.incomingIDsAction);
         go.Net.addAction('sshjs_delete_identity_complete', go.SSH.deleteCompleteAction);
         go.Terminal.newTermCallbacks.push(go.SSH.getConnectString);
+        if (!go.prefs.embedded) {
+            go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
+        }
     },
     createPanel: function() {
         // Creates the SSH identity management panel (the shell of it anyway)
@@ -886,7 +889,6 @@ GateOne.Base.update(GateOne.SSH, {
             go.Input.queue('ssh://' + connectString + '\n');
             go.Net.sendChars();
         }, 250);
-        go.Visual.togglePanel('#'+go.prefs.prefix+'panel_info');
     },
     updateKH: function(known_hosts) {
         // Updates the sshKHTextArea with the given *known_hosts* file.

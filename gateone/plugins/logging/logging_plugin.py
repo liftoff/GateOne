@@ -15,9 +15,9 @@ logging.py - A plugin for Gate One that provides logging-related functionality.
 """
 
 # Meta
-__version__ = '0.9'
+__version__ = '1.0rc1'
 __license__ = "GNU AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (0, 9)
+__version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
@@ -25,6 +25,7 @@ import os
 import logging
 import gzip
 import re
+import time
 from multiprocessing import Process, Queue
 from functools import partial
 
@@ -106,6 +107,7 @@ def enumerate_logs(limit=None, tws=None):
         file descriptor events.
         """
         message = q.get()
+        logging.info('message: %s' % message)
         if message == 'complete':
             io_loop.remove_handler(fd)
             logs_dir = os.path.join(users_dir, "logs")
@@ -157,6 +159,8 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
         out_dict['log'] = metadata
         message = {'logging_log': out_dict}
         queue.put(message)
+        # If we go too quick sometimes the IOLoop will miss a message
+        time.sleep(0.05)
     queue.put('complete')
 
 def retrieve_log_flat(settings, tws=None):

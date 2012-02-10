@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>gateone.js &mdash; Gate One 0.9 documentation</title>
+    <title>gateone.js &mdash; Gate One 1.0rc1 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.9',
+        VERSION:     '1.0rc1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 0.9 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.0rc1 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="go_process.js" href="js_go_process.html" />
     <link rel="prev" title="utils.py - Supporting Functions" href="utils.html" /> 
@@ -106,9 +106,9 @@
 
 <p>The following example would create a new object named, &quot;Net&quot;, attach it to the <a class="reference internal" href="#GateOne" title="GateOne"><tt class="xref js js-data docutils literal"><span class="pre">GateOne</span></tt></a> object, at version &quot;0.9&quot;, with <a class="reference internal" href="#GateOne.Base" title="GateOne.Base"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Base</span></tt></a> and <a class="reference internal" href="#GateOne.Utils" title="GateOne.Utils"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils</span></tt></a> as dependencies:</p>
 <blockquote>
-<div><div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Base</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">,</span> <span class="s1">&#39;Net&#39;</span><span class="p">,</span> <span class="s1">&#39;0.9&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="s1">&#39;Utils&#39;</span><span class="p">]);</span>
+<div><div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Base</span><span class="p">.</span><span class="nx">module</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">,</span> <span class="s1">&#39;Net&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="s1">&#39;Utils&#39;</span><span class="p">]);</span>
 <span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">__repr__</span><span class="p">();</span>
-<span class="s2">&quot;[GateOne.Net 0.9]&quot;</span>
+<span class="s2">&quot;[GateOne.Net 1.0]&quot;</span>
 <span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">NAME</span><span class="p">;</span>
 <span class="s2">&quot;GateOne.Net&quot;</span>
 </pre></div>
@@ -644,6 +644,12 @@
 <div class="section" id="id2">
 <h3>Functions<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
+<dt id="GateOne.Utils.init">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like all plugin init() functions this gets called from <a class="reference internal" href="#GateOne.Utils.postOnLoad" title="GateOne.Utils.postOnLoad"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.postOnLoad()</span></tt></a> which itself is called at the end of <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a>.  It simply attaches the 'save_file' (WebSocket) action to <a class="reference internal" href="#GateOne.Utils.saveAsAction" title="GateOne.Utils.saveAsAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.saveAsAction()</span></tt></a> (in <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a>).</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Utils.createElement">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">createElement</tt><big>(</big><em>tagname</em>, <em>properties</em><big>)</big><a class="headerlink" href="#GateOne.Utils.createElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>A simplified version of MochiKit's <a class="reference external" href="http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-createdom">createDOM</a> function, it creates a <em>tagname</em> (e.g. &quot;div&quot;) element using the given <em>properties</em>.</p>
@@ -755,7 +761,7 @@
 
 <dl class="function">
 <dt id="GateOne.Utils.getNode">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getNode</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Utils.getNode" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getNode</tt><big>(</big><em>nodeOrSelector</em><big>)</big><a class="headerlink" href="#GateOne.Utils.getNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a DOM node if given a querySelector-style string or an existing DOM node (will return the node as-is).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -766,7 +772,7 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>elem</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>nodeOrSelector</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
 </ul>
 </td>
 </tr>
@@ -777,6 +783,39 @@
 </table>
 <p>Example:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">goDivNode</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getNode</span><span class="p">(</span><span class="s1">&#39;#gateone&#39;</span><span class="p">);</span>
+
+<span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getEmDimensions</span><span class="p">(</span><span class="s1">&#39;#gateone&#39;</span><span class="p">);</span>
+<span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="o">:</span> <span class="mi">8</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="o">:</span> <span class="mi">15</span><span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.getNodes">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getNodes</tt><big>(</big><em>nodeListOrSelector</em><big>)</big><a class="headerlink" href="#GateOne.Utils.getNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a CSS querySelectorAll-like string (e.g. '.some_class') or <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a> (in case we're not sure), lookup the node using <tt class="docutils literal"><span class="pre">document.querySelectorAll()</span></tt> and return the result (which will be a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The benefit of this over just <tt class="docutils literal"><span class="pre">document.querySelectorAll()</span></tt> is that if it is given a nodeList it will just return the nodeList as-is (so functions can accept both without having to worry about such things).</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>nodeListOrSelector</strong> -- <p>A querySelectorAll string like <tt class="docutils literal"><span class="pre">.some_class</span></tt> or a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>.</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><p>A <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a> or <tt class="docutils literal"><span class="pre">[]</span></tt> (an empty Array) if not found.</p>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">panels</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getNodes</span><span class="p">(</span><span class="s1">&#39;#gateone .panel&#39;</span><span class="p">);</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -813,6 +852,24 @@
 <p>Example:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getRowsAndColumns</span><span class="p">(</span><span class="s1">&#39;#gateone&#39;</span><span class="p">);</span>
 <span class="p">{</span><span class="s1">&#39;cols&#39;</span><span class="o">:</span> <span class="mi">165</span><span class="p">,</span> <span class="s1">&#39;rows&#39;</span><span class="o">:</span> <span class="mi">45</span><span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.getOffset">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getOffset</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Utils.getOffset" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">An object representing <tt class="docutils literal"><span class="pre">elem.offsetTop</span></tt> and <tt class="docutils literal"><span class="pre">elem.offsetLeft</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getOffset</span><span class="p">(</span><span class="nx">someNode</span><span class="p">);</span>
+<span class="p">{</span><span class="s2">&quot;top&quot;</span><span class="o">:</span><span class="mi">130</span><span class="p">,</span> <span class="s2">&quot;left&quot;</span><span class="o">:</span><span class="mi">50</span><span class="p">}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1150,7 +1207,7 @@
 <dl class="function">
 <dt id="GateOne.Utils.loadPrefs">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadPrefs</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.loadPrefs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Populates <a class="reference internal" href="#GateOne.prefs" title="GateOne.prefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt></a> with values from <tt class="docutils literal"><span class="pre">localStorage['prefs']</span></tt>.</p>
+<dd><p>Populates <a class="reference internal" href="#GateOne.prefs" title="GateOne.prefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt></a> with values from <tt class="docutils literal"><span class="pre">localStorage[GateOne.prefs.prefix+'prefs']</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -1174,6 +1231,20 @@
 <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">loadScript</span><span class="p">(</span><span class="s2">&quot;/static/someplugin/whatever.js&quot;</span><span class="p">,</span> <span class="nx">myfunc</span><span class="p">);</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.loadThemeCSS">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadThemeCSS</tt><big>(</big><em>schemeObj</em><big>)</big><a class="headerlink" href="#GateOne.Utils.loadThemeCSS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the GateOne CSS theme(s) for the given <em>schemeObj</em> which should be in the form of:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span><span class="s1">&#39;theme&#39;</span><span class="o">:</span> <span class="s1">&#39;black&#39;</span><span class="p">}</span>
+<span class="c1">// or:</span>
+<span class="p">{</span><span class="s1">&#39;colors&#39;</span><span class="o">:</span> <span class="s1">&#39;gnome-terminal&#39;</span><span class="p">}</span>
+<span class="c1">// ...or an object containing both:</span>
+<span class="p">{</span><span class="s1">&#39;theme&#39;</span><span class="o">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="s1">&#39;colors&#39;</span><span class="o">:</span> <span class="s1">&#39;gnome-terminal&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>If <em>schemeObj</em> is not provided, will load the defaults.</p>
 </dd></dl>
 
 <dl class="function">
@@ -1244,6 +1315,12 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Utils.postOnLoad">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">postOnLoad</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.postOnLoad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a>, iterates over the list of plugins in <a class="reference internal" href="#GateOne.loadedModules" title="GateOne.loadedModules"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.loadedModules</span></tt></a> calling the <tt class="docutils literal"><span class="pre">init()</span></tt> function of each (if present).  When that's done it does the same thing with each respective plugin's <tt class="docutils literal"><span class="pre">postInit()</span></tt> function.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Utils.randomPrime">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">randomPrime</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.randomPrime" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
@@ -1310,6 +1387,40 @@
 <span class="s2">&quot;Downloading &lt;a href=&#39;http://foo.bar.com/some/file.zip&#39;&gt;http://foo.bar.com/some/file.zip&lt;/a&gt;&quot;</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.saveAs">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">saveAs</tt><big>(</big><em>blob</em>, <em>filename</em><big>)</big><a class="headerlink" href="#GateOne.Utils.saveAs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the given <em>blob</em> (which must be a proper <a class="reference external" href="https://developer.mozilla.org/en/DOM/Blob">Blob</a> object with data inside of it) as <em>filename</em> (as a file) in the browser.  Just as if you clicked on a link to download it.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is amazingly handy for downloading files over the WebSocket.</p>
+</div>
+<p>For reference, this is how to construct a &quot;proper&quot; Blob (assming the file you're saving is just text):</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">bb</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">BlobBuilder</span><span class="p">();</span>
+<span class="nx">bb</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="o">&lt;</span><span class="nx">your</span> <span class="nx">data</span> <span class="nx">here</span><span class="o">&gt;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">blob</span> <span class="o">=</span> <span class="nx">bb</span><span class="p">.</span><span class="nx">getBlob</span><span class="p">(</span><span class="s2">&quot;text/plain;charset=&quot;</span> <span class="o">+</span> <span class="nb">document</span><span class="p">.</span><span class="nx">characterSet</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.saveAsAction">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">saveAsAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Utils.saveAsAction" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is attached to the 'save_file' WebSocket action (in <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a>) via <a class="reference internal" href="#GateOne.Utils.init" title="GateOne.Utils.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.init()</span></tt></a>.</p>
+</div>
+<p>Saves to disk the file contained in <em>message</em>.  <em>message</em> should contain the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>message['result']</em> - Either 'Success' or a descriptive error message.</li>
+<li><em>message['filename']</em> - The name we'll give to the file when we save it.</li>
+<li><em>message['data']</em> - The content of the file we're saving.</li>
+<li><em>message['mimetype']</em> - Optional:  The mimetype we'll be instructing the browser to associate with the file (so it will handle it appropriately).  Will default to 'text/plain' if not given.</li>
+</ul>
+</div></blockquote>
 </dd></dl>
 
 <dl class="function">
@@ -1549,8 +1660,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </pre></div>
 </div>
 </div>
-<div class="section" id="id12">
-<h3>Functions<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id16">
+<h3>Functions<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="GateOne.Net.addAction">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">addAction</tt><big>(</big><em>name</em>, <em>func</em><big>)</big><a class="headerlink" href="#GateOne.Net.addAction" title="Permalink to this definition">¶</a></dt>
@@ -1720,8 +1831,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dd></dd></dl>
 
 <p>This module handles mouse and keyboard input for Gate One.  It consists of a few tables of information that tell Gate One how to act upon a given keystroke as well as functions that make working with keyboard and mouse events a bit easier.</p>
-<div class="section" id="id16">
-<h3>Properties<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id20">
+<h3>Properties<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Properties that have to do with temporary, internal states (e.g. <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.metaHeld</span></tt>) were purposefully left out of this documentation since there's really no reason to ever reference them.</p>
@@ -1771,8 +1882,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 </div>
-<div class="section" id="id17">
-<h3>Functions<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id21">
+<h3>Functions<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="GateOne.Input.bufferEscSeq">
 <tt class="descclassname">GateOne.Input.</tt><tt class="descname">bufferEscSeq</tt><big>(</big><em>chars</em><big>)</big><a class="headerlink" href="#GateOne.Input.bufferEscSeq" title="Permalink to this definition">¶</a></dt>
@@ -2009,8 +2120,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dd></dd></dl>
 
 <p>This module contains all of Gate One's visual effect functions.  It is just like <a class="reference internal" href="#GateOne.Utils" title="GateOne.Utils"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils</span></tt></a> but specific to visual effects and DOM manipulations.</p>
-<div class="section" id="id18">
-<h3>Properties<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id22">
+<h3>Properties<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
 <dl class="attribute">
 <dt id="GateOne.Visual.goDimensions">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">goDimensions</tt><a class="headerlink" href="#GateOne.Visual.goDimensions" title="Permalink to this definition">¶</a></dt>
@@ -2018,8 +2129,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 </div>
-<div class="section" id="id19">
-<h3>Functions<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id23">
+<h3>Functions<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last">In most of Gate One's JavaScript, <em>term</em> refers to the terminal number (e.g. 1).</p>
@@ -2480,8 +2591,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dd></dd></dl>
 
 <p>GateOne.Terminal contains terminal-specific properties and functions.  Really, there's not much more to it than that :)</p>
-<div class="section" id="id26">
-<h3>Properties<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id30">
+<h3>Properties<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
 <dl class="attribute">
 <dt id="GateOne.Terminal.closeTermCallbacks">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">closeTermCallbacks</tt><a class="headerlink" href="#GateOne.Terminal.closeTermCallbacks" title="Permalink to this definition">¶</a></dt>
@@ -2525,8 +2636,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </dd></dl>
 
 </div>
-<div class="section" id="id27">
-<h3>Functions<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id31">
+<h3>Functions<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="GateOne.Terminal.closeTerminal">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">closeTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.closeTerminal" title="Permalink to this definition">¶</a></dt>
@@ -2753,22 +2864,22 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </li>
 <li><a class="reference internal" href="#gateone-net">GateOne.Net</a><ul>
 <li><a class="reference internal" href="#properties">Properties</a></li>
-<li><a class="reference internal" href="#id12">Functions</a></li>
+<li><a class="reference internal" href="#id16">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-input">GateOne.Input</a><ul>
-<li><a class="reference internal" href="#id16">Properties</a></li>
-<li><a class="reference internal" href="#id17">Functions</a></li>
+<li><a class="reference internal" href="#id20">Properties</a></li>
+<li><a class="reference internal" href="#id21">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-visual">GateOne.Visual</a><ul>
-<li><a class="reference internal" href="#id18">Properties</a></li>
-<li><a class="reference internal" href="#id19">Functions</a></li>
+<li><a class="reference internal" href="#id22">Properties</a></li>
+<li><a class="reference internal" href="#id23">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-terminal">GateOne.Terminal</a><ul>
-<li><a class="reference internal" href="#id26">Properties</a></li>
-<li><a class="reference internal" href="#id27">Functions</a></li>
+<li><a class="reference internal" href="#id30">Properties</a></li>
+<li><a class="reference internal" href="#id31">Functions</a></li>
 </ul>
 </li>
 </ul>

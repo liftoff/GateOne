@@ -10,9 +10,9 @@ sets the window title to user@host.
 """
 
 # Meta
-__version__ = '1.0' # Pretty much the only thing that ISN'T beta right now ;)
+__version__ = '1.1' # Pretty much the only thing that ISN'T beta right now ;)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 0)
+__version_info__ = (1, 1)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
@@ -148,6 +148,11 @@ def openssh_connect(
     If *additional_args* is given this value (or values if it is a list) will be
     added to the arguments passed to the ssh command.
     """
+    try:
+        int(port)
+    except ValueError:
+        print(_("The port must be an integer < 65535"))
+        sys.exit(1)
     signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies
     # NOTE: Figure out if we really want to use the env forwarding feature
     if not env: # Unless we enable SendEnv in ssh these will do nothing
@@ -323,7 +328,7 @@ def openssh_connect(
         os.execvpe(script_path, [], env)
         os._exit(0)
 
-def telnet_connect(user, host, port=22, env=None):
+def telnet_connect(user, host, port=23, env=None):
     """
     Starts an interactive Telnet session to the given host as the given user on
     the given port.  *user* may be None, False, or an empty string.
@@ -332,6 +337,11 @@ def telnet_connect(user, host, port=22, env=None):
 
     .. note:: Some telnet servers don't support sending the username in the connection.  In these cases it will simply ask for it after the connection is established.
     """
+    try:
+        int(port)
+    except ValueError:
+        print(_("The port must be an integer < 65535"))
+        sys.exit(1)
     signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies
     if not env:
         env = {
@@ -415,7 +425,10 @@ def parse_ssh_url(url):
 
         (user, host, port, password, identities)
 
-    If an ssh URL is given without a username, os.environ['USER'] will be used.
+    .. note:: 'web+ssh://' URLs are also supported.
+
+    If an ssh URL is given without a username, os.environ['GO_USER'] will be
+    used and if that doesn't exist it will fall back to os.environ['USER'].
 
     SSH Identities may be specified as a query string:
 
@@ -425,6 +438,9 @@ def parse_ssh_url(url):
     """
     identities = []
     password = None
+    # Remove the 'web+' part if present
+    if url.startswith('web+'):
+        url = url[4:]
     if '@' in url: # user@host[:port]
         host = url.split('@')[1].split(':')[0]
         user = url.split('@')[0][6:]
@@ -542,16 +558,16 @@ if __name__ == "__main__":
     password = None
     try:
         identities = []
+        protocol = None
         url = raw_input(_(
             "[Press Shift-F1 for help]\n\nHost/IP or SSH URL [localhost]: "))
-        if url.startswith('ssh://'): # This is an SSH URL
+        if url.startswith('ssh://') or url.startswith('web+ssh'):
             (user, host, port, password, identities) = parse_ssh_url(url)
             protocol = 'ssh'
         elif url.startswith('telnet://'): # This is a telnet URL
             (user, host, port) = parse_telent_url(url)
             protocol = 'telnet'
         else:
-            protocol = raw_input("Protocol [ssh]: ")
             if not protocol:
                 protocol = 'ssh'
             port = raw_input("Port [22]: ")
@@ -565,7 +581,8 @@ if __name__ == "__main__":
             print(_('Connecting to ssh://%s@%s:%s' % (user, host, port)))
             # Set title
             print("\x1b]0;ssh://%s@%s\007" % (user, host))
-            # Special escape handler:
+            # Special escape handler (so the rest of the plugin knows the
+            # connect string)
             print("\x1b]_;ssh|%s@%s:%s\007" % (user, host, port))
             openssh_connect(user, host, port,
                 command=options.command,
