@@ -194,7 +194,7 @@ RENDITION_CLASSES = defaultdict(lambda: None, {
     6: 'fastblink',
     7: 'reverse',
     8: 'hidden',
-    9: 'strikethrough',
+    9: 'strike',
     10: 'resetfont', # NOTE: The font renditions don't do anything right now
     11: 'font11', # Mostly because I have no idea what they are supposed to look
     12: 'font12', # like.
@@ -212,7 +212,7 @@ RENDITION_CLASSES = defaultdict(lambda: None, {
     24: 'underlinereset',
     27: 'reversereset',
     28: 'hiddenreset',
-    29: 'strikethroughreset',
+    29: 'strikereset',
     # Foregrounds
     30: 'f0', # Black
     31: 'f1', # Red
@@ -489,6 +489,12 @@ def _reduce_renditions(renditions):
         elif rend > 99 and rend < 108:
             # 'Bright' (16-color) backgrounds
             background = rend
+        elif rend > 1000 and rend < 10000:
+            # 256-color foregrounds
+            foreground = rend
+        elif rend > 10000 and rend < 20000:
+            # 256-color backgrounds
+            background = rend
         else:
             out_renditions.append(rend)
     if foreground:
@@ -587,7 +593,8 @@ class Terminal(object):
         self.local_echo = True
         self.esc_buffer = '' # For holding escape sequences as they're typed.
         self.show_cursor = True
-        self.last_rendition = [0]
+        self.cursor_home = 0
+        self.cur_rendition = [0]
         self.init_screen()
         self.init_renditions()
         self.G0_charset = self.charsets['B']
@@ -603,12 +610,12 @@ class Terminal(object):
 
         self.specials = {
             self.ASCII_NUL: self.__ignore,
-            self.ASCII_BEL: self._bell,
-            self.ASCII_BS: self._backspace,
-            self.ASCII_HT: self._horizontal_tab,
-            self.ASCII_LF: self._linefeed,
-            self.ASCII_VT: self._linefeed,
-            self.ASCII_FF: self._linefeed,
+            self.ASCII_BEL: self.bell,
+            self.ASCII_BS: self.backspace,
+            self.ASCII_HT: self.horizontal_tab,
+            self.ASCII_LF: self.linefeed,
+            self.ASCII_VT: self.linefeed,
+            self.ASCII_FF: self.linefeed,
             self.ASCII_CR: self._carriage_return,
             self.ASCII_SO: self.use_g1_charset,
             self.ASCII_SI: self.use_g0_charset,
@@ -625,15 +632,15 @@ class Terminal(object):
             '\\': self._string_terminator, # ST
             'c': self.clear_screen, # Reset terminal
             'D': self.__ignore, # Move/scroll window up one line    IND
-            'M': self._reverse_linefeed, # Move/scroll window down one line RI
-            'E': self._next_line, # Move to next line NEL
+            'M': self.reverse_linefeed, # Move/scroll window down one line RI
+            'E': self.next_line, # Move to next line NEL
             'F': self.__ignore, # Enter Graphics Mode
-            'G': self._next_line, # Exit Graphics Mode
+            'G': self.next_line, # Exit Graphics Mode
             '6': self._dsr_get_cursor_position, # Get cursor position   DSR
             '7': self.save_cursor_position, # Save cursor position and attributes   DECSC
             '8': self.restore_cursor_position, # Restore cursor position and attributes   DECSC
             'H': self._set_tabstop, # Set a tab at the current column   HTS
-            'I': self._reverse_linefeed,
+            'I': self.reverse_linefeed,
             '(': self.set_G0_charset, # Designate G0 Character Set
             ')': self.set_G1_charset, # Designate G1 Character Set
             'N': self.__ignore, # Set single shift 2    SS2
@@ -653,7 +660,7 @@ class Terminal(object):
             'B': self.cursor_down,
             'C': self.cursor_right,
             'D': self.cursor_left,
-            'E': self.cursor_next_line,
+            'E': self.cursor_next_line, # NOTE: Not the same as next_line()
             'F': self.cursor_previous_line,
             'G': self.cursor_horizontal_absolute,
             'H': self.cursor_position,
@@ -662,8 +669,8 @@ class Terminal(object):
             #'b': self.repeat_last_char, # TODO
             'c': self._csi_device_status_report, # Device status report (DSR)
             'g': self.__ignore, # TODO: Tab clear
-            'h': self._set_expanded_mode,
-            'l': self._reset_expanded_mode,
+            'h': self.set_expanded_mode,
+            'l': self.reset_expanded_mode,
             'f': self.cursor_position,
             'd': self.cursor_position_vertical, # Vertical Line Position Absolute (VPA)
             #'e': self.cursor_position_vertical_relative, # VPR TODO
@@ -689,7 +696,7 @@ class Terminal(object):
         }
         self.expanded_modes = {
             # Expanded modes take a True/False argument for set/reset
-            '1': self.application_mode,
+            '1': self.set_application_mode,
             '2': self.__ignore, # DECANM and set VT100 mode
             '3': self.__ignore, # 132 Column Mode (DECCOLM)
             '4': self.__ignore, # Smooth (Slow) Scroll (DECSCLM)
@@ -708,7 +715,7 @@ class Terminal(object):
             '44': self.__ignore, # Turn On Margin Bell
             '45': self.__ignore, # Reverse-wraparound Mode
             '46': self.__ignore, # Start Logging (Hmmm)
-            '47': self.alternate_screen_buffer, # Use Alternate Screen Buffer
+            '47': self.toggle_alternate_screen_buffer, # Use Alternate Screen Buffer
             '66': self.__ignore, # Application keypad (DECNKM)
             '67': self.__ignore, # Backarrow key sends delete (DECBKM)
             '1000': self.__ignore, # Send Mouse X/Y on button press and release
@@ -722,7 +729,7 @@ class Terminal(object):
             '1037': self.__ignore, # Send DEL from the editing-keypad Delete key
             '1047': self.__ignore, # Use Alternate Screen Buffer
             '1048': self.__ignore, # Save cursor as in DECSC
-            '1049': self.alternate_screen_buffer_cursor, # Save cursor as in DECSC and use Alternate Screen Buffer, clearing it first
+            '1049': self.toggle_alternate_screen_buffer_cursor, # Save cursor as in DECSC and use Alternate Screen Buffer, clearing it first
             '1051': self.__ignore, # Set Sun function-key mode
             '1052': self.__ignore, # Set HP function-key mode
             '1060': self.__ignore, # Set legacy keyboard emulation (X11R6)
@@ -1001,7 +1008,7 @@ class Terminal(object):
         if mode: # Set DEC private mode
             # TODO: Need some logic here to save the current expanded mode
             #       so we can restore it in _set_top_bottom().
-            self._set_expanded_mode(mode)
+            self.set_expanded_mode(mode)
         # NOTE: args and kwargs are here to make sure we don't get an exception
         #       when we're called via escape sequences.
         self.saved_cursorX = self.cursorX
@@ -1181,7 +1188,7 @@ class Terminal(object):
                 self.image.extend(chars)
                 match = magic[self.matched_header].match(self.image)
                 if match:
-                    logging.debug("Matched image format.  Capturing...")
+                    #logging.debug("Matched image format.  Capturing...")
                     before_chars, after_chars = magic[
                             self.matched_header].split(self.image)
                     # Eliminate anything before the match
@@ -1263,7 +1270,7 @@ class Terminal(object):
                     # Start a newline but NOTE: Not really the best way to
                     # handle this because it means copying and pasting lines
                     # will end up broken into pieces of size=self.cols
-                    self._newline()
+                    self.newline()
                     self.cursorX = 0
                     # This actually works but until I figure out a way to
                     # get the browser to properly wrap the line without
@@ -1273,10 +1280,10 @@ class Terminal(object):
                     #self.screen[self.cursorY].append(unicode(char))
                     #self.renditions[self.cursorY].append([])
                     # To try it just uncomment the above two lines and
-                    # comment out the self._newline() and self.cusorX lines
+                    # comment out the self.newline() and self.cusorX lines
                 try:
                     self.renditions[self.cursorY][
-                        self.cursorX] = self.last_rendition
+                        self.cursorX] = self.cur_rendition
                     if charnum in self.charset:
                         char = self.charset[charnum]
                         self.screen[self.cursorY][self.cursorX] = char
@@ -1414,15 +1421,15 @@ class Terminal(object):
             self.renditions.insert(
                 self.bottom_margin, [[0] for a in xrange(self.cols)])
 
-    def _backspace(self):
+    def backspace(self):
         """Execute a backspace (\\x08)"""
         try:
-            self.renditions[self.cursorY][self.cursorX] = [0]
+            self.renditions[self.cursorY][self.cursorX] = []
         except IndexError:
             pass # At the edge, no biggie
         self.cursor_left(1)
 
-    def _horizontal_tab(self):
+    def horizontal_tab(self):
         """Execute horizontal tab (\\x09)"""
         next_tabstop = self.cols -1
         for tabstop in self.tabstops:
@@ -1440,27 +1447,38 @@ class Terminal(object):
                     self.tabstops.sort() # Put them in order :)
                     break
 
-    def _linefeed(self):
+    def linefeed(self):
         """
-        Execute line feed (LF)
+        LF - Executes a line feed.
 
-        .. note:: This actually just calls :meth:`Terminal._newline`.
+        .. note:: This actually just calls :meth:`Terminal.newline`.
         """
-        self._newline()
+        self.newline()
 
-    def _next_line(self):
-        """Moves cursor down one line"""
+    def next_line(self):
+        """
+        CNL - Moves the cursor down one line to the home position.  Will not
+        result in a scrolling event like newline() does.
+
+        .. note:: This is not the same thing as :meth:`Terminal.cursor_next_line` which preserves the cursor's column position.
+        """
+        self.cursorX = self.cursor_home
         if self.cursorY < self.rows -1:
             self.cursorY += 1
 
-    def _reverse_linefeed(self):
+    def reverse_linefeed(self):
+        """
+        RI - Executes a reverse line feed: Move the cursor up one line to the
+        home position.  If the cursor move would result in going past the top
+        margin of the screen (upwards) this will execute a scroll_down() event.
+        """
         self.cursorX = 0
         self.cursorY -= 1
         if self.cursorY < self.top_margin:
             self.scroll_down()
             self.cursorY = self.top_margin
 
-    def _newline(self):
+    def newline(self):
         """
         Increases :attr:`self.cursorY` by 1 and calls :meth:`Terminal.scroll_up`
         if that action will move the curor past :attr:`self.bottom_margin`
@@ -1474,7 +1492,8 @@ class Terminal(object):
 
     def _carriage_return(self):
         """
-        Execute carriage return (set :attr:`self.cursorX` to 0)
+        Executes a carriage return (sets :attr:`self.cursorX` to 0).  In other
+        words it moves the cursor back to position 0 on the line.
         """
         self.cursorX = 0
 
@@ -1482,7 +1501,7 @@ class Terminal(object):
         """
         Handles the XON character (stop ignoring).
 
-        .. note:: Doesn't actually do anything (this terminal feature was probably meant for the underlying terminal program).
+        .. note:: Doesn't actually do anything (this feature was probably meant for the underlying terminal program).
         """
         logging.debug('_xon()')
         self.local_echo = True
@@ -1491,7 +1510,7 @@ class Terminal(object):
         """
         Handles the XOFF character (start ignoring)
 
-        .. note:: Doesn't actually do anything (this terminal feature was probably meant for the underlying terminal program).
+        .. note:: Doesn't actually do anything (this feature was probably meant for the underlying terminal program).
         """
         logging.debug('_xoff()')
         self.local_echo = False
@@ -1558,16 +1577,15 @@ class Terminal(object):
         # Remove the extra \r's that the terminal adds:
         self.screen[self.cursorY][self.cursorX] = self.image.replace(
             '\r\n', '\n')
-        self._newline() # Make some space at the bottom too just in case
-        self._newline()
+        self.newline() # Make some space at the bottom too just in case
+        self.newline()
 
     def _string_terminator(self):
         """
         Handle the string terminator (ST).
 
-        .. note:: Doesn't actually do anything at the moment.  Probably not needed since :meth:`Terminal._escape` and/or :meth:`Terminal._bell` will end up handling any sort of sequence that would end in an ST anyway.
+        .. note:: Doesn't actually do anything at the moment.  Probably not needed since :meth:`Terminal._escape` and/or :meth:`Terminal.bell` will end up handling any sort of sequence that would end in an ST anyway.
         """
-        # TODO: This.
         # NOTE: Might this just call _cancel_esc_sequence?  I need to double-check.
         pass
 
@@ -1576,7 +1594,7 @@ class Terminal(object):
         Handles Operating System Command (OSC) escape sequences which need
         special care since they are of indeterminiate length and end with
         either a bell (\\\\x07) or a sequence terminator (\\\\x9c aka ST).  This
-        will usually be called from :meth:`Terminal._bell` to set the title of
+        will usually be called from :meth:`Terminal.bell` to set the title of
         the terminal (just like an xterm) but it is also possible to be called
         directly whenever an ST is encountered.
         """
@@ -1599,7 +1617,7 @@ class Terminal(object):
             #`self.esc_buffer`))
         self.esc_buffer = ''
 
-    def _bell(self):
+    def bell(self):
         """
         Handles the bell character and executes
         :meth:`Terminal.callbacks[CALLBACK_BELL]` (if we are not in the middle
@@ -1631,7 +1649,8 @@ class Terminal(object):
 
             self.callbacks[CALLBACK_DSR]("\\x1b[0n")
         """
-        response = "\x1b[0n"
+        logging.debug("_device_status_report()")
+        response = u"\x1b[0n"
         try:
             for callback in self.callbacks[CALLBACK_DSR].values():
                 callback(response)
@@ -1648,7 +1667,8 @@ class Terminal(object):
 
             self.callbacks[self.CALLBACK_DSR]("\\x1b[1;2c")
         """
-        response = "\x1b[1;2c"
+        logging.debug("_csi_device_status_report()")
+        response = u"\x1b[1;2c"
         try:
             for callback in self.callbacks[CALLBACK_DSR].values():
                 callback(response)
@@ -1656,7 +1676,7 @@ class Terminal(object):
             pass
         return response
 
-    def _set_expanded_mode(self, setting):
+    def set_expanded_mode(self, setting):
         """
         Accepts "standard mode" settings.  Typically '\\\\x1b[?25h' to hide cursor.
 
@@ -1687,7 +1707,7 @@ class Terminal(object):
         except TypeError:
             pass
 
-    def _reset_expanded_mode(self, setting):
+    def reset_expanded_mode(self, setting):
         """
         Accepts "standard mode" settings.  Typically '\\\\x1b[?25l' to show
         cursor.
@@ -1705,7 +1725,7 @@ class Terminal(object):
         except TypeError:
             pass
 
-    def application_mode(self, boolean):
+    def set_application_mode(self, boolean):
         """
         Sets :attr:`self.application_keys` equal to *boolean*.  Literally:
 
@@ -1715,7 +1735,7 @@ class Terminal(object):
         """
         self.application_keys = boolean
 
-    def alternate_screen_buffer(self, alt):
+    def toggle_alternate_screen_buffer(self, alt):
         """
         If *alt* is True, copy the current screen and renditions to
         :attr:`self.alt_screen` and :attr:`self.alt_renditions` then re-init
@@ -1738,11 +1758,12 @@ class Terminal(object):
             # Empty out the alternate buffer (to save memory)
             self.alt_screen = None
             self.alt_renditions = None
+        self.cur_rendition = []
 
-    def alternate_screen_buffer_cursor(self, alt):
+    def toggle_alternate_screen_buffer_cursor(self, alt):
         """
-        Same as :meth:`Terminal.alternate_screen_buffer` but saves/restores the
-        cursor location.
+        Same as :meth:`Terminal.toggle_alternate_screen_buffer` but also
+        saves/restores the cursor location.
         """
         if alt:
             self.alt_cursorX = self.cursorX
@@ -1750,7 +1771,7 @@ class Terminal(object):
         else:
             self.cursorX = self.alt_cursorX
             self.cursorY = self.alt_cursorY
-        self.alternate_screen_buffer(alt)
+        self.toggle_alternate_screen_buffer(alt)
 
     def show_hide_cursor(self, boolean):
         """
@@ -1962,9 +1983,14 @@ class Terminal(object):
     def clear_screen(self):
         """
         Clears the screen.  Also used to emulate a terminal reset.
+
+        .. note:: The current rendition (self.cur_rendition) will be applied to all characters on the screen when this function is called.
         """
         self.init_screen()
-        self.init_renditions()
+        self.renditions = [
+            [self.cur_rendition for a in xrange(self.cols)
+                ] for b in xrange(self.rows)
+        ]
         self.cursorX = 0
         self.cursorY = 0
 
@@ -1976,7 +2002,8 @@ class Terminal(object):
            [u' ' for a in xrange(self.cols)] for a in self.screen[self.cursorY:]
         ]
         self.renditions[self.cursorY:] = [
-           [[0] for a in xrange(self.cols)] for a in self.screen[self.cursorY:]
+           [self.cur_rendition for a in xrange(self.cols)] for a in self.screen[
+               self.cursorY:]
         ]
         self.cursorX = 0
 
@@ -2037,7 +2064,7 @@ class Terminal(object):
             u' ' for a in self.screen[self.cursorY][self.cursorX:]]
         # Reset the cursor position's rendition to the end of the line
         self.renditions[self.cursorY][self.cursorX:] = [
-            self.last_rendition for a in self.screen[self.cursorY][self.cursorX:]]
+            self.cur_rendition for a in self.screen[self.cursorY][self.cursorX:]]
 
     def clear_line_from_cursor_left(self):
         """
@@ -2149,12 +2176,12 @@ class Terminal(object):
         # TODO: Make this whole thing faster (or prove it isn't possible).
         cursorY = self.cursorY
         cursorX = self.cursorX
-        #logging.debug("Setting rendition: %s at %s, %s" % (n, cursorY, cursorX))
+        #logging.debug("Setting rendition: %s at %s, %s" % (repr(n), cursorY, cursorX))
         if cursorX >= self.cols: # We're at the end of the row
             if len(self.renditions[cursorY]) <= cursorX:
                 # Make it all longer
                 #logging.debug("Making line %s longer" % self.cursorY)
-                self.renditions[cursorY].append([0]) # Make it longer
+                self.renditions[cursorY].append([]) # Make it longer
                 self.screen[cursorY].append('\x00') # This needs to match
         if cursorY >= self.rows:
             # This should never happen
@@ -2162,39 +2189,29 @@ class Terminal(object):
                 "cursorY >= self.rows! This should not happen! Bug!"))
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
-            self.last_rendition = [0]
+            self.cur_rendition = [0]
             return # No need for further processing; save some CPU
         # Convert the string (e.g. '0;1;32') to a list (e.g. [0,1,32]
         new_renditions = [int(a) for a in n.split(';') if a != '']
-        found_256 = None
-        foreground = False
-        background = False
-        for i, rend in enumerate(new_renditions):
-            if rend in [38,48]:
-                found_256 = i
-                if rend == 38:
-                    foreground = True
-                elif rend == 48:
-                    background = True
-                break
-        if found_256 != None:
-            # Pop out the 38/48 and the subsequent 5
-            new_renditions.pop(found_256)
-            new_renditions.pop(found_256)
-            # Now increase the actual color by 1000 so it doesn't conflict
-            try:
-                if foreground:
-                    new_renditions[found_256] += 1000
-                elif background:
-                    new_renditions[found_256] += 10000
-            except IndexError:
-                # NOTE: This exception check is temporary!  I got an IndexError
-                # here a few times when testing but I can't seem to reproduce it
-                # now that I'm watching for it (figures!).  Hopefully I'll find
-                # whatever bug is causing this and then I can get rid of this
-                # silly check.
-                logging.error(_("WFT?  new_renditions: %s, found_256: %s"
-                    % (new_renditions, found_256)))
+        # Handle 256-color renditions by getting rid of the (38|48);5 part and
+        # incrementing foregrounds by 1000 and backgrounds by 10000 so we can
+        # tell them apart in __spanify_screen().
+        if 38 in new_renditions:
+            foreground_index = new_renditions.index(38)
+            if len(new_renditions[foreground_index:]) >= 2:
+                if new_renditions[foreground_index+1] == 5:
+                    # This is a valid 256-color rendition (38;5;<num>)
+                    new_renditions.pop(foreground_index) # Goodbye 38
+                    new_renditions.pop(foreground_index) # Goodbye 5
+                    new_renditions[foreground_index] += 1000
+        if 48 in new_renditions:
+            background_index = new_renditions.index(48)
+            if len(new_renditions[background_index:]) >= 2:
+                if new_renditions[background_index+1] == 5:
+                    # This is a valid 256-color rendition (38;5;<num>)
+                    new_renditions.pop(background_index) # Goodbye 38
+                    new_renditions.pop(background_index) # Goodbye 5
+                    new_renditions[background_index] += 10000
         out_renditions = []
         for rend in new_renditions:
             if rend == 0:
@@ -2203,15 +2220,13 @@ class Terminal(object):
                 # combined with this new one.  By setting the last rendition to
                 # just [0] we're ensuring that _reduce_renditions() returns just
                 # this rendition and not the previous one + this one.
-                self.last_rendition = [0]
+                self.cur_rendition = [0]
+                return
             else:
                 out_renditions.append(rend)
-        if out_renditions == [0]:
-            self.last_rendition = out_renditions
-            return
         new_renditions = out_renditions
-        self.last_rendition = _reduce_renditions(
-            self.last_rendition + new_renditions)
+        reduced = _reduce_renditions(self.cur_rendition + new_renditions)
+        self.cur_rendition = reduced
 
     def _opt_handler(self, chars):
         """
@@ -2313,7 +2328,7 @@ class Terminal(object):
                     changed = False
                 else:
                     prev_rendition = rend
-                if changed and rend != None:
+                if changed and rend:
                     classes = imap(rendition_classes.get, rend)
                     for _class in classes:
                         if _class and _class not in current_classes:
@@ -2324,6 +2339,10 @@ class Terminal(object):
                             if 'reset' in _class:
                                 if _class == 'reset':
                                     current_classes = []
+                                    if spancount:
+                                        for i in xrange(spancount):
+                                            outline += "</span>"
+                                        spancount = 0
                                 else:
                                     reset_class = _class.split('reset')[0]
                                     if reset_class == 'foreground':
@@ -2370,7 +2389,7 @@ class Terminal(object):
             if outline:
                 results.append(outline)
             else:
-                results.append(None) # 'null' is shorter than > 4 spaces
+                results.append(None) # 'null' is shorter than 4 spaces
             # NOTE: The client has been programmed to treat None (aka null in
             #       JavaScript) as blank lines.
         for whatever in xrange(spancount): # Bit of cleanup to be safe

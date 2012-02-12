@@ -721,7 +721,11 @@ class StyleHandler(BaseHandler):
                     container, i, COLORS_256[i])
                 bg = "#%s span.bx%s {background-color: #%s;} " % (
                     container, i, COLORS_256[i])
-                colors_256 += "%s %s" % (fg, bg)
+                fg_rev = "#%s span.reverse.fx%s {background-color: #%s; color: inherit;}" % (
+                    container, i, COLORS_256[i])
+                bg_rev = "#%s span.reverse.bx%s {color: #%s; background-color: inherit;} " % (
+                    container, i, COLORS_256[i])
+                colors_256 += "%s %s %s %s" % (fg, bg, fg_rev, bg_rev)
             colors_256 += "\n"
             self.set_header ('Content-Type', 'text/css')
             if theme:
@@ -1273,6 +1277,9 @@ class TerminalWebSocket(WebSocketHandler):
         reset_term = partial(self.reset_terminal, term)
         term_emulator.add_callback(
             terminal.CALLBACK_RESET, reset_term, callback_id)
+        dsr = partial(self.dsr, term)
+        term_emulator.add_callback(
+            terminal.CALLBACK_DSR, dsr, callback_id)
         if 'tidy_thread' not in SESSIONS[self.session]:
             # Start the keepalive thread so the session will time out if the
             # user disconnects for like a week (by default anyway =)
@@ -1393,6 +1400,16 @@ class TerminalWebSocket(WebSocketHandler):
                     'term': term
                 }}
                 self.write_message(json_encode(mode_message))
+
+    def dsr(self, term, response):
+        """
+        Handles Device Status Report (DSR) calls from the underlying program
+        that get caught by the terminal emulator.  *response* is what the
+        terminal emulator returns from the CALLBACK_DSR callback.
+
+        .. note:: This also handles the CSI DSR sequence.
+        """
+        SESSIONS[self.session][term]['multiplex'].write(response)
 
     def _send_refresh(self, term, full=False):
         """Sends a screen update to the client."""

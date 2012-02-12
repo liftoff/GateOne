@@ -61,15 +61,6 @@
 #{{container}} span.bf0.bb5 { color: #000; background-color: #B218B2; } /* Bright Black on Bright Magenta */
 #{{container}} span.bf0.bb6 { color: #000; background-color: #18B2B2; } /* Bright Black on Bright Cyan */
 #{{container}} span.bf0.bb7 { color: #000; background-color: #B2B2B2; } /* Bright Black on Bright White */
-/* Crouching Tiger, Hidden Text */
-#{{container}} span.f0.hidden { color: transparent; } /* Black */
-#{{container}} span.f1.hidden { color: transparent; } /* Red */
-#{{container}} span.f2.hidden { color: transparent; } /* Green */
-#{{container}} span.f3.hidden { color: transparent; } /* Yellow */
-#{{container}} span.f4.hidden { color: transparent; } /* Blue */
-#{{container}} span.f5.hidden { color: transparent; } /* Magenta */
-#{{container}} span.f6.hidden { color: transparent; } /* Cyan */
-#{{container}} span.f7.hidden { color: transparent; } /* White */
 /* 16-color ('Bright') Backgrounds */
 #{{container}} span.bb0  { background-color: #000; } /* Bright Black */
 #{{container}} span.bb1  { background-color: #B21818; } /* Bright Red */
@@ -211,7 +202,7 @@
 }
 #{{container}} span.bold { font-weight: bold; }
 #{{container}} span.dim { opacity: 0.7; }
-#{{container}} span.hidden { color: transparent; }
+#{{container}} span.hidden { color: transparent !important; }
 #{{container}} span.underline { text-decoration: underline; }
 #{{container}} span.overline { text-decoration: overline; }
 #{{container}} span.italic { font-style: italic; }

@@ -1659,6 +1659,10 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_reconnect&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">handleReconnect</span><span class="p">);</span>
 </pre></div>
 </div>
+<p>If no action can be found for a message it will be passed to <a class="reference internal" href="#GateOne.Visual.displayMessage" title="GateOne.Visual.displayMessage"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt></a> and displayed to the user like so:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">displayMessage</span><span class="p">(</span><span class="s1">&#39;Message From Server: &#39;</span> <span class="o">+</span> <span class="o">&lt;</span><span class="nx">message</span><span class="o">&gt;</span><span class="p">);</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="id16">
 <h3>Functions<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
@@ -1699,6 +1703,12 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Net.fullRefresh">
+<tt class="descclassname">GateOne.Net.</tt><tt class="descname">fullRefresh</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.fullRefresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a message to the Gate One server telling it to perform a full screen refresh (i.e. send us the whole thing as opposed to just the difference from the last screen).</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Net.killTerminal">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">killTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Net.killTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normally called when the user closes a terminal, it sends a message to the GateOne server telling it to end the process associated with <em>term</em>.  Normally this function would not be called directly.  To close a terminal cleanly, plugins should use <tt class="docutils literal"><span class="pre">GateOne.Terminal.closeTerminal(term)</span></tt> (which calls this function).</p>
@@ -1735,6 +1745,19 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </pre></div>
 </div>
 <p>Then you can view the exact messages received by the client in the JavaScript console in your browser.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Net.onOpen">
+<tt class="descclassname">GateOne.Net.</tt><tt class="descname">onOpen</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.onOpen" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets attached to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws.onopen</span></tt> inside of <a class="reference internal" href="#GateOne.Net.connect" title="GateOne.Net.connect"><tt class="xref js js-func docutils literal"><span class="pre">connect()</span></tt></a>.  It clears any error message that might be displayed to the user, loads the go_process.js Web Worker, and sends an authentication message to the server along with the dimensions of the terminal(s).</p>
+<p>Also, if <a class="reference internal" href="#GateOne.prefs.autoConnectURL" title="GateOne.prefs.autoConnectURL"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.autoConnectURL</span></tt></a> is set <a class="reference internal" href="#GateOne.Net.onOpen" title="GateOne.Net.onOpen"><tt class="xref js js-func docutils literal"><span class="pre">onOpen()</span></tt></a> will send that value to the server immediately after the connection is established.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Net.onMessage">
+<tt class="descclassname">GateOne.Net.</tt><tt class="descname">onMessage</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#GateOne.Net.onMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets attached to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws.onmessage</span></tt> inside of <a class="reference internal" href="#GateOne.Net.connect" title="GateOne.Net.connect"><tt class="xref js js-func docutils literal"><span class="pre">connect()</span></tt></a>.  It takes care of decoding (<a class="reference external" href="https://developer.mozilla.org/en/JSON">JSON</a>) messages sent from the server and calling any matching <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">actions</span></tt></a>.  If no matching action can be found inside <tt class="docutils literal"><span class="pre">event.data</span></tt> it will fall back to passing the message directly to <a class="reference internal" href="#GateOne.Visual.displayMessage" title="GateOne.Visual.displayMessage"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -1786,7 +1809,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="function">
 <dt id="GateOne.Net.refresh">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">refresh</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.refresh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends a message to the Gate One server telling it to perform a full screen refresh (i.e. send us the whole thing as opposed to just the difference from the last screen).</p>
+<dd><p>Sends a message to the Gate One server telling it to perform a screen refresh with just the difference from the last refresh.</p>
 </dd></dl>
 
 <dl class="function">

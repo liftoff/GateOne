@@ -567,6 +567,18 @@ a message like:</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gateone.TerminalWebSocket.dsr">
+<tt class="descname">dsr</tt><big>(</big><em>term</em>, <em>response</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.dsr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles Device Status Report (DSR) calls from the underlying program
+that get caught by the terminal emulator.  <em>response</em> is what the
+terminal emulator returns from the CALLBACK_DSR callback.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This also handles the CSI DSR sequence.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="gateone.TerminalWebSocket._send_refresh">
 <tt class="descname">_send_refresh</tt><big>(</big><em>term</em>, <em>full=False</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket._send_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket._send_refresh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a screen update to the client.</p>
@@ -690,7 +702,7 @@ background.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="authpam.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="logviewer.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>

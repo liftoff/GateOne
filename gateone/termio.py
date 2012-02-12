@@ -1030,7 +1030,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 env = {}
             env["COLUMNS"] = str(cols)
             env["LINES"] = str(rows)
-            env["TERM"] = "xterm" # TODO: This needs to be configurable on-the-fly
+            env["TERM"] = "xterm-256color" # TODO: Needs to be configurable
             env["PATH"] = os.environ['PATH']
             env["LANG"] = os.environ.get('LANG', 'en_US.UTF-8')
             env["PYTHONIOENCODING"] = "utf_8"

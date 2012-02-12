@@ -258,10 +258,25 @@ necessarily have to match their intended values.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.kill_dtached_proc_macos">
-<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc_macos</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="headerlink" href="#utils.kill_dtached_proc_macos" title="Permalink to this definition">¶</a></dt>
+<dt id="utils.kill_dtached_proc">
+<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Mac OS-specific implementation of <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-obj docutils literal"><span class="pre">kill_dtached_proc</span></tt></a> since Macs don't
 have /proc.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.killall">
+<tt class="descclassname">utils.</tt><tt class="descname">killall</tt><big>(</big><em>session_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#killall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.killall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kills all running Gate One terminal processes including any detached dtach
+sessions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Session_dir :</th><td class="field-body">The path to Gate One's session directory.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -482,29 +497,6 @@ Optionally, a <em>path</em> (colon-delimited string) may be given to use instead
 <tt class="descclassname">utils.</tt><tt class="descname">timeout_func</tt><big>(</big><em>func</em>, <em>args=()</em>, <em>kwargs={}</em>, <em>timeout_duration=10</em>, <em>default=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#timeout_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.timeout_func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets a timeout on the given function, passing it the given args, kwargs,
 and a default value to return in the event of a timeout.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utils.kill_dtached_proc">
-<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Kills the dtach processes associated with the given <em>term</em> and all its
-sub-processes.  Requires <em>session</em> so it can figure out the right
-processess to kill.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utils.killall">
-<tt class="descclassname">utils.</tt><tt class="descname">killall</tt><big>(</big><em>session_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#killall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.killall" title="Permalink to this definition">¶</a></dt>
-<dd><p>Kills all running Gate One terminal processes including any detached dtach
-sessions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Session_dir :</th><td class="field-body">The path to Gate One's session directory.</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 </div>

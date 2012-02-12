@@ -1127,6 +1127,12 @@ Plugin authors can add their own arbitrary actions using :js:func:`GateOne.Net.a
     GateOne.Net.addAction('sshjs_connect', GateOne.SSH.handleConnect);
     GateOne.Net.addAction('sshjs_reconnect', GateOne.SSH.handleReconnect);
 
+If no action can be found for a message it will be passed to :js:func:`GateOne.Visual.displayMessage` and displayed to the user like so:
+
+.. code-block:: javascript
+
+    GateOne.Visual.displayMessage('Message From Server: ' + <message>);
+
 Functions
 ^^^^^^^^^
 .. js:function:: GateOne.Net.addAction(name, func)
@@ -1152,6 +1158,10 @@ Functions
 
     This function is attached to the WebSocket's ``onclose`` event and shouldn't be called directly.
 
+.. js:function:: GateOne.Net.fullRefresh
+
+    Sends a message to the Gate One server telling it to perform a full screen refresh (i.e. send us the whole thing as opposed to just the difference from the last screen).
+
 .. js:function:: GateOne.Net.killTerminal(term)
 
     Normally called when the user closes a terminal, it sends a message to the GateOne server telling it to end the process associated with *term*.  Normally this function would not be called directly.  To close a terminal cleanly, plugins should use ``GateOne.Terminal.closeTerminal(term)`` (which calls this function).
@@ -1171,6 +1181,16 @@ Functions
         GateOne.Net.addAction('my_action', GateOne.Net.log);
 
     Then you can view the exact messages received by the client in the JavaScript console in your browser.
+
+.. js:function:: GateOne.Net.onOpen
+
+    This gets attached to :js:attr:`GateOne.ws.onopen` inside of :js:func:`~GateOne.Net.connect`.  It clears any error message that might be displayed to the user, loads the go_process.js Web Worker, and sends an authentication message to the server along with the dimensions of the terminal(s).
+
+    Also, if :js:attr:`GateOne.prefs.autoConnectURL` is set :js:func:`~GateOne.Net.onOpen` will send that value to the server immediately after the connection is established.
+
+.. js:function:: GateOne.Net.onMessage(event)
+
+    This gets attached to :js:attr:`GateOne.ws.onmessage` inside of :js:func:`~GateOne.Net.connect`.  It takes care of decoding (`JSON <https://developer.mozilla.org/en/JSON>`_) messages sent from the server and calling any matching :js:attr:`~GateOne.Net.actions`.  If no matching action can be found inside ``event.data`` it will fall back to passing the message directly to :js:func:`GateOne.Visual.displayMessage`.
 
 .. js:function:: GateOne.Net.ping
 
@@ -1202,11 +1222,11 @@ Functions
 
     .. note:: This function will likely change in the future as a reload shoud not be necessary to force a re-auth.
 
-.. js:function:: GateOne.Net.refresh()
+.. js:function:: GateOne.Net.refresh
 
-    Sends a message to the Gate One server telling it to perform a full screen refresh (i.e. send us the whole thing as opposed to just the difference from the last screen).
+    Sends a message to the Gate One server telling it to perform a screen refresh with just the difference from the last refresh.
 
-.. js:function:: GateOne.Net.sendChars()
+.. js:function:: GateOne.Net.sendChars
 
     Sends the current character queue to the Gate One server and empties it out.  Typically it would be used like this:
 
