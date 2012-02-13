@@ -1305,11 +1305,14 @@ class TerminalWebSocket(WebSocketHandler):
         """
         logging.debug("killing terminal: %s" % term)
         term = int(term)
+        multiplex = SESSIONS[self.session][term]['multiplex']
+        # Remove the EXIT callback so the terminal doesn't restart itself
+        multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
         try:
-            if SESSIONS[self.session][term]['multiplex'].isalive():
-                SESSIONS[self.session][term]['multiplex'].terminate()
-            if self.settings['dtach']:
+            if self.settings['dtach']: # dtach needs special love
                 kill_dtached_proc(self.session, term)
+            if multiplex.isalive():
+                multiplex.terminate()
         except KeyError as e:
             pass # The EVIL termio has killed my child!  Wait, that's good...
                  # Because now I don't have to worry about it!

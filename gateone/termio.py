@@ -1155,6 +1155,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         }
         # Kick off a process that finalizes the log (updates metadata and
         # recompresses everything to save disk space)
+        if not self.log_path:
+            return # No log to finalize so we're done.
         pid = os.fork()
         # Multiprocessing doesn't get much simpler than this!
         if pid == 0: # We're inside the child process
@@ -1317,7 +1319,7 @@ class MultiplexMacOSIOLoop(MultiplexPOSIXIOLoop):
         """
         # sub-subprocesses are inefficient (and blocking) but what can you do?
         exitstatus, output = shell_command(
-            "ps aux | awk '{print $2}' | grep %s" % self.pid)
+            "ps -ef | awk '{print $2}' | grep %s" % self.pid)
         if exitstatus != 0:
             self._alive = True
         else:

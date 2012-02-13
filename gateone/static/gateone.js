@@ -860,8 +860,8 @@ GateOne.Base.update(GateOne.Utils, {
         },
             textDimensions = GateOne.Utils.getEmDimensions(elem);
         // Calculate the rows and columns:
-        var rows = Math.floor(elementDimensions.h / textDimensions.h),
-            cols = Math.floor(elementDimensions.w / textDimensions.w);
+        var rows = (elementDimensions.h / textDimensions.h),
+            cols = (elementDimensions.w / textDimensions.w);
         var dimensionsObj = {'rows': rows, 'cols': cols};
         return dimensionsObj;
     },
@@ -1127,8 +1127,8 @@ GateOne.Base.update(GateOne.Net, {
             dimensions = go.Utils.getRowsAndColumns(go.prefs.goDiv),
             prefs = {
                 'term': term,
-                'rows': dimensions.rows -1,
-                'cols': dimensions.cols -6 // -6 for the sidebar + scrollbar
+                'rows': Math.ceil(dimensions.rows - 1),
+                'cols': Math.ceil(dimensions.cols - 6) // -6 for the sidebar + scrollbar
             }
         if (!go.prefs.showToolbar && !go.prefs.showTitle) {
             prefs['cols'] = dimensions.cols - 1; // If there's no toolbar and no title there's no reason to have empty space on the right.
@@ -3219,6 +3219,8 @@ GateOne.Base.update(GateOne.Terminal, {
             currentTerm = null,
             termUndefined = false,
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
+            rows = Math.ceil(dimensions.rows - 1),
+            cols = Math.ceil(dimensions.cols - 6),
             prevScrollback = localStorage.getItem(prefix+"scrollback" + term);
         if (term) {
             currentTerm = prefix+'term' + term;
@@ -3232,8 +3234,8 @@ GateOne.Base.update(GateOne.Terminal, {
         // Create the terminal record scaffold
         go.terminals[term] = {
             created: new Date(), // So we can keep track of how long it has been open
-            rows: dimensions.rows,
-            columns: dimensions.cols,
+            rows: rows,    // -1 for the playback controls
+            columns: cols, // -6 for the scrollbar
             mode: 'default', // e.g. 'appmode', 'xterm', etc
             backspace: String.fromCharCode(127), // ^?
             screen: [],
@@ -3260,8 +3262,8 @@ GateOne.Base.update(GateOne.Terminal, {
         // Get any previous term's dimensions so we can use them for the new terminal
             termSettings = {
                 'term': term,
-                'rows': dimensions.rows - 1,
-                'cols': dimensions.cols - 6 // -6 for the scrollbar
+                'rows': rows,
+                'cols': cols
             },
             slide = u.partial(go.Visual.slideToTerm, term, true);
         u.getNode('#'+prefix+'termwrapper').appendChild(terminal);

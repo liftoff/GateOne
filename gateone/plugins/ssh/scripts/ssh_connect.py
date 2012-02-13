@@ -603,8 +603,8 @@ if __name__ == "__main__":
                 # Set title
                 print("\x1b]0;telnet://%s\007" % host)
             telnet_connect(user, host, port)
-
-
+    except KeyboardInterrupt:
+        print(_("\nKeyboardInterrupt detected.  Quitting..."))
     except Exception as e: # Catch all
         print e
-        noop = raw_input(_("[Press Enter to close this terminal]"))
+        noop = raw_input(_("[Press any key to close this terminal]"))
