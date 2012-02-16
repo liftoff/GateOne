@@ -145,11 +145,7 @@ class NullAuthHandler(BaseAuthHandler):
             # This lets any origin check if the user has been authenticated
             # (necessary to prevent "not allowed ..." XHR errors)
             self.set_header ('Access-Control-Allow-Origin', '*')
-            user = self.get_current_user()
-            if user:
-                self.write('authenticated')
-            else:
-                self.write('unauthenticated')
+            self.write('authenticated')
             self.finish()
             return
         logout = self.get_argument("logout", None)

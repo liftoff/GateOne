@@ -70,7 +70,7 @@ GateOne.Base.update(GateOne.Playback, {
             progressBarElement = null,
             term = termNum,
             playbackFrames = null,
-            frame = {'screen': GateOne.terminals[term]['screen'], 'time': new Date()};
+            frame = {'screen': GateOne.terminals[term]['screen'].slice(0), 'time': new Date()};
         if (!progressBarElement) {
             progressBarElement = GateOne.Utils.getNode('#'+prefix+'progressBar');
         }
@@ -81,9 +81,9 @@ GateOne.Base.update(GateOne.Playback, {
         // Add the new playback frame to the terminal object
         playbackFrames.push(frame);
         frame = null; // Clean up
-        if (playbackFrames.length > GateOne.prefs.playbackFrames) {
+        if (GateOne.terminals[term]['playbackFrames'].length > GateOne.prefs.playbackFrames) {
             // Reduce it to fit within the user's configured max
-//             playbackFrames.shift(); // NOTE: This won't work if the user reduced their playbackFrames preference by more than 1
+//             GateOne.terminals[term]['playbackFrames'].shift(); // NOTE: This won't work if the user reduced their playbackFrames preference by more than 1
             playbackFrames.reverse(); // Have to reverse it before we truncate
             playbackFrames.length = GateOne.prefs.playbackFrames; // Love that length is assignable!
             playbackFrames.reverse(); // Put it back in the right order

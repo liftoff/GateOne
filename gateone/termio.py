@@ -259,16 +259,6 @@ class BaseMultiplex(object):
             #   Sep 28 19:45:02 <hostname> gateone: <log message>
             syslog.openlog('gateone', 0, syslog_facility)
 
-    # Commented this out since it was preventing garbage collection
-    #def __del__(self):
-        #"""
-        #Makes sure that the underlying terminal program is terminated so we
-        #don't leave things hanging around.
-        #"""
-        #logging.debug("Multiplex.__del__()")
-        #if self._alive:
-            #self.terminate()
-
     def __repr__(self):
         """
         Returns self.__str__()
@@ -358,7 +348,7 @@ class BaseMultiplex(object):
         """
         callback()
 
-    def spawn(self, rows=24, cols=80, env=None):
+    def spawn(self, rows=24, cols=80, env=None, em_dimensions=None):
         """
         This method must be overridden by suclasses of `BaseMultiplex`.  It is
         expected to execute a child process in a way that allows non-blocking
@@ -403,10 +393,10 @@ class BaseMultiplex(object):
                 }
                 # The hope is that we can use the first-frame-metadata paradigm
                 # to store all sorts of useful information about a log.
-                output = unicode(json_encode(metadata))
-                output = u"%s:%s\U000f0f0f" % (now, output)
+                metadata_frame = str(json_encode(metadata))
+                metadata_frame = "%s:%s\xf3\xb0\xbc\x8f" % (now, metadata_frame)
                 log = gzip.open(self.log_path, mode='a')
-                log.write(output.encode("utf-8"))
+                log.write(metadata_frame)
                 log.close()
             # NOTE: I'm using an obscure unicode symbol in order to avoid
             # conflicts.  We need to dpo our best to ensure that we can
@@ -416,10 +406,11 @@ class BaseMultiplex(object):
             # actual terminal unless they were using Gate One to view a
             # Gate One log file in vim or something =)
             # \U000f0f0f == U+F0F0F (Private Use Symbol)
-            output = unicode(stream.decode('utf-8', "ignore"))
-            output = u"%s:%s\U000f0f0f" % (now, output)
+            #output = unicode(stream.decode('utf-8', "ignore"))
+            #output = u"%s:%s\U000f0f0f" % (now, output)
+            output = "%s:%s\xf3\xb0\xbc\x8f" % (now, stream)
             log = gzip.open(self.log_path, mode='a')
-            log.write(output.encode("utf-8"))
+            log.write(output)
             log.close()
         # NOTE: Gate One's log format is special in that it can be used for both
         # playing back recorded sessions *or* generating syslog-like output.
@@ -836,7 +827,7 @@ class BaseMultiplex(object):
             if hash(item) == ref:
                 self._patterns.pop(i)
 
-    def await(self, timeout=15, rows=24, cols=80, env=None):
+    def await(self, timeout=15, rows=24, cols=80, env=None, em_dimensions=None):
         """
         Blocks until all non-optional patterns inside self._patterns have been
         removed *or* if the given *timeout* is reached.  *timeout* may be an
@@ -855,7 +846,8 @@ class BaseMultiplex(object):
             To wait with expectation.
         """
         if not self.isalive():
-            self.spawn(rows=rows, cols=cols, env=env)
+            self.spawn(
+                rows=rows, cols=cols, env=env, em_dimensions=em_dimensions)
         start = datetime.now()
         # Convert timeout to a timedelta if necessary
         if isinstance(timeout, (str, int, float)):
@@ -1002,7 +994,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             self._call_callback(callback)
         self.io_loop.add_timeout(timedelta(seconds=5), self._reenable_output)
 
-    def spawn(self, rows=24, cols=80, env=None):
+    def spawn(self, rows=24, cols=80, env=None, em_dimensions=None):
         """
         Creates a new virtual terminal (tty) and executes self.cmd within it.
         Also attaches :meth:`self._ioloop_read_handler` to the IOLoop so that
@@ -1011,12 +1003,14 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
         :cols: The number of columns to emulate on the virtual terminal (width)
         :rows: The number of rows to emulate (height).
-        :env: A dictionary of environment variables to set when executing self.cmd.
+        :env: Optional - A dictionary of environment variables to set when executing self.cmd.
+        :em_dimensions: Optional - The dimensions of a single character within the terminal (only used when calculating the number of rows/cols images take up).
         """
         self.started = datetime.now()
         signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies allowed
         logging.debug(
-            "spawn(rows=%s, cols=%s, env=%s)" % (rows, cols, repr(env)))
+            "spawn(rows=%s, cols=%s, env=%s, em_dimensions=%s)" % (
+                rows, cols, repr(env), repr(em_dimensions)))
         import pty
         pid, fd = pty.fork()
         if pid == 0: # We're inside the child process
@@ -1047,7 +1041,11 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             self.fd = fd
             self.pid = pid
             self.time = time.time()
-            self.term = self.terminal_emulator(rows=rows, cols=cols)
+            self.term = self.terminal_emulator(
+                rows=rows,
+                cols=cols,
+                em_dimensions=em_dimensions
+            )
             # Tell our IOLoop instance to start watching the child
             self.io_loop.add_handler(
                 fd, self._ioloop_read_handler, self.io_loop.READ)
@@ -1079,18 +1077,25 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         self._alive = False
         return False
 
-    def resize(self, rows, cols, ctrl_l=True):
+    def resize(self, rows, cols, em_dimensions=None, ctrl_l=True):
         """
         Resizes the child process's terminal window to *rows* and *cols* by
         first sending it a TIOCSWINSZ event and then sending ctrl-l.
+
+        If *em_dimensions* are provided they will be updated along with the
+        rows and cols.
 
         The sending of ctrl-l can be disabled by setting *ctrl_l* to False.
         """
         logging.debug("Resizing term %s to rows: %s, cols: %s" % (
             self.term_id, rows, cols))
+        if rows < 2:
+            rows = 24
+        if cols < 2:
+            cols = 80
         self.rows = rows
         self.cols = cols
-        self.term.resize(rows, cols)
+        self.term.resize(rows, cols, em_dimensions)
         # Sometimes the resize doesn't actually apply (for whatever reason)
         # so to get around this we have to send a different value than the
         # actual value we want then send our actual value.  It's a bug outside
@@ -1166,7 +1171,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 # So we don't have to wait to restart Gate One:
                 self.io_loop.stop() # Closes the listening TCP/IP port
 # Have to wait just a moment for the main thread to finish writing to the log:
-                time.sleep(5) # 5 seconds should be plenty of time
+                time.sleep(3) # 3 seconds should be plenty of time
                 try:
                     # force_update is used here in case the user listed the log
                     # in the log viewer before the log was finalized.
@@ -1326,7 +1331,7 @@ class MultiplexMacOSIOLoop(MultiplexPOSIXIOLoop):
             self._alive = False
         return self._alive
 
-def spawn(cmd, rows=24, cols=80, env=None, *args, **kwargs):
+def spawn(cmd, rows=24, cols=80, env=None, em_dimensions=None, *args, **kwargs):
     """
     A shortcut to::
 
@@ -1335,7 +1340,7 @@ def spawn(cmd, rows=24, cols=80, env=None, *args, **kwargs):
         >>> return m
     """
     m = Multiplex(cmd, *args, **kwargs)
-    m.spawn(rows, cols, env)
+    m.spawn(rows, cols, env, em_dimensions=em_dimensions)
     return m
 
 if POSIX:

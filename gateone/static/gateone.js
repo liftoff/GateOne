@@ -225,6 +225,8 @@ GateOne.Base.update(GateOne, {
             // Check if we're authenticated after all the scripts are done loading
             u.xhrGet(go.prefs.url+'auth?check=True', parseResponse);
         });
+        // Empty out anything that might be already-existing in goDiv
+        u.getNode(go.prefs.goDiv).innerHTML = '';
     },
     initialize: function() {
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
@@ -1124,11 +1126,14 @@ GateOne.Base.update(GateOne.Net, {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
         var go = GateOne,
-            dimensions = go.Utils.getRowsAndColumns(go.prefs.goDiv),
+            u = go.Utils,
+            emDimensions = u.getEmDimensions(go.prefs.goDiv),
+            dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             prefs = {
                 'term': term,
-                'rows': Math.ceil(dimensions.rows - 1),
-                'cols': Math.ceil(dimensions.cols - 6) // -6 for the sidebar + scrollbar
+                'rows': Math.ceil(dimensions.rows - 2), // -1 for the playback controls and -1 because we're using Math.ceil
+                'cols': Math.ceil(dimensions.cols - 7), // -6 for the sidebar + scrollbar and -1 because we're using Math.ceil
+                'em_dimensions': emDimensions
             }
         if (!go.prefs.showToolbar && !go.prefs.showTitle) {
             prefs['cols'] = dimensions.cols - 1; // If there's no toolbar and no title there's no reason to have empty space on the right.
@@ -1204,10 +1209,10 @@ GateOne.Base.update(GateOne.Net, {
                     }, 500);
                 }
                 // Update our dimensions (for some reason they can be lost if disconnected)
-                setTimeout(function() {
-                    GateOne.Net.sendDimensions();
-                    // NOTE: If this gets called before a any terminals have been opened it will simply be ignored by the server
-                }, 1000);
+//                 setTimeout(function() {
+//                     GateOne.Net.sendDimensions();
+//                     NOTE: If this gets called before a any terminals have been opened it will simply be ignored by the server
+//                 }, 1000);
                 setTimeout(function() {
                     GateOne.Net.ping(); // Check latency (after things have calmed down a bit =)
                 }, 3000);
@@ -3004,10 +3009,28 @@ GateOne.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminals', go.Terminal.reattachTerminalsAction);
         go.Net.addAction('termupdate', go.Terminal.updateTerminalAction);
         go.Net.addAction('term_ended', go.Terminal.closeTerminal);
+        go.Net.addAction('timeout', go.Terminal.timeoutAction);
         go.Net.addAction('term_exists', go.Terminal.reconnectTerminalAction);
         go.Net.addAction('set_mode', go.Terminal.setModeAction); // For things like application cursor keys
         go.Net.addAction('metadata', go.Terminal.storeMetadata);
         go.Net.addAction('load_webworker', go.Terminal.loadWebWorkerAction);
+    },
+    timeoutAction: function() {
+        // Write a message to the screen indicating a timeout has occurred and close the WebSocket
+        var go = GateOne,
+            u = go.Utils,
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+        logError("Session timed out.");
+        terms.forEach(function(termObj) {
+            // Passing 'true' here to keep the stuff in localStorage for this term.
+            go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
+        });
+        u.getNode('#'+go.prefs.prefix+'termwrapper').innerHTML = "Your session has timed out.  Reload the page to reconnect to Gate One.";
+        go.ws.onclose = function() { // Have to replace the existing onclose() function so we don't end up auto-reconnecting.
+            // Connection to the server was lost
+            logDebug("WebSocket Closed");
+        }
+        go.ws.close(); // No reason to leave it open taking up resources on the server.
     },
     writeScrollback: function(term, scrollback) {
         try { // Save the scrollback buffer in localStorage for retrieval if the user reloads
@@ -3047,7 +3070,6 @@ GateOne.Base.update(GateOne.Terminal, {
                 } else {
                     termContainer.appendChild(termPre);
                 }
-//                 GateOne.Utils.scrollToBottom(termPre);
                 screenUpdate = true;
                 GateOne.terminals[term]['scrollbackVisible'] = false;
             } catch (e) { // Likely the terminal just closed
@@ -3218,9 +3240,10 @@ GateOne.Base.update(GateOne.Terminal, {
             prefix = go.prefs.prefix,
             currentTerm = null,
             termUndefined = false,
+            emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
-            rows = Math.ceil(dimensions.rows - 1),
-            cols = Math.ceil(dimensions.cols - 6),
+            rows = Math.ceil(dimensions.rows - 2),
+            cols = Math.ceil(dimensions.cols - 7),
             prevScrollback = localStorage.getItem(prefix+"scrollback" + term);
         if (term) {
             currentTerm = prefix+'term' + term;
@@ -3263,7 +3286,8 @@ GateOne.Base.update(GateOne.Terminal, {
             termSettings = {
                 'term': term,
                 'rows': rows,
-                'cols': cols
+                'cols': cols,
+                'em_dimensions': emDimensions
             },
             slide = u.partial(go.Visual.slideToTerm, term, true);
         u.getNode('#'+prefix+'termwrapper').appendChild(terminal);

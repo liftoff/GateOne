@@ -762,7 +762,7 @@ hr {
 }
 #{{container}} .table_cell {
     display: table-cell;
-    max-width: 15em;
+    max-width: 13em;
     padding-right: 0.5em;
     /* Firefox 3.6+ */
     background-image: -moz-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));

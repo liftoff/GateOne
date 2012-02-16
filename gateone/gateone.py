@@ -851,6 +851,7 @@ class TerminalWebSocket(WebSocketHandler):
         # So we can keep track and avoid sending unnecessary messages:
         self.titles = {}
         self.api_user = None
+        self.em_dimensions = None
 
     def get_current_user(self):
         """
@@ -1174,9 +1175,20 @@ class TerminalWebSocket(WebSocketHandler):
         """
         logging.debug("%s new_terminal(): %s" % (
             self.get_current_user()['upn'], settings))
+        if self.session not in SESSIONS:
+            # This happens when the TidyThread times out a session
+            # Tell the client it timed out:
+            message = {'timeout': None}
+            self.write_message(json_encode(message))
+            return
         self.current_term = term = settings['term']
         self.rows = rows = settings['rows']
         self.cols = cols = settings['cols']
+        if 'em_dimensions' in settings:
+            self.em_dimensions = {
+                'height': settings['em_dimensions']['h'],
+                'width': settings['em_dimensions']['w']
+            }
         user_dir = self.settings['user_dir']
         needs_full_refresh = False
         if term not in SESSIONS[self.session]:
@@ -1232,12 +1244,13 @@ class TerminalWebSocket(WebSocketHandler):
                 'GO_SESSION_DIR': session_dir
             }
             SESSIONS[self.session][term]['multiplex'].spawn(
-                rows, cols, env=env)
+                rows, cols, env=env, em_dimensions=self.em_dimensions)
         else:
             # Terminal already exists
             if SESSIONS[self.session][term]['multiplex'].isalive():
                 # It's ALIVE!!!
-                SESSIONS[self.session][term]['multiplex'].resize(rows, cols)
+                SESSIONS[self.session][term]['multiplex'].resize(
+                    rows, cols, ctrl_l=False, em_dimensions=self.em_dimensions)
                 message = {'term_exists': term}
                 self.write_message(json_encode(message))
                 # This resets the screen diff
@@ -1518,6 +1531,10 @@ class TerminalWebSocket(WebSocketHandler):
             term = int(resize_obj['term'])
         self.rows = resize_obj['rows']
         self.cols = resize_obj['cols']
+        self.em_dimensions = {
+            'height': resize_obj['em_dimensions']['h'],
+            'width': resize_obj['em_dimensions']['w']
+        }
         if self.rows < 2 or self.cols < 2:
             # Fall back to a standard default:
             self.rows = 24
@@ -1527,14 +1544,16 @@ class TerminalWebSocket(WebSocketHandler):
             if term:
                 SESSIONS[self.session][term]['multiplex'].resize(
                     self.rows,
-                    self.cols
+                    self.cols,
+                    self.em_dimensions
                 )
             else: # Resize them all
                 for term in SESSIONS[self.session].keys():
                     if isinstance(term, int): # Skip the TidyThread
                         SESSIONS[self.session][term]['multiplex'].resize(
                             self.rows,
-                            self.cols
+                            self.cols,
+                            self.em_dimensions
                         )
         except KeyError: # Session doesn't exist yet, no biggie
             pass
@@ -1630,6 +1649,7 @@ class TidyThread(threading.Thread):
         self.session = session
         self.quitting = False
         self.doublecheck = True
+        self.kill_dtach = True
 
     def keepalive(self, datetime_obj=None):
         """
@@ -1656,6 +1676,7 @@ class TidyThread(threading.Thread):
                         )
                     )
                     self.quitting = True
+                    break
         # This loops through all the open terminals checking if each is alive
                 all_dead = True
                 for term in SESSIONS[session].keys():
@@ -1692,6 +1713,9 @@ class TidyThread(threading.Thread):
             try:
                 if SESSIONS[session][term]['multiplex'].isalive():
                     SESSIONS[session][term]['multiplex'].terminate()
+                if self.kill_dtach:
+                    kill_dtached_proc(session, term)
+                del SESSIONS[session][term]
             except TypeError: # Ignore the TidyThread (i.e. ourselves)
                 pass
             except KeyError: # Already killed... Great!
@@ -1948,10 +1972,9 @@ def main():
     define(
         "session_timeout",
         default="5d",
-        help=_("Amount of time that a session should be kept alive after the "
-        "client has logged out.  Accepts <num>X where X could be one of s, m, h"
-        ", or d for seconds, minutes, hours, and days.  Default is '5d' (5 days"
-        ")."),
+        help=_("Amount of time that a session is allowed to idle before it is "
+        "killed.  Accepts <num>X where X could be one of s, m, h, or d for "
+        "seconds, minutes, hours, and days.  Default is '5d' (5 days)."),
         type=str
     )
     define(
@@ -2285,6 +2308,7 @@ def main():
         tornado.ioloop.IOLoop.instance().stop()
         for t in threading.enumerate():
             if t.getName().startswith('TidyThread'):
+                t.kill_dtach = False
                 t.quit()
 
 if __name__ == "__main__":

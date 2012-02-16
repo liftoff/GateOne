@@ -442,6 +442,35 @@ def short_hash(to_shorten):
     packed = struct.pack('i', binascii.crc32(to_shorten))
     return base64.urlsafe_b64encode(packed).replace('=', '')
 
+def get_process_tree(parent_pid):
+    """
+    Returns a list of child pids that were spawned from *parent_pid*.
+
+    .. note:: Will include parent_pid in the output list.
+    """
+    parent_pid = str(parent_pid) # Has to be a string
+    ps = which('ps')
+    retcode, output = shell_command('%s -ef' % ps)
+    out = [parent_pid]
+    pidmap = []
+    # Construct the pidmap:
+    for line in output.splitlines():
+        split_line = line.split()
+        pid = split_line[1]
+        ppid = split_line[2]
+        pidmap.append((pid, ppid))
+    def walk_pids(pidmap, checkpid):
+        """
+        Recursively walks the given *pidmap* and updates the *out* variable with
+        the child pids of *checkpid*.
+        """
+        for pid, ppid in pidmap:
+            if ppid == checkpid:
+                out.append(pid)
+                walk_pids(pidmap, pid)
+    walk_pids(pidmap, parent_pid)
+    return out
+
 def kill_dtached_proc(session, term):
     """
     Kills the dtach processes associated with the given *term* and all its
@@ -470,11 +499,13 @@ def kill_dtached_proc(session, term):
                 pass # Already dead, no big deal.
                 # Uncomment above if you're having problems or think otherwise.
     for pid in to_kill:
-        pid = int(pid)
-        try:
-            os.kill(pid, signal.SIGTERM)
-        except OSError:
-            pass # Process already died.  Not a problem.
+        kill_pids = get_process_tree(pid)
+        for _pid in kill_pids:
+            _pid = int(_pid)
+            try:
+                os.kill(_pid, signal.SIGTERM)
+            except OSError:
+                pass # Process already died.  Not a problem.
 
 def kill_dtached_proc_macos(session, term):
     """
@@ -484,14 +515,21 @@ def kill_dtached_proc_macos(session, term):
     signal handling required by :func:`shell_command`).
     """
     logging.debug('kill_dtached_proc_macos(%s, %s)' % (session, term))
+    ps = which('ps')
     cmd = (
-        "ps -ef | "
+        "%s -ef | "
         "grep %s/dtach_%s | " # Limit to those matching our session/term combo
         "grep -v grep | " # Get rid of grep from the results (if present)
-        "awk '{print $2}' | " # Just the PID please
-        "xargs kill" % (session, term) # Kill em'
+        "awk '{print $2}' " % (ps, session, term) # Just the PID please
     )
     exitstatus, output = shell_command(cmd)
+    for line in output.splitlines():
+        pid_to_kill = line.strip() # Get rid of trailing newline
+        for pid in get_process_tree(pid_to_kill):
+            try:
+                os.kill(int(pid), signal.SIGTERM)
+            except OSError:
+                pass # Process already died.  Not a problem.
 
 def killall(session_dir):
     """
@@ -854,7 +892,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
 
     .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.
     """
-    logging.debug('get_or_update_metadata()')
+    #logging.debug('get_or_update_metadata()')
     first_frame = retrieve_first_frame(golog_path)
     metadata = {}
     if first_frame[14:].startswith('{'):

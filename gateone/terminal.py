@@ -570,20 +570,28 @@ class Terminal(object):
     RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)')
     RE_NUMBERS = re.compile('\d*') # Matches any number
 
-    def __init__(self, rows=24, cols=80):
+    def __init__(self, rows=24, cols=80, em_dimensions=None):
         """
         Initializes the terminal by calling *self.initialize(rows, cols)*.  This
         is so we can have an equivalent function in situations where __init__()
         gets overridden.
-        """
-        self.initialize(rows, cols)
 
-    def initialize(self, rows=24, cols=80):
+        If *em_dimensions* are provided they will be used to determine how many
+        lines images will take when they're drawn in the terminal.  This is to
+        prevent images that are written to the top of the screen from having
+        their tops cut off.  *em_dimensions* should be a dict in the form of::
+
+            {'height': <px>, 'width': <px>}
+        """
+        self.initialize(rows, cols, em_dimensions)
+
+    def initialize(self, rows=24, cols=80, em_dimensions=None):
         """
         Initializes the terminal (the actual equivalent to :meth:`__init__`).
         """
         self.cols = cols
         self.rows = rows
+        self.em_dimensions = em_dimensions
         self.scrollback_buf = []
         self.scrollback_renditions = []
         self.title = "Gate One"
@@ -909,10 +917,11 @@ class Terminal(object):
         """
         pass
 
-    def resize(self, rows, cols):
+    def resize(self, rows, cols, em_dimensions=None):
         """
         Resizes the terminal window, adding or removing *rows* or *cols* as
-        needed.
+        needed.  If *em_dimensions* are provided they will be stored in
+        *self.em_dimensions* (which is currently only used by image output).
         """
         logging.debug("resize(%s, %s)" % (rows, cols))
         if rows < self.rows: # Remove rows from the top
@@ -1569,16 +1578,46 @@ class Terminal(object):
         .. note:: The :meth:`Terminal._spanify_screen` function is aware of this logic and knows that a 'character' longer than an actual character indicates the presence of something like an image that needs special processing.
         """
         logging.debug("_capture_image() len(self.image): %s" % len(self.image))
-        self.cursorY = self.rows - 1 # Move to the end of the screen
-        # NOTE: If we don't move to the end of the screen the image can end up
-        # partially above the visible screen (since it will rest on the current
-        # row).
-        self.cursorX = 0
         # Remove the extra \r's that the terminal adds:
-        self.screen[self.cursorY][self.cursorX] = self.image.replace(
-            '\r\n', '\n')
-        self.newline() # Make some space at the bottom too just in case
-        self.newline()
+        self.image = self.image.replace('\r\n', '\n')
+        if Image: # PIL is loaded--try to guess how many lines the image takes
+            i = StringIO.StringIO(self.image)
+            try:
+                im = Image.open(i)
+            except IOError:
+                # i.e. PIL couldn't identify the file
+                return # Don't do anything--bad image
+        else: # No PIL means no images.  Don't bother wasting memory.
+            return
+        if self.em_dimensions:
+            # Make sure the image will fit properly in the screen
+            width = im.size[0]
+            height = im.size[1]
+            if height <= self.em_dimensions['height']:
+                # Fits within a line.  No need for a newline
+                num_chars = int(width/self.em_dimensions['width'])
+                # Put the image at the current cursor location
+                self.screen[self.cursorY][self.cursorX] = self.image
+                # Move the cursor an equivalent number of characters
+                self.cursor_right(num_chars)
+            else:
+                newlines = int(height/self.em_dimensions['height'])
+                self.cursorX = 0
+                newlines = abs(self.cursorY - newlines)
+                self.newline() # Start with a newline for good measure... For
+                # Some reason it seems to look better that way.
+                if newlines > self.cursorY:
+                    for line in xrange(newlines):
+                        self.newline()
+                self.screen[self.cursorY][self.cursorX] = self.image
+                self.newline()
+        else:
+            # No way to calculate the number of lines the image will take
+            self.cursorY = self.rows - 1 # Move to the end of the screen
+            # ... so it doesn't get cut off at the top
+            self.screen[self.cursorY][self.cursorX] = self.image
+            self.newline() # Make some space at the bottom too just in case
+            self.newline()
 
     def _string_terminator(self):
         """
@@ -2314,7 +2353,7 @@ class Terminal(object):
                     encoded = base64.b64encode(image_data).replace('\n', '')
                     data_uri = "data:image/%s;base64,%s" % (
                         im.format.lower(), encoded)
-                    outline += '\n<img src="%s" width="%s" height="%s">\n' % (
+                    outline += '<img src="%s" width="%s" height="%s">' % (
                         data_uri, im.size[0], im.size[1])
                     continue
                 changed = True
@@ -2568,6 +2607,12 @@ class Terminal(object):
         """
         out = []
         for line in self.screen:
-            out.append("".join(line))
+            line_out = ""
+            for char in line:
+                if len(char) > 1: # This is an image (or similar)
+                    line_out += u'⬚' # Use a dotted square as a placeholder
+                else:
+                    line_out += char
+            out.append(line_out)
         self.modified = False
         return out

@@ -83,8 +83,8 @@ Here are two example .golog frames demonstrating the format::
 Gate One logs can be opened, decoded, and parsed in Python fairly easily::
 
     import gzip
-    golog = gzip.open(path_to_golog).read().decode('utf-8')
-    for frame in golog.split(u"\U000f0f0f"):
+    golog = gzip.open(path_to_golog).read()
+    for frame in golog.split(u"\U000f0f0f".encode('UTF-8')):
         frame_time = float(frame[:13]) # First 13 chars is the timestamp
         # Timestames can be converted into datetime objects very simply:
         datetime_obj = datetime.fromtimestamp(frame_time/1000)
@@ -114,9 +114,10 @@ def playback_log(log_path, file_like, show_esc=False):
     If *show_esc* is True, escape sequences and control characters will be
     escaped so they can be seen in the output.
     """
-    log = gzip.open(log_path).read().decode('utf-8')
+    log = gzip.open(log_path).read()
     prev_frame_time = None
-    for i, frame in enumerate(log.split(SEPARATOR)[1:]): # Skip first frame
+    # Skip first frame
+    for i, frame in enumerate(log.split(SEPARATOR.encode('UTF-8'))[1:]):
         try:
             frame_time = float(frame[:13]) # First 13 chars is the timestamp
             frame = frame[14:] # Skips the colon
@@ -211,9 +212,10 @@ def flatten_log(log_path, preserve_renditions=True, show_esc=False):
     can be used with grep and similar search/filter tools.
     """
     import gzip
-    lines = gzip.open(log_path).read().decode('utf-8')
+    lines = gzip.open(log_path).read()
     out = ""
-    for frame in lines.split(SEPARATOR)[1:]: # Skip the first frame (metadata)
+    # Skip the first frame (metadata)
+    for frame in lines.split(SEPARATOR.encode('UTF-8'))[1:]:
         try:
             frame_time = float(frame[:13]) # First 13 chars is the timestamp
             # Convert to datetime object

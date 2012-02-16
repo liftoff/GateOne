@@ -49,14 +49,19 @@ PROCS = {} # For tracking/cancelling background processes
 # Helper functions
 def retrieve_log_frames(golog_path, rows, cols, limit=None):
     """
-    Returns the frames of *golog_path* as a list that can be used with the playback_log.html template.
+    Returns the frames of *golog_path* as a list that can be used with the
+    playback_log.html template.
+
     If *limit* is given, only return that number of frames (e.g. for preview)
     """
     out_frames = []
     from terminal import Terminal
     terminal_emulator = Terminal
-    term = terminal_emulator(rows=rows, cols=cols)
-    frames = gzip.open(golog_path).read().decode('utf-8').split(SEPARATOR)[1:]
+    term = terminal_emulator(
+        # 14/7 for the em_height should be OK for most browsers to ensure that
+        # images don't always wind up at the bottom of the screen.
+        rows=rows, cols=cols, em_dimensions={'height':14, 'width':7})
+    frames = gzip.open(golog_path).read().split(SEPARATOR.encode('UTF-8'))[1:]
     if not limit:
         limit = len(frames)
     for frame in frames[:limit]:
@@ -66,7 +71,7 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
             term.write(frame_screen)
             scrollback, screen = term.dump_html()
             out_frames.append({'screen': screen, 'time': frame_time})
-    return out_frames[1:] # Skip the first frame which is the metadata
+    return out_frames # Skip the first frame which is the metadata
 
 # Handlers
 
@@ -107,7 +112,7 @@ def enumerate_logs(limit=None, tws=None):
         file descriptor events.
         """
         message = q.get()
-        logging.info('message: %s' % message)
+        #logging.debug('message: %s' % message)
         if message == 'complete':
             io_loop.remove_handler(fd)
             logs_dir = os.path.join(users_dir, "logs")
@@ -160,7 +165,7 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
         message = {'logging_log': out_dict}
         queue.put(message)
         # If we go too quick sometimes the IOLoop will miss a message
-        time.sleep(0.05)
+        time.sleep(0.01)
     queue.put('complete')
 
 def retrieve_log_flat(settings, tws=None):
@@ -343,7 +348,6 @@ def _retrieve_log_playback(queue, settings):
     plugins_path = os.path.join(gateone_dir, 'plugins')
     logging_plugin_path = os.path.join(plugins_path, 'logging')
     template_path = os.path.join(logging_plugin_path, 'templates')
-    playback_template_path = os.path.join(template_path, 'playback_log.html')
     # recording format:
     # {"screen": [log lines], "time":"2011-12-20T18:00:01.033Z"}
     # Actual method logic
@@ -503,7 +507,6 @@ def _save_log_playback(queue, settings):
     plugins_path = os.path.join(gateone_dir, 'plugins')
     logging_plugin_path = os.path.join(plugins_path, 'logging')
     template_path = os.path.join(logging_plugin_path, 'templates')
-    playback_template_path = os.path.join(template_path, 'playback_log.html')
     # recording format:
     # {"screen": [log lines], "time":"2011-12-20T18:00:01.033Z"}
     # Actual method logic

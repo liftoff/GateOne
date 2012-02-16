@@ -524,6 +524,12 @@ if __name__ == "__main__":
         help=_("Enable the VisualHostKey (randomart hash host key) option when "
               "connecting.")
     )
+    parser.add_option("--logo",
+        dest="logo",
+        default=False,
+        action="store_true",
+        help=_("Display the Liftoff Software logo inline in the terminal.")
+    )
     (options, args) = parser.parse_args()
     try:
         if len(args) == 1:
@@ -559,6 +565,17 @@ if __name__ == "__main__":
     try:
         identities = []
         protocol = None
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        logo_path = os.path.join(script_dir, 'ls_logo_with_name_small.png')
+        logo = None
+        # Only show the logo image if running inside Gate One
+        if options.logo:
+            if 'GO_TERM' in os.environ.keys():
+                if os.path.exists(logo_path):
+                    with open(logo_path) as f:
+                        logo = f.read()
+                        # stdout instead of print so we don't get an extra newline
+                        sys.stdout.write(logo)
         url = raw_input(_(
             "[Press Shift-F1 for help]\n\nHost/IP or SSH URL [localhost]: "))
         if url.startswith('ssh://') or url.startswith('web+ssh'):

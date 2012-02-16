@@ -89,7 +89,6 @@ def save_recording(settings, tws):
         recording_template_data = f.read()
     with open('/tmp/recording.json', 'w') as f:
         f.write(recording)
-    logging.info("WTF...")
     recording_template = tornado.template.Template(recording_template_data)
     rendered_recording = recording_template.generate(
         recording=recording,
