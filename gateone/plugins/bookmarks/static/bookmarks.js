@@ -1059,6 +1059,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             b.openExportDialog();
         }
         bmSync.onclick = function(e) {
+            e.preventDefault();
             var USN = localStorage[prefix+'USN'] || 0;
             this.innerHTML = "Synchronizing... | ";
             if (!b.bookmarks.length) {
@@ -2300,7 +2301,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             e.preventDefault();
             b.incrementVisits(URL);
             var searchString = u.getNode('#'+prefix+'bm_searchstring').value;
-            window.location = URL.replace('%s', searchString);
+            window.open(URL.replace('%s', searchString));
             closeDialog();
         }
     },

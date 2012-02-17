@@ -1350,7 +1350,9 @@ GateOne.Base.update(GateOne.Input, {
             if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
                 return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
             }
-            u.showElement(pastearea);
+            if (!go.Visual.gridView) {
+                u.showElement(pastearea);
+            }
             goDiv.focus();
         }
         // This is necessary because sometimes the timer to re-show the pastearea finishes before the user does something that would otherwise re-show the pastearea (if that makes sense).
@@ -1561,8 +1563,18 @@ GateOne.Base.update(GateOne.Input, {
                                 }
                             }
                             if (match) {
-                                e.preventDefault();
-                                eval(shortcut['action']);
+                                if (typeof(shortcut.preventDefault) == 'undefined') {
+                                    // if not set in the shortcut object assume preventDefault() is desired.
+                                    e.preventDefault();
+                                } else if (shortcut.preventDefault == true) {
+                                    // Explicitly set
+                                    e.preventDefault();
+                                }
+                                if (typeof(shortcut['action']) == 'string') {
+                                    eval(shortcut['action']);
+                                } else if (typeof(shortcut['action']) == 'function') {
+                                    shortcut['action'](e); // Pass it the event
+                                }
                                 matched = true;
                             }
                         });
@@ -1693,6 +1705,12 @@ GateOne.Base.update(GateOne.Input, {
     },
     registerShortcut: function (keyString, shortcutObj) {
         // Used to register a shortcut.  The point being to prevent one shortcut being clobbered by another if they happen have the same base key.
+        // Example usage:  GateOne.Input.registerShortcut('KEY_G', {
+        //     'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+        //     'action': 'GateOne.Visual.toggleGridView()',
+        //     'preventDefault': true
+        // });
+        // NOTE:  If preventDefault is not given in the shortcutObj it is assumed to be true
         if (GateOne.Input.shortcuts[keyString]) {
             // Already exists, overwrite existing if conflict (and log it) or append it
             var overwrote = false;
@@ -1705,7 +1723,7 @@ GateOne.Base.update(GateOne.Input, {
                 }
                 if (match) {
                     // There's a match...  Log and overwrite it
-                    logWarning("Overwriting existing shortcut for: " + shortcut);
+                    logWarning("Overwriting existing shortcut for: " + keyString);
                     shortcut = shortcutObj;
                     overwrote = true;
                 }
@@ -3005,6 +3023,8 @@ GateOne.Base.update(GateOne.Terminal, {
             // Ctrl-Alt-W to close the current terminal
             go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'go.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
         }
+        // Get shift-Insert working in a natural way
+        go.Input.registerShortcut('KEY_INSERT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': go.Terminal.paste, 'preventDefault': false});
         // Register our actions
         go.Net.addAction('terminals', go.Terminal.reattachTerminalsAction);
         go.Net.addAction('termupdate', go.Terminal.updateTerminalAction);
@@ -3014,6 +3034,11 @@ GateOne.Base.update(GateOne.Terminal, {
         go.Net.addAction('set_mode', go.Terminal.setModeAction); // For things like application cursor keys
         go.Net.addAction('metadata', go.Terminal.storeMetadata);
         go.Net.addAction('load_webworker', go.Terminal.loadWebWorkerAction);
+    },
+    paste: function(e) {
+        // This gets attached to Shift-Insert (KEY_INSERT) as a shortcut in order to support pasting
+        GateOne.Utils.getNode('#' + GateOne.prefs.prefix + 'pastearea').focus();
+        // Since we're not calling preventDefault() on this event, by shifting focus to the pastearea (which is a textarea) the browser will execute the regular shift-Inert event (which is pasting =)
     },
     timeoutAction: function() {
         // Write a message to the screen indicating a timeout has occurred and close the WebSocket

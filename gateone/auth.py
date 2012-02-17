@@ -109,7 +109,8 @@ class BaseAuthHandler(tornado.web.RequestHandler):
                 }
                 session_info_json = tornado.escape.json_encode(session_info)
                 f.write(session_info_json)
-        self.set_secure_cookie("gateone_user", tornado.escape.json_encode(session_info))
+        self.set_secure_cookie(
+            "gateone_user", tornado.escape.json_encode(session_info))
 
     def user_logout(self, user, redirect=None):
         """
@@ -160,6 +161,27 @@ class NullAuthHandler(BaseAuthHandler):
             self.redirect(next_url)
         else:
             self.redirect(self.settings['url_prefix'])
+
+    def user_login(self, user):
+        """
+        This is an override of BaseAuthHandler since anonymous auth is special.
+        Generates a unique session ID for this user and saves it in a browser
+        cookie.  This is to ensure that anonymous users can't access each
+        other's sessions.
+        """
+        logging.debug("user_login(%s)" % user)
+        # Make a directory to store this user's settings/files/logs/etc
+        user_dir = os.path.join(self.settings['user_dir'], user)
+        if not os.path.exists(user_dir):
+            logging.info(_("Creating user directory: %s" % user_dir))
+            mkdir_p(user_dir)
+            os.chmod(user_dir, 0700)
+        session_info = {
+            'upn': user,
+            'session': generate_session_id()
+        }
+        self.set_secure_cookie(
+            "gateone_user", tornado.escape.json_encode(session_info))
 
 class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
     """

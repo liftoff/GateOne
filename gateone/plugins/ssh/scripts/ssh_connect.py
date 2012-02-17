@@ -566,7 +566,7 @@ if __name__ == "__main__":
         identities = []
         protocol = None
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        logo_path = os.path.join(script_dir, 'ls_logo_with_name_small.png')
+        logo_path = os.path.join(script_dir, 'logo.png')
         logo = None
         # Only show the logo image if running inside Gate One
         if options.logo:

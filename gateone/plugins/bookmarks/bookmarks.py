@@ -589,7 +589,6 @@ class ExportHandler(tornado.web.RequestHandler):
         templates_path = os.path.join(plugin_path, "templates")
         bookmarks_html =  os.path.join(templates_path, "bookmarks.html")
         self.render(bookmarks_html, bookmarks=bookmarks)
-        self.finish()
 
 # WebSocket commands (not the same as handlers)
 def save_bookmarks(bookmarks, tws):

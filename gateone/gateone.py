@@ -612,9 +612,9 @@ class HTTPSRedirectHandler(tornado.web.RequestHandler):
         """Just redirects the client from HTTP to HTTPS"""
         port = self.settings['port']
         url_prefix = self.settings['url_prefix']
+        host = self.request.headers.get('Host', 'localhost')
         self.redirect(
-            'https://%s:%s%s' % (
-                self.request.headers['Host'], port, url_prefix))
+            'https://%s:%s%s' % (host, port, url_prefix))
 
 class BaseHandler(tornado.web.RequestHandler):
     """
