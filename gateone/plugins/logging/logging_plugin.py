@@ -95,7 +95,9 @@ def enumerate_logs(limit=None, tws=None):
     if user not in PROCS:
         PROCS[user] = {}
     else: # Cancel anything that's already running
-        io_loop.remove_handler(PROCS[user]['queue']._reader.fileno())
+        fd = PROCS[user]['queue']._reader.fileno()
+        if fd in io_loop._handlers:
+            io_loop.remove_handler(fd)
         if PROCS[user]['process']:
             try:
                 PROCS[user]['process'].terminate()
@@ -194,7 +196,9 @@ def retrieve_log_flat(settings, tws=None):
     if user not in PROCS:
         PROCS[user] = {}
     else: # Cancel anything that's already running
-        io_loop.remove_handler(PROCS[user]['queue']._reader.fileno())
+        fd = PROCS[user]['queue']._reader.fileno()
+        if fd in io_loop._handlers:
+            io_loop.remove_handler(fd)
         if PROCS[user]['process']:
             try:
                 PROCS[user]['process'].terminate()
@@ -275,10 +279,24 @@ def retrieve_log_playback(settings, tws=None):
     settings['users_dir'] = os.path.join(tws.settings['user_dir'], user)
     settings['gateone_dir'] = tws.settings['gateone_dir']
     settings['url_prefix'] = tws.settings['url_prefix']
-    q = Queue()
-    global PROC
-    PROC = Process(target=_retrieve_log_playback, args=(q, settings))
     io_loop = tornado.ioloop.IOLoop.instance()
+    global PROCS
+    if user not in PROCS:
+        PROCS[user] = {}
+    else: # Cancel anything that's already running
+        fd = PROCS[user]['queue']._reader.fileno()
+        if fd in io_loop._handlers:
+            io_loop.remove_handler(fd)
+        if PROCS[user]['process']:
+            try:
+                PROCS[user]['process'].terminate()
+            except OSError:
+                # process was already terminated...  Nothing to do
+                pass
+    PROCS[user]['queue'] = q = Queue()
+    PROCS[user]['queue'] = q = Queue()
+    PROCS[user]['process'] = Process(
+        target=_retrieve_log_playback, args=(q, settings))
     def send_message(fd, event):
         """
         Sends the log enumeration result to the client.  Necessary because
@@ -291,8 +309,7 @@ def retrieve_log_playback(settings, tws=None):
     # This is kind of neat:  multiprocessing.Queue() instances have an
     # underlying fd that you can access via the _reader:
     io_loop.add_handler(q._reader.fileno(), send_message, io_loop.READ)
-    PROC.start()
-    return
+    PROCS[user]['process'].start()
 
 def _retrieve_log_playback(queue, settings):
     """
@@ -434,6 +451,7 @@ def save_log_playback(settings, tws=None):
     q = Queue()
     global PROC
     PROC = Process(target=_save_log_playback, args=(q, settings))
+    PROC.daemon = True # We don't care if this gets terminated mid-process.
     io_loop = tornado.ioloop.IOLoop.instance()
     def send_message(fd, event):
         """

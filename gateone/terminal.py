@@ -145,6 +145,7 @@ Class Docstrings
 
 # Import stdlib stuff
 import re, logging, base64, copy, StringIO, codecs
+from datetime import datetime, timedelta
 from collections import defaultdict
 from itertools import imap, izip
 
@@ -615,7 +616,7 @@ class Terminal(object):
         # Set the default window margins
         self.top_margin = 0
         self.bottom_margin = self.rows - 1
-
+        self.timeout_image = None
         self.specials = {
             self.ASCII_NUL: self.__ignore,
             self.ASCII_BEL: self.bell,
@@ -691,7 +692,7 @@ class Terminal(object):
             'm': self._set_rendition,
             'n': self.__ignore, # <ESC>[6n is the only one I know of (request cursor position)
             #'m': self.__ignore, # For testing how much CPU we save when not processing CSI
-            'p': self.terminal_reset, # TODO: "!p" is "Soft terminal reset".  Also, "Set conformance level" (VT100, VT200, or VT300)
+            'p': self.reset, # TODO: "!p" is "Soft terminal reset".  Also, "Set conformance level" (VT100, VT200, or VT300)
             'r': self._set_top_bottom, # DECSTBM (used by many apps)
             'q': self.set_led_state, # Seems a bit silly but you never know
             'P': self.delete_characters, # DCH Deletes the specified number of chars
@@ -871,14 +872,13 @@ class Terminal(object):
             except KeyError:
                 pass # No match, no biggie
 
-    def terminal_reset(self, *args, **kwargs):
+    def reset(self, *args, **kwargs):
         """
         Resets the terminal back to an empty screen with all defaults.  Calls
         :meth:`Terminal.callbacks[CALLBACK_RESET]` when finished.
 
         .. note:: If terminal output has been suspended (e.g. via ctrl-s) this will not un-suspend it (you need to issue ctrl-q to the underlying program to do that).
         """
-        logging.debug('terminal_reset(%s)' % args)
         self.leds = {
             1: False,
             2: False,
@@ -1193,6 +1193,8 @@ class Terminal(object):
             for magic_header in magic.keys():
                 if magic_header.match(chars):
                     self.matched_header = magic_header
+                    # TODO: Add a timeout here
+                    self.timeout_image = datetime.now()
             if self.image or self.matched_header:
                 self.image.extend(chars)
                 match = magic[self.matched_header].match(self.image)
@@ -1209,7 +1211,15 @@ class Terminal(object):
                     self.write(before_chars, special_checks=False)
                 if after_chars:
                     self.write(after_chars, special_checks=False)
-                return
+                # If we haven't got a complete image after one second something
+                # went wrong.  Discard what we've got and restart.
+                one_second = timedelta(seconds=1)
+                if datetime.now() - self.timeout_image > one_second:
+                    self.image = bytearray() # Empty it
+                    self.matched_header = None
+                    chars = _("Failed to decode image.  Buffer discarded.")
+                else:
+                    return
         # Have to convert to unicode
         try:
             chars = unicode(chars.decode('utf-8', "handle_special"))

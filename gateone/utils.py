@@ -986,7 +986,8 @@ def which(binary, path=None):
 def timeout_func(func, args=(), kwargs={}, timeout_duration=10, default=None):
     """
     Sets a timeout on the given function, passing it the given args, kwargs,
-    and a default value to return in the event of a timeout.
+    and a *default* value to return in the event of a timeout.  If *default* is
+    a function that function will be called in the event of a timeout.
     """
     import threading
     class InterruptableThread(threading.Thread):
@@ -1004,7 +1005,10 @@ def timeout_func(func, args=(), kwargs={}, timeout_duration=10, default=None):
     it.start()
     it.join(timeout_duration)
     if it.isAlive():
-        return default
+        if hasattr(default, '__call__'):
+            return default()
+        else:
+            return default
     else:
         return it.result
 

@@ -67,36 +67,35 @@ GateOne.Base.update(GateOne.Playback, {
     pushPlaybackFrame: function(termNum) {
         // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']
         var prefix = GateOne.prefs.prefix,
-            progressBarElement = null,
             term = termNum,
             playbackFrames = null,
-            frame = {'screen': GateOne.terminals[term]['screen'].slice(0), 'time': new Date()};
-        if (!progressBarElement) {
-            progressBarElement = GateOne.Utils.getNode('#'+prefix+'progressBar');
+            frame = {'screen': GateOne.terminals[term]['screen'], 'time': new Date()};
+        if (!GateOne.Playback.progressBarElement) {
+            GateOne.Playback.progressBarElement = GateOne.Utils.getNode('#'+prefix+'progressBar');
         }
         if (!GateOne.terminals[term]['playbackFrames']) {
             GateOne.terminals[term]['playbackFrames'] = [];
         }
-        playbackFrames = GateOne.terminals[term]['playbackFrames'].slice(0);
+        playbackFrames = GateOne.terminals[term]['playbackFrames'];
         // Add the new playback frame to the terminal object
         playbackFrames.push(frame);
         frame = null; // Clean up
-        if (GateOne.terminals[term]['playbackFrames'].length > GateOne.prefs.playbackFrames) {
+        if (playbackFrames.length > GateOne.prefs.playbackFrames) {
             // Reduce it to fit within the user's configured max
 //             GateOne.terminals[term]['playbackFrames'].shift(); // NOTE: This won't work if the user reduced their playbackFrames preference by more than 1
             playbackFrames.reverse(); // Have to reverse it before we truncate
             playbackFrames.length = GateOne.prefs.playbackFrames; // Love that length is assignable!
             playbackFrames.reverse(); // Put it back in the right order
         }
-        GateOne.terminals[term]['playbackFrames'] = null;
-        GateOne.terminals[term]['playbackFrames'] = playbackFrames;
+//         GateOne.terminals[term]['playbackFrames'] = null;
+//         GateOne.terminals[term]['playbackFrames'] = playbackFrames;
         // Fix the progress bar if it is in a non-default state and stop playback
-        if (progressBarElement) {
-            if (progressBarElement.style.width != '0%') {
+        if (GateOne.Playback.progressBarElement) {
+            if (GateOne.Playback.progressBarElement.style.width != '0%') {
                 clearInterval(GateOne.Playback.frameUpdater);
                 GateOne.Playback.frameUpdater = null;
                 GateOne.Playback.milliseconds = 0; // Reset this in case the user was in the middle of playing something back when the screen updated
-                progressBarElement.style.width = '0%';
+                GateOne.Playback.progressBarElement.style.width = '0%';
                 // Also make sure the pastearea is put back if missing
                 GateOne.Utils.showElement('#'+prefix+'pastearea');
             }

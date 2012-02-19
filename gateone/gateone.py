@@ -1616,6 +1616,8 @@ class TerminalWebSocket(WebSocketHandler):
         screen = SESSIONS[self.session][term]['multiplex'].term.screen
         renditions = SESSIONS[self.session][term]['multiplex'].term.renditions
         for i, line in enumerate(screen):
+            # This gets rid of images:
+            line = [a for a in line if len(a) == 1]
             print("%s:%s" % (i, "".join(line)))
             print(renditions[i])
         # Also check if there's anything that's uncollectable

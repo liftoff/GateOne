@@ -1069,6 +1069,10 @@ GateOne.Base.update(GateOne.Utils, {
         }
         var digest = Crypto.MD5(seed1*seed2*downToTenSecond+'');
         return digest.slice(2,11); // Only need a subset of the md5
+    },
+    isPageHidden: function() {
+        // Returns true if the page (browser tab) is hidden (e.g. inactive).  Returns false otherwise.
+        return document.hidden || document.msHidden || document.webkitHidden;
     }
 });
 
@@ -3206,11 +3210,16 @@ GateOne.Base.update(GateOne.Terminal, {
             v = go.Visual,
             prefix = go.prefs.prefix,
             term = termUpdateObj['term'],
+            ratelimiter = termUpdateObj['ratelimiter'],
             prevScrollback = localStorage[prefix+"scrollback" + term],
             terminalObj = go.terminals[term],
             textTransforms = go.Terminal.textTransforms,
             message = null;
 //         logDebug('GateOne.Utils.updateTerminalActionTest() termUpdateObj: ' + u.items(termUpdateObj));
+        if (ratelimiter) {
+            v.displayMessage("WARNING: The rate limiter was engaged on terminal " + term);
+            v.displayMessage("A Ctrl-c will be sent.  If no response the process will be killed.");
+        }
         try {
             if (!terminalObj) {
                 // Terminal was just closed, ignore
