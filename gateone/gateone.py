@@ -1298,11 +1298,14 @@ class TerminalWebSocket(WebSocketHandler):
             # user disconnects for like a week (by default anyway =)
             SESSIONS[self.session]['tidy_thread'] = TidyThread(self.session)
             SESSIONS[self.session]['tidy_thread'].start()
-        #if self.settings['debug']:
-            #tornado.autoreload.add_reload_hook(multiplex.terminate)
         # NOTE: refresh_screen will also take care of cleaning things up if
         #       SESSIONS[self.session][term]['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
+        # Restore application cursor keys mode if set
+        if 'application_mode' in SESSIONS[self.session][term]:
+            logging.debug("application_mode is set")
+            current_setting = SESSIONS[self.session][term]['application_mode']
+            self.mode_handler(term, '1', current_setting)
         if self.settings['logging'] == 'debug':
             message = {
                 'notice': _(
@@ -1400,6 +1403,8 @@ class TerminalWebSocket(WebSocketHandler):
             "mode_handler() term: %s, setting: %s, boolean: %s" %
             (term, setting, boolean))
         if setting in ['1']: # Only support this mode right now
+            # So we can restore it:
+            SESSIONS[self.session][term]['application_mode'] = boolean
             if boolean:
                 # Tell client to enable application cursor mode
                 mode_message = {'set_mode': {
@@ -1627,6 +1632,8 @@ class TerminalWebSocket(WebSocketHandler):
         pprint(gc.garbage)
         print("gc.collect(): %s" % gc.collect())
         pprint(gc.garbage)
+        print("SESSIONS...")
+        pprint(SESSIONS)
 
 # Thread classes
 class TidyThread(threading.Thread):
