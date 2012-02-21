@@ -1303,7 +1303,6 @@ class TerminalWebSocket(WebSocketHandler):
         self.refresh_screen(term, True) # Send a fresh screen to the client
         # Restore application cursor keys mode if set
         if 'application_mode' in SESSIONS[self.session][term]:
-            logging.debug("application_mode is set")
             current_setting = SESSIONS[self.session][term]['application_mode']
             self.mode_handler(term, '1', current_setting)
         if self.settings['logging'] == 'debug':

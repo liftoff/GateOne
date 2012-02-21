@@ -3217,8 +3217,7 @@ GateOne.Base.update(GateOne.Terminal, {
             message = null;
 //         logDebug('GateOne.Utils.updateTerminalActionTest() termUpdateObj: ' + u.items(termUpdateObj));
         if (ratelimiter) {
-            v.displayMessage("WARNING: The rate limiter was engaged on terminal " + term);
-            v.displayMessage("A Ctrl-c will be sent.  If no response the process will be killed.");
+            v.displayMessage("WARNING: The rate limiter was engaged on terminal " + term + ".  Output will be truncated for ten seconds.");
         }
         try {
             if (!terminalObj) {

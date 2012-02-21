@@ -425,7 +425,7 @@ def cmd_var_swap(cmd,
     if session:
         cmd = cmd.replace(r'%SESSION%', session)
     if session_hash:
-        cmd = cmd.replace(r'%SESSION_HASH%', session)
+        cmd = cmd.replace(r'%SESSION_HASH%', session_hash)
     if user_dir:
         cmd = cmd.replace(r'%USERDIR%', user_dir)
     if user:

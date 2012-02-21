@@ -960,28 +960,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
     def _reenable_output(self):
         """
         Restarts capturing output from the underlying terminal program by
-        disengaging the rate limiter and re-instantiating the terminal emulator.
+        disengaging the rate limiter.
         """
         self.ratelimiter_engaged = False
-        # Empty the output queue.
-        #import termios
-        #termios.tcflush(self.fd, termios.TCOFLUSH)
-        with self.lock:
-            with io.open(self.fd, 'rb', closefd=False) as reader:
-                reader.read() # Clear out any leftovers
-        with io.open(self.fd, 'wb', closefd=False) as writer:
-            writer.write(_("# Process was auto-killed via ctrl-c."))
-        self.term.reset()
-        # Create a new terminal emulator instance to free up any memory that
-        # was consumed by the runaway process buffering up too much stuff.
-        #del self.term
-        #self.term = self.terminal_emulator(rows=self.rows, cols=self.cols)
-        # TODO: Consider restoring the mode/state of the terminal emulator.
-        for i in self.prev_output.keys():
-            self.prev_output.update({i: [None for a in xrange(self.rows-1)]})
-        # Start watching for screen updates again
-        self.io_loop.add_handler(
-            self.fd, self._ioloop_read_handler, self.io_loop.READ)
 
     def __reset_sent_sigint(self):
         self.sent_sigint = False
@@ -1001,48 +982,11 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         logging.warning(_(
             "Noisy process (%s) kicked off rate limiter.  Sending Ctrl-c." %
             self.pid))
-        self.io_loop.remove_handler(self.fd) # Disable screen updates
-        #os.kill(self.pid, signal.SIGINT) # Doesn't work right with dtach
-        # Sending Ctrl-c via write() seems to work better:
-        if not self.sent_sigint:
-            try:
-                with io.open(self.fd, 'wb', closefd=False) as writer:
-                    writer.write("\x03\n") # \x03 == ctrl-c
-                self.sent_sigint = True
-                self.io_loop.add_timeout(
-                    timedelta(seconds=10), self.__reset_sent_sigint)
-            except OSError:
-                # File descriptor is closed
-                pass
-        else:
-            # We're done here.  This app is too noisy.
-            logging.warning(_("Ctrl-c to %s failed.  Terminating..."))
-            try:
-                os.close(self.fd)
-            except (KeyError, IOError, OSError):
-                pass
-            try:
-                os.kill(self.pid, signal.SIGTERM)
-                #os.kill(self.pid, signal.SIGKILL)
-                os.waitpid(-1, os.WNOHANG)
-            except OSError:
-                # The process is already dead--great.
-                pass
-            # Start er' back up...
-            self.ratelimiter_engaged = False
-            self.spawn(
-                rows=self.rows,
-                cols=self.cols,
-                env=self.env,
-                em_dimensions=self.em_dimensions)
-            return
-        # This doesn't seem to work (would be nice if it did though!):
-        #os.write(self.fd, "\x19") # Ctrl-S to the bad process
         self.ratelimiter_engaged = True
         for callback in self.callbacks[self.CALLBACK_UPDATE].values():
             self._call_callback(callback)
         self.reenable_timeout = self.io_loop.add_timeout(
-            timedelta(seconds=3), self._reenable_output)
+            timedelta(seconds=10), self._reenable_output)
 
     def spawn(self, rows=24, cols=80, env=None, em_dimensions=None):
         """
@@ -1158,7 +1102,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         s = struct.pack("HHHH", rows, cols, 0, 0)
         fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
         if ctrl_l:
-            self.write(u'\x0c') # ctrl-lresult
+            self.write(u'\x0c') # ctrl-l
         # SIGWINCH has been disabled since it can screw things up
         #os.kill(self.pid, signal.SIGWINCH) # Send the resize signal
 
@@ -1258,14 +1202,23 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                             if not updated:
                                 break
                             if self.ratelimiter_engaged:
-                                # Don't write if the rate limiter is enaged
+                                # Truncate the output to the last 1024 chars
+                                timeout_func(
+                                    self.term_write,
+                                    args=(updated[-1024:],),
+                                    default=self._blocked_io_handler,
+                                    timeout_duration=2
+                                )
+                                # NOTE: If we didn't truncate the output we'd
+                                # eventually have to process it all which would
+                                # take forever.
                                 break
                             result += updated
                             timeout_func(
                                 self.term_write,
                                 args=(updated,),
                                 default=self._blocked_io_handler,
-                                timeout_duration=3
+                                timeout_duration=2
                             )
                     elif bytes:
                         result = reader.read(bytes)
@@ -1333,15 +1286,15 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         exceptions are logged but no action will be taken.
         """
         try:
-            with self.lock:
-                with io.open(
-                    self.fd,
-                    'wt',
-                    newline="",
-                    encoding='UTF-8',
-                    closefd=False
-                ) as writer:
-                    writer.write(chars)
+            with io.open(
+                self.fd,
+                'wt',
+                newline="",
+                encoding='UTF-8',
+                closefd=False
+            ) as writer:
+                writer.write(chars)
+            self.ratelimiter_engaged = False
         except (IOError, OSError) as e:
             if self.isalive():
                 self.terminate()
