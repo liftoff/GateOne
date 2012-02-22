@@ -1157,7 +1157,7 @@ GateOne.Base.update(GateOne.Net, {
             // Passing 'true' here to keep the stuff in localStorage for this term.
             go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
         });
-        u.getNode('#'+go.prefs.prefix+'termwrapper').innerHTML = "A communications disruption can mean only one thing...";
+        u.getNode('#'+go.prefs.prefix+'termwrapper').innerHTML = "The WebSocket connection was closed.  Will attempt to reconnect every 5 seconds...";
         setTimeout(go.Net.connect, 5000);
     },
     connect: function() {

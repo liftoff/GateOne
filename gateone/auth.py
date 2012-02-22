@@ -137,10 +137,7 @@ class NullAuthHandler(BaseAuthHandler):
         Sets the 'user' cookie with a new random session ID (*go_session*) and
         sets *go_upn* to 'ANONYMOUS'.
         """
-        # % is valid on the filesystem but invalid for an actual username.
-        # This ensures we won't have a conflict at some point with an actual
-        # user.
-        user = r'ANONYMOUS'
+        user = 'ANONYMOUS'
         check = self.get_argument("check", None)
         if check:
             # This lets any origin check if the user has been authenticated
@@ -169,7 +166,7 @@ class NullAuthHandler(BaseAuthHandler):
         cookie.  This is to ensure that anonymous users can't access each
         other's sessions.
         """
-        logging.debug("user_login(%s)" % user)
+        logging.debug("NullAuthHandler.user_login(%s)" % user)
         # Make a directory to store this user's settings/files/logs/etc
         user_dir = os.path.join(self.settings['user_dir'], user)
         if not os.path.exists(user_dir):

@@ -762,7 +762,7 @@ class Terminal(object):
             3: False,
             4: False
         }
-        png_header = re.compile('.*\x89PNG\r')
+        png_header = re.compile('.*\x89PNG\r', re.DOTALL)
         png_whole = re.compile('\x89PNG\r.+IEND\xaeB`\x82', re.DOTALL)
         # NOTE: Only matching JFIF and Exif JPEGs because "\xff\xd8" is too
         # ambiguous.
@@ -924,6 +924,10 @@ class Terminal(object):
         *self.em_dimensions* (which is currently only used by image output).
         """
         logging.debug("resize(%s, %s)" % (rows, cols))
+        if em_dimensions:
+            self.em_dimensions = em_dimensions
+        if rows == self.rows and cols == self.cols:
+            return # Nothing to do--don't mess with the margins or the cursor
         if rows < self.rows: # Remove rows from the top
             for i in xrange(self.rows - rows):
                 self.screen.pop(0)
@@ -965,6 +969,7 @@ class Terminal(object):
 
         .. note:: This also handles restore/set "DEC Private Mode Values".
         """
+        logging.debug("_set_top_bottom(%s)" % settings)
         # NOTE: Used by screen and vi so this needs to work and work well!
         if len(settings):
             if settings.startswith('?'):

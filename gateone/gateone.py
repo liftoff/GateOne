@@ -1256,6 +1256,8 @@ class TerminalWebSocket(WebSocketHandler):
                 # This resets the screen diff
                 SESSIONS[self.session][term]['multiplex'].prev_output[
                     self.client_id] = [None for a in xrange(rows-1)]
+                # Remind the client about this terminal's title
+                self.set_title(term)
             else:
                 # Tell the client this terminal is no more
                 message = {'term_ended': term}
@@ -1362,14 +1364,17 @@ class TerminalWebSocket(WebSocketHandler):
         Example message::
 
             {'set_title': {'term': 1, 'title': "user@host"}}
+
+        .. note:: Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.
         """
         logging.debug("set_title(%s)" % term)
         title = SESSIONS[self.session][term]['multiplex'].term.get_title()
         # Only send a title update if it actually changed
-        if term not in self.titles: # There's a first time for everything
-            self.titles[term] = ""
-        if title != self.titles[term]:
-            self.titles[term] = title
+        if 'title' not in SESSIONS[self.session][term]:
+            # There's a first time for everything
+            SESSIONS[self.session][term]['title'] = ''
+        if title != SESSIONS[self.session][term]['title']:
+            SESSIONS[self.session][term]['title'] = title
             title_message = {'set_title': {'term': term, 'title': title}}
             self.write_message(json_encode(title_message))
 

@@ -30,30 +30,6 @@ html, body { min-height:100%; }
 body {
 padding: 0 0 0px;
 }
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: normal;
-  font-weight: bold;
-  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('/foo/static/ubuntumono-bold.woff') format('woff');
-}
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: normal;
-  font-weight: normal;
-  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('/foo/static/ubuntumono-normal.woff') format('woff');
-}
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: italic;
-  font-weight: bold;
-  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('/foo/static/ubuntumono-bold-italic.woff') format('woff');
-}
-@font-face {
-  font-family: 'Ubuntu Mono';
-  font-style: italic;
-  font-weight: normal;
-  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('/foo/static/ubuntumono-italic.woff') format('woff');
-}
 #gateone {
     position: absolute;
     overflow: hidden;
@@ -246,7 +222,7 @@ padding: 0 0 0px;
     background-color: #fff;
     outline: none;
     resize: none;
-    font-family: 'Ubuntu Mono', monospace; /* For consistency */
+    font-family: monospace;
     line-height: 1;
 }
 #gateone .terminal {
@@ -274,7 +250,7 @@ padding: 0 0 0px;
     color: #90A3C5;
 }
 #gateone .terminal pre {
-    font-family: 'Ubuntu Mono', monospace;
+    font-family: monospace;
     font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */
     line-height: 1;
     /*height: auto;*/ /* Needs to be 100% when scrollback is enabled */
@@ -875,7 +851,7 @@ padding: 0 0 0px;
     border: 0;
     left: 0;
     right: 2em;
-    font-family: 'Ubuntu Mono', monospace;
+    font-family: monospace;
 }
 #go_playPause {
     float: left;

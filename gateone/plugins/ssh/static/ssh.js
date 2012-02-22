@@ -849,7 +849,7 @@ GateOne.Base.update(GateOne.SSH, {
         for (var term in dict) {
             go.terminals[term]['sshConnectString'] = dict[term];
             // Also fix the title while we're at it
-            go.Visual.setTitleAction({'term': term, 'title': dict[term]});
+//             go.Visual.setTitleAction({'term': term, 'title': dict[term]});
         }
     },
     keygenComplete: function(message) {
