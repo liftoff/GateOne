@@ -10,7 +10,7 @@
 # * Write init scripts to stop/start/restart Gate One safely.  Also make sure that .deb and .rpm packages safely restart Gate One without impacting running sessions.  The setup.py should also attempt to minify the .css and .js files.
 
 # Meta
-__version__ = '1.0rc1'
+__version__ = '1.0'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
@@ -645,6 +645,7 @@ class MainHandler(BaseHandler):
     """
     # TODO: Add the ability for users to define their own individual bells.
     @tornado.web.authenticated
+    @tornado.web.addslash
     def get(self):
         hostname = os.uname()[1]
         gateone_js = "%sstatic/gateone.js" % self.settings['url_prefix']
@@ -1804,9 +1805,15 @@ class Application(tornado.web.Application):
         docs_path = os.path.join(docs_path, 'build')
         docs_path = os.path.join(docs_path, 'html')
         url_prefix = settings['url_prefix']
+        if not url_prefix.endswith('/'):
+            # Make sure there's a trailing slash
+            url_prefix = "%s/" % url_prefix
+        # Make the / optional in the regex so it works with the @addslash
+        # decorator.  e.g. "/whatever/" would become "/whatever/?"
+        index_regex = "%s?" % url_prefix
         # Setup our URL handlers
         handlers = [
-            (r"%s" % url_prefix, MainHandler),
+            (index_regex, MainHandler),
             (r"%sws" % url_prefix, TerminalWebSocket),
             (r"%sauth" % url_prefix, AuthHandler),
             (r"%sstyle" % url_prefix, StyleHandler),

@@ -1690,7 +1690,7 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_NUM_PAD_ASTERISK': {'alt': ESC+"*", 'appmode': ESC+"Oj"},
         'KEY_NUM_PAD_PLUS_SIGN': {'alt': ESC+"+", 'appmode': ESC+"Ok"},
 // NOTE: The regular hyphen key shows up as a num pad hyphen in Firefox 7
-        'KEY_NUM_PAD_HYPHEN-MINUS': {'alt': ESC+"-", 'appmode': ESC+"Om"},
+        'KEY_NUM_PAD_HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_", 'appmode': ESC+"Om"},
         'KEY_NUM_PAD_FULL_STOP': {'alt': ESC+"."},
         'KEY_NUM_PAD_SOLIDUS': {'alt': ESC+"/", 'appmode': ESC+"Oo"},
         'KEY_NUM_LOCK': null, // TODO: Double-check that NumLock isn't supposed to send some sort of wacky ESC sequence
@@ -1698,7 +1698,7 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_SEMICOLON': {'alt': ESC+";", 'alt-shift': ESC+":"},
         'KEY_EQUALS_SIGN': {'alt': ESC+"=", 'alt-shift': ESC+"+"},
         'KEY_COMMA': {'alt': ESC+",", 'alt-shift': ESC+"<"},
-        'KEY_HYPHEN-MINUS': {'alt': ESC+"-", 'alt-shift': ESC+"_"},
+        'KEY_HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_", 'appmode': ESC+"Om"},
         'KEY_FULL_STOP': {'alt': ESC+".", 'alt-shift': ESC+">"},
         'KEY_SOLIDUS': {'alt': ESC+"/", 'alt-shift': ESC+"?", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
         'KEY_GRAVE_ACCENT':  {'alt': ESC+"`", 'alt-shift': ESC+"~", 'ctrl-shift': String.fromCharCode(30)},

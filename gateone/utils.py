@@ -9,7 +9,7 @@ Gate One utility functions and classes.
 """
 
 # Meta
-__version__ = '1.0rc1'
+__version__ = '1.0'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
@@ -1011,6 +1011,52 @@ def timeout_func(func, args=(), kwargs={}, timeout_duration=10, default=None):
             return default
     else:
         return it.result
+
+def valid_hostname(hostname, allow_underscore=False):
+    """
+    Returns True if the given *hostname* is valid according to RFC rules.  Works
+    with Internationalized Domain Names (IDN) and optionally, hostnames with an
+    underscore (if *allow_underscore* is True).
+
+    The rules for hostnames:
+
+        * Must be less than 255 characters.
+        * Individual labels (separated by dots) must be <= 63 characters.
+        * Only the ASCII alphabet (A-Z) is allowed along with dashes (-) and dots (.).
+        * May not start with a dash or a dot.
+        * May not end with a dash.
+        * If an IDN, when converted to Punycode it must comply with the above.
+
+    IP addresses will be validated according to their well-known specifications.
+
+    Examples::
+
+        >>> valid_hostname('foo.bar.com.') # Standard FQDN
+        True
+        >>> valid_hostname('2foo') # Short hostname
+        True
+        >>> valid_hostname('-2foo') # No good:  Starts with a dash
+        False
+        >>> valid_hostname('host_a') # No good: Can't have underscore
+        False
+        >>> valid_hostname('host_a', allow_underscore=True) # Now it'll validate
+        True
+        >>> valid_hostname(u'ジェーピーニック.jp') # Example valid IDN
+        True
+    """
+    # Convert to Punycode if an IDN
+    try:
+        hostname = hostname.encode('idna')
+    except UnicodeError: # Can't convert to Punycode: Bad hostname
+        return False
+    if len(hostname) > 255:
+        return False
+    if hostname[-1:] == ".": # Strip the tailing dot if present
+        hostname = hostname[:-1]
+    allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+    if allow_underscore:
+        allowed = re.compile("(?!-)[_A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+    return all(allowed.match(x) for x in hostname.split("."))
 
 # Misc
 _ = get_translation()

@@ -9,7 +9,7 @@
 # TODO: Make the environment variables used before launching self.cmd configurable
 
 # Meta
-__version__ = '1.0rc1'
+__version__ = '1.0'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'

@@ -4,19 +4,21 @@
 #       Copyright 2011 Liftoff Software Corporation
 #
 
+# TODO: Make it so that a username can have an @ sign in it.
+
 __doc__ = """\
 ssh_connect.py - Opens an interactive SSH session with the given arguments and
 sets the window title to user@host.
 """
 
 # Meta
-__version__ = '1.1' # Pretty much the only thing that ISN'T beta right now ;)
+__version__ = '1.2' # Pretty much the only thing that ISN'T beta right now ;)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 1)
+__version_info__ = (1, 2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
-import os, sys, errno, readline, tempfile, base64, binascii, struct, signal
+import os, sys, errno, readline, tempfile, base64, binascii, struct, signal, re
 from subprocess import Popen
 from optparse import OptionParser
 # i18n support stuff
@@ -81,6 +83,70 @@ def short_hash(to_shorten):
     """
     packed = struct.pack('i', binascii.crc32(to_shorten))
     return base64.urlsafe_b64encode(packed).replace('=', '')
+
+def valid_hostname(hostname, allow_underscore=False):
+    """
+    Returns True if the given *hostname* is valid according to RFC rules.  Works
+    with Internationalized Domain Names (IDN) and optionally, hostnames with an
+    underscore (if *allow_underscore* is True).
+
+    The rules for hostnames:
+
+        * Must be less than 255 characters.
+        * Individual labels (separated by dots) must be <= 63 characters.
+        * Only the ASCII alphabet (A-Z) is allowed along with dashes (-) and dots (.).
+        * May not start with a dash or a dot.
+        * May not end with a dash.
+        * If an IDN, when converted to Punycode it must comply with the above.
+
+    IP addresses will be validated according to their well-known specifications.
+
+    Examples::
+
+        >>> valid_hostname('foo.bar.com.') # Standard FQDN
+        True
+        >>> valid_hostname('2foo') # Short hostname
+        True
+        >>> valid_hostname('-2foo') # No good:  Starts with a dash
+        False
+        >>> valid_hostname('host_a') # No good: Can't have underscore
+        False
+        >>> valid_hostname('host_a', allow_underscore=True) # Now it'll validate
+        True
+        >>> valid_hostname(u'ジェーピーニック.jp') # Example valid IDN
+        True
+    """
+    # Convert to Punycode if an IDN
+    try:
+        hostname = hostname.encode('idna')
+    except UnicodeError: # Can't convert to Punycode: Bad hostname
+        return False
+    if len(hostname) > 255:
+        return False
+    if hostname[-1:] == ".": # Strip the tailing dot if present
+        hostname = hostname[:-1]
+    allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+    if allow_underscore:
+        allowed = re.compile("(?!-)[_A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+    return all(allowed.match(x) for x in hostname.split("."))
+
+def valid_ip(ipaddr):
+    """
+    Returns True if *ipaddr* is a valid IPv4 or IPv6 address.
+    """
+    import socket
+    if ':' in ipaddr: # IPv6 address
+        try:
+            socket.inet_pton(socket.AF_INET6, ipaddr)
+            return True
+        except socket.error:
+            return False
+    else:
+        try:
+            socket.inet_pton(socket.AF_INET, ipaddr)
+            return True
+        except socket.error:
+            return False
 
 def get_identities(users_ssh_dir, only_defaults=False):
     """
@@ -194,7 +260,7 @@ def openssh_connect(
         "-oNoHostAuthenticationForLocalhost=yes",
         # This ensure's that the executing user's identity won't be used:
         "-oIdentityFile=%s" % ssh_default_identity_path,
-        "-p", port,
+        "-p", str(port),
         "-l", user,
     ]
     # If we're given specific identities use them exclusively
@@ -237,6 +303,10 @@ def openssh_connect(
         else:
             env['PATH'] = os.environ['PATH']
             command = which("ssh")
+    if '[' in host: # IPv6 address
+        # Have to remove the brackets which is silly.  See bug:
+        #   https://bugzilla.mindrot.org/show_bug.cgi?id=1602
+        host = host.strip('[]')
     if socket:
         # Only set Master mode if we don't have a socket for this session.
         # This allows us to duplicate a session without having to code
@@ -438,20 +508,31 @@ def parse_ssh_url(url):
     """
     identities = []
     password = None
+    ipv6 = False
     # Remove the 'web+' part if present
     if url.startswith('web+'):
         url = url[4:]
     if '@' in url: # user@host[:port]
-        host = url.split('@')[1].split(':')[0]
+        if '[' in url and ']' in url: # IPv6 address.
+            ipv6 = True
+            ipv6_addr = re.compile('\[.+\]', re.DOTALL)
+            host = ipv6_addr.match(url.split('@')[1]).group()
+        else:
+            host = url.split('@')[1].split(':')[0]
         user = url.split('@')[0][6:]
         if ':' in user: # Password was included (not secure but it could be useful)
             password = user.split(':')[1]
             user = user.split(':')[0]
-        if len(url.split('@')[1].split(':')) == 1: # No port given, assume 22
-            port = '22'
+        if ipv6:
+            port = ipv6_addr.split(url)[1][1:]
+            if not port:
+                port = '22'
         else:
-            port = url.split('@')[1].split(':')[1]
-            port = port.split('/')[0] # In case there's a query string
+            if len(url.split('@')[1].split(':')) == 1: # No port given
+                port = '22'
+            else:
+                port = url.split('@')[1].split(':')[1]
+                port = port.split('/')[0] # In case there's a query string
     else: # Just host[:port] (assume $GO_USER)
         try:
             user = os.environ['GO_USER']
@@ -488,7 +569,6 @@ if __name__ == "__main__":
     )
     parser = OptionParser(usage=usage, version=__version__)
     parser.disable_interspersed_args()
-
     parser.add_option("-c", "--command",
         dest="command",
         default='ssh',
@@ -531,6 +611,8 @@ if __name__ == "__main__":
         help=_("Display the Liftoff Software logo inline in the terminal.")
     )
     (options, args) = parser.parse_args()
+    # This is to prevent things like "ssh://user@host && <malicious commands>"
+    bad_chars = re.compile('.*[\$\n\!\;&` ].*')
     try:
         if len(args) == 1:
             (user, host, port, password, identities) = parse_ssh_url(args[0])
@@ -576,24 +658,78 @@ if __name__ == "__main__":
                         logo = f.read()
                         # stdout instead of print so we don't get an extra newline
                         sys.stdout.write(logo)
-        url = raw_input(_(
-            "[Press Shift-F1 for help]\n\nHost/IP or SSH URL [localhost]: "))
-        if url.startswith('ssh://') or url.startswith('web+ssh'):
-            (user, host, port, password, identities) = parse_ssh_url(url)
-            protocol = 'ssh'
-        elif url.startswith('telnet://'): # This is a telnet URL
-            (user, host, port) = parse_telent_url(url)
-            protocol = 'telnet'
-        else:
-            if not protocol:
+        url = None
+        user = None
+        port = None
+        validated = False
+        invalid_hostname_err = _(
+            'Error:  You must enter a valid hostname or IP address.')
+        invalid_port_err = _(
+            'Error:  You must enter a valid port (1-65535).')
+        invalid_user_err = _(
+            'Error:  You must enter a valid username.')
+        while not validated:
+            url = raw_input(_(
+               "[Press Shift-F1 for help]\n\nHost/IP or SSH URL [localhost]: "))
+            if bad_chars.match(url):
+                noop = raw_input(invalid_hostname_err)
+                continue
+            if not url:
+                host = 'localhost'
                 protocol = 'ssh'
-            port = raw_input("Port [22]: ")
+                validated = True
+            elif url.startswith('ssh://') or url.startswith('web+ssh'):
+                (user, host, port, password, identities) = parse_ssh_url(url)
+                protocol = 'ssh'
+            elif url.startswith('telnet://'): # This is a telnet URL
+                (user, host, port) = parse_telent_url(url)
+                protocol = 'telnet'
+            else:
+                # Always assume SSH unless given a telnet:// URL
+                protocol = 'ssh'
+                host = url
+            if valid_hostname(host):
+                validated = True
+            else:
+                # Double-check: It might be an IPv6 address
+                # IPv6 addresses must be wrapped in brackets:
+                if '[' in host and ']' in host:
+                    no_brackets = host.strip('[]')
+                    if valid_ip(no_brackets):
+                        validated = True
+                    else:
+                        url = None
+                        noop = raw_input(invalid_hostname_err)
+                else:
+                    url = None
+                    noop = raw_input(invalid_hostname_err)
+        validated = False
+        while not validated:
             if not port:
-                port = '22'
-            user = raw_input("User: ")
-            host = url
-        if not url:
-            host = 'localhost'
+                port = raw_input("Port [22]: ")
+                if not port:
+                    port = 22
+            try:
+                port = int(port)
+                if port <= 65535 and port > 1:
+                    validated = True
+                else:
+                    port = None
+                    noop = raw_input(invalid_port_err)
+            except ValueError:
+                port = None
+                noop = raw_input(invalid_port_err)
+        validated = False
+        while not validated:
+            if not user:
+                user = raw_input("User: ")
+                if not user:
+                    continue
+            if bad_chars.match(user):
+                noop = raw_input(invalid_user_err)
+                user = None
+            else:
+                validated = True
         if protocol == 'ssh':
             print(_('Connecting to ssh://%s@%s:%s' % (user, host, port)))
             # Set title
