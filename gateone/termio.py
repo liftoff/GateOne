@@ -980,8 +980,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             # multiprocessing!
             return # Nothing to do
         logging.warning(_(
-            "Noisy process (%s) kicked off rate limiter.  Sending Ctrl-c." %
-            self.pid))
+            "Noisy process (%s) kicked off rate limiter." % self.pid))
         self.ratelimiter_engaged = True
         for callback in self.callbacks[self.CALLBACK_UPDATE].values():
             self._call_callback(callback)
