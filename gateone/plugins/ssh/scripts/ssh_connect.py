@@ -314,7 +314,7 @@ def openssh_connect(
         # gateone.js.  It makes everything automagical :)
         socket_path = socket.replace(r'%r', user) # Replace just like ssh does
         socket_path = socket_path.replace(r'%h', host)
-        socket_path = socket_path.replace(r'%p', port)
+        socket_path = socket_path.replace(r'%p', str(port))
         # The %SHORT_SOCKET% replacement is special: It replaces the equivalent
         # of ssh's %r@%h:%p with a shortened hash of the same value.  For
         # example: user@somehost:22 would become 'ud6U2Q'.  This is to avoid the
@@ -759,5 +759,9 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print(_("\nKeyboardInterrupt detected.  Quitting..."))
     except Exception as e: # Catch all
-        print e
+        print(_("Got Exception trying to run openssh_connect: %s" % e))
+        import traceback
+        traceback.print_exc(file=sys.stdout)
+        print("Please open up a new issue at https://github.com/liftoff"
+                "/GateOne/issues and paste the above information.")
         noop = raw_input(_("[Press any key to close this terminal]"))
