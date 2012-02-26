@@ -612,7 +612,7 @@ if __name__ == "__main__":
     )
     (options, args) = parser.parse_args()
     # This is to prevent things like "ssh://user@host && <malicious commands>"
-    bad_chars = re.compile('.*[\$\n\!\;&` |].*')
+    bad_chars = re.compile('.*[\$\n\!\;&` |<>].*')
     try:
         if len(args) == 1:
             (user, host, port, password, identities) = parse_ssh_url(args[0])
