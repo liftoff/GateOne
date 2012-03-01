@@ -164,7 +164,7 @@ Playback Frames
 ^^^^^^^^^^^^^^^
 This option controls how many frames of real-time session playback will be kept in working memory.  The higher the number, the more memory it will use.  Also, the more terminals you have open the higher the memory use as well.  Having said that, 200-500 frames per terminal shouldn't be of any concern for a modern computer.
 
-.. tip:: If you hold down the Ctrl key while scrolling with your mouse it will move backwards and forwards in the playback buffer instead of scrolling up and down.  It is a handy way to see the history of full-screen applications such as 'top'.
+.. tip:: If you hold down the Shift key while scrolling with your mouse it will move backwards and forwards in the playback buffer instead of scrolling up and down.  It is a handy way to see the history of full-screen applications such as 'top'.
 
 Terminal Rows and Terminal Columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

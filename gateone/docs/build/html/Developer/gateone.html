@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>gateone.py - Gate One&#39;s Main Script &mdash; Gate One 1.0rc1 documentation</title>
+    <title>gateone.py - Gate One&#39;s Main Script &mdash; Gate One 1.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0rc1',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0rc1 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="logviewer.py - Session Log Viewer" href="logviewer.html" />
     <link rel="prev" title="authpam.py - A PAM Authentication Module" href="authpam.html" /> 
@@ -155,7 +155,6 @@ Options:
 &nbsp;&nbsp;--log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
 &nbsp;&nbsp;--log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
 &nbsp;&nbsp;--logging=debug|info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
-./gateone.py
 &nbsp;&nbsp;--address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. '127.0.0.1;::1;10.1.1.100').
 &nbsp;&nbsp;--auth                           Authentication method to use.  Valid options are: none, api, google, kerberos, pam
 &nbsp;&nbsp;--certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
@@ -538,6 +537,10 @@ scrollback).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;set_title&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&quot;user@host&quot;</span><span class="p">}}</span>
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -702,7 +705,7 @@ background.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="authpam.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="logviewer.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>

@@ -26,7 +26,8 @@ Active Directory (Heimdal is untested but should work fine).  If you're
 experiencing trouble it is recommended that you set debug=True in your
 application settings.  This will enable printing of Kerberos exception messages.
 
-Troubleshooting:
+Troubleshooting
+---------------
 
 If your browser asks you for a password (i.e. SSO failed) there's probably
 something wrong with your Kerberos configuration on either the client or the

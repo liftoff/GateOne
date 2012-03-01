@@ -31,8 +31,6 @@ session persistence and logging aren't important.
 
 *All* users will show up as ANONYMOUS using this authentication type.
 
-.. note:: The % is there to avoid name conflicts.
-
 Kerberos
 --------
 Kerberos authentication utilizes GSSAPI for Single Sign-on (SSO) but will fall

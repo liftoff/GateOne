@@ -18,7 +18,7 @@ Function.prototype.clone = function() {
 
 // Tunable playback prefs
 if (!GateOne.prefs.playbackFrames) {
-    GateOne.prefs.playbackFrames = 200; // Maximum number of session recording frames to store (in memory--for now)
+    GateOne.prefs.playbackFrames = 75; // Maximum number of session recording frames to store (in memory--for now)
 }
 
 // GateOne.Playback

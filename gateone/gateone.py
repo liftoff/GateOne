@@ -112,7 +112,6 @@ well as descriptions of what each configurable option does:
       --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
       --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
       --logging=debug|info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
-    ./gateone.py
       --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. '127.0.0.1;::1;10.1.1.100').
       --auth                           Authentication method to use.  Valid options are: none, api, google, kerberos, pam
       --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
@@ -1895,10 +1894,11 @@ def main():
     # Simplify the syslog_facility option help message
     facilities = FACILITIES.keys()
     facilities.sort()
+    config_default = os.path.join(GATEONE_DIR, "server.conf")
     define("config",
-        default=os.path.join(GATEONE_DIR, "server.conf"),
+        default=config_default,
         help=_(
-            "Path to the config file.  Default: %s/server.conf" % GATEONE_DIR),
+            "Path to the config file.  Default: %s" % config_default),
         type=str
     )
     define(
@@ -2099,6 +2099,11 @@ def main():
             PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
         except AttributeError:
             pass # No hooks--probably just a supporting .py file.
+    # We have to parse the command line options so we can check for a config to
+    # load.  The config will then be loaded--overriding command line options but
+    # this won't be a problem since we'll re-parse the command line options
+    # further down which will subsequently override the config.
+    tornado.options.parse_command_line()
     if os.path.exists(options.config):
         tornado.options.parse_config_file(options.config)
     else: # Generate a default server.conf with a random cookie secret

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>termio.py - Terminal Input/Output Module &mdash; Gate One 1.0rc1 documentation</title>
+    <title>termio.py - Terminal Input/Output Module &mdash; Gate One 1.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0rc1',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0rc1 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="utils.py - Supporting Functions" href="utils.html" />
     <link rel="prev" title="terminal.py - A Pure Python Terminal Emulator" href="terminal.html" /> 
@@ -284,7 +284,7 @@ to call callbacks in an implementation-specific way.  It just calls
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.spawn">
-<tt class="descname">spawn</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.spawn" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">spawn</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.spawn" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method must be overridden by suclasses of <a class="reference internal" href="#termio.BaseMultiplex" title="termio.BaseMultiplex"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex</span></tt></a>.  It is
 expected to execute a child process in a way that allows non-blocking
 reads to be performed.</p>
@@ -559,7 +559,7 @@ against the incoming stream.  If <em>ref</em> is None (the default),
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.await">
-<tt class="descname">await</tt><big>(</big><em>timeout=15</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.await"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.await" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">await</tt><big>(</big><em>timeout=15</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.await"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.await" title="Permalink to this definition">¶</a></dt>
 <dd><p>Blocks until all non-optional patterns inside self._patterns have been
 removed <em>or</em> if the given <em>timeout</em> is reached.  <em>timeout</em> may be an
 integer (in seconds) or a <a class="reference external" href="http://docs.python.org/2.7/library/datetime.html#datetime.timedelta" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt></a> object.</p>
@@ -633,7 +633,7 @@ iteration (which is thread safe).  If the IOLoop isn't started
 <dt id="termio.MultiplexPOSIXIOLoop._reenable_output">
 <tt class="descname">_reenable_output</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop._reenable_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop._reenable_output" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restarts capturing output from the underlying terminal program by
-disengaging the rate limiter and re-instantiating the terminal emulator.</p>
+disengaging the rate limiter.</p>
 </dd></dl>
 
 <dl class="method">
@@ -647,7 +647,7 @@ automatically by IOLoop's signal threshold mechanism
 
 <dl class="method">
 <dt id="termio.MultiplexPOSIXIOLoop.spawn">
-<tt class="descname">spawn</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.spawn" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">spawn</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.spawn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a new virtual terminal (tty) and executes self.cmd within it.
 Also attaches <tt class="xref py py-meth docutils literal"><span class="pre">self._ioloop_read_handler()</span></tt> to the IOLoop so that
 the terminal emulator will automatically stay in sync with the output of
@@ -660,7 +660,9 @@ the child process.</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Rows :</th><td class="field-body">The number of rows to emulate (height).</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Env :</th><td class="field-body">A dictionary of environment variables to set when executing self.cmd.</td>
+<tr class="field-odd field"><th class="field-name">Env :</th><td class="field-body">Optional - A dictionary of environment variables to set when executing self.cmd.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Em_dimensions :</th><td class="field-body">Optional - The dimensions of a single character within the terminal (only used when calculating the number of rows/cols images take up).</td>
 </tr>
 </tbody>
 </table>
@@ -675,9 +677,11 @@ appropriately.</p>
 
 <dl class="method">
 <dt id="termio.MultiplexPOSIXIOLoop.resize">
-<tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em>, <em>ctrl_l=True</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.resize" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em>, <em>em_dimensions=None</em>, <em>ctrl_l=True</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop.resize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resizes the child process's terminal window to <em>rows</em> and <em>cols</em> by
 first sending it a TIOCSWINSZ event and then sending ctrl-l.</p>
+<p>If <em>em_dimensions</em> are provided they will be updated along with the
+rows and cols.</p>
 <p>The sending of ctrl-l can be disabled by setting <em>ctrl_l</em> to False.</p>
 </dd></dl>
 
@@ -782,7 +786,7 @@ checks the underlying process to see if it is alive and sets
 
 <dl class="function">
 <dt id="termio.spawn">
-<tt class="descclassname">termio.</tt><tt class="descname">spawn</tt><big>(</big><em>cmd</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/termio.html#spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.spawn" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">termio.</tt><tt class="descname">spawn</tt><big>(</big><em>cmd</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>em_dimensions=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/termio.html#spawn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.spawn" title="Permalink to this definition">¶</a></dt>
 <dd><p>A shortcut to:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
@@ -820,10 +824,10 @@ checks the underlying process to see if it is alive and sets
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="terminal.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="utils.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/termio.txt"

@@ -43,7 +43,8 @@ emulate the following terminal types:
  * Linux console ("linux")
 
 If you want Terminal to support something else or it's missing a feature from
-any given terminal type please let us know.  We'll implement it!
+any given terminal type please `let us know <https://github.com/liftoff/GateOne/issues/new>`_.
+We'll implement it!
 
 What Terminal Doesn't Do
 ------------------------

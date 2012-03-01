@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>terminal.py - A Pure Python Terminal Emulator &mdash; Gate One 1.0rc1 documentation</title>
+    <title>terminal.py - A Pure Python Terminal Emulator &mdash; Gate One 1.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0rc1',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0rc1 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="termio.py - Terminal Input/Output Module" href="termio.html" />
     <link rel="prev" title="sso.py - A Tornado Kerberos Single Sign-On Module" href="sso.html" /> 
@@ -92,7 +92,8 @@ emulate the following terminal types:</p>
 </ul>
 </div></blockquote>
 <p>If you want Terminal to support something else or it's missing a feature from
-any given terminal type please let us know.  We'll implement it!</p>
+any given terminal type please <a class="reference external" href="https://github.com/liftoff/GateOne/issues/new">let us know</a>.
+We'll implement it!</p>
 </div>
 <div class="section" id="what-terminal-doesn-t-do">
 <h3>What Terminal Doesn't Do<a class="headerlink" href="#what-terminal-doesn-t-do" title="Permalink to this headline">¶</a></h3>
@@ -244,14 +245,20 @@ far as renditions go).  Example:</p>
 
 <dl class="class">
 <dt id="terminal.Terminal">
-<em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">Terminal</tt><big>(</big><em>rows=24</em>, <em>cols=80</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">Terminal</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminal controller class.</p>
 <p>Initializes the terminal by calling <em>self.initialize(rows, cols)</em>.  This
 is so we can have an equivalent function in situations where __init__()
 gets overridden.</p>
+<p>If <em>em_dimensions</em> are provided they will be used to determine how many
+lines images will take when they're drawn in the terminal.  This is to
+prevent images that are written to the top of the screen from having
+their tops cut off.  <em>em_dimensions</em> should be a dict in the form of:</p>
+<div class="highlight-python"><pre>{'height': &lt;px&gt;, 'width': &lt;px&gt;}</pre>
+</div>
 <dl class="method">
 <dt id="terminal.Terminal.initialize">
-<tt class="descname">initialize</tt><big>(</big><em>rows=24</em>, <em>cols=80</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.initialize" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">initialize</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the terminal (the actual equivalent to <tt class="xref py py-meth docutils literal"><span class="pre">__init__()</span></tt>).</p>
 </dd></dl>
 
@@ -333,8 +340,8 @@ given <em>event</em>.  Example:</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="terminal.Terminal.terminal_reset">
-<tt class="descname">terminal_reset</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.terminal_reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.terminal_reset" title="Permalink to this definition">¶</a></dt>
+<dt id="terminal.Terminal.reset">
+<tt class="descname">reset</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#terminal.Terminal.reset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resets the terminal back to an empty screen with all defaults.  Calls
 <tt class="xref py py-meth docutils literal"><span class="pre">Terminal.callbacks[CALLBACK_RESET]()</span></tt> when finished.</p>
 <div class="admonition note">
@@ -345,9 +352,10 @@ given <em>event</em>.  Example:</p>
 
 <dl class="method">
 <dt id="terminal.Terminal.resize">
-<tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.resize" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">resize</tt><big>(</big><em>rows</em>, <em>cols</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.resize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resizes the terminal window, adding or removing <em>rows</em> or <em>cols</em> as
-needed.</p>
+needed.  If <em>em_dimensions</em> are provided they will be stored in
+<em>self.em_dimensions</em> (which is currently only used by image output).</p>
 </dd></dl>
 
 <dl class="method">

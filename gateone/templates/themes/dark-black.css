@@ -1,3 +1,4 @@
+/* Gate One dark-black theme */
 @font-face {
   font-family: 'Ubuntu Mono';
   font-style: normal;
@@ -37,6 +38,26 @@ hr {
     padding: 0.1em;
     z-index: 0;
     font-size: 1em;
+    /* WebKit */
+    -webkit-transform-origin: top right;
+    -webkit-transition: all 1s ease-in-out;
+    /* Firefox */
+    -moz-transition: all 1s ease-in-out;
+    -moz-transform-origin: top right;
+    /* Opera */
+    -o-transition-property: all;
+    -o-transition-duration: 1s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: right top;
+    /* KHTML */
+    -khtml-transform-origin: top right;
+    -khtml-transition: all 1s ease-in-out;
+    /* IE 9+ */
+    -ms-transform-origin: top right;
+    -ms-transition: all 1s ease-in-out;
+    /* Future CSS3 standard */
+    transform-origin: top right;
+    transition: all 1s ease-in-out;
 }
 #{{container}} h1,h2,h3,h4,h5,h6,h7 {
     font-family: sans-serif;
@@ -317,7 +338,7 @@ hr {
     bottom: 2em;
     right: 0;
     background-color: #000;
-    z-index: 500;
+    z-index: 9999;
 }
 #{{prefix}}terminfo {
     color: #fff;

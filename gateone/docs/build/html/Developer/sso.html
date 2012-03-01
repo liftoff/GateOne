@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>sso.py - A Tornado Kerberos Single Sign-On Module &mdash; Gate One 1.0rc1 documentation</title>
+    <title>sso.py - A Tornado Kerberos Single Sign-On Module &mdash; Gate One 1.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0rc1',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0rc1 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="terminal.py - A Pure Python Terminal Emulator" href="terminal.html" />
     <link rel="prev" title="remote_syslog.py - A module to send syslog messaged directly over UDP" href="remote_syslog.html" /> 
@@ -73,7 +73,8 @@ how to do this.</p>
 Active Directory (Heimdal is untested but should work fine).  If you're
 experiencing trouble it is recommended that you set debug=True in your
 application settings.  This will enable printing of Kerberos exception messages.</p>
-<p>Troubleshooting:</p>
+<div class="section" id="troubleshooting">
+<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h3>
 <p>If your browser asks you for a password (i.e. SSO failed) there's probably
 something wrong with your Kerberos configuration on either the client or the
 server (usually it's a problem with forward/reverse DNS resolution or an
@@ -97,6 +98,7 @@ before I attempt to get a custom service principal working with other
 applications.  This is because SSH uses the HOST/ prinicipal which is often
 taken care of automatically via most Kerberos management tools (including AD).
 If you can get SSO working with SSH you can get SSO working with anything else.</p>
+</div>
 </div>
 <div class="section" id="class-docstrings">
 <h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
@@ -201,7 +203,10 @@ process as close as possible to how things work in tornado.auth.</p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a><ul>
-<li><a class="reference internal" href="#about-the-sso-module">About The SSO Module</a></li>
+<li><a class="reference internal" href="#about-the-sso-module">About The SSO Module</a><ul>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#class-docstrings">Class Docstrings</a></li>
 </ul>
 </li>
@@ -209,7 +214,7 @@ process as close as possible to how things work in tornado.auth.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="remote_syslog.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">remote_syslog.py</span></tt> - A module to send syslog messaged directly over UDP</a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">remote_syslog.py</span></tt> - A module to send syslog messaged directly over UDP</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="terminal.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>

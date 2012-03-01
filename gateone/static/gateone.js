@@ -1360,7 +1360,11 @@ GateOne.Base.update(GateOne.Input, {
             goDiv.focus();
         }
         // This is necessary because sometimes the timer to re-show the pastearea finishes before the user does something that would otherwise re-show the pastearea (if that makes sense).
-        u.showElement(pastearea);
+        try {
+            u.showElement(pastearea);
+        } catch (e) {
+            u.noop();
+        }
     },
     disableCapture: function() {
         // Turns off keyboard input and certain mouse capture events so that other things (e.g. forms) can work properly
@@ -1376,7 +1380,11 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onkeypress = null;
         goDiv.onmousedown = null;
         goDiv.onmouseup = null;
-        u.hideElement(pastearea);
+        try {
+            u.hideElement(pastearea);
+        } catch (e) {
+            u.noop();
+        }
     },
     queue: function(text) {
         // Adds 'text' to the charBuffer Array
@@ -1544,7 +1552,8 @@ GateOne.Base.update(GateOne.Input, {
             goIn = go.Input,
             container = go.Utils.getNode(go.prefs.goDiv),
             key = goIn.key(e),
-            modifiers = goIn.modifiers(e);
+            modifiers = goIn.modifiers(e),
+            goDivStyle = document.defaultView.getComputedStyle(container, null);
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
             goIn.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
             return true; // Save some CPU
@@ -1554,7 +1563,7 @@ GateOne.Base.update(GateOne.Input, {
             // NOTE: Doesn't actually work so well so we have GateOne.Input.disableCapture() as a fallback :)
         }
         if (container) { // This display check prevents an exception when someone presses a key before the document has been fully loaded
-            if (container.style.display != "none") {
+            if (goDivStyle.display != "none" && goDivStyle.opacity != "0") {
                 // This loops over everything in *shortcuts* and executes actions for any matching keyboard shortcuts that have been defined.
                 for (var k in goIn.shortcuts) {
                     if (key.string == k) {
@@ -2297,8 +2306,10 @@ GateOne.Base.update(GateOne.Visual, {
     playBell: function() {
         // Plays the bell sound without any visual notification.
         var snd = GateOne.Utils.getNode('#bell');
-        if (GateOne.prefs.bellSound) {
-            snd.play();
+        if (snd) {
+            if (GateOne.prefs.bellSound) {
+                snd.play();
+            }
         }
     },
     enableScrollback: function(/*Optional*/term) {
