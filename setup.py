@@ -9,12 +9,12 @@ POSIX = 'posix' in sys.builtin_module_names
 version = '0.9'
 # Some paths we can reference
 setup_dir = os.path.dirname(os.path.abspath(__file__))
-static_dir = os.path.join('gateone', 'static')
-plugins_dir = os.path.join('gateone', 'plugins')
-templates_dir = os.path.join('gateone', 'templates')
-docs_dir = os.path.join('gateone', 'docs')
-tests_dir = os.path.join('gateone', 'tests')
-i18n_dir = os.path.join('gateone', 'i18n')
+static_dir = os.path.join(setup_dir, 'gateone', 'static')
+plugins_dir = os.path.join(setup_dir, 'gateone', 'plugins')
+templates_dir = os.path.join(setup_dir, 'gateone', 'templates')
+docs_dir = os.path.join(setup_dir, 'gateone', 'docs')
+tests_dir = os.path.join(setup_dir, 'gateone', 'tests')
+i18n_dir = os.path.join(setup_dir, 'gateone', 'i18n')
 combined_js = os.path.join(static_dir, 'combined_plugins.js')
 with open(combined_js, 'w') as f:
     f.write('// This forces the file to be recreated')
@@ -55,18 +55,18 @@ def walk_data_files(path, install_path=prefix):
 # other things).  Gate One is not a module, after all.
 gateone_files=[ # Start with the basics...
     (os.path.join(prefix, 'gateone'), [
-        os.path.join('gateone', 'auth.py'),
-        os.path.join('gateone', 'gateone.py'),
-        os.path.join('gateone', 'logviewer.py'),
-        os.path.join('gateone', 'sso.py'),
-        os.path.join('gateone', 'terminal.py'),
-        os.path.join('gateone', 'termio.py'),
-        os.path.join('gateone', 'utils.py'),
-        os.path.join('gateone', 'authpam.py'),
-        os.path.join('gateone', 'remote_syslog.py'),
-        'README.rst',
-        'LICENSE.txt',
-        'babel_gateone.cfg'
+        os.path.join(setup_dir, 'gateone', 'auth.py'),
+        os.path.join(setup_dir, 'gateone', 'gateone.py'),
+        os.path.join(setup_dir, 'gateone', 'logviewer.py'),
+        os.path.join(setup_dir, 'gateone', 'sso.py'),
+        os.path.join(setup_dir, 'gateone', 'terminal.py'),
+        os.path.join(setup_dir, 'gateone', 'termio.py'),
+        os.path.join(setup_dir, 'gateone', 'utils.py'),
+        os.path.join(setup_dir, 'gateone', 'authpam.py'),
+        os.path.join(setup_dir, 'gateone', 'remote_syslog.py'),
+        os.path.join(setup_dir, 'README.rst'),
+        os.path.join(setup_dir, 'LICENSE.txt'),
+        os.path.join(setup_dir, 'babel_gateone.cfg')
     ])
 ]
 static_files = walk_data_files(static_dir)
