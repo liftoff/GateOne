@@ -41,8 +41,8 @@ def walk_data_files(path, install_path=prefix):
         if ".git" in dirs:
             del dirs[dirs.index(".git")]
         thesefiles = []
-        final_path = os.path.join(install_path, dirpath)
-        #print("final path: %s" % final_path)
+        shortened_path = dirpath.split(setup_dir)[1][1:]
+        final_path = os.path.join(install_path, shortened_path)
         for fname in filenames:
             file_path = os.path.join(dirpath, fname)
             thesefiles.append(file_path)
