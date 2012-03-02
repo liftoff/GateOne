@@ -696,6 +696,7 @@ class StyleHandler(BaseHandler):
     # requiring a cookie to be set.  Stylesheet enumeration isn't exactly a
     # compelling attack vector.
     def get(self):
+        self.set_header ('Access-Control-Allow-Origin', '*')
         enum = self.get_argument("enumerate", None)
         templates_path = os.path.join(GATEONE_DIR, 'templates')
         themes_path = os.path.join(templates_path, 'themes')

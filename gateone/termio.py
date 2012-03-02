@@ -1005,7 +1005,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             "spawn(rows=%s, cols=%s, env=%s, em_dimensions=%s)" % (
                 rows, cols, repr(env), repr(em_dimensions)))
         rows = min(200, rows) # Max 300 to limit memory utilization
-        cols = min(500, rows) # Max 500 for the same reason
+        cols = min(500, cols) # Max 500 for the same reason
         import pty
         pid, fd = pty.fork()
         if pid == 0: # We're inside the child process

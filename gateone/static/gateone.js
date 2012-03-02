@@ -1129,13 +1129,17 @@ GateOne.Base.update(GateOne.Net, {
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
+        var rowAdjust = 2;
+        if (GateOne.Playback) {
+            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
+        }
         var go = GateOne,
             u = go.Utils,
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             prefs = {
                 'term': term,
-                'rows': Math.ceil(dimensions.rows - 2), // -1 for the playback controls and -1 because we're using Math.ceil
+                'rows': Math.ceil(dimensions.rows - rowAdjust), // -1 for the playback controls and -1 because we're using Math.ceil
                 'cols': Math.ceil(dimensions.cols - 7), // -6 for the sidebar + scrollbar and -1 because we're using Math.ceil
                 'em_dimensions': emDimensions
             }
@@ -1786,11 +1790,14 @@ GateOne.Base.update(GateOne.Input, {
             v = go.Visual,
             prefix = go.prefs.prefix,
             goIn = go.Input,
-            noop = u.noop,
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
             buffer = goIn.bufferEscSeq,
-            q = function(char) {e.preventDefault(); goIn.queue(char); goIn.handledKeystroke = true;},
+            q = function(c) {
+                e.preventDefault();
+                goIn.queue(c);
+                goIn.handledKeystroke = true;
+            },
             term = localStorage[prefix+'selectedTerminal'],
             keyString = String.fromCharCode(key.code);
         logDebug("emulateKey() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
@@ -1852,7 +1859,11 @@ GateOne.Base.update(GateOne.Input, {
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
             buffer = goIn.bufferEscSeq,
-            q = function(char) {e.preventDefault(); goIn.queue(char); goIn.handledKeystroke = true;};
+            q = function(c) {
+                e.preventDefault();
+                goIn.queue(c);
+                goIn.handledKeystroke = true;
+            };
         if (key.string == "KEY_SHIFT" || key.string == "KEY_ALT" || key.string == "KEY_CTRL" || key.string == "KEY_WINDOWS_LEFT" || key.string == "KEY_WINDOWS_RIGHT" || key.string == "KEY_UNKNOWN") {
             return; // For some reason if you press any combo of these keys at the same time it occasionally will send the keystroke as the second key you press.  It's odd but this ensures we don't act upon such things.
         }
@@ -1972,7 +1983,11 @@ GateOne.Base.update(GateOne.Input, {
         logDebug("emulateKeyFallback() charCode: " + e.charCode + ", keyCode: " + e.keyCode);
         var go = GateOne,
             goIn = go.Input,
-            q = function(char) {e.preventDefault(); goIn.queue(char); goIn.handledKeystroke = false;};
+            q = function(c) {
+                e.preventDefault();
+                goIn.queue(c);
+                goIn.handledKeystroke = false;
+            };
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
             return; // Let the browser handle it if the user is editing something
             // NOTE: Doesn't actually work so well so we have GateOne.Input.disableCapture() as a fallback :)
@@ -3278,6 +3293,10 @@ GateOne.Base.update(GateOne.Terminal, {
         // Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         // TODO: Finish supporting terminal types.
         logDebug("calling newTerminal(" + term + ")");
+        var rowAdjust = 2;
+        if (GateOne.Playback) {
+            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
+        }
         var go = GateOne,
             u = go.Utils,
             t = go.Terminal,
@@ -3286,7 +3305,7 @@ GateOne.Base.update(GateOne.Terminal, {
             termUndefined = false,
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
-            rows = Math.ceil(dimensions.rows - 2),
+            rows = Math.ceil(dimensions.rows - rowAdjust),
             cols = Math.ceil(dimensions.cols - 7),
             prevScrollback = localStorage.getItem(prefix+"scrollback" + term);
         if (term) {
@@ -3301,8 +3320,8 @@ GateOne.Base.update(GateOne.Terminal, {
         // Create the terminal record scaffold
         go.terminals[term] = {
             created: new Date(), // So we can keep track of how long it has been open
-            rows: rows,    // -1 for the playback controls
-            columns: cols, // -6 for the scrollbar
+            rows: rows,
+            columns: cols,
             mode: 'default', // e.g. 'appmode', 'xterm', etc
             backspace: String.fromCharCode(127), // ^?
             screen: [],

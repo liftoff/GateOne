@@ -59,9 +59,6 @@ hr {
     transform-origin: top right;
     transition: all 1s ease-in-out;
 }
-#{{container}} h1,h2,h3,h4,h5,h6,h7 {
-    font-family: sans-serif;
-}
 #{{container}} .pointer {
     cursor: pointer;
 }
