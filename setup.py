@@ -6,7 +6,7 @@ import sys, os
 
 # Globals
 POSIX = 'posix' in sys.builtin_module_names
-version = '0.9'
+version = '1.0'
 # Some paths we can reference
 setup_dir = os.path.dirname(os.path.abspath(__file__))
 static_dir = os.path.join(setup_dir, 'gateone', 'static')
