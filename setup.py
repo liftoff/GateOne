@@ -92,10 +92,10 @@ setup(
     version = version,
     description = 'Web-based Terminal Emulator and SSH Client',
     long_description = (
-        'Gate One is a web-based terminal emulator and SSH client with many '
-        'unique and advanced features.'),
+        'Gate One is a web-based terminal emulator and SSH client that requires'
+        ' no browser plugins and includes many unique and advanced features.'),
     classifiers = [
-        "Development Status : 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Operating System :: Unix",
         "Environment :: Console",
         "Environment :: Web Environment",
