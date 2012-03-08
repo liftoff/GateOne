@@ -429,7 +429,7 @@ def telnet_connect(user, host, port=23, env=None):
     else:
         env['PATH'] = os.environ['PATH']
         command = which("telnet")
-    args = [host, port]
+    args = [host, str(port)]
     if user:
         args.insert(0, user)
         args.insert(0, "-l")
@@ -759,7 +759,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print(_("\nKeyboardInterrupt detected.  Quitting..."))
     except Exception as e: # Catch all
-        print(_("Got Exception trying to run openssh_connect: %s" % e))
+        print(_("Got Exception: %s" % e))
         import traceback
         traceback.print_exc(file=sys.stdout)
         print("Please open up a new issue at https://github.com/liftoff"

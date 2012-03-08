@@ -87,8 +87,6 @@ def save_recording(settings, tws):
         templates_path, "self_contained_recording.html")
     with open(recording_template_path) as f:
         recording_template_data = f.read()
-    with open('/tmp/recording.json', 'w') as f:
-        f.write(recording)
     recording_template = tornado.template.Template(recording_template_data)
     rendered_recording = recording_template.generate(
         recording=recording,

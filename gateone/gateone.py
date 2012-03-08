@@ -864,6 +864,10 @@ class TerminalWebSocket(WebSocketHandler):
             return self.api_user
         user_json = self.get_secure_cookie("gateone_user")
         if not user_json:
+            if not self.settings['auth']:
+                # This can happen if the user's browser isn't allowing
+                # persistent cookies (e.g. incognito mode)
+                return {'upn': 'ANONYMOUS', 'session': generate_session_id()}
             return None
         return json_decode(user_json)
 
