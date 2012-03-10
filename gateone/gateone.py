@@ -127,7 +127,8 @@ well as descriptions of what each configurable option does:
       --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
       --kill                           Kill any running Gate One terminal processes including dtach'd processes.
       --locale                         The locale (e.g. pt_PT) Gate One should use for translations.  If not provided, will default to $LANG (which is 'en_US' in your current shell), or en_US if not set.
-      --new_api_key                    Generate a new API key that an external application can use toembed Gate One.
+      --new_api_key                    Generate a new API key that an external application can use to embed Gate One.
+      --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value must contain the hostnames and FQDNs (e.g. foo;foo.bar;) users will use to connect to your Gate One server as well as the hostnames/FQDNs of any sites that will be embedding Gate One. Here's the default on your system: 'localhost;yourhostname'. Alternatively, '*' may be  specified to allow access from anywhere.
       --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
       --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
       --port                           Run on the given port.
@@ -244,6 +245,7 @@ import sys
 import logging
 import threading
 import time
+import socket
 from functools import partial, wraps
 from datetime import datetime, timedelta
 
@@ -872,7 +874,22 @@ class TerminalWebSocket(WebSocketHandler):
         return json_decode(user_json)
 
     def open(self):
-        """Called when a new WebSocket is opened."""
+        """
+        Called when a new WebSocket is opened.  Will deny access to any
+        origin that is not defined in self.settings['origin'].
+        """
+        valid_origins = self.settings['origins']
+        if '*' not in valid_origins:
+            if self.request.headers['Origin'] not in valid_origins:
+                origin = self.request.headers['Origin']
+                short_origin = origin.split('//')[1]
+                self.write_message(_("Access denied for origin: %s" % origin))
+                self.write_message(_(
+                    "If you feel this is incorrect you just have to add '%s' to"
+                    " the 'origin' option in your server.conf.  See the docs "
+                    "for details." % short_origin
+                ))
+                self.close()
         # TODO: Make it so that idle WebSockets that haven't passed authentication tests get auto-closed within N seconds in order to prevent a DoS scenario where the attacker keeps all possible ports open indefinitely.
         # client_id is unique to the browser/client whereas session_id is unique
         # to the user.  It isn't used much right now but it will be useful in
@@ -1899,6 +1916,14 @@ def main():
     # Simplify the syslog_facility option help message
     facilities = FACILITIES.keys()
     facilities.sort()
+    # Figure out the default origins
+    default_origins = ['localhost']
+    for host in socket.gethostbyname_ex(socket.gethostname()):
+        if isinstance(host, str):
+            default_origins.append(host)
+        else: # It's a list
+            default_origins.extend(host)
+    default_origins = ";".join(default_origins)
     config_default = os.path.join(GATEONE_DIR, "server.conf")
     define("config",
         default=config_default,
@@ -2005,7 +2030,7 @@ def main():
     define(
         "new_api_key",
         default=False,
-        help=_("Generate a new API key that an external application can use to"
+        help=_("Generate a new API key that an external application can use to "
                "embed Gate One."),
     )
     define(
@@ -2092,6 +2117,18 @@ def main():
                "'/gateone/'.  Use this if Gate One will be running behind a "
                "reverse proxy where you want it to be located at some sub-"
                "URL path."),
+        type=str
+    )
+    define(
+        "origins",
+        default=default_origins,
+        help=_("A semicolon-separated list of origins you wish to allow access "
+               "to your Gate One server over the WebSocket.  This value must "
+               "contain the hostnames and FQDNs (e.g. foo;foo.bar;) users will "
+               "use to connect to your Gate One server as well as the hostnames"
+               "/FQDNs of any sites that will be embedding Gate One. Here's the"
+               " default on your system: '%s'. Alternatively, '*' may be "
+               " specified to allow access from anywhere." % default_origins),
         type=str
     )
     # Before we do anythong else, load plugins and assign their hooks.  This
@@ -2248,6 +2285,19 @@ def main():
     # Fix the url_prefix if the user forgot the trailing slash
     if not options.url_prefix.endswith('/'):
         options.url_prefix += '/'
+    # Convert the origins into a list of http:// or https:// origins
+    real_origins = []
+    if options.origins == '*':
+        real_origins = ['*']
+    else:
+        if options.disable_ssl:
+            for origin in options.origins.split(';'):
+                real_origins.append("http://%s" % origin)
+        else:
+            for origin in options.origins.split(';'):
+                real_origins.append("https://%s" % origin)
+    logging.info("Connections to this server will be allowed from the following"
+                 " origins: '%s'" % " ".join(real_origins))
     # Define our Application settings
     app_settings = {
         'gateone_dir': GATEONE_DIR, # Only here so plugins can reference it
@@ -2270,7 +2320,8 @@ def main():
         'pam_service': options.pam_service,
         'locale': options.locale,
         'api_keys': api_keys,
-        'url_prefix': options.url_prefix
+        'url_prefix': options.url_prefix,
+        'origins': real_origins
     }
     # Check to make sure we have a certificate and keyfile and generate fresh
     # ones if not.

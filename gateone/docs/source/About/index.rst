@@ -176,7 +176,8 @@ These options match up directly with Gate One's command line options which you c
       --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
       --kill                           Kill any running Gate One terminal processes including dtach'd processes.
       --locale                         The locale (e.g. pt_PT) Gate One should use for translations.  If not provided, will default to $LANG (which is 'en_US' in your current shell), or en_US if not set.
-      --new_api_key                    Generate a new API key that an external application can use toembed Gate One.
+      --new_api_key                    Generate a new API key that an external application can use to embed Gate One.
+      --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value must contain the hostnames and FQDNs (e.g. foo;foo.bar;) users will use to connect to your Gate One server as well as the hostnames/FQDNs of any sites that will be embedding Gate One. Here's the default on your system: 'localhost;yourhostname'. Alternatively, '*' may be  specified to allow access from anywhere.
       --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
       --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
       --port                           Run on the given port.
