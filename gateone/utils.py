@@ -255,21 +255,21 @@ def gen_self_signed_openssl():
         "-signkey keyfile.pem " # Sign it with keyfile.pem that we just created
         "-out certificate.pem"  # Save it as certificate.pem
     )
-    exitstatus, output = shell_command(gen_command)
+    exitstatus, output = shell_command(gen_command, 30)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to create private SSL key:\n%s" % output)
         if os.path.exists('keyfile.pem.tmp'):
             os.remove('keyfile.pem.tmp')
         raise SSLGenerationError(error_msg)
-    exitstatus, output = shell_command(decrypt_key_command)
+    exitstatus, output = shell_command(decrypt_key_command, 30)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to decrypt private SSL key:\n%s" % output)
         if os.path.exists('keyfile.pem.tmp'):
             os.remove('keyfile.pem.tmp')
         raise SSLGenerationError(error_msg)
-    exitstatus, output = shell_command(csr_command)
+    exitstatus, output = shell_command(csr_command, 30)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to create CSR:\n%s" % output)
@@ -278,7 +278,7 @@ def gen_self_signed_openssl():
         if os.path.exists('temp.csr'):
             os.remove('temp.csr')
         raise SSLGenerationError(error_msg)
-    exitstatus, output = shell_command(cert_command)
+    exitstatus, output = shell_command(cert_command, 30)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to create certificate:\n%s" % output)
