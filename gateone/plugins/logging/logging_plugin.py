@@ -15,7 +15,7 @@ logging.py - A plugin for Gate One that provides logging-related functionality.
 """
 
 # Meta
-__version__ = '1.0rc1'
+__version__ = '1.0'
 __license__ = "GNU AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'

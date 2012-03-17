@@ -668,6 +668,21 @@ class MainHandler(BaseHandler):
             gateone_js = "%sstatic/gateone.min.js" % self.settings['url_prefix']
         template_path = os.path.join(GATEONE_DIR, 'templates')
         index_path = os.path.join(template_path, 'index.html')
+        head_html = ""
+        body_html = ""
+        #print("PLUGIN_HOOKS: %s\n" % PLUGIN_HOOKS)
+        # 'mobile': {'HTML': {'head': ['<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">']}}
+        for plugin, hooks in PLUGIN_HOOKS.items():
+            if 'HTML' in hooks:
+                if 'head' in hooks['HTML']:
+                    if hooks['HTML']['head']:
+                        for item in hooks['HTML']['head']:
+                            head_html += "%s\n" % item
+                if 'body' in hooks['HTML']:
+                    if hooks['HTML']['body']:
+                        for item in hooks['HTML']['body']:
+                            body_html += "%s\n" % item
+        print("head_html: %s" % head_html)
         self.render(
             index_path,
             hostname=hostname,
@@ -676,7 +691,9 @@ class MainHandler(BaseHandler):
             cssplugins=PLUGINS['css'],
             js_init=js_init,
             bell_data_uri=bell_data_uri,
-            url_prefix=self.settings['url_prefix']
+            url_prefix=self.settings['url_prefix'],
+            head=head_html,
+            body=body_html
         )
 
 class StyleHandler(BaseHandler):
@@ -856,6 +873,14 @@ class TerminalWebSocket(WebSocketHandler):
         self.api_user = None
         self.em_dimensions = None
 
+    def allow_draft76(self):
+        """
+        By overriding this function we're allowing the older version of the
+        WebSockets protocol.  As long as communications happens over SSL there
+        shouldn't be any security concerns with this.
+        """
+        return True
+
     def get_current_user(self):
         """
         Mostly identical to the function of the same name in MainHandler.  The
@@ -879,9 +904,13 @@ class TerminalWebSocket(WebSocketHandler):
         origin that is not defined in self.settings['origin'].
         """
         valid_origins = self.settings['origins']
+        if 'Origin' in self.request.headers:
+            origin_header = self.request.headers['Origin']
+        elif 'Sec-Websocket-Origin' in self.request.headers: # Old version
+            origin_header = self.request.headers['Sec-Websocket-Origin']
         if '*' not in valid_origins:
-            if self.request.headers['Origin'] not in valid_origins:
-                origin = self.request.headers['Origin']
+            if origin_header not in valid_origins:
+                origin = origin_header
                 short_origin = origin.split('//')[1]
                 self.write_message(_("Access denied for origin: %s" % origin))
                 self.write_message(_(
@@ -1566,6 +1595,9 @@ class TerminalWebSocket(WebSocketHandler):
             'height': resize_obj['em_dimensions']['h'],
             'width': resize_obj['em_dimensions']['w']
         }
+        ctrl_l = False
+        if 'ctrl_l' in resize_obj:
+            ctrl_l = resize_obj['ctrl_l']
         if self.rows < 2 or self.cols < 2:
             # Fall back to a standard default:
             self.rows = 24
@@ -1576,7 +1608,8 @@ class TerminalWebSocket(WebSocketHandler):
                 SESSIONS[self.session][term]['multiplex'].resize(
                     self.rows,
                     self.cols,
-                    self.em_dimensions
+                    self.em_dimensions,
+                    ctrl_l=ctrl_l
                 )
             else: # Resize them all
                 for term in SESSIONS[self.session].keys():

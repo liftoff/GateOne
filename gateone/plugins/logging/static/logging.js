@@ -23,6 +23,7 @@ GateOne.Logging.levels = {
 if (!GateOne.prefs.logLevel) {
     GateOne.prefs.logLevel = 'INFO';
 }
+GateOne.noSavePrefs['level'] = null; // This ensures that the logging level isn't saved along with everything else if the user clicks "Save" in the settings panel
 GateOne.Logging.level = GateOne.prefs.logLevel; // This allows it to be adjusted at the client
 GateOne.Logging.serverLogs = [];
 GateOne.Logging.sortToggle = false;

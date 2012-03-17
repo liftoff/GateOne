@@ -273,7 +273,7 @@ GateOne.Base.update(GateOne, {
             prefsPanelColsLabel = u.createElement('span', {'id': 'prefs_cols_label', 'class':'paneltablelabel'}),
             prefsPanelCols = u.createElement('input', {'id': 'prefs_cols', 'name': prefix+'prefs_cols', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelSave = u.createElement('button', {'id': 'prefs_save', 'type': 'submit', 'value': 'Save', 'class': 'button black', 'style': {'float': 'right'}}),
-            noticeContainer = u.createElement('div', {'id': 'noticecontainer', 'style': {'margin-right': '2em', 'background': 'transparent'}}),
+            noticeContainer = u.createElement('div', {'id': 'noticecontainer'}),
             toolbar = u.createElement('div', {'id': 'toolbar'}),
             toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'toolbar', 'title': "Preferences"}),
             panels = u.getNodes(go.prefs.goDiv + ' .panel'),
@@ -843,6 +843,7 @@ GateOne.Base.update(GateOne.Utils, {
         nodeHeight = parseInt(nodeHeight)/16;
         nodeWidth = parseInt(nodeWidth)/16;
         node.removeChild(sizingDiv);
+        console.log('nodeWidth: ' + nodeWidth + ', nodeHeight: ' + nodeHeight);
         return {'w': nodeWidth, 'h': nodeHeight};
     },
     getRowsAndColumns: function(elem) {
@@ -865,6 +866,7 @@ GateOne.Base.update(GateOne.Utils, {
         var rows = (elementDimensions.h / textDimensions.h),
             cols = (elementDimensions.w / textDimensions.w);
         var dimensionsObj = {'rows': rows, 'cols': cols};
+        console.log('rows: ' + rows + ', cols: ' + cols);
         return dimensionsObj;
     },
     // Thanks to Paul Sowden (http://www.alistapart.com/authors/s/paulsowden) at A List Apart for this function.
@@ -1125,13 +1127,16 @@ GateOne.Base.update(GateOne.Net, {
         GateOne.Utils.deleteCookie('gateone_user', '/', '');
         window.location.reload(); // This *should* force a re-auth if we simply had our session expire (or similar)
     },
-    sendDimensions: function(term) {
+    sendDimensions: function(term, /*opt*/ctrl_l) {
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
         var rowAdjust = 2;
         if (GateOne.Playback) {
             rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
+        }
+        if (typeof(ctrl_l) == 'undefined') {
+            ctrl_l = true;
         }
         var go = GateOne,
             u = go.Utils,

@@ -336,7 +336,7 @@ hr {
     position: absolute;
     bottom: 2em;
     right: 0;
-    background-color: #fff;
+    background-color: transparent;
     z-index: 9999;
 }
 #{{prefix}}terminfo {

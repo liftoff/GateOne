@@ -1,0 +1,21 @@
+/* Optimize Gate One for mobile devices */
+@media only screen and (max-width: 800px) {
+    body #{{container}} .terminal pre {
+/*         font-family: monospace; */
+    }
+    #{{container}} #{{prefix}}toolbar {
+        right: 0.25em;
+        font-size: 100%;
+        -webkit-transform: scale(2) translate(-50%, 25%);
+        /* For whatever reason scaling doesn't work properly in Firefox Mobile but that's OK since the icons appear to be big enough to usable regardless */
+/*         -moz-transform: scale(1.25) translate(-20%, 10%); */
+        -ms-transform: scale(2) translate(-50%, 25%); /* We'll see */
+        -o-transform: scale(2) translate(-50%, 25%); /* Yet to be tested */
+    }
+    #{{container}} .sideinfo {
+        display: none; /* Not enough room for it on mobile */
+    }
+    #{{container}} #{{prefix}}playbackControls {
+        display: none; /* Need this space for the keyboard */
+    }
+}
