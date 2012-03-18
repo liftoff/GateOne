@@ -28,6 +28,7 @@ import mimetypes
 import struct
 import binascii
 import gzip
+import fcntl
 from datetime import timedelta
 
 # Import 3rd party stuff
@@ -133,6 +134,30 @@ class SSLGenerationError(Exception):
 def noop(*args, **kwargs):
     """Do nothing (i.e. "No Operation")"""
     pass
+
+def write_pid(path):
+    try:
+        pid = os.getpid()
+        pidfile = open(path, 'wb')
+        # get a non-blocking exclusive lock
+        fcntl.flock(pidfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        pidfile.seek(0)
+        pidfile.truncate(0)
+        pidfile.write(str(pid))
+    except:
+        raise
+    finally:
+        try:
+            pidfile.close()
+        except:
+            pass
+
+def remove_pid(path):
+    try:
+        os.unlink(path)
+    except:
+        pass
+
 
 def shell_command(cmd, timeout_duration=5):
     """
