@@ -41,6 +41,24 @@ GateOne.Base.update(GateOne.Mobile, {
                 form = u.createElement('form'),
                 inputElement = u.createElement('input', {'type': 'text', 'name': 'mobile_input', 'id': 'mobile_input', 'size': 10, 'style': {'background': 'transparent', 'height': '1em', 'color': '#ccc', 'position': 'fixed', 'bottom': 0, 'left': 0, 'z-index': 1000, 'font-size': '200%', 'height': '2em', 'opacity': '0.5', 'border': 'none'}});
             goDiv.onkeydown = null;
+            goDiv.addEventListener('touchstart', function(e) {
+                var t = e.touches[0];
+                go.Mobile.touchstartX = t.pageX;
+                go.Mobile.touchstartY = t.pageY;
+            }, true);
+            goDiv.addEventListener('touchmove', function(e) {
+                var t = e.touches[0];
+                if (t.pageX < go.Mobile.touchstartX && (go.Mobile.touchstartX - t.pageX) > 20) {
+                    go.Visual.slideRight();
+                } else if (t.pageX > go.Mobile.touchstartX && (t.pageX - go.Mobile.touchstartX) > 20) {
+                    go.Visual.slideLeft();
+                } else if (t.pageY < go.Mobile.touchstartY && (go.Mobile.touchstartY - t.pageY) > 20) {
+                    go.Visual.slideDown();
+                } else if (t.pageY > go.Mobile.touchstartY && (t.pageY - go.Mobile.touchstartY) > 20) {
+                    go.Visual.slideUp();
+                }
+                e.preventDefault();
+            }, true);
             inputElement.value = '';
             inputElement.tabIndex = 1;
             inputElement.autocorrect = "off";

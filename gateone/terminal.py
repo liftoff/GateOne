@@ -2229,6 +2229,8 @@ class Terminal(object):
         preserved.
         """
         # TODO: Make this whole thing faster (or prove it isn't possible).
+        # TODO: If we can't make it faster then we should at least see if we can
+        # simplify it.
         cursorY = self.cursorY
         cursorX = self.cursorX
         #logging.debug("Setting rendition: %s at %s, %s" % (repr(n), cursorY, cursorX))
@@ -2271,14 +2273,13 @@ class Terminal(object):
         for rend in new_renditions:
             if rend == 0:
                 out_renditions = [0]
-                # A 0 indicates reset so we don't want the last rendition to be
-                # combined with this new one.  By setting the last rendition to
-                # just [0] we're ensuring that _reduce_renditions() returns just
-                # this rendition and not the previous one + this one.
-                self.cur_rendition = [0]
-                return
             else:
                 out_renditions.append(rend)
+        if out_renditions[0] == 0:
+            # If it starts with 0 there's no need to combine it with the
+            # previous rendition...
+            self.cur_rendition = _reduce_renditions(out_renditions)
+            return
         new_renditions = out_renditions
         reduced = _reduce_renditions(self.cur_rendition + new_renditions)
         self.cur_rendition = reduced

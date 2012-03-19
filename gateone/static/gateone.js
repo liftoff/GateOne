@@ -843,7 +843,6 @@ GateOne.Base.update(GateOne.Utils, {
         nodeHeight = parseInt(nodeHeight)/16;
         nodeWidth = parseInt(nodeWidth)/16;
         node.removeChild(sizingDiv);
-        console.log('nodeWidth: ' + nodeWidth + ', nodeHeight: ' + nodeHeight);
         return {'w': nodeWidth, 'h': nodeHeight};
     },
     getRowsAndColumns: function(elem) {
@@ -866,7 +865,6 @@ GateOne.Base.update(GateOne.Utils, {
         var rows = (elementDimensions.h / textDimensions.h),
             cols = (elementDimensions.w / textDimensions.w);
         var dimensionsObj = {'rows': rows, 'cols': cols};
-        console.log('rows: ' + rows + ', cols: ' + cols);
         return dimensionsObj;
     },
     // Thanks to Paul Sowden (http://www.alistapart.com/authors/s/paulsowden) at A List Apart for this function.

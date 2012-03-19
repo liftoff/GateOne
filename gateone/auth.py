@@ -252,7 +252,7 @@ try:
             the browser will be redirected to login.
             """
             check = self.get_argument("check", None)
-            self.set_header ('Access-Control-Allow-Origin', '*')
+            self.set_header('Access-Control-Allow-Origin', '*')
             if check:
                 user = self.get_current_user()
                 if user:
@@ -304,7 +304,7 @@ try:
             the browser will be redirected to login.
             """
             check = self.get_argument("check", None)
-            self.set_header ('Access-Control-Allow-Origin', '*')
+            self.set_header('Access-Control-Allow-Origin', '*')
             if check:
                 user = self.get_current_user()
                 if user:
