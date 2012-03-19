@@ -5,8 +5,7 @@
 #
 # For license information see LICENSE.txt
 
-# 1.0 TODO:
-# * DOCUMENTATION!
+# TODO:
 # * Write init scripts to stop/start/restart Gate One safely.  Also make sure that .deb and .rpm packages safely restart Gate One without impacting running sessions.  The setup.py should also attempt to minify the .css and .js files.
 
 # Meta
@@ -670,8 +669,6 @@ class MainHandler(BaseHandler):
         index_path = os.path.join(template_path, 'index.html')
         head_html = ""
         body_html = ""
-        #print("PLUGIN_HOOKS: %s\n" % PLUGIN_HOOKS)
-        # 'mobile': {'HTML': {'head': ['<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">']}}
         for plugin, hooks in PLUGIN_HOOKS.items():
             if 'HTML' in hooks:
                 if 'head' in hooks['HTML']:
@@ -876,7 +873,8 @@ class TerminalWebSocket(WebSocketHandler):
         """
         By overriding this function we're allowing the older version of the
         WebSockets protocol.  As long as communications happens over SSL there
-        shouldn't be any security concerns with this.
+        shouldn't be any security concerns with this.  This is mostly to support
+        iOS Safari.
         """
         return True
 
