@@ -682,7 +682,6 @@ class MainHandler(BaseHandler):
                     if hooks['HTML']['body']:
                         for item in hooks['HTML']['body']:
                             body_html += "%s\n" % item
-        print("head_html: %s" % head_html)
         self.render(
             index_path,
             hostname=hostname,
