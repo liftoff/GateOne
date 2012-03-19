@@ -128,7 +128,7 @@ well as descriptions of what each configurable option does:
       --kill                           Kill any running Gate One terminal processes including dtach'd processes.
       --locale                         The locale (e.g. pt_PT) Gate One should use for translations.  If not provided, will default to $LANG (which is 'en_US' in your current shell), or en_US if not set.
       --new_api_key                    Generate a new API key that an external application can use to embed Gate One.
-      --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value must contain the hostnames and FQDNs (e.g. foo;foo.bar;) users will use to connect to your Gate One server as well as the hostnames/FQDNs of any sites that will be embedding Gate One. Here's the default on your system: 'localhost;yourhostname'. Alternatively, '*' may be  specified to allow access from anywhere.
+      --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value must contain the hostnames and FQDNs (e.g. https://foo;https://foo.bar;) users will use to connect to your Gate One server as well as the hostnames/FQDNs of any sites that will be embedding Gate One. Here's the default on your system: 'https://localhost;https://yourhostname'. Alternatively, '*' may be  specified to allow access from anywhere.
       --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
       --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
       --port                           Run on the given port.
@@ -1950,12 +1950,19 @@ def main():
     facilities = FACILITIES.keys()
     facilities.sort()
     # Figure out the default origins
-    default_origins = ['localhost']
+    default_origins = [
+        'http://localhost',
+        'https://localhost',
+        'http://127.0.0.1',
+        'https://127.0.0.1'
+    ]
+    # Used both http and https above to demonstrate that both are acceptable
     for host in socket.gethostbyname_ex(socket.gethostname()):
         if isinstance(host, str):
-            default_origins.append(host)
+            default_origins.append('https://%s' % host)
         else: # It's a list
-            default_origins.extend(host)
+            for _host in host:
+                default_origins.append('https://%s' % _host)
     default_origins = ";".join(default_origins)
     config_default = os.path.join(GATEONE_DIR, "server.conf")
     define("config",
@@ -2157,11 +2164,12 @@ def main():
         default=default_origins,
         help=_("A semicolon-separated list of origins you wish to allow access "
                "to your Gate One server over the WebSocket.  This value must "
-               "contain the hostnames and FQDNs (e.g. foo;foo.bar;) users will "
-               "use to connect to your Gate One server as well as the hostnames"
-               "/FQDNs of any sites that will be embedding Gate One. Here's the"
-               " default on your system: '%s'. Alternatively, '*' may be "
-               " specified to allow access from anywhere." % default_origins),
+               "contain the hostnames and FQDNs (e.g. https://foo;"
+               "https://foo.bar;) users will use to connect to your Gate One "
+               "server as well as the hostnames/FQDNs of any sites that will be"
+               " embedding Gate One. Here's the default on your system: '%s'. "
+               "Alternatively, '*' may be  specified to allow access from "
+               "anywhere." % default_origins),
         type=str
     )
     # Before we do anythong else, load plugins and assign their hooks.  This
@@ -2319,16 +2327,16 @@ def main():
     if not options.url_prefix.endswith('/'):
         options.url_prefix += '/'
     # Convert the origins into a list of http:// or https:// origins
-    real_origins = []
+    real_origins = options.origins.split(';')
     if options.origins == '*':
         real_origins = ['*']
-    else:
-        if options.disable_ssl:
-            for origin in options.origins.split(';'):
-                real_origins.append("http://%s" % origin)
-        else:
-            for origin in options.origins.split(';'):
-                real_origins.append("https://%s" % origin)
+    #else:
+        #if options.disable_ssl:
+            #for origin in options.origins.split(';'):
+                #real_origins.append("http://%s" % origin)
+        #else:
+            #for origin in options.origins.split(';'):
+                #real_origins.append("https://%s" % origin)
     logging.info("Connections to this server will be allowed from the following"
                  " origins: '%s'" % " ".join(real_origins))
     # Define our Application settings
