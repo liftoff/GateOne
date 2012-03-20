@@ -130,6 +130,7 @@ well as descriptions of what each configurable option does:
       --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value must contain the hostnames and FQDNs (e.g. https://foo;https://foo.bar;) users will use to connect to your Gate One server as well as the hostnames/FQDNs of any sites that will be embedding Gate One. Here's the default on your system: 'https://localhost;https://yourhostname'. Alternatively, '*' may be  specified to allow access from anywhere.
       --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
       --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
+      --pid_file                       Path of the pid file.   Default: /var/run/gateone.pid
       --port                           Run on the given port.
       --session_dir                    Path to the location where session information will be stored.
       --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/<user>/logs.  Default: Enabled
@@ -287,6 +288,7 @@ from utils import create_plugin_links, merge_handlers, none_fix, short_hash
 from utils import convert_to_timedelta, kill_dtached_proc, FACILITIES, which
 from utils import process_opt_esc_sequence, create_data_uri, MimeTypeFail
 from utils import string_to_syslog_facility, fallback_bell, json_encode
+from utils import write_pid, read_pid, remove_pid
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -2169,6 +2171,13 @@ def main():
                "anywhere." % default_origins),
         type=str
     )
+    define(
+        "pid_file",
+        default="/var/run/gateone.pid",
+        help=_(
+            "Define the path to the pid file.  Default: /var/run/gateone.pid"),
+        type=str
+    )
     # Before we do anythong else, load plugins and assign their hooks.  This
     # allows plugins to add their own define() statements/options.
     imported = load_plugins(PLUGINS['py'])
@@ -2359,7 +2368,8 @@ def main():
         'locale': options.locale,
         'api_keys': api_keys,
         'url_prefix': options.url_prefix,
-        'origins': real_origins
+        'origins': real_origins,
+        'pid_file': options.pid_file
     }
     # Check to make sure we have a certificate and keyfile and generate fresh
     # ones if not.
@@ -2421,10 +2431,15 @@ def main():
             logging.info(_(
                 "Listening on https://*:{port}/".format(port=options.port)))
             https_server.listen(port=options.port, address="")
+        write_pid(options.pid_file)
+        pid = read_pid(options.pid_file)
+        logging.info(_("Process running with pid " + pid))
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
         logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
         tornado.ioloop.IOLoop.instance().stop()
+        remove_pid(options.pid_file)
+        logging.info(_("pid file removed."))
         for t in threading.enumerate():
             if t.getName().startswith('TidyThread'):
                 t.kill_dtach = False

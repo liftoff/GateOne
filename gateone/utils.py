@@ -136,10 +136,11 @@ def noop(*args, **kwargs):
     pass
 
 def write_pid(path):
+    """Writes our PID to *path*."""
     try:
         pid = os.getpid()
         pidfile = open(path, 'wb')
-        # get a non-blocking exclusive lock
+        # Get a non-blocking exclusive lock
         fcntl.flock(pidfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         pidfile.seek(0)
         pidfile.truncate(0)
@@ -152,9 +153,14 @@ def write_pid(path):
         except:
             pass
 
+def read_pid(path):
+    """Reads our current PID from *path*."""
+    return str(open(path).read())
+
 def remove_pid(path):
+    """Removes the PID file at *path*."""
     try:
-        os.unlink(path)
+        os.remove(path)
     except:
         pass
 
