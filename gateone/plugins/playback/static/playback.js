@@ -31,6 +31,7 @@ GateOne.Playback.frameUpdater = null; // Ditto
 GateOne.Playback.milliseconds = 0;
 GateOne.Playback.frameRate = 15; // Approximate
 GateOne.Playback.frameInterval = Math.round(1000/GateOne.Playback.frameRate); // Needs to be converted to ms
+GateOne.Playback.frameObj = {'screen': null, 'time': null}; // Used to prevent garbage from building up
 GateOne.Base.update(GateOne.Playback, {
     init: function() {
         var go = GateOne,
@@ -64,12 +65,10 @@ GateOne.Base.update(GateOne.Playback, {
         // This makes sure our prefs get saved along with everything else
         go.savePrefsCallbacks.push(GateOne.Playback.savePrefsCallback);
     },
-    pushPlaybackFrame: function(termNum) {
+    pushPlaybackFrame: function(term) {
         // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']
         var prefix = GateOne.prefs.prefix,
-            term = termNum,
-            playbackFrames = null,
-            frame = {'screen': GateOne.terminals[term]['screen'], 'time': new Date()};
+            playbackFrames = null;
         if (!GateOne.Playback.progressBarElement) {
             GateOne.Playback.progressBarElement = GateOne.Utils.getNode('#'+prefix+'progressBar');
         }
@@ -78,8 +77,9 @@ GateOne.Base.update(GateOne.Playback, {
         }
         playbackFrames = GateOne.terminals[term]['playbackFrames'];
         // Add the new playback frame to the terminal object
-        playbackFrames.push(frame);
-        frame = null; // Clean up
+        GateOne.Playback.frameObj['screen'] = GateOne.terminals[term]['screen'];
+        GateOne.Playback.frameObj['time'] = new Date();
+        playbackFrames.push(GateOne.Playback.frameObj);
         if (playbackFrames.length > GateOne.prefs.playbackFrames) {
             // Reduce it to fit within the user's configured max
 //             GateOne.terminals[term]['playbackFrames'].shift(); // NOTE: This won't work if the user reduced their playbackFrames preference by more than 1
