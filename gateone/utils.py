@@ -1089,6 +1089,75 @@ def valid_hostname(hostname, allow_underscore=False):
         allowed = re.compile("(?!-)[_A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
     return all(allowed.match(x) for x in hostname.split("."))
 
+def recursive_chown(path, uid, gid):
+    """Emulates 'chown -R *uid*:*gid* *path*' in pure Python"""
+    os.chown(path, uid, gid)
+    for root, dirs, files in os.walk(path):
+        for momo in dirs:
+            os.chown(os.path.join(root, momo), uid, gid)
+        for momo in files:
+            os.chown(os.path.join(root, momo), uid, gid)
+
+def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
+    """
+    Drop privileges by changing the current process owner/group to
+    *uid*/*gid* (both may be an integer or a string).  If *supl_groups* (list)
+    is given the process will be assigned those values as its effective
+    supplemental groups.  If *supl_groups* is None it will default to using
+    'tty' as the only supplemental group.  Example::
+
+        drop_privileges('gateone', 'gateone', ['tty'])
+
+    This would change the current process owner to gateone/gateone with 'tty' as
+    its only supplemental group.
+
+    .. note:: On most Unix systems users must belong to the 'tty' group to create new controlling TTYs which is necessary for 'pty.fork()' to work.
+
+    .. tip:: If you get errors like, "OSError: out of pty devices" it likely means that your OS uses something other than 'tty' as the group owner of the devpts filesystem.  'mount | grep pts' will tell you the owner.
+    """
+    import pwd, grp
+    running_gid = gid
+    if not isinstance(uid, int):
+        # Get the uid/gid from the name
+        running_uid = pwd.getpwnam(uid).pw_uid
+    running_uid = uid
+    if not isinstance(gid, int):
+        running_gid = grp.getgrnam(gid).gr_gid
+    if supl_groups:
+        for i, group in enumerate(supl_groups):
+            # Just update in-place
+            if not isinstance(group, int):
+                supl_groups[i] = grp.getgrnam(group).gr_gid
+        try:
+            os.setgroups(supl_groups)
+        except OSError, e:
+            logging.error(_('Could not set supplemental groups: %s' % e))
+            exit()
+    # Try setting the new uid/gid
+    try:
+        os.setgid(running_gid)
+    except OSError, e:
+        logging.error(_('Could not set effective group id: %s' % e))
+        exit()
+    try:
+        os.setuid(running_uid)
+    except OSError, e:
+        logging.error(_('Could not set effective user id: %s' % e))
+        exit()
+    # Ensure a very convervative umask
+    new_umask = 077
+    old_umask = os.umask(new_umask)
+    final_uid = os.getuid()
+    final_gid = os.getgid()
+    human_supl_groups = []
+    for group in supl_groups:
+        human_supl_groups.append(grp.getgrgid(group).gr_name)
+    logging.info(_(
+        'Running as user/group, "%s/%s" with the following supplemental groups:'
+        ' %s' % (pwd.getpwuid(final_uid)[0], grp.getgrgid(final_gid)[0],
+                 ",".join(human_supl_groups))
+    ))
+
 # Misc
 _ = get_translation()
 if MACOS: # Apply mac-specific stuff

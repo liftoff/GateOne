@@ -610,6 +610,13 @@ if __name__ == "__main__":
         action="store_true",
         help=_("Display the Liftoff Software logo inline in the terminal.")
     )
+    parser.add_option("--default_host",
+        dest="default_host",
+        default="localhost",
+        help=_("The default host that will be used for outbound connections if "
+               "no hostname is provided.  Default: localhost"),
+        metavar="'<hostname>'"
+    )
     (options, args) = parser.parse_args()
     # This is to prevent things like "ssh://user@host && <malicious commands>"
     bad_chars = re.compile('.*[\$\n\!\;&` |<>].*')
@@ -668,16 +675,24 @@ if __name__ == "__main__":
             'Error:  You must enter a valid port (1-65535).')
         invalid_user_err = _(
             'Error:  You must enter a valid username.')
+        default_host_str = " [%s]" % options.default_host
+        if options.default_host == "":
+            default_host_str = ""
         while not validated:
             url = raw_input(_(
-               "[Press Shift-F1 for help]\n\nHost/IP or SSH URL [localhost]: "))
+               "[Press Shift-F1 for help]\n\nHost/IP or SSH URL%s: " %
+               default_host_str))
             if bad_chars.match(url):
                 noop = raw_input(invalid_hostname_err)
                 continue
             if not url:
-                host = 'localhost'
-                protocol = 'ssh'
-                validated = True
+                if options.default_host:
+                    host = options.default_host
+                    protocol = 'ssh'
+                    validated = True
+                else:
+                    noop = raw_input(invalid_hostname_err)
+                    continue
             elif url.startswith('ssh://') or url.startswith('web+ssh'):
                 (user, host, port, password, identities) = parse_ssh_url(url)
                 protocol = 'ssh'

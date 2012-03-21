@@ -246,6 +246,8 @@ import logging
 import threading
 import time
 import socket
+import pty
+import pwd, grp
 from functools import partial, wraps
 from datetime import datetime, timedelta
 
@@ -288,7 +290,8 @@ from utils import create_plugin_links, merge_handlers, none_fix, short_hash
 from utils import convert_to_timedelta, kill_dtached_proc, FACILITIES, which
 from utils import process_opt_esc_sequence, create_data_uri, MimeTypeFail
 from utils import string_to_syslog_facility, fallback_bell, json_encode
-from utils import write_pid, read_pid, remove_pid
+from utils import write_pid, read_pid, remove_pid, drop_privileges
+from utils import recursive_chown
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -1088,7 +1091,7 @@ class TerminalWebSocket(WebSocketHandler):
                             logging.info(
                                 _("Creating user directory: %s" % user_dir))
                             mkdir_p(user_dir)
-                            os.chmod(user_dir, 0700)
+                            os.chmod(user_dir, 0770)
                         session_file = os.path.join(user_dir, 'session')
                         if os.path.exists(session_file):
                             session_data = open(session_file).read()
@@ -1153,7 +1156,7 @@ class TerminalWebSocket(WebSocketHandler):
             session_dir = os.path.join(session_dir, self.session)
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
-                os.chmod(session_dir, 0700)
+                os.chmod(session_dir, 0770)
             for item in os.listdir(session_dir):
                 if item.startswith('dtach_'):
                     term = int(item.split('_')[1])
@@ -1272,7 +1275,7 @@ class TerminalWebSocket(WebSocketHandler):
             # Create the session dir if not already present
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
-                os.chmod(session_dir, 0700)
+                os.chmod(session_dir, 0770)
             if self.settings['dtach']: # Wrap in dtach (love this tool!)
                 dtach_path = "%s/dtach_%s" % (session_dir, term)
                 if os.path.exists(dtach_path):
@@ -2178,6 +2181,20 @@ def main():
             "Define the path to the pid file.  Default: /var/run/gateone.pid"),
         type=str
     )
+    define(
+        "uid",
+        default="0", # root
+        help=_(
+            "Drop privileges and run Gate One as this user/uid."),
+        type=str
+    )
+    define(
+        "gid",
+        default="0", # root
+        help=_(
+            "Drop privileges and run Gate One as this group/gid."),
+        type=str
+    )
     # Before we do anythong else, load plugins and assign their hooks.  This
     # allows plugins to add their own define() statements/options.
     imported = load_plugins(PLUGINS['py'])
@@ -2226,6 +2243,17 @@ def main():
         config.close()
         tornado.options.parse_config_file(options.config)
     tornado.options.parse_command_line()
+    # Change the uid/gid strings into integers
+    try:
+        options.uid = int(options.uid)
+    except ValueError:
+        # Assume it's a username and grab its uid
+        options.uid = pwd.getpwnam(options.uid).pw_uid
+    try:
+        options.gid = int(options.gid)
+    except ValueError:
+        # Assume it's a group name and grab its gid
+        options.gid = grp.getgrnam(options.gid).gr_gid
     if not os.path.exists(options.user_dir): # Make our user_dir
         try:
             mkdir_p(options.user_dir)
@@ -2237,13 +2265,18 @@ def main():
                 repr(os.getlogin()), repr(os.getlogin()))))
             sys.exit(1)
         # If we could create it we should be able to adjust its permissions:
-        os.chmod(options.user_dir, 0700)
-    if not os.access(options.user_dir, os.W_OK):
-        logging.error(_(
-            "Error: Gate One does not have permission to write to %s.  Please"
-            " ensure that user, %s has write permission to the directory." % (
-            options.user_dir, repr(os.getlogin()))))
-        sys.exit(1)
+        os.chmod(options.user_dir, 0770)
+    if os.stat(options.user_dir).st_uid != options.uid:
+        # Try correcting this first
+        try:
+            recursive_chown(options.user_dir, options.uid, options.gid)
+        except OSError:
+            logging.error(_(
+                "Error: Gate One does not have permission to write to %s.  "
+                "Please ensure that user, %s has write permission to the "
+                "directory." % (
+                options.user_dir, repr(os.getlogin()))))
+            sys.exit(1)
     if not os.path.exists(options.session_dir): # Make our session_dir
         try:
             mkdir_p(options.session_dir)
@@ -2254,13 +2287,18 @@ def main():
                 "yourself and make user, %s its owner." % (options.session_dir,
                 repr(os.getlogin()), repr(os.getlogin()))))
             sys.exit(1)
-        os.chmod(options.session_dir, 0700)
-    if not os.access(options.session_dir, os.W_OK):
-        logging.error(_(
-            "Error: Gate One does not have permission to write to %s.  Please"
-            " ensure that user, %s has write permission to the directory." % (
-            options.session_dir, os.getlogin())))
-        sys.exit(1)
+        os.chmod(options.session_dir, 0770)
+    if os.stat(options.session_dir).st_uid != options.uid:
+        # Try correcting it
+        try:
+            recursive_chown(options.session_dir, options.uid, options.gid)
+        except OSError:
+            logging.error(_(
+                "Error: Gate One does not have permission to write to %s.  "
+                "Please ensure that user, %s has write permission to the "
+                "directory." % (
+                options.session_dir, os.getlogin())))
+            sys.exit(1)
     # Re-do the locale in case the user supplied something as --locale
     user_locale = locale.get(options.locale)
     _ = user_locale.translate # Also replaces our wrapper so no more .encode()
@@ -2276,12 +2314,17 @@ def main():
                   "One as root, or create that directory and give the proper "
                   "user ownership of it."))
             sys.exit(1)
-    if not os.access(log_dir, os.W_OK):
-        logging.error(_(
-            "Error: Gate One does not have permission to write to %s.  Please"
-            " ensure that user, %s has write permission to the directory." % (
-            log_dir, repr(os.getlogin()))))
-        sys.exit(1)
+    if os.stat(log_dir).st_uid != options.uid:
+        # Try to correct it
+        try:
+            recursive_chown(log_dir, options.uid, options.gid)
+        except OSError:
+            logging.error(_(
+                "Error: Gate One does not have permission to write to %s.  "
+                "Please ensure that user, %s has write permission to the "
+                "directory." % (
+                log_dir, repr(os.getlogin()))))
+            sys.exit(1)
     if options.kill:
         # Kill all running dtach sessions (associated with Gate One anyway)
         killall(options.session_dir)
@@ -2336,13 +2379,6 @@ def main():
     real_origins = options.origins.split(';')
     if options.origins == '*':
         real_origins = ['*']
-    #else:
-        #if options.disable_ssl:
-            #for origin in options.origins.split(';'):
-                #real_origins.append("http://%s" % origin)
-        #else:
-            #for origin in options.origins.split(';'):
-                #real_origins.append("https://%s" % origin)
     logging.info("Connections to this server will be allowed from the following"
                  " origins: '%s'" % " ".join(real_origins))
     # Define our Application settings
@@ -2434,6 +2470,15 @@ def main():
         write_pid(options.pid_file)
         pid = read_pid(options.pid_file)
         logging.info(_("Process running with pid " + pid))
+        # Check to see what group owns /dev/pts and use that for supl_groups
+        # First we have to make sure there's at least one pty present
+        tempfd1, tempfd2 = pty.openpty()
+        # Now check the owning group (doesn't matter which one so we use 0)
+        tty_gid = os.stat('/dev/pts/0').st_gid
+        # Close our temmporary pty/fds so we're not wasting them
+        os.close(tempfd1)
+        os.close(tempfd2)
+        drop_privileges(options.uid, options.gid, [tty_gid])
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
         logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
