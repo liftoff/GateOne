@@ -92,7 +92,8 @@ Module Functions and Classes
 """
 
 # Stdlib imports
-import signal, threading, os, sys, time, struct, io, gzip, re, weakref, logging
+import signal, threading, os, sys, time, struct, io, gzip, re, logging
+from copy import copy
 from datetime import timedelta, datetime
 from functools import partial
 from itertools import izip
@@ -931,9 +932,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         #self.io_loop.set_blocking_signal_threshold(2, self._blocked_io_handler)
         signal.signal(signal.SIGALRM, self._blocked_io_handler)
         self.reenable_timeout = None
-        interval = 100 # 0.1 seconds
-        self.scheduler = ioloop.PeriodicCallback(
-            weakref.proxy(self._timeout_checker), interval)
+        interval = 100 # A 0.1 second interval should be fast enough
+        self.scheduler = ioloop.PeriodicCallback(self._timeout_checker, interval)
 
     def __del__(self):
         """
@@ -1248,7 +1248,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         remaining_patterns = self.timeout_check()
         if not remaining_patterns:
             # No reason to keep the PeriodicCallback going
-            logging.debug("Stopping self.scheduler")
+            logging.debug("Stopping self.scheduler (no remaining patterns)")
             try:
                 self.scheduler.stop()
             except AttributeError:
@@ -1271,7 +1271,6 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         `PeriodicCallback` will automatically cancel itself if there are no more
         non-sticky patterns in :attr:`self._patterns`.
         """
-        #bytes = 10240
         result = self._read(bytes)
         remaining_patterns = self.timeout_check()
         if remaining_patterns and not self.scheduler._running:

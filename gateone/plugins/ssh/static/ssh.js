@@ -14,6 +14,7 @@ var logDebug = noop;
 // GateOne.SSH (ssh client functions)
 GateOne.Base.module(GateOne, "SSH", "1.0", ['Base']);
 GateOne.SSH.identities = []; // SSH identity objects end up in here
+GateOne.SSH.remoteCmdCallbacks = {};
 GateOne.Base.update(GateOne.SSH, {
     init: function() {
         var go = GateOne,
@@ -72,6 +73,7 @@ GateOne.Base.update(GateOne.SSH, {
         go.Net.addAction('sshjs_display_fingerprint', go.SSH.displayHostFingerprint);
         go.Net.addAction('sshjs_identities_list', go.SSH.incomingIDsAction);
         go.Net.addAction('sshjs_delete_identity_complete', go.SSH.deleteCompleteAction);
+        go.Net.addAction('sshjs_cmd_output', go.SSH.commandCompleted);
         go.Terminal.newTermCallbacks.push(go.SSH.getConnectString);
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
@@ -1003,6 +1005,37 @@ GateOne.Base.update(GateOne.SSH, {
             });
             v.displayMessage('Fingerprint of <i>' + message['host'] + '</i>: ' + colorized);
         }
+    },
+    commandCompleted: function(message) {
+        // Uses the contents of *message* to report the results of the command executed via execRemoteCmd()
+        // Message should be something like:  {'term': 1, 'cmd': 'uptime', 'output': ' 20:45:27 up 13 days,  3:44,  9 users,  load average: 1.21, 0.79, 0.57', 'result', 'Success'}
+        // If result is anything other than 'Success' the error will be displayed to the user.
+        // If a callback was registered in GateOne.SSH.remoteCmdCallbacks[term] it will be called like so:  callback(message['output']).  Otherwise the output will just be displayed to the user.
+        // After the callback has executed it will be removed from GateOne.SSH.remoteCmdCallbacks.
+        var go = GateOne,
+            term = message['term'],
+            cmd = message['cmd'],
+            output = message['output'],
+            result = message['result'];
+        if (result != 'Success') {
+            go.Visual.displayMessage("Error executing background command: " + result);
+            return;
+        }
+        if (go.SSH.remoteCmdCallbacks[term]) {
+            go.SSH.remoteCmdCallbacks[term](output);
+            delete go.SSH.remoteCmdCallbacks[term];
+        } else {
+            go.Visual.displayMessage("Remote command output from terminal " + term + ": " + output);
+        }
+    },
+    execRemoteCmd: function(term, command, callback) {
+        // Executes *command* by creating a secondary shell in the background using the multiplexed tunnel of *term* (works just like duplicateSession).
+        // Calls *callback* when the result of *command* comes back.
+        var go = GateOne,
+            ssh = go.SSH;
+        // Set the callback for *term*
+        ssh.remoteCmdCallbacks[term] = callback;
+        go.ws.send(JSON.stringify({'ssh_execute_command': {'term': term, 'cmd': command}}));
     }
 });
 

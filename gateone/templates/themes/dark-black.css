@@ -333,8 +333,7 @@ hr {
     display: block;
     position: absolute;
     bottom: 2em;
-    right: 0;
-    background-color: transparent;
+    right: 3em;
     z-index: 9999;
 }
 #{{prefix}}terminfo {
@@ -388,9 +387,12 @@ hr {
     -moz-transition: all 5.0s ease-in-out;
     /* Opera */
     -o-transition: all 5.0s ease-in-out;
+    /* IE */
+    -ms-transition: all 5.0s ease-in-out;
     /* Future CSS3 standard */
     transition: all 5.0s ease-in-out;
     color: #fff;
+    background-color: #000;
     font-weight: bold;
     font-size: 1.1em;
     border: 1px #FFF solid;

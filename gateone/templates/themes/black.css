@@ -49,9 +49,6 @@ hr {
     -o-transition-duration: 1s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* KHTML */
-    -khtml-transform-origin: top right;
-    -khtml-transition: all 1s ease-in-out;
     /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 1s ease-in-out;
@@ -78,8 +75,6 @@ hr {
     -moz-transform-origin: center center;
     /* Opera */
     -o-transform-origin: center center;
-    /* KHTML */
-    -khtml-transform-origin: center center;
     /* IE 9+ */
     -ms-transform-origin: center center;
     /* Future CSS3 standard */
@@ -92,8 +87,6 @@ hr {
     -moz-transform-origin: top right;
     /* Opera */
     -o-transform-origin: top right;
-    /* KHTML */
-    -khtml-transform-origin: top right;
     /* IE 9+ */
     -ms-transform-origin: top right;
     /* Future CSS3 standard */
@@ -111,9 +104,6 @@ hr {
     -o-transition-duration: 2s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* KHTML */
-    -khtml-transform-origin: top right;
-    -khtml-transition: all 2s ease-in-out;
     /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 2s ease-in-out;
@@ -133,9 +123,6 @@ hr {
     -o-transition-duration: 1s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* KHTML */
-    -khtml-transform-origin: top right;
-    -khtml-transition: all 1s ease-in-out;
     /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 1s ease-in-out;
@@ -156,9 +143,6 @@ hr {
     -o-transition-duration: 1s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* KHTML */
-    -khtml-transform-origin: top right;
-    -khtml-transition: -khtml-transform 1s ease-in-out;
     /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: -ms-transform 1s ease-in-out;
@@ -178,9 +162,6 @@ hr {
     -o-transition-duration: 0.5s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* KHTML */
-    -khtml-transform-origin: top right;
-    -khtml-transition: all 0.5s ease-in-out;
     /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 0.5s ease-in-out;
@@ -200,9 +181,6 @@ hr {
     -o-transition-duration: 0.25s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* KHTML */
-    -khtml-transform-origin: top right;
-    -khtml-transition: all 0.25s ease-in-out;
     /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 0.25s ease-in-out;
@@ -222,9 +200,6 @@ hr {
     -o-transition-duration: 0.1s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: left top;
-    /* KHTML */
-    -khtml-transform-origin: top right;
-    -khtml-transition: all 0.1s ease-in-out;
     /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 0.1s ease-in-out;
@@ -332,8 +307,7 @@ hr {
     display: block;
     position: absolute;
     bottom: 2em;
-    right: 0;
-    background-color: transparent;
+    right: 3em;
     z-index: 9999;
 }
 #{{prefix}}terminfo {
@@ -387,9 +361,12 @@ hr {
     -moz-transition: all 5.0s ease-in-out;
     /* Opera */
     -o-transition: all 5.0s ease-in-out;
+    /* IE */
+    -ms-transition: all 5.0s ease-in-out;
     /* Future CSS3 standard */
     transition: all 5.0s ease-in-out;
     color: #fff;
+    background-color: rgba(34,34,34,0.8);
     font-weight: bold;
     font-size: 1.1em;
     border: 1px #FFF solid;
@@ -787,8 +764,6 @@ hr {
     background-image: -webkit-linear-gradient(top, #fff, rgba(200, 200, 200, 0.5));
     /* Opera 11.10+ */
     background-image: -o-linear-gradient(top, #fff, rgba(200, 200, 200, 0.5));
-    /* Konqueror */
-    background-image: -khtml-linear-gradient(top,  #fff, rgba(200, 200, 200, 0.5));
     /* IE 9+ */
     background: -ms-linear-gradient(top,  #fff, rgba(200, 200, 200, 0.5));
     overflow: hidden;

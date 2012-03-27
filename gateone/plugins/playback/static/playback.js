@@ -57,9 +57,7 @@ GateOne.Base.update(GateOne.Playback, {
             }
             pTag.appendChild(infoPanelSaveRecording);
         }
-        setTimeout(function() {
-            GateOne.Playback.addPlaybackControls();
-        }, 3000);
+        GateOne.Playback.addPlaybackControls();
         // This makes sure our playback frames get added to the terminal object whenever the screen is updated
         go.Terminal.updateTermCallbacks.push(GateOne.Playback.pushPlaybackFrame);
         // This makes sure our prefs get saved along with everything else

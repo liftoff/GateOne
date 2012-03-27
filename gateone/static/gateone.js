@@ -4,7 +4,7 @@ COPYRIGHT NOTICE
 
 gateone.js and all related original code...
 
-Copyright 2011 Liftoff Software Corporation
+Copyright 2012 Liftoff Software Corporation
 
 Gate One Client - JavaScript
 ============================
@@ -218,8 +218,6 @@ GateOne.Base.update(GateOne, {
             }
             go.prefs.url = go.prefs.url.split('#')[0]; // Get rid of any hash at the end (just in case)
         }
-        // Load our CSS theme
-        u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
         // Load our JS Plugins
         u.loadScript(go.prefs.url+'combined_js', function() {
             // Check if we're authenticated after all the scripts are done loading
@@ -418,6 +416,8 @@ GateOne.Base.update(GateOne, {
                 go.Net.sendDimensions();
             }, 3000);
         }
+        // Connect to the server
+        go.Net.connect(go.prefs.url);
         // Apply user-specified dimension styles and settings
         go.Visual.applyStyle(goDiv, go.prefs.style);
         if (go.prefs.fillContainer) {
@@ -583,8 +583,6 @@ GateOne.Base.update(GateOne, {
         go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']['updateCSS'] = updateCSSfunc;
         // Make sure the termwrapper is the proper width for 2 columns
         go.Visual.updateDimensions();
-        // Connect to the server
-        go.Net.connect(go.prefs.url);
         // This calls plugins init() and postInit() functions:
         u.postOnLoad();
         // Start capturing keyboard input
@@ -603,6 +601,7 @@ GateOne.Base.update(GateOne.Utils, {
     init: function() {
         var go = GateOne;
         go.Net.addAction('save_file', go.Utils.saveAsAction);
+        go.Net.addAction('load_style', go.Utils.loadStyle);
     },
     getNode: function(nodeOrSelector) {
         // Given a CSS query selector (string, e.g. '#someid') or node (in case we're not sure), lookup the node using document.querySelector() and return it.
@@ -899,6 +898,27 @@ GateOne.Base.update(GateOne.Utils, {
             }
         });
     },
+    loadStyle: function(message) {
+        // Loads the stylesheet sent via the 'load_style' WebSocket command
+        logDebug("loadStyle()");
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            themeStyle = u.getNode('#'+prefix+'theme'); // Theme should always be last so it can override defaults and plugins
+        if (message['result'] == 'Success') {
+            if (message['colors']) {
+                var stylesheet = u.createElement('style', {'id': 'colors'});
+                stylesheet.textContent = message['colors'];
+                u.getNode("head").appendChild(stylesheet);
+            }
+            if (message['theme']) {
+                var stylesheet = u.createElement('style', {'id': 'theme'});
+                stylesheet.textContent = message['theme'];
+                u.getNode("head").insertBefore(stylesheet, themeStyle);
+            }
+        }
+        go.Visual.updateDimensions(); // In case the styles changed things
+    },
     loadCSS: function(url, id){
         // Imports the given CSS *URL* and applies the stylesheet to the current document.
         // When the <link> element is created it will use *id* like so: {'id': GateOne.prefs.prefix + id}.
@@ -911,11 +931,12 @@ GateOne.Base.update(GateOne.Utils, {
             prefix = go.prefs.prefix,
             container = go.prefs.goDiv.split('#')[1],
             cssNode = u.createElement('link', {'id': prefix+id, 'type': 'text/css', 'rel': 'stylesheet', 'href': url, 'media': 'screen'}),
+            styleNode = u.createElement('style', {'id': prefix+id}),
             existing = u.getNode('#'+prefix+id);
         if (existing) {
             u.removeElement(existing);
         }
-        var themeCSS = u.getNode('#'+prefix+'go_css_theme'); // Theme should always be last
+        var themeCSS = u.getNode('#'+prefix+'go_css_theme'); // Theme should always be last so it can override defaults and plugins
         if (themeCSS) {
             u.getNode("head").insertBefore(cssNode, themeCSS);
         } else {
@@ -938,12 +959,7 @@ GateOne.Base.update(GateOne.Utils, {
             container = GateOne.prefs.goDiv.split('#')[1],
             theme = schemeObj['theme'],
             colors = schemeObj['colors'];
-        if (theme) {
-            u.loadCSS(go.prefs.url+'style?theme='+theme+'&container='+container+'&prefix='+prefix, prefix+'css_theme');
-        }
-        if (colors) {
-            u.loadCSS(go.prefs.url+'style?colors='+colors+'&container='+container+'&prefix='+prefix, prefix+'css_colors');
-        }
+        go.ws.send(JSON.stringify({'get_style': {'container': container, 'prefix': prefix, 'theme': schemeObj['theme'], 'colors': schemeObj['colors']}}));
     },
     loadScript: function(url, callback){
         // Imports the given JS *url*
@@ -1129,9 +1145,9 @@ GateOne.Base.update(GateOne.Net, {
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
-        var rowAdjust = 2;
-        if (GateOne.Playback) {
-            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
+        var rowAdjust = 1;
+        if (!GateOne.Playback) {
+            rowAdjust = 0; //  Don't waste that bottom row if no playback plugin
         }
         if (typeof(ctrl_l) == 'undefined') {
             ctrl_l = true;
@@ -1189,7 +1205,7 @@ GateOne.Base.update(GateOne.Net, {
         logDebug("GateOne.Net.connect(" + go.wsURL + ")");
         go.ws = new WebSocket(go.wsURL); // For reference, I already tried Socket.IO and custom implementations of long-held HTTP streams...  Only WebSockets provide low enough latency for real-time terminal interaction.  All others were absolutely unacceptable in real-world testing (especially Flash-based...  Wow, really surprised me how bad it was).
         go.ws.onopen = go.Net.onOpen;
-        go.ws.onclose = function() {
+        go.ws.onclose = function(evt) {
             // Connection to the server was lost
             logDebug("WebSocket Closed");
             go.Net.connectionError();
@@ -1202,35 +1218,30 @@ GateOne.Base.update(GateOne.Net, {
         return go.ws;
     },
     onOpen: function() {
-        var settings = null;
-        try {
-            // Clear the error message if it's still there
-            GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'termwrapper').innerHTML = "";
-            // Load the Web Worker
-            GateOne.ws.send(JSON.stringify({'get_webworker': null}));
-            // Check if there are any existing terminals for the current session ID
+        logDebug("onOpen()");
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix};
+        // Load our CSS right away so the dimensions/placement of things is correct.
+        u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
+        // Clear the error message if it's still there
+        u.getNode('#'+prefix+'termwrapper').innerHTML = "";
+        // Load the Web Worker
+        logDebug("Attempting to download our WebWorker...");
+        go.ws.send(JSON.stringify({'get_webworker': null}));
+        // Check if there are any existing terminals for the current session ID
+        go.ws.send(JSON.stringify({'authenticate': settings}));
+        // Autoconnect if autoConnectURL is specified
+        if (go.prefs.autoConnectURL) {
             setTimeout(function () {
-                settings = {'auth': GateOne.prefs.auth, 'container': GateOne.prefs.goDiv.split('#')[1], 'prefix': GateOne.prefs.prefix};
-                GateOne.ws.send(JSON.stringify({'authenticate': settings}));
-                // Autoconnect if autoConnectURL is specified
-                if (GateOne.prefs.autoConnectURL) {
-                    setTimeout(function () {
-                        GateOne.Input.queue(GateOne.prefs.autoConnectURL+'\n');
-                        GateOne.Net.sendChars();
-                    }, 500);
-                }
-                // Update our dimensions (for some reason they can be lost if disconnected)
-//                 setTimeout(function() {
-//                     GateOne.Net.sendDimensions();
-//                     NOTE: If this gets called before a any terminals have been opened it will simply be ignored by the server
-//                 }, 1000);
-                setTimeout(function() {
-                    GateOne.Net.ping(); // Check latency (after things have calmed down a bit =)
-                }, 3000);
-            }, 1000);
-        } finally {
-            settings = null;
+                go.Input.queue(go.prefs.autoConnectURL+'\n');
+                go.Net.sendChars();
+            }, 500);
         }
+        setTimeout(function() {
+            go.Net.ping(); // Check latency (after things have calmed down a bit =)
+        }, 3000);
     },
     onMessage: function (evt) {
         logDebug('message: ' + evt.data);
@@ -2338,6 +2349,7 @@ GateOne.Base.update(GateOne.Visual, {
             u = go.Utils,
             prefix = go.prefs.prefix;
         if (term) {
+            var termPreNode = u.getNode('#'+prefix+'term'+term+'_pre');
             if (!go.terminals[term]) { // The terminal was just closed
                 return; // We're done here
             }
@@ -2350,26 +2362,25 @@ GateOne.Base.update(GateOne.Visual, {
                 }, 3500);
                 return;
             }
-            var replacement_html = '<pre id="'+prefix+'term' + term + '_pre" style="height: 100%">' + go.terminals[term]['scrollback'].join('\n') + '\n' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
-            u.getNode('#' + prefix + 'term' + term).innerHTML = replacement_html;
+            termPreNode.style.height = '100%';
+            termPreNode.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n' + go.terminals[term]['screen'].join('\n') + '\n\n';
             if (go.terminals[term]['scrollbackTimer']) {
                 clearTimeout(go.terminals[term]['scrollbackTimer']);
             }
             go.terminals[term]['scrollbackVisible'] = true;
-            var termPre = u.getNode('#'+prefix+'term' + term + '_pre');
-            u.scrollToBottom(termPre);
+            u.scrollToBottom(termPreNode);
         } else {
             var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
-                    replacement_html = '<pre id="' + termObj.id + '_pre" style="height: 100%">' + go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
-                    u.getNode('#' + prefix + 'term' + term).innerHTML = replacement_html;
+                    termPreNode = u.getNode('#'+prefix+'term'+termID+'_pre');
+                termPreNode.style.height = '100%';
+                termPreNode.innerHTML = go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n';
                 if (go.terminals[termID]['scrollbackTimer']) {
                     clearTimeout(go.terminals[termID]['scrollbackTimer']);
                 }
                 go.terminals[termID]['scrollbackVisible'] = true;
-                var termPre = u.getNode('#'+prefix+'term' + termID + '_pre');
-                u.scrollToBottom(termPre);
+                u.scrollToBottom(termPreNode);
             });
         }
         go.Visual.scrollbackToggle = true;
@@ -2383,13 +2394,17 @@ GateOne.Base.update(GateOne.Visual, {
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             textTransforms = go.Terminal.textTransforms;
         if (term) {
-            var replacement_html = '<pre id="'+prefix+'term' + term + '_pre">' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
-            u.getNode('#' + prefix + 'term' + term).innerHTML = replacement_html;
+            var termPreNode = u.getNode('#'+prefix+'term'+term+'_pre');
+//             replacement_html = '<pre id="'+prefix+'term' + term + '_pre">' + go.terminals[term]['screen'].join('\n') + '\n\n</pre>';
+            termPreNode.innerHTML = go.terminals[term]['screen'].join('\n') + '\n\n';
+//             u.getNode('#' + prefix + 'term' + term).innerHTML = replacement_html;
         } else {
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
-                    replacement_html = '<pre id="' + termObj.id + '_pre">' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
-                u.getNode('#' + prefix + 'term' + termID).innerHTML = replacement_html;
+                    termPreNode = u.getNode('#'+prefix+'term'+termID+'_pre');
+//                     replacement_html = '<pre id="' + termObj.id + '_pre">' + go.terminals[termID]['screen'].join('\n') + '\n\n</pre>';
+//                 u.getNode('#' + prefix + 'term' + termID).innerHTML = replacement_html;
+                termPreNode.innerHTML = go.terminals[termID]['screen'].join('\n') + '\n\n';
             });
         }
         go.Visual.scrollbackToggle = false;
@@ -2437,7 +2452,6 @@ GateOne.Base.update(GateOne.Visual, {
         if (changeSelected) {
             go.Net.setTerminal(term);
         }
-//         v.updateDimensions();
         u.getNode('#'+go.prefs.prefix+'sideinfo').innerHTML = displayText;
         // Have to scroll all the way to the top in order for the translate effect to work properly:
         u.getNode(go.prefs.goDiv).scrollTop = 0;
@@ -3099,7 +3113,8 @@ GateOne.Base.update(GateOne.Terminal, {
         return null;
     },
     termUpdateFromWorker: function(e) {
-        var prefix = GateOne.prefs.prefix + "",
+        var u = GateOne.Utils,
+            prefix = GateOne.prefs.prefix + "",
             data = e.data,
             term = data.term,
             screen = data.screen,
@@ -3108,34 +3123,34 @@ GateOne.Base.update(GateOne.Terminal, {
             consoleLog = data.log, // Only used when debugging
             screenUpdate = false,
             termTitle = "Gate One", // Will be replaced down below
-            reScrollback = GateOne.Utils.partial(GateOne.Visual.enableScrollback, term),
-            writeScrollback = GateOne.Utils.partial(GateOne.Terminal.writeScrollback, term, scrollback);
+            reScrollback = u.partial(GateOne.Visual.enableScrollback, term),
+            writeScrollback = u.partial(GateOne.Terminal.writeScrollback, term, scrollback);
         if (term && GateOne.terminals[term]) {
-            termTitle = GateOne.Utils.getNode('#'+prefix+'term'+term).title;
+            termTitle = u.getNode('#'+prefix+'term'+term).title;
         } else {
             // Terminal was likely just closed.
             return;
         };
         if (screen) {
-            var termContainer = GateOne.Utils.getNode('#'+prefix+'term'+term),
-                existingPre = GateOne.Utils.getNode('#'+prefix+'term'+term+'_pre'),
-                termPre = GateOne.Utils.createElement('pre', {'id': 'term'+term+'_pre'});
+            var termContainer = u.getNode('#'+prefix+'term'+term),
+                existingPre = u.getNode('#'+prefix+'term'+term+'_pre');
             try {
                 GateOne.terminals[term]['screen'] = screen;
-                termPre.innerHTML = screen.join('\n') + '\n\n';
                 if (existingPre) {
-                    termContainer.replaceChild(termPre, existingPre);
+                    existingPre.innerHTML = screen.join('\n') + '\n\n';
+                    existingPre.style.height = 'auto';
                 } else {
+                    var termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
+                    termPre.innerHTML = screen.join('\n') + '\n\n';
                     termContainer.appendChild(termPre);
                 }
                 screenUpdate = true;
                 GateOne.terminals[term]['scrollbackVisible'] = false;
             } catch (e) { // Likely the terminal just closed
-                GateOne.Utils.noop(); // Just ignore it.
+                u.noop(); // Just ignore it.
             } finally {
                 termContainer = null;
                 existingPre = null;
-                termPre = null;
                 screen = null;
             }
         }
@@ -3163,7 +3178,7 @@ GateOne.Base.update(GateOne.Terminal, {
             // Take care of the activity/inactivity notifications
             if (GateOne.terminals[term]['inactivityTimer']) {
                 clearTimeout(GateOne.terminals[term]['inactivityTimer']);
-                var inactivity = GateOne.Utils.partial(GateOne.Terminal.notifyInactivity, termTitle);
+                var inactivity = u.partial(GateOne.Terminal.notifyInactivity, termTitle);
                 try {
                     GateOne.terminals[term]['inactivityTimer'] = setTimeout(inactivity, GateOne.terminals[term]['inactivityTimeout']);
                 } finally {
@@ -3296,9 +3311,9 @@ GateOne.Base.update(GateOne.Terminal, {
         // Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         // TODO: Finish supporting terminal types.
         logDebug("calling newTerminal(" + term + ")");
-        var rowAdjust = 2;
-        if (GateOne.Playback) {
-            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
+        var rowAdjust = 1;
+        if (!GateOne.Playback) {
+            rowAdjust = 0; //  Don't waste that bottom row if no playback plugin
         }
         var go = GateOne,
             u = go.Utils,
@@ -3452,13 +3467,10 @@ GateOne.Base.update(GateOne.Terminal, {
         } else {
             // Create a new terminal
             go.Terminal.lastTermNumber = 0; // Reset to 0
-            go.Terminal.newTerminal();
+            setTimeout(function() {
+                go.Terminal.newTerminal();
+            }, 1000); // Give everything a moment to settle so the dimensions are set properly
         }
-        // In case the user changed the rows/cols or the font/size changed:
-//         setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
-//             go.Visual.updateDimensions();
-//             go.Net.sendDimensions();
-//         }, 2000);
     },
     modes: {
         // Various functions that will be called when a matching mode is set.

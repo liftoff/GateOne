@@ -401,7 +401,11 @@ def _retrieve_log_playback(queue, settings):
                 container, i, COLORS_256[i])
             bg = "#%s span.bx%s {background-color: #%s;} " % (
                 container, i, COLORS_256[i])
-            colors_256 += "%s %s" % (fg, bg)
+            fg_rev = "#%s span.reverse.fx%s {background-color: #%s; color: inherit;}" % (
+                container, i, COLORS_256[i])
+            bg_rev = "#%s span.reverse.bx%s {color: #%s; background-color: inherit;} " % (
+                container, i, COLORS_256[i])
+            colors_256 += "%s %s %s %s" % (fg, bg, fg_rev, bg_rev)
         colors_256 += "\n"
         rendered_theme = theme_template.generate(
             container=container,

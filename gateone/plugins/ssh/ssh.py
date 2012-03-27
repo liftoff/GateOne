@@ -172,6 +172,7 @@ def get_cmd_output(term, errorback, callback, m_instance, matched):
         noop, # Don't need to do anything since this should never match
         errorback=timeout_sub_channel,
         timeout=SUBCHANNEL_TIMEOUT)
+    m_instance.scheduler.start() # To ensure the timeout occurs
     cmd_out = "\n".join(out)
     if callback:
         callback(cmd_out, None)
@@ -180,6 +181,7 @@ def terminate_sub_channel(m_instance):
     """
     Calls m_instance.terminate() and deletes it from the OPEN_SUBCHANNELS dict.
     """
+    logging.debug("terminate_sub_channel()")
     global OPEN_SUBCHANNELS
     m_instance.terminate()
     # Find the Multiplex object inside of OPEN_SUBCHANNELS and remove it
@@ -235,12 +237,13 @@ def execute_command(term, cmd, callback=None, tws=None):
     """
     logging.debug(
         "execute_command(): term: %s, cmd: %s" % (term, cmd))
-    #try:
-    m = open_sub_channel(term, tws)
-    #except SSHMultiplexingException as e:
-        #logging.error(_(
-            #"%s: Got an error trying to open sub-channel on term %s..." %
-            #(tws.get_current_user()['upn'], term)))
+    try:
+        m = open_sub_channel(term, tws)
+    except SSHMultiplexingException as e:
+        logging.error(_(
+            "%s: Got an error trying to open sub-channel on term %s..." %
+            (tws.get_current_user()['upn'], term)))
+        return
     # NOTE: We can assume the IOLoop is started and automatically calling read()
     m.unexpect() # Clear out any existing patterns (if existing sub-channel)
     m.term.clear_screen() # Clear the screen so nothing mucks up our regexes
@@ -252,9 +255,10 @@ def execute_command(term, cmd, callback=None, tws=None):
     errorback = partial(got_error, cmd=cmd, tws=tws)
     wait = partial(wait_for_prompt, term, cmd, errorback, callback)
     m.expect(READY_MATCH, callback=wait, errorback=errorback, timeout=10)
+    logging.debug("Waiting for READY_MATCH inside execute_command()")
     m.writeline(u'echo "%s"' % READY_STRING)
 
-def send_result(tws, cmd, output, m_instance):
+def send_result(tws, term, cmd, output, m_instance):
     """
     Called by ws_exec_command() when the output of the executed command has been
     captured successfully.  Writes a message to the client with the command's
@@ -262,6 +266,7 @@ def send_result(tws, cmd, output, m_instance):
     """
     message = {
         'sshjs_cmd_output': {
+            'term': term,
             'cmd': cmd,
             'output': output,
             'result': 'Success'
@@ -277,12 +282,13 @@ def ws_exec_command(settings, tws):
     """
     term = settings['term']
     cmd = settings['cmd']
-    send = partial(send_result, tws, cmd)
+    send = partial(send_result, tws, term, cmd)
     try:
         execute_command(term, cmd, send, tws=tws)
     except SSHExecutionException as e:
         message = {
             'sshjs_cmd_output': {
+                'term': term,
                 'cmd': cmd,
                 'output': None,
                 'result': 'Error: %s' % e

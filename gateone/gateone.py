@@ -7,6 +7,7 @@
 
 # TODO:
 # * Write init scripts to stop/start/restart Gate One safely.  Also make sure that .deb and .rpm packages safely restart Gate One without impacting running sessions.  The setup.py should also attempt to minify the .css and .js files.
+# * Write a permissions check function so we don't have to repeat ourselves all over the place inside of main()
 
 # Meta
 __version__ = '1.0'
@@ -697,84 +698,6 @@ class MainHandler(BaseHandler):
             body=body_html
         )
 
-class StyleHandler(BaseHandler):
-    """
-    Serves up our CSS templates (themes, colors, etc) and enumerates what's
-    available depending on the given arguments:
-
-    If 'enumerate' is given, returna  JSON-encoded object containing lists of
-    our themes/colors in the form of:
-
-        {'themes': themes, 'colors': colors}
-
-    NOTE: The .css part of filenames will be stripped when sent to the client.
-
-    If 'theme' or 'colors' are provided (along with the requisite 'container'
-    and 'prefix' arguments), returns the content of the requested CSS file.
-    """
-    # Disabled authentication for this so we could get embedding working without
-    # requiring a cookie to be set.  Stylesheet enumeration isn't exactly a
-    # compelling attack vector.
-    def get(self):
-        self.set_header ('Access-Control-Allow-Origin', '*')
-        enum = self.get_argument("enumerate", None)
-        templates_path = os.path.join(GATEONE_DIR, 'templates')
-        themes_path = os.path.join(templates_path, 'themes')
-        colors_path = os.path.join(templates_path, 'term_colors')
-        if enum:
-            themes = os.listdir(themes_path)
-            themes = [a.replace('.css', '') for a in themes]
-            colors = os.listdir(colors_path)
-            colors = [a.replace('.css', '') for a in colors]
-            self.set_header ('Content-Type', 'application/json')
-            message = {'themes': themes, 'colors': colors}
-            self.write(json_encode(message))
-            self.finish()
-        else:
-            container = self.get_argument("container")
-            prefix = self.get_argument("prefix")
-            theme = self.get_argument("theme", None)
-            colors = self.get_argument("colors", None)
-            # Setup our 256-color support CSS:
-            colors_256 = ""
-            for i in xrange(256):
-                fg = "#%s span.fx%s {color: #%s;}" % (
-                    container, i, COLORS_256[i])
-                bg = "#%s span.bx%s {background-color: #%s;} " % (
-                    container, i, COLORS_256[i])
-                fg_rev = "#%s span.reverse.fx%s {background-color: #%s; color: inherit;}" % (
-                    container, i, COLORS_256[i])
-                bg_rev = "#%s span.reverse.bx%s {color: #%s; background-color: inherit;} " % (
-                    container, i, COLORS_256[i])
-                colors_256 += "%s %s %s %s" % (fg, bg, fg_rev, bg_rev)
-            colors_256 += "\n"
-            self.set_header ('Content-Type', 'text/css')
-            if theme:
-                try:
-                    theme_path = os.path.join(themes_path, "%s.css" % theme)
-                    self.render(
-                        theme_path,
-                        container=container,
-                        prefix=prefix,
-                        colors_256=colors_256,
-                        url_prefix=self.settings['url_prefix']
-                    )
-                except IOError:
-                    # Given theme was not found
-                    logging.error(_("%s was not found" % theme_path))
-            elif colors:
-                try:
-                    color_path = os.path.join(colors_path, "%s.css" % colors)
-                    self.render(
-                        color_path,
-                        container=container,
-                        prefix=prefix,
-                        url_prefix=self.settings['url_prefix']
-                    )
-                except IOError:
-                    # Given theme was not found
-                    logging.error(_("%s was not found" % color_path))
-
 class PluginCSSTemplateHandler(BaseHandler):
     """
     Renders plugin CSS template files, passing them the same *prefix* and
@@ -866,6 +789,7 @@ class TerminalWebSocket(WebSocketHandler):
             'full_refresh': self.full_refresh,
             'resize': self.resize,
             'get_webworker': self.get_webworker,
+            'get_style': self.get_style,
             'debug_terminal': self.debug_terminal
         }
         self.terms = {}
@@ -1310,7 +1234,7 @@ class TerminalWebSocket(WebSocketHandler):
                 SESSIONS[self.session][term]['multiplex'].prev_output[
                     self.client_id] = [None for a in xrange(rows-1)]
                 # Remind the client about this terminal's title
-                self.set_title(term)
+                self.set_title(term, force=True)
             else:
                 # Tell the client this terminal is no more
                 message = {'term_ended': term}
@@ -1407,7 +1331,7 @@ class TerminalWebSocket(WebSocketHandler):
         self.write_message(json_encode(message))
 
     @require_auth
-    def set_title(self, term):
+    def set_title(self, term, force=False):
         """
         Sends a message to the client telling it to set the window title of
         *term* to whatever comes out of::
@@ -1418,6 +1342,9 @@ class TerminalWebSocket(WebSocketHandler):
 
             {'set_title': {'term': 1, 'title': "user@host"}}
 
+        If *force* resolves to True the title will be sent to the cleint even if
+        it matches the previously-set title.
+
         .. note:: Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.
         """
         logging.debug("set_title(%s)" % term)
@@ -1426,7 +1353,7 @@ class TerminalWebSocket(WebSocketHandler):
         if 'title' not in SESSIONS[self.session][term]:
             # There's a first time for everything
             SESSIONS[self.session][term]['title'] = ''
-        if title != SESSIONS[self.session][term]['title']:
+        if title != SESSIONS[self.session][term]['title'] or force:
             SESSIONS[self.session][term]['title'] = title
             title_message = {'set_title': {'term': term, 'title': title}}
             self.write_message(json_encode(title_message))
@@ -1667,6 +1594,69 @@ class TerminalWebSocket(WebSocketHandler):
         message = {'load_webworker': go_process}
         self.write_message(json_encode(message))
 
+    def get_style(self, settings):
+        """
+        Sends the CSS stylesheets matching the properties specified in
+        *settings* to the client.  *settings* must contain the following:
+
+            * **container** - The element Gate One resides in (e.g. 'gateone')
+            * **prefix** - The string being used to prefix all elements (e.g. 'go_')
+
+        *settings* may also contain any combination of the following:
+
+            * **theme** - The name of the CSS theme to be retrieved.
+            * **colors** - The name of the text color CSS scheme to be retrieved.
+            * **plugins** - May be a specific plugin name or 'ALL' (in caps like that--just in case someone decides to make an 'all' plugin some day).
+        """
+        logging.debug('get_style(%s)' % settings)
+        out_dict = {'result': 'Success'}
+        templates_path = os.path.join(GATEONE_DIR, 'templates')
+        themes_path = os.path.join(templates_path, 'themes')
+        colors_path = os.path.join(templates_path, 'term_colors')
+        container = settings["container"]
+        prefix = settings["prefix"]
+        theme = None
+        if 'theme' in settings:
+            theme = settings["theme"]
+        colors = None
+        if 'colors' in settings:
+            colors = settings["colors"]
+        if theme:
+            # Setup our 256-color support CSS:
+            colors_256 = ""
+            for i in xrange(256):
+                fg = "#%s span.fx%s {color: #%s;}" % (
+                    container, i, COLORS_256[i])
+                bg = "#%s span.bx%s {background-color: #%s;} " % (
+                    container, i, COLORS_256[i])
+                fg_rev = "#%s span.reverse.fx%s {background-color: #%s; color: inherit;}" % (
+                    container, i, COLORS_256[i])
+                bg_rev = "#%s span.reverse.bx%s {color: #%s; background-color: inherit;} " % (
+                    container, i, COLORS_256[i])
+                colors_256 += "%s %s %s %s" % (fg, bg, fg_rev, bg_rev)
+            colors_256 += "\n"
+            theme_path = os.path.join(themes_path, "%s.css" % theme)
+            theme_css = self.render_string(
+                theme_path,
+                container=container,
+                prefix=prefix,
+                colors_256=colors_256,
+                url_prefix=self.settings['url_prefix']
+            )
+            out_dict['theme'] = theme_css
+        if colors:
+            color_path = os.path.join(colors_path, "%s.css" % colors)
+            colors_css = self.render_string(
+                color_path,
+                container=container,
+                prefix=prefix,
+                url_prefix=self.settings['url_prefix']
+            )
+            out_dict['colors'] = colors_css
+        #if plugins:
+            # TODO: Finish this up...  Plugin CSS needs to be sent too and we need to fix gateone.js so that it actually requests this information (or let authenticate() do it)
+        self.write_message({'load_style': out_dict})
+
     @require_auth
     def debug_terminal(self, term):
         """
@@ -1872,7 +1862,6 @@ class Application(tornado.web.Application):
             (index_regex, MainHandler),
             (r"%sws" % url_prefix, TerminalWebSocket),
             (r"%sauth" % url_prefix, AuthHandler),
-            (r"%sstyle" % url_prefix, StyleHandler),
             (r"%scssrender" % url_prefix, PluginCSSTemplateHandler),
             (r"%scombined_js" % url_prefix, JSPluginsHandler),
             (r"%sdocs/(.*)" % url_prefix, tornado.web.StaticFileHandler, {
@@ -2417,6 +2406,18 @@ def main():
         gen_self_signed_ssl()
     # Setup static file links for plugins (if any)
     static_dir = os.path.join(GATEONE_DIR, "static")
+    # Verify static_dir's permissions
+    if os.stat(static_dir).st_uid != options.uid:
+        # Try correcting it
+        try: # Just os.chown on this one (recursive could be bad)
+            os.chown(static_dir, options.uid, options.gid)
+        except OSError:
+            logging.error(_(
+                "Error: Gate One does not have permission to write to %s.  "
+                "Please ensure that user, %s has write permission to the "
+                "directory." % (
+                static_dir, os.getlogin())))
+            sys.exit(1)
     plugin_dir = os.path.join(GATEONE_DIR, "plugins")
     templates_dir = os.path.join(GATEONE_DIR, "templates")
     combined_plugins = os.path.join(static_dir, "combined_plugins.js")
