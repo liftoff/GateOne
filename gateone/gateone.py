@@ -790,6 +790,7 @@ class TerminalWebSocket(WebSocketHandler):
             'resize': self.resize,
             'get_webworker': self.get_webworker,
             'get_style': self.get_style,
+            'enumerate_themes': self.enumerate_themes,
             'debug_terminal': self.debug_terminal
         }
         self.terms = {}
@@ -1656,6 +1657,21 @@ class TerminalWebSocket(WebSocketHandler):
         #if plugins:
             # TODO: Finish this up...  Plugin CSS needs to be sent too and we need to fix gateone.js so that it actually requests this information (or let authenticate() do it)
         self.write_message({'load_style': out_dict})
+
+    def enumerate_themes(self):
+        """
+        Returns a JSON-encoded object containing the installed themes and text
+        color schemes.
+        """
+        templates_path = os.path.join(GATEONE_DIR, 'templates')
+        themes_path = os.path.join(templates_path, 'themes')
+        colors_path = os.path.join(templates_path, 'term_colors')
+        themes = os.listdir(themes_path)
+        themes = [a.replace('.css', '') for a in themes]
+        colors = os.listdir(colors_path)
+        colors = [a.replace('.css', '') for a in colors]
+        message = {'themes_list': {'themes': themes, 'colors': colors}}
+        self.write_message(message)
 
     @require_auth
     def debug_terminal(self, term):

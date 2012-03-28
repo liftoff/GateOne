@@ -744,28 +744,46 @@ GateOne.Base.update(GateOne.SSH, {
                 privateKeyReader = new FileReader(),
                 sendPrivateKey = function(evt) {
                     var data = evt.target.result,
-                        settings = {
-                            'name': privFile.fileName, // The 'name' here represents the name of the identity, not the file, specifically
-                            'private': data,
-                        };
+                        fileName = null;
+                    if (privFile.fileName) {
+                        fileName = privFile.fileName;
+                    } else {
+                        fileName = privFile.name;
+                    }
+                    var settings = {
+                        'name': fileName, // The 'name' here represents the name of the identity, not the file, specifically
+                        'private': data,
+                    };
                     go.ws.send(JSON.stringify({'ssh_store_id_file': settings}));
                 },
                 publicKeyReader = new FileReader(),
                 sendPublicKey = function(evt) {
                     var data = evt.target.result,
-                        settings = {
-                            'name': privFile.fileName,
-                            'public': data,
-                        };
+                        fileName = null;
+                    if (privFile.fileName) {
+                        fileName = privFile.fileName;
+                    } else {
+                        fileName = privFile.name;
+                    }
+                    var settings = {
+                        'name': fileName,
+                        'public': data,
+                    };
                     go.ws.send(JSON.stringify({'ssh_store_id_file': settings}));
                 },
                 certificateReader = new FileReader(),
                 sendCertificate = function(evt) {
                     var data = evt.target.result,
-                        settings = {
-                            'name': privFile.fileName,
-                            'certificate': data,
-                        };
+                        fileName = null;
+                    if (privFile.fileName) {
+                        fileName = privFile.fileName;
+                    } else {
+                        fileName = privFile.name;
+                    }
+                    var settings = {
+                        'name': fileName,
+                        'certificate': data,
+                    };
                     go.ws.send(JSON.stringify({'ssh_store_id_file': settings}));
                 };
             // Get the data out of the files

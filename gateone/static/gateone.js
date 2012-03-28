@@ -280,32 +280,10 @@ GateOne.Base.update(GateOne, {
             sideinfo = u.createElement('div', {'id': 'sideinfo', 'class':'sideinfo'}),
             themeList = [], // Gets filled out below
             colorsList = [],
-            enumerateCSS = function(jsonObj) {
-                // Meant to be called from the xhrGet() below
-                var decoded = JSON.parse(jsonObj),
-                    themesList = decoded['themes'],
-                    colorsList = decoded['colors'],
-                    prefsThemeSelect = u.getNode('#'+prefix+'prefs_theme'),
-                    prefsColorsSelect = u.getNode('#'+prefix+'prefs_colors');
-                prefsThemeSelect.options.length = 0;
-                prefsColorsSelect.options.length = 0;
-                for (var i in themesList) {
-                    prefsThemeSelect.add(new Option(themesList[i], themesList[i]), null);
-                    if (go.prefs.theme == themesList[i]) {
-                        prefsThemeSelect.selectedIndex = i;
-                    }
-                }
-                for (var i in colorsList) {
-                    prefsColorsSelect.add(new Option(colorsList[i], colorsList[i]), null);
-                    if (go.prefs.colors == colorsList[i]) {
-                        prefsColorsSelect.selectedIndex = i;
-                    }
-                }
-            },
-            updateCSSfunc = function() { u.xhrGet(go.prefs.url + 'style?enumerate=True', enumerateCSS) };
+            updateCSSfunc = function() { go.ws.send(JSON.stringify({'enumerate_themes': null})) };
         // Create our prefs panel
         go.Visual.applyTransform(prefsPanel, 'scale(0)');
-        toolbarIconPrefs.innerHTML = GateOne.Icons.prefs;
+        toolbarIconPrefs.innerHTML = go.Icons.prefs;
         prefsPanelH2.innerHTML = "Preferences";
         prefsPanel.appendChild(prefsPanelH2);
         prefsPanelThemeLabel.innerHTML = "<b>Theme:</b> ";
@@ -602,6 +580,7 @@ GateOne.Base.update(GateOne.Utils, {
         var go = GateOne;
         go.Net.addAction('save_file', go.Utils.saveAsAction);
         go.Net.addAction('load_style', go.Utils.loadStyle);
+        go.Net.addAction('themes_list', go.Utils.enumerateThemes);
     },
     getNode: function(nodeOrSelector) {
         // Given a CSS query selector (string, e.g. '#someid') or node (in case we're not sure), lookup the node using document.querySelector() and return it.
@@ -903,19 +882,37 @@ GateOne.Base.update(GateOne.Utils, {
         logDebug("loadStyle()");
         var go = GateOne,
             u = go.Utils,
-            prefix = go.prefs.prefix,
-            themeStyle = u.getNode('#'+prefix+'theme'); // Theme should always be last so it can override defaults and plugins
+            prefix = go.prefs.prefix;
         if (message['result'] == 'Success') {
-            if (message['colors']) {
-                var stylesheet = u.createElement('style', {'id': 'colors'});
-                stylesheet.textContent = message['colors'];
-                u.getNode("head").appendChild(stylesheet);
-            }
             if (message['theme']) {
-                var stylesheet = u.createElement('style', {'id': 'theme'});
+                var existing = u.getNode('#'+prefix+'theme'),
+                    stylesheet = u.createElement('style', {'id': 'theme'});
                 stylesheet.textContent = message['theme'];
-                u.getNode("head").insertBefore(stylesheet, themeStyle);
+                if (existing) {
+                    existing.textContent = message['theme'];
+                } else {
+                    u.getNode("head").appendChild(stylesheet);
+                }
             }
+            if (message['colors']) {
+                var existing = u.getNode('#'+prefix+'colors'),
+                    stylesheet = u.createElement('style', {'id': 'colors'}),
+                    themeStyle = u.getNode('#'+prefix+'theme'); // Theme should always be last so it can override defaults and plugins
+                stylesheet.textContent = message['colors'];
+                if (existing) {
+                    existing.textContent = message['colors'];
+                } else {
+                    u.getNode("head").insertBefore(stylesheet, themeStyle);
+                }
+            }
+            setTimeout(function() {
+                // Force the terminals to be re-drawn by the browser to ensure the text stays visible
+                var terminals = u.toArray(u.getNodes(go.prefs.goDiv+' .terminal pre'));
+                terminals.forEach(function(termPre) {
+                    var term = termPre.id.split('_')[1].split('term')[1]; // go_term1_pre
+                    termPre.innerHTML = GateOne.terminals[term]['screen'].join('\n') + '\n\n';
+                });
+            }, 500);
         }
         go.Visual.updateDimensions(); // In case the styles changed things
     },
@@ -973,6 +970,30 @@ GateOne.Base.update(GateOne.Utils, {
             }
         }
         document.body.appendChild(tag);
+    },
+    enumerateThemes: function(messageObj) {
+        // Meant to be called from the xhrGet() below
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            themesList = messageObj['themes'],
+            colorsList = messageObj['colors'],
+            prefsThemeSelect = u.getNode('#'+prefix+'prefs_theme'),
+            prefsColorsSelect = u.getNode('#'+prefix+'prefs_colors');
+        prefsThemeSelect.options.length = 0;
+        prefsColorsSelect.options.length = 0;
+        for (var i in themesList) {
+            prefsThemeSelect.add(new Option(themesList[i], themesList[i]), null);
+            if (go.prefs.theme == themesList[i]) {
+                prefsThemeSelect.selectedIndex = i;
+            }
+        }
+        for (var i in colorsList) {
+            prefsColorsSelect.add(new Option(colorsList[i], colorsList[i]), null);
+            if (go.prefs.colors == colorsList[i]) {
+                prefsColorsSelect.selectedIndex = i;
+            }
+        }
     },
     savePrefs: function() {
         // Saves all user-specific settings in GateOne.prefs.* to localStorage[prefix+'prefs']
