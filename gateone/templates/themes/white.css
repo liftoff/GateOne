@@ -226,7 +226,7 @@ hr {
     z-index:600;
     position:absolute;
     top:0;
-    right:1.5em;
+    right:1.2em;
     color: #000;
     text-align: right;
 }
@@ -309,7 +309,7 @@ hr {
     -o-transform-origin: right bottom;
     transform: rotate(90deg);
     transform-origin: right bottom;
-    right: 2.1em;
+    right: 1.9em;
     bottom: 0;
     color: black;
     position: absolute;
