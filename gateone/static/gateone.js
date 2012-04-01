@@ -450,64 +450,86 @@ GateOne.Base.update(GateOne, {
             sideinfo.style['display'] = 'none';
         }
         goDiv.appendChild(sideinfo);
-        // The following functions control the copy & paste capability
-        var pasteareaScroll = function(e) {
-            // We have to hide the pastearea so we can scroll the terminal underneath
-            e.preventDefault();
-            var pasteArea = u.getNode('#'+prefix+'pastearea'),
-                selectedTerm = localStorage[prefix+'selectedTerminal'];
-            u.hideElement(pasteArea);
-            if (!go.terminals[selectedTerm]['scrollbackVisible']) {
-                // Immediately re-enable the scrollback buffer if it isn't already there
-                go.Visual.enableScrollback(selectedTerm);
-            }
-            if (go.scrollTimeout) {
-                clearTimeout(go.scrollTimeout);
-                go.scrollTimeout = null;
-            }
-            go.scrollTimeout = setTimeout(function() {
-                u.showElement(pasteArea);
-            }, 1000);
-        }
-        pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
-        pastearea.onpaste = function(e) {
-            // Start capturing input again
-            setTimeout(function() { go.Input.capture(); }, 150);
-        }
-        pastearea.onmousedown = function(e) {
-            // When the user left-clicks assume they're trying to highlight text
-            // so bring the terminal to the front and try to emulate normal
-            // cursor-text action as much as possible.
-            // NOTE: There's one caveat with this method:  If text is highlighted
-            //       right-click to paste won't work.  So the user has to just click
-            //       somewhere (to deselect the text) before they can use the Paste
-            //       context menu.  As a convenient shortcut/workaround, the user
-            //       can middle-click to paste the current selection.
-            logDebug('pastearea.onmousedown button: ' + e.button + ', which: ' + e.which);
-            var go = GateOne,
-                u = go.Utils,
-                prefix = go.prefs.prefix,
-                m = go.Input.mouse(e), // Get the properties of the mouse event
-                X = e.clientX,
-                Y = e.clientY,
-                selectedTerm = localStorage[prefix+'selectedTerminal'];
-            if (m.button.left) { // Left button depressed
-                u.hideElement('#'+prefix+'pastearea');
-                // This lets users click on links underneath the pastearea
-                if (document.elementFromPoint(X, Y).tagName == "A") {
-                    window.open(document.elementFromPoint(X, Y).href);
-                }
-                // Don't add the scrollback if the user is highlighting text--it will mess it up
-                if (go.terminals[selectedTerm]) {
-                    if (go.terminals[selectedTerm]['scrollbackTimer']) {
-                        clearTimeout(go.terminals[selectedTerm]['scrollbackTimer']);
-                    }
-                }
-                u.getNode(go.prefs.goDiv).focus();
-            }
-        }
+//         // The following functions control the copy & paste capability
+//         var pasteareaScroll = function(e) {
+//             // We have to hide the pastearea so we can scroll the terminal underneath
+//             e.preventDefault();
+//             var pasteArea = u.getNode('#'+prefix+'pastearea'),
+//                 selectedTerm = localStorage[prefix+'selectedTerminal'];
+//             u.hideElement(pasteArea);
+//             if (!go.terminals[selectedTerm]['scrollbackVisible']) {
+//                 // Immediately re-enable the scrollback buffer if it isn't already there
+//                 go.Visual.enableScrollback(selectedTerm);
+//             }
+//             if (go.scrollTimeout) {
+//                 clearTimeout(go.scrollTimeout);
+//                 go.scrollTimeout = null;
+//             }
+//             go.scrollTimeout = setTimeout(function() {
+//                 u.showElement(pasteArea);
+//             }, 1000);
+//         }
+//         pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
+//         pastearea.onpaste = function(e) {
+//             // Start capturing input again
+//             setTimeout(function() { go.Input.capture(); }, 150);
+//         }
+//         pastearea.onmousedown = function(e) {
+//             // When the user left-clicks assume they're trying to highlight text
+//             // so bring the terminal to the front and try to emulate normal
+//             // cursor-text action as much as possible.
+//             // NOTE: There's one caveat with this method:  If text is highlighted
+//             //       right-click to paste won't work.  So the user has to just click
+//             //       somewhere (to deselect the text) before they can use the Paste
+//             //       context menu.  As a convenient shortcut/workaround, the user
+//             //       can middle-click to paste the current selection.
+//             logDebug('pastearea.onmousedown button: ' + e.button + ', which: ' + e.which);
+//             var go = GateOne,
+//                 u = go.Utils,
+//                 prefix = go.prefs.prefix,
+//                 m = go.Input.mouse(e), // Get the properties of the mouse event
+//                 X = e.clientX,
+//                 Y = e.clientY,
+//                 selectedTerm = localStorage[prefix+'selectedTerminal'];
+//             if (m.button.left) { // Left button depressed
+//                 u.hideElement('#'+prefix+'pastearea');
+//                 // This lets users click on links underneath the pastearea
+//                 if (document.elementFromPoint(X, Y).tagName == "A") {
+//                     window.open(document.elementFromPoint(X, Y).href);
+//                 }
+//                 // Don't add the scrollback if the user is highlighting text--it will mess it up
+//                 if (go.terminals[selectedTerm]) {
+//                     if (go.terminals[selectedTerm]['scrollbackTimer']) {
+//                         clearTimeout(go.terminals[selectedTerm]['scrollbackTimer']);
+//                     }
+//                 }
+//                 u.getNode(go.prefs.goDiv).focus();
+//             }
+//         }
+        // Commented this out because it eats up too much CPU.
+//         pastearea.onmousemove = function(e) {
+//             // Track the mouse movement over the pastearea so we can change the cursor appropriately depending on what's under it
+//             pastearea.style.display = 'none';
+//             var go = GateOne,
+//                 u = go.Utils,
+//                 prefix = go.prefs.prefix,
+//                 X = e.clientX,
+//                 Y = e.clientY,
+//                 elementUnderCursor = document.elementFromPoint(X, Y);
+//             if (elementUnderCursor.tagName == "A") {
+//                 pastearea.style.cursor = 'pointer';
+//             } else {
+//                 pastearea.style.cursor = 'default';
+//             }
+// //             if (elementUnderCursor.id.indexOf(prefix+'widget') == 0) {
+// // //                 if (pastearea.className.indexOf('go_none') == -1) {
+// //                     u.hideElement(pastearea);
+// // //                 }
+// //             }
+//             pastearea.style.display = 'block';
+//         }
         // Add the pastearea so people can paste stuff
-        goDiv.appendChild(pastearea);
+//         goDiv.appendChild(pastearea);
         // Set the tabIndex on our GateOne Div so we can give it focus()
         goDiv.tabIndex = 1;
         // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)
@@ -580,6 +602,7 @@ GateOne.Base.update(GateOne.Utils, {
         var go = GateOne;
         go.Net.addAction('save_file', go.Utils.saveAsAction);
         go.Net.addAction('load_style', go.Utils.loadStyle);
+//         go.Net.addAction('load_js', go.Utils.loadJS);
         go.Net.addAction('themes_list', go.Utils.enumerateThemes);
     },
     getNode: function(nodeOrSelector) {
@@ -727,13 +750,39 @@ GateOne.Base.update(GateOne.Utils, {
     },
     showElement: function(elem) {
         // Sets the 'display' style of the given element to 'block' (which undoes setting it to 'none')
-        GateOne.Utils.getNode(elem).style.display = 'block';
-        GateOne.Utils.getNode(elem).className = GateOne.Utils.getNode(elem).className.replace(/(?:^|\s)go_none(?!\S)/, '');
+        var u = GateOne.Utils;
+        u.getNode(elem).style.display = 'block';
+        u.getNode(elem).className = u.getNode(elem).className.replace(/(?:^|\s)go_none(?!\S)/, '');
     },
     hideElement: function(elem) {
         // Sets the 'display' style of the given element to 'none'
-        GateOne.Utils.getNode(elem).style.display = 'none';
-        GateOne.Utils.getNode(elem).className += " go_none";
+        var u = GateOne.Utils;
+        u.getNode(elem).style.display = 'none';
+        if (elem.className.indexOf('go_none') == -1) {
+            u.getNode(elem).className += " go_none";
+        }
+    },
+    showElements: function(elems) {
+        // Sets the 'display' style of the given elements to 'block' (which undoes setting it to 'none').
+        // Elements must be an iterable (or a querySelectorAll string) such as an HTMLCollection or an Array of DOM nodes
+        var u = GateOne.Utils,
+            elems = u.toArray(u.getNodes(elems));
+        elems.forEach(function(elem) {
+            u.getNode(elem).style.display = 'block';
+            u.getNode(elem).className = u.getNode(elem).className.replace(/(?:^|\s)go_none(?!\S)/, '');
+        });
+    },
+    hideElements: function(elems) {
+        // Sets the 'display' style of the given element to 'none'
+        // Elements must be an iterable such as an HTMLCollection or an Array of DOM nodes
+        var u = GateOne.Utils,
+            elems = u.toArray(u.getNodes(elems));
+        elems.forEach(function(elem) {
+            u.getNode(elem).style.display = 'none';
+            if (elem.className.indexOf('go_none') == -1) {
+                u.getNode(elem).className += " go_none";
+            }
+        });
     },
     getOffset: function(el) {
         // Returns {top: <offsetTop>, left: <offsetLeft>}
@@ -877,6 +926,32 @@ GateOne.Base.update(GateOne.Utils, {
             }
         });
     },
+    // This may be used in the future...  Loads JS over the WebSocket but some stuff in plugins needs to load before the WebSocket is connected.  Might make use of it in the future for something--not sure yet.
+//     loadJS: function(message) {
+//         // Loads the JavaScript files sent via the 'load_js' WebSocket command into <script> tags inside of GateOne.prefs.goDiv (not that it matters where they go but at least this way they're logically attached to what they belong to)
+//         // NOTE: Also loads the web worker
+//         var go = GateOne,
+//             u = go.Utils,
+//             prefix = go.prefs.prefix,
+//             goDiv = u.getNode(go.prefs.goDiv);
+//         if (message['result'] == 'Success') {
+//             for (var plugin in message['plugins']) {
+//                 if (!message['plugins'][plugin].length) {
+//                     continue; // Nothing to load
+//                 }
+//                 for (var js_name in message['plugins'][plugin]) {
+//                     var existing = u.getNode('#'+prefix+plugin+js_name),
+//                         s = u.createElement('script', {'id': plugin+js_name});
+//                     s.innerHTML = message['plugins'][plugin][js_name];
+//                     if (existing) {
+//                         existing.innerHTML = message['plugins'][plugin][js_name];
+//                     } else {
+//                         goDiv.appendChild(s);
+//                     }
+//                 }
+//             }
+//         }
+//     },
     loadStyle: function(message) {
         // Loads the stylesheet sent via the 'load_style' WebSocket command
         logDebug("loadStyle()");
@@ -905,8 +980,25 @@ GateOne.Base.update(GateOne.Utils, {
                     u.getNode("head").insertBefore(stylesheet, themeStyle);
                 }
             }
+            if (message['plugins']) {
+                // For plugins we have to walk through the object
+                for (var plugin in message['plugins']) {
+                    if (!message['plugins'][plugin].length) {
+                        continue; // Nothing to load
+                    }
+                    var existing = u.getNode('#'+prefix+plugin+"_css"),
+                        stylesheet = u.createElement('style', {'id': plugin+"_css"}),
+                        themeStyle = u.getNode('#'+prefix+'theme'); // Theme should always be last so it can override defaults and plugins
+                    stylesheet.textContent = message['plugins'][plugin];
+                    if (existing) {
+                        existing.textContent = message['plugins'][plugin];
+                    } else {
+                        u.getNode("head").insertBefore(stylesheet, themeStyle);
+                    }
+                }
+            }
+            // Force the terminals to be re-drawn by the browser to ensure the text stays visible
             setTimeout(function() {
-                // Force the terminals to be re-drawn by the browser to ensure the text stays visible
                 var terminals = u.toArray(u.getNodes(go.prefs.goDiv+' .terminal pre'));
                 terminals.forEach(function(termPre) {
                     var term = termPre.id.split('_')[1].split('term')[1]; // go_term1_pre
@@ -952,11 +1044,17 @@ GateOne.Base.update(GateOne.Utils, {
         }
         var go = GateOne,
             u = go.Utils,
-            prefix = go.prefs.prefix,
-            container = GateOne.prefs.goDiv.split('#')[1],
+            container = go.prefs.goDiv.split('#')[1],
             theme = schemeObj['theme'],
             colors = schemeObj['colors'];
-        go.ws.send(JSON.stringify({'get_style': {'container': container, 'prefix': prefix, 'theme': schemeObj['theme'], 'colors': schemeObj['colors']}}));
+        go.ws.send(JSON.stringify({'get_style': {'container': container, 'prefix': go.prefs.prefix, 'theme': schemeObj['theme'], 'colors': schemeObj['colors']}}));
+    },
+    loadPluginCSS: function() {
+        // Tells the Gate One server to send all the plugin CSS files to the client.
+        var go = GateOne,
+            u = go.Utils,
+            container = go.prefs.goDiv.split('#')[1];
+        go.ws.send(JSON.stringify({'get_style': {'container': container, 'prefix': go.prefs.prefix, 'plugins': true}}));
     },
     loadScript: function(url, callback){
         // Imports the given JS *url*
@@ -1166,9 +1264,9 @@ GateOne.Base.update(GateOne.Net, {
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
-        var rowAdjust = 1;
+        var rowAdjust = 2;
         if (!GateOne.Playback) {
-            rowAdjust = 0; //  Don't waste that bottom row if no playback plugin
+            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
         }
         if (typeof(ctrl_l) == 'undefined') {
             ctrl_l = true;
@@ -1246,6 +1344,7 @@ GateOne.Base.update(GateOne.Net, {
             settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix};
         // Load our CSS right away so the dimensions/placement of things is correct.
         u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
+        u.loadPluginCSS();
         // Clear the error message if it's still there
         u.getNode('#'+prefix+'termwrapper').innerHTML = "";
         // Load the Web Worker
@@ -1363,8 +1462,7 @@ GateOne.Base.update(GateOne.Input, {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
         var go = GateOne,
             u = go.Utils,
-            goDiv = u.getNode(go.prefs.goDiv),
-            pastearea = u.getNode('#'+go.prefs.prefix+'pastearea');
+            goDiv = u.getNode(go.prefs.goDiv);
         goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
         goDiv.onkeydown = go.Input.onKeyDown;
         goDiv.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
@@ -1394,13 +1492,13 @@ GateOne.Base.update(GateOne.Input, {
                 return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
             }
             if (!go.Visual.gridView) {
-                u.showElement(pastearea);
+                u.showElements('.pastearea');
             }
             goDiv.focus();
         }
         // This is necessary because sometimes the timer to re-show the pastearea finishes before the user does something that would otherwise re-show the pastearea (if that makes sense).
         try {
-            u.showElement(pastearea);
+            u.showElements('.pastearea');
         } catch (e) {
             u.noop();
         }
@@ -1409,8 +1507,8 @@ GateOne.Base.update(GateOne.Input, {
         // Turns off keyboard input and certain mouse capture events so that other things (e.g. forms) can work properly
         var go = GateOne,
             u = go.Utils,
-            goDiv = u.getNode(go.prefs.goDiv),
-            pastearea = u.getNode('#'+go.prefs.prefix+'pastearea');
+            goDiv = u.getNode(go.prefs.goDiv);
+//             pastearea = u.getNode('#'+go.prefs.prefix+'pastearea');
 //         goDiv.contentEditable = false; // This needs to be turned off or it might capture paste events (which is really annoying when you're trying to edit a form)
         goDiv.onpaste = null;
         goDiv.tabIndex = null;
@@ -1420,7 +1518,7 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onmousedown = null;
         goDiv.onmouseup = null;
         try {
-            u.hideElement(pastearea);
+            u.hideElements('.pastearea');
         } catch (e) {
             u.noop();
         }
@@ -1562,7 +1660,7 @@ GateOne.Base.update(GateOne.Input, {
                 m.button.middle = !!(e.button & 4);
             }
         }
-        if (e.type == 'mousewheel') {
+        if (e.type == 'mousewheel' || e.type == 'DOMMouseScroll') {
             m.wheel = { x: 0, y: 0 };
             if (e.wheelDeltaX || e.wheelDeltaY) {
                 m.wheel.x = e.wheelDeltaX / -40 || 0;
@@ -2588,7 +2686,7 @@ GateOne.Base.update(GateOne.Visual, {
             u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
-            pastearea = u.getNode('#'+prefix+'pastearea'),
+//             pastearea = u.getNode('#'+prefix+'pastearea'),
             controlsContainer = u.getNode('#'+prefix+'controlsContainer'),
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         if (goBack == null) {
@@ -2605,9 +2703,9 @@ GateOne.Base.update(GateOne.Visual, {
             if (goBack) {
                 v.slideToTerm(localStorage[prefix+'selectedTerminal']); // Slide to the intended terminal
             }
-            if (pastearea) {
-                u.showElement(pastearea);
-            }
+//             if (pastearea) {
+//                 u.showElement(pastearea);
+//             }
             if (controlsContainer) {
                 u.showElement(controlsContainer);
             }
@@ -2617,9 +2715,9 @@ GateOne.Base.update(GateOne.Visual, {
                 u.getNode(go.prefs.goDiv).style.overflowY = 'visible';
                 u.getNode('#'+prefix+'termwrapper').style.width = go.Visual.goDimensions.w;
             }, 1000);
-            if (pastearea) {
-                u.hideElement(pastearea);
-            }
+//             if (pastearea) {
+//                 u.hideElement(pastearea);
+//             }
             if (controlsContainer) {
                 u.hideElement(controlsContainer);
             }
@@ -2727,7 +2825,6 @@ GateOne.Base.update(GateOne.Visual, {
             u = go.Utils,
             v = go.Visual,
             goDiv = u.getNode(go.prefs.goDiv),
-            pastearea = u.getNode('#'+prefix+'pastearea'),
             unique = u.randomPrime(), // Need something unique to enable having more than one dialog on the same page.
             dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': 'halfsectrans dialogcontainer', 'title': title}),
             // dialogContent is wrapped by dialogDiv with "float: left; position: relative; left: 50%" and "float: left; position: relative; left: -50%" to ensure the content stays centered (see the theme CSS).
@@ -2776,7 +2873,7 @@ GateOne.Base.update(GateOne.Visual, {
                             bodyWidth = parseInt(bodyWidth.substring(0, bodyWidth.length-2));
                         v.dragOrigin.dialogX = Math.floor(bodyWidth * (percent*.01));
                     } else {
-                        v.dragOrigin.dialogX = parseInt(dialogContainer.style.left.substring(0, dialogContainer.style.left.length-2)); // Remove the 'px'
+                        v.dragOrigin.dialogX = parseInt(left.substring(0, left.length-2)); // Remove the 'px'
                     }
                     if (top.indexOf('%') != -1) {
                         // Have to convert a percent to an actual pixel value
@@ -2784,7 +2881,7 @@ GateOne.Base.update(GateOne.Visual, {
                             bodyHeight = document.body.scrollHeight;
                         v.dragOrigin.dialogY = Math.floor(bodyHeight * (percent*.01));
                     } else {
-                        v.dragOrigin.dialogY = parseInt(dialogContainer.style.top.substring(0, dialogContainer.style.top.length-2));
+                        v.dragOrigin.dialogY = parseInt(top.substring(0, top.length-2));
                     }
                     dialogContainer.style.opacity = 0.75; // Make it see-through to make it possible to see things behind it for a quick glance.
                 }
@@ -2820,9 +2917,6 @@ GateOne.Base.update(GateOne.Visual, {
                 setTimeout(function() {
                     u.removeElement(dialogContainer);
                 }, 1000);
-                if (pastearea) {
-                    u.showElement(pastearea);
-                }
                 document.body.removeEventListener("mousemove", moveDialog, true);
                 document.body.removeEventListener("mouseup", function(e) {dialogContainer.dragging = false;}, true);
                 dialogContainer.removeEventListener("mousedown", dialogToForeground, true); // Just in case--to ensure garbage collection
@@ -2842,9 +2936,6 @@ GateOne.Base.update(GateOne.Visual, {
         }
         v.dialogs.push(dialogContainer);
         dialogDiv.appendChild(dialogConent);
-        if (pastearea) {
-            u.hideElement(pastearea);
-        }
         // Enable drag-to-move on the dialog title
         if (!dialogContainer.dragging) {
             dialogContainer.dragging = false;
@@ -2876,6 +2967,224 @@ GateOne.Base.update(GateOne.Visual, {
         v.dialogZIndex = parseInt(getComputedStyle(dialogContainer).zIndex); // Right now this is 750 in the themes but that could change in the future so I didn't want to hard-code that value
         dialogToForeground();
         return closeDialog;
+    },
+    widget: function(title, content, /*opt*/options) {
+        // Creates an on-screen widget with the given *title* and *content*.  Returns a function that will remove the widget when called.
+        // Widgets differ from dialogs in that they don't have a visible title and are meant to be persistent on the screen without getting in the way.  They are transparent by default and the user can move them at-will by clicking and dragging anywhere within the widget (not just the title).
+        // Widgets can be attached to a specific terminal by specifying the terminal number in *options*['term'].  Otherwise the widget will be attached to the currently-selected terminal.
+        // Widgets can be 'global' (attached to GateOne.prefs.goDiv) by setting *options*['term'] to 'global'.
+        // By default widgets will appear in the upper-right corner of a given terminal.
+        // *title* - string: Will appear at the top of the widget when the mouse cursor is hovering over it for more than 2 seconds.
+        // *content* - HTML string or JavaScript DOM node:  The content of the widget.
+        // *options* - An associative array of parameters that change the look and/or behavior of the widget.  Here's the possibilities:
+        //      options['onopen'] - Assign a function to this option and it will be called when the widget is opened with the widget parent element (widgetContainer) being passed in as the only argument.
+        //      options['onclose'] - Assign a function to this option and it will be called when the widget is closed.
+        //      options['onconfig'] - If a function is assigned to this parameter a gear icon will be visible in the title bar that when clicked will call this function.
+        //      options['term'] - The terminal number to attach this widget to or 'global' to make the widget hover above all terminals.
+        options = options || {};
+        // Here are all the options
+        options.onopen = options.onopen || null;
+        options.onclose = options.onclose || null;
+        options.onconfig = options.onconfig || null;
+        options.term = options.term || localStorage[GateOne.prefs.prefix+'selectedTerminal'];
+        var go = GateOne,
+            prefix = go.prefs.prefix,
+            u = go.Utils,
+            v = go.Visual,
+            goDiv = u.getNode(go.prefs.goDiv),
+            unique = u.randomPrime(), // Need something unique to enable having more than one widget on the same page.
+            widgetContainer = u.createElement('div', {'id': 'widgetcontainer_' + unique, 'class': 'halfsectrans widgetcontainer', 'name': 'widget', 'title': title}),
+            widgetDiv = u.createElement('div', {'id': 'widgetdiv'}),
+            widgetConent = u.createElement('div', {'id': 'widgetcontent'}),
+            termDiv = u.getNode('#'+prefix+'term'+options['term']), // Assigned below
+            widgetTitle = u.createElement('h3', {'id': 'widgettitle', 'class': 'halfsectrans originbottommiddle'}),
+            close = u.createElement('div', {'id': 'widget_close'}),
+            configure = u.createElement('div', {'id': 'widget_configure'}),
+            widgetToForeground = function(e) {
+                // Move this widget to the front of our array and fix all the z-index of all the widgets
+                for (var i in v.widgets) {
+                    if (widgetContainer == v.widgets[i]) {
+                        v.widgets.splice(i, 1); // Remove it
+                        v.widgets.unshift(widgetContainer); // Add it to the front
+                        widgetContainer.style.opacity = 1; // Make sure it is visible
+                    }
+                }
+                // Set the z-index of each widget to be its original z-index - its position in the array (should ensure the first item in the array has the highest z-index and so on)
+                for (var i in v.widgets) {
+                    if (i != 0) {
+                        // Set all non-foreground widgets opacity to be slightly less than 1 to make the active widget more obvious
+                        v.widgets[i].style.opacity = 0.75;
+                    }
+                    v.widgets[i].style.zIndex = v.widgetZIndex - i;
+                }
+                // Remove the event that called us so we're not constantly looping over the widgets array
+                widgetContainer.removeEventListener("mousedown", widgetToForeground, true);
+            },
+            containerMouseUp = function(e) {
+                // Reattach our mousedown function since it auto-removes itself the first time it runs (so we're not wasting cycles constantly looping over the widgets array)
+                widgetContainer.addEventListener("mousedown", widgetToForeground, true);
+                widgetContainer.style.opacity = 1;
+            },
+            widgetMouseOver = function(e) {
+                // Show the border and titlebar after a timeout
+                var go = GateOne,
+                    v = go.Visual;
+                if (v.widgetHoverTimeout) {
+                    clearTimeout(v.widgetHoverTimeout);
+                    v.widgetHoverTimeout = null;
+                }
+                v.widgetHoverTimeout = setTimeout(function() {
+                    // De-bounce
+                    widgetTitle.style.opacity = 1;
+                    v.widgetHoverTimeout = null;
+                }, 1000);
+            },
+            widgetMouseOut = function(e) {
+                // Hide the border and titlebar
+                var go = GateOne,
+                    v = go.Visual;
+                if (!widgetContainer.dragging) {
+                    if (v.widgetHoverTimeout) {
+                        clearTimeout(v.widgetHoverTimeout);
+                        v.widgetHoverTimeout = null;
+                    }
+                    v.widgetHoverTimeout = setTimeout(function() {
+                        // De-bounce
+                        widgetTitle.style.opacity = 0;
+                        v.widgetHoverTimeout = null;
+                    }, 500);
+                }
+            },
+            widgetMouseDown = function(e) {
+                var m = go.Input.mouse(e); // Get the properties of the mouse event
+                if (m.button.left) { // Only if left button is depressed
+                    var left = window.getComputedStyle(widgetContainer, null)['left'],
+                        top = window.getComputedStyle(widgetContainer, null)['top'];
+                    widgetContainer.dragging = true;
+                    e.preventDefault();
+                    v.dragOrigin.X = e.clientX + window.scrollX;
+                    v.dragOrigin.Y = e.clientY + window.scrollY;
+                    if (left.indexOf('%') != -1) {
+                        // Have to convert a percent to an actual pixel value
+                        var percent = parseInt(left.substring(0, left.length-1)),
+                            bodyWidth = window.getComputedStyle(document.body, null)['width'],
+                            bodyWidth = parseInt(bodyWidth.substring(0, bodyWidth.length-2));
+                        v.dragOrigin.widgetX = Math.floor(bodyWidth * (percent*.01));
+                    } else {
+                        v.dragOrigin.widgetX = parseInt(left.substring(0, left.length-2)); // Remove the 'px'
+                    }
+                    if (top.indexOf('%') != -1) {
+                        // Have to convert a percent to an actual pixel value
+                        var percent = parseInt(top.substring(0, top.length-1)),
+                            bodyHeight = document.body.scrollHeight;
+                        v.dragOrigin.widgetY = Math.floor(bodyHeight * (percent*.01));
+                    } else {
+                        v.dragOrigin.widgetY = parseInt(top.substring(0, top.length-2));
+                    }
+                    widgetContainer.style.opacity = 0.75; // Make it see-through to make it possible to see things behind it for a quick glance.
+                }
+            },
+            moveWidget = function(e) {
+                // Called when the widget is dragged
+                if (widgetContainer.dragging) {
+                    widgetContainer.className = 'widgetcontainer'; // Have to get rid of the halfsectrans so it will drag smoothly.
+                    var X = e.clientX + window.scrollX,
+                        Y = e.clientY + window.scrollY,
+                        xMoved = X - v.dragOrigin.X,
+                        yMoved = Y - v.dragOrigin.Y,
+                        newX = 0,
+                        newY = 0;
+                    if (isNaN(v.dragOrigin.widgetX)) {
+                        v.dragOrigin.widgetX = 0;
+                    }
+                    if (isNaN(v.dragOrigin.widgetY)) {
+                        v.dragOrigin.widgetY = 0;
+                    }
+                    newX = v.dragOrigin.widgetX + xMoved;
+                    newY = v.dragOrigin.widgetY + yMoved;
+                    if (widgetContainer.dragging) {
+                        widgetContainer.style.left = newX + 'px';
+                        widgetContainer.style.top = newY + 'px';
+                    }
+                }
+            },
+            closeWidget = function(e) {
+                if (e) { e.preventDefault() }
+                widgetContainer.className = 'halfsectrans widgetcontainer';
+                widgetContainer.style.opacity = 0;
+                setTimeout(function() {
+                    u.removeElement(widgetContainer);
+                }, 1000);
+                document.body.removeEventListener("mousemove", moveWidget, true);
+                document.body.removeEventListener("mouseup", function(e) {widgetContainer.dragging = false;}, true);
+                widgetContainer.removeEventListener("mousedown", widgetToForeground, true); // Just in case--to ensure garbage collection
+                widgetTitle.removeEventListener("mousedown", widgetMouseDown, true); // Ditto
+                for (var i in v.widgets) {
+                    if (widgetContainer == v.widgets[i]) {
+                        v.widgets.splice(i, 1);
+                    }
+                }
+                if (v.widgets.length) {
+                    v.widgets[0].style.opacity = 1; // Set the new-first widget back to fully visible
+                }
+                // Call the onclose function
+                if ('onclose' in options) {
+                    options['onclose']();
+                }
+            };
+        // Keep track of all open widgets so we can determine the foreground order
+        if (!v.widgets) {
+            v.widgets = [];
+        }
+        v.widgets.push(widgetContainer);
+        widgetDiv.appendChild(widgetConent);
+        // Enable drag-to-move on the widget title
+        if (!widgetContainer.dragging) {
+            widgetContainer.dragging = false;
+            v.dragOrigin = {};
+        }
+        widgetContainer.addEventListener("mousedown", widgetMouseDown, true);
+        widgetContainer.addEventListener("mouseover", widgetMouseOver, true);
+        widgetContainer.addEventListener("mouseout", widgetMouseOut, true);
+        // These have to be attached to document.body otherwise the widgets will be constrained within #gateone which could just be a small portion of a larger web page.
+        document.body.addEventListener("mousemove", moveWidget, true);
+        document.body.addEventListener("mouseup", function(e) {widgetContainer.dragging = false;}, true);
+        widgetContainer.addEventListener("mousedown", widgetToForeground, true); // Ensure that clicking on a widget brings it to the foreground
+        widgetContainer.addEventListener("mouseup", containerMouseUp, true);
+        widgetContainer.style.opacity = 0;
+        setTimeout(function() {
+            // This fades the widget in with a nice and smooth CSS3 transition (thanks to the 'halfsectrans' class)
+            widgetContainer.style.opacity = 1;
+        }, 50);
+        close.innerHTML = go.Icons['panelclose'];
+        close.onclick = closeWidget;
+        configure.innerHTML = go.Icons['prefs'];
+        widgetTitle.innerHTML = title;
+        if (options.onconfig) {
+            configure.onclick = options.onconfig;
+            widgetTitle.appendChild(configure);
+        }
+        widgetContainer.appendChild(widgetTitle);
+        widgetTitle.appendChild(close);
+        if (typeof(content) == "string") {
+            widgetConent.innerHTML = content;
+        } else {
+            widgetConent.appendChild(content);
+        }
+        widgetContainer.appendChild(widgetDiv);
+        // Determine where we should put this widget (a terminal or global?)
+        if (options['term'] == 'global') {
+            // global widgets are fixed to the page--not the terminal.
+            goDiv.appendChild(widgetContainer);
+        } else {
+            termDiv.appendChild(widgetContainer);
+        }
+        v.widgetZIndex = parseInt(getComputedStyle(widgetContainer).zIndex); // Right now this is 750 in the themes but that could change in the future so I didn't want to hard-code that value
+        widgetToForeground();
+        if (options.onopen) {
+            options.onopen(widgetContainer);
+        }
+        return closeWidget;
     }
 });
 
@@ -3332,9 +3641,9 @@ GateOne.Base.update(GateOne.Terminal, {
         // Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         // TODO: Finish supporting terminal types.
         logDebug("calling newTerminal(" + term + ")");
-        var rowAdjust = 1;
+        var rowAdjust = 2;
         if (!GateOne.Playback) {
-            rowAdjust = 0; //  Don't waste that bottom row if no playback plugin
+            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
         }
         var go = GateOne,
             u = go.Utils,
@@ -3391,7 +3700,70 @@ GateOne.Base.update(GateOne.Terminal, {
                 'cols': cols,
                 'em_dimensions': emDimensions
             },
-            slide = u.partial(go.Visual.slideToTerm, term, true);
+            mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
+            slide = u.partial(go.Visual.slideToTerm, term, true),
+            pastearea = u.createElement('textarea', {'id': 'pastearea'+term, 'class': 'pastearea'}),
+        // The following functions control the copy & paste capability
+            pasteareaOnInput = function(e) {
+                go.Input.queue(pastearea.value); pastearea.value = ""; go.Net.sendChars();
+            },
+            pasteareaScroll = function(e) {
+                // We have to hide the pastearea so we can scroll the terminal underneath
+                e.preventDefault();
+                var pasteArea = u.getNode('#'+prefix+'pastearea'),
+                    selectedTerm = localStorage[prefix+'selectedTerminal'];
+                u.hideElement(this);
+                if (!go.terminals[selectedTerm]['scrollbackVisible']) {
+                    // Immediately re-enable the scrollback buffer if it isn't already there
+                    go.Visual.enableScrollback(selectedTerm);
+                }
+                if (go.scrollTimeout) {
+                    clearTimeout(go.scrollTimeout);
+                    go.scrollTimeout = null;
+                }
+                go.scrollTimeout = setTimeout(function() {
+                    u.showElement(this);
+                }, 1000);
+            };
+        pastearea.oninput = pasteareaOnInput;
+        pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
+        pastearea.onpaste = function(e) {
+            // Start capturing input again
+            setTimeout(function() { go.Input.capture(); }, 150);
+        }
+        pastearea.onmousedown = function(e) {
+            // When the user left-clicks assume they're trying to highlight text
+            // so bring the terminal to the front and try to emulate normal
+            // cursor-text action as much as possible.
+            // NOTE: There's one caveat with this method:  If text is highlighted
+            //       right-click to paste won't work.  So the user has to just click
+            //       somewhere (to deselect the text) before they can use the Paste
+            //       context menu.  As a convenient shortcut/workaround, the user
+            //       can middle-click to paste the current selection.
+            logDebug('pastearea.onmousedown button: ' + e.button + ', which: ' + e.which);
+            var go = GateOne,
+                u = go.Utils,
+                prefix = go.prefs.prefix,
+                m = go.Input.mouse(e), // Get the properties of the mouse event
+                X = e.clientX,
+                Y = e.clientY,
+                selectedTerm = localStorage[prefix+'selectedTerminal'];
+            if (m.button.left) { // Left button depressed
+                u.hideElement(pastearea);
+                // This lets users click on links underneath the pastearea
+                if (document.elementFromPoint(X, Y).tagName == "A") {
+                    window.open(document.elementFromPoint(X, Y).href);
+                }
+                // Don't add the scrollback if the user is highlighting text--it will mess it up
+                if (go.terminals[selectedTerm]) {
+                    if (go.terminals[selectedTerm]['scrollbackTimer']) {
+                        clearTimeout(go.terminals[selectedTerm]['scrollbackTimer']);
+                    }
+                }
+                u.getNode(go.prefs.goDiv).focus();
+            }
+        }
+        terminal.appendChild(pastearea);
         u.getNode('#'+prefix+'termwrapper').appendChild(terminal);
         // Apply user-defined rows and cols (if set)
         if (go.prefs.cols) { termSettings.cols = go.prefs.cols };

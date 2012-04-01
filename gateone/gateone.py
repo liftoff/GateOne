@@ -790,6 +790,7 @@ class TerminalWebSocket(WebSocketHandler):
             'resize': self.resize,
             'get_webworker': self.get_webworker,
             'get_style': self.get_style,
+            #'get_js': self.get_js,
             'enumerate_themes': self.enumerate_themes,
             'debug_terminal': self.debug_terminal
         }
@@ -1096,10 +1097,6 @@ class TerminalWebSocket(WebSocketHandler):
         # TODO: Add a hook here for plugins to send their own messages when a
         #       given terminal is reconnected.
         self.write_message(json_encode(message))
-        # Now we need to tell the client about plugin CSS templates
-        plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
-        for css_template in plugins['css']:
-            self.write_message(json_encode({'load_css': css_template}))
 
     def new_multiplex(self, cmd, term_id, logging=True):
         """
@@ -1607,7 +1604,7 @@ class TerminalWebSocket(WebSocketHandler):
 
             * **theme** - The name of the CSS theme to be retrieved.
             * **colors** - The name of the text color CSS scheme to be retrieved.
-            * **plugins** - May be a specific plugin name or 'ALL' (in caps like that--just in case someone decides to make an 'all' plugin some day).
+            * **plugins** - If true, will send all plugin .css files to the client.
         """
         logging.debug('get_style(%s)' % settings)
         out_dict = {'result': 'Success'}
@@ -1622,6 +1619,9 @@ class TerminalWebSocket(WebSocketHandler):
         colors = None
         if 'colors' in settings:
             colors = settings["colors"]
+        plugins = None
+        if 'plugins' in settings:
+            plugins = settings["plugins"]
         if theme:
             # Setup our 256-color support CSS:
             colors_256 = ""
@@ -1654,9 +1654,61 @@ class TerminalWebSocket(WebSocketHandler):
                 url_prefix=self.settings['url_prefix']
             )
             out_dict['colors'] = colors_css
-        #if plugins:
-            # TODO: Finish this up...  Plugin CSS needs to be sent too and we need to fix gateone.js so that it actually requests this information (or let authenticate() do it)
+        if plugins:
+            # Build a dict of plugins
+            out_dict['plugins'] = {}
+            plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
+            for f in os.listdir(plugins_dir):
+                if os.path.isdir(os.path.join(plugins_dir, f)):
+                    out_dict['plugins'][f] = ''
+            # Add each plugin's CSS template(s) to its respective dict
+            for plugin in out_dict['plugins'].keys():
+                plugin_templates_path = os.path.join(
+                    plugins_dir, plugin, 'templates')
+                if os.path.exists(plugin_templates_path):
+                    for f in os.listdir(plugin_templates_path):
+                        if f.endswith('.css'):
+                            plugin_css_path = os.path.join(
+                                plugin_templates_path, f)
+                            plugin_css = self.render_string(
+                                plugin_css_path,
+                                container=container,
+                                prefix=prefix,
+                                url_prefix=self.settings['url_prefix']
+                            )
+                            out_dict['plugins'][plugin] += plugin_css
         self.write_message({'load_style': out_dict})
+
+    # NOTE: This has been disabled for now.  It works OK but the problem is that
+    # some plugin JS needs to load *before* the WebSocket is connected.  Might
+    # ultimately be something that just won't work.  I'm still considering
+    # ways I could take advantage of this though so I don't want to delete it
+    # just yet.
+    #def get_js(self):
+        #"""
+        #Sends all JavaScript files inside of plugins' 'static' directory to the
+        #client.
+        #"""
+        #logging.debug('get_js()')
+        #out_dict = {'result': 'Success', 'plugins': {}}
+        ## Build a dict of plugins
+        #plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
+        #for f in os.listdir(plugins_dir):
+            #if os.path.isdir(os.path.join(plugins_dir, f)):
+                #out_dict['plugins'][f] = {}
+        ## Add each found JS file to the respective dict
+        #for plugin in out_dict['plugins'].keys():
+            #plugin_static_path = os.path.join(plugins_dir, plugin, 'static')
+            #if os.path.exists(plugin_static_path):
+                #for f in os.listdir(plugin_static_path):
+                    #if f.endswith('.js'):
+                        #print("f: %s" % f)
+                        #plugin_js_path = os.path.join(plugin_static_path, f)
+                        #with open(plugin_js_path) as js_file:
+                            #plugin_js = js_file.read()
+                            #out_dict['plugins'][plugin][f] = plugin_js
+        #print("out_dict['plugins']: %s" % out_dict['plugins'])
+        #self.write_message({'load_js': out_dict})
 
     def enumerate_themes(self):
         """

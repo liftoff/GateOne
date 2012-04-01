@@ -75,18 +75,16 @@ GateOne.Base.update(GateOne.Playback, {
         }
         playbackFrames = GateOne.terminals[term]['playbackFrames'];
         // Add the new playback frame to the terminal object
-        GateOne.Playback.frameObj['screen'] = GateOne.terminals[term]['screen'];
-        GateOne.Playback.frameObj['time'] = new Date();
-        playbackFrames.push(GateOne.Playback.frameObj);
-        if (playbackFrames.length > GateOne.prefs.playbackFrames) {
-            // Reduce it to fit within the user's configured max
-//             GateOne.terminals[term]['playbackFrames'].shift(); // NOTE: This won't work if the user reduced their playbackFrames preference by more than 1
-            playbackFrames.reverse(); // Have to reverse it before we truncate
-            playbackFrames.length = GateOne.prefs.playbackFrames; // Love that length is assignable!
-            playbackFrames.reverse(); // Put it back in the right order
+        if (playbackFrames.length < GateOne.prefs.playbackFrames) {
+            playbackFrames.push({'screen': GateOne.terminals[term]['screen'].slice(0), 'time': new Date()});
+        } else {
+            // Preserve the existing objects in the array but override their values to avoid garbage collection
+            for (var i = 0, len = playbackFrames.length - 1; i < len; i++) {
+                playbackFrames[i] = playbackFrames[i + 1];
+            }
+            playbackFrames[playbackFrames.length - 1]['screen'] = GateOne.terminals[term]['screen'].slice(0);
+            playbackFrames[playbackFrames.length - 1]['time'] = new Date();
         }
-//         GateOne.terminals[term]['playbackFrames'] = null;
-//         GateOne.terminals[term]['playbackFrames'] = playbackFrames;
         // Fix the progress bar if it is in a non-default state and stop playback
         if (GateOne.Playback.progressBarElement) {
             if (GateOne.Playback.progressBarElement.style.width != '0%') {
@@ -95,15 +93,18 @@ GateOne.Base.update(GateOne.Playback, {
                 GateOne.Playback.milliseconds = 0; // Reset this in case the user was in the middle of playing something back when the screen updated
                 GateOne.Playback.progressBarElement.style.width = '0%';
                 // Also make sure the pastearea is put back if missing
-                GateOne.Utils.showElement('#'+prefix+'pastearea');
+//                 GateOne.Utils.showElement('#'+prefix+'pastearea');
             }
         }
-        playbackFrames = null; // Immediate cleanup
     },
     savePrefsCallback: function() {
         // Called when the user clicks the "Save" button in the prefs panel
         var prefix = GateOne.prefs.prefix,
             playbackValue = GateOne.Utils.getNode('#'+prefix+'prefs_playback').value;
+        // Reset playbackFrames in case the user increased or decreased the value
+        for (var termObj in GateOne.terminals) {
+            termObj['playbackFrames'] = [];
+        }
         try {
             if (playbackValue) {
                 GateOne.prefs.playbackFrames = parseInt(playbackValue);
@@ -287,7 +288,6 @@ GateOne.Base.update(GateOne.Playback, {
                 // Stop updating the clock
                 clearInterval(p.clockUpdater);
                 p.clockUpdater = null;
-                // Prevent the pastearea from re-enabling itself
                 clearInterval(go.scrollTimeout);
                 go.scrollTimeout = null;
                 if (sbT) {
@@ -303,20 +303,18 @@ GateOne.Base.update(GateOne.Playback, {
                     selectedFrame = terminalObj['playbackFrames'][p.currentFrame]
                     p.progressBarElement.style.width = '100%';
                 }
-                if (m.wheel.x > 0) { // Shift + scroll shows up as left/right scroll (x instead of y)
+                if (m.wheel.x > 0 || (e.type == 'DOMMouseScroll' && m.wheel.y > 0)) { // Shift + scroll shows up as left/right scroll (x instead of y)
                     p.currentFrame = p.currentFrame + 1;
                     if (p.currentFrame >= terminalObj['playbackFrames'].length) {
                         p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
                         p.progressBarElement.style.width = '100%';
-                        u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = terminalObj['screen'].join('\n');
+                        u.getNode('#'+prefix+'term'+term+'_pre').innerHTML = terminalObj['screen'].join('\n') + '\n\n';
                         if (!p.clockUpdater) { // Get the clock updating again
                             p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1);
                         }
                         terminalObj['scrollbackTimer'] = setTimeout(function() { // Get the scrollback timer going again
                             go.Visual.enableScrollback(term);
                         }, 3500);
-                        // Add back the pastearea
-                        u.showElement('#'+prefix+'pastearea');
                     } else {
                         percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
                         p.progressBarElement.style.width = percent + '%';

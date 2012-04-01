@@ -69,143 +69,117 @@ hr {
     content: "⎚ ";
 }
 #{{container}} .centertrans { /* Just sets the transform-origin to "center center" */
-    /* WebKit */
     -webkit-transform-origin: center center;
-    /* Firefox */
     -moz-transform-origin: center center;
-    /* Opera */
     -o-transform-origin: center center;
-    /* IE 9+ */
     -ms-transform-origin: center center;
-    /* Future CSS3 standard */
     transform-origin: center center;
 }
 #{{container}} .toprighttrans { /* Just sets the transform-origin to "top right" */
-    /* WebKit */
     -webkit-transform-origin: top right;
-    /* Firefox */
     -moz-transform-origin: top right;
-    /* Opera */
     -o-transform-origin: top right;
-    /* IE 9+ */
     -ms-transform-origin: top right;
-    /* Future CSS3 standard */
     transform-origin: top right;
 }
 #{{container}} .twosectrans {
-    /* WebKit */
     -webkit-transform-origin: top right;
     -webkit-transition: all 2s ease-in-out;
-    /* Firefox */
     -moz-transition: all 2s ease-in-out;
     -moz-transform-origin: top right;
-    /* Opera */
     -o-transition-property: all;
     -o-transition-duration: 2s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 2s ease-in-out;
-    /* Future CSS3 standard */
     transform-origin: top right;
     transition: all 2s ease-in-out;
 }
 #{{container}} .sectrans {
-    /* WebKit */
     -webkit-transform-origin: top right;
     -webkit-transition: all 1s ease-in-out;
-    /* Firefox */
     -moz-transition: all 1s ease-in-out;
     -moz-transform-origin: top right;
-    /* Opera */
     -o-transition-property: all;
     -o-transition-duration: 1s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 1s ease-in-out;
-    /* Future CSS3 standard */
     transform-origin: top right;
     transition: all 1s ease-in-out;
 }
 #{{container}} .sectransform {
     /* For only transform effects */
-    /* WebKit */
     -webkit-transform-origin: top right;
     -webkit-transition: -webkit-transform 1s ease-in-out;
-    /* Firefox */
     -moz-transition: -moz-transform 1s ease-in-out;
     -moz-transform-origin: top right;
-    /* Opera */
     -o-transition-property: -o-transform;
     -o-transition-duration: 1s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: -ms-transform 1s ease-in-out;
-    /* Future CSS3 standard */
     transform-origin: top right;
     transition: transform 1s ease-in-out;
 }
 #{{container}} .halfsectrans {
-    /* WebKit */
     -webkit-transform-origin: top right;
     -webkit-transition: all 0.5s ease-in-out;
-    /* Firefox */
     -moz-transition: all 0.5s ease-in-out;
     -moz-transform-origin: top right;
-    /* Opera */
     -o-transition-property: all;
     -o-transition-duration: 0.5s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 0.5s ease-in-out;
-    /* Future CSS3 standard */
     transform-origin: top right;
     transition: all 0.5s ease-in-out;
 }
 #{{container}} .quartersectrans {
-    /* WebKit */
     -webkit-transform-origin: top right;
     -webkit-transition: all 0.25s ease-in-out;
-    /* Firefox */
     -moz-transition: all 0.25s ease-in-out;
     -moz-transform-origin: top right;
-    /* Opera */
     -o-transition-property: all;
     -o-transition-duration: 0.25s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: right top;
-    /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 0.25s ease-in-out;
-    /* Future CSS3 standard */
     transform-origin: top right;
     transition: all 0.25s ease-in-out;
 }
 #{{container}} .superfasttrans {
-    /* WebKit */
     -webkit-transform-origin: top left;
     -webkit-transition: all 0.1s ease-in-out;
-    /* Firefox */
     -moz-transition: all 0.1s ease-in-out;
     -moz-transform-origin: top left;
-    /* Opera */
     -o-transition-property: all;
     -o-transition-duration: 0.1s;
     -o-transition-timing-function: ease-in-out;
     -o-transform-origin: left top;
-    /* IE 9+ */
     -ms-transform-origin: top right;
     -ms-transition: all 0.1s ease-in-out;
-    /* Future CSS3 standard */
     transform-origin: top left;
     transition: all 0.1s ease-in-out;
+}
+#{{container}} .origintopmiddle {
+    -webkit-transform-origin: 50% 0;
+    -moz-transform-origin: 50% 0;
+    -ms-transform-origin: 50% 0;
+    -o-transform-origin: 50% 0;
+    transform-origin: 50% 0;
+}
+#{{container}} .originbottommiddle {
+    -webkit-transform-origin: 50% 100%;
+    -moz-transform-origin: 50% 100%;
+    -ms-transform-origin: 50% 100%;
+    -o-transform-origin: 50% 100%;
+    transform-origin: 50% 100%;
 }
 #{{container}} textarea {
     background-color: #fff;
@@ -221,15 +195,10 @@ hr {
     position: static;
     float: left;
     top: 0;
-    /* WebKit */
     -webkit-transition: -webkit-transform 1s ease-in-out;
-    /* Firefox */
     -moz-transition: -moz-transform 1s ease-in-out;
-    /* IE9+ */
     -ms-transition: -ms-transform 1s ease-in-out;
-    /* Opera */
     -o-transition: -o-transform 1s ease-in-out;
-    /* Future CSS3 standard */
     transition: transform 1s ease-in-out;
 }
 #{{container}} .terminal a {
@@ -265,15 +234,10 @@ hr {
     clear: both;
     opacity: .75;
     margin-top: 0.5em;
-    /* WebKit */
     -webkit-transition: -webkit-transform 1.0s ease-in-out;
-    /* Firefox */
     -moz-transition: -moz-transform 1.0s ease-in-out;
-    /* IE 9+ */
     -ms-transition: -ms-transform 1.0s ease-in-out;
-    /* Opera */
     -o-transition: -o-transform 1.0s ease-in-out;
-    /* Future CSS3 standard */
     transition: transform 1.0s ease-in-out;
 }
 #{{container}} .toolbar:hover {
@@ -283,16 +247,14 @@ hr {
 #{{container}} .toolbar:target {
     -webkit-transform:rotate(180deg);
     -moz-transform:rotate(180deg);
+    -ms-transform:rotate(180deg);
     -o-transform:rotate(180deg);
+    transform:rotate(180deg);
 }
 #{{prefix}}infocontainer {
-    /* WebKit */
     -webkit-transition: all 2.0s ease-in-out;
-    /* Firefox */
     -moz-transition: all 2.0s ease-in-out;
-    /* Opera */
     -o-transition: all 2.0s ease-in-out;
-    /* Future CSS3 standard */
     transition: all 2.0s ease-in-out;
     display: block;
     position: absolute;
@@ -315,7 +277,7 @@ hr {
     font-weight: bold;
     font-size: 1.1em;
 }
-#{{prefix}}pastearea {
+#{{container}} .pastearea {
     font-family: monospace;
     display: block;
     color: transparent;
@@ -331,7 +293,7 @@ hr {
     opacity: 0;
 }
 /* This is to work around a Chrome/Windows bug where pasting gets disabled if you use JS to set display: none */
-.go_none { /* No prefix on this one because of issues with that in the JS code */
+#{{container}} .go_none { /* No prefix on this one because of issues with that in the JS code */
     display: none;
 }
 #{{container}} .sideinfo {
@@ -339,6 +301,8 @@ hr {
     -webkit-transform-origin: right bottom;
     -moz-transform: rotate(90deg);
     -moz-transform-origin: right bottom;
+    -ms-transform: rotate(90deg);
+    -ms-transform-origin: right bottom;
     -o-transform: rotate(90deg);
     -o-transform-origin: right bottom;
     transform: rotate(90deg);
@@ -355,15 +319,10 @@ hr {
     margin-bottom: 0.1em;
 }
 #{{prefix}}notice {
-    /* WebKit */
     -webkit-transition: all 5.0s ease-in-out;
-    /* Firefox */
     -moz-transition: all 5.0s ease-in-out;
-    /* Opera */
-    -o-transition: all 5.0s ease-in-out;
-    /* IE */
     -ms-transition: all 5.0s ease-in-out;
-    /* Future CSS3 standard */
+    -o-transition: all 5.0s ease-in-out;
     transition: all 5.0s ease-in-out;
     color: #fff;
     background-color: rgba(34,34,34,0.8);
@@ -374,13 +333,10 @@ hr {
     margin: 1em;
 }
 #{{container}} .sidepanel {
-    /* WebKit */
     -webkit-transition: -webkit-transform 1.0s ease-in-out;
-    /* Firefox */
     -moz-transition: all 1.0s ease-in-out;
-    /* Opera */
+    -ms-transition: all 1.0s ease-in-out;
     -o-transition: all 1.0s ease-in-out;
-    /* Future CSS3 standard */
     transition: all 1.0s ease-in-out;
 }
 #{{container}} .panel {
@@ -397,31 +353,28 @@ hr {
     font-size: 1em;
     margin-top: 0.1em;
     margin-bottom: 0.1em;
-    /* WebKit */
     -webkit-transform: scale(0);
     -webkit-transform-origin: top right;
     -webkit-transition: all 0.5s ease-in-out;
-    /* Firefox */
     -moz-transform: scale(0);
     -moz-transition: all 0.5s ease-in-out;
     -moz-transform-origin: top right;
-    /* Opera */
+    -ms-transform: scale(0);
+    -ms-transition: all 0.5s ease-in-out;
+    -ms-transform-origin: top right;
     -o-transform: scale(0);
     -o-transition: all 0.5s ease-in-out;
     -o-transform-origin: top right;
-    /* Future CSS3 standard */
     transform: scale(0);
     transform-origin: top right;
     transition: all 0.5s ease-in-out;
     box-shadow: 0.2em 0.2em 0.5em #000;
-   /* Firefox 3.6+ */
-   background-image: -moz-linear-gradient(#eee, #999);
-   /* Safari 5.1+, Chrome 10+ */
-   background-image: -webkit-linear-gradient(#eee, #999);
-   /* Opera 11.10+ */
-   background-image: -o-linear-gradient(#eee, #999);
-   border: 0.1em #fff outset;
-   border-radius: 0.5em;
+    background-image: -moz-linear-gradient(#eee, #999);
+    background-image: -webkit-linear-gradient(#eee, #999);
+    background-image: -ms-linear-gradient(#eee, #999);
+    background-image: -o-linear-gradient(#eee, #999);
+    border: 0.1em #fff outset;
+    border-radius: 0.5em;
 }
 #{{container}} .panel h2 {
     font-size: 1.5em;
@@ -458,14 +411,11 @@ hr {
     -webkit-box-shadow: 2px 2px 4px #888;
     -moz-box-shadow: 2px 2px 4px #888;
     box-shadow: 2px 2px 4px #888;
-    /* Firefox 3.6+ */
-   background-image: -moz-linear-gradient(#fff, #ccc);
-   /* Safari 5.1+, Chrome 10+ */
-   background-image: -webkit-linear-gradient(#fff, #ccc);
-   /* Opera 11.10+ */
-   background-image: -o-linear-gradient(#fff, #ccc);
-    /* Standard */
-   background-image: linear-gradient(#fff, #ccc);
+    background-image: -moz-linear-gradient(#fff, #ccc);
+    background-image: -webkit-linear-gradient(#fff, #ccc);
+    background-image: -ms-linear-gradient(#fff, #ccc);
+    background-image: -o-linear-gradient(#fff, #ccc);
+    background-image: linear-gradient(#fff, #ccc);
 }
 #{{container}} .paneltablerow {
     display: table-row;
@@ -536,7 +486,9 @@ hr {
     color: #aaa;
     -webkit-transition: color 0.15s linear;
     -moz-transition: color 0.15s linear;
+    -ms-transition: color 0.15s linear;
     -o-transition: color 0.15s linear;
+    transition: color 0.15s linear;
     background: #fff;
     width: 98%;
     border-radius: 3px;
@@ -548,7 +500,9 @@ hr {
     color: #fff;
     -webkit-transition-duration: 0s;
     -moz-transition-duration: 0s;
+    -ms-transition-duration: 0s;
     -o-transition-duration: 0s;
+    transition-duration: 0s;
 }
 #{{container}} input.input-text-plain {
     width: 98%;
@@ -652,13 +606,9 @@ hr {
     color: #000;
     border-radius: 0.5em;
     box-shadow: 0.2em 0.2em 0.5em #000;
-    /* Firefox 3.6+ */
     background-image: -moz-linear-gradient(#eee, #aaa);
-    /* Safari 5.1+, Chrome 10+ */
     background-image: -webkit-linear-gradient(#eee, #aaa);
-    /* Opera 11.10+ */
-    background-image: -o-linear-gradient(#eee, #aaa);
-    /* Standard (future) */
+    background-image: -ms-linear-gradient(#eee, #aaa);
     background-image: -o-linear-gradient(#eee, #aaa);
 }
 #{{container}} .dialogcontainer h3 {
@@ -742,6 +692,119 @@ hr {
     z-index: 2;
     font-size: 1em;
 }
+#{{container}} .widgetcontainer {
+    font-family: sans-serif;
+    position: absolute;
+    overflow: hidden;
+    top: 10%;
+    left: 70%;
+    background-color: transparent;
+    max-width: 50%;
+    max-height: 75%;
+    z-index: 750;
+}
+#{{container}} .widgetcontainer:hover {
+    cursor: move;
+}
+#{{container}} .widgetcontainer h3 {
+    background-color: transparent;
+    color: #fff;
+    padding-left: 0.5em;
+    line-height: 1.5;
+    margin-top: 0;
+    padding-right: 1.5em; /* Making room for the X */
+    padding-left: 1.5em; /* Balancing it out so the title stays centered */
+    text-align: center;
+    font-size: 1.1em;
+    /* Hidden by default */
+    opacity: 0;
+}
+#{{container}} .widgetcontainer textarea {
+    margin-right: 1.3em;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    color: #000;
+    position: relative;
+}
+#{{container}} .widgetcontainer input {
+    margin-right: 1.3em;
+    margin-bottom: 0.2em;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    color: #000;
+    position: relative;
+    display: block;
+    width: 99%;
+}
+#{{container}} .widgetcontainer label {
+    font-size: 1.2em;
+    padding-top: 0.5em;
+    display: inline-block;
+    font-family: sans-serif;
+}
+#{{prefix}}widgettitle:hover {
+    cursor: move;
+}
+/* widgetdiv wraps widgetcontent with this "left: 50%" and "left: -50%" mixture to ensure that everything stays centered. */
+#{{prefix}}widgetdiv {
+    float: left;
+    position: relative;
+    left: 50%;
+    width: 100%;
+}
+#{{prefix}}widgetcontent:hover {
+    border: solid 1px #000;
+}
+#{{prefix}}widgetcontent {
+    float: left;
+    position: relative;
+    left: -50%;
+    width: 100%;
+    border: solid 1px transparent;
+}
+#{{prefix}}widget_close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-top: 0.2em;
+    margin-right: 0.2em;
+    cursor: pointer;
+    opacity: .75;
+}
+#{{prefix}}widget_close:hover {
+    text-shadow: 0.1em 0.1em 0.1em #000;
+    opacity: 1;
+}
+#{{prefix}}widget_configure {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin-top: 0.2em;
+    margin-left: 0.2em;
+    cursor: pointer;
+    opacity: .75;
+}
+#{{prefix}}widget_configure:hover {
+    text-shadow: 0.1em 0.1em 0.1em #000;
+    opacity: 1;
+}
+#{{prefix}}widget_form input {
+    width: 97%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 0.2em;
+    display: block;
+    padding: 0.2em 0.2em;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    box-shadow: 0 1px 1px #fff;
+    color: #000;
+    position: relative;
+    z-index: 2;
+    font-size: 1em;
+}
 #{{container}} .table_row {
     display: table-row;
     height: 1.2em;
@@ -753,19 +816,20 @@ hr {
 }
 #{{container}} .active.table_row {
     -webkit-transform: skew(-10deg) translate(0.5%);
+    -moz-transform: skew(-10deg) translate(0.5%);
+    -ms-transform: skew(-10deg) translate(0.5%);
+    -o-transform: skew(-10deg) translate(0.5%);
+    transform: skew(-10deg) translate(0.5%);
 }
 #{{container}} .table_cell {
     display: table-cell;
     max-width: 13em;
     padding-right: 0.5em;
-    /* Firefox 3.6+ */
     background-image: -moz-linear-gradient(top, #fff, rgba(200, 200, 200, 0.5));
-    /* Safari 5.1+, Chrome 10+ */
     background-image: -webkit-linear-gradient(top, #fff, rgba(200, 200, 200, 0.5));
-    /* Opera 11.10+ */
     background-image: -o-linear-gradient(top, #fff, rgba(200, 200, 200, 0.5));
-    /* IE 9+ */
-    background: -ms-linear-gradient(top,  #fff, rgba(200, 200, 200, 0.5));
+    background-image: -ms-linear-gradient(top,  #fff, rgba(200, 200, 200, 0.5));
+    background-image: linear-gradient(top,  #fff, rgba(200, 200, 200, 0.5));
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -792,7 +856,6 @@ hr {
     display: table-row;
     height: 1.2em;
     overflow: hidden;
-/*     color: #000; */
     border: 0.1em #000 solid;
     font-size: 0.9em;
 }
@@ -824,6 +887,11 @@ hr {
 #{{prefix}}dialogtitle .panelstop2 { stop-color: #CCC; }
 #{{prefix}}dialogtitle .panelstop3 { stop-color: #DDD; }
 #{{prefix}}dialogtitle .panelstop4 { stop-color: #FFF; }
+/* Ditto for widgets */
+#{{prefix}}widgettitle .panelstop1 { stop-color: #FFF; }
+#{{prefix}}widgettitle .panelstop2 { stop-color: #CCC; }
+#{{prefix}}widgettitle .panelstop3 { stop-color: #DDD; }
+#{{prefix}}widgettitle .panelstop4 { stop-color: #FFF; }
 
 /* Plugin-specific CSS (will get ignored if plugin is missing) */
 #{{prefix}}playbackControls {

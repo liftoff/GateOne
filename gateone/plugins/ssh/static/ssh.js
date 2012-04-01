@@ -15,6 +15,7 @@ var logDebug = noop;
 GateOne.Base.module(GateOne, "SSH", "1.0", ['Base']);
 GateOne.SSH.identities = []; // SSH identity objects end up in here
 GateOne.SSH.remoteCmdCallbacks = {};
+GateOne.SSH.remoteCmdErrorbacks = {};
 GateOne.Base.update(GateOne.SSH, {
     init: function() {
         var go = GateOne,
@@ -1036,23 +1037,36 @@ GateOne.Base.update(GateOne.SSH, {
             output = message['output'],
             result = message['result'];
         if (result != 'Success') {
-            go.Visual.displayMessage("Error executing background command: " + result);
+            go.Visual.displayMessage("Error executing background command on terminal " + term + ": " + result);
+            if (go.SSH.remoteCmdErrorbacks[term][cmd]) {
+                go.SSH.remoteCmdErrorbacks[term][cmd](result);
+                delete go.SSH.remoteCmdErrorbacks[term][cmd];
+            }
             return;
         }
-        if (go.SSH.remoteCmdCallbacks[term]) {
-            go.SSH.remoteCmdCallbacks[term](output);
-            delete go.SSH.remoteCmdCallbacks[term];
+        if (go.SSH.remoteCmdCallbacks[term][cmd]) {
+            go.SSH.remoteCmdCallbacks[term][cmd](output);
+            delete go.SSH.remoteCmdCallbacks[term][cmd];
         } else {
             go.Visual.displayMessage("Remote command output from terminal " + term + ": " + output);
         }
     },
-    execRemoteCmd: function(term, command, callback) {
-        // Executes *command* by creating a secondary shell in the background using the multiplexed tunnel of *term* (works just like duplicateSession).
+    execRemoteCmd: function(term, command, callback, errorback) {
+        // Executes *command* by creating a secondary shell in the background using the multiplexed tunnel of *term* (works just like duplicateSession()).
         // Calls *callback* when the result of *command* comes back.
+        // *errorback* will be called if there's an error executing the command.
         var go = GateOne,
             ssh = go.SSH;
+        // Create an associative array to keep track of which callback belongs to which command (so we can support multiple simultaneous commands/callbacks for the same terminal)
+        if (!ssh.remoteCmdCallbacks[term]) {
+            ssh.remoteCmdCallbacks[term] = {};
+            // The errorbacks need an associative array too
+            ssh.remoteCmdErrorbacks[term] = {};
+        }
         // Set the callback for *term*
-        ssh.remoteCmdCallbacks[term] = callback;
+        ssh.remoteCmdCallbacks[term][command] = callback;
+        // Set the errorback for *term*
+        ssh.remoteCmdErrorbacks[term][command] = errorback;
         go.ws.send(JSON.stringify({'ssh_execute_command': {'term': term, 'cmd': command}}));
     }
 });

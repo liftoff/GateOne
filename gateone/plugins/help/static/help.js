@@ -1,4 +1,6 @@
+
 (function(window, undefined) {
+
 var document = window.document; // Have to do this because we're sandboxed
 
 // Useful sandbox-wide stuff

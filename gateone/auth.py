@@ -95,10 +95,14 @@ class BaseAuthHandler(tornado.web.RequestHandler):
             mkdir_p(user_dir)
             os.chmod(user_dir, 0700)
         session_file = os.path.join(user_dir, 'session')
-        if os.path.exists(session_file):
+        session_file_exists = os.path.exists(session_file)
+        if session_file_exists:
             session_data = open(session_file).read()
-            session_info = tornado.escape.json_decode(session_data)
-        else:
+            try:
+                session_info = tornado.escape.json_decode(session_data)
+            except ValueError: # Something wrong with the file
+                session_file_exists = False # Overwrite it below
+        if not session_file_exists:
             with open(session_file, 'w') as f:
                 # Save it so we can keep track across multiple clients
                 session_info = {

@@ -102,7 +102,7 @@ GateOne.Base.update(GateOne.Mobile, {
             form.appendChild(inputElement);
             document.body.appendChild(form);
             setTimeout(function() {
-                u.hideElement(u.getNode('#'+go.prefs.prefix+'pastearea'));
+                u.hideElements('.pastearea');
             }, 3000);
             window.onresize = function(e) {
                 // Mobile resize is slightly different from desktop

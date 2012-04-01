@@ -201,7 +201,7 @@ def timeout_sub_channel(m_instance):
         % repr(m_instance.term_id)))
     terminate_sub_channel(m_instance)
 
-def got_error(m_instance, match=None, cmd=None, tws=None):
+def got_error(m_instance, match=None, term=None, cmd=None, tws=None):
     """
     Called if execute_command() encounters a problem/timeout.
 
@@ -215,8 +215,10 @@ def got_error(m_instance, match=None, cmd=None, tws=None):
         message = {
             'sshjs_cmd_output': {
                 'cmd': cmd,
+                'term': term,
                 'output': None,
-                'result': 'Error: Timeout exceeded.'
+                'result': _(
+                    'Error: Timeout exceeded or command failed to execute.')
             }
         }
         tws.write_message(message)
@@ -252,7 +254,7 @@ def execute_command(term, cmd, callback=None, tws=None):
     # using a regular expression to match a shell prompt (which could be set
     # to anything).  It also gives us a clear indication as to where the command
     # output begins and ends.
-    errorback = partial(got_error, cmd=cmd, tws=tws)
+    errorback = partial(got_error, term=term, cmd=cmd, tws=tws)
     wait = partial(wait_for_prompt, term, cmd, errorback, callback)
     m.expect(READY_MATCH, callback=wait, errorback=errorback, timeout=10)
     logging.debug("Waiting for READY_MATCH inside execute_command()")
