@@ -123,7 +123,7 @@ GateOne.Base.update = function (self, obj/*, ... */) {
 var WebSocket =  window.MozWebSocket || window.WebSocket || window.WebSocketDraft || null;
 // Choose the appropriate BlobBuilder and URL
 var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
-    URL = (window.URL || window.webkitURL);
+    urlObj = (window.URL || window.webkitURL);
 
 // GateOne Settings
 GateOne.prefs = { // Tunable prefs (things users can change)
@@ -218,10 +218,15 @@ GateOne.Base.update(GateOne, {
             }
             go.prefs.url = go.prefs.url.split('#')[0]; // Get rid of any hash at the end (just in case)
         }
+        if (!u.endsWith('/', go.prefs.url)) {
+            go.prefs.url = go.prefs.url + '/';
+        }
+        var combined_js = go.prefs.url + 'combined_js',
+            authCheck = go.prefs.url + 'auth?check=True';
         // Load our JS Plugins
-        u.loadScript(go.prefs.url+'combined_js', function() {
+        u.loadScript(combined_js, function() {
             // Check if we're authenticated after all the scripts are done loading
-            u.xhrGet(go.prefs.url+'auth?check=True', parseResponse);
+            u.xhrGet(authCheck, parseResponse);
         });
         // Empty out anything that might be already-existing in goDiv
         u.getNode(go.prefs.goDiv).innerHTML = '';
@@ -1158,7 +1163,7 @@ GateOne.Base.update(GateOne.Utils, {
         var go = GateOne,
             u = go.Utils,
             clickEvent = document.createEvent('MouseEvents'),
-            blobURL = URL.createObjectURL(blob),
+            blobURL = urlObj.createObjectURL(blob),
             save_link = u.createElement('a', {'href': blobURL, 'name': filename, 'download': filename});
         clickEvent.initMouseEvent('click', true, true, document.defaultView, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
         save_link.dispatchEvent(clickEvent);
@@ -1290,16 +1295,22 @@ GateOne.Base.update(GateOne.Net, {
         // Tell the server the new dimensions
         go.ws.send(JSON.stringify({'resize': prefs}));
     },
-    connectionError: function() {
+    connectionError: function(msg) {
+        // Displays an error in the browser indicating that there was a problem with the connection.
+        // if *msg* is given, it will be added to the standard error.
         var go = GateOne,
             u = go.Utils,
-            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
+            message = "<p>The WebSocket connection was closed.  Will attempt to reconnect every 5 seconds...</p><p>NOTE: Some web proxies do not work properly with WebSockets.</p>";
         logError("Error communicating with server... ");
         terms.forEach(function(termObj) {
             // Passing 'true' here to keep the stuff in localStorage for this term.
             go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
         });
-        u.getNode('#'+go.prefs.prefix+'termwrapper').innerHTML = "<p>The WebSocket connection was closed.  Will attempt to reconnect every 5 seconds...</p><p>NOTE: Some web proxies do not work properly with WebSockets.</p>";
+        if (msg) {
+            message = "<p>" + msg + "</p>";
+        }
+        u.getNode('#'+go.prefs.prefix+'termwrapper').innerHTML = message;
         setTimeout(go.Net.connect, 5000);
     },
     connect: function() {
@@ -1310,16 +1321,16 @@ GateOne.Base.update(GateOne.Net, {
             host = "";
         if (u.startsWith("https:", go.prefs.url)) {
             host = go.prefs.url.split('https://')[1]; // e.g. 'localhost:8888/'
-            if (u.endsWith(host, '/')) {
+            if (u.endsWith('/', host)) {
                 host = host.slice(0, -1); // Remove the trailing /
             }
-            go.wsURL = "wss://" + host + "ws";
+            go.wsURL = "wss://" + host + "/ws";
         } else { // Hopefully no one will be using Gate One without SSL but you never know...
             host = go.prefs.url.split('http://')[1]; // e.g. 'localhost:8888/'
-            if (u.endsWith(host, '/')) {
+            if (u.endsWith('/', host)) {
                 host = host.slice(0, -1); // Remove the trailing /
             }
-            go.wsURL = "ws://" + host + "ws";
+            go.wsURL = "ws://" + host + "/ws";
         }
         logDebug("GateOne.Net.connect(" + go.wsURL + ")");
         go.ws = new WebSocket(go.wsURL); // For reference, I already tried Socket.IO and custom implementations of long-held HTTP streams...  Only WebSockets provide low enough latency for real-time terminal interaction.  All others were absolutely unacceptable in real-world testing (especially Flash-based...  Wow, really surprised me how bad it was).
@@ -1365,7 +1376,8 @@ GateOne.Base.update(GateOne.Net, {
     },
     onMessage: function (evt) {
         logDebug('message: ' + evt.data);
-        var v = GateOne.Visual,
+        var prefix = GateOne.prefs.prefix,
+            v = GateOne.Visual,
             n = GateOne.Net,
             u = GateOne.Utils,
             messageObj = null;
@@ -1373,7 +1385,20 @@ GateOne.Base.update(GateOne.Net, {
             messageObj = JSON.parse(evt.data);
         } catch (e) {
             // Non-JSON messages coming over the WebSocket are assumed to be errors, display them as-is (could be handy shortcut to display a message instead of using the 'notice' action).
-            v.displayMessage('Message From Server: ' + evt.data);
+            var noticeContainer = u.getNode('#'+prefix+'noticecontainer'),
+                msg = 'Message From Server: ' + evt.data;
+            if (noticeContainer) {
+                // This only works if Gate One loaded successfuly
+                v.displayMessage(msg, 5000, 5000);
+            } else {
+                // Fallback to this:
+                var msgContainer = u.createElement('div', {'id': 'messagecontainer', 'style': {'font-size': '4em', 'background-color': '#000', 'color': '#fff', 'display': 'block', 'position': 'fixed', 'bottom': '2em', 'right': '3em', 'z-index': 9999}}); // Have to use 'style' since CSS may not have been loaded
+                msgContainer.innerHTML = msg;
+                document.body.appendChild(msgContainer);
+                setTimeout(function() {
+                    u.removeElement(msgContainer);
+                }, 5000);
+            }
         }
         // Execute each respective action
         try {
@@ -1469,16 +1494,15 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onkeypress = go.Input.emulateKeyFallback;
         goDiv.focus();
         // NOTE: This might not be necessary anymore with the pastearea:
-//         goDiv.onpaste = function(e) {
-//             // TODO: Add a pop-up message that tells Firefox users how to grant Gate One access to the clipboard
-//             // Grab the text being pasted
-//             var contents = e.clipboardData.getData('Text');
-//             // Don't actually paste the text where the user clicked
-//             e.preventDefault();
-//             // Queue it up and send the characters as if we typed them in
-//             GateOne.Input.queue(contents);
-//             GateOne.Net.sendChars();
-//         }
+        goDiv.onpaste = function(e) {
+            // Grab the text being pasted
+            var contents = e.clipboardData.getData('Text');
+            // Don't actually paste the text where the user clicked
+            e.preventDefault();
+            // Queue it up and send the characters as if we typed them in
+            GateOne.Input.queue(contents);
+            GateOne.Net.sendChars();
+        }
         goDiv.onmousedown = go.Input.goDivMouseDown;
         goDiv.onmouseup = function(e) {
             // Once the user is done pasting (or clicking), set it back to false for speed
@@ -1508,7 +1532,6 @@ GateOne.Base.update(GateOne.Input, {
         var go = GateOne,
             u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv);
-//             pastearea = u.getNode('#'+go.prefs.prefix+'pastearea');
 //         goDiv.contentEditable = false; // This needs to be turned off or it might capture paste events (which is really annoying when you're trying to edit a form)
         goDiv.onpaste = null;
         goDiv.tabIndex = null;
@@ -1836,7 +1859,7 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_NUM_PAD_ASTERISK': {'alt': ESC+"*", 'appmode': ESC+"Oj"},
         'KEY_NUM_PAD_PLUS_SIGN': {'alt': ESC+"+", 'appmode': ESC+"Ok"},
 // NOTE: The regular hyphen key shows up as a num pad hyphen in Firefox 7
-        'KEY_NUM_PAD_HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_", 'appmode': ESC+"Om"},
+        'KEY_NUM_PAD_HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_"},
         'KEY_NUM_PAD_FULL_STOP': {'alt': ESC+"."},
         'KEY_NUM_PAD_SOLIDUS': {'alt': ESC+"/", 'appmode': ESC+"Oo"},
         'KEY_NUM_LOCK': null, // TODO: Double-check that NumLock isn't supposed to send some sort of wacky ESC sequence
@@ -1844,7 +1867,7 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_SEMICOLON': {'alt': ESC+";", 'alt-shift': ESC+":"},
         'KEY_EQUALS_SIGN': {'alt': ESC+"=", 'alt-shift': ESC+"+"},
         'KEY_COMMA': {'alt': ESC+",", 'alt-shift': ESC+"<"},
-        'KEY_HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_", 'appmode': ESC+"Om"},
+        'KEY_HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_"},
         'KEY_FULL_STOP': {'alt': ESC+".", 'alt-shift': ESC+">"},
         'KEY_SOLIDUS': {'alt': ESC+"/", 'alt-shift': ESC+"?", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
         'KEY_GRAVE_ACCENT':  {'alt': ESC+"`", 'alt-shift': ESC+"~", 'ctrl-shift': String.fromCharCode(30)},
@@ -2314,7 +2337,7 @@ GateOne.Base.update(GateOne.Visual, {
         }
         // Start by scaling all panels out
         for (var i in u.toArray(panels)) {
-            if (go.Visual.getTransform(panels[i]) == "scale(1)") {
+            if (panels[i] && go.Visual.getTransform(panels[i]) == "scale(1)") {
                 v.applyTransform(panels[i], 'scale(0)');
                 // Call any registered 'out' callbacks for all of these panels
                 if (v.panelToggleCallbacks['out']['#'+panels[i].id]) {
@@ -2394,6 +2417,7 @@ GateOne.Base.update(GateOne.Visual, {
             prefix = go.prefs.prefix,
             now = new Date(),
             timeDiff = now - go.Visual.sinceLastMessage,
+            noticeContainer = u.getNode('#'+prefix+'noticecontainer'),
             notice = u.createElement('div', {'id': prefix+id});
         if (message == go.Visual.lastMessage) {
             // Only display messages every two seconds if they repeat so we don't spam the user.
@@ -2408,7 +2432,7 @@ GateOne.Base.update(GateOne.Visual, {
             removeTimeout = 5000;
         }
         notice.innerHTML = message;
-        u.getNode('#'+prefix+'noticecontainer').appendChild(notice);
+        noticeContainer.appendChild(notice);
         setTimeout(function() {
             go.Visual.applyStyle(notice, {'opacity': 0});
             setTimeout(function() {
@@ -3205,7 +3229,7 @@ var logDebug = GateOne.Utils.noop;
 
 // Choose the appropriate BlobBuilder and URL
 var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
-    URL = (window.URL || window.webkitURL);
+    urlObj = (window.URL || window.webkitURL);
 
 GateOne.Base.module(GateOne, "Terminal", "1.0", ['Base', 'Utils', 'Visual']);
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
@@ -3562,9 +3586,8 @@ GateOne.Base.update(GateOne.Terminal, {
             bb = new BlobBuilder();
         bb.append(source); // Add the Web Worker source code
         // Obtain a blob URL reference to our worker 'file'.
-        var blobURL = URL.createObjectURL(bb.getBlob());
-        // NOTE: Using Blob URLs for WebWorkers doesn't work in Firefox 8 due to a bug (https://bugzilla.mozilla.org/show_bug.cgi?id=699633)
-        if (navigator.userAgent.indexOf('Firefox/8') == -1) {
+        if (urlObj.createObjectURL) {
+            var blobURL = urlObj.createObjectURL(bb.getBlob());
             t.termUpdatesWorker = new Worker(blobURL);
         } else {
             // Fall back to the old way
@@ -3705,7 +3728,18 @@ GateOne.Base.update(GateOne.Terminal, {
             pastearea = u.createElement('textarea', {'id': 'pastearea'+term, 'class': 'pastearea'}),
         // The following functions control the copy & paste capability
             pasteareaOnInput = function(e) {
-                go.Input.queue(pastearea.value); pastearea.value = ""; go.Net.sendChars();
+                var pasted = pastearea.value,
+                    lines = pasted.split('\n');
+                if (lines.length > 1) {
+                    // If we're pasting stuff with newlines we should strip trailing whitespace so the lines show up correctly.  In all but a few cases this is what the user expects.
+                    for (var i=0; i < lines.length; i++) {
+                        lines[i] = lines[i].replace(/\s*$/g, ""); // Remove trailing whitespace
+                    }
+                    pasted = lines.join('\n');
+                }
+                go.Input.queue(pasted);
+                pastearea.value = "";
+                go.Net.sendChars();
             },
             pasteareaScroll = function(e) {
                 // We have to hide the pastearea so we can scroll the terminal underneath
@@ -3979,10 +4013,10 @@ GateOne.Base.update(GateOne.User, {
         // NOTE: This takes care of deleting the "user" cookie
         u.xhrGet(go.prefs.url+'auth?logout=True', function(response) {
             logDebug("Logout Response: " + response);
-            var URL = response;
-            v.displayMessage("You have been logged out.  Redirecting to: " + URL);
+            var url = response;
+            v.displayMessage("You have been logged out.  Redirecting to: " + url);
             setTimeout(function() {
-                window.location.href = URL;
+                window.location.href = url;
             }, 2000);
         });
     }

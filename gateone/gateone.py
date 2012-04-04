@@ -987,6 +987,11 @@ class TerminalWebSocket(WebSocketHandler):
                 # *signature_method* is the HMAC hashing algorithm to use for
                 #   the signature.  Only HMAC-SHA1 is supported for now.
                 # *api_version* is the auth API version.  Always "1.0" for now.
+                #
+                # For reference, here's how to make a signature using PHP:
+                # $authobj = array('api_key' => 'M2I1MzJmZjk4MTEwNDk2Zjk4MjMwNmMwMTVkODQzMTEyO', 'upn' => $_SERVER['REMOTE_USER'], 'timestamp' => time() . '0000', 'signature_method' => 'HMAC-SHA1', 'api_version' => '1.0');
+                # $authobj['signature'] = hash_hmac('sha1', $authobj['api_key'] . $authobj['upn'] . $authobj['timestamp'], '<secret>');
+                # Note that the order matters:  api_key -> upn -> timestamp
                 auth_obj = settings['auth']
                 if 'api_key' in auth_obj:
                     # Assume everything else is present if the api_key is there
@@ -1808,7 +1813,7 @@ class TidyThread(threading.Thread):
         # This loops through all the open terminals checking if each is alive
                 all_dead = True
                 for term in SESSIONS[session].keys():
-                    if isinstance(term, int):
+                    if isinstance(term, int) and term in SESSIONS[session]:
                         if SESSIONS[session][term]['multiplex'].isalive():
                             all_dead = False
                             # Added a doublecheck value here because there's a

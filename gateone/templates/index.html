@@ -13,7 +13,7 @@
 <script>
 window.onload = function() {
     // Initialize Gate One using defaults:
-    GateOne.init({{js_init}}); // NOTE: Many defaults (e.g. CSS themes/colors, font size, etc) can be overridden by the user.
+    GateOne.init({% raw js_init %}); // NOTE: Many defaults (e.g. CSS themes/colors, font size, etc) can be overridden by the user.
 
     // Commented out below are a few examples of the various ways you can initialize Gate One...
     // Init Gate One (client) using the built-in white CSS scheme telling it to connect to a specific Gate One server (url):
