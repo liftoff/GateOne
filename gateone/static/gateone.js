@@ -1780,12 +1780,12 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_WINDOWS_LEFT': null,
         'KEY_WINDOWS_RIGHT': null,
         'KEY_SELECT': String.fromCharCode(93),
-        'KEY_NUM_PAD_ASTERISK': {'alt': ESC+"*", 'appmode': ESC+"Oj"},
-        'KEY_NUM_PAD_PLUS_SIGN': {'alt': ESC+"+", 'appmode': ESC+"Ok"},
+        'KEY_NUM_PAD_ASTERISK': {'alt': ESC+"*"},
+        'KEY_NUM_PAD_PLUS_SIGN': {'alt': ESC+"+"},
 // NOTE: The regular hyphen key shows up as a num pad hyphen in Firefox 7
         'KEY_NUM_PAD_HYPHEN-MINUS': {'shift': "_", 'alt': ESC+"-", 'alt-shift': ESC+"_"},
         'KEY_NUM_PAD_FULL_STOP': {'alt': ESC+"."},
-        'KEY_NUM_PAD_SOLIDUS': {'alt': ESC+"/", 'appmode': ESC+"Oo"},
+        'KEY_NUM_PAD_SOLIDUS': {'alt': ESC+"/"},
         'KEY_NUM_LOCK': null, // TODO: Double-check that NumLock isn't supposed to send some sort of wacky ESC sequence
         'KEY_SCROLL_LOCK': {'default': ESC+"[26~", 'xterm': ESC+"O2Q"}, // Same as F14
         'KEY_SEMICOLON': {'alt': ESC+";", 'alt-shift': ESC+":"},
