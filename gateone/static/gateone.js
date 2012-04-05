@@ -244,7 +244,6 @@ GateOne.Base.update(GateOne, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
-            pastearea = u.createElement('textarea', {'id': 'pastearea', 'oninput': 'GateOne.Input.queue(GateOne.Utils.getNode("#'+prefix+'pastearea").value); GateOne.Utils.getNode("#'+prefix+'pastearea").value = ""; GateOne.Net.sendChars();'}),
             prefsPanel = u.createElement('div', {'id': 'panel_prefs', 'class':'panel'}),
             prefsPanelH2 = u.createElement('h2'),
             prefsPanelForm = u.createElement('form', {'id': 'prefs_form', 'name': prefix+'prefs_form'}),
@@ -455,86 +454,6 @@ GateOne.Base.update(GateOne, {
             sideinfo.style['display'] = 'none';
         }
         goDiv.appendChild(sideinfo);
-//         // The following functions control the copy & paste capability
-//         var pasteareaScroll = function(e) {
-//             // We have to hide the pastearea so we can scroll the terminal underneath
-//             e.preventDefault();
-//             var pasteArea = u.getNode('#'+prefix+'pastearea'),
-//                 selectedTerm = localStorage[prefix+'selectedTerminal'];
-//             u.hideElement(pasteArea);
-//             if (!go.terminals[selectedTerm]['scrollbackVisible']) {
-//                 // Immediately re-enable the scrollback buffer if it isn't already there
-//                 go.Visual.enableScrollback(selectedTerm);
-//             }
-//             if (go.scrollTimeout) {
-//                 clearTimeout(go.scrollTimeout);
-//                 go.scrollTimeout = null;
-//             }
-//             go.scrollTimeout = setTimeout(function() {
-//                 u.showElement(pasteArea);
-//             }, 1000);
-//         }
-//         pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
-//         pastearea.onpaste = function(e) {
-//             // Start capturing input again
-//             setTimeout(function() { go.Input.capture(); }, 150);
-//         }
-//         pastearea.onmousedown = function(e) {
-//             // When the user left-clicks assume they're trying to highlight text
-//             // so bring the terminal to the front and try to emulate normal
-//             // cursor-text action as much as possible.
-//             // NOTE: There's one caveat with this method:  If text is highlighted
-//             //       right-click to paste won't work.  So the user has to just click
-//             //       somewhere (to deselect the text) before they can use the Paste
-//             //       context menu.  As a convenient shortcut/workaround, the user
-//             //       can middle-click to paste the current selection.
-//             logDebug('pastearea.onmousedown button: ' + e.button + ', which: ' + e.which);
-//             var go = GateOne,
-//                 u = go.Utils,
-//                 prefix = go.prefs.prefix,
-//                 m = go.Input.mouse(e), // Get the properties of the mouse event
-//                 X = e.clientX,
-//                 Y = e.clientY,
-//                 selectedTerm = localStorage[prefix+'selectedTerminal'];
-//             if (m.button.left) { // Left button depressed
-//                 u.hideElement('#'+prefix+'pastearea');
-//                 // This lets users click on links underneath the pastearea
-//                 if (document.elementFromPoint(X, Y).tagName == "A") {
-//                     window.open(document.elementFromPoint(X, Y).href);
-//                 }
-//                 // Don't add the scrollback if the user is highlighting text--it will mess it up
-//                 if (go.terminals[selectedTerm]) {
-//                     if (go.terminals[selectedTerm]['scrollbackTimer']) {
-//                         clearTimeout(go.terminals[selectedTerm]['scrollbackTimer']);
-//                     }
-//                 }
-//                 u.getNode(go.prefs.goDiv).focus();
-//             }
-//         }
-        // Commented this out because it eats up too much CPU.
-//         pastearea.onmousemove = function(e) {
-//             // Track the mouse movement over the pastearea so we can change the cursor appropriately depending on what's under it
-//             pastearea.style.display = 'none';
-//             var go = GateOne,
-//                 u = go.Utils,
-//                 prefix = go.prefs.prefix,
-//                 X = e.clientX,
-//                 Y = e.clientY,
-//                 elementUnderCursor = document.elementFromPoint(X, Y);
-//             if (elementUnderCursor.tagName == "A") {
-//                 pastearea.style.cursor = 'pointer';
-//             } else {
-//                 pastearea.style.cursor = 'default';
-//             }
-// //             if (elementUnderCursor.id.indexOf(prefix+'widget') == 0) {
-// // //                 if (pastearea.className.indexOf('go_none') == -1) {
-// //                     u.hideElement(pastearea);
-// // //                 }
-// //             }
-//             pastearea.style.display = 'block';
-//         }
-        // Add the pastearea so people can paste stuff
-//         goDiv.appendChild(pastearea);
         // Set the tabIndex on our GateOne Div so we can give it focus()
         goDiv.tabIndex = 1;
         // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)
@@ -1448,6 +1367,7 @@ GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since som
 GateOne.Input.F11 = false;
 GateOne.Input.F11timer = null;
 GateOne.Input.handledKeystroke = false;
+GateOne.Input.handledPaste = false;
 GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.  They will end up looking like this:
 // 'KEY_N': [{'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'}]
 GateOne.Base.update(GateOne.Input, {
@@ -1467,6 +1387,7 @@ GateOne.Base.update(GateOne.Input, {
                 e.preventDefault();
                 go.Input.queue(selectedText);
                 go.Net.sendChars();
+                go.Input.handledPaste = true;
             }
         } /*else {*/
 //             var panels = u.getNodes(go.prefs.goDiv + ' .panel'),
@@ -1495,13 +1416,16 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.focus();
         // NOTE: This might not be necessary anymore with the pastearea:
         goDiv.onpaste = function(e) {
-            // Grab the text being pasted
-            var contents = e.clipboardData.getData('Text');
-            // Don't actually paste the text where the user clicked
-            e.preventDefault();
-            // Queue it up and send the characters as if we typed them in
-            GateOne.Input.queue(contents);
-            GateOne.Net.sendChars();
+            if (!go.Input.handledPaste) {
+                // Grab the text being pasted
+                var contents = e.clipboardData.getData('Text');
+                // Don't actually paste the text where the user clicked
+                e.preventDefault();
+                // Queue it up and send the characters as if we typed them in
+                GateOne.Input.queue(contents);
+                GateOne.Net.sendChars();
+            }
+            go.Input.handledPaste = false;
         }
         goDiv.onmousedown = go.Input.goDivMouseDown;
         goDiv.onmouseup = function(e) {

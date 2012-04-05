@@ -12,7 +12,7 @@ sets the window title to user@host.
 """
 
 # Meta
-__version__ = '1.2' # Pretty much the only thing that ISN'T beta right now ;)
+__version__ = '1.2'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
@@ -26,9 +26,6 @@ import gettext
 gettext.bindtextdomain('ssh_connect', 'i18n')
 gettext.textdomain('ssh_connect')
 _ = gettext.gettext
-
-# Import 3rd party stuff
-#from tornado.options import options
 
 # Disable ESC autocomplete for local paths (prevents information disclosure)
 readline.parse_and_bind('esc: none')
@@ -246,6 +243,8 @@ def openssh_connect(
         else:
             # Assume Windows.  TODO: Double-check this is the right default path
             users_ssh_dir = os.path.join(os.environ['USERPROFILE'], '.ssh')
+    if not os.path.exists(users_ssh_dir):
+        mkdir_p(users_ssh_dir)
     ssh_config_path = os.path.join(users_ssh_dir, 'config')
     if not os.path.exists(ssh_config_path):
         # Create it (an empty one so ssh doesn't error out)
