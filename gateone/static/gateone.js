@@ -2417,6 +2417,7 @@ GateOne.Base.update(GateOne.Visual, {
     enableScrollback: function(/*Optional*/term) {
         // Replaces the contents of the selected terminal with the complete screen + scrollback buffer
         // If *term* is given, only disable scrollback for that terminal
+        return;
         logDebug('enableScrollback(' + term + ')');
         var go = GateOne,
             u = go.Utils,
