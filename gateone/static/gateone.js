@@ -1861,6 +1861,12 @@ GateOne.Base.update(GateOne.Input, {
         }
         return out;
     },
+    // NOTE:  Work-in-progress
+    moveCursorUp: function() {
+        // Moves the cursor up one row
+        var u = GateOne.Utils,
+            cursor = u.getNode(GateOne.prefs.goDiv + ' cursor')
+    },
     emulateKey: function(e, skipF11check) {
         // This method handles all regular keys registered via onkeydown events (not onkeypress)
         // If *skipF11check* is not undefined (or null), the F11 (fullscreen check) logic will be skipped.
@@ -2411,7 +2417,6 @@ GateOne.Base.update(GateOne.Visual, {
     enableScrollback: function(/*Optional*/term) {
         // Replaces the contents of the selected terminal with the complete screen + scrollback buffer
         // If *term* is given, only disable scrollback for that terminal
-        return;
         logDebug('enableScrollback(' + term + ')');
         var go = GateOne,
             u = go.Utils,
