@@ -2417,13 +2417,13 @@ GateOne.Base.update(GateOne.Visual, {
     enableScrollback: function(/*Optional*/term) {
         // Replaces the contents of the selected terminal with the complete screen + scrollback buffer
         // If *term* is given, only disable scrollback for that terminal
-        return;
         logDebug('enableScrollback(' + term + ')');
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix;
         if (term) {
-            var termPreNode = u.getNode('#'+prefix+'term'+term+'_pre');
+            var termPreNode = u.getNode('#'+prefix+'term'+term+'_pre'),
+                termScreen = u.getNode('#'+prefix+'term'+term+'screen');
             if (!go.terminals[term]) { // The terminal was just closed
                 return; // We're done here
             }
@@ -2437,7 +2437,7 @@ GateOne.Base.update(GateOne.Visual, {
                 return;
             }
             termPreNode.style.height = '100%';
-            termPreNode.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n' + go.terminals[term]['screen'].join('\n') + '\n\n';
+            termPreNode.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n' + '<span id="' + prefix + 'term' + term + 'screen">' + termScreen.innerHTML + '</span>';
             if (go.terminals[term]['scrollbackTimer']) {
                 clearTimeout(go.terminals[term]['scrollbackTimer']);
             }
@@ -2447,9 +2447,10 @@ GateOne.Base.update(GateOne.Visual, {
             var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
-                    termPreNode = u.getNode('#'+prefix+'term'+termID+'_pre');
+                    termPreNode = u.getNode('#'+prefix+'term'+termID+'_pre'),
+                    termScreen = u.getNode('#'+prefix+'term'+termID+'screen');
                 termPreNode.style.height = '100%';
-                termPreNode.innerHTML = go.terminals[termID]['scrollback'].join('\n') + '\n' + go.terminals[termID]['screen'].join('\n') + '\n\n';
+                termPreNode.innerHTML = go.terminals[termID]['scrollback'].join('\n') + '\n' + termScreen.innerHTML;
                 if (go.terminals[termID]['scrollbackTimer']) {
                     clearTimeout(go.terminals[termID]['scrollbackTimer']);
                 }
@@ -3421,7 +3422,7 @@ GateOne.Base.update(GateOne.Terminal, {
                 existingPre = u.getNode('#'+prefix+'term'+term+'_pre');
             try {
                 if (existingPre) {
-                    existingPre.style.height = 'auto';
+//                     existingPre.style.height = 'auto';
                     for (var i=0; i < screen.length; i++) {
                         if (screen[i].length) {
                             var existingLine = u.getNode(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
@@ -3445,7 +3446,8 @@ GateOne.Base.update(GateOne.Terminal, {
                         }
                     }
                 } else {
-                    var termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
+                    var termPre = u.createElement('pre', {'id': 'term'+term+'_pre'}),
+                        screenSpan = u.createElement('span', {'id': 'term'+term+'screen'});
                     for (var i=0; i < screen.length; i++) {
                         var lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
                         if (i == screen.length - 1) {
@@ -3453,10 +3455,11 @@ GateOne.Base.update(GateOne.Terminal, {
                         } else {
                             lineSpan.innerHTML = screen[i] + '\n';
                         }
-                        termPre.appendChild(lineSpan);
+                        screenSpan.appendChild(lineSpan);
                         // Update the existing screen array in-place to cut down on GC
                         GateOne.terminals[term]['screen'][i] = screen[i];
                     }
+                    termPre.appendChild(screenSpan);
                     termContainer.appendChild(termPre);
                 }
                 screenUpdate = true;
