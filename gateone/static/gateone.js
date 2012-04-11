@@ -922,13 +922,13 @@ GateOne.Base.update(GateOne.Utils, {
                 }
             }
             // Force the terminals to be re-drawn by the browser to ensure the text stays visible
-            setTimeout(function() {
-                var terminals = u.toArray(u.getNodes(go.prefs.goDiv+' .terminal pre'));
-                terminals.forEach(function(termPre) {
-                    var term = termPre.id.split('_')[1].split('term')[1]; // go_term1_pre
-                    termPre.innerHTML = GateOne.terminals[term]['screen'].join('\n') + '\n\n';
-                });
-            }, 500);
+//             setTimeout(function() {
+//                 var terminals = u.toArray(u.getNodes(go.prefs.goDiv+' .terminal pre'));
+//                 terminals.forEach(function(termPre) {
+//                     var term = termPre.id.split('_')[1].split('term')[1]; // go_term1_pre
+//                     termPre.innerHTML = GateOne.terminals[term]['screen'].join('\n') + '\n\n';
+//                 });
+//             }, 500);
         }
         go.Visual.updateDimensions(); // In case the styles changed things
     },
@@ -2411,6 +2411,7 @@ GateOne.Base.update(GateOne.Visual, {
     enableScrollback: function(/*Optional*/term) {
         // Replaces the contents of the selected terminal with the complete screen + scrollback buffer
         // If *term* is given, only disable scrollback for that terminal
+        return;
         logDebug('enableScrollback(' + term + ')');
         var go = GateOne,
             u = go.Utils,
@@ -3413,13 +3414,43 @@ GateOne.Base.update(GateOne.Terminal, {
             var termContainer = u.getNode('#'+prefix+'term'+term),
                 existingPre = u.getNode('#'+prefix+'term'+term+'_pre');
             try {
-                GateOne.terminals[term]['screen'] = screen;
                 if (existingPre) {
-                    existingPre.innerHTML = screen.join('\n') + '\n\n';
                     existingPre.style.height = 'auto';
+                    for (var i=0; i < screen.length; i++) {
+                        if (screen[i].length) {
+                            var existingLine = u.getNode(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
+                            // Update the existing screen array in-place to cut down on GC
+                            GateOne.terminals[term]['screen'][i] = screen[i];
+                            if (existingLine) {
+                                if (i == screen.length - 1) {
+                                    existingLine.innerHTML = screen[i] + '\n\n';
+                                } else {
+                                    existingLine.innerHTML = screen[i] + '\n';
+                                }
+                            } else { // Size of the terminal increased
+                                var lineSpan = u.createElement('span', {'class': 'line_' + i});
+                                if (i == screen.length - 1) {
+                                    lineSpan.innerHTML = screen[i] + '\n\n';
+                                } else {
+                                    lineSpan.innerHTML = screen[i] + '\n';
+                                }
+                                existingPre.appendChild(lineSpan);
+                            }
+                        }
+                    }
                 } else {
                     var termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
-                    termPre.innerHTML = screen.join('\n') + '\n\n';
+                    for (var i=0; i < screen.length; i++) {
+                        var lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
+                        if (i == screen.length - 1) {
+                            lineSpan.innerHTML = screen[i] + '\n\n';
+                        } else {
+                            lineSpan.innerHTML = screen[i] + '\n';
+                        }
+                        termPre.appendChild(lineSpan);
+                        // Update the existing screen array in-place to cut down on GC
+                        GateOne.terminals[term]['screen'][i] = screen[i];
+                    }
                     termContainer.appendChild(termPre);
                 }
                 screenUpdate = true;

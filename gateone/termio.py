@@ -1023,6 +1023,30 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             env["PATH"] = os.environ['PATH']
             env["LANG"] = os.environ.get('LANG', 'en_US.UTF-8')
             env["PYTHONIOENCODING"] = "utf_8"
+            # Setup stdout to be more Gate One friendly
+            import termios
+            # Fix missing termios.IUTF8
+            if 'IUTF8' not in termios.__dict__:
+                termios.IUTF8 = 16384 # Hopefully not platform independent
+            stdin = 0
+            stdout = 1
+            stderr = 2
+            attrs = termios.tcgetattr(stdout)
+            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = attrs
+            # Enable flow control and UTF-8 input (probably not needed)
+            iflag |= (termios.IXON | termios.IXOFF | termios.IUTF8)
+            # OPOST: Enable post-processing of chars (not sure if this matters)
+            # INLCR: We're disabling this so we don't get \r\r\n anywhere
+            oflag |= (termios.OPOST | termios.ONLCR | termios.INLCR)
+            attrs = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
+            termios.tcsetattr(stdout, termios.TCSANOW, attrs)
+            # Now do the same for stdin
+            attrs = termios.tcgetattr(stdin)
+            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = attrs
+            iflag |= (termios.IXON | termios.IXOFF | termios.IUTF8)
+            oflag |= (termios.OPOST | termios.ONLCR | termios.INLCR)
+            attrs = [iflag, oflag, cflag, lflag, ispeed, ospeed, cc]
+            termios.tcsetattr(stdin, termios.TCSANOW, attrs)
             # The sleep statement below ensures we capture all output from the
             # fd before it is closed...  It turns out that IOLoop's response to
             # changes in the fd is so fast that it can result in the fd being

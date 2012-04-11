@@ -1191,7 +1191,7 @@ class Terminal(object):
         cursor_right = self.cursor_right
         magic = self.magic
         changed = False
-        logging.debug('handling chars: %s' % `chars`)
+        #logging.debug('handling chars: %s' % `chars`)
         if special_checks:
             # NOTE: Special checks are limited to PNGs and JPEGs right now
             before_chars = ""

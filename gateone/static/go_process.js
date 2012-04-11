@@ -1,5 +1,6 @@
 // A Web Worker for processing incoming text
-consoleLog = [];
+var consoleLog = [],
+    SCREEN = [];
 var log = function(msg) {
     // Appends msg to a global consoleLog variable which will be handled by the caller
     consoleLog.push(msg);
@@ -52,9 +53,10 @@ var processScreen = function(terminalObj, termUpdateObj, prevScrollback, prefs, 
         scrollback.reverse(); // Put it back in the proper order
     }
     // Assemble the entire screen from what the server sent us (lines that haven't changed get sent as null)
-    termUpdateObj['screen'].forEach(function(line) {
+    for (var i=0; i < termUpdateObj['screen'].length; i++) {
+        var line = termUpdateObj['screen'][i];
         if (line == null) {
-            screen.push(""); // An empty string will do
+            screen[i] = ""; // An empty string will do (emulates unchanged)
         } else if (line.length) {
             // Linkify and transform the text inside the screen before we push it
             line = linkify(line);
@@ -64,14 +66,31 @@ var processScreen = function(terminalObj, termUpdateObj, prevScrollback, prefs, 
                     newString = textTransforms[trans]['newString'];
                 line = linkify(line, pattern, newString);
             }
-            // Regular line, push it.  Push it real good
-            screen.push(line);
+            screen[i] = line;
         } else {
-            // Line is unchanged.  Use the previous one
-            screen.push(terminalObj['screen'][count]);
+            // Line is unchanged
+            screen[i] = '';
         }
-        count += 1;
-    });
+    }
+//     for (var i=0; i < termUpdateObj['screen'].length; i++) {
+//         var line = termUpdateObj['screen'][i];
+//         if (line == null) {
+//             SCREEN[i] = ""; // An empty string will do (emulates unchanged)
+//         } else if (line.length) {
+//             // Linkify and transform the text inside the screen before we push it
+//             line = linkify(line);
+//             for (var trans in textTransforms) {
+//                 // Have to convert the regex to a string and use eval since Firefox can't seem to pass regexp objects to Web Workers.
+//                 var pattern = eval(textTransforms[trans]['pattern']),
+//                     newString = textTransforms[trans]['newString'];
+//                 line = linkify(line, pattern, newString);
+//             }
+//             SCREEN[i] = line;
+//         } /*else {*/
+//             // Line is unchanged.  Use the previous one
+// //             SCREEN[i] = terminalObj['screen'][i];
+// //         }
+//     }
     outputObj['screen'] = screen;
     outputObj['scrollback'] = scrollback;
     outputObj['log'] = consoleLog.join('\n');

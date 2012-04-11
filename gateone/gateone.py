@@ -799,6 +799,9 @@ class TerminalWebSocket(WebSocketHandler):
         self.titles = {}
         self.api_user = None
         self.em_dimensions = None
+        # This is used to keep track of used API authentication signatures so
+        # we can prevent replay attacks.
+        self.prev_signatures = []
 
     def allow_draft76(self):
         """
@@ -1013,9 +1016,33 @@ class TerminalWebSocket(WebSocketHandler):
                     sig_check = tornado.web._create_signature(
                         secret, api_key, upn, timestamp)
                     if sig_check == signature:
-                        # Auth success!
+                        # Everything matches (great!) so now we do due diligence
+                        # by checking the timestamp against the
+                        # api_timestamp_window setting and whether or not we've
+                        # already used it (to prevent replay attacks).
+                        if signature in self.prev_signatures:
+                            logging.error(_(
+                            "WebSocket authentication replay attack detected!"))
+                            message = {'notice': _(
+                                'AUTH FAILED: Replay attack detected!  This '
+                                'event has been logged.')}
+                            self.write_message(json_encode(message))
+                            self.close()
+                            return
+                        window = self.settings['api_timestamp_window']
+                        then = datetime.fromtimestamp(timestamp/1000)
+                        time_diff = datetime.now() - then
+                        if time_diff > window:
+                            logging.error(_(
+                            "WebSocket authentication failed due to timeout."))
+                            message = {'notice': _(
+                                'AUTH FAILED: Authentication object timed out. '
+                                'Please try again (time for an upgrade?).')}
+                            self.write_message(json_encode(message))
+                            self.close()
+                            return
                         logging.debug(_("WebSocket Authentication Successful"))
-                        # TODO: Add timestamp checking as well
+                        self.prev_signatures.append(signature) # Prevent replays
                 # Make a directory to store this user's settings/files/logs/etc
                         user_dir = os.path.join(self.settings['user_dir'], upn)
                         if not os.path.exists(user_dir):
@@ -1908,12 +1935,8 @@ class Application(tornado.web.Application):
         if 'auth' in settings and settings['auth']:
             if settings['auth'] == 'kerberos' and KerberosAuthHandler:
                 AuthHandler = KerberosAuthHandler
-                tornado_settings['sso_realm'] = settings["sso_realm"]
-                tornado_settings['sso_service'] = settings["sso_service"]
             elif settings['auth'] == 'pam' and PAMAuthHandler:
                 AuthHandler = PAMAuthHandler
-                tornado_settings['pam_realm'] = settings["pam_realm"]
-                tornado_settings['pam_service'] = settings["pam_service"]
             elif settings['auth'] == 'google':
                 AuthHandler = GoogleAuthHandler
             logging.info(_("Using %s authentication" % settings['auth']))
@@ -2141,6 +2164,18 @@ def main():
         "auth",
         default=None,
         help=_("Authentication method to use.  Valid options are: %s" % auths),
+        type=str
+    )
+    # This is to prevent replay attacks.  Gate One only keeps a "working memory"
+    # of API auth objects for this amount of time.  So if the Gate One server is
+    # restarted we don't have to write them to disk as anything older than this
+    # setting will be invalid (no need to check if it has already been used).
+    define(
+        "api_timestamp_window",
+        default="30s", # 30 seconds
+        help=_(
+            "How long before an API authentication object becomes invalid.  "
+            "Default is '30s' (30 seconds)."),
         type=str
     )
     define(
@@ -2444,11 +2479,13 @@ def main():
     logging.info("Connections to this server will be allowed from the following"
                  " origins: '%s'" % " ".join(real_origins))
     # Define our Application settings
+    api_timestamp_window = convert_to_timedelta(options.api_timestamp_window)
     app_settings = {
         'gateone_dir': GATEONE_DIR, # Only here so plugins can reference it
         'debug': options.debug,
         'cookie_secret': options.cookie_secret,
         'auth': none_fix(options.auth),
+        'api_timestamp_window': api_timestamp_window,
         'embedded': str2bool(options.embedded),
         'js_init': options.js_init,
         'user_dir': options.user_dir,
