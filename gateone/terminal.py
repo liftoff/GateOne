@@ -145,7 +145,7 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import re, logging, base64, copy, StringIO, codecs
+import re, logging, base64, copy, StringIO, codecs, unicodedata
 from datetime import datetime, timedelta
 from collections import defaultdict
 from itertools import imap, izip
@@ -1313,9 +1313,17 @@ class Terminal(object):
                         char = self.charset[charnum]
                         self.screen[self.cursorY][self.cursorX] = char
                     else:
-                        # Use plain ASCII if the char wasn't found (means it
-                        # isn't a special line drawing character).
-                        self.screen[self.cursorY][self.cursorX] = char
+                        # Double check this isn't a unicode diacritic (accent)
+                        # which simply modifies the character before it
+                        if unicodedata.combining(char):
+                            # This is a diacritic.  Combine it with existing:
+                            current = self.screen[self.cursorY][self.cursorX]
+                            combined = unicodedata.normalize(
+                                'NFC', u'%s%s' % (current, combined))
+                            self.screen[self.cursorY][self.cursorX] = combined
+                        else:
+                            # Normal character
+                            self.screen[self.cursorY][self.cursorX] = char
                 except IndexError:
                     # This can happen when escape sequences go haywire
                     pass
@@ -2331,7 +2339,7 @@ class Terminal(object):
             outline = ""
             charcount = 0
             for char, rend in izip(line, rendition):
-                if len(char) > 1: # Special stuff =)
+                if len(char) > 4: # Special stuff =)
                     # Obviously, not really a single character
                     if not Image: # Can't use images in the terminal
                         outline += "<i>Image file</i>"
@@ -2471,7 +2479,7 @@ class Terminal(object):
         for line, rendition in izip(screen, renditions):
             outline = ""
             for char, rend in izip(line, rendition):
-                if len(char) > 1: # Special stuff =)
+                if len(char) > 4: # Special stuff =)
                     # Obviously, not really a single character
                     if not Image: # Can't use images in the terminal
                         outline += "<i>Image file</i>"
@@ -2566,23 +2574,43 @@ class Terminal(object):
             results[-1] += "</span>"
         return results
 
-    def dump_html(self):
+    def dump_html(self, renditions=True):
         """
-        Dumps the terminal screen as a list of HTML-formatted lines.
+        Dumps the terminal screen as a list of HTML-formatted lines.  If
+        *renditions* is True (default) then terminal renditions will be
+        converted into HTML <span> elements so they will be displayed properly
+        in a browser.  Otherwise only the cursor <span> will be added to mark
+        its location.
 
         .. note:: This places <span class="cursor">(current character)</span> around the cursor location.
         """
         # NOTE: On my laptop this function will take about 30ms to complete
         # a full-screen 'top' refresh on a 57x209 screen.
         # In other words, it is pretty fast...  Not much optimization necessary
-        results = self._spanify_screen()
-        scrollback = []
-        if self.scrollback_buf:
-            scrollback = self._spanify_scrollback()
+        if renditions:
+            screen = self._spanify_screen()
+            scrollback = []
+            if self.scrollback_buf:
+                scrollback = self._spanify_scrollback()
+        else:
+            cursorX = self.cursorX
+            cursorY = self.cursorY
+            screen = []
+            for y, row in enumerate(self.screen):
+                if y == cursorY:
+                    cursor_row = ""
+                    for x, c in enumerate(row):
+                        if x == cursorX:
+                            cursor_row += '<span class="cursor">%s</span>' % c
+                        else:
+                            cursor_row += char
+                    screen.append(cursor_row)
+                else:
+                    screen.append("".join(row))
         # Empty the scrollback buffer:
         self.init_scrollback()
         self.modified = False
-        return (scrollback, results)
+        return (scrollback, screen)
 
     def dump_plain(self):
         """
