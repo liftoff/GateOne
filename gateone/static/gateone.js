@@ -3417,6 +3417,40 @@ GateOne.Base.update(GateOne.Terminal, {
         }
         return null;
     },
+    applyScreen: function(screen, term) {
+        // Uses *screen* (array of HTML-formatted lines) to update *term*
+        // If *term* isn't given, will use localStorage[prefix+selectedTerminal]
+        // NOTE:  Lines in *screen* that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line)
+        var u = GateOne.Utils,
+            prefix = GateOne.prefs.prefix;
+        if (!term) {
+            term = localStorage[prefix+'selectedTerminal'];
+        }
+        for (var i=0; i < screen.length; i++) {
+            if (screen[i].length) {
+                if (GateOne.terminals[term]['screen'][i] != screen[i]) {
+                    var existingLine = u.getNode(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
+                    if (existingLine) {
+                        if (i == screen.length - 1) { // Last line needs some extra room at the bottom
+                            existingLine.innerHTML = screen[i] + '\n\n';
+                        } else {
+                            existingLine.innerHTML = screen[i] + '\n';
+                        }
+                    } else { // Size of the terminal increased
+                        var lineSpan = u.createElement('span', {'class': 'line_' + i});
+                        if (i == screen.length - 1) {
+                            lineSpan.innerHTML = screen[i] + '\n\n';
+                        } else {
+                            lineSpan.innerHTML = screen[i] + '\n';
+                        }
+                        existingPre.appendChild(lineSpan);
+                    }
+                    // Update the existing screen array in-place to cut down on GC
+                    GateOne.terminals[term]['screen'][i] = screen[i];
+                }
+            }
+        }
+    },
     termUpdateFromWorker: function(e) {
         var u = GateOne.Utils,
             prefix = GateOne.prefs.prefix + "",
@@ -3442,30 +3476,7 @@ GateOne.Base.update(GateOne.Terminal, {
             try {
                 if (existingPre) {
 //                     existingPre.style.height = 'auto';
-                    for (var i=0; i < screen.length; i++) {
-                        if (screen[i].length) {
-                            if (GateOne.terminals[term]['screen'][i] != screen[i]) {
-                                var existingLine = u.getNode(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
-                                if (existingLine) {
-                                    if (i == screen.length - 1) { // Last line needs some extra room at the bottom
-                                        existingLine.innerHTML = screen[i] + '\n\n';
-                                    } else {
-                                        existingLine.innerHTML = screen[i] + '\n';
-                                    }
-                                } else { // Size of the terminal increased
-                                    var lineSpan = u.createElement('span', {'class': 'line_' + i});
-                                    if (i == screen.length - 1) {
-                                        lineSpan.innerHTML = screen[i] + '\n\n';
-                                    } else {
-                                        lineSpan.innerHTML = screen[i] + '\n';
-                                    }
-                                    existingPre.appendChild(lineSpan);
-                                }
-                                // Update the existing screen array in-place to cut down on GC
-                                GateOne.terminals[term]['screen'][i] = screen[i];
-                            }
-                        }
-                    }
+                    GateOne.Terminal.applyScreen(screen, term);
                 } else {
                     var termPre = u.createElement('pre', {'id': 'term'+term+'_pre'}),
                         screenSpan = u.createElement('span', {'id': 'term'+term+'screen'});

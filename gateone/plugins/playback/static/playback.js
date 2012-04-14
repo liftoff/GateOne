@@ -166,7 +166,7 @@ GateOne.Base.update(GateOne.Playback, {
             var playPause = u.getNode('#'+prefix+'playPause');
             playPause.innerHTML = '▶';
             go.Visual.applyTransform(playPause, ''); // Set it back to normal
-            u.getNode('#'+prefix+'term'+term+'_pre').innerHTML = go.terminals[term]['playbackFrames'][lastFrame]['screen'].join('\n');
+            go.Terminal.applyScreen(go.terminals[term]['playbackFrames'][lastFrame]['screen'], term);
             u.getNode('#'+prefix+'clock').innerHTML = lastDateTime.toLocaleTimeString();
             u.getNode('#'+prefix+'sideinfo').innerHTML = lastDateTime.toLocaleDateString();
             u.getNode('#'+prefix+'progressBar').style.width = '100%';
@@ -179,7 +179,7 @@ GateOne.Base.update(GateOne.Playback, {
         }
         u.getNode('#'+prefix+'clock').innerHTML = frameTime.toLocaleTimeString();
         u.getNode('#'+prefix+'sideinfo').innerHTML = frameTime.toLocaleDateString();
-        u.getNode('#'+prefix+'term'+term+'_pre').innerHTML = selectedFrame['screen'].join('\n');
+        go.Terminal.applyScreen(selectedFrame['screen'], term);
         // Update progress bar
         var firstDateTime = new Date(go.terminals[term]['playbackFrames'][0]['time']);
         var percent = Math.abs((lastDateTime.getTime() - frameTime.getTime())/(lastDateTime.getTime() - firstDateTime.getTime()) - 1);
