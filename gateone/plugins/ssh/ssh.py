@@ -15,7 +15,7 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
-import os, sys, logging, re, time, threading
+import os, sys, logging, re, time
 from datetime import datetime, timedelta
 from functools import partial
 

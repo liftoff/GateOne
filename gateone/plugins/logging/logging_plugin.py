@@ -24,23 +24,19 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 import os
 import logging
 import gzip
-import re
 import time
 from multiprocessing import Process, Queue
-from functools import partial
 
 # Our stuff
-from gateone import BaseHandler, PLUGINS, COLORS_256
-from logviewer import flatten_log, playback_log
+from gateone import BaseHandler, PLUGINS
+from logviewer import flatten_log
 from utils import get_translation, json_encode, get_or_update_metadata
 
 _ = get_translation()
 
 # Tornado stuff
-import tornado.web
 import tornado.template
 import tornado.ioloop
-from tornado.escape import json_decode
 
 # Globals
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
@@ -264,7 +260,7 @@ def _retrieve_log_flat(queue, settings):
         log_lines = scrollback + screen
         out_dict['log'] = log_lines
     else:
-        out_dict['result'] = "ERROR: Log not found"
+        out_dict['result'] = _("ERROR: Log not found")
     message = {'logging_log_flat': out_dict}
     queue.put(message)
 
@@ -396,6 +392,7 @@ def _retrieve_log_playback(queue, settings):
         theme_template = tornado.template.Template(theme_file)
         # Setup our 256-color support CSS:
         colors_256 = ""
+        from gateone import COLORS_256
         for i in xrange(256):
             fg = "#%s span.fx%s {color: #%s;}" % (
                 container, i, COLORS_256[i])
@@ -437,7 +434,7 @@ def _retrieve_log_playback(queue, settings):
         )
         out_dict['html'] = playback_html
     else:
-        out_dict['result'] = "ERROR: Log not found"
+        out_dict['result'] = _("ERROR: Log not found")
     message = {'logging_log_playback': out_dict}
     queue.put(message)
 
@@ -557,6 +554,7 @@ def _save_log_playback(queue, settings):
         theme_template = tornado.template.Template(theme_file)
         # Setup our 256-color support CSS:
         colors_256 = ""
+        from gateone import COLORS_256
         for i in xrange(256):
             fg = "#%s span.fx%s {color: #%s;}" % (
                 container, i, COLORS_256[i])
@@ -590,7 +588,7 @@ def _save_log_playback(queue, settings):
         )
         out_dict['data'] = playback_html
     else:
-        out_dict['result'] = "ERROR: Log not found"
+        out_dict['result'] = _("ERROR: Log not found")
     message = {'save_file': out_dict}
     queue.put(message)
 

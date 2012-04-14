@@ -1785,6 +1785,9 @@ class TerminalWebSocket(WebSocketHandler):
         pprint(gc.garbage)
         print("SESSIONS...")
         pprint(SESSIONS)
+        from pympler import asizeof
+        print("screen size: %s" % asizeof.asizeof(screen))
+        print("renditions size: %s" % asizeof.asizeof(renditions))
 
 # Thread classes
 class TidyThread(threading.Thread):

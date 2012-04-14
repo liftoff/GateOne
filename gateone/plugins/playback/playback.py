@@ -16,19 +16,9 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
 import os
-import logging
-from datetime import datetime
-
-# Our stuff
-from gateone import BaseHandler, COLORS_256
-from utils import get_translation
-
-_ = get_translation()
 
 # Tornado stuff
-import tornado.web
-import tornado.template
-from tornado.escape import json_decode
+
 
 # Globals
 plugin_path = os.path.split(__file__)[0]
@@ -40,6 +30,9 @@ def save_recording(settings, tws):
 
     NOTE: The real crux of the code that handles this is in the template.
     """
+    import tornado.template
+    from gateone import COLORS_256
+    from datetime import datetime
     now = datetime.now().strftime('%Y%m%d%H%m%S') # e.g. '20120208200222'
     out_dict = {
         'result': 'Success',

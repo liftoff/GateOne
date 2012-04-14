@@ -145,7 +145,8 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import re, logging, base64, copy, StringIO, codecs, unicodedata
+import os, re, logging, base64, copy, StringIO, codecs, unicodedata, tempfile
+from array import array
 from datetime import datetime, timedelta
 from collections import defaultdict
 from itertools import imap, izip
@@ -505,6 +506,22 @@ def _reduce_renditions(renditions):
         out_renditions.append(background)
     return out_renditions
 
+def pua_counter():
+    """
+    A generator that returns a Unicode Private Use Area (PUA) character starting
+    at the beginning of Plane 16 (U+100000); counting up by one with each
+    successive call.
+
+    .. note:: Meant to be used as references to image objects in the screen array()
+    """
+    n = 1048576 # U+100000 or u'\U00100000'
+    while True:
+        yield unichr(n)
+        if n == 1114111:
+            n = 1048576 # Reset--would be impressive to make it this far!
+        else:
+            n += 1
+
 class Terminal(object):
     """
     Terminal controller class.
@@ -789,7 +806,9 @@ class Terminal(object):
         self.saved_cursorY = 0
         self.saved_rendition = [None]
         self.application_keys = False
-        self.image = bytearray()
+        self.image = ""
+        self.images = {}
+        self.image_counter = pua_counter()
 
     def init_screen(self):
         """
@@ -798,9 +817,11 @@ class Terminal(object):
 
         .. note:: Just because each line starts out with a uniform length does not mean it will stay that way.  Processing of escape sequences is handled when an output function is called.
         """
-        self.screen = [
-            [u' ' for a in xrange(self.cols)] for b in xrange(self.rows)
-        ]
+        logging.debug('init_screen()')
+        #self.screen = [
+            #[u' ' for a in xrange(self.cols)] for b in xrange(self.rows)
+        #]
+        self.screen = [array('u', u' ' * self.cols) for a in xrange(self.rows)]
         # Tabstops
         tabs, remainder = divmod(self.cols, 8) # Default is every 8 chars
         self.tabstops = [(a*8)-1 for a in xrange(tabs)]
@@ -824,6 +845,7 @@ class Terminal(object):
         Empties the scrollback buffers (:attr:`self.scrollback_buf` and
         :attr:`self.scrollback_renditions`).
         """
+        # Close any image files that might be associated with characters
         self.scrollback_buf = []
         self.scrollback_renditions = []
 
@@ -935,7 +957,8 @@ class Terminal(object):
                 self.renditions.pop(0)
         elif rows > self.rows: # Add rows at the bottom
             for i in xrange(rows - self.rows):
-                line = [u' ' for a in xrange(cols)]
+                #line = [u' ' for a in xrange(cols)]
+                line = array('u', u' ' * self.cols)
                 renditions = [[0] for a in xrange(self.cols)]
                 self.screen.append(line)
                 self.renditions.append(renditions)
@@ -1084,9 +1107,11 @@ class Terminal(object):
         if param == 8:
             # Screen alignment test
             self.init_renditions()
+            #self.screen = [
+                #[u'E' for a in xrange(self.cols)] for b in xrange(self.rows)
+            #]
             self.screen = [
-                [u'E' for a in xrange(self.cols)] for b in xrange(self.rows)
-            ]
+                array('u', u'E' * self.cols) for a in xrange(self.rows)]
         # TODO: Get this handling double line height stuff...  For kicks
 
     def set_G0_charset(self, char):
@@ -1199,19 +1224,19 @@ class Terminal(object):
             for magic_header in magic.keys():
                 if magic_header.match(chars):
                     self.matched_header = magic_header
-                    # TODO: Add a timeout here
                     self.timeout_image = datetime.now()
             if self.image or self.matched_header:
-                self.image.extend(chars)
-                match = magic[self.matched_header].match(self.image)
+                self.image += chars
+                match = magic[self.matched_header].search(self.image)
                 if match:
                     #logging.debug("Matched image format.  Capturing...")
                     before_chars, after_chars = magic[
                             self.matched_header].split(self.image)
                     # Eliminate anything before the match
                     self.image = match.group()
+                    #open('/tmp/good_image.png', 'w').write(self.image)
                     self._capture_image()
-                    self.image = bytearray() # Empty it now that is is captured
+                    self.image = "" # Empty it now that is is captured
                     self.matched_header = None # Ditto
                 if before_chars:
                     self.write(before_chars, special_checks=False)
@@ -1221,7 +1246,8 @@ class Terminal(object):
                 # went wrong.  Discard what we've got and restart.
                 one_second = timedelta(seconds=1)
                 if datetime.now() - self.timeout_image > one_second:
-                    self.image = bytearray() # Empty it
+                    #open('/tmp/bad_image.png', 'w').write(self.image)
+                    self.image = "" # Empty it
                     self.matched_header = None
                     chars = _("Failed to decode image.  Buffer discarded.")
                 else:
@@ -1324,8 +1350,9 @@ class Terminal(object):
                         else:
                             # Normal character
                             self.screen[self.cursorY][self.cursorX] = char
-                except IndexError:
+                except IndexError as e:
                     # This can happen when escape sequences go haywire
+                    logging.error("IndexError in write(): %s" % e)
                     pass
                 cursor_right()
         if changed:
@@ -1357,6 +1384,7 @@ class Terminal(object):
 
         .. note:: This will only scroll up the region within self.top_margin and self.bottom_margin (if set).
         """
+        #logging.debug("scroll_up(%s)" % n)
         for x in xrange(int(n)):
             line = self.screen.pop(self.top_margin) # Remove the top line
             self.scrollback_buf.append(line) # Add it to the scrollback buffer
@@ -1365,7 +1393,8 @@ class Terminal(object):
                 self.init_scrollback()
                 # NOTE:  This would only be if 1000 lines piled up before the
                 # next dump_html() or dump().
-            empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            #empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            empty_line = array('u', u' ' * self.cols) # Line full of spaces
             # Add it to the bottom of the window:
             self.screen.insert(self.bottom_margin, empty_line)
             # Remove top line's style information
@@ -1393,9 +1422,11 @@ class Terminal(object):
         callbacks CALLBACK_CHANGED and CALLBACK_SCROLL_DOWN are called after
         scrolling the screen.
         """
+        #logging.debug("scroll_down(%s)" % n)
         for x in xrange(int(n)):
             self.screen.pop(self.bottom_margin) # Remove the bottom line
-            empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            #empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            empty_line = array('u', u' ' * self.cols) # Line full of spaces
             self.screen.insert(self.top_margin, empty_line) # Add it to the top
             # Remove bottom line's style information:
             self.renditions.pop(self.bottom_margin)
@@ -1428,7 +1459,8 @@ class Terminal(object):
             self.screen.pop(self.bottom_margin) # Remove the bottom line
             # Remove bottom line's style information as well:
             self.renditions.pop(self.bottom_margin)
-            empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            #empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            empty_line = array('u', u' ' * self.cols) # Line full of spaces
             self.screen.insert(self.cursorY, empty_line) # Insert at cursor
             # Insert a new empty rendition as well:
             self.renditions.insert(self.cursorY, [[0] for a in xrange(self.cols)])
@@ -1447,7 +1479,8 @@ class Terminal(object):
             self.renditions.pop(self.cursorY)
             # Now add an empty line and empty set of renditions to the bottom of the
             # view
-            empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            #empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            empty_line = array('u', u' ' * self.cols) # Line full of spaces
             # Add it to the bottom of the view:
             self.screen.insert(self.bottom_margin, empty_line) # Insert at bottom
             # Insert a new empty rendition as well:
@@ -1592,14 +1625,18 @@ class Terminal(object):
         This gets called when an image (PNG or JPEG) was detected by
         :meth:`Terminal.write` and captured in :attr:`self.image`.  It cleans up
         the data inside :attr:`self.image` (getting rid of carriage returns) and
-        stores self.image as if it were a single character in
-        :attr:`self.screen` at the current cursor position.
+        stores a reference to self.image as a single character (using
+        :attr:`self.image_counter`) in :attr:`self.screen` at the current cursor
+        position.  The actual image will be written to disk and read on-demand
+        by :meth:`self__spanify_screen` when it needs to be displayed.  The
+        image on disk will be automatically removed  when it is no longer
+        visible.
 
         It also moves the cursor to the beginning of the last line before doing
         this in order to ensure that the captured image stays within the
         browser's current window.
 
-        .. note:: The :meth:`Terminal._spanify_screen` function is aware of this logic and knows that a 'character' longer than an actual character indicates the presence of something like an image that needs special processing.
+        .. note:: The :meth:`Terminal._spanify_screen` function is aware of this logic and knows that a 'character' in Plane 16 of the Unicode PUA indicates the presence of something like an image that needs special processing.
         """
         logging.debug("_capture_image() len(self.image): %s" % len(self.image))
         # Remove the extra \r's that the terminal adds:
@@ -1613,6 +1650,7 @@ class Terminal(object):
                 return # Don't do anything--bad image
         else: # No PIL means no images.  Don't bother wasting memory.
             return
+        ref = self.image_counter.next()
         if self.em_dimensions:
             # Make sure the image will fit properly in the screen
             width = im.size[0]
@@ -1621,7 +1659,7 @@ class Terminal(object):
                 # Fits within a line.  No need for a newline
                 num_chars = int(width/self.em_dimensions['width'])
                 # Put the image at the current cursor location
-                self.screen[self.cursorY][self.cursorX] = self.image
+                self.screen[self.cursorY][self.cursorX] = ref
                 # Move the cursor an equivalent number of characters
                 self.cursor_right(num_chars)
             else:
@@ -1633,15 +1671,59 @@ class Terminal(object):
                 if newlines > self.cursorY:
                     for line in xrange(newlines):
                         self.newline()
-                self.screen[self.cursorY][self.cursorX] = self.image
+                self.screen[self.cursorY][self.cursorX] = ref
                 self.newline()
         else:
             # No way to calculate the number of lines the image will take
             self.cursorY = self.rows - 1 # Move to the end of the screen
             # ... so it doesn't get cut off at the top
-            self.screen[self.cursorY][self.cursorX] = self.image
+            self.screen[self.cursorY][self.cursorX] = ref
             self.newline() # Make some space at the bottom too just in case
             self.newline()
+        # Write the image to disk in a temporary location
+        self.images[ref] = tempfile.TemporaryFile()
+        im.save(self.images[ref], im.format)
+        self.images[ref].flush()
+        # Start up the image watcher thread so leftover FDs get closed when
+        # they're no longer being used
+        import threading
+        watcher = threading.Thread(
+            name='watcher', target=self._image_fd_watcher)
+        watcher.setDaemon(True)
+        watcher.start()
+
+    def _image_fd_watcher(self):
+        """
+        Meant to be run inside of a thread, calls close_image_fds() until there
+        are no more open image file descriptors.
+        """
+        logging.debug("starting image_fd_watcher()")
+        import time
+        quitting = False
+        while not quitting:
+            if self.images:
+                self.close_image_fds()
+                time.sleep(5)
+            else:
+                quitting = True
+        logging.debug('image_fd_watcher() quitting: No more images.')
+
+    def close_image_fds(self):
+        """
+        Closes the file descriptors of any images that are no longer on the
+        screen.
+        """
+        logging.debug('close_image_fds()')
+        if self.images:
+            for ref in self.images.keys():
+                found = False
+                for line in self.screen:
+                    if ref in line:
+                        found = True
+                        break
+                if not found:
+                    self.images[ref].close()
+                    del self.images[ref]
 
     def _string_terminator(self):
         """
@@ -1757,6 +1839,7 @@ class Terminal(object):
         # * 5: Reverse video (should be easy: just need some extra CSS)
         # * 6: Origin mode
         # * 7: Wraparound mode
+        logging.debug("set_expanded_mode(%s)" % setting)
         setting = setting[1:] # Don't need the ?
         settings = setting.split(';')
         for setting in settings:
@@ -1775,6 +1858,7 @@ class Terminal(object):
         Accepts "standard mode" settings.  Typically '\\\\x1b[?25l' to show
         cursor.
         """
+        logging.debug("reset_expanded_mode(%s)" % setting)
         setting = setting[1:] # Don't need the ?
         settings = setting.split(';')
         for setting in settings:
@@ -1807,6 +1891,7 @@ class Terminal(object):
         If *alt* is False, restore the saved screen buffer and renditions then
         nullify :attr:`self.alt_screen` and :attr:`self.alt_renditions`.
         """
+        #logging.debug('toggle_alternate_screen_buffer(%s)' % alt)
         if alt:
             # Save the existing screen and renditions
             self.alt_screen = copy.copy(self.screen)
@@ -1828,6 +1913,7 @@ class Terminal(object):
         Same as :meth:`Terminal.toggle_alternate_screen_buffer` but also
         saves/restores the cursor location.
         """
+        #logging.debug('toggle_alternate_screen_buffer_cursor(%s)' % alt)
         if alt:
             self.alt_cursorX = self.cursorX
             self.alt_cursorY = self.cursorY
@@ -1854,7 +1940,7 @@ class Terminal(object):
 
             self.local_echo = onoff
         """
-        logging.debug("send_receive_mode(%s)" % repr(onoff))
+        #logging.debug("send_receive_mode(%s)" % repr(onoff))
         # This has been disabled because it might only be meant for the
         # underlying program and not the terminal emulator.  Needs research.
         #if onoff:
@@ -1864,6 +1950,7 @@ class Terminal(object):
 
     def insert_characters(self, n=1):
         """Inserts the specified number of characters at the cursor position."""
+        #logging.debug("insert_characters(%s)" % n)
         n = int(n)
         for i in xrange(n):
             self.screen[self.cursorY].pop() # Take one down, pass it around
@@ -1880,6 +1967,7 @@ class Terminal(object):
 
         .. note:: Deletes renditions too.  You'd *think* that would be in one of the VT-* manuals...  Nope!
         """
+        #logging.debug("delete_characters(%s)" % n)
         if not n: # e.g. n == ''
             n = 1
         else:
@@ -1892,6 +1980,7 @@ class Terminal(object):
                 self.renditions[self.cursorY].append([0])
             except IndexError:
                 # At edge of screen, ignore
+                #print('IndexError in delete_characters(): %s' % e)
                 pass
 
     def _erase_characters(self, n=1):
@@ -1901,6 +1990,7 @@ class Terminal(object):
 
         .. note:: Deletes renditions too.
         """
+        #logging.debug("_erase_characters(%s)" % n)
         if not n: # e.g. n == ''
             n = 1
         else:
@@ -2049,6 +2139,7 @@ class Terminal(object):
 
         .. note:: The current rendition (self.cur_rendition) will be applied to all characters on the screen when this function is called.
         """
+        #logging.debug('clear_screen()')
         self.init_screen()
         self.renditions = [
             [self.cur_rendition for a in xrange(self.cols)
@@ -2061,8 +2152,12 @@ class Terminal(object):
         """
         Clears the screen from the cursor down (ESC[J or ESC[0J).
         """
+        #logging.debug('clear_screen_from_cursor_down()')
+        #self.screen[self.cursorY:] = [
+           #[u' ' for a in xrange(self.cols)] for a in self.screen[self.cursorY:]
+        #]
         self.screen[self.cursorY:] = [
-           [u' ' for a in xrange(self.cols)] for a in self.screen[self.cursorY:]
+            array('u', u' ' * self.cols) for a in self.screen[self.cursorY:]
         ]
         self.renditions[self.cursorY:] = [
            [self.cur_rendition for a in xrange(self.cols)] for a in self.screen[
@@ -2074,8 +2169,9 @@ class Terminal(object):
         """
         Clears the screen from the cursor up (ESC[1J).
         """
+        #logging.debug('clear_screen_from_cursor_up()')
         self.screen[:self.cursorY+1] = [
-           [u' ' for a in xrange(self.cols)] for a in self.screen[:self.cursorY]
+            array('u', u' ' * self.cols) for a in self.screen[:self.cursorY]
         ]
         self.renditions[:self.cursorY+1] = [
            [[0] for a in xrange(self.cols)] for a in self.screen[:self.cursorY]
@@ -2094,6 +2190,7 @@ class Terminal(object):
         Esc[2J  Clear entire screen             ED2
         ======  =============================   ===
         """
+        #logging.debug('clear_screen_from_cursor(%s)' % n)
         try:
             n = int(n)
         except ValueError: # Esc[J
@@ -2123,8 +2220,12 @@ class Terminal(object):
         """
         Clears the screen from the cursor right (ESC[K or ESC[0K).
         """
-        self.screen[self.cursorY][self.cursorX:] = [
-            u' ' for a in self.screen[self.cursorY][self.cursorX:]]
+        #logging.debug("clear_line_from_cursor_right()")
+        saved = self.screen[self.cursorY][:self.cursorX]
+        spaces = array('u', u' '*len(self.screen[self.cursorY][self.cursorX:]))
+        self.screen[self.cursorY] = saved + spaces
+        #self.screen[self.cursorY][self.cursorX:] = [
+            #u' ' for a in self.screen[self.cursorY][self.cursorX:]]
         # Reset the cursor position's rendition to the end of the line
         self.renditions[self.cursorY][self.cursorX:] = [
             self.cur_rendition for a in self.screen[self.cursorY][self.cursorX:]]
@@ -2133,11 +2234,14 @@ class Terminal(object):
         """
         Clears the screen from the cursor left (ESC[1K).
         """
+        #logging.debug("clear_line_from_cursor_left()")
         saved = self.screen[self.cursorY][self.cursorX:]
         saved_renditions = self.renditions[self.cursorY][self.cursorX:]
-        self.screen[self.cursorY] = [
-            u' ' for a in self.screen[self.cursorY][:self.cursorX]
-        ] + saved
+        spaces = array('u', u' '*len(self.screen[self.cursorY][:self.cursorX]))
+        self.screen[self.cursorY] = spaces + saved
+        #self.screen[self.cursorY] = [
+            #u' ' for a in self.screen[self.cursorY][:self.cursorX]
+        #] + saved
         self.renditions[self.cursorY] = [
             [] for a in self.screen[self.cursorY][:self.cursorX]
         ] + saved_renditions
@@ -2146,7 +2250,8 @@ class Terminal(object):
         """
         Clears the entire line (ESC[2K).
         """
-        self.screen[self.cursorY] = [u' ' for a in xrange(self.cols)]
+        #logging.debug("clear_line()")
+        self.screen[self.cursorY] = array('u', u' ' * self.cols)
         self.renditions[self.cursorY] = [[0] for a in xrange(self.cols)]
         self.cursorX = 0
 
@@ -2162,6 +2267,7 @@ class Terminal(object):
         Esc[2K  Clear entire line               ED2
         ======  ==============================  ===
         """
+        #logging.debug('clear_line_from_cursor(%s)' % n)
         try:
             n = int(n)
         except ValueError: # Esc[J
@@ -2247,7 +2353,7 @@ class Terminal(object):
                 # Make it all longer
                 #logging.debug("Making line %s longer" % self.cursorY)
                 self.renditions[cursorY].append([]) # Make it longer
-                self.screen[cursorY].append('\x00') # This needs to match
+                self.screen[cursorY].append(u'\x00') # This needs to match
         if cursorY >= self.rows:
             # This should never happen
             logging.error(_(
@@ -2339,13 +2445,15 @@ class Terminal(object):
             outline = ""
             charcount = 0
             for char, rend in izip(line, rendition):
-                if len(char) > 4: # Special stuff =)
+                if ord(char) > 1048575: # Special stuff =)
                     # Obviously, not really a single character
                     if not Image: # Can't use images in the terminal
                         outline += "<i>Image file</i>"
                         continue # Can't do anything else
-                    image_data = char
-                    # PIL likes file objects
+                    image_file = self.images[char]
+                    image_file.seek(0) # Back to the start
+                    image_data = image_file.read()
+                    # PIL likes StringIO objects for some reason
                     i = StringIO.StringIO(image_data)
                     try:
                         im = Image.open(i)
@@ -2353,17 +2461,17 @@ class Terminal(object):
                         # i.e. PIL couldn't identify the file
                         outline += "<i>Image file</i>"
                         continue # Can't do anything else
-                    if len(image_data) > 50000: # TODO: Make this adjustable
+                    # TODO: Make these sizes adjustable:
+                    if im.size[0] > 640 or im.size[1] > 480:
                         # Probably too big to send to browser as a data URI.
                         if im: # Resize it...
                             # 640x480 should come in <32k for most stuff
                             try:
+                                image_file.seek(0)
                                 im.thumbnail((640, 480), Image.ANTIALIAS)
-                                f = StringIO.StringIO()
-                                im.save(f, im.format)
-                                f.seek(0)
-                                # Convert back to bytearray
-                                image_data = bytearray(f.read())
+                                im.save(image_file, im.format)
+                                # Read it in
+                                image_data = image_file.read()
                             except IOError:
                                 # Sometimes PIL will throw this if it can't read
                                 # the image.
@@ -2373,8 +2481,6 @@ class Terminal(object):
                             outline += "<i>Problem displaying this image</i>"
                             continue
                     # Need to encode base64 to create a data URI
-                    # Python 2.6 doesn't like passing bytearrays to b64encode:
-                    image_data = bytes(image_data) # This isn't necessary in 2.7
                     encoded = base64.b64encode(image_data).replace('\n', '')
                     data_uri = "data:image/%s;base64,%s" % (
                         im.format.lower(), encoded)
@@ -2479,12 +2585,13 @@ class Terminal(object):
         for line, rendition in izip(screen, renditions):
             outline = ""
             for char, rend in izip(line, rendition):
-                if len(char) > 4: # Special stuff =)
+                if ord(char) > 1048575: # Special stuff =)
                     # Obviously, not really a single character
                     if not Image: # Can't use images in the terminal
                         outline += "<i>Image file</i>"
                         continue # Can't do anything else
-                    image_data = char
+                    self.images[char].seek(0)
+                    image_data = self.images[char].read()
                     # PIL likes file objects
                     i = StringIO.StringIO(image_data)
                     try:
@@ -2493,16 +2600,22 @@ class Terminal(object):
                         # i.e. PIL couldn't identify the file
                         outline += "<i>Image file</i>"
                         continue # Can't do anything else
-                    if len(image_data) > 50000: # TODO: Make this adjustable
+                    # TODO: Make these sizes adjustable:
+                    if im.size[0] > 640 or im.size[1] > 480:
                         # Probably too big to send to browser as a data URI.
                         if im: # Resize it...
                             # 640x480 should come in <32k for most stuff
-                            im.thumbnail((640, 480), Image.ANTIALIAS)
-                            f = StringIO.StringIO()
-                            im.save(f, im.format)
-                            f.seek(0)
-                            # Convert back to bytearray
-                            image_data = bytearray(f.read())
+                            try:
+                                im.thumbnail((640, 480), Image.ANTIALIAS)
+                                im.save(self.images[char], im.format)
+                                self.images[char].seek(0)
+                                # Read it in
+                                image_data = self.images[char].read()
+                            except IOError:
+                                # Sometimes PIL will throw this if it can't read
+                                # the image.
+                                outline += "<i>Problem displaying this image</i>"
+                                continue
                         else: # Generic error
                             outline += "<i>Problem displaying this image</i>"
                             continue
@@ -2510,7 +2623,7 @@ class Terminal(object):
                     encoded = base64.b64encode(image_data).replace('\n', '')
                     data_uri = "data:image/%s;base64,%s" % (
                         im.format.lower(), encoded)
-                    outline += '\n<img src="%s" width="%s" height="%s">\n' % (
+                    outline += '<img src="%s" width="%s" height="%s">' % (
                         data_uri, im.size[0], im.size[1])
                     continue
                 changed = True

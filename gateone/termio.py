@@ -1182,6 +1182,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             self.CALLBACK_UPDATE: {},
             self.CALLBACK_EXIT: {},
         }
+        del self.term
         # Kick off a process that finalizes the log (updates metadata and
         # recompresses everything to save disk space)
         if not self.log_path:

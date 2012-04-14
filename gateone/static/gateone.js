@@ -1138,6 +1138,7 @@ GateOne.Base.update(GateOne.Utils, {
 });
 
 GateOne.Base.module(GateOne, 'Net', '1.0', ['Base', 'Utils']);
+GateOne.Net.charSendTimer = null; // Just a place to keep track of the scrollToBottom timer in sendChars()
 GateOne.Base.update(GateOne.Net, {
     sendChars: function() {
         // pop()s out the current charBuffer and sends it to the server.
@@ -1154,7 +1155,14 @@ GateOne.Base.update(GateOne.Net, {
             if (charString != "undefined") {
                 var message = {'c': charString};
                 go.ws.send(JSON.stringify(message));
-                u.scrollToBottom(termPre);
+                if (go.Net.charSendTimer) {
+                    clearTimeout(go.Net.charSendTimer);
+                    go.Net.charSendTimer = null;
+                }
+                go.Net.charSendTimer = setTimeout(function() {
+                    // Wrapped in a timeout since it can take a moment for images to process sometimes
+                    u.scrollToBottom(termPre);
+                }, 350);
                 go.doingUpdate = false;
             } else {
                 go.doingUpdate = false;
@@ -1194,9 +1202,9 @@ GateOne.Base.update(GateOne.Net, {
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
-        var rowAdjust = 2;
+        var rowAdjust = 1;
         if (!GateOne.Playback) {
-            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
+            rowAdjust = 0; //  Don't waste that bottom row if no playback plugin
         }
         if (typeof(ctrl_l) == 'undefined') {
             ctrl_l = true;
@@ -3644,9 +3652,9 @@ GateOne.Base.update(GateOne.Terminal, {
         // Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         // TODO: Finish supporting terminal types.
         logDebug("calling newTerminal(" + term + ")");
-        var rowAdjust = 2;
+        var rowAdjust = 1;
         if (!GateOne.Playback) {
-            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
+            rowAdjust = 0; //  Don't waste that bottom row if no playback plugin
         }
         var go = GateOne,
             u = go.Utils,

@@ -14,18 +14,12 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
-import os, sys, re, logging, time
+import os, sys, logging, time
 from functools import partial
-try:
-    from urlparse import urlparse
-except ImportError: # Python 3.X
-    from urllib import parse as urlparse
 
 # Our stuff
 from gateone import BaseHandler
-from utils import get_translation, mkdir_p, noop, json_encode
-
-_ = get_translation()
+from utils import noop, json_encode
 
 # Tornado stuff
 import tornado.web
@@ -37,9 +31,6 @@ plugin_path = os.path.split(__file__)[0]
 sys.path.append(os.path.join(plugin_path, "dependencies"))
 import html5lib
 from html5lib import treebuilders, treewalkers
-from htmlentitydefs import name2codepoint
-# Fix the missing one:
-name2codepoint['#39'] = 39
 
 # Globals
 boolean_fix = {
@@ -56,6 +47,10 @@ def unescape(s):
     """
     Unescape HTML code refs; c.f. http://wiki.python.org/moin/EscapingHtml
     """
+    import re
+    from htmlentitydefs import name2codepoint
+    # Fix the missing one:
+    name2codepoint['#39'] = 39
     return re.sub('&(%s);' % '|'.join(name2codepoint), lambda m: unichr(name2codepoint[m.group(1)]), s)
 
 def parse_bookmarks_html(html):
@@ -475,6 +470,10 @@ class FaviconHandler(BaseHandler):
         return (None, None)
 
     def on_response(self, url, response):
+        try:
+            from urlparse import urlparse
+        except ImportError: # Python 3.X
+            from urllib import parse as urlparse
         if response.error:
             self.write('Unable to fetch icon.')
             self.finish()
