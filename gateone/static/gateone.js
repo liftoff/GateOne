@@ -1202,9 +1202,9 @@ GateOne.Base.update(GateOne.Net, {
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
-        var rowAdjust = 1;
+        var rowAdjust = 2;
         if (!GateOne.Playback) {
-            rowAdjust = 0; //  Don't waste that bottom row if no playback plugin
+            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
         }
         if (typeof(ctrl_l) == 'undefined') {
             ctrl_l = true;
@@ -3422,7 +3422,8 @@ GateOne.Base.update(GateOne.Terminal, {
         // If *term* isn't given, will use localStorage[prefix+selectedTerminal]
         // NOTE:  Lines in *screen* that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line)
         var u = GateOne.Utils,
-            prefix = GateOne.prefs.prefix;
+            prefix = GateOne.prefs.prefix,
+            existingPre = GateOne.terminals[term]['node'];
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
         }
@@ -3474,8 +3475,12 @@ GateOne.Base.update(GateOne.Terminal, {
         };
         if (screen) {
             try {
+                if (existingPre && GateOne.terminals[term]['screen'].length != screen.length) {
+                    // Resized
+                    u.removeElement(existingPre); // Force it to be re-created
+                    existingPre = null;
+                }
                 if (existingPre) {
-//                     existingPre.style.height = 'auto';
                     GateOne.Terminal.applyScreen(screen, term);
                 } else {
                     var termPre = u.createElement('pre', {'id': 'term'+term+'_pre'}),
@@ -3500,6 +3505,7 @@ GateOne.Base.update(GateOne.Terminal, {
                 screenUpdate = true;
                 GateOne.terminals[term]['scrollbackVisible'] = false;
             } catch (e) { // Likely the terminal just closed
+                console.log(e);
                 u.noop(); // Just ignore it.
             } finally {
                 termContainer = null;
@@ -3663,9 +3669,9 @@ GateOne.Base.update(GateOne.Terminal, {
         // Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         // TODO: Finish supporting terminal types.
         logDebug("calling newTerminal(" + term + ")");
-        var rowAdjust = 1;
+        var rowAdjust = 2;
         if (!GateOne.Playback) {
-            rowAdjust = 0; //  Don't waste that bottom row if no playback plugin
+            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
         }
         var go = GateOne,
             u = go.Utils,
