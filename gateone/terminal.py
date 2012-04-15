@@ -153,6 +153,7 @@ from itertools import imap, izip
 
 # Import our own stuff
 from utils import get_translation
+_ = get_translation()
 
 # Import 3rd party stuff
 try:
@@ -163,11 +164,9 @@ try:
     from PIL import Image
 except ImportError:
     Image = None
-    logging.warning(
+    logging.warning(_(
         "Could not import the Python Imaging Library (PIL) "
-        "so images will not be displayed in the terminal")
-
-_ = get_translation()
+        "so images will not be displayed in the terminal"))
 
 # Globals
 CALLBACK_SCROLL_UP = 1    # Called after a scroll up event (new line)
@@ -1724,6 +1723,7 @@ class Terminal(object):
                 if not found:
                     self.images[ref].close()
                     del self.images[ref]
+            #print('It took %0.2fms to close image FDs' % (elapsed*1000.0))
 
     def _string_terminator(self):
         """

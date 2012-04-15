@@ -1334,21 +1334,11 @@ GateOne.Base.update(GateOne.Net, {
             }
         }
         // Execute each respective action
-        try {
-            u.items(messageObj).forEach(function(item) {
-                var key = item[0],
-                    val = item[1];
-                try {
-                    if (n.actions[key]) {
-                        n.actions[key](val);
-                    }
-                } finally {
-                    key = null;
-                    val = null;
-                }
-            });
-        } finally {
-            messageObj = null;
+        for (var key in messageObj) {
+            var val = messageObj[key];
+            if (n.actions[key]) {
+                n.actions[key](val);
+            }
         }
     },
     addAction: function(name, func) {
@@ -2452,15 +2442,18 @@ GateOne.Base.update(GateOne.Visual, {
                 return;
             }
             termPreNode.style.height = '100%';
-            if (!termScrollback) {
+            if (termScrollback) {
+                var scrollbackHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
+                if (termScrollback.innerHTML != scrollbackHTML) {
+                    termScrollback.innerHTML = scrollbackHTML;
+                }
+            } else {
                 // Create the span that holds the scrollback buffer
                 termScrollback = u.createElement('span', {'id': 'term'+term+'scrollback'});
                 termScrollback.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
                 termPreNode.insertBefore(termScrollback, termScreen);
                 GateOne.terminals[term]['scrollbackNode'] = termScrollback;
                 u.scrollToBottom(termPreNode); // Since we just created it for the first time we have to get to the bottom of things, so to speak =)
-            } else {
-                termScrollback.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
             }
             if (go.terminals[term]['scrollbackTimer']) {
                 clearTimeout(go.terminals[term]['scrollbackTimer']);
@@ -2470,10 +2463,10 @@ GateOne.Base.update(GateOne.Visual, {
             var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
-                    termPreNode = GateOne.terminals[term]['node'],
-                    termScreen = GateOne.terminals[term]['screenNode'];
-                termPreNode.style.height = '100%';
-                termPreNode.innerHTML = go.terminals[termID]['scrollback'].join('\n') + '\n' + termScreen.innerHTML;
+                    termPreNode = go.terminals[termID]['node'],
+                    termScreen = go.terminals[termID]['screenNode'],
+                    termScrollback = go.terminals[termID]['scrollbackNode'];
+                termScrollback.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
                 if (go.terminals[termID]['scrollbackTimer']) {
                     clearTimeout(go.terminals[termID]['scrollbackTimer']);
                 }
@@ -2489,16 +2482,17 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             textTransforms = go.Terminal.textTransforms;
         if (term) {
-            var termPreNode = GateOne.terminals[term]['node'];
-            termPreNode.innerHTML = go.terminals[term]['screen'].join('\n') + '\n\n';
+            var termPreNode = GateOne.terminals[term]['node'],
+                termScrollback = go.terminals[term]['scrollbackNode'];
+            termScrollback.innerHTML = "";
         } else {
+            var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
-                    termPreNode = GateOne.terminals[termID]['node'];
-                termPreNode.innerHTML = go.terminals[termID]['screen'].join('\n') + '\n\n';
+                    termScrollback = go.terminals[term]['scrollbackNode'];
+                termScrollback.innerHTML = "";
             });
         }
         go.Visual.scrollbackToggle = false;
@@ -3429,6 +3423,7 @@ GateOne.Base.update(GateOne.Terminal, {
         }
         for (var i=0; i < screen.length; i++) {
             if (screen[i].length) {
+                // TODO: Get this using pre-cached line nodes
                 if (GateOne.terminals[term]['screen'][i] != screen[i]) {
                     var existingLine = u.getNode(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
                     if (existingLine) {
@@ -3465,6 +3460,7 @@ GateOne.Base.update(GateOne.Terminal, {
             termTitle = "Gate One", // Will be replaced down below
             termContainer = u.getNode('#'+prefix+'term'+term),
             existingPre = GateOne.terminals[term]['node'],
+            existingScreen = GateOne.terminals[term]['screenNode'],
             reScrollback = u.partial(GateOne.Visual.enableScrollback, term),
             writeScrollback = u.partial(GateOne.Terminal.writeScrollback, term, scrollback);
         if (term && GateOne.terminals[term]) {
@@ -3475,16 +3471,16 @@ GateOne.Base.update(GateOne.Terminal, {
         };
         if (screen) {
             try {
-                if (existingPre && GateOne.terminals[term]['screen'].length != screen.length) {
+                if (existingScreen && GateOne.terminals[term]['screen'].length != screen.length) {
                     // Resized
-                    u.removeElement(existingPre); // Force it to be re-created
-                    existingPre = null;
+                    GateOne.terminals[term]['screen'].length = screen.length; // Resize the array to match
+                    u.removeElement(existingScreen); // Force it to be re-created
+                    existingScreen = null;
                 }
-                if (existingPre) {
+                if (existingScreen) { // Update the terminal display
                     GateOne.Terminal.applyScreen(screen, term);
-                } else {
-                    var termPre = u.createElement('pre', {'id': 'term'+term+'_pre'}),
-                        screenSpan = u.createElement('span', {'id': 'term'+term+'screen'});
+                } else { // Create the elements necessary to display the screen
+                    var screenSpan = u.createElement('span', {'id': 'term'+term+'screen'});
                     for (var i=0; i < screen.length; i++) {
                         var lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
                         if (i == screen.length - 1) { // Last line needs some extra room at the bottom
@@ -3496,20 +3492,25 @@ GateOne.Base.update(GateOne.Terminal, {
                         // Update the existing screen array in-place to cut down on GC
                         GateOne.terminals[term]['screen'][i] = screen[i];
                     }
-                    GateOne.terminals[term]['node'] = termPre; // For faster access
                     GateOne.terminals[term]['screenNode'] = screenSpan;
-                    termPre.appendChild(screenSpan);
-                    termContainer.appendChild(termPre);
-                    u.scrollToBottom(termPre);
+                    if (existingPre) {
+                        existingPre.appendChild(screenSpan);
+                        u.scrollToBottom(existingPre);
+                    } else {
+                        var termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
+                        termPre.appendChild(screenSpan);
+                        termContainer.appendChild(termPre);
+                        u.scrollToBottom(termPre);
+                        GateOne.terminals[term]['node'] = termPre; // For faster access
+                    }
                 }
                 screenUpdate = true;
                 GateOne.terminals[term]['scrollbackVisible'] = false;
             } catch (e) { // Likely the terminal just closed
                 console.log(e);
                 u.noop(); // Just ignore it.
-            } finally {
+            } finally { // Instant GC
                 termContainer = null;
-                existingPre = null;
                 screen = null;
             }
         }
@@ -3567,7 +3568,7 @@ GateOne.Base.update(GateOne.Terminal, {
             try {
                 clearTimeout(GateOne.terminals[term]['scrollbackTimer']);
                 GateOne.terminals[term]['scrollbackTimer'] = null;
-                // This timeout re-adds the scrollback buffer after 3.5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
+                // This timeout re-adds the scrollback buffer after .5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
                 GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
             } finally {
                 reScrollback = null; // Prevent memory leak
@@ -3749,9 +3750,9 @@ GateOne.Base.update(GateOne.Terminal, {
             pasteareaScroll = function(e) {
                 // We have to hide the pastearea so we can scroll the terminal underneath
                 e.preventDefault();
-                var pasteArea = u.getNode('#'+prefix+'pastearea'),
-                    selectedTerm = localStorage[prefix+'selectedTerminal'];
-                u.hideElement(this);
+                var pasteArea = u.getNode('#'+prefix+'pastearea');
+//                     selectedTerm = localStorage[prefix+'selectedTerminal'];
+                u.hideElement(pastearea);
 //                 if (!go.terminals[selectedTerm]['scrollbackVisible']) {
 //                     // Immediately re-enable the scrollback buffer if it isn't already there
 //                     go.Visual.enableScrollback(selectedTerm);
@@ -3761,7 +3762,7 @@ GateOne.Base.update(GateOne.Terminal, {
                     go.scrollTimeout = null;
                 }
                 go.scrollTimeout = setTimeout(function() {
-                    u.showElement(this);
+                    u.showElement(pastearea);
                 }, 1000);
             };
         pastearea.oninput = pasteareaOnInput;
@@ -3803,6 +3804,7 @@ GateOne.Base.update(GateOne.Terminal, {
             }
         }
         terminal.appendChild(pastearea);
+        go.terminals[term]['pasteNode'] = pastearea;
         u.getNode('#'+prefix+'termwrapper').appendChild(terminal);
         // Apply user-defined rows and cols (if set)
         if (go.prefs.cols) { termSettings.cols = go.prefs.cols };

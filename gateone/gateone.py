@@ -913,12 +913,19 @@ class TerminalWebSocket(WebSocketHandler):
                     try:
                         multiplex = SESSIONS[user['session']][term]['multiplex']
                         multiplex.remove_all_callbacks(self.callback_id)
+                        client_dict = SESSIONS[user['session']][term][
+                            self.client_id]
                         term_emulator = multiplex.term
                         term_emulator.remove_all_callbacks(self.callback_id)
+                        # Remove anything associated with the client_id
+                        multiplex.io_loop.remove_timeout(
+                            client_dict['refresh_timeout'])
+                        del SESSIONS[user['session']][term][self.client_id]
                     except AttributeError:
                         # User never completed opening a terminal so
                         # self.callback_id is missing.  Nothing to worry about
                         pass
+
         if user and 'upn' in user:
             logging.info(
                 _("WebSocket closed (%s).") % user['upn'])
