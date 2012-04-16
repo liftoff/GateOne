@@ -584,10 +584,10 @@ class BaseMultiplex(object):
             return (scrollback, html)
         except ValueError as e:
             # This would be special...
-            logging.error(_("ValueError in dumplines(): %s" % e))
+            logging.error(_("ValueError in dump_html(): %s" % e))
             return ([], [])
         except (IOError, TypeError) as e:
-            logging.error(_("Unhandled exception in dumplines(): %s" % e))
+            logging.error(_("Unhandled exception in dump_html(): %s" % e))
             if self.ratelimiter_engaged:
                 # Caused by the program being out of control
                 return([], [

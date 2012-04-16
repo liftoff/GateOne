@@ -887,14 +887,15 @@ class TerminalWebSocket(WebSocketHandler):
             for key, value in message_obj.items():
                 try: # Plugins first so they can override behavior if they wish
                     PLUGIN_WS_CMDS[key](value, tws=self)# tws==TerminalWebSocket
-                except (KeyError, TypeError, AttributeError):
+                except (KeyError, TypeError, AttributeError) as e:
                     try:
                         if value:
                             self.commands[key](value)
                         else:
                             # Try, try again
                             self.commands[key]()
-                    except (KeyError, TypeError, AttributeError):
+                    except (KeyError, TypeError, AttributeError) as e:
+                        print('Got error2? %s' % e)
                         pass # Ignore commands we don't understand
 
     def on_close(self):

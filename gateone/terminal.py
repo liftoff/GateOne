@@ -620,7 +620,7 @@ class Terminal(object):
         self.esc_buffer = '' # For holding escape sequences as they're typed.
         self.show_cursor = True
         self.cursor_home = 0
-        self.cur_rendition = [0]
+        self.cur_rendition = u'\U00100000' # Should always be reset ([0])
         self.init_screen()
         self.init_renditions()
         self.G0_charset = self.charsets['B']
@@ -835,9 +835,20 @@ class Terminal(object):
         Fills :attr:`self.renditions` with lists of [0] using :attr:`self.cols`
         and :attr:`self.rows` for the dimenions.
         """
+        # This is for creating a new point of reference every time there's a new
+        # unique rendition at a given coordinate
+        self.rend_counter = pua_counter()
+        # Used for mapping unicode chars to acutal renditions (to save memory):
+        self.renditions_store = {
+            u' ': [], # Nada, nothing, no rendition.  Not the same as below
+            self.rend_counter.next(): [0] # Default is actually reset
+        }
+        # The actual renditions at various coordinates:
         self.renditions = [
-            [[0] for a in xrange(self.cols)] for b in xrange(self.rows)
-        ]
+            array('u', u' ' * self.cols) for a in xrange(self.rows)]
+        #self.renditions = [
+            #[[0] for a in xrange(self.cols)] for b in xrange(self.rows)
+        #]
 
     def init_scrollback(self):
         """
@@ -958,7 +969,8 @@ class Terminal(object):
             for i in xrange(rows - self.rows):
                 #line = [u' ' for a in xrange(cols)]
                 line = array('u', u' ' * self.cols)
-                renditions = [[0] for a in xrange(self.cols)]
+                renditions = array('u', u' ' * self.cols)
+                #renditions = [[0] for a in xrange(self.cols)]
                 self.screen.append(line)
                 self.renditions.append(renditions)
         self.rows = rows
@@ -977,7 +989,8 @@ class Terminal(object):
             for i in xrange(self.rows):
                 for j in xrange(cols - self.cols):
                     self.screen[i].append(u' ')
-                    self.renditions[i].append([0])
+                    self.renditions[i].append(u' ')
+                    #self.renditions[i].append([0])
         self.cols = cols
 
         # Fix the cursor location:
@@ -1308,10 +1321,10 @@ class Terminal(object):
                             self._osc_handler()
                         else:
                             # Commented this out because it can be super noisy
-                            #logging.warning(_(
-                                #"Warning: No ESC sequence handler for %s"
-                                #% `self.esc_buffer`
-                            #))
+                            logging.warning(_(
+                                "Warning: No ESC sequence handler for %s"
+                                % `self.esc_buffer`
+                            ))
                             self.esc_buffer = ''
                     continue # We're done here
 # TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
@@ -1400,8 +1413,10 @@ class Terminal(object):
             style = self.renditions.pop(self.top_margin)
             self.scrollback_renditions.append(style)
             # Insert a new empty rendition as well:
-            self.renditions.insert(
-                self.bottom_margin, [[0] for a in xrange(self.cols)])
+            empty_line = array('u', u' ' * self.cols) # Line full of spaces
+            self.renditions.insert(self.bottom_margin, empty_line)
+            #self.renditions.insert(
+                #self.bottom_margin, [[0] for a in xrange(self.cols)])
         # Execute our callback indicating lines have been updated
         try:
             for callback in self.callbacks[CALLBACK_CHANGED].values():
@@ -1430,8 +1445,10 @@ class Terminal(object):
             # Remove bottom line's style information:
             self.renditions.pop(self.bottom_margin)
             # Insert a new empty one:
-            self.renditions.insert(
-                self.top_margin, [[0] for a in xrange(self.cols)])
+            empty_line = array('u', u' ' * self.cols) # Line full of spaces
+            self.renditions.insert(self.top_margin, empty_line) # Add it to the top
+            #self.renditions.insert(
+                #self.top_margin, [[0] for a in xrange(self.cols)])
         # Execute our callback indicating lines have been updated
         try:
             for callback in self.callbacks[CALLBACK_CHANGED].values():
@@ -1462,7 +1479,9 @@ class Terminal(object):
             empty_line = array('u', u' ' * self.cols) # Line full of spaces
             self.screen.insert(self.cursorY, empty_line) # Insert at cursor
             # Insert a new empty rendition as well:
-            self.renditions.insert(self.cursorY, [[0] for a in xrange(self.cols)])
+            empty_line = array('u', u' ' * self.cols) # Line full of spaces
+            self.renditions.insert(self.cursorY, empty_line) # Insert at cursor
+            #self.renditions.insert(self.cursorY, [[0] for a in xrange(self.cols)])
 
     def delete_line(self, n=1):
         """
@@ -1483,13 +1502,16 @@ class Terminal(object):
             # Add it to the bottom of the view:
             self.screen.insert(self.bottom_margin, empty_line) # Insert at bottom
             # Insert a new empty rendition as well:
-            self.renditions.insert(
-                self.bottom_margin, [[0] for a in xrange(self.cols)])
+            empty_line = array('u', u' ' * self.cols) # Line full of spaces
+            self.renditions.insert(self.bottom_margin, empty_line) # Insert at bottom
+            #self.renditions.insert(
+                #self.bottom_margin, [[0] for a in xrange(self.cols)])
 
     def backspace(self):
         """Execute a backspace (\\x08)"""
         try:
-            self.renditions[self.cursorY][self.cursorX] = []
+            self.renditions[self.cursorY][self.cursorX] = u' '
+            #self.renditions[self.cursorY][self.cursorX] = []
         except IndexError:
             pass # At the edge, no biggie
         self.cursor_left(1)
@@ -1906,7 +1928,8 @@ class Terminal(object):
             # Empty out the alternate buffer (to save memory)
             self.alt_screen = None
             self.alt_renditions = None
-        self.cur_rendition = []
+        self.cur_rendition = u' '
+        #self.cur_rendition = []
 
     def toggle_alternate_screen_buffer_cursor(self, alt):
         """
@@ -1977,7 +2000,8 @@ class Terminal(object):
                 self.screen[self.cursorY].pop(self.cursorX)
                 self.screen[self.cursorY].append(u' ')
                 self.renditions[self.cursorY].pop(self.cursorX)
-                self.renditions[self.cursorY].append([0])
+                self.renditions[self.cursorY].append(u' ')
+                #self.renditions[self.cursorY].append([0])
             except IndexError:
                 # At edge of screen, ignore
                 #print('IndexError in delete_characters(): %s' % e)
@@ -1999,7 +2023,8 @@ class Terminal(object):
         n = min(n, distance)
         for i in xrange(n):
             self.screen[self.cursorY][self.cursorX+i] = u' '
-            self.renditions[self.cursorY][self.cursorX+i] = [0]
+            self.renditions[self.cursorY][self.cursorX+i] = u' '
+            #self.renditions[self.cursorY][self.cursorX+i] = [0]
 
     def cursor_left(self, n=1):
         """ESCnD CUB (Cursor Back)"""
@@ -2141,10 +2166,11 @@ class Terminal(object):
         """
         #logging.debug('clear_screen()')
         self.init_screen()
-        self.renditions = [
-            [self.cur_rendition for a in xrange(self.cols)
-                ] for b in xrange(self.rows)
-        ]
+        self.init_renditions()
+        #self.renditions = [
+            #[self.cur_rendition for a in xrange(self.cols)
+                #] for b in xrange(self.rows)
+        #]
         self.cursorX = 0
         self.cursorY = 0
 
@@ -2160,9 +2186,12 @@ class Terminal(object):
             array('u', u' ' * self.cols) for a in self.screen[self.cursorY:]
         ]
         self.renditions[self.cursorY:] = [
-           [self.cur_rendition for a in xrange(self.cols)] for a in self.screen[
-               self.cursorY:]
+            array('u', u' ' * self.cols) for a in self.renditions[self.cursorY:]
         ]
+        #self.renditions[self.cursorY:] = [
+           #[self.cur_rendition for a in xrange(self.cols)] for a in self.screen[
+               #self.cursorY:]
+        #]
         self.cursorX = 0
 
     def clear_screen_from_cursor_up(self):
@@ -2174,8 +2203,11 @@ class Terminal(object):
             array('u', u' ' * self.cols) for a in self.screen[:self.cursorY]
         ]
         self.renditions[:self.cursorY+1] = [
-           [[0] for a in xrange(self.cols)] for a in self.screen[:self.cursorY]
+            array('u', u' ' * self.cols) for a in self.renditions[:self.cursorY]
         ]
+        #self.renditions[:self.cursorY+1] = [
+           #[[0] for a in xrange(self.cols)] for a in self.screen[:self.cursorY]
+        #]
         self.cursorX = 0
         self.cursorY = 0
 
@@ -2222,13 +2254,15 @@ class Terminal(object):
         """
         #logging.debug("clear_line_from_cursor_right()")
         saved = self.screen[self.cursorY][:self.cursorX]
+        saved_renditions = self.renditions[self.cursorY][:self.cursorX]
         spaces = array('u', u' '*len(self.screen[self.cursorY][self.cursorX:]))
         self.screen[self.cursorY] = saved + spaces
         #self.screen[self.cursorY][self.cursorX:] = [
             #u' ' for a in self.screen[self.cursorY][self.cursorX:]]
         # Reset the cursor position's rendition to the end of the line
-        self.renditions[self.cursorY][self.cursorX:] = [
-            self.cur_rendition for a in self.screen[self.cursorY][self.cursorX:]]
+        self.renditions[self.cursorY] = saved_renditions + spaces
+        #self.renditions[self.cursorY][self.cursorX:] = [
+            #self.cur_rendition for a in self.screen[self.cursorY][self.cursorX:]]
 
     def clear_line_from_cursor_left(self):
         """
@@ -2239,12 +2273,10 @@ class Terminal(object):
         saved_renditions = self.renditions[self.cursorY][self.cursorX:]
         spaces = array('u', u' '*len(self.screen[self.cursorY][:self.cursorX]))
         self.screen[self.cursorY] = spaces + saved
-        #self.screen[self.cursorY] = [
-            #u' ' for a in self.screen[self.cursorY][:self.cursorX]
-        #] + saved
-        self.renditions[self.cursorY] = [
-            [] for a in self.screen[self.cursorY][:self.cursorX]
-        ] + saved_renditions
+        self.renditions[self.cursorY] = spaces + saved_renditions
+        #self.renditions[self.cursorY] = [
+            #[] for a in self.screen[self.cursorY][:self.cursorX]
+        #] + saved_renditions
 
     def clear_line(self):
         """
@@ -2252,7 +2284,8 @@ class Terminal(object):
         """
         #logging.debug("clear_line()")
         self.screen[self.cursorY] = array('u', u' ' * self.cols)
-        self.renditions[self.cursorY] = [[0] for a in xrange(self.cols)]
+        self.renditions[self.cursorY] = array('u', u' ' * self.cols)
+        #self.renditions[self.cursorY] = [[0] for a in xrange(self.cols)]
         self.cursorX = 0
 
     def clear_line_from_cursor(self, n):
@@ -2342,6 +2375,7 @@ class Terminal(object):
         Note that the numbers were converted to integers and the order was
         preserved.
         """
+        #logging.debug("_set_rendition(%s)" % n)
         # TODO: Make this whole thing faster (or prove it isn't possible).
         # TODO: If we can't make it faster then we should at least see if we can
         # simplify it.
@@ -2352,7 +2386,8 @@ class Terminal(object):
             if len(self.renditions[cursorY]) <= cursorX:
                 # Make it all longer
                 #logging.debug("Making line %s longer" % self.cursorY)
-                self.renditions[cursorY].append([]) # Make it longer
+                #self.renditions[cursorY].append([]) # Make it longer
+                self.renditions[cursorY].append(u' ') # Make it longer
                 self.screen[cursorY].append(u'\x00') # This needs to match
         if cursorY >= self.rows:
             # This should never happen
@@ -2360,7 +2395,9 @@ class Terminal(object):
                 "cursorY >= self.rows! This should not happen! Bug!"))
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
-            self.cur_rendition = [0]
+            #self.cur_rendition = [0]
+            # First char in PUA Plane 16 is always the default:
+            self.cur_rendition = u'\U00100000' # Should be reset (e.g. [0])
             return # No need for further processing; save some CPU
         # Convert the string (e.g. '0;1;32') to a list (e.g. [0,1,32]
         new_renditions = [int(a) for a in n.split(';') if a != '']
@@ -2379,8 +2416,8 @@ class Terminal(object):
             background_index = new_renditions.index(48)
             if len(new_renditions[background_index:]) >= 2:
                 if new_renditions[background_index+1] == 5:
-                    # This is a valid 256-color rendition (38;5;<num>)
-                    new_renditions.pop(background_index) # Goodbye 38
+                    # This is a valid 256-color rendition (48;5;<num>)
+                    new_renditions.pop(background_index) # Goodbye 48
                     new_renditions.pop(background_index) # Goodbye 5
                     new_renditions[background_index] += 10000
         out_renditions = []
@@ -2392,11 +2429,29 @@ class Terminal(object):
         if out_renditions[0] == 0:
             # If it starts with 0 there's no need to combine it with the
             # previous rendition...
-            self.cur_rendition = _reduce_renditions(out_renditions)
+            reduced = _reduce_renditions(out_renditions)
+            if reduced not in self.renditions_store.values():
+                new_ref_point = self.rend_counter.next()
+                self.renditions_store.update({new_ref_point: reduced})
+                self.cur_rendition = new_ref_point
+            else: # Find the right reference point to use
+                for k, v in self.renditions_store.items():
+                    if reduced == v:
+                        self.cur_rendition = k
+            #self.cur_rendition = _reduce_renditions(out_renditions)
             return
         new_renditions = out_renditions
-        reduced = _reduce_renditions(self.cur_rendition + new_renditions)
-        self.cur_rendition = reduced
+        cur_rendition_list = self.renditions_store[self.cur_rendition]
+        reduced = _reduce_renditions(cur_rendition_list + new_renditions)
+        if reduced not in self.renditions_store.values():
+            new_ref_point = self.rend_counter.next()
+            self.renditions_store.update({new_ref_point: reduced})
+            self.cur_rendition = new_ref_point
+        else: # Find the right reference point to use
+            for k, v in self.renditions_store.items():
+                if reduced == v:
+                    self.cur_rendition = k
+        #self.cur_rendition = reduced
 
     def _opt_handler(self, chars):
         """
@@ -2432,6 +2487,8 @@ class Terminal(object):
         rendition_classes = RENDITION_CLASSES
         screen = self.screen
         renditions = self.renditions
+        renditions_store = self.renditions_store
+        print("renditions_store: %s" % renditions_store)
         cursorX = self.cursorX
         cursorY = self.cursorY
         spancount = 0
@@ -2445,6 +2502,8 @@ class Terminal(object):
             outline = ""
             charcount = 0
             for char, rend in izip(line, rendition):
+                #print("char: %s, rend: %s" % (`char`, `rend`))
+                rend = renditions_store[rend] # Get actual rendition
                 if ord(char) > 1048575: # Special stuff =)
                     # Obviously, not really a single character
                     if not Image: # Can't use images in the terminal
@@ -2577,6 +2636,7 @@ class Terminal(object):
         screen = self.scrollback_buf
         renditions = self.scrollback_renditions
         rendition_classes = RENDITION_CLASSES
+        renditions_store = self.renditions_store
         spancount = 0
         current_classes = []
         prev_rendition = None
@@ -2585,6 +2645,7 @@ class Terminal(object):
         for line, rendition in izip(screen, renditions):
             outline = ""
             for char, rend in izip(line, rendition):
+                rend = renditions_store[rend] # Get actual rendition
                 if ord(char) > 1048575: # Special stuff =)
                     # Obviously, not really a single character
                     if not Image: # Can't use images in the terminal

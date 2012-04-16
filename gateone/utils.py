@@ -1099,14 +1099,14 @@ def valid_hostname(hostname, allow_underscore=False):
 def recursive_chown(path, uid, gid):
     """Emulates 'chown -R *uid*:*gid* *path*' in pure Python"""
     error_msg = _(
-        "Error: Gate One does not have the ability to recursively chown/write "
-        "to  %s.  Please ensure that user, %s has write permission to the "
-        "directory.")
+        "Error: Gate One does not have the ability to recursively chown %s to "
+        "uid %s/gid %s.  Please ensure that user, %s has write permission to "
+        "the directory.")
     try:
         os.chown(path, uid, gid)
     except OSError as e:
         if e.errno in [errno.EACCES, errno.EPERM]:
-            raise ChownError(error_msg % (path, repr(os.getlogin())))
+            raise ChownError(error_msg % (path, uid, gid, repr(os.getlogin())))
         else:
             raise
     for root, dirs, files in os.walk(path):
@@ -1116,7 +1116,8 @@ def recursive_chown(path, uid, gid):
                 os.chown(_path, uid, gid)
             except OSError as e:
                 if e.errno in [errno.EACCES, errno.EPERM]:
-                    raise ChownError(error_msg % (_path, repr(os.getlogin())))
+                    raise ChownError(error_msg % (
+                        _path, uid, gid, repr(os.getlogin())))
                 else:
                     raise
         for momo in files:
@@ -1125,7 +1126,8 @@ def recursive_chown(path, uid, gid):
                 os.chown(_path, uid, gid)
             except OSError as e:
                 if e.errno in [errno.EACCES, errno.EPERM]:
-                    raise ChownError(error_msg % (_path, repr(os.getlogin())))
+                    raise ChownError(error_msg % (
+                        _path, uid, gid, repr(os.getlogin())))
                 else:
                     raise
 
