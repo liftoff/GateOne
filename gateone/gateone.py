@@ -2291,14 +2291,14 @@ def main():
     )
     define(
         "uid",
-        default="0", # root
+        default=os.getuid(), # root
         help=_(
             "Drop privileges and run Gate One as this user/uid."),
         type=str
     )
     define(
         "gid",
-        default="0", # root
+        default=os.getgid(), # root
         help=_(
             "Drop privileges and run Gate One as this group/gid."),
         type=str
@@ -2588,7 +2588,8 @@ def main():
         # Close our temmporary pty/fds so we're not wasting them
         os.close(tempfd1)
         os.close(tempfd2)
-        drop_privileges(options.uid, options.gid, [tty_gid])
+        if options.uid != os.getuid():
+            drop_privileges(options.uid, options.gid, [tty_gid])
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
         logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
