@@ -130,6 +130,13 @@ class SSLGenerationError(Exception):
     """
     pass
 
+class ChownError(Exception):
+    """
+    Raised by `recursive_chown` if an OSError is encountered while trying to
+    recursively chown a directory.
+    """
+    pass
+
 # Functions
 def noop(*args, **kwargs):
     """Do nothing (i.e. "No Operation")"""
@@ -1091,12 +1098,36 @@ def valid_hostname(hostname, allow_underscore=False):
 
 def recursive_chown(path, uid, gid):
     """Emulates 'chown -R *uid*:*gid* *path*' in pure Python"""
-    os.chown(path, uid, gid)
+    error_msg = _(
+        "Error: Gate One does not have the ability to recursively chown/write "
+        "to  %s.  Please ensure that user, %s has write permission to the "
+        "directory.")
+    try:
+        os.chown(path, uid, gid)
+    except OSError as e:
+        if e.errno in [errno.EACCES, errno.EPERM]:
+            raise ChownError(error_msg % (path, repr(os.getlogin())))
+        else:
+            raise
     for root, dirs, files in os.walk(path):
         for momo in dirs:
-            os.chown(os.path.join(root, momo), uid, gid)
+            _path = os.path.join(root, momo)
+            try:
+                os.chown(_path, uid, gid)
+            except OSError as e:
+                if e.errno in [errno.EACCES, errno.EPERM]:
+                    raise ChownError(error_msg % (_path, repr(os.getlogin())))
+                else:
+                    raise
         for momo in files:
-            os.chown(os.path.join(root, momo), uid, gid)
+            _path = os.path.join(root, momo)
+            try:
+                os.chown(_path, uid, gid)
+            except OSError as e:
+                if e.errno in [errno.EACCES, errno.EPERM]:
+                    raise ChownError(error_msg % (_path, repr(os.getlogin())))
+                else:
+                    raise
 
 def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
     """

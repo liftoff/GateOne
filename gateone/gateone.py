@@ -292,7 +292,7 @@ from utils import convert_to_timedelta, kill_dtached_proc, FACILITIES, which
 from utils import process_opt_esc_sequence, create_data_uri, MimeTypeFail
 from utils import string_to_syslog_facility, fallback_bell, json_encode
 from utils import write_pid, read_pid, remove_pid, drop_privileges
-from utils import recursive_chown
+from utils import recursive_chown, ChownError
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -2377,12 +2377,8 @@ def main():
         # Try correcting this first
         try:
             recursive_chown(options.user_dir, options.uid, options.gid)
-        except OSError:
-            logging.error(_(
-                "Error: Gate One does not have permission to write to %s.  "
-                "Please ensure that user, %s has write permission to the "
-                "directory." % (
-                options.user_dir, repr(os.getlogin()))))
+        except ChownError as e:
+            logging.error(e)
             sys.exit(1)
     if not os.path.exists(options.session_dir): # Make our session_dir
         try:
@@ -2399,12 +2395,8 @@ def main():
         # Try correcting it
         try:
             recursive_chown(options.session_dir, options.uid, options.gid)
-        except OSError:
-            logging.error(_(
-                "Error: Gate One does not have permission to write to %s.  "
-                "Please ensure that user, %s has write permission to the "
-                "directory." % (
-                options.session_dir, os.getlogin())))
+        except ChownError as e:
+            logging.error(e)
             sys.exit(1)
     # Re-do the locale in case the user supplied something as --locale
     user_locale = locale.get(options.locale)
@@ -2425,12 +2417,8 @@ def main():
         # Try to correct it
         try:
             recursive_chown(log_dir, options.uid, options.gid)
-        except OSError:
-            logging.error(_(
-                "Error: Gate One does not have permission to write to %s.  "
-                "Please ensure that user, %s has write permission to the "
-                "directory." % (
-                log_dir, repr(os.getlogin()))))
+        except ChownError as e:
+            logging.error(e)
             sys.exit(1)
     if options.kill:
         # Kill all running dtach sessions (associated with Gate One anyway)
