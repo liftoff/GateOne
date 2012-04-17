@@ -2488,7 +2488,6 @@ class Terminal(object):
         screen = self.screen
         renditions = self.renditions
         renditions_store = self.renditions_store
-        print("renditions_store: %s" % renditions_store)
         cursorX = self.cursorX
         cursorY = self.cursorY
         spancount = 0
