@@ -2453,6 +2453,7 @@ GateOne.Base.update(GateOne.Visual, {
                 termScrollback.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
                 termPreNode.insertBefore(termScrollback, termScreen);
                 GateOne.terminals[term]['scrollbackNode'] = termScrollback;
+                termScrollback.style.display == null; // Reset
                 u.scrollToBottom(termPreNode); // Since we just created it for the first time we have to get to the bottom of things, so to speak =)
             }
             if (go.terminals[term]['scrollbackTimer']) {
@@ -2467,6 +2468,7 @@ GateOne.Base.update(GateOne.Visual, {
                     termScreen = go.terminals[termID]['screenNode'],
                     termScrollback = go.terminals[termID]['scrollbackNode'];
                 termScrollback.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
+                termScrollback.style.display == null; // Reset
                 if (go.terminals[termID]['scrollbackTimer']) {
                     clearTimeout(go.terminals[termID]['scrollbackTimer']);
                 }
@@ -2486,13 +2488,21 @@ GateOne.Base.update(GateOne.Visual, {
         if (term) {
             var termPreNode = GateOne.terminals[term]['node'],
                 termScrollback = go.terminals[term]['scrollbackNode'];
-            termScrollback.innerHTML = "";
+//             termScrollback.innerHTML = "";
+                if (termScrollback) {
+                    termScrollback.style.display = "none";
+                }
+            go.terminals[term]['scrollbackVisible'] = false;
         } else {
             var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
-                    termScrollback = go.terminals[term]['scrollbackNode'];
-                termScrollback.innerHTML = "";
+                    termScrollback = go.terminals[termID]['scrollbackNode'];
+//                 termScrollback.innerHTML = "";
+                if (termScrollback) {
+                    termScrollback.style.display = "none";
+                }
+                go.terminals[termID]['scrollbackVisible'] = false;
             });
         }
         go.Visual.scrollbackToggle = false;
@@ -2655,7 +2665,6 @@ GateOne.Base.update(GateOne.Visual, {
             u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
-//             pastearea = u.getNode('#'+prefix+'pastearea'),
             controlsContainer = u.getNode('#'+prefix+'controlsContainer'),
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         if (goBack == null) {
@@ -2665,6 +2674,11 @@ GateOne.Base.update(GateOne.Visual, {
             v.gridView = false;
             // Remove the events we added for the grid:
             terms.forEach(function(termObj) {
+                var termID = termObj.id.split(prefix+'term')[1],
+                    pastearea = go.terminals[termID]['pasteNode'];
+                if (pastearea) {
+                    u.showElement(pastearea);
+                }
                 termObj.onclick = undefined;
                 termObj.onmouseover = undefined;
             });
@@ -2672,9 +2686,6 @@ GateOne.Base.update(GateOne.Visual, {
             if (goBack) {
                 v.slideToTerm(localStorage[prefix+'selectedTerminal']); // Slide to the intended terminal
             }
-//             if (pastearea) {
-//                 u.showElement(pastearea);
-//             }
             if (controlsContainer) {
                 u.showElement(controlsContainer);
             }
@@ -2684,9 +2695,6 @@ GateOne.Base.update(GateOne.Visual, {
                 u.getNode(go.prefs.goDiv).style.overflowY = 'visible';
                 u.getNode('#'+prefix+'termwrapper').style.width = go.Visual.goDimensions.w;
             }, 1000);
-//             if (pastearea) {
-//                 u.hideElement(pastearea);
-//             }
             if (controlsContainer) {
                 u.hideElement(controlsContainer);
             }
@@ -2698,6 +2706,11 @@ GateOne.Base.update(GateOne.Visual, {
                 evenAmount = 0,
                 transform = "";
             terms.forEach(function(termObj) {
+                var termID = termObj.id.split(prefix+'term')[1],
+                    pastearea = go.terminals[termID]['pasteNode'];
+                if (pastearea) {
+                    u.hideElement(pastearea);
+                }
                 if (odd) {
                     if (count == 1) {
                         oddAmount = 50;
@@ -2719,8 +2732,7 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 count += 1;
                 termObj.onclick = function(e) {
-                    var termID = termObj.id.split(prefix+'term')[1],
-                        termPre = GateOne.terminals[termID]['node'];
+                    var termPre = GateOne.terminals[termID]['node'];
                     localStorage[prefix+'selectedTerminal'] = termID;
                     v.toggleGridView(false);
                     v.slideToTerm(termID, true);
@@ -3425,7 +3437,7 @@ GateOne.Base.update(GateOne.Terminal, {
             if (screen[i].length) {
                 // TODO: Get this using pre-cached line nodes
                 if (GateOne.terminals[term]['screen'][i] != screen[i]) {
-                    var existingLine = u.getNode(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
+                    var existingLine = existingPre.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
                     if (existingLine) {
                         if (i == screen.length - 1) { // Last line needs some extra room at the bottom
                             existingLine.innerHTML = screen[i] + '\n\n';
