@@ -802,7 +802,6 @@ GateOne.Base.update(GateOne.SSH, {
         // *identity* should be the name of the identity associated with this certificate
         var go = GateOne,
             u = go.Utils,
-            ssh = go.SSH,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
             sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),

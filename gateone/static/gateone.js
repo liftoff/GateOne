@@ -142,9 +142,11 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     embedded: false, // Equivalent to {showTitle: false, showToolbar: false} and certain keyboard shortcuts won't be registered
     disableTermTransitions: false, // Disabled the sliding animation on terminals to make switching faster
     auth: null, // If using API authentication, this value will hold the user's auth object (see docs for the format).
-    showTitle: true, // If false, the terminal title will not be shown in the sidebar
-    showToolbar: true, // If false, the toolbar will now be shown in the sidebar
-    bellSound: true // If false, the bell sound will not be played (visual notification will still occur)
+    showTitle: true, // If false, the terminal title will not be shown in the sidebar.
+    showToolbar: true, // If false, the toolbar will now be shown in the sidebar.
+    audibleBell: true, // If false, the bell sound will not be played (visual notification will still occur),
+    bellSound: '', // Stores the bell sound data::URI (cached).
+    bellSoundType: '' // Stores the mimetype of the bell sound.
 };
 // Properties in this object will get ignored when GateOne.prefs is saved to localStorage
 GateOne.noSavePrefs = {
@@ -244,6 +246,7 @@ GateOne.Base.update(GateOne, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
             prefsPanel = u.createElement('div', {'id': 'panel_prefs', 'class':'panel'}),
             prefsPanelH2 = u.createElement('h2'),
             prefsPanelForm = u.createElement('form', {'id': 'prefs_form', 'name': prefix+'prefs_form'}),
@@ -252,6 +255,7 @@ GateOne.Base.update(GateOne, {
             prefsPanelStyleRow3 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelStyleRow4 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelStyleRow5 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelStyleRow6 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow1 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow2 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelRow4 = u.createElement('div', {'class':'paneltablerow'}),
@@ -268,6 +272,8 @@ GateOne.Base.update(GateOne, {
             prefsPanelDisableTermTransitions = u.createElement('input', {'id': 'prefs_disabletermtrans', 'name': prefix+'prefs_disabletermtrans', 'value': 'disabletermtrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelDisableAudibleBellLabel = u.createElement('span', {'id': 'prefs_disableaudiblebell_label', 'class':'paneltablelabel'}),
             prefsPanelDisableAudibleBell = u.createElement('input', {'id': 'prefs_disableaudiblebell', 'name': prefix+'prefs_disableaudiblebell', 'value': 'disableaudiblebell', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelBellLabel = u.createElement('span', {'id': 'prefs_bell_label', 'class':'paneltablelabel'}),
+            prefsPanelBell = u.createElement('button', {'id': 'prefs_bell', 'value': 'bell', 'class': 'button black', 'style': {'display': 'table-cell', 'float': 'right'}}),
             prefsPanelScrollbackLabel = u.createElement('span', {'id': 'prefs_scrollback_label', 'class':'paneltablelabel'}),
             prefsPanelScrollback = u.createElement('input', {'id': 'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelRowsLabel = u.createElement('span', {'id': 'prefs_rows_label', 'class':'paneltablelabel'}),
@@ -289,12 +295,23 @@ GateOne.Base.update(GateOne, {
         go.Visual.applyTransform(prefsPanel, 'scale(0)');
         toolbarIconPrefs.innerHTML = go.Icons.prefs;
         prefsPanelH2.innerHTML = "Preferences";
+        panelClose.innerHTML = go.Icons['panelclose'];
+        panelClose.onclick = function(e) {
+            go.Visual.togglePanel('#'+prefix+'panel_prefs'); // Scale away, scale away, scale away.
+        }
+        prefsPanelBell.onclick = function(e) {
+            e.preventDefault(); // Just in case
+            go.User.uploadBellDialog();
+        }
         prefsPanel.appendChild(prefsPanelH2);
+        prefsPanel.appendChild(panelClose);
         prefsPanelThemeLabel.innerHTML = "<b>Theme:</b> ";
         prefsPanelColorsLabel.innerHTML = "<b>Color Scheme:</b> ";
         prefsPanelFontSizeLabel.innerHTML = "<b>Font Size:</b> ";
         prefsPanelDisableTermTransitionsLabel.innerHTML = "<b>Disable Terminal Slide Effect:</b> ";
         prefsPanelDisableAudibleBellLabel.innerHTML = "<b>Disable Bell Sound:</b> ";
+        prefsPanelBell.innerHTML = "Configure";
+        prefsPanelBellLabel.innerHTML = "<b>Bell Sound:</b> ";
         prefsPanelFontSize.value = go.prefs.fontSize;
         prefsPanelStyleRow1.appendChild(prefsPanelThemeLabel);
         prefsPanelStyleRow1.appendChild(prefsPanelTheme);
@@ -306,11 +323,14 @@ GateOne.Base.update(GateOne, {
         prefsPanelStyleRow4.appendChild(prefsPanelDisableTermTransitions);
         prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBellLabel);
         prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBell);
+        prefsPanelStyleRow6.appendChild(prefsPanelBellLabel);
+        prefsPanelStyleRow6.appendChild(prefsPanelBell);
         tableDiv.appendChild(prefsPanelStyleRow1);
         tableDiv.appendChild(prefsPanelStyleRow2);
         tableDiv.appendChild(prefsPanelStyleRow3);
         tableDiv.appendChild(prefsPanelStyleRow4);
         tableDiv.appendChild(prefsPanelStyleRow5);
+        tableDiv.appendChild(prefsPanelStyleRow6);
         prefsPanelScrollbackLabel.innerHTML = "<b>Scrollback Buffer Lines:</b> ";
         prefsPanelScrollback.value = go.prefs.scrollback;
         prefsPanelRowsLabel.innerHTML = "<b>Terminal Rows:</b> ";
@@ -381,9 +401,9 @@ GateOne.Base.update(GateOne, {
                 }
             }
             if (disableAudibleBell) {
-                go.prefs.bellSound = false;
+                go.prefs.audibleBell = false;
             } else {
-                go.prefs.bellSound = true;
+                go.prefs.audibleBell = true;
             }
             if (go.savePrefsCallbacks.length) {
                 // Call any registered prefs callbacks
@@ -778,10 +798,10 @@ GateOne.Base.update(GateOne.Utils, {
 //         sizingDiv.innerHTML = "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  Using the \u syntax because minifiers don't seem to like unicode characters to be in the source as-is.
         // We need two lines so we can factor in the line height and character spacing (if it has been messed with).
         sizingDiv.className = "terminal";
-        for (var i=0; i <= 15; i++) {
+        for (var i=0; i <= 63; i++) {
             fillerX += "\u2588";
         }
-        for (var i=0; i <= 15; i++) {
+        for (var i=0; i <= 63; i++) {
             fillerY.push(fillerX);
         }
         sizingPre.innerHTML = fillerY.join('\n');
@@ -793,8 +813,8 @@ GateOne.Base.update(GateOne.Utils, {
         node.appendChild(sizingDiv);
         var nodeHeight = sizingPre.getClientRects()[0].height,
             nodeWidth = sizingPre.getClientRects()[0].width;
-        nodeHeight = parseInt(nodeHeight)/16;
-        nodeWidth = parseInt(nodeWidth)/16;
+        nodeHeight = parseInt(nodeHeight)/64;
+        nodeWidth = parseInt(nodeWidth)/64;
         node.removeChild(sizingDiv);
         return {'w': nodeWidth, 'h': nodeHeight};
     },
@@ -1019,8 +1039,9 @@ GateOne.Base.update(GateOne.Utils, {
             }
         }
     },
-    savePrefs: function() {
+    savePrefs: function(skipNotification) {
         // Saves all user-specific settings in GateOne.prefs.* to localStorage[prefix+'prefs']
+        // if *skipNotification* is True, no message will be displayed to the user.
         var prefs = GateOne.prefs,
             userPrefs = {};
         for (var pref in prefs) {
@@ -1031,7 +1052,9 @@ GateOne.Base.update(GateOne.Utils, {
             }
         }
         localStorage[prefs.prefix+'prefs'] = JSON.stringify(userPrefs);
-        GateOne.Visual.displayMessage("Preferences have been saved.");
+        if (!skipNotification) {
+            GateOne.Visual.displayMessage("Preferences have been saved.");
+        }
     },
     loadPrefs: function() {
         // Populates GateOne.prefs.* with values from localStorage['prefs']
@@ -1294,6 +1317,13 @@ GateOne.Base.update(GateOne.Net, {
         // Load the Web Worker
         logDebug("Attempting to download our WebWorker...");
         go.ws.send(JSON.stringify({'get_webworker': null}));
+        // Load the bell sound
+        if (go.prefs.bellSound.length) {
+            go.User.loadBell({'mimetype': go.prefs.bellSoundType, 'data_uri': go.prefs.bellSound});
+        } else {
+            logDebug("Attempting to download our bell sound...");
+            go.ws.send(JSON.stringify({'get_bell': null}));
+        }
         // Check if there are any existing terminals for the current session ID
         go.ws.send(JSON.stringify({'authenticate': settings}));
         // Autoconnect if autoConnectURL is specified
@@ -2187,8 +2217,8 @@ GateOne.Base.update(GateOne.Visual, {
             terms.forEach(function(termObj) {
                 termObj.style.height = go.Visual.goDimensions.h + 'px';
                 termObj.style.width = go.Visual.goDimensions.w + 'px';
-                termObj.style['margin-right'] = style['padding-right'];
-                termObj.style['margin-bottom'] = style['padding-bottom'];
+//                 termObj.style['margin-right'] = style['padding-right'];
+//                 termObj.style['margin-bottom'] = style['padding-bottom'];
             });
         }
     },
@@ -2411,9 +2441,9 @@ GateOne.Base.update(GateOne.Visual, {
     },
     playBell: function() {
         // Plays the bell sound without any visual notification.
-        var snd = GateOne.Utils.getNode('#bell');
+        var snd = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'bell');
         if (snd) {
-            if (GateOne.prefs.bellSound) {
+            if (GateOne.prefs.audibleBell) {
                 snd.play();
             }
         }
@@ -2541,10 +2571,10 @@ GateOne.Base.update(GateOne.Visual, {
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
-        if (style['padding-right']) {
+        if (style['padding-right'] != "0px") {
             rightAdjust = parseInt(style['padding-right'].split('px')[0]);
         }
-        if (style['padding-bottom']) {
+        if (style['padding-bottom'] != "0px") {
             bottomAdjust = parseInt(style['padding-bottom'].split('px')[0]);
         }
         if (changeSelected) {
@@ -2559,10 +2589,10 @@ GateOne.Base.update(GateOne.Visual, {
             if (termObj.id == go.prefs.prefix+'term' + term) {
                 if (u.isEven(count)) {
                     wPX = ((v.goDimensions.w+rightAdjust) * 2) - (v.goDimensions.w+rightAdjust);
-                    hPX = (((v.goDimensions.h+bottomAdjust) * count)/2) - (v.goDimensions.h+bottomAdjust);
+                    hPX = (((v.goDimensions.h+bottomAdjust) * count)/2) - (v.goDimensions.h+(bottomAdjust*Math.floor(count/2)));
                 } else {
                     wPX = 0;
-                    hPX = (((v.goDimensions.h+bottomAdjust) * (count+1))/2) - (v.goDimensions.h+bottomAdjust);
+                    hPX = (((v.goDimensions.h+bottomAdjust) * (count+1))/2) - (v.goDimensions.h+(bottomAdjust*Math.floor(count/2)));
                 }
             }
         });
@@ -3210,6 +3240,7 @@ GateOne.Base.update(GateOne.Terminal, {
             toolbarNewTerm = u.createElement('div', {'id': 'icon_newterm', 'class': 'toolbar', 'title': "New Terminal"}),
             toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': 'toolbar', 'title': "Info and Tools"}),
             infoPanel = u.createElement('div', {'id': 'panel_info', 'class': 'panel'}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
             infoPanelRow1 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow1'}),
             infoPanelRow2 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow2'}),
             infoPanelRow3 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow3'}),
@@ -3248,12 +3279,17 @@ GateOne.Base.update(GateOne.Terminal, {
         go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient12259" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#linearGradient12259)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#linearGradient12259)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#linearGradient12259)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#linearGradient12259)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#linearGradient12259)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#linearGradient12259)"/></g></g></svg>';
         toolbarNewTerm.innerHTML = go.Icons['newTerm'];
         infoPanelH2.innerHTML = "Gate One";
+        panelClose.innerHTML = go.Icons['panelclose'];
+        panelClose.onclick = function(e) {
+            go.Visual.togglePanel('#'+prefix+'panel_info'); // Scale away, scale away, scale away.
+        }
         infoPanelTimeLabel.innerHTML = "<b>Connected Since:</b> ";
         infoPanelRowsLabel.innerHTML = "<b>Rows:</b> ";
         infoPanelRows.innerHTML = go.prefs.rows; // Will be replaced
         infoPanelColsLabel.innerHTML = "<b>Columns:</b> ";
         infoPanelCols.innerHTML = go.prefs.cols; // Will be replaced
         infoPanel.appendChild(infoPanelH2);
+        infoPanel.appendChild(panelClose);
         infoPanel.appendChild(p);
         infoPanel.appendChild(tableDiv);
         infoPanel.appendChild(tableDiv2);
@@ -3997,6 +4033,7 @@ GateOne.Base.update(GateOne.User, {
         }
         // Register our actions
         go.Net.addAction('set_username', go.User.setUsername);
+        go.Net.addAction('load_bell', go.User.loadBell);
     },
     setUsername: function(username) {
         // Sets GateOne.User.username using *username*.  Also provides hooks that plugins can have called after a user has logged in successfully.
@@ -4038,7 +4075,81 @@ GateOne.Base.update(GateOne.User, {
                 window.location.href = url;
             }, 2000);
         });
-    }
+    },
+    loadBell: function(message) {
+        // Loads the bell sound into the page as an <audio> element using the given *audioDataURI*.
+        var go = GateOne,
+            u = go.Utils,
+            goDiv = u.getNode(go.prefs.goDiv),
+            audioDataURI = message['data_uri'],
+            mimetype = message['mimetype'],
+            existing = u.getNode('#'+go.prefs.prefix+'bell'),
+            audioElem = u.createElement('audio', {'id': 'bell', 'preload': 'auto'}),
+            sourceElem = u.createElement('source', {'id': 'bell_source', 'type': mimetype});
+        if (existing) {
+            u.removeElement(existing);
+        }
+        sourceElem.src = audioDataURI;
+        audioElem.appendChild(sourceElem);
+        goDiv.appendChild(audioElem);
+        // Cache it so we don't have to re-download it every time.
+        go.prefs.bellSound = audioDataURI;
+        go.prefs.bellSoundType = mimetype;
+        u.savePrefs(true);
+    },
+    uploadBellDialog: function() {
+        // Displays a dialog/form where the user can upload a replacement bell sound or use the default
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            goDiv = u.getNode(go.prefs.goDiv),
+            playBell = u.createElement('button', {'id': 'play_bell', 'value': 'play_bell', 'class': 'button black'}),
+            defaultBell = u.createElement('button', {'id': 'default_bell', 'value': 'default_bell', 'class': 'button black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
+            uploadBellForm = u.createElement('form', {'name': prefix+'upload_bell_form', 'style': {'width': '25em'}}),
+            bellFile = u.createElement('input', {'type': 'file', 'id': 'upload_bell', 'name': prefix+'upload_bell'}),
+            bellFileLabel = u.createElement('label'),
+            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black', 'style': {'float': 'right'}});
+        submit.innerHTML = "Submit";
+        cancel.innerHTML = "Cancel";
+        defaultBell.innerHTML = "Reset Bell to Default";
+        playBell.innerHTML = "Play Current Bell";
+        playBell.onclick = function(e) {
+            e.preventDefault();
+            go.Visual.playBell();
+        }
+        bellFileLabel.innerHTML = "Select a Sound File";
+        bellFileLabel.htmlFor = prefix+'upload_bell';
+        uploadBellForm.appendChild(playBell);
+        uploadBellForm.appendChild(defaultBell);
+        uploadBellForm.appendChild(bellFileLabel);
+        uploadBellForm.appendChild(bellFile);
+        uploadBellForm.appendChild(submit);
+        uploadBellForm.appendChild(cancel);
+        var closeDialog = go.Visual.dialog('Upload Bell Sound', uploadBellForm);
+        cancel.onclick = closeDialog;
+        defaultBell.onclick = function(e) {
+            e.preventDefault();
+            go.ws.send(JSON.stringify({'get_bell': null}));
+            closeDialog();
+        }
+        uploadBellForm.onsubmit = function(e) {
+            // Don't actually submit it
+            e.preventDefault();
+            // Grab the form values
+            var bellFile = u.getNode('#'+prefix+'upload_bell').files[0],
+                bellReader = new FileReader(),
+                saveBell = function(evt) {
+                    var dataURI = evt.target.result,
+                        mimetype = bellFile.type;
+                    go.User.loadBell({'mimetype': mimetype, 'data_uri': dataURI});
+                };
+            // Get the data out of the files
+            bellReader.onload = saveBell;
+            bellReader.readAsDataURL(bellFile);
+            closeDialog();
+        }
+    },
 });
 
 // Protocol actions

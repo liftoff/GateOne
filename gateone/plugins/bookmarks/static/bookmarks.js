@@ -1010,6 +1010,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             delay = 1000, // Pretty much everything has the 'sectrans' class for 1-second transition effects
             existingPanel = u.getNode('#'+prefix+'panel_bookmarks'),
             bmPanel = u.createElement('div', {'id': 'panel_bookmarks', 'class': 'panel sectrans'}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
             bmHeader = u.createElement('div', {'id': 'bm_header', 'class': 'sectrans'}),
             bmContainer = u.createElement('div', {'id': 'bm_container', 'class': 'sectrans'}),
             bmPagination = u.createElement('div', {'id': 'bm_pagination', 'class': 'sectrans'}),
@@ -1025,16 +1026,13 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmSync = u.createElement('a', {'id': 'bm_sync', 'title': 'Synchronize your bookmarks with the server.'}),
             bmH2 = u.createElement('h2'),
             bmHeaderImage = u.createElement('span', {'id': 'bm_header_star'}),
-//             bmTagCloudUL = u.createElement('ul', {'id': 'bm_tagcloud_ul'}),
-//             bmTagCloudTip = u.createElement('span', {'id': 'bm_tagcloud_tip', 'class': 'sectrans'}),
-//             bmTagsHeader = u.createElement('h3', {'class': 'sectrans'}),
-//             pipeSeparator = u.createElement('span'),
-//             bmTagsHeaderTagsLink = u.createElement('a'),
-//             bmTagsHeaderAutotagsLink = u.createElement('a', {'class': 'inactive'}),
             bmSearch = u.createElement('input', {'id': 'bm_search', 'name': prefix+'search', 'type': 'search', 'tabindex': 1, 'placeholder': 'Search Bookmarks'}),
-//             allTags = b.getTags(b.bookmarks),
             toggleSort = u.partial(b.toggleSortOrder, b.bookmarks);
         bmH2.innerHTML = 'Bookmarks';
+        panelClose.innerHTML = go.Icons['panelclose'];
+        panelClose.onclick = function(e) {
+            go.Visual.togglePanel('#'+prefix+'panel_bookmarks'); // Scale away, scale away, scale away.
+        }
         if (!embedded) {
             bmH2.appendChild(bmSearch);
             bmSearch.onchange = function(e) {
@@ -1049,6 +1047,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             }
         }
         bmHeader.appendChild(bmH2);
+        bmHeader.appendChild(panelClose);
         bmTags.innerHTML = '<span id="'+prefix+'bm_taglist_label">Tag Filter:</span> <ul id="'+prefix+'bm_taglist"></ul> ';
         bmSync.innerHTML = 'Sync Bookmarks | ';
         bmImport.innerHTML = 'Import | ';

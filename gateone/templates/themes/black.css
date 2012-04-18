@@ -194,7 +194,6 @@ hr {
     color: #eee;
     position: static;
     float: left;
-    top: 0;
     -webkit-transition: -webkit-transform 1s ease-in-out;
     -moz-transition: -moz-transform 1s ease-in-out;
     -ms-transition: -ms-transform 1s ease-in-out;
@@ -429,6 +428,8 @@ hr {
 #{{container}} .paneltablelabel {
     display: table-cell;
     width: 75%;
+    vertical-align: middle;
+    padding-top: 0.2em;
 }
 #{{container}} .paneltablecell {
     display: table-cell;
@@ -585,11 +586,8 @@ hr {
 }
 #{{prefix}}user_info {
     font-size: 0.8em;
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding-top: 0.5em;
-    padding-right: 0.25em;
+    padding-bottom: 0.25em;
+    text-align: right;
 }
 #{{prefix}}user_info a:hover {
     cursor: pointer;

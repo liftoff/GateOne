@@ -126,8 +126,8 @@ GateOne.Base.update(GateOne.Mobile, {
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             prefs = {
                 'term': term,
-                'rows': Math.ceil(dimensions.rows - 2),
-                'cols': Math.ceil(dimensions.cols - 7), // -6 for the sidebar + scrollbar and -1 because we're using Math.ceil
+                'rows': Math.ceil(dimensions.rows - 1),
+                'cols': Math.ceil(dimensions.cols - 6), // -5 for the sidebar + scrollbar and -1 because we're using Math.ceil
                 'em_dimensions': emDimensions
             }
         if (!go.prefs.showToolbar && !go.prefs.showTitle) {

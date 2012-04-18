@@ -499,8 +499,8 @@
 }
 #{{prefix}}bm_search {
     position: absolute;
-    top: 0.1em;
-    right: 0;
+    top: 0;
+    right: 1.5em;
     font-size: 0.7em;
     margin-right: 0;
 }

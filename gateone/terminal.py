@@ -145,7 +145,7 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import os, re, logging, base64, copy, StringIO, codecs, unicodedata, tempfile
+import os, re, logging, base64, StringIO, codecs, unicodedata, tempfile
 from array import array
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -808,6 +808,17 @@ class Terminal(object):
         self.image = ""
         self.images = {}
         self.image_counter = pua_counter()
+        # This is for creating a new point of reference every time there's a new
+        # unique rendition at a given coordinate
+        self.rend_counter = pua_counter()
+        # Used for mapping unicode chars to acutal renditions (to save memory):
+        self.renditions_store = {
+            u' ': [0], # Nada, nothing, no rendition.  Not the same as below
+            self.rend_counter.next(): [0] # Default is actually reset
+        }
+        self.prev_dump = [] # A cache to speed things up
+        self.prev_dump_rend = [] # Ditto
+        self.html_cache = [] # Ditto
 
     def init_screen(self):
         """
@@ -817,9 +828,6 @@ class Terminal(object):
         .. note:: Just because each line starts out with a uniform length does not mean it will stay that way.  Processing of escape sequences is handled when an output function is called.
         """
         logging.debug('init_screen()')
-        #self.screen = [
-            #[u' ' for a in xrange(self.cols)] for b in xrange(self.rows)
-        #]
         self.screen = [array('u', u' ' * self.cols) for a in xrange(self.rows)]
         # Tabstops
         tabs, remainder = divmod(self.cols, 8) # Default is every 8 chars
@@ -829,26 +837,18 @@ class Terminal(object):
         self.cursorX = 0
         self.cursorY = 0
         self.rendition_set = False
+        self.prev_dump = [] # Force a full dump with an init
+        self.prev_dump_rend = []
+        self.html_cache = [] # Force this to be reset as well
 
-    def init_renditions(self):
+    def init_renditions(self, rendition=u'\U00100000'):
         """
-        Fills :attr:`self.renditions` with lists of [0] using :attr:`self.cols`
-        and :attr:`self.rows` for the dimenions.
+        Replaces :attr:`self.renditions` with arrays of *rendition* (characters)
+        using :attr:`self.cols` and :attr:`self.rows` for the dimenions.
         """
-        # This is for creating a new point of reference every time there's a new
-        # unique rendition at a given coordinate
-        self.rend_counter = pua_counter()
-        # Used for mapping unicode chars to acutal renditions (to save memory):
-        self.renditions_store = {
-            u' ': [], # Nada, nothing, no rendition.  Not the same as below
-            self.rend_counter.next(): [0] # Default is actually reset
-        }
         # The actual renditions at various coordinates:
         self.renditions = [
-            array('u', u' ' * self.cols) for a in xrange(self.rows)]
-        #self.renditions = [
-            #[[0] for a in xrange(self.cols)] for b in xrange(self.rows)
-        #]
+            array('u', rendition * self.cols) for a in xrange(self.rows)]
 
     def init_scrollback(self):
         """
@@ -938,6 +938,9 @@ class Terminal(object):
         self.init_screen()
         self.init_renditions()
         self.init_scrollback()
+        self.prev_dump = []
+        self.prev_dump_rend = []
+        self.html_cache = []
         try:
             self.callbacks[CALLBACK_RESET]()
         except TypeError:
@@ -967,10 +970,8 @@ class Terminal(object):
                 self.renditions.pop(0)
         elif rows > self.rows: # Add rows at the bottom
             for i in xrange(rows - self.rows):
-                #line = [u' ' for a in xrange(cols)]
                 line = array('u', u' ' * self.cols)
-                renditions = array('u', u' ' * self.cols)
-                #renditions = [[0] for a in xrange(self.cols)]
+                renditions = array('u', u'\U00100000' * self.cols)
                 self.screen.append(line)
                 self.renditions.append(renditions)
         self.rows = rows
@@ -989,8 +990,7 @@ class Terminal(object):
             for i in xrange(self.rows):
                 for j in xrange(cols - self.cols):
                     self.screen[i].append(u' ')
-                    self.renditions[i].append(u' ')
-                    #self.renditions[i].append([0])
+                    self.renditions[i].append(u'\U00100000')
         self.cols = cols
 
         # Fix the cursor location:
@@ -1012,7 +1012,7 @@ class Terminal(object):
                 # This is a set/restore DEC PMV sequence
                 return # Ignore (until I figure out what this should do)
             top, bottom = settings.split(';')
-            self.top_margin = max(0, int(top) - 1) # These are 0-based like self.cursor[XY]
+            self.top_margin = max(0, int(top) - 1) # These are 0-based
             if bottom:
                 self.bottom_margin = min(self.rows - 1, int(bottom) - 1)
         else:
@@ -1119,9 +1119,6 @@ class Terminal(object):
         if param == 8:
             # Screen alignment test
             self.init_renditions()
-            #self.screen = [
-                #[u'E' for a in xrange(self.cols)] for b in xrange(self.rows)
-            #]
             self.screen = [
                 array('u', u'E' * self.cols) for a in xrange(self.rows)]
         # TODO: Get this handling double line height stuff...  For kicks
@@ -1246,7 +1243,6 @@ class Terminal(object):
                             self.matched_header].split(self.image)
                     # Eliminate anything before the match
                     self.image = match.group()
-                    #open('/tmp/good_image.png', 'w').write(self.image)
                     self._capture_image()
                     self.image = "" # Empty it now that is is captured
                     self.matched_header = None # Ditto
@@ -1258,7 +1254,6 @@ class Terminal(object):
                 # went wrong.  Discard what we've got and restart.
                 one_second = timedelta(seconds=1)
                 if datetime.now() - self.timeout_image > one_second:
-                    #open('/tmp/bad_image.png', 'w').write(self.image)
                     self.image = "" # Empty it
                     self.matched_header = None
                     chars = _("Failed to decode image.  Buffer discarded.")
@@ -1307,7 +1302,7 @@ class Terminal(object):
                             try:
                                 csi_handlers[csi_type](csi_values)
                             except ValueError:
-                                # Commented this out because it can be super noisy
+                            # Commented this out because it can be super noisy
                                 #logging.error(_(
                                     #"CSI Handler Error: Type: %s, Values: %s" %
                                     #(csi_type, csi_values)
@@ -1405,7 +1400,6 @@ class Terminal(object):
                 self.init_scrollback()
                 # NOTE:  This would only be if 1000 lines piled up before the
                 # next dump_html() or dump().
-            #empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
             empty_line = array('u', u' ' * self.cols) # Line full of spaces
             # Add it to the bottom of the window:
             self.screen.insert(self.bottom_margin, empty_line)
@@ -1413,10 +1407,8 @@ class Terminal(object):
             style = self.renditions.pop(self.top_margin)
             self.scrollback_renditions.append(style)
             # Insert a new empty rendition as well:
-            empty_line = array('u', u' ' * self.cols) # Line full of spaces
+            empty_line = array('u', u'\U00100000' * self.cols)
             self.renditions.insert(self.bottom_margin, empty_line)
-            #self.renditions.insert(
-                #self.bottom_margin, [[0] for a in xrange(self.cols)])
         # Execute our callback indicating lines have been updated
         try:
             for callback in self.callbacks[CALLBACK_CHANGED].values():
@@ -1439,16 +1431,13 @@ class Terminal(object):
         #logging.debug("scroll_down(%s)" % n)
         for x in xrange(int(n)):
             self.screen.pop(self.bottom_margin) # Remove the bottom line
-            #empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
             empty_line = array('u', u' ' * self.cols) # Line full of spaces
             self.screen.insert(self.top_margin, empty_line) # Add it to the top
             # Remove bottom line's style information:
             self.renditions.pop(self.bottom_margin)
             # Insert a new empty one:
-            empty_line = array('u', u' ' * self.cols) # Line full of spaces
-            self.renditions.insert(self.top_margin, empty_line) # Add it to the top
-            #self.renditions.insert(
-                #self.top_margin, [[0] for a in xrange(self.cols)])
+            empty_line = array('u', u'\U00100000' * self.cols)
+            self.renditions.insert(self.top_margin, empty_line)
         # Execute our callback indicating lines have been updated
         try:
             for callback in self.callbacks[CALLBACK_CHANGED].values():
@@ -1475,13 +1464,11 @@ class Terminal(object):
             self.screen.pop(self.bottom_margin) # Remove the bottom line
             # Remove bottom line's style information as well:
             self.renditions.pop(self.bottom_margin)
-            #empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
             empty_line = array('u', u' ' * self.cols) # Line full of spaces
             self.screen.insert(self.cursorY, empty_line) # Insert at cursor
             # Insert a new empty rendition as well:
-            empty_line = array('u', u' ' * self.cols) # Line full of spaces
+            empty_line = array('u', u'\U00100000' * self.cols)
             self.renditions.insert(self.cursorY, empty_line) # Insert at cursor
-            #self.renditions.insert(self.cursorY, [[0] for a in xrange(self.cols)])
 
     def delete_line(self, n=1):
         """
@@ -1495,23 +1482,19 @@ class Terminal(object):
             self.screen.pop(self.cursorY) # Remove the line at the cursor
             # Remove the line's style information as well:
             self.renditions.pop(self.cursorY)
-            # Now add an empty line and empty set of renditions to the bottom of the
-            # view
-            #empty_line = [u' ' for a in xrange(self.cols)] # Line full of spaces
+            # Now add an empty line and empty set of renditions to the bottom of
+            # the view
             empty_line = array('u', u' ' * self.cols) # Line full of spaces
             # Add it to the bottom of the view:
             self.screen.insert(self.bottom_margin, empty_line) # Insert at bottom
             # Insert a new empty rendition as well:
-            empty_line = array('u', u' ' * self.cols) # Line full of spaces
-            self.renditions.insert(self.bottom_margin, empty_line) # Insert at bottom
-            #self.renditions.insert(
-                #self.bottom_margin, [[0] for a in xrange(self.cols)])
+            empty_line = array('u', u'\U00100000' * self.cols)
+            self.renditions.insert(self.bottom_margin, empty_line)
 
     def backspace(self):
         """Execute a backspace (\\x08)"""
         try:
             self.renditions[self.cursorY][self.cursorX] = u' '
-            #self.renditions[self.cursorY][self.cursorX] = []
         except IndexError:
             pass # At the edge, no biggie
         self.cursor_left(1)
@@ -1734,7 +1717,7 @@ class Terminal(object):
         Closes the file descriptors of any images that are no longer on the
         screen.
         """
-        logging.debug('close_image_fds()')
+        #logging.debug('close_image_fds()') # Commented because it's kinda noisy
         if self.images:
             for ref in self.images.keys():
                 found = False
@@ -1742,10 +1725,14 @@ class Terminal(object):
                     if ref in line:
                         found = True
                         break
+                if self.alt_screen:
+                    for line in self.alt_screen:
+                        if ref in line:
+                            found = True
+                            break
                 if not found:
                     self.images[ref].close()
                     del self.images[ref]
-            #print('It took %0.2fms to close image FDs' % (elapsed*1000.0))
 
     def _string_terminator(self):
         """
@@ -1916,20 +1903,23 @@ class Terminal(object):
         #logging.debug('toggle_alternate_screen_buffer(%s)' % alt)
         if alt:
             # Save the existing screen and renditions
-            self.alt_screen = copy.copy(self.screen)
-            self.alt_renditions = copy.copy(self.renditions)
+            self.alt_screen = self.screen[:]
+            self.alt_renditions = self.renditions[:]
             # Make a fresh one
             self.clear_screen()
         else:
             # Restore the screen
             if self.alt_screen and self.alt_renditions:
-                self.screen = self.alt_screen
-                self.renditions = self.alt_renditions
+                self.screen = self.alt_screen[:]
+                self.renditions = self.alt_renditions[:]
             # Empty out the alternate buffer (to save memory)
             self.alt_screen = None
             self.alt_renditions = None
-        self.cur_rendition = u' '
-        #self.cur_rendition = []
+        # These all need to be reset no matter what
+        self.cur_rendition = u'\U00100000'
+        self.prev_dump = []
+        self.prev_dump_rend = []
+        self.html_cache = []
 
     def toggle_alternate_screen_buffer_cursor(self, alt):
         """
@@ -1977,7 +1967,7 @@ class Terminal(object):
         n = int(n)
         for i in xrange(n):
             self.screen[self.cursorY].pop() # Take one down, pass it around
-            self.screen[self.cursorY].insert(self.cursorX, u' ')
+            self.screen[self.cursorY].insert(self.cursorX, u'\U00100000')
 
     def delete_characters(self, n=1):
         """
@@ -2000,8 +1990,7 @@ class Terminal(object):
                 self.screen[self.cursorY].pop(self.cursorX)
                 self.screen[self.cursorY].append(u' ')
                 self.renditions[self.cursorY].pop(self.cursorX)
-                self.renditions[self.cursorY].append(u' ')
-                #self.renditions[self.cursorY].append([0])
+                self.renditions[self.cursorY].append(u'\U00100000')
             except IndexError:
                 # At edge of screen, ignore
                 #print('IndexError in delete_characters(): %s' % e)
@@ -2023,8 +2012,7 @@ class Terminal(object):
         n = min(n, distance)
         for i in xrange(n):
             self.screen[self.cursorY][self.cursorX+i] = u' '
-            self.renditions[self.cursorY][self.cursorX+i] = u' '
-            #self.renditions[self.cursorY][self.cursorX+i] = [0]
+            self.renditions[self.cursorY][self.cursorX+i] = u'\U00100000'
 
     def cursor_left(self, n=1):
         """ESCnD CUB (Cursor Back)"""
@@ -2166,11 +2154,7 @@ class Terminal(object):
         """
         #logging.debug('clear_screen()')
         self.init_screen()
-        self.init_renditions()
-        #self.renditions = [
-            #[self.cur_rendition for a in xrange(self.cols)
-                #] for b in xrange(self.rows)
-        #]
+        self.init_renditions(self.cur_rendition)
         self.cursorX = 0
         self.cursorY = 0
 
@@ -2179,19 +2163,13 @@ class Terminal(object):
         Clears the screen from the cursor down (ESC[J or ESC[0J).
         """
         #logging.debug('clear_screen_from_cursor_down()')
-        #self.screen[self.cursorY:] = [
-           #[u' ' for a in xrange(self.cols)] for a in self.screen[self.cursorY:]
-        #]
         self.screen[self.cursorY:] = [
             array('u', u' ' * self.cols) for a in self.screen[self.cursorY:]
         ]
+        c = self.cur_rendition # Just to save space below
         self.renditions[self.cursorY:] = [
-            array('u', u' ' * self.cols) for a in self.renditions[self.cursorY:]
+            array('u', c * self.cols) for a in self.renditions[self.cursorY:]
         ]
-        #self.renditions[self.cursorY:] = [
-           #[self.cur_rendition for a in xrange(self.cols)] for a in self.screen[
-               #self.cursorY:]
-        #]
         self.cursorX = 0
 
     def clear_screen_from_cursor_up(self):
@@ -2202,12 +2180,10 @@ class Terminal(object):
         self.screen[:self.cursorY+1] = [
             array('u', u' ' * self.cols) for a in self.screen[:self.cursorY]
         ]
+        c = self.cur_rendition
         self.renditions[:self.cursorY+1] = [
-            array('u', u' ' * self.cols) for a in self.renditions[:self.cursorY]
+            array('u', c * self.cols) for a in self.renditions[:self.cursorY]
         ]
-        #self.renditions[:self.cursorY+1] = [
-           #[[0] for a in xrange(self.cols)] for a in self.screen[:self.cursorY]
-        #]
         self.cursorX = 0
         self.cursorY = 0
 
@@ -2256,13 +2232,11 @@ class Terminal(object):
         saved = self.screen[self.cursorY][:self.cursorX]
         saved_renditions = self.renditions[self.cursorY][:self.cursorX]
         spaces = array('u', u' '*len(self.screen[self.cursorY][self.cursorX:]))
+        renditions = array('u',
+            self.cur_rendition * len(self.screen[self.cursorY][self.cursorX:]))
         self.screen[self.cursorY] = saved + spaces
-        #self.screen[self.cursorY][self.cursorX:] = [
-            #u' ' for a in self.screen[self.cursorY][self.cursorX:]]
         # Reset the cursor position's rendition to the end of the line
-        self.renditions[self.cursorY] = saved_renditions + spaces
-        #self.renditions[self.cursorY][self.cursorX:] = [
-            #self.cur_rendition for a in self.screen[self.cursorY][self.cursorX:]]
+        self.renditions[self.cursorY] = saved_renditions + renditions
 
     def clear_line_from_cursor_left(self):
         """
@@ -2272,11 +2246,10 @@ class Terminal(object):
         saved = self.screen[self.cursorY][self.cursorX:]
         saved_renditions = self.renditions[self.cursorY][self.cursorX:]
         spaces = array('u', u' '*len(self.screen[self.cursorY][:self.cursorX]))
+        renditions = array('u',
+            self.cur_rendition * len(self.screen[self.cursorY][self.cursorX:]))
         self.screen[self.cursorY] = spaces + saved
-        self.renditions[self.cursorY] = spaces + saved_renditions
-        #self.renditions[self.cursorY] = [
-            #[] for a in self.screen[self.cursorY][:self.cursorX]
-        #] + saved_renditions
+        self.renditions[self.cursorY] = renditions + saved_renditions
 
     def clear_line(self):
         """
@@ -2284,8 +2257,8 @@ class Terminal(object):
         """
         #logging.debug("clear_line()")
         self.screen[self.cursorY] = array('u', u' ' * self.cols)
-        self.renditions[self.cursorY] = array('u', u' ' * self.cols)
-        #self.renditions[self.cursorY] = [[0] for a in xrange(self.cols)]
+        c = self.cur_rendition
+        self.renditions[self.cursorY] = array('u', c * self.cols)
         self.cursorX = 0
 
     def clear_line_from_cursor(self, n):
@@ -2376,17 +2349,11 @@ class Terminal(object):
         preserved.
         """
         #logging.debug("_set_rendition(%s)" % n)
-        # TODO: Make this whole thing faster (or prove it isn't possible).
-        # TODO: If we can't make it faster then we should at least see if we can
-        # simplify it.
         cursorY = self.cursorY
         cursorX = self.cursorX
-        #logging.debug("Setting rendition: %s at %s, %s" % (repr(n), cursorY, cursorX))
         if cursorX >= self.cols: # We're at the end of the row
             if len(self.renditions[cursorY]) <= cursorX:
                 # Make it all longer
-                #logging.debug("Making line %s longer" % self.cursorY)
-                #self.renditions[cursorY].append([]) # Make it longer
                 self.renditions[cursorY].append(u' ') # Make it longer
                 self.screen[cursorY].append(u'\x00') # This needs to match
         if cursorY >= self.rows:
@@ -2395,7 +2362,6 @@ class Terminal(object):
                 "cursorY >= self.rows! This should not happen! Bug!"))
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
-            #self.cur_rendition = [0]
             # First char in PUA Plane 16 is always the default:
             self.cur_rendition = u'\U00100000' # Should be reset (e.g. [0])
             return # No need for further processing; save some CPU
@@ -2403,7 +2369,7 @@ class Terminal(object):
         new_renditions = [int(a) for a in n.split(';') if a != '']
         # Handle 256-color renditions by getting rid of the (38|48);5 part and
         # incrementing foregrounds by 1000 and backgrounds by 10000 so we can
-        # tell them apart in __spanify_screen().
+        # tell them apart in _spanify_screen().
         if 38 in new_renditions:
             foreground_index = new_renditions.index(38)
             if len(new_renditions[foreground_index:]) >= 2:
@@ -2438,7 +2404,6 @@ class Terminal(object):
                 for k, v in self.renditions_store.items():
                     if reduced == v:
                         self.cur_rendition = k
-            #self.cur_rendition = _reduce_renditions(out_renditions)
             return
         new_renditions = out_renditions
         cur_rendition_list = self.renditions_store[self.cur_rendition]
@@ -2451,7 +2416,6 @@ class Terminal(object):
             for k, v in self.renditions_store.items():
                 if reduced == v:
                     self.cur_rendition = k
-        #self.cur_rendition = reduced
 
     def _opt_handler(self, chars):
         """
@@ -2483,13 +2447,24 @@ class Terminal(object):
         lines. It also marks the cursor position via a <span> tag at the
         appropriate location.
         """
+        #logging.debug("_spanify_screen()")
         results = []
+        # NOTE: Why these duplicates of self.* and globals?  Local variable
+        # lookups are faster--especially in loops.
         rendition_classes = RENDITION_CLASSES
         screen = self.screen
         renditions = self.renditions
         renditions_store = self.renditions_store
         cursorX = self.cursorX
         cursorY = self.cursorY
+        if len(self.prev_dump) != len(screen):
+            # Fix it to be equal--assume first time/screen reset/resize/etc
+            # Just fill it with empty strings (only the length matters here)
+            self.prev_dump = [[] for a in screen]
+            self.prev_dump_rend = [[] for a in screen]
+        # The html_cache may need to be fixed as well
+        if len(self.html_cache) != len(screen):
+            self.html_cache = [u'' for a in screen] # Essentially a reset
         spancount = 0
         current_classes = []
         prev_rendition = None
@@ -2498,10 +2473,15 @@ class Terminal(object):
         for linecount, line_rendition in enumerate(izip(screen, renditions)):
             line = line_rendition[0]
             rendition = line_rendition[1]
+            if linecount != cursorY and self.prev_dump[linecount] == line:
+                if '<span class="cursor">' not in self.html_cache[linecount]:
+                    if self.prev_dump_rend[linecount] == rendition:
+                        # No change since the last dump.  Use the cache...
+                        results.append(self.html_cache[linecount])
+                        continue # Nothing changed so move on to the next line
             outline = ""
             charcount = 0
             for char, rend in izip(line, rendition):
-                #print("char: %s, rend: %s" % (`char`, `rend`))
                 rend = renditions_store[rend] # Get actual rendition
                 if ord(char) > 1048575: # Special stuff =)
                     # Obviously, not really a single character
@@ -2614,10 +2594,14 @@ class Terminal(object):
                 else:
                     outline += char
                 charcount += 1
+            self.prev_dump[linecount] = line[:]
+            self.prev_dump_rend[linecount] = rendition[:]
             if outline:
                 results.append(outline)
+                self.html_cache[linecount] = outline
             else:
                 results.append(None) # 'null' is shorter than 4 spaces
+                self.html_cache[linecount] = None
             # NOTE: The client has been programmed to treat None (aka null in
             #       JavaScript) as blank lines.
         for whatever in xrange(spancount): # Bit of cleanup to be safe
@@ -2757,10 +2741,7 @@ class Terminal(object):
 
         .. note:: This places <span class="cursor">(current character)</span> around the cursor location.
         """
-        # NOTE: On my laptop this function will take about 30ms to complete
-        # a full-screen 'top' refresh on a 57x209 screen.
-        # In other words, it is pretty fast...  Not much optimization necessary
-        if renditions:
+        if renditions: # i.e. Use stylized text
             screen = self._spanify_screen()
             scrollback = []
             if self.scrollback_buf:

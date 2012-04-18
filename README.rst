@@ -21,7 +21,7 @@ About Gate One
 
 License
 -------
-Gate One is dual licensed:  `AGPLv3 <http://www.gnu.org/licenses/agpl.html>`_ or `Commercial Licensing <http://liftoffsoftware.com/Licensing>`_.  More information can be found at http://liftoffsoftware.com/
+Gate One is dual licensed:  `AGPLv3 <http://www.gnu.org/licenses/agpl.html>`_ or `Commercial Licensing <http://liftoffsoftware.com/Pricing>`_.  More information can be found at http://liftoffsoftware.com/
 
 Screenshots
 -----------

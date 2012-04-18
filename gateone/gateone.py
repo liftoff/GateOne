@@ -658,15 +658,6 @@ class MainHandler(BaseHandler):
         minified_js_abspath = os.path.join(GATEONE_DIR, 'static')
         minified_js_abspath = os.path.join(
             minified_js_abspath, 'gateone.min.js')
-        bell_path = os.path.join(GATEONE_DIR, 'static')
-        bell_path = os.path.join(bell_path, 'bell.ogg')
-        if os.path.exists(bell_path):
-            try:
-                bell_data_uri = create_data_uri(bell_path)
-            except MimeTypeFail:
-                bell_data_uri = fallback_bell
-        else: # There's always the fallback
-            bell_data_uri = fallback_bell
         js_init = self.settings['js_init']
         # Use the minified version if it exists
         if os.path.exists(minified_js_abspath):
@@ -692,7 +683,6 @@ class MainHandler(BaseHandler):
             jsplugins=PLUGINS['js'],
             cssplugins=PLUGINS['css'],
             js_init=js_init,
-            bell_data_uri=bell_data_uri,
             url_prefix=self.settings['url_prefix'],
             head=head_html,
             body=body_html
@@ -788,6 +778,7 @@ class TerminalWebSocket(WebSocketHandler):
             'refresh': self.refresh_screen,
             'full_refresh': self.full_refresh,
             'resize': self.resize,
+            'get_bell': self.get_bell,
             'get_webworker': self.get_webworker,
             'get_style': self.get_style,
             #'get_js': self.get_js,
@@ -1456,15 +1447,16 @@ class TerminalWebSocket(WebSocketHandler):
 
     def _send_refresh(self, term, full=False):
         """Sends a screen update to the client."""
-        try:
-            now = datetime.now()
-            tidy_thread = SESSIONS[self.session]['tidy_thread']
-            tidy_thread.keepalive(now)
-            multiplex = SESSIONS[self.session][term]['multiplex']
-            scrollback, screen = multiplex.dump_html(
-                full=full, client_id=self.client_id)
-        except KeyError as e: # Session died (i.e. command ended).
-            scrollback, screen = [], []
+        #try:
+        now = datetime.now()
+        tidy_thread = SESSIONS[self.session]['tidy_thread']
+        tidy_thread.keepalive(now)
+        multiplex = SESSIONS[self.session][term]['multiplex']
+        scrollback, screen = multiplex.dump_html(
+            full=full, client_id=self.client_id)
+        #except KeyError as e: # Session died (i.e. command ended).
+            #print("KeyError in _send_refresh()?")
+            #scrollback, screen = [], []
         if [a for a in screen if a]:
             output_dict = {
                 'termupdate': {
@@ -1620,10 +1612,32 @@ class TerminalWebSocket(WebSocketHandler):
                     "sequence handler..."))
                 logging.error(str(e))
 
+    def get_bell(self):
+        """
+        Sends the bell sound data to the client in in the form of a data::URI.
+        """
+        bell_path = os.path.join(GATEONE_DIR, 'static')
+        bell_path = os.path.join(bell_path, 'bell.ogg')
+        if os.path.exists(bell_path):
+            try:
+                bell_data_uri = create_data_uri(bell_path)
+            except MimeTypeFail:
+                bell_data_uri = fallback_bell
+        else: # There's always the fallback
+            bell_data_uri = fallback_bell
+        mimetype = bell_data_uri.split(';')[0].split(':')[1]
+        message = {
+            'load_bell': {
+                'data_uri': bell_data_uri, 'mimetype': mimetype
+            }
+        }
+        self.write_message(json_encode(message))
+
     def get_webworker(self):
         """
-        Returns the text of our go_process.js to get around the limitations of
-        loading remote Web Worker URLs (for embedding Gate One into other apps).
+        Sends the text of our go_process.js to the client in order to get around
+        the limitations of loading remote Web Worker URLs (for embedding Gate
+        One into other apps).
         """
         static_path = os.path.join(GATEONE_DIR, "static")
         webworker_path = os.path.join(static_path, 'go_process.js')
@@ -1777,8 +1791,9 @@ class TerminalWebSocket(WebSocketHandler):
 
             GateOne.ws.send(JSON.stringify({'debug_terminal': *term*}));
         """
-        screen = SESSIONS[self.session][term]['multiplex'].term.screen
-        renditions = SESSIONS[self.session][term]['multiplex'].term.renditions
+        termObj = SESSIONS[self.session][term]['multiplex'].term
+        screen = termObj.screen
+        renditions = termObj.renditions
         for i, line in enumerate(screen):
             # This gets rid of images:
             line = [a for a in line if len(a) == 1]
@@ -1796,6 +1811,7 @@ class TerminalWebSocket(WebSocketHandler):
         from pympler import asizeof
         print("screen size: %s" % asizeof.asizeof(screen))
         print("renditions size: %s" % asizeof.asizeof(renditions))
+        print("Total term object size: %s" % asizeof.asizeof(termObj))
 
 # Thread classes
 class TidyThread(threading.Thread):
@@ -2291,14 +2307,14 @@ def main():
     )
     define(
         "uid",
-        default=os.getuid(), # root
+        default=os.getuid(),
         help=_(
             "Drop privileges and run Gate One as this user/uid."),
         type=str
     )
     define(
         "gid",
-        default=os.getgid(), # root
+        default=os.getgid(),
         help=_(
             "Drop privileges and run Gate One as this group/gid."),
         type=str
