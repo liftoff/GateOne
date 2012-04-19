@@ -916,7 +916,8 @@ class TerminalWebSocket(WebSocketHandler):
                     except AttributeError:
                         # User never completed opening a terminal so
                         # self.callback_id is missing.  Nothing to worry about
-                        pass
+                        if self.client_id in SESSIONS[user['session']][term]:
+                            del SESSIONS[user['session']][term][self.client_id]
 
         if user and 'upn' in user:
             logging.info(
@@ -2307,14 +2308,14 @@ def main():
     )
     define(
         "uid",
-        default=os.getuid(),
+        default=str(os.getuid()),
         help=_(
             "Drop privileges and run Gate One as this user/uid."),
         type=str
     )
     define(
         "gid",
-        default=os.getgid(),
+        default=str(os.getgid()),
         help=_(
             "Drop privileges and run Gate One as this group/gid."),
         type=str
