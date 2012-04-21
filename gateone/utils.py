@@ -186,10 +186,7 @@ def shell_command(cmd, timeout_duration=5):
 
         (255, _("ERROR: Timeout running shell command"))
     """
-    try:
-        from commands import getstatusoutput
-    except ImportError: # Moved to subprocess in Python 3 (this is just preparation)
-        from subprocess import getstatusoutput
+    from commands import getstatusoutput
     existing_handler = signal.getsignal(signal.SIGCHLD)
     default = (255, _("ERROR: Timeout running shell command"))
     if existing_handler != 0: # Something other than default
@@ -881,8 +878,9 @@ def create_data_uri(filepath):
     mimetype = mimetypes.guess_type(filepath)[0]
     if not mimetype:
         raise MimeTypeFail("Could not guess mime type of: %s" % filepath)
-    f = open(filepath).read()
-    encoded = base64.b64encode(f).replace('\n', '')
+    with open(filepath, 'rb') as f:
+        data = f.read()
+    encoded = str(base64.b64encode(data)).replace('\n', '')
     if len(encoded) > 65000:
         logging.warn(
             "WARNING: Data URI > 65,000 characters.  You're pushing it buddy!")

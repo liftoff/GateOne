@@ -711,7 +711,7 @@ GateOne.Base.update(GateOne.SSH, {
             uploadIDForm = u.createElement('form', {'name': prefix+'ssh_upload_id_form', 'class': 'ssh_id_form'}),
             privateKeyFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_privatekey', 'name': prefix+'ssh_upload_id_privatekey', 'required': 'required'}),
             privateKeyFileLabel = u.createElement('label'),
-            publicKeyFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_publickey', 'name': prefix+'ssh_upload_id_publickey', 'required': 'required'}),
+            publicKeyFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_publickey', 'name': prefix+'ssh_upload_id_publickey'}),
             publicKeyFileLabel = u.createElement('label'),
             certificateFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_cert', 'name': prefix+'ssh_upload_id_cert'}),
             certificateFileLabel = u.createElement('label'),

@@ -3920,17 +3920,28 @@ GateOne.Base.update(GateOne.Terminal, {
     },
     reconnectTerminalAction: function(term){
         // Called when the server reports that the terminal number supplied via 'new_terminal' already exists
-        // NOTE: Doesn't do anything at the moment
+        // NOTE: Doesn't do anything at the moment...  May never do anything.  You never know.
         logDebug('reconnectTerminalAction(' + term + ')');
     },
     reattachTerminalsAction: function(terminals){
         // Called after we authenticate to the server...
-        // If we're reconnecting to an existing session, those running terminals will be recreated.
-        // If this is a new session, a fresh terminal will be created.
+        // If we're reconnecting to an existing session, running terminals will be recreated/reattached.
+        // If this is a new session, a new terminal will be created.
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix;
-        logDebug("reattachTerminalsAction() terminals: " + u.items(terminals));
+        logDebug("reattachTerminalsAction() terminals: " + terminals);
+        // Clean up localStorage
+        for (var key in localStorage) {
+            // Clean up old scrollback buffers that aren't attached to terminals anymore:
+            if (key.indexOf(prefix+'scrollback') == 0) { // This is a scrollback buffer
+                var termNum = parseInt(key.split(prefix+'scrollback')[1]);
+                if (terminals.indexOf(termNum) == -1) { // Terminal for this buffer no longer exists
+                    logDebug("Deleting scollback buffer for non-existent terminal " + key);
+                    delete localStorage[key];
+                }
+            }
+        }
         if (terminals.length) {
             // Reattach the running terminals
             var selectedMatch = false;

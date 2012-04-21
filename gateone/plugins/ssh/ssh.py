@@ -606,6 +606,24 @@ def openssh_generate_new_keypair(name, path,
     )
     m.spawn()
 
+def openssh_generate_public_key(path):
+    """
+    Generates a public key from the given private key at *path*.
+    """
+    ssh_keygen_path = which('ssh-keygen')
+    pubkey_path = "%s.pub" % path
+    command = (
+        "%s "       # Path to ssh-keygen
+        "-f %s "    # Key path
+        "-y "       # Output public key to stdout
+        "> %s"      # Redirect stdout to the public key path
+        % (ssh_keygen_path, path, pubkey_path)
+    )
+    exitstatus, output = shell_command(command)
+    if exitstatus != 0:
+        raise SSHKeygenException(_(
+            "Error generating public key from private key at %s" % path))
+
 # ssh-kegen example for reference:
     #$ ssh-keygen -b 521 -t ecdsa "Testing" -f /tmp/testkey
     #Generating public/private ecdsa key pair.
@@ -637,6 +655,8 @@ def openssh_generate_new_keypair(name, path,
     #ssh-dss AAAAB3NzaC1kc3MAAACBAJ5jU4izsZtJKEojw7gIcc6e3U4X6OENN6081YxSAanfTbKjR0V3Ho6aui2z8o039BVH4S5cVD51vEEvDjirKStM2aMvdrVZkjGH1iOMWY4MQrCl4EqMr7rWikeiZJN6BJ+xmPBUyZuicVDFkBwqC+dKgxml0RTpa7TYBWvp403XAAAAFQDg6vb3afaKM9+DvBW7I4xPxF8a8QAAAIEAjcNHYFrqcWK9lSsw2Oy+w1PEWQuxvWydXXk3MQyiZ/PYaeU/138iCB2pW1fgCksx5CHF8dgtQ7AsFv32gBlxuDgX3EYtPYR0wGJqyU7w9+qaq1T02zmDfW4k2WDfMNz+QWFYHuKzC/aeuEC0BRTLyPVQMHLNAd/F5beCqlIPRPcAAACAfUy1+yNgK2svox6aJRqtpxbMSPDRNTRMAjeTkCeLopesZFYbPvms2c19WkIk2qD9aw3gIxsR4wO+kkvI4BtOs8dXQWS+bc+svJbIYOqmPFo89BJHfbP9wvMhfTlp1uH9LxAG6ZiHHz5fseUgTrwYkSw1beUprikxlca8lQm5v7g= root@RouterStationPro
     #Fingerprint: md5 c6:f9:f2:95:b8:40:ac:f3:53:f1:39:e9:57:a0:58:18
 
+# TODO: Get this validating uploaded keys.
+# TODO: Get this taking a passphrase as an option in settings (for creating the public key)
 def store_id_file(settings, tws=None):
     """
     Stores the given *settings['private']* and/or *settings['public']* keypair
@@ -649,7 +669,7 @@ def store_id_file(settings, tws=None):
     with the private and public keys.  It will be saved as
     *settings['name']*-cert.pub.
 
-    .. note:: I found the following website helpful in understanding how to use OpenSSH with SSL certificates: http://blog.habets.pp.se/2011/07/OpenSSH-certificates
+    .. note:: I've found the following website helpful in understanding how to use OpenSSH with SSL certificates: http://blog.habets.pp.se/2011/07/OpenSSH-certificates
 
     .. tip:: Using signed-by-a-CA certificates is very handy because allows you to revoke the user's SSH key(s).  e.g. If they left the company.
     """
@@ -680,6 +700,8 @@ def store_id_file(settings, tws=None):
         if public:
             with open(public_key_path, 'w') as f:
                 f.write(public)
+        elif private: # No biggie, generate one
+            openssh_generate_public_key(private_key_path)
         if certificate:
             with open(certificate_path, 'w') as f:
                 f.write(certificate)
