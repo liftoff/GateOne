@@ -886,8 +886,7 @@ class TerminalWebSocket(WebSocketHandler):
                             # Try, try again
                             self.commands[key]()
                     except (KeyError, TypeError, AttributeError) as e:
-                        print('Got error2? %s' % e)
-                        pass # Ignore commands we don't understand
+                        logging.error(_('Unknown WebSocket action: %s' % key))
 
     def on_close(self):
         """
@@ -1049,7 +1048,7 @@ class TerminalWebSocket(WebSocketHandler):
                             logging.info(
                                 _("Creating user directory: %s" % user_dir))
                             mkdir_p(user_dir)
-                            os.chmod(user_dir, 0770)
+                            os.chmod(user_dir, 0o770)
                         session_file = os.path.join(user_dir, 'session')
                         if os.path.exists(session_file):
                             session_data = open(session_file).read()
@@ -1114,7 +1113,7 @@ class TerminalWebSocket(WebSocketHandler):
             session_dir = os.path.join(session_dir, self.session)
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
-                os.chmod(session_dir, 0770)
+                os.chmod(session_dir, 0o770)
             for item in os.listdir(session_dir):
                 if item.startswith('dtach_'):
                     term = int(item.split('_')[1])
@@ -1229,7 +1228,7 @@ class TerminalWebSocket(WebSocketHandler):
             # Create the session dir if not already present
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
-                os.chmod(session_dir, 0770)
+                os.chmod(session_dir, 0o770)
             if self.settings['dtach']: # Wrap in dtach (love this tool!)
                 dtach_path = "%s/dtach_%s" % (session_dir, term)
                 if os.path.exists(dtach_path):
@@ -1572,7 +1571,7 @@ class TerminalWebSocket(WebSocketHandler):
                     ctrl_l=ctrl_l
                 )
             else: # Resize them all
-                for term in SESSIONS[self.session].keys():
+                for term in list(SESSIONS[self.session].keys()):
                     if isinstance(term, int): # Skip the TidyThread
                         SESSIONS[self.session][term]['multiplex'].resize(
                             self.rows,
@@ -1585,8 +1584,6 @@ class TerminalWebSocket(WebSocketHandler):
     @require_auth
     def char_handler(self, chars):
         """Writes *chars* (string) to the currently-selected terminal"""
-        if type(chars) != unicode:
-            chars = unicode(chars)
         term = self.current_term
         session = self.session
         if session in SESSIONS and term in SESSIONS[session]:
@@ -1717,7 +1714,7 @@ class TerminalWebSocket(WebSocketHandler):
                 if os.path.isdir(os.path.join(plugins_dir, f)):
                     out_dict['plugins'][f] = ''
             # Add each plugin's CSS template(s) to its respective dict
-            for plugin in out_dict['plugins'].keys():
+            for plugin in list(out_dict['plugins'].keys()):
                 plugin_templates_path = os.path.join(
                     plugins_dir, plugin, 'templates')
                 if os.path.exists(plugin_templates_path):
@@ -1731,8 +1728,10 @@ class TerminalWebSocket(WebSocketHandler):
                                 prefix=prefix,
                                 url_prefix=self.settings['url_prefix']
                             )
+                            if isinstance(plugin_css, bytes): # Python3
+                                plugin_css = str(plugin_css, 'UTF-8')
                             out_dict['plugins'][plugin] += plugin_css
-        self.write_message({'load_style': out_dict})
+        self.write_message(json_encode({'load_style': out_dict}))
 
     # NOTE: This has been disabled for now.  It works OK but the problem is that
     # some plugin JS needs to load *before* the WebSocket is connected.  Might
@@ -1867,7 +1866,7 @@ class TidyThread(threading.Thread):
                     break
         # This loops through all the open terminals checking if each is alive
                 all_dead = True
-                for term in SESSIONS[session].keys():
+                for term in list(SESSIONS[session].keys()):
                     if isinstance(term, int) and term in SESSIONS[session]:
                         if SESSIONS[session][term]['multiplex'].isalive():
                             all_dead = False
@@ -1897,7 +1896,7 @@ class TidyThread(threading.Thread):
             "Killing termio session.".format(session=self.session)
         ))
         # Clean up:
-        for term in SESSIONS[session].keys():
+        for term in list(SESSIONS[session].keys()):
             try:
                 if SESSIONS[session][term]['multiplex'].isalive():
                     SESSIONS[session][term]['multiplex'].terminate()
@@ -2062,7 +2061,7 @@ def main():
     if PAMAuthHandler:
         auths += ", pam"
     # Simplify the syslog_facility option help message
-    facilities = FACILITIES.keys()
+    facilities = list(FACILITIES.keys())
     facilities.sort()
     # Figure out the default origins
     default_origins = [
@@ -2260,7 +2259,8 @@ def main():
         default=default_locale,
         help=_("The locale (e.g. pt_PT) Gate One should use for translations."
              "  If not provided, will default to $LANG (which is '%s' in your "
-             "current shell), or en_US if not set.") % os.environ.get('LANG', 'not set').split('.')[0],
+             "current shell), or en_US if not set."
+             % os.environ.get('LANG', 'not set').split('.')[0]),
         type=str
     )
     define("js_init",
@@ -2390,7 +2390,7 @@ def main():
                 repr(os.getlogin()), repr(os.getlogin()))))
             sys.exit(1)
         # If we could create it we should be able to adjust its permissions:
-        os.chmod(options.user_dir, 0770)
+        os.chmod(options.user_dir, 0o770)
     if os.stat(options.user_dir).st_uid != options.uid:
         # Try correcting this first
         try:
@@ -2408,7 +2408,7 @@ def main():
                 "yourself and make user, %s its owner." % (options.session_dir,
                 repr(os.getlogin()), repr(os.getlogin()))))
             sys.exit(1)
-        os.chmod(options.session_dir, 0770)
+        os.chmod(options.session_dir, 0o770)
     if os.stat(options.session_dir).st_uid != options.uid:
         # Try correcting it
         try:

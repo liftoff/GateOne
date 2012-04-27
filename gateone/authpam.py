@@ -78,7 +78,7 @@ class PAMAuthMixin(tornado.web.RequestHandler):
         try:
             pam_auth.authenticate()
             pam_auth.acct_mgmt()
-        except Exception, e: # Basic auth failed
+        except Exception as e: # Basic auth failed
             if self.settings['debug']:
                 print(e) # Very useful for debugging Kerberos errors
             return self.authenticate_redirect()

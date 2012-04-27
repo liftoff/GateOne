@@ -6,9 +6,20 @@ import sys, os
 
 # Globals
 POSIX = 'posix' in sys.builtin_module_names
-version = '1.0'
-# Some paths we can reference
+version = '1.1'
 setup_dir = os.path.dirname(os.path.abspath(__file__))
+major, minor = sys.version_info[:2] # Python version
+if major == 2 and minor <=5:
+    print("Gate One requires Python 2.6+.  You are running %s" % sys.version)
+    sys.exit(1)
+if major == 3:
+    try:
+        import lib2to3 # Just a check--the module is not actually used
+    except ImportError:
+        print("Python 3.X support requires the 2to3 tool.")
+        sys.exit(1)
+
+# Some paths we can reference
 static_dir = os.path.join(setup_dir, 'gateone', 'static')
 plugins_dir = os.path.join(setup_dir, 'gateone', 'plugins')
 templates_dir = os.path.join(setup_dir, 'gateone', 'templates')
@@ -117,5 +128,31 @@ setup(
     author_email = 'daniel.mcdougall@liftoffsoftware.com',
     requires=["tornado (>=2.2)"],
     provides = ['gateone'],
-    data_files = data_files,
+    data_files = data_files
 )
+
+# Python3 support stuff is below
+def fix_shebang(filepath):
+    """
+    Swaps 'python' for 'python3' in the shebang (if present) in the given
+    *filepath*.
+    """
+    contents = []
+    with open(filepath, 'r') as f:
+        contents = f.readlines()
+    if contents and contents[0].startswith('#!'): # Shebang
+        with open(filepath, 'w') as f:
+            contents[0] = contents[0].replace('python', 'python3')
+            f.write("".join(contents))
+
+if major == 3:
+    from subprocess import getstatusoutput
+    command = "2to3 -w -n -x print -x dict -x input %s"
+    for (dirpath, dirs, filenames) in os.walk(os.path.join(prefix, 'gateone')):
+        for f in filenames:
+            if f.endswith('.py'):
+                filepath = os.path.join(dirpath, f)
+                print("Converting to python3: %s" % filepath)
+                # Fix the shebang if present
+                fix_shebang(filepath)
+                retcode, output = getstatusoutput(command % filepath)

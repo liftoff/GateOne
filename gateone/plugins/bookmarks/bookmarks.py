@@ -8,7 +8,7 @@ bookmarks.py - A plugin for Gate One that adds fancy bookmarking capabilities.
 """
 
 # Meta
-__version__ = '1.0rc1'
+__version__ = '1.0'
 __license__ = "GNU AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
@@ -29,8 +29,6 @@ from tornado.escape import json_decode
 # The following two lines let us import modules in the "dependencies" dir
 plugin_path = os.path.split(__file__)[0]
 sys.path.append(os.path.join(plugin_path, "dependencies"))
-import html5lib
-from html5lib import treebuilders, treewalkers
 
 # Globals
 boolean_fix = {
@@ -61,10 +59,11 @@ def parse_bookmarks_html(html):
     # If this looks impossibly complicated it's because parsing HTML streams is
     # dark voodoo.  I had to push my brains back behind my eyes and into my ears
     # a few times while writing this.
+    import html5lib
     out_list = []
-    p = html5lib.HTMLParser(tree=treebuilders.getTreeBuilder("dom"))
+    p = html5lib.HTMLParser(tree=html5lib.treebuilders.getTreeBuilder("dom"))
     dom_tree = p.parse(html)
-    walker = treewalkers.getTreeWalker("dom")
+    walker = html5lib.treewalkers.getTreeWalker("dom")
     stream = walker(dom_tree)
     level = 0
     tags = []
@@ -442,9 +441,11 @@ class FaviconHandler(BaseHandler):
         If no favicon can be found, returns:
             (None, None)
         """
-        p = html5lib.HTMLParser(tree=treebuilders.getTreeBuilder("dom"))
+        import html5lib
+        p = html5lib.HTMLParser(
+            tree=html5lib.treebuilders.getTreeBuilder("dom"))
         dom_tree = p.parse(html)
-        walker = treewalkers.getTreeWalker("dom")
+        walker = html5lib.treewalkers.getTreeWalker("dom")
         stream = walker(dom_tree)
         fetch_url = None
         mimetype = None

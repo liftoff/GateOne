@@ -9,9 +9,9 @@ Gate One utility functions and classes.
 """
 
 # Meta
-__version__ = '1.0'
+__version__ = '1.1'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 0)
+__version_info__ = (1, 1)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import stdlib stuff
@@ -21,12 +21,9 @@ import sys
 import random
 import re
 import errno
-import base64
 import uuid
 import logging
 import mimetypes
-import struct
-import binascii
 import gzip
 import fcntl
 from datetime import timedelta
@@ -39,6 +36,7 @@ try:
 except ImportError: # Tornado isn't available
     from json import dumps as _json_encode
     from json import loads as json_encode
+from tornado.escape import to_unicode, utf8
 
 # Globals
 MACOS = os.uname()[0] == 'Darwin'
@@ -146,12 +144,12 @@ def write_pid(path):
     """Writes our PID to *path*."""
     try:
         pid = os.getpid()
-        pidfile = open(path, 'wb')
-        # Get a non-blocking exclusive lock
-        fcntl.flock(pidfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        pidfile.seek(0)
-        pidfile.truncate(0)
-        pidfile.write(str(pid))
+        with open(path, 'w') as pidfile:
+            # Get a non-blocking exclusive lock
+            fcntl.flock(pidfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            pidfile.seek(0)
+            pidfile.truncate(0)
+            pidfile.write(str(pid))
     except:
         raise
     finally:
@@ -217,7 +215,7 @@ def json_encode(obj):
     doesn't seem to work just right when it comes to returning unicode strings.
     This is just a wrapper that ensures that the returned string is unicode.
     """
-    return unicode(_json_encode(obj))
+    return to_unicode(_json_encode(obj))
 
 def get_translation():
     """
@@ -416,7 +414,12 @@ def generate_session_id():
         "NzY4YzFmNDdhMTM1NDg3Y2FkZmZkMWJmYjYzNjBjM2Y5O"
         >>>
     """
-    return base64.b64encode(uuid.uuid4().hex + uuid.uuid4().hex)[:45]
+    import base64
+    session_id = base64.b64encode(
+        utf8(uuid.uuid4().hex + uuid.uuid4().hex))[:45]
+    if isinstance(session_id, bytes): # Python3
+        return str(session_id, 'UTF-8')
+    return session_id
 
 def mkdir_p(path):
     """
@@ -474,8 +477,9 @@ def short_hash(to_shorten):
     Converts *to_shorten* into a really short hash depenendent on the length of
     *to_shorten*.  The result will be safe for use as a file name.
     """
-    packed = struct.pack('i', binascii.crc32(to_shorten))
-    return base64.urlsafe_b64encode(packed).replace('=', '')
+    import struct, binascii, base64
+    packed = struct.pack('I', binascii.crc32(utf8(to_shorten)))
+    return str(base64.urlsafe_b64encode(packed)).replace('=', '')
 
 def get_process_tree(parent_pid):
     """
@@ -875,6 +879,7 @@ def create_data_uri(filepath):
 
     Raises a `MimeTypeFail` exception if the mimetype could not be guessed.
     """
+    import base64
     mimetype = mimetypes.guess_type(filepath)[0]
     if not mimetype:
         raise MimeTypeFail("Could not guess mime type of: %s" % filepath)
@@ -887,22 +892,22 @@ def create_data_uri(filepath):
     data_uri = "data:%s;base64,%s" % (mimetype, encoded)
     return data_uri
 
-def human_readable_bytes(bytes):
+def human_readable_bytes(nbytes):
     """
-    Returns *bytes* as a human-readable string in a similar fashion to how it
+    Returns *nbytes* as a human-readable string in a similar fashion to how it
     would be displayed by 'ls -lh' or 'df -h'.
     """
     K, M, G, T = 1 << 10, 1 << 20, 1 << 30, 1 << 40
-    if bytes >= T:
-        return '%.1fT' % (float(bytes)/T)
-    elif bytes >= G:
-        return '%.1fG' % (float(bytes)/G)
-    elif bytes >= M:
-        return '%.1fM' % (float(bytes)/M)
-    elif bytes >= K:
-        return '%.1fK' % (float(bytes)/K)
+    if nbytes >= T:
+        return '%.1fT' % (float(nbytes)/T)
+    elif nbytes >= G:
+        return '%.1fG' % (float(nbytes)/G)
+    elif nbytes >= M:
+        return '%.1fM' % (float(nbytes)/M)
+    elif nbytes >= K:
+        return '%.1fK' % (float(nbytes)/K)
     else:
-        return '%d' % bytes
+        return '%d' % nbytes
 
 def retrieve_first_frame(golog_path):
     """
@@ -1161,22 +1166,22 @@ def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
                 supl_groups[i] = grp.getgrnam(group).gr_gid
         try:
             os.setgroups(supl_groups)
-        except OSError, e:
+        except OSError as e:
             logging.error(_('Could not set supplemental groups: %s' % e))
             exit()
     # Try setting the new uid/gid
     try:
         os.setgid(running_gid)
-    except OSError, e:
+    except OSError as e:
         logging.error(_('Could not set effective group id: %s' % e))
         exit()
     try:
         os.setuid(running_uid)
-    except OSError, e:
+    except OSError as e:
         logging.error(_('Could not set effective user id: %s' % e))
         exit()
     # Ensure a very convervative umask
-    new_umask = 077
+    new_umask = 0o77
     old_umask = os.umask(new_umask)
     final_uid = os.getuid()
     final_gid = os.getgid()

@@ -78,8 +78,10 @@ def short_hash(to_shorten):
     Converts *to_shorten* into a really short hash depenendent on the length of
     *to_shorten*.  The result will be safe for use as a file name.
     """
-    packed = struct.pack('i', binascii.crc32(to_shorten))
-    return base64.urlsafe_b64encode(packed).replace('=', '')
+    if bytes != str: # Python 3
+        to_shorten = bytes(to_shorten, 'UTF-8')
+    packed = struct.pack('I', binascii.crc32(to_shorten))
+    return str(base64.urlsafe_b64encode(packed)).replace('=', '')
 
 def valid_hostname(hostname, allow_underscore=False):
     """
@@ -118,6 +120,10 @@ def valid_hostname(hostname, allow_underscore=False):
         hostname = hostname.encode('idna')
     except UnicodeError: # Can't convert to Punycode: Bad hostname
         return False
+    try:
+        hostname = str(hostname, 'UTF-8')
+    except TypeError: # Python 2.6+.  Just ignore
+        pass
     if len(hostname) > 255:
         return False
     if hostname[-1:] == ".": # Strip the tailing dot if present
@@ -162,7 +168,8 @@ def get_identities(users_ssh_dir, only_defaults=False):
             with open(os.path.join(users_ssh_dir, '.default_ids')) as f:
                 defaults = f.read().splitlines()
             # Fix empty entries
-            defaults = [a for a in defaults if a]
+            defaults = [a for a in defaults if os.path.exists(
+                os.path.join(users_ssh_dir, a))]
             # Reduce absolute paths to short names (for easy matching)
             defaults = [os.path.split(a)[1] for a in defaults]
         for f in ssh_files:
@@ -335,7 +342,7 @@ def openssh_connect(
         # Also make sure the base directory exists
         basedir = os.path.split(socket)[0]
         mkdir_p(basedir)
-        os.chmod(basedir, 0700) # 0700 for good security practices
+        os.chmod(basedir, 0o700) # 0700 for good security practices
         args.insert(1, socket_arg) # After -M so it is easier to see in ps
     if additional_args:
         if isinstance(additional_args, list):
@@ -347,7 +354,7 @@ def openssh_connect(
     if password:
         # Create a temporary script to use with SSH_ASKPASS
         temp = tempfile.NamedTemporaryFile(delete=False)
-        os.chmod(temp.name, 0700)
+        os.chmod(temp.name, 0o700)
         temp.write('#!/bin/bash\necho "%s"\n' % password)
         temp.close()
         env['SSH_ASKPASS'] = temp.name
@@ -380,7 +387,7 @@ def openssh_connect(
     # NOTE: We wrap in a shell script so we can execute it and immediately quit.
     # By doing this instead of keeping ssh_connect.py running we can save a lot
     # of memory (depending on how many terminals are open).
-    os.chmod(script_path, 0700) # 0700 for good security practices
+    os.chmod(script_path, 0o700) # 0700 for good security practices
     if password:
         # SSH_ASKPASS needs some special handling
         pid = os.fork()
@@ -456,7 +463,7 @@ def telnet_connect(user, host, port=23, env=None):
     # NOTE: We wrap in a shell script so we can execute it and immediately quit.
     # By doing this instead of keeping ssh_connect.py running we can save a lot
     # of memory (depending on how many terminals are open).
-    os.chmod(script_path, 0700) # 0700 for good security practices
+    os.chmod(script_path, 0o700) # 0700 for good security practices
     os.execvpe(script_path, [], env)
     os._exit(0)
 

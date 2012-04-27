@@ -4,9 +4,9 @@
 #
 
 # Meta
-__version__ = '1.0'
+__version__ = '1.1'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 0)
+__version_info__ = (1, 1)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
@@ -1225,13 +1225,13 @@ class Terminal(object):
         cursor_right = self.cursor_right
         magic = self.magic
         changed = False
-        #logging.debug('handling chars: %s' % `chars`)
+        #logging.debug('handling chars: %s' % repr(chars))
         if special_checks:
             # NOTE: Special checks are limited to PNGs and JPEGs right now
             before_chars = ""
             after_chars = ""
             for magic_header in magic.keys():
-                if magic_header.match(chars):
+                if magic_header.match(str(chars)):
                     self.matched_header = magic_header
                     self.timeout_image = datetime.now()
             if self.image or self.matched_header:
@@ -1261,11 +1261,11 @@ class Terminal(object):
                     return
         # Have to convert to unicode
         try:
-            chars = unicode(chars.decode('utf-8', "handle_special"))
+            chars = chars.decode('utf-8', "handle_special")
         except UnicodeEncodeError:
             # Just in case
             try:
-                chars = unicode(chars.decode('utf-8', "ignore"))
+                chars = chars.decode('utf-8', "ignore")
             except UnicodeEncodeError:
                 logging.error(
                     _("Double UnicodeEncodeError in Terminal.terminal."))
@@ -1644,7 +1644,7 @@ class Terminal(object):
         """
         logging.debug("_capture_image() len(self.image): %s" % len(self.image))
         # Remove the extra \r's that the terminal adds:
-        self.image = self.image.replace('\r\n', '\n')
+        self.image = str(self.image).replace('\r\n', '\n')
         if Image: # PIL is loaded--try to guess how many lines the image takes
             i = StringIO.StringIO(self.image)
             try:

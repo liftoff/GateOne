@@ -1239,7 +1239,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                                 # eventually have to process it all which would
                                 # take forever.
                                 break
-                            result += updated
+                            result += str(updated)
                             timeout_func(
                                 self.term_write,
                                 args=(updated,),

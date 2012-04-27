@@ -93,7 +93,7 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         if not os.path.exists(user_dir):
             logging.info(_("Creating user directory: %s" % user_dir))
             mkdir_p(user_dir)
-            os.chmod(user_dir, 0700)
+            os.chmod(user_dir, 0o700)
         session_file = os.path.join(user_dir, 'session')
         session_file_exists = os.path.exists(session_file)
         if session_file_exists:
@@ -174,7 +174,7 @@ class NullAuthHandler(BaseAuthHandler):
         if not os.path.exists(user_dir):
             logging.info(_("Creating user directory: %s" % user_dir))
             mkdir_p(user_dir)
-            os.chmod(user_dir, 0700)
+            os.chmod(user_dir, 0o700)
         session_info = {
             'upn': user,
             'session': generate_session_id()
