@@ -1728,7 +1728,7 @@ class TerminalWebSocket(WebSocketHandler):
                                 prefix=prefix,
                                 url_prefix=self.settings['url_prefix']
                             )
-                            if isinstance(plugin_css, bytes): # Python3
+                            if bytes != str: # Python 3
                                 plugin_css = str(plugin_css, 'UTF-8')
                             out_dict['plugins'][plugin] += plugin_css
         self.write_message(json_encode({'load_style': out_dict}))
@@ -1812,6 +1812,51 @@ class TerminalWebSocket(WebSocketHandler):
         print("screen size: %s" % asizeof.asizeof(screen))
         print("renditions size: %s" % asizeof.asizeof(renditions))
         print("Total term object size: %s" % asizeof.asizeof(termObj))
+
+# NOTE:  I started writing this but I realized it was going to take a while so
+# I've commented it out for now since I really need to push a commit fixing some
+# bugs =)
+#def timeout_sessions():
+    #"""
+    #Loops over the SESSIONS dict killing any sessions that haven't been used
+    #for the length of time specified in *TIMEOUT* (global).  The value of
+    #*TIMEOUT* can be set in server.conf or specified on the command line via the
+    #*session_timeout* value.
+    #"""
+    #try:
+        #for session, term in list(SESSIONS.items()):
+            #if datetime.now() > self.last_keepalive + TIMEOUT:
+                #logging.info(
+                    #"{session} timeout.".format(
+                        #session=session
+                    #)
+                #)
+                #self.quitting = True
+                #return
+    ## This loops through all the open terminals checking if each is alive
+            #all_dead = True
+            #for term in list(SESSIONS[session].keys()):
+                #if isinstance(term, int) and term in SESSIONS[session]:
+                    #if SESSIONS[session][term]['multiplex'].isalive():
+                        #all_dead = False
+                        ## Added a doublecheck value here because there's a
+                        ## gap between when the last terminal is closed and
+                        ## when a new one starts up.  Occasionally this would
+                        ## cause the user's connection to be killed (due to
+                        ## there being no active terminal associated with it)
+                        #self.doublecheck = True
+            #if all_dead:
+                #if not self.doublecheck:
+                    #self.quitting = True
+                #else:
+                    #self.doublecheck = False
+    #except Exception as e:
+        #logging.info(_(
+            #"Exception encountered: {exception}".format(exception=e)
+        #))
+        #import traceback
+        #traceback.print_exc(file=sys.stdout)
+        #self.quitting = True
 
 # Thread classes
 class TidyThread(threading.Thread):

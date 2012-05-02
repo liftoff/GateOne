@@ -80,7 +80,7 @@ def short_hash(to_shorten):
     """
     if bytes != str: # Python 3
         to_shorten = bytes(to_shorten, 'UTF-8')
-    packed = struct.pack('I', binascii.crc32(to_shorten))
+    packed = struct.pack('q', binascii.crc32(to_shorten))
     return str(base64.urlsafe_b64encode(packed)).replace('=', '')
 
 def valid_hostname(hostname, allow_underscore=False):

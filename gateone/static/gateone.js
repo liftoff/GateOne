@@ -3196,6 +3196,22 @@ GateOne.Base.update(GateOne.Visual, {
             options.onopen(widgetContainer);
         }
         return closeWidget;
+    },
+    // NOTE: Below is a work in progress.  Not used by anything yet.
+    fitWindow: function() {
+        // Scales the terminal <pre> to fit within the browser window if rows/cols has been explicitly set
+        var go = GateOne;
+
+        if (GateOne.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
+            var nodeHeight = screenSpan.getClientRects()[0].top;
+            if (nodeHeight < document.documentElement.clientHeight) { // Grow to fit
+                var scale = document.documentElement.clientHeight / (document.documentElement.clientHeight - nodeHeight),
+                    transform = "scale(" + scale + ", " + scale + ")";
+                GateOne.Visual.applyTransform(termPre, transform);
+            } else if (nodeHeight < document.documentElement.clientHeight) { // Shrink to fit
+
+            }
+        }
     }
 });
 
@@ -3549,6 +3565,14 @@ GateOne.Base.update(GateOne.Terminal, {
                         termPre.appendChild(screenSpan);
                         termContainer.appendChild(termPre);
                         u.scrollToBottom(termPre);
+                        if (GateOne.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
+                            var nodeHeight = screenSpan.getClientRects()[0].top;
+                            if (nodeHeight < document.documentElement.clientHeight) { // Resize to fit
+                                var scale = document.documentElement.clientHeight / (document.documentElement.clientHeight - nodeHeight),
+                                    transform = "scale(" + scale + ", " + scale + ")";
+                                GateOne.Visual.applyTransform(termPre, transform);
+                            }
+                        }
                         GateOne.terminals[term]['node'] = termPre; // For faster access
                     }
                 }

@@ -417,7 +417,7 @@ def generate_session_id():
     import base64
     session_id = base64.b64encode(
         utf8(uuid.uuid4().hex + uuid.uuid4().hex))[:45]
-    if isinstance(session_id, bytes): # Python3
+    if bytes != str: # Python 3
         return str(session_id, 'UTF-8')
     return session_id
 
@@ -478,7 +478,7 @@ def short_hash(to_shorten):
     *to_shorten*.  The result will be safe for use as a file name.
     """
     import struct, binascii, base64
-    packed = struct.pack('I', binascii.crc32(utf8(to_shorten)))
+    packed = struct.pack('q', binascii.crc32(utf8(to_shorten)))
     return str(base64.urlsafe_b64encode(packed)).replace('=', '')
 
 def get_process_tree(parent_pid):
