@@ -2547,7 +2547,7 @@ def main():
         'cookie_secret': options.cookie_secret,
         'auth': none_fix(options.auth),
         'api_timestamp_window': api_timestamp_window,
-        'embedded': str2bool(options.embedded),
+        'embedded': options.embedded,
         'js_init': options.js_init,
         'user_dir': options.user_dir,
         'logging': options.logging, # For reference, really
