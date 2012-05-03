@@ -173,7 +173,7 @@ GateOne.noSavePrefs = {
 // }
 // Icons (so we can use them in more than one place or replace them all by applying a theme)
 GateOne.Icons = {}; // NOTE: The built-in icons are actually at the bottom of this file.
-GateOne.Base.update(GateOne, {
+var go = GateOne.Base.update(GateOne, {
     // GateOne internal tracking variables and user functions
     terminals: {}, // For keeping track of running terminals
     doingUpdate: false, // Used to prevent out-of-order character events
@@ -543,7 +543,6 @@ if (!localStorage[GateOne.prefs.prefix+'selectedTerminal']) {
 GateOne.Base.module(GateOne, "Utils", "1.0", ['Base']);
 GateOne.Base.update(GateOne.Utils, {
     init: function() {
-        var go = GateOne;
         go.Net.addAction('save_file', go.Utils.saveAsAction);
         go.Net.addAction('load_style', go.Utils.loadStyle);
 //         go.Net.addAction('load_js', go.Utils.loadJS);
@@ -665,8 +664,7 @@ GateOne.Base.update(GateOne.Utils, {
         // Takes a string, *tagname* and creates a DOM element of that type and applies *properties* to it.  If an 'id' is given as a property it will automatically be prepended with GateOne.prefs.prefix.
         // If *noprefix* is false, the prefix will not be prepended to the 'id' of the created element.
         // Example: createElement('div', {'id': 'foo', 'style': {'opacity': 0.5, 'color': 'black'}});
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             elem = document.createElement(tagname);
         for (var key in properties) {
             var value = properties[key];
@@ -853,7 +851,6 @@ GateOne.Base.update(GateOne.Utils, {
     },
     postOnLoad: function() {
         // Called after all the plugins have been loaded.
-        var go = GateOne;
         // NOTE: Probably don't need a preInit() since modules can just put stuff inside their main .js for that.  If you can think of a use case let me know and I'll add it.
         // Go through all our loaded modules and run their init functions (if any)
         go.loadedModules.forEach(function(module) {
@@ -901,8 +898,7 @@ GateOne.Base.update(GateOne.Utils, {
     loadStyle: function(message) {
         // Loads the stylesheet sent via the 'load_style' WebSocket command
         logDebug("loadStyle()");
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix;
         if (message['result'] == 'Success') {
             if (message['theme']) {
@@ -961,8 +957,7 @@ GateOne.Base.update(GateOne.Utils, {
         if (!id) {
             id = 'css_file';
         }
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             container = go.prefs.goDiv.split('#')[1],
             cssNode = u.createElement('link', {'id': prefix+id, 'type': 'text/css', 'rel': 'stylesheet', 'href': url, 'media': 'screen'}),
@@ -988,8 +983,7 @@ GateOne.Base.update(GateOne.Utils, {
                 'colors': "defaut"
             }
         }
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             container = go.prefs.goDiv.split('#')[1],
             theme = schemeObj['theme'],
             colors = schemeObj['colors'];
@@ -997,8 +991,7 @@ GateOne.Base.update(GateOne.Utils, {
     },
     loadPluginCSS: function() {
         // Tells the Gate One server to send all the plugin CSS files to the client.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             container = go.prefs.goDiv.split('#')[1];
         go.ws.send(JSON.stringify({'get_style': {'container': container, 'prefix': go.prefs.prefix, 'plugins': true}}));
     },
@@ -1017,8 +1010,7 @@ GateOne.Base.update(GateOne.Utils, {
     },
     enumerateThemes: function(messageObj) {
         // Meant to be called from the xhrGet() below
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             themesList = messageObj['themes'],
             colorsList = messageObj['colors'],
@@ -1104,8 +1096,7 @@ GateOne.Base.update(GateOne.Utils, {
         //      bb.append(<your data here>);
         //      var blob = bb.getBlob("text/plain;charset=" + document.characterSet);
         // NOTE:  Replace 'text/plain' with the actual mimetype of the file.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             clickEvent = document.createEvent('MouseEvents'),
             blobURL = urlObj.createObjectURL(blob),
             save_link = u.createElement('a', {'href': blobURL, 'name': filename, 'download': filename});
@@ -1119,8 +1110,7 @@ GateOne.Base.update(GateOne.Utils, {
         //      *message['filename']* - The name we'll give to the file when we save it.
         //      *message['data']* - The content of the file we're saving.
         //      *message['mimetype']* - Optional:  The mimetype we'll be instructing the browser to associate with the file (so it will handle it appropriately).  Will default to 'text/plain' if not given.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             result = message['result'],
             data = message['data'],
             filename = message['filename'],
@@ -1166,8 +1156,7 @@ GateOne.Base.update(GateOne.Net, {
     sendChars: function() {
         // pop()s out the current charBuffer and sends it to the server.
         // NOTE: This function is normally called every time a key is pressed.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             term = localStorage[go.prefs.prefix+'selectedTerminal'],
             termPre = GateOne.terminals[term]['node'];
         if (!go.doingUpdate) { // Only perform a character push if we're *positive* the last character POST has completed.
@@ -1232,8 +1221,7 @@ GateOne.Base.update(GateOne.Net, {
         if (typeof(ctrl_l) == 'undefined') {
             ctrl_l = true;
         }
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             prefs = {
@@ -1254,8 +1242,7 @@ GateOne.Base.update(GateOne.Net, {
     connectionError: function(msg) {
         // Displays an error in the browser indicating that there was a problem with the connection.
         // if *msg* is given, it will be added to the standard error.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             message = "<p>The WebSocket connection was closed.  Will attempt to reconnect every 5 seconds...</p><p>NOTE: Some web proxies do not work properly with WebSockets.</p>";
         logError("Error communicating with server... ");
@@ -1272,8 +1259,7 @@ GateOne.Base.update(GateOne.Net, {
     connect: function() {
         // Connects to the WebSocket defined in GateOne.prefs.url
         // TODO: Get this appending a / if it isn't provided.  Also get it working with ws:// and wss:// URLs in go.prefs.url
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             host = "";
         if (u.startsWith("https:", go.prefs.url)) {
             host = go.prefs.url.split('https://')[1]; // e.g. 'localhost:8888/'
@@ -1305,8 +1291,7 @@ GateOne.Base.update(GateOne.Net, {
     },
     onOpen: function() {
         logDebug("onOpen()");
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix};
         // Load our CSS right away so the dimensions/placement of things is correct.
@@ -1326,13 +1311,6 @@ GateOne.Base.update(GateOne.Net, {
         }
         // Check if there are any existing terminals for the current session ID
         go.ws.send(JSON.stringify({'authenticate': settings}));
-        // Autoconnect if autoConnectURL is specified
-        if (go.prefs.autoConnectURL) {
-            setTimeout(function () {
-                go.Input.queue(go.prefs.autoConnectURL+'\n');
-                go.Net.sendChars();
-            }, 500);
-        }
         setTimeout(function() {
             go.Net.ping(); // Check latency (after things have calmed down a bit =)
         }, 3000);
@@ -1408,8 +1386,7 @@ GateOne.Base.update(GateOne.Input, {
     // This object holds all of the special key handlers and controls the "escape"/"escape escape" sequences
     goDivMouseDown: function(e) {
         // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             m = go.Input.mouse(e),
             selectedText = u.getSelText();
         // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
@@ -1440,8 +1417,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     capture: function() {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv);
         goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
         goDiv.onkeydown = go.Input.onKeyDown;
@@ -1487,8 +1463,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     disableCapture: function() {
         // Turns off keyboard input and certain mouse capture events so that other things (e.g. forms) can work properly
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv);
 //         goDiv.contentEditable = false; // This needs to be turned off or it might capture paste events (which is really annoying when you're trying to edit a form)
         goDiv.onpaste = null;
@@ -1656,8 +1631,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     onKeyUp: function(e) {
         // Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
-        var go = GateOne,
-            goIn = go.Input,
+        var goIn = go.Input,
             key = goIn.key(e),
             modifiers = goIn.modifiers(e);
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
@@ -1666,8 +1640,7 @@ GateOne.Base.update(GateOne.Input, {
     },
     onKeyDown: function(e) {
         // Handles keystroke events by determining which kind of event occurred and how/whether it should be sent to the server as specific characters or escape sequences.
-        var go = GateOne,
-            goIn = go.Input,
+        var goIn = go.Input,
             container = go.Utils.getNode(go.prefs.goDiv),
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
@@ -1905,8 +1878,7 @@ GateOne.Base.update(GateOne.Input, {
         // This method handles all regular keys registered via onkeydown events (not onkeypress)
         // If *skipF11check* is not undefined (or null), the F11 (fullscreen check) logic will be skipped.
         // NOTE: Shift+key also winds up being handled by this function.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
             goIn = go.Input,
@@ -1974,8 +1946,7 @@ GateOne.Base.update(GateOne.Input, {
     emulateKeyCombo: function(e) {
         // This method translates ctrl/alt/meta key combos such as ctrl-c into their string equivalents.
         // NOTE: This differs from registerShortcut in that it handles sending keystrokes to the server.  registerShortcut is meant for client-side actions that call JavaScript (though, you certainly *could* send keystrokes via registerShortcut via JavaScript =)
-        var go = GateOne,
-            goIn = go.Input,
+        var goIn = go.Input,
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
             buffer = goIn.bufferEscSeq,
@@ -2101,8 +2072,7 @@ GateOne.Base.update(GateOne.Input, {
         // Meant to be attached to (GateOne.prefs.goDiv).onkeypress, will queue the (character) result of a keypress event if an unknown modifier key is held.
         // Without this, 3rd and 5th level keystroke events (i.e. the stuff you get when you hold down various combinations of AltGr+<key>) would not work.
         logDebug("emulateKeyFallback() charCode: " + e.charCode + ", keyCode: " + e.keyCode);
-        var go = GateOne,
-            goIn = go.Input,
+        var goIn = go.Input,
             q = function(c) {
                 e.preventDefault();
                 goIn.queue(c);
@@ -2165,8 +2135,7 @@ GateOne.Visual.sinceLastMessage = new Date();
 GateOne.Base.update(GateOne.Visual, {
     // Functions for manipulating views and displaying things
     init: function() {
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             toolbarGrid = u.createElement('div', {'id': go.prefs.prefix+'icon_grid', 'class': 'toolbar', 'title': "Grid View"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
         // Add our grid icon to the icons list
@@ -2197,8 +2166,7 @@ GateOne.Base.update(GateOne.Visual, {
         go.Net.addAction('load_css', go.Visual.CSSPluginAction);
     },
     updateDimensions: function() { // Sets GateOne.Visual.goDimensions to the current width/height of prefs.goDiv
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv),
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             wrapperDiv = u.getNode('#'+go.prefs.prefix+'termwrapper'),
@@ -2289,8 +2257,7 @@ GateOne.Base.update(GateOne.Visual, {
         // Say you wanted to call a function whenever the preferences panel was toggled into view:
         //      GateOne.Visual.panelToggleCallbacks['in']['#'+go.prefs.prefix+'panel_prefs']['updateOptions'] = myFunction;
         // Then whenever the preferences panel was toggled into view, myfunction() would be called.
-        var go = GateOne,
-            v = go.Visual,
+        var v = go.Visual,
             u = go.Utils,
             panelID = panel,
             panel = u.getNode(panel),
@@ -2343,8 +2310,7 @@ GateOne.Base.update(GateOne.Visual, {
     },
     displayTermInfo: function(term) {
         // Displays the given term's information as a psuedo tooltip that eventually fades away
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
             termObj = u.getNode('#'+prefix+'term' + term),
@@ -2376,8 +2342,7 @@ GateOne.Base.update(GateOne.Visual, {
         if (!id) {
             id = 'notice';
         }
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             now = new Date(),
             timeDiff = now - go.Visual.sinceLastMessage,
@@ -2408,8 +2373,7 @@ GateOne.Base.update(GateOne.Visual, {
     },
     setTitleAction: function(titleObj) {
         // Sets the title of titleObj['term'] to titleObj['title']
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             term = titleObj['term'],
             title = titleObj['title'],
@@ -2434,8 +2398,7 @@ GateOne.Base.update(GateOne.Visual, {
     },
     bellAction: function(bellObj) {
         // Plays a bell sound and pops up a message indiciating which terminal issued a bell
-        var go = GateOne,
-            term = bellObj['term'];
+        var term = bellObj['term'];
         go.Visual.playBell();
         go.Visual.displayMessage("Bell in " + term + ": " + go.Utils.getNode('#'+go.prefs.prefix+'term' + term).title);
     },
@@ -2452,10 +2415,9 @@ GateOne.Base.update(GateOne.Visual, {
         // Replaces the contents of the selected terminal with the complete screen + scrollback buffer
         // If *term* is given, only disable scrollback for that terminal
         logDebug('enableScrollback(' + term + ')');
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix;
-        if (term) {
+        if (term && term in GateOne.terminals) {
             var termPreNode = GateOne.terminals[term]['node'],
                 termScreen = GateOne.terminals[term]['screenNode'],
                 termScrollback = GateOne.terminals[term]['scrollbackNode'];
@@ -2497,7 +2459,7 @@ GateOne.Base.update(GateOne.Visual, {
                     termPreNode = go.terminals[termID]['node'],
                     termScreen = go.terminals[termID]['screenNode'],
                     termScrollback = go.terminals[termID]['scrollbackNode'];
-                termScrollback.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
+                termScrollback.innerHTML = go.terminals[termID]['scrollback'].join('\n') + '\n';
                 termScrollback.style.display == null; // Reset
                 if (go.terminals[termID]['scrollbackTimer']) {
                     clearTimeout(go.terminals[termID]['scrollbackTimer']);
@@ -2511,8 +2473,7 @@ GateOne.Base.update(GateOne.Visual, {
     disableScrollback: function(/*Optional*/term) {
         // Replaces the contents of the selected terminal with just the screen (i.e. no scrollback)
         // If *term* is given, only disable scrollback for that terminal
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             textTransforms = go.Terminal.textTransforms;
         if (term) {
@@ -2553,8 +2514,7 @@ GateOne.Base.update(GateOne.Visual, {
         // Slides the view to the given *term*.
         // If *changeSelected* is true, this will also set the current terminal to the one we're sliding to.
         // ...why would we ever want to keep input going to a different terminal than the one we're sliding to?  So we can do some cool stuff in the future ("Spoilers" =)
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             v = go.Visual,
             termObj = u.getNode('#'+go.prefs.prefix+'term' + term),
             displayText = "",
@@ -2608,8 +2568,7 @@ GateOne.Base.update(GateOne.Visual, {
     },
     slideLeft: function() {
         // Slides to the terminal left of the current view
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             count = 0,
             term = 0,
@@ -2627,8 +2586,7 @@ GateOne.Base.update(GateOne.Visual, {
     },
     slideRight: function() {
         // Slides to the terminal right of the current view
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             count = 0,
@@ -2648,8 +2606,7 @@ GateOne.Base.update(GateOne.Visual, {
     },
     slideDown: function() {
         // Slides the view downward one terminal by pushing all the others up.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             count = 0,
@@ -2669,8 +2626,7 @@ GateOne.Base.update(GateOne.Visual, {
     },
     slideUp: function() {
         // Slides the view downward one terminal by pushing all the others down.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             count = 0,
@@ -2691,8 +2647,7 @@ GateOne.Base.update(GateOne.Visual, {
     toggleGridView: function(/*optional*/goBack) {
         // Brings up the terminal grid view or returns to full-size
         // If *goBack* is false, don't bother switching back to the previously-selected terminal
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
             controlsContainer = u.getNode('#'+prefix+'controlsContainer'),
@@ -2831,8 +2786,7 @@ GateOne.Base.update(GateOne.Visual, {
         // *title* - string: Will appear at the top of the dialog.
         // *content* - HTML string or JavaScript DOM node:  The content of the dialog.
         // *options* doesn't do anything for now.
-        var go = GateOne,
-            prefix = go.prefs.prefix,
+        var prefix = go.prefs.prefix,
             u = go.Utils,
             v = go.Visual,
             goDiv = u.getNode(go.prefs.goDiv),
@@ -2998,8 +2952,7 @@ GateOne.Base.update(GateOne.Visual, {
         options.onclose = options.onclose || null;
         options.onconfig = options.onconfig || null;
         options.term = options.term || localStorage[GateOne.prefs.prefix+'selectedTerminal'];
-        var go = GateOne,
-            prefix = go.prefs.prefix,
+        var prefix = go.prefs.prefix,
             u = go.Utils,
             v = go.Visual,
             goDiv = u.getNode(go.prefs.goDiv),
@@ -3038,8 +2991,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             widgetMouseOver = function(e) {
                 // Show the border and titlebar after a timeout
-                var go = GateOne,
-                    v = go.Visual;
+                var v = go.Visual;
                 if (v.widgetHoverTimeout) {
                     clearTimeout(v.widgetHoverTimeout);
                     v.widgetHoverTimeout = null;
@@ -3052,8 +3004,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             widgetMouseOut = function(e) {
                 // Hide the border and titlebar
-                var go = GateOne,
-                    v = go.Visual;
+                var v = go.Visual;
                 if (!widgetContainer.dragging) {
                     if (v.widgetHoverTimeout) {
                         clearTimeout(v.widgetHoverTimeout);
@@ -3198,17 +3149,16 @@ GateOne.Base.update(GateOne.Visual, {
         return closeWidget;
     },
     // NOTE: Below is a work in progress.  Not used by anything yet.
-    fitWindow: function() {
-        // Scales the terminal <pre> to fit within the browser window if rows/cols has been explicitly set
-        var go = GateOne;
-
+    fitWindow: function(termPre, screenSpan) {
+        // Scales the terminal <pre> (*termPre*) to fit within the browser window based on the size of the screen <span> (*screenSpan*) if rows/cols has been explicitly set.
+        // If rows/cols are not set it will simply move all terminals to the top of the view so that the scrollback stays hidden while screen updates are happening.
         if (GateOne.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
-            var nodeHeight = screenSpan.getClientRects()[0].top;
+            var nodeHeight = screenSpan.offsetHeight;
             if (nodeHeight < document.documentElement.clientHeight) { // Grow to fit
                 var scale = document.documentElement.clientHeight / (document.documentElement.clientHeight - nodeHeight),
                     transform = "scale(" + scale + ", " + scale + ")";
                 GateOne.Visual.applyTransform(termPre, transform);
-            } else if (nodeHeight < document.documentElement.clientHeight) { // Shrink to fit
+            } else if (nodeHeight > document.documentElement.clientHeight) { // Shrink to fit
 
             }
         }
@@ -3223,30 +3173,31 @@ window.GateOne = GateOne; // Make everything usable
 (function(window, undefined) {
 "use strict";
 
+var go = GateOne;
+
 // Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = GateOne.Utils.noop;
-var logError = GateOne.Utils.noop;
-var logWarning = GateOne.Utils.noop;
-var logInfo = GateOne.Utils.noop;
-var logDebug = GateOne.Utils.noop;
+var logFatal = go.Utils.noop,
+    logError = go.Utils.noop,
+    logWarning = go.Utils.noop,
+    logInfo = go.Utils.noop,
+    logDebug = go.Utils.noop;
 
 // Choose the appropriate BlobBuilder and URL
 var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
     urlObj = (window.URL || window.webkitURL);
 
-GateOne.Base.module(GateOne, "Terminal", "1.0", ['Base', 'Utils', 'Visual']);
+go.Base.module(GateOne, "Terminal", "1.0", ['Base', 'Utils', 'Visual']);
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
-GateOne.Terminal.updateTermCallbacks = [];
+go.Terminal.updateTermCallbacks = [];
 // All defined newTermCallbacks are executed whenever a new terminal is created like so: callback(<term number>)
-GateOne.Terminal.newTermCallbacks = [];
+go.Terminal.newTermCallbacks = [];
 // All defined closeTermCallbacks are executed whenever a terminal is closed just like newTermCallbacks:  callback(<term number>)
-GateOne.Terminal.closeTermCallbacks = [];
-GateOne.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into clickable links).  Use registerTextTransform() to add new ones.
-GateOne.Base.update(GateOne.Terminal, {
+go.Terminal.closeTermCallbacks = [];
+go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into clickable links).  Use registerTextTransform() to add new ones.
+go.Base.update(GateOne.Terminal, {
     init: function() {
-        var go = GateOne,
-            t = go.Terminal,
+        var t = go.Terminal,
             u = go.Utils,
             prefix = go.prefs.prefix,
             p = u.createElement('p', {'id': 'info_actions', 'style': {'padding-bottom': '0.4em'}}),
@@ -3452,8 +3403,7 @@ GateOne.Base.update(GateOne.Terminal, {
     },
     timeoutAction: function() {
         // Write a message to the screen indicating a timeout has occurred and close the WebSocket
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         logError("Session timed out.");
         terms.forEach(function(termObj) {
@@ -3491,18 +3441,10 @@ GateOne.Base.update(GateOne.Terminal, {
                 if (GateOne.terminals[term]['screen'][i] != screen[i]) {
                     var existingLine = existingPre.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
                     if (existingLine) {
-                        if (i == screen.length - 1) { // Last line needs some extra room at the bottom
-                            existingLine.innerHTML = screen[i] + '\n\n';
-                        } else {
-                            existingLine.innerHTML = screen[i] + '\n';
-                        }
+                        existingLine.innerHTML = screen[i] + '\n';
                     } else { // Size of the terminal increased
                         var lineSpan = u.createElement('span', {'class': 'line_' + i});
-                        if (i == screen.length - 1) {
-                            lineSpan.innerHTML = screen[i] + '\n\n';
-                        } else {
-                            lineSpan.innerHTML = screen[i] + '\n';
-                        }
+                        lineSpan.innerHTML = screen[i] + '\n';
                         existingPre.appendChild(lineSpan);
                     }
                     // Update the existing screen array in-place to cut down on GC
@@ -3547,11 +3489,7 @@ GateOne.Base.update(GateOne.Terminal, {
                     var screenSpan = u.createElement('span', {'id': 'term'+term+'screen'});
                     for (var i=0; i < screen.length; i++) {
                         var lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
-                        if (i == screen.length - 1) { // Last line needs some extra room at the bottom
-                            lineSpan.innerHTML = screen[i] + '\n\n';
-                        } else {
-                            lineSpan.innerHTML = screen[i] + '\n';
-                        }
+                        lineSpan.innerHTML = screen[i] + '\n';
                         screenSpan.appendChild(lineSpan);
                         // Update the existing screen array in-place to cut down on GC
                         GateOne.terminals[term]['screen'][i] = screen[i];
@@ -3572,6 +3510,10 @@ GateOne.Base.update(GateOne.Terminal, {
                                     transform = "scale(" + scale + ", " + scale + ")";
                                 GateOne.Visual.applyTransform(termPre, transform);
                             }
+                        } else {
+                            var distance = document.documentElement.clientHeight - screenSpan.offsetHeight,
+                            transform = "translateY(-" + distance + "px)";
+                            GateOne.Visual.applyTransform(termPre, transform); // Move it to the top
                         }
                         GateOne.terminals[term]['node'] = termPre; // For faster access
                     }
@@ -3657,8 +3599,7 @@ GateOne.Base.update(GateOne.Terminal, {
     },
     loadWebWorkerAction: function(source) {
         // Loads our Web Worker given it's *source* (which is sent to us over the WebSocket which is a clever workaround to the origin limitations of Web Workers =).
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             t = go.Terminal,
             prefix = go.prefs.prefix,
             bb = new BlobBuilder();
@@ -3746,8 +3687,7 @@ GateOne.Base.update(GateOne.Terminal, {
         if (!GateOne.Playback) {
             rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
         }
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             t = go.Terminal,
             prefix = go.prefs.prefix,
             currentTerm = null,
@@ -3806,7 +3746,8 @@ GateOne.Base.update(GateOne.Terminal, {
             pastearea = u.createElement('textarea', {'id': 'pastearea'+term, 'class': 'pastearea'}),
         // The following functions control the copy & paste capability
             pasteareaOnInput = function(e) {
-                var pasted = pastearea.value,
+                var go = GateOne,
+                    pasted = pastearea.value,
                     lines = pasted.split('\n');
                 if (lines.length > 1) {
                     // If we're pasting stuff with newlines we should strip trailing whitespace so the lines show up correctly.  In all but a few cases this is what the user expects.
@@ -3822,7 +3763,8 @@ GateOne.Base.update(GateOne.Terminal, {
             pasteareaScroll = function(e) {
                 // We have to hide the pastearea so we can scroll the terminal underneath
                 e.preventDefault();
-                var pasteArea = u.getNode('#'+prefix+'pastearea');
+                var go = GateOne,
+                    pasteArea = u.getNode('#'+prefix+'pastearea');
 //                     selectedTerm = localStorage[prefix+'selectedTerminal'];
                 u.hideElement(pastearea);
 //                 if (!go.terminals[selectedTerm]['scrollbackVisible']) {
@@ -3841,7 +3783,7 @@ GateOne.Base.update(GateOne.Terminal, {
         pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
         pastearea.onpaste = function(e) {
             // Start capturing input again
-            setTimeout(function() { go.Input.capture(); }, 150);
+            setTimeout(function() { GateOne.Input.capture(); }, 150);
         }
         pastearea.onmousedown = function(e) {
             // When the user left-clicks assume they're trying to highlight text
@@ -3883,13 +3825,13 @@ GateOne.Base.update(GateOne.Terminal, {
         if (go.prefs.rows) { termSettings.rows = go.prefs.rows };
         // Tell the server to create a new terminal process
         go.ws.send(JSON.stringify({'new_terminal': termSettings}));
-        // Fix the width/height of all terminals (including the one we just created)
-//         var terms = u.toArray(u.getNode(go.prefs.goDiv).getElementsByClassName('terminal'));
-//         terms.forEach(function(termObj) {
-//         // Set the dimensions of each terminal to the full width/height of the window
-//             termObj.style.width = go.Visual.goDimensions.w + 'px';
-//             termObj.style.height = go.Visual.goDimensions.h + 'px';
-//         });
+        // Autoconnect if autoConnectURL is specified
+        if (go.prefs.autoConnectURL) {
+            setTimeout(function () {
+                go.Input.queue(go.prefs.autoConnectURL+'\n');
+                go.Net.sendChars();
+            }, 500);
+        }
         // Switch to our new terminal if *term* is set (no matter where it is)
         if (termUndefined) {
             // Only slide for terminals that are actually *new* (as opposed to ones that we're re-attaching to)
@@ -3905,8 +3847,7 @@ GateOne.Base.update(GateOne.Terminal, {
     closeTerminal: function(term, /*opt*/noCleanup) {
         // Closes the given terminal and tells the server to end its running process.
         // If noCleanup resolves to true, stored data will be left hanging around for this terminal (e.g. the scrollback buffer in localStorage).  Otherwise it will be deleted.
-        var go = GateOne,
-            u = go.Utils,
+        var u = GateOne.Utils,
             prefix = go.prefs.prefix,
             message = "Closed term " + term + ": " + u.getNode('#'+prefix+'term' + term).title,
             lastTerm = null;
@@ -3951,8 +3892,7 @@ GateOne.Base.update(GateOne.Terminal, {
         // Called after we authenticate to the server...
         // If we're reconnecting to an existing session, running terminals will be recreated/reattached.
         // If this is a new session, a new terminal will be created.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix;
         logDebug("reattachTerminalsAction() terminals: " + terminals);
         // Clean up localStorage
@@ -4031,8 +3971,7 @@ GateOne.Base.update(GateOne.Terminal, {
     },
     resetTerminalAction: function(term) {
         // Clears the screen and the scrollback buffer (in memory and in localStorage)
-        var go = GateOne,
-            prefix = go.prefs.prefix;
+        var prefix = go.prefs.prefix;
         logDebug("resetTerminalAction term: " + term);
         go.terminals[term]['scrollback'] = [];
         go.terminals[term]['screen'] = [];
@@ -4045,8 +3984,7 @@ GateOne.User.userLoginCallbacks = []; // Each of these will get called after the
 GateOne.Base.update(GateOne.User, {
     // The User module is for things like logging out, synchronizing preferences with the server, and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.
     init: function() {
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
             prefsPanelForm = u.getNode('#'+prefix+'prefs_form'),
@@ -4073,8 +4011,7 @@ GateOne.Base.update(GateOne.User, {
     setUsername: function(username) {
         // Sets GateOne.User.username using *username*.  Also provides hooks that plugins can have called after a user has logged in successfully.
         // NOTE:  Primarily here to present something more easy to understand than the session ID :)
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             prefsPanelUserID = u.getNode('#'+prefix+'user_info_id');
         logDebug("setUsername(" + username + ")");
@@ -4091,8 +4028,7 @@ GateOne.Base.update(GateOne.User, {
     },
     logout: function() {
         // Logs the user out of Gate One by deleting the "user" cookie and everything related to Gate One in localStorage
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix;
         // Remove all Gate One-specific items from localStorage by deleting everything that starts with GateOne.prefs.prefix.
@@ -4113,8 +4049,7 @@ GateOne.Base.update(GateOne.User, {
     },
     loadBell: function(message) {
         // Loads the bell sound into the page as an <audio> element using the given *audioDataURI*.
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv),
             audioDataURI = message['data_uri'],
             mimetype = message['mimetype'],
@@ -4134,8 +4069,7 @@ GateOne.Base.update(GateOne.User, {
     },
     uploadBellDialog: function() {
         // Displays a dialog/form where the user can upload a replacement bell sound or use the default
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
             playBell = u.createElement('button', {'id': 'play_bell', 'value': 'play_bell', 'class': 'button black'}),
