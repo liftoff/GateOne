@@ -819,6 +819,7 @@ class Terminal(object):
         self.prev_dump = [] # A cache to speed things up
         self.prev_dump_rend = [] # Ditto
         self.html_cache = [] # Ditto
+        self.watcher = None # Placeholder for the image watcher thread (if used)
 
     def init_screen(self):
         """
@@ -1642,9 +1643,9 @@ class Terminal(object):
 
         .. note:: The :meth:`Terminal._spanify_screen` function is aware of this logic and knows that a 'character' in Plane 16 of the Unicode PUA indicates the presence of something like an image that needs special processing.
         """
-        logging.debug("_capture_image() len(self.image): %s" % len(self.image))
         # Remove the extra \r's that the terminal adds:
         self.image = str(self.image).replace('\r\n', '\n')
+        logging.debug("_capture_image() len(self.image): %s" % len(self.image))
         if Image: # PIL is loaded--try to guess how many lines the image takes
             i = StringIO.StringIO(self.image)
             try:
@@ -1690,11 +1691,12 @@ class Terminal(object):
         self.images[ref].flush()
         # Start up the image watcher thread so leftover FDs get closed when
         # they're no longer being used
-        import threading
-        watcher = threading.Thread(
-            name='watcher', target=self._image_fd_watcher)
-        watcher.setDaemon(True)
-        watcher.start()
+        if not self.watcher or not self.watcher.isAlive():
+            import threading
+            self.watcher = threading.Thread(
+                name='watcher', target=self._image_fd_watcher)
+            self.watcher.setDaemon(True)
+            self.watcher.start()
 
     def _image_fd_watcher(self):
         """
@@ -2508,7 +2510,8 @@ class Terminal(object):
                                 image_file.seek(0)
                                 im.thumbnail((640, 480), Image.ANTIALIAS)
                                 im.save(image_file, im.format)
-                                # Read it in
+                                # Re-read it in
+                                image_file.seek(0)
                                 image_data = image_file.read()
                             except IOError:
                                 # Sometimes PIL will throw this if it can't read
@@ -2634,9 +2637,10 @@ class Terminal(object):
                     if not Image: # Can't use images in the terminal
                         outline += "<i>Image file</i>"
                         continue # Can't do anything else
-                    self.images[char].seek(0)
-                    image_data = self.images[char].read()
-                    # PIL likes file objects
+                    image_file = self.images[char]
+                    image_file.seek(0) # Back to the start
+                    image_data = image_file.read()
+                    # PIL likes StringIO objects for some reason
                     i = StringIO.StringIO(image_data)
                     try:
                         im = Image.open(i)

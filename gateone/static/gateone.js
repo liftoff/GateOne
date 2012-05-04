@@ -457,15 +457,17 @@ var go = GateOne.Base.update(GateOne, {
             go.Visual.togglePanel('#'+prefix+'panel_prefs');
         }
         toolbarIconPrefs.onclick = showPrefs;
-        var grid = go.Visual.createGrid('termwrapper');
-        goDiv.appendChild(grid);
-        var style = window.getComputedStyle(goDiv, null),
-            adjust = 0;
-        if (style['padding-right']) {
-            adjust = parseInt(style['padding-right'].split('px')[0]);
+        if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
+            var grid = go.Visual.createGrid('termwrapper');
+            goDiv.appendChild(grid);
+            var style = window.getComputedStyle(goDiv, null),
+                adjust = 0;
+            if (style['padding-right']) {
+                adjust = parseInt(style['padding-right'].split('px')[0]);
+            }
+            var gridWidth = (go.Visual.goDimensions.w+adjust) * 2; // Will likely always be x2
+            grid.style.width = gridWidth + 'px';
         }
-        var gridWidth = (go.Visual.goDimensions.w+adjust) * 2; // Will likely always be x2
-        grid.style.width = gridWidth + 'px';
         // Put our invisible pop-up message container on the page
         document.body.appendChild(noticeContainer); // Notifications can be outside the GateOne area
         // Add the sidebar text (if set to do so)
@@ -1183,6 +1185,13 @@ GateOne.Base.update(GateOne.Net, {
             // We are in the middle of processing the last character
             setTimeout(go.Net.sendChars, 100); // Wait 0.1 seconds and retry.
         }
+    },
+    sendString: function(chars, term) {
+        // Like sendChars() but for programmatic use.  *chars* will be sent to *term* on the server.
+        var u = go.Utils,
+            term = term || localStorage[go.prefs.prefix+'selectedTerminal'],
+            message = {'chars': chars, 'term': term};
+        go.ws.send(JSON.stringify({'write_chars': message}));
     },
     log: function(msg) {
         // Just logs the message (use for debugging plugins and whatnot)
@@ -2455,17 +2464,19 @@ GateOne.Base.update(GateOne.Visual, {
         } else {
             var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
             terms.forEach(function(termObj) {
-                var termID = termObj.id.split(prefix+'term')[1],
-                    termPreNode = go.terminals[termID]['node'],
-                    termScreen = go.terminals[termID]['screenNode'],
-                    termScrollback = go.terminals[termID]['scrollbackNode'];
-                termScrollback.innerHTML = go.terminals[termID]['scrollback'].join('\n') + '\n';
-                termScrollback.style.display == null; // Reset
-                if (go.terminals[termID]['scrollbackTimer']) {
-                    clearTimeout(go.terminals[termID]['scrollbackTimer']);
+                var termID = termObj.id.split(prefix+'term')[1];
+                if (termID in GateOne.terminals) {
+                    var termPreNode = go.terminals[termID]['node'],
+                        termScreen = go.terminals[termID]['screenNode'],
+                        termScrollback = go.terminals[termID]['scrollbackNode'];
+                    termScrollback.innerHTML = go.terminals[termID]['scrollback'].join('\n') + '\n';
+                    termScrollback.style.display == null; // Reset
+                    if (go.terminals[termID]['scrollbackTimer']) {
+                        clearTimeout(go.terminals[termID]['scrollbackTimer']);
+                    }
+                    go.terminals[termID]['scrollbackVisible'] = true;
+                    u.scrollToBottom(termPreNode);
                 }
-                go.terminals[termID]['scrollbackVisible'] = true;
-                u.scrollToBottom(termPreNode);
             });
         }
         go.Visual.scrollbackToggle = true;
@@ -3410,7 +3421,7 @@ go.Base.update(GateOne.Terminal, {
             // Passing 'true' here to keep the stuff in localStorage for this term.
             go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
         });
-        u.getNode('#'+go.prefs.prefix+'termwrapper').innerHTML = "Your session has timed out.  Reload the page to reconnect to Gate One.";
+        u.getNode(go.prefs.goDiv).innerHTML = "Your session has timed out.  Reload the page to reconnect to Gate One.";
         go.ws.onclose = function() { // Have to replace the existing onclose() function so we don't end up auto-reconnecting.
             // Connection to the server was lost
             logDebug("WebSocket Closed");
@@ -3676,10 +3687,11 @@ go.Base.update(GateOne.Terminal, {
         GateOne.Visual.playBell();
         GateOne.Visual.displayMessage(message);
     },
-    newTerminal: function(/*Opt:*/term, /*Opt:*/type) {
+    newTerminal: function(/*Opt:*/term, /*Opt:*/type, /*Opt*/where) {
         // Adds a new terminal to the grid and starts updates with the server.
         // If *term* is provided, the created terminal will use that number.
         // If *type* is provided, the new terminal that is created will be of the given *type*.  Otherwise the default will be used.
+        // If *where* is provided, the new terminal element will be appeded like so:  where.appendChild(<new terminal element>);  Otherwise the terminal will be added to the grid.
         // Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         // TODO: Finish supporting terminal types.
         logDebug("calling newTerminal(" + term + ")");
@@ -3705,6 +3717,9 @@ go.Base.update(GateOne.Terminal, {
             t.lastTermNumber = t.lastTermNumber + 1;
             term = t.lastTermNumber;
             currentTerm = prefix+'term' + t.lastTermNumber;
+        }
+        if (!where) {
+            where = '#'+prefix+'termwrapper'; // Use the termwrappper (grid) by default
         }
         // Create the terminal record scaffold
         go.terminals[term] = {
@@ -3819,7 +3834,7 @@ go.Base.update(GateOne.Terminal, {
         }
         terminal.appendChild(pastearea);
         go.terminals[term]['pasteNode'] = pastearea;
-        u.getNode('#'+prefix+'termwrapper').appendChild(terminal);
+        u.getNode(where).appendChild(terminal);
         // Apply user-defined rows and cols (if set)
         if (go.prefs.cols) { termSettings.cols = go.prefs.cols };
         if (go.prefs.rows) { termSettings.rows = go.prefs.rows };
@@ -3843,6 +3858,7 @@ go.Base.update(GateOne.Terminal, {
                 callback(term);
             });
         }
+        return term; // So you can call it from your own code and know what terminal number you wound up with
     },
     closeTerminal: function(term, /*opt*/noCleanup) {
         // Closes the given terminal and tells the server to end its running process.
@@ -3879,8 +3895,11 @@ go.Base.update(GateOne.Terminal, {
             //       For example, go.Terminal.switchToTerm which would call whatever visualizations the user has loaded/selected
             go.Visual.slideToTerm(termNum, true);
         } else {
-            // There are no other terminals.  Open a new one...
-            go.Terminal.newTerminal();
+            // Only open a new terminal if we're not in embedded mode.  When you embed you have more explicit control but that also means taking care of stuff like this on your own.
+            if (!go.prefs.embedded) {
+                // There are no other terminals.  Open a new one...
+                go.Terminal.newTerminal();
+            }
         }
     },
     reconnectTerminalAction: function(term){

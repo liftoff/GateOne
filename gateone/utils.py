@@ -917,12 +917,33 @@ def retrieve_first_frame(golog_path):
     frame = ""
     f = gzip.open(golog_path)
     while not found_first_frame:
-        frame += f.read(1)
+        frame += f.read(1) # One byte at a time
         if frame.decode('UTF-8', "ignore").endswith(SEPARATOR):
             # That's it; wrap this up
             found_first_frame = True
+    distance = f.tell()
     f.close()
-    return frame.decode('UTF-8', "ignore").rstrip(SEPARATOR)
+    return (frame.decode('UTF-8', "ignore").rstrip(SEPARATOR), distance)
+
+def retrieve_last_frame(golog_path):
+    """
+    Retrieves the last frame from the given *golog_path*.  It does this by
+    iterating over the log in reverse.
+    """
+    encoded_separator = SEPARATOR.encode('UTF-8')
+    golog = gzip.open(golog_path)
+    chunk_size = 1024*128
+    # Seek to the end of the file (gzip objects don't support negative seeking)
+    distance = chunk_size
+    prev_tell = None
+    while golog.tell() != prev_tell:
+        prev_tell = golog.tell()
+        golog.seek(distance)
+        distance += distance
+    # Now that we're at the end, go back a bit and split from there
+    golog.seek(golog.tell() - chunk_size)
+    end_frames = golog.read().split(encoded_separator)
+    return end_frames[-2] # Very last item will be empty
 
 def get_or_update_metadata(golog_path, user, force_update=False):
     """
@@ -934,7 +955,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.
     """
     #logging.debug('get_or_update_metadata()')
-    first_frame = retrieve_first_frame(golog_path)
+    first_frame, distance = retrieve_first_frame(golog_path)
     metadata = {}
     if first_frame[14:].startswith('{'):
         # This is JSON, capture existing metadata
@@ -955,16 +976,18 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     # Why?  Because termio.py writes the frames using gzip.open() in append mode
     # which is a lot less efficient than compressing all the data in one go.
     log_data = ''
+    total_frames = 0
     while True:
         chunk = golog.read(chunk_size)
+        total_frames += chunk.count(encoded_separator)
         log_data += chunk
         if len(chunk) < chunk_size:
             break
     # NOTE: -1 below because split() leaves us with an empty string at the end
-    golog_frames = log_data.split(encoded_separator)[:-1]
-    # Getting the start date is easy
-    start_date = golog_frames[0][:13]
-    end_date = golog_frames[-1][:13]
+    #golog_frames = log_data.split(encoded_separator)[:-1]
+    start_date = first_frame[:13] # Getting the start date is easy
+    last_frame = retrieve_last_frame(golog_path) # This takes some work
+    end_date = last_frame[:13]
     version = u"1.0"
     connect_string = None
     from gateone import PLUGINS
@@ -972,37 +995,40 @@ def get_or_update_metadata(golog_path, user, force_update=False):
         # Try to find the host that was connected to by looking for the SSH
         # plugin's special optional escape sequence.  It looks like this:
         #   "\x1b]_;ssh|%s@%s:%s\007"
-        for frame in golog_frames[:50]: # Only look inside the first 50 or so
-            match_obj = RE_OPT_SSH_SEQ.match(frame)
-            if match_obj:
-                connect_string = match_obj.group(1).split('|')[1]
-                break
+        match_obj = RE_OPT_SSH_SEQ.match(log_data[:(chunk_size*10)])
+        if match_obj:
+            connect_string = match_obj.group(1).split('|')[1]
     if not connect_string:
         # Try guessing it by looking for a title escape sequence
-        for frame in golog_frames[:50]:
-            match_obj = RE_TITLE_SEQ.match(frame)
-            if match_obj:
-                # The split() here is an attempt to remove the tail end of
-                # titles like this:  'someuser@somehost: ~'
-                connect_string = match_obj.group(1)
-                break
+        match_obj = RE_TITLE_SEQ.match(log_data[:(chunk_size*10)])
+        if match_obj:
+            # The split() here is an attempt to remove the tail end of
+            # titles like this:  'someuser@somehost: ~'
+            connect_string = match_obj.group(1)
     # TODO: Add some hooks here for plugins to add their own metadata
     metadata.update({
         u'user': user,
         u'start_date': start_date,
         u'end_date': end_date,
-        u'frames': len(golog_frames),
+        u'frames': total_frames,
         u'version': version,
         u'connect_string': connect_string,
         u'filename': os.path.split(golog_path)[1]
     })
+    # Make a *new* first_frame
     first_frame = u"%s:%s" % (start_date, json_encode(metadata))
-    golog_frames[0] = first_frame.encode('UTF-8') # Replace existing metadata
+    #golog_frames[0] = first_frame.encode('UTF-8') # Replace existing metadata
     # Re-save the log with the metadata included.
-    log_data = ''
-    for frame in golog_frames:
-        log_data += frame + encoded_separator
+    #log_data = ''
+    #for frame in golog_frames:
+        #log_data += frame + encoded_separator
     #log_data = encoded_separator.join(golog_frames)
+    # Replace the first frame and re-save the log
+    log_data = (
+        first_frame.encode('UTF-8') +
+        encoded_separator +
+        log_data[distance:]
+    )
     gzip.open(golog_path, 'w').write(log_data)
     return metadata
 

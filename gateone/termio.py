@@ -397,9 +397,9 @@ class BaseMultiplex(object):
                 # to store all sorts of useful information about a log.
                 metadata_frame = str(json_encode(metadata))
                 metadata_frame = "%s:%s\xf3\xb0\xbc\x8f" % (now, metadata_frame)
-                log = gzip.open(self.log_path, mode='a')
-                log.write(metadata_frame)
-                log.close()
+                self.log = gzip.open(self.log_path, mode='a')
+                self.log.write(metadata_frame)
+                #log.close()
             # NOTE: I'm using an obscure unicode symbol in order to avoid
             # conflicts.  We need to dpo our best to ensure that we can
             # differentiate between terminal output and our log format...
@@ -411,9 +411,9 @@ class BaseMultiplex(object):
             #output = unicode(stream.decode('utf-8', "ignore"))
             #output = u"%s:%s\U000f0f0f" % (now, output)
             output = "%s:%s\xf3\xb0\xbc\x8f" % (now, stream)
-            log = gzip.open(self.log_path, mode='a')
-            log.write(output)
-            log.close()
+            #log = gzip.open(self.log_path, mode='a')
+            self.log.write(output)
+            #log.close()
         # NOTE: Gate One's log format is special in that it can be used for both
         # playing back recorded sessions *or* generating syslog-like output.
         if self.syslog:
@@ -1187,7 +1187,17 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         # recompresses everything to save disk space)
         if not self.log_path:
             return # No log to finalize so we're done.
-        PROC = Process(target=get_or_update_metadata, args=(self.log_path, self.user), kwargs={'force_update': True})
+        print("Closing log...")
+        self.log.close() # Write it out
+        logging.info(_(
+            "Finalizing the log for pid %s (this can take some time)."
+            % self.pid
+        ))
+        PROC = Process(
+            target=get_or_update_metadata,
+            args=(self.log_path, self.user),
+            kwargs={'force_update': True})
+        PROC.daemon = True
         PROC.start()
 
     def _ioloop_read_handler(self, fd, event):

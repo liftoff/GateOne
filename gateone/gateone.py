@@ -775,6 +775,7 @@ class TerminalWebSocket(WebSocketHandler):
             'set_terminal': self.set_terminal,
             'kill_terminal': self.kill_terminal,
             'c': self.char_handler, # Just 'c' to keep the bandwidth down
+            'write_chars': self.write_chars,
             'refresh': self.refresh_screen,
             'full_refresh': self.full_refresh,
             'resize': self.resize,
@@ -896,9 +897,11 @@ class TerminalWebSocket(WebSocketHandler):
         """
         logging.debug("on_close()")
         user = self.get_current_user()
-        # Remove all attached callbacks so we're not wasting memory/CPU on
-        # disconnected clients
         if user and user['session'] in SESSIONS:
+            # Update 'last_seen' with a datetime object for accuracy
+            SESSIONS[user['session']]['last_seen'] = datetime.now()
+            # Remove all attached callbacks so we're not wasting memory/CPU on
+            # disconnected clients
             for term in SESSIONS[user['session']]:
                 if isinstance(term, int):
                     try:
@@ -917,7 +920,6 @@ class TerminalWebSocket(WebSocketHandler):
                         # self.callback_id is missing.  Nothing to worry about
                         if self.client_id in SESSIONS[user['session']][term]:
                             del SESSIONS[user['session']][term][self.client_id]
-
         if user and 'upn' in user:
             logging.info(
                 _("WebSocket closed (%s).") % user['upn'])
@@ -1102,7 +1104,12 @@ class TerminalWebSocket(WebSocketHandler):
         # accidentally clobber it.
         if self.session not in SESSIONS:
             # Old session is no good, start a new one:
-            SESSIONS[self.session] = {}
+            SESSIONS[self.session] = {
+                'last_seen': 'connected',
+                'last_activity': datetime.now()}
+        else:
+            SESSIONS[self.session]['last_seen'] = 'connected'
+            SESSIONS[self.session]['last_activity'] = datetime.now()
         terminals = []
         for term in SESSIONS[self.session].keys():
             if isinstance(term, int):  # This skips the TidyThread...
@@ -1301,11 +1308,11 @@ class TerminalWebSocket(WebSocketHandler):
         dsr = partial(self.dsr, term)
         term_emulator.add_callback(
             terminal.CALLBACK_DSR, dsr, callback_id)
-        if 'tidy_thread' not in SESSIONS[self.session]:
-            # Start the keepalive thread so the session will time out if the
-            # user disconnects for like a week (by default anyway =)
-            SESSIONS[self.session]['tidy_thread'] = TidyThread(self.session)
-            SESSIONS[self.session]['tidy_thread'].start()
+        #if 'tidy_thread' not in SESSIONS[self.session]:
+            ## Start the keepalive thread so the session will time out if the
+            ## user disconnects for like a week (by default anyway =)
+            #SESSIONS[self.session]['tidy_thread'] = TidyThread(self.session)
+            #SESSIONS[self.session]['tidy_thread'].start()
         # NOTE: refresh_screen will also take care of cleaning things up if
         #       SESSIONS[self.session][term]['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
@@ -1449,8 +1456,9 @@ class TerminalWebSocket(WebSocketHandler):
         """Sends a screen update to the client."""
         #try:
         now = datetime.now()
-        tidy_thread = SESSIONS[self.session]['tidy_thread']
-        tidy_thread.keepalive(now)
+        SESSIONS[self.session]['last_activity'] = now
+        #tidy_thread = SESSIONS[self.session]['tidy_thread']
+        #tidy_thread.keepalive(now)
         multiplex = SESSIONS[self.session][term]['multiplex']
         scrollback, screen = multiplex.dump_html(
             full=full, client_id=self.client_id)
@@ -1500,9 +1508,11 @@ class TerminalWebSocket(WebSocketHandler):
             # In testing, 150 milliseconds was about as low as I could go and
             # still remain practical.
             force_refresh_threshold = timedelta(milliseconds=150)
-            tidy_thread = SESSIONS[self.session]['tidy_thread']
-            last_keepalive = tidy_thread.last_keepalive
-            timediff = datetime.now() - last_keepalive
+            last_activity = SESSIONS[self.session]['last_activity']
+            #tidy_thread = SESSIONS[self.session]['tidy_thread']
+            #last_keepalive = tidy_thread.last_keepalive
+            #timediff = datetime.now() - last_keepalive
+            timediff = datetime.now() - last_activity
             sess = SESSIONS[self.session][term]
             client_dict = sess[self.client_id]
             multiplex = sess['multiplex']
@@ -1582,9 +1592,13 @@ class TerminalWebSocket(WebSocketHandler):
             pass
 
     @require_auth
-    def char_handler(self, chars):
-        """Writes *chars* (string) to the currently-selected terminal"""
-        term = self.current_term
+    def char_handler(self, chars, term=None):
+        """
+        Writes *chars* (string) to *term*.  If *term* is not provided the
+        characters will be sent to the currently-selected terminal.
+        """
+        if not term:
+            term = self.current_term
         session = self.session
         if session in SESSIONS and term in SESSIONS[session]:
             if SESSIONS[session][term]['multiplex'].isalive():
@@ -1592,6 +1606,25 @@ class TerminalWebSocket(WebSocketHandler):
                     SESSIONS[ # Force an update
                         session][term]['multiplex'].ratelimit = time.time()
                     SESSIONS[session][term]['multiplex'].write(chars)
+
+    #require_auth
+    def write_chars(self, message):
+        """
+        Writes *message['chars']* to *message['term']*.  If *message['term']*
+        is not present, *self.current_term* will be used.
+        """
+        if 'chars' not in message:
+            return # Invalid message
+        if 'term' not in message:
+            message['term'] = self.current_term
+        try:
+            self.char_handler(message['chars'], message['term'])
+        except Exception as e:
+            # Term is closed or invalid
+            logging.error(_(
+                "Got exception trying to write_chars() to terminal %s"
+                % message['term']))
+            logging.error(str(e))
 
     @require_auth
     def esc_opt_handler(self, chars):
@@ -1808,151 +1841,146 @@ class TerminalWebSocket(WebSocketHandler):
         pprint(gc.garbage)
         print("SESSIONS...")
         pprint(SESSIONS)
-        from pympler import asizeof
-        print("screen size: %s" % asizeof.asizeof(screen))
-        print("renditions size: %s" % asizeof.asizeof(renditions))
-        print("Total term object size: %s" % asizeof.asizeof(termObj))
+        try:
+            from pympler import asizeof
+            print("screen size: %s" % asizeof.asizeof(screen))
+            print("renditions size: %s" % asizeof.asizeof(renditions))
+            print("Total term object size: %s" % asizeof.asizeof(termObj))
+        except ImportError:
+            pass # No biggie
 
-# NOTE:  I started writing this but I realized it was going to take a while so
-# I've commented it out for now since I really need to push a commit fixing some
-# bugs =)
-#def timeout_sessions():
-    #"""
-    #Loops over the SESSIONS dict killing any sessions that haven't been used
-    #for the length of time specified in *TIMEOUT* (global).  The value of
-    #*TIMEOUT* can be set in server.conf or specified on the command line via the
-    #*session_timeout* value.
-    #"""
-    #try:
-        #for session, term in list(SESSIONS.items()):
-            #if datetime.now() > self.last_keepalive + TIMEOUT:
-                #logging.info(
-                    #"{session} timeout.".format(
-                        #session=session
-                    #)
-                #)
-                #self.quitting = True
-                #return
-    ## This loops through all the open terminals checking if each is alive
-            #all_dead = True
-            #for term in list(SESSIONS[session].keys()):
-                #if isinstance(term, int) and term in SESSIONS[session]:
-                    #if SESSIONS[session][term]['multiplex'].isalive():
-                        #all_dead = False
-                        ## Added a doublecheck value here because there's a
-                        ## gap between when the last terminal is closed and
-                        ## when a new one starts up.  Occasionally this would
-                        ## cause the user's connection to be killed (due to
-                        ## there being no active terminal associated with it)
-                        #self.doublecheck = True
-            #if all_dead:
-                #if not self.doublecheck:
-                    #self.quitting = True
-                #else:
-                    #self.doublecheck = False
-    #except Exception as e:
-        #logging.info(_(
-            #"Exception encountered: {exception}".format(exception=e)
-        #))
-        #import traceback
-        #traceback.print_exc(file=sys.stdout)
-        #self.quitting = True
-
-# Thread classes
-class TidyThread(threading.Thread):
+def timeout_sessions(kill_dtach=True):
     """
-    Kills a user's termio session if the client hasn't updated the keepalive
-    within *TIMEOUT* (global).  Also, tidies up sessions, logs, and whatnot based
-    on Gate One's settings (when the time is right).
+    Loops over the SESSIONS dict killing any sessions that haven't been used
+    for the length of time specified in *TIMEOUT* (global).  The value of
+    *TIMEOUT* can be set in server.conf or specified on the command line via the
+    *session_timeout* value.  Arguments:
 
-    NOTE: This is necessary to prevent shells from running eternally in the
-    background.
+     * *kill_dtach* - If True, will call kill_dtached_proc() on each terminal to ensure it dies.
 
-    *session* - 45-character string containing the user's session ID
+    .. note:: This function is meant to be called via Tornado's ioloop.PeriodicCallback().
     """
-    # TODO: Get this cleaning up logs according to configured settings
-    # TODO: Add the aforementioned log cleanup settings :)
-    def __init__(self, session):
-        threading.Thread.__init__(
-            self,
-            name="TidyThread-%s" % session
-        )
-        self.last_keepalive = datetime.now()
-        self.session = session
-        self.quitting = False
-        self.doublecheck = True
-        self.kill_dtach = True
-
-    def keepalive(self, datetime_obj=None):
-        """
-        Resets the keepalive timer.  Typically called when the user performs a new action.
-
-        *datetime_obj* - A datetime object that will be used to measure *TIMEOUT* against.  Will end up defaulting to datetime.now() (if None) which is what you'd want 99% of the time.
-        """
-        if datetime_obj:
-            self.last_keepalive = datetime_obj
-        else:
-            self.last_keepalive = datetime.now()
-
-    def quit(self):
-        self.quitting = True
-
-    def run(self):
-        session = self.session
-        while not self.quitting:
-            try:
-                if datetime.now() > self.last_keepalive + TIMEOUT:
-                    logging.info(
-                        "{session} timeout.".format(
-                            session=session
-                        )
-                    )
-                    self.quitting = True
-                    break
-        # This loops through all the open terminals checking if each is alive
-                all_dead = True
+    try:
+        for session, term in list(SESSIONS.items()):
+            if "last_seen" not in session:
+                # Session is in the process of being created.  We'll check it
+                # the next time timeout_sessions() is called.
+                continue
+            if session["last_seen"] == 'connected':
+                # Connected sessions do not need to be checked for timeouts
+                continue
+            if datetime.now() > session["last_seen"] + TIMEOUT:
+                # Kill the session
+                logging.info(_("{session} timeout.".format(session=session)))
                 for term in list(SESSIONS[session].keys()):
                     if isinstance(term, int) and term in SESSIONS[session]:
                         if SESSIONS[session][term]['multiplex'].isalive():
-                            all_dead = False
-                            # Added a doublecheck value here because there's a
-                            # gap between when the last terminal is closed and
-                            # when a new one starts up.  Occasionally this would
-                            # cause the user's connection to be killed (due to
-                            # there being no active terminal associated with it)
-                            self.doublecheck = True
-                if all_dead:
-                    if not self.doublecheck:
-                        self.quitting = True
-                    else:
-                        self.doublecheck = False
-                # Keep this low or it will take that long for the process to end
-                # when we receive a SIGTERM or Ctrl-c
-                time.sleep(2)
-            except Exception as e:
-                logging.info(_(
-                    "Exception encountered: {exception}".format(exception=e)
-                ))
-                import traceback
-                traceback.print_exc(file=sys.stdout)
-                self.quitting = True
+                            SESSIONS[session][term]['multiplex'].terminate()
+                        if kill_dtach:
+                            kill_dtached_proc(session, term)
+    except Exception as e:
         logging.info(_(
-            "TidyThread {session} received quit()...  "
-            "Killing termio session.".format(session=self.session)
+            "Exception encountered in timeout_sesions(): {exception}".format(
+                exception=e)
         ))
-        # Clean up:
-        for term in list(SESSIONS[session].keys()):
-            try:
-                if SESSIONS[session][term]['multiplex'].isalive():
-                    SESSIONS[session][term]['multiplex'].terminate()
-                if self.kill_dtach:
-                    kill_dtached_proc(session, term)
-                del SESSIONS[session][term]
-            except TypeError: # Ignore the TidyThread (i.e. ourselves)
-                pass
-            except KeyError: # Already killed... Great!
-                pass
-        del SESSIONS[session]
+        import traceback
+        traceback.print_exc(file=sys.stdout)
+
+# Thread classes
+#class TidyThread(threading.Thread):
+    #"""
+    #Kills a user's termio session if the client hasn't updated the keepalive
+    #within *TIMEOUT* (global).  Also, tidies up sessions, logs, and whatnot based
+    #on Gate One's settings (when the time is right).
+
+    #NOTE: This is necessary to prevent shells from running eternally in the
+    #background.
+
+    #*session* - 45-character string containing the user's session ID
+    #"""
+    ## TODO: Get this cleaning up logs according to configured settings
+    ## TODO: Add the aforementioned log cleanup settings :)
+    #def __init__(self, session):
+        #threading.Thread.__init__(
+            #self,
+            #name="TidyThread-%s" % session
+        #)
+        #self.last_keepalive = datetime.now()
+        #self.session = session
+        #self.quitting = False
+        #self.doublecheck = True
+        #self.kill_dtach = True
+
+    #def keepalive(self, datetime_obj=None):
+        #"""
+        #Resets the keepalive timer.  Typically called when the user performs a new action.
+
+        #*datetime_obj* - A datetime object that will be used to measure *TIMEOUT* against.  Will end up defaulting to datetime.now() (if None) which is what you'd want 99% of the time.
+        #"""
+        #if datetime_obj:
+            #self.last_keepalive = datetime_obj
+        #else:
+            #self.last_keepalive = datetime.now()
+
+    #def quit(self):
+        #self.quitting = True
+
+    #def run(self):
+        #session = self.session
+        #while not self.quitting:
+            #try:
+                #if datetime.now() > self.last_keepalive + TIMEOUT:
+                    #logging.info(
+                        #"{session} timeout.".format(
+                            #session=session
+                        #)
+                    #)
+                    #self.quitting = True
+                    #break
+        ## This loops through all the open terminals checking if each is alive
+                #all_dead = True
+                #for term in list(SESSIONS[session].keys()):
+                    #if isinstance(term, int) and term in SESSIONS[session]:
+                        #if SESSIONS[session][term]['multiplex'].isalive():
+                            #all_dead = False
+                            ## Added a doublecheck value here because there's a
+                            ## gap between when the last terminal is closed and
+                            ## when a new one starts up.  Occasionally this would
+                            ## cause the user's connection to be killed (due to
+                            ## there being no active terminal associated with it)
+                            #self.doublecheck = True
+                #if all_dead:
+                    #if not self.doublecheck:
+                        #self.quitting = True
+                    #else:
+                        #self.doublecheck = False
+                ## Keep this low or it will take that long for the process to end
+                ## when we receive a SIGTERM or Ctrl-c
+                #time.sleep(2)
+            #except Exception as e:
+                #logging.info(_(
+                    #"Exception encountered: {exception}".format(exception=e)
+                #))
+                #import traceback
+                #traceback.print_exc(file=sys.stdout)
+                #self.quitting = True
+        #logging.info(_(
+            #"TidyThread {session} received quit()...  "
+            #"Killing termio session.".format(session=self.session)
+        #))
+        ## Clean up:
+        #for term in list(SESSIONS[session].keys()):
+            #try:
+                #if SESSIONS[session][term]['multiplex'].isalive():
+                    #SESSIONS[session][term]['multiplex'].terminate()
+                #if self.kill_dtach:
+                    #kill_dtached_proc(session, term)
+                #del SESSIONS[session][term]
+            #except TypeError: # Ignore the TidyThread (i.e. ourselves)
+                #pass
+            #except KeyError: # Already killed... Great!
+                #pass
+        #del SESSIONS[session]
 
 class ErrorHandler(tornado.web.RequestHandler):
     """
