@@ -457,17 +457,6 @@ var go = GateOne.Base.update(GateOne, {
             go.Visual.togglePanel('#'+prefix+'panel_prefs');
         }
         toolbarIconPrefs.onclick = showPrefs;
-        if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
-            var grid = go.Visual.createGrid('termwrapper');
-            goDiv.appendChild(grid);
-            var style = window.getComputedStyle(goDiv, null),
-                adjust = 0;
-            if (style['padding-right']) {
-                adjust = parseInt(style['padding-right'].split('px')[0]);
-            }
-            var gridWidth = (go.Visual.goDimensions.w+adjust) * 2; // Will likely always be x2
-            grid.style.width = gridWidth + 'px';
-        }
         // Put our invisible pop-up message container on the page
         document.body.appendChild(noticeContainer); // Notifications can be outside the GateOne area
         // Add the sidebar text (if set to do so)
@@ -1252,6 +1241,7 @@ GateOne.Base.update(GateOne.Net, {
         // Displays an error in the browser indicating that there was a problem with the connection.
         // if *msg* is given, it will be added to the standard error.
         var u = go.Utils,
+            errorElem = u.createElement('div', {'id': 'error_message'}),
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             message = "<p>The WebSocket connection was closed.  Will attempt to reconnect every 5 seconds...</p><p>NOTE: Some web proxies do not work properly with WebSockets.</p>";
         logError("Error communicating with server... ");
@@ -1262,14 +1252,20 @@ GateOne.Base.update(GateOne.Net, {
         if (msg) {
             message = "<p>" + msg + "</p>";
         }
-        u.getNode(go.prefs.goDiv).innerHTML = message;
+        errorElem.innerHTML = message;
+        u.getNode(go.prefs.goDiv).appendChild(errorElem);
         setTimeout(go.Net.connect, 5000);
     },
     connect: function() {
         // Connects to the WebSocket defined in GateOne.prefs.url
         // TODO: Get this appending a / if it isn't provided.  Also get it working with ws:// and wss:// URLs in go.prefs.url
         var u = go.Utils,
+            errorElem = u.getNode('#'+go.prefs.prefix+'error_message'),
             host = "";
+        if (errorElem) {
+            // Clean up any errors that might be present
+            u.removeElement(errorElem);
+        }
         if (u.startsWith("https:", go.prefs.url)) {
             host = go.prefs.url.split('https://')[1]; // e.g. 'localhost:8888/'
             if (u.endsWith('/', host)) {
@@ -3712,6 +3708,22 @@ go.Base.update(GateOne.Terminal, {
             rows = Math.ceil(dimensions.rows - rowAdjust),
             cols = Math.ceil(dimensions.cols - 7),
             prevScrollback = localStorage.getItem(prefix+"scrollback" + term);
+        if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
+            var termwrapper = u.getNode('#'+prefix+'termwrapper');
+            // Create the grid if it isn't already present
+            if (!termwrapper) {
+                var goDiv = u.getNode(go.prefs.goDiv),
+                    grid = go.Visual.createGrid('termwrapper');
+                goDiv.appendChild(grid);
+                var style = window.getComputedStyle(goDiv, null),
+                    adjust = 0;
+                if (style['padding-right']) {
+                    adjust = parseInt(style['padding-right'].split('px')[0]);
+                }
+                var gridWidth = (go.Visual.goDimensions.w+adjust) * 2; // Will likely always be x2
+                grid.style.width = gridWidth + 'px';
+            }
+        }
         if (term) {
             currentTerm = prefix+'term' + term;
             t.lastTermNumber = term;
@@ -3725,7 +3737,7 @@ go.Base.update(GateOne.Terminal, {
             currentTerm = prefix+'term' + t.lastTermNumber;
         }
         if (!where) {
-            where = '#'+prefix+'termwrapper'; // Use the termwrappper (grid) by default
+            where = '#'+prefix+'termwrapper'; // Use the termwrapper (grid) by default
         }
         // Create the terminal record scaffold
         go.terminals[term] = {
@@ -3903,8 +3915,10 @@ go.Base.update(GateOne.Terminal, {
         } else {
             // Only open a new terminal if we're not in embedded mode.  When you embed you have more explicit control but that also means taking care of stuff like this on your own.
             if (!go.prefs.embedded) {
-                // There are no other terminals.  Open a new one...
-                go.Terminal.newTerminal();
+                if (go.ws.readyState == 1) {
+                    // There are no other terminals and we're still connected.  Open a new one...
+                    go.Terminal.newTerminal();
+                }
             }
         }
     },
