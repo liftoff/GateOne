@@ -1262,7 +1262,7 @@ GateOne.Base.update(GateOne.Net, {
         if (msg) {
             message = "<p>" + msg + "</p>";
         }
-        u.getNode('#'+go.prefs.prefix+'termwrapper').innerHTML = message;
+        u.getNode(go.prefs.goDiv).innerHTML = message;
         setTimeout(go.Net.connect, 5000);
     },
     connect: function() {
@@ -1302,12 +1302,15 @@ GateOne.Base.update(GateOne.Net, {
         logDebug("onOpen()");
         var u = go.Utils,
             prefix = go.prefs.prefix,
+            termwrapper = u.getNode('#'+prefix+'termwrapper'),
             settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix};
         // Load our CSS right away so the dimensions/placement of things is correct.
         u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
         u.loadPluginCSS();
         // Clear the error message if it's still there
-        u.getNode('#'+prefix+'termwrapper').innerHTML = "";
+        if (termwrapper) {
+            termwrapper.innerHTML = "";
+        }
         // Load the Web Worker
         logDebug("Attempting to download our WebWorker...");
         go.ws.send(JSON.stringify({'get_webworker': null}));
