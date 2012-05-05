@@ -933,7 +933,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         signal.signal(signal.SIGALRM, self._blocked_io_handler)
         self.reenable_timeout = None
         interval = 100 # A 0.1 second interval should be fast enough
-        self.scheduler = ioloop.PeriodicCallback(self._timeout_checker, interval)
+        self.scheduler = ioloop.PeriodicCallback(self._timeout_checker,interval)
 
     def __del__(self):
         """
@@ -941,6 +941,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         don't leave things hanging around.
         """
         logging.debug("MultiplexPOSIXIOLoop.__del__()")
+        self.terminate()
 
     def _call_callback(self, callback):
         """
@@ -1187,7 +1188,6 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         # recompresses everything to save disk space)
         if not self.log_path:
             return # No log to finalize so we're done.
-        print("Closing log...")
         self.log.close() # Write it out
         logging.info(_(
             "Finalizing the log for pid %s (this can take some time)."
@@ -1197,7 +1197,6 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             target=get_or_update_metadata,
             args=(self.log_path, self.user),
             kwargs={'force_update': True})
-        PROC.daemon = True
         PROC.start()
 
     def _ioloop_read_handler(self, fd, event):

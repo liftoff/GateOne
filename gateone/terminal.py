@@ -2507,7 +2507,7 @@ class Terminal(object):
                         if im: # Resize it...
                             # 640x480 should come in <32k for most stuff
                             try:
-                                image_file.seek(0)
+                                #image_file.seek(0)
                                 im.thumbnail((640, 480), Image.ANTIALIAS)
                                 im.save(image_file, im.format)
                                 # Re-read it in
@@ -2654,11 +2654,12 @@ class Terminal(object):
                         if im: # Resize it...
                             # 640x480 should come in <32k for most stuff
                             try:
+                                image_file.seek(0)
                                 im.thumbnail((640, 480), Image.ANTIALIAS)
-                                im.save(self.images[char], im.format)
-                                self.images[char].seek(0)
-                                # Read it in
-                                image_data = self.images[char].read()
+                                im.save(image_file, im.format)
+                                # Re-read it in
+                                image_file.seek(0)
+                                image_data = image_file.read()
                             except IOError:
                                 # Sometimes PIL will throw this if it can't read
                                 # the image.

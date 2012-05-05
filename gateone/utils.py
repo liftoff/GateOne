@@ -703,12 +703,12 @@ def get_plugins(plugin_dir):
         plugin_files = os.listdir(directory)
         if "__init__.py" in plugin_files:
             out_dict['py'].append(plugin) # Just need the base
-            sys.path.append(directory)
+            sys.path.insert(0, directory)
         else: # Look for .py files
             for plugin_file in plugin_files:
                 if plugin_file.endswith('.py'):
                     plugin_path = os.path.join(directory, plugin_file)
-                    sys.path.append(directory)
+                    sys.path.insert(0, directory)
                     (basename, ext) = os.path.splitext(plugin_path)
                     basename = basename.split('/')[-1]
                     out_dict['py'].append(basename)
@@ -823,6 +823,50 @@ def convert_to_timedelta(time_val):
         return timedelta(hours=num)
     elif time_val.endswith('d'):
         return timedelta(days=num)
+
+def convert_to_bytes(size_val):
+    """
+    Given a *size_val* (string) such as '100M', returns an integer representing
+    an equivalent amount of bytes.  Accepts the following '<num><char>' formats:
+
+    =========== ==========  ===================
+    Character   Meaning     Example
+    =========== ==========  ===================
+    B (or none) Bytes       '100' or '100b' -> 100
+    K           Kilobytes   '1k' -> 1024
+    M           Megabytes   '1m' -> 1048576
+    G           Gigabytes   '1g' -> 1073741824
+    T           Terabytes   '1t' -> 1099511627776
+    P           Petabytes   '1p' -> 1125899906842624
+    E           Exabytes    '1e' -> 1152921504606846976
+    Z           Zettabytes  '1z' -> 1180591620717411303424L
+    Y           Yottabytes  '7y' -> 1208925819614629174706176L
+    =========== ==========  ===================
+
+    .. note:: If no character is given the *size_val* will be assumed to be in bytes.
+
+    .. tip:: All characters will be converted to upper case before conversion (case-insensitive).
+
+    Examples::
+
+        >>> convert_to_bytes('2M')
+        2097152
+        >>> convert_to_bytes('2g')
+        2147483648
+    """
+    symbols = "BKMGTPEZY"
+    letter = size_val[-1:].strip().upper()
+    if letter.isdigit(): # Assume bytes
+        letter = 'B'
+        num = size_val
+    else:
+        num = size_val[:-1]
+    assert num.isdigit() and letter in symbols
+    num = float(num)
+    prefix = {symbols[0]:1}
+    for i, size_val in enumerate(symbols[1:]):
+        prefix[size_val] = 1 << (i+1)*10
+    return int(num * prefix[letter])
 
 def process_opt_esc_sequence(chars):
     """
@@ -943,7 +987,10 @@ def retrieve_last_frame(golog_path):
     # Now that we're at the end, go back a bit and split from there
     golog.seek(golog.tell() - chunk_size)
     end_frames = golog.read().split(encoded_separator)
-    return end_frames[-2] # Very last item will be empty
+    if len(end_frames) > 1:
+        return end_frames[-2] # Very last item will be empty
+    else: # Just a single frame here, return it as-is
+        return end_frames[0]
 
 def get_or_update_metadata(golog_path, user, force_update=False):
     """

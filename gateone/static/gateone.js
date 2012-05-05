@@ -3714,6 +3714,9 @@ go.Base.update(GateOne.Terminal, {
             t.lastTermNumber = term;
         } else {
             termUndefined = true;
+            if (!t.lastTermNumber) {
+                t.lastTermNumber = 0; // Start at 0 so the first increment will be 1
+            }
             t.lastTermNumber = t.lastTermNumber + 1;
             term = t.lastTermNumber;
             currentTerm = prefix+'term' + t.lastTermNumber;

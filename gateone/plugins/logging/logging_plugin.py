@@ -157,6 +157,7 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
         metadata = {}
         log_path = os.path.join(logs_dir, log)
         logfile = gzip.open(log_path)
+        logging.debug("Getting metadata from: %s" % log_path)
         metadata = get_or_update_metadata(log_path, user)
         metadata['size'] = os.stat(log_path).st_size
         out_dict['log'] = metadata
