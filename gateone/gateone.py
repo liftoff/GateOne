@@ -1774,6 +1774,9 @@ class TerminalWebSocket(WebSocketHandler):
         templates_path = os.path.join(GATEONE_DIR, 'templates')
         themes_path = os.path.join(templates_path, 'themes')
         colors_path = os.path.join(templates_path, 'term_colors')
+        go_url = settings['go_url'] # Used to prefix the url_prefix
+        if go_url.endswith('/'):
+            go_url = go_url.rstrip('/')
         container = settings["container"]
         prefix = settings["prefix"]
         theme = None
@@ -1805,7 +1808,7 @@ class TerminalWebSocket(WebSocketHandler):
                 container=container,
                 prefix=prefix,
                 colors_256=colors_256,
-                url_prefix=self.settings['url_prefix']
+                url_prefix=go_url + self.settings['url_prefix']
             )
             out_dict['theme'] = theme_css
         if colors:

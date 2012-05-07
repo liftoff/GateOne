@@ -950,6 +950,7 @@ GateOne.Base.update(GateOne.Utils, {
         }
         var u = go.Utils,
             prefix = go.prefs.prefix,
+            goURL = go.prefs.url,
             container = go.prefs.goDiv.split('#')[1],
             cssNode = u.createElement('link', {'id': prefix+id, 'type': 'text/css', 'rel': 'stylesheet', 'href': url, 'media': 'screen'}),
             styleNode = u.createElement('style', {'id': prefix+id}),
@@ -978,7 +979,7 @@ GateOne.Base.update(GateOne.Utils, {
             container = go.prefs.goDiv.split('#')[1],
             theme = schemeObj['theme'],
             colors = schemeObj['colors'];
-        go.ws.send(JSON.stringify({'get_style': {'container': container, 'prefix': go.prefs.prefix, 'theme': schemeObj['theme'], 'colors': schemeObj['colors']}}));
+        go.ws.send(JSON.stringify({'get_style': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'theme': schemeObj['theme'], 'colors': schemeObj['colors']}}));
     },
     loadPluginCSS: function() {
         // Tells the Gate One server to send all the plugin CSS files to the client.
@@ -3474,6 +3475,7 @@ go.Base.update(GateOne.Terminal, {
             consoleLog = data.log, // Only used when debugging
             screenUpdate = false,
             termTitle = "Gate One", // Will be replaced down below
+            goDiv = u.getNode(GateOne.prefs.goDiv),
             termContainer = u.getNode('#'+prefix+'term'+term),
             existingPre = GateOne.terminals[term]['node'],
             existingScreen = GateOne.terminals[term]['screenNode'],
@@ -3515,13 +3517,13 @@ go.Base.update(GateOne.Terminal, {
                         u.scrollToBottom(termPre);
                         if (GateOne.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
                             var nodeHeight = screenSpan.getClientRects()[0].top;
-                            if (nodeHeight < document.documentElement.clientHeight) { // Resize to fit
-                                var scale = document.documentElement.clientHeight / (document.documentElement.clientHeight - nodeHeight),
+                            if (nodeHeight < goDiv.clientHeight) { // Resize to fit
+                                var scale = goDiv.clientHeight / (goDiv.clientHeight - nodeHeight),
                                     transform = "scale(" + scale + ", " + scale + ")";
                                 GateOne.Visual.applyTransform(termPre, transform);
                             }
                         } else {
-                            var distance = document.documentElement.clientHeight - screenSpan.offsetHeight,
+                            var distance = goDiv.clientHeight - screenSpan.offsetHeight,
                             transform = "translateY(-" + distance + "px)";
                             GateOne.Visual.applyTransform(termPre, transform); // Move it to the top
                         }
@@ -3703,13 +3705,13 @@ go.Base.update(GateOne.Terminal, {
             prefix = go.prefs.prefix,
             currentTerm = null,
             termUndefined = false,
+            termwrapper = u.getNode('#'+prefix+'termwrapper'),
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             rows = Math.ceil(dimensions.rows - rowAdjust),
             cols = Math.ceil(dimensions.cols - 7),
             prevScrollback = localStorage.getItem(prefix+"scrollback" + term);
         if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
-            var termwrapper = u.getNode('#'+prefix+'termwrapper');
             // Create the grid if it isn't already present
             if (!termwrapper) {
                 var goDiv = u.getNode(go.prefs.goDiv),
@@ -3737,7 +3739,11 @@ go.Base.update(GateOne.Terminal, {
             currentTerm = prefix+'term' + t.lastTermNumber;
         }
         if (!where) {
-            where = '#'+prefix+'termwrapper'; // Use the termwrapper (grid) by default
+            if (termwrapper) {
+                where = termwrapper; // Use the termwrapper (grid) by default
+            } else {
+                where = go.prefs.goDiv;
+            }
         }
         // Create the terminal record scaffold
         go.terminals[term] = {
