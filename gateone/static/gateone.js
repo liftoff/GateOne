@@ -985,7 +985,7 @@ GateOne.Base.update(GateOne.Utils, {
         // Tells the Gate One server to send all the plugin CSS files to the client.
         var u = go.Utils,
             container = go.prefs.goDiv.split('#')[1];
-        go.ws.send(JSON.stringify({'get_style': {'container': container, 'prefix': go.prefs.prefix, 'plugins': true}}));
+        go.ws.send(JSON.stringify({'get_style': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'plugins': true}}));
     },
     loadScript: function(url, callback){
         // Imports the given JS *url*

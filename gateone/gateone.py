@@ -916,6 +916,7 @@ class TerminalWebSocket(WebSocketHandler):
             origin_header = self.request.headers['Origin']
         elif 'Sec-Websocket-Origin' in self.request.headers: # Old version
             origin_header = self.request.headers['Sec-Websocket-Origin']
+        origin_header = origin_header.lower() # hostnames are case-insensitive
         if '*' not in valid_origins:
             if origin_header not in valid_origins:
                 origin = origin_header
@@ -1817,7 +1818,7 @@ class TerminalWebSocket(WebSocketHandler):
                 color_path,
                 container=container,
                 prefix=prefix,
-                url_prefix=self.settings['url_prefix']
+                url_prefix=go_url + self.settings['url_prefix']
             )
             out_dict['colors'] = colors_css
         if plugins:
@@ -1840,7 +1841,7 @@ class TerminalWebSocket(WebSocketHandler):
                                 plugin_css_path,
                                 container=container,
                                 prefix=prefix,
-                                url_prefix=self.settings['url_prefix']
+                                url_prefix=go_url + self.settings['url_prefix']
                             )
                             if bytes != str: # Python 3
                                 plugin_css = str(plugin_css, 'UTF-8')
@@ -2517,7 +2518,8 @@ def main():
     if not options.url_prefix.endswith('/'):
         options.url_prefix += '/'
     # Convert the origins into a list of http:// or https:// origins
-    real_origins = options.origins.split(';')
+    origins = options.origins.lower() # Origins are case-insensitive
+    real_origins = origins.split(';')
     if options.origins == '*':
         real_origins = ['*']
     logging.info("Connections to this server will be allowed from the following"
