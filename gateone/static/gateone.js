@@ -2186,18 +2186,19 @@ GateOne.Base.update(GateOne.Visual, {
         }
         go.Visual.goDimensions.w = parseInt(style.width.split('px')[0]);
         go.Visual.goDimensions.h = parseInt(style.height.split('px')[0]);
-        if (wrapperDiv) {
+        if (wrapperDiv) { // Explicit check here in case we're embedded into something that isn't using the grid (aka the wrapperDiv here).
             // Update the width of termwrapper in case #gateone has padding
             wrapperDiv.style.width = ((go.Visual.goDimensions.w+rightAdjust)*2) + 'px';
+            if (terms.length) {
+                terms.forEach(function(termObj) {
+                    termObj.style.height = go.Visual.goDimensions.h + 'px';
+                    termObj.style.width = go.Visual.goDimensions.w + 'px';
+    //                 termObj.style['margin-right'] = style['padding-right'];
+    //                 termObj.style['margin-bottom'] = style['padding-bottom'];
+                });
+            }
         }
-        if (terms.length) {
-            terms.forEach(function(termObj) {
-                termObj.style.height = go.Visual.goDimensions.h + 'px';
-                termObj.style.width = go.Visual.goDimensions.w + 'px';
-//                 termObj.style['margin-right'] = style['padding-right'];
-//                 termObj.style['margin-bottom'] = style['padding-bottom'];
-            });
-        }
+
     },
     applyTransform: function (obj, transform) {
         // Applys the given CSS3 *transform* to *obj* for all known vendor prefixes (e.g. -<whatever>-transform)
@@ -3205,6 +3206,8 @@ go.Terminal.updateTermCallbacks = [];
 go.Terminal.newTermCallbacks = [];
 // All defined closeTermCallbacks are executed whenever a terminal is closed just like newTermCallbacks:  callback(<term number>)
 go.Terminal.closeTermCallbacks = [];
+// All defined reattachTerminalsCallbacks are executed whenever the reattachTerminalsAction is called.  It is important to register a callback here when in embedded mode (if you want to place terminals in a specific location).
+go.Terminal.reattachTerminalsCallbacks = [];
 go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into clickable links).  Use registerTextTransform() to add new ones.
 go.Base.update(GateOne.Terminal, {
     init: function() {
@@ -3704,6 +3707,7 @@ go.Base.update(GateOne.Terminal, {
             t = go.Terminal,
             prefix = go.prefs.prefix,
             currentTerm = null,
+            terminal = null,
             termUndefined = false,
             termwrapper = u.getNode('#'+prefix+'termwrapper'),
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
@@ -3771,10 +3775,14 @@ go.Base.update(GateOne.Terminal, {
             }
             go.terminals[term]['scrollback'] = blankLines;
         }
-        // Add the terminal div to the grid
-        var terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': 'terminal', 'style': {'width': go.Visual.goDimensions.w + 'px', 'height': go.Visual.goDimensions.h + 'px'}}),
+        if (!go.prefs.embedded) {
+            // Add the terminal div to the grid
+            terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': 'terminal', 'style': {'width': go.Visual.goDimensions.w + 'px', 'height': go.Visual.goDimensions.h + 'px'}});
+        } else {
+            terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': 'terminal'});
+        }
         // Get any previous term's dimensions so we can use them for the new terminal
-            termSettings = {
+        var termSettings = {
                 'term': term,
                 'rows': rows,
                 'cols': cols,
@@ -3951,27 +3959,35 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
         }
-        if (terminals.length) {
-            // Reattach the running terminals
-            var selectedMatch = false;
-            terminals.forEach(function(termNum) {
-                if (termNum == localStorage[prefix+'selectedTerminal']) {
-                    selectedMatch = true;
-                    var slide = u.partial(go.Visual.slideToTerm, termNum, true);
-                    setTimeout(slide, 500);
+        if (!go.prefs.embedded && go.Terminal.reattachTerminalsCallbacks.length == 0) { // Only perform the default action if not in embedded mode and there are no registered reattachTerminalsCallbacks callbacks.
+            if (terminals.length) {
+                // Reattach the running terminals
+                var selectedMatch = false;
+                terminals.forEach(function(termNum) {
+                    if (termNum == localStorage[prefix+'selectedTerminal']) {
+                        selectedMatch = true;
+                        var slide = u.partial(go.Visual.slideToTerm, termNum, true);
+                        setTimeout(slide, 500);
+                    }
+                    go.Terminal.newTerminal(termNum);
+                    go.Terminal.lastTermNumber = termNum;
+                });
+                if (!selectedMatch) {
+                    go.Visual.slideToTerm(go.Terminal.lastTermNumber, true);
                 }
-                go.Terminal.newTerminal(termNum);
-                go.Terminal.lastTermNumber = termNum;
-            });
-            if (!selectedMatch) {
-                go.Visual.slideToTerm(go.Terminal.lastTermNumber, true);
+            } else {
+                // Create a new terminal
+                go.Terminal.lastTermNumber = 0; // Reset to 0
+                setTimeout(function() {
+                    go.Terminal.newTerminal();
+                }, 1000); // Give everything a moment to settle so the dimensions are set properly
             }
-        } else {
-            // Create a new terminal
-            go.Terminal.lastTermNumber = 0; // Reset to 0
-            setTimeout(function() {
-                go.Terminal.newTerminal();
-            }, 1000); // Give everything a moment to settle so the dimensions are set properly
+        }
+        if (go.Terminal.reattachTerminalsCallbacks.length) {
+            // Call any registered callbacks
+            go.Terminal.reattachTerminalsCallbacks.forEach(function(callback) {
+                callback(terminals);
+            });
         }
     },
     modes: {
