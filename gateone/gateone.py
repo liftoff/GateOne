@@ -1426,6 +1426,8 @@ class TerminalWebSocket(WebSocketHandler):
         """
         logging.debug("killing terminal: %s" % term)
         term = int(term)
+        if term not in SESSIONS[self.session]:
+            return # Nothing to do
         multiplex = SESSIONS[self.session][term]['multiplex']
         # Remove the EXIT callback so the terminal doesn't restart itself
         multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
