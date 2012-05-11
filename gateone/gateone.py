@@ -965,9 +965,13 @@ class TerminalWebSocket(WebSocketHandler):
             return
         if message_obj:
             for key, value in message_obj.items():
-                try: # Plugins first so they can override behavior if they wish
-                    PLUGIN_WS_CMDS[key](value, tws=self)# tws==TerminalWebSocket
-                except (KeyError, TypeError, AttributeError) as e:
+                if key in PLUGIN_WS_CMDS:
+                    try: # Plugins first so they can override behavior if they wish
+                        PLUGIN_WS_CMDS[key](value, tws=self)# tws==TerminalWebSocket
+                    except (KeyError, TypeError, AttributeError) as e:
+                        logging.error(_(
+                            "Error running plugin WebSocket action: %s" % key))
+                else:
                     try:
                         if value:
                             self.commands[key](value)
@@ -975,6 +979,9 @@ class TerminalWebSocket(WebSocketHandler):
                             # Try, try again
                             self.commands[key]()
                     except (KeyError, TypeError, AttributeError) as e:
+                        #logging.debug(e)
+                        #import traceback
+                        #traceback.print_exc(file=sys.stdout)
                         logging.error(_('Unknown WebSocket action: %s' % key))
 
     def on_close(self):

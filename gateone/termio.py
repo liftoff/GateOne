@@ -1356,7 +1356,7 @@ class MultiplexMacOSIOLoop(MultiplexPOSIXIOLoop):
         # sub-subprocesses are inefficient (and blocking) but what can you do?
         exitstatus, output = shell_command(
             "ps -ef | awk '{print $2}' | grep %s" % self.pid)
-        if exitstatus != 0:
+        if exitstatus == 0:
             self._alive = True
         else:
             self._alive = False
