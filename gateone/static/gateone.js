@@ -2522,10 +2522,8 @@ GateOne.Base.update(GateOne.Visual, {
             v.scrollbackToggle = true;
         }
     },
-    slideToTerm: function(term, changeSelected) {
+    slideToTerm: function(term) {
         // Slides the view to the given *term*.
-        // If *changeSelected* is true, this will also set the current terminal to the one we're sliding to.
-        // ...why would we ever want to keep input going to a different terminal than the one we're sliding to?  So we can do some cool stuff in the future ("Spoilers" =)
         var u = go.Utils,
             v = go.Visual,
             termObj = u.getNode('#'+go.prefs.prefix+'term' + term),
@@ -2549,9 +2547,7 @@ GateOne.Base.update(GateOne.Visual, {
         if (style['padding-bottom'] != "0px") {
             bottomAdjust = parseInt(style['padding-bottom'].split('px')[0]);
         }
-        if (changeSelected) {
-            go.Net.setTerminal(term);
-        }
+        go.Net.setTerminal(term);
         u.getNode('#'+go.prefs.prefix+'sideinfo').innerHTML = displayText;
         // Have to scroll all the way to the top in order for the translate effect to work properly:
         u.getNode(go.prefs.goDiv).scrollTop = 0;
@@ -2593,7 +2589,7 @@ GateOne.Base.update(GateOne.Visual, {
         });
         if (u.isEven(term+1)) {
             var slideTo = terms[term-1].id.split(prefix+'term')[1];
-            go.Visual.slideToTerm(slideTo, true);
+            go.Terminal.switchTerminal(slideTo);
         }
     },
     slideRight: function() {
@@ -2612,7 +2608,7 @@ GateOne.Base.update(GateOne.Visual, {
             });
             if (!u.isEven(term+1)) {
                 var slideTo = terms[term+1].id.split(prefix+'term')[1];
-                go.Visual.slideToTerm(slideTo, true);
+                go.Terminal.switchTerminal(slideTo);
             }
         }
     },
@@ -2632,7 +2628,7 @@ GateOne.Base.update(GateOne.Visual, {
             });
             if (terms[term+2]) {
                 var slideTo = terms[term+2].id.split(prefix+'term')[1];
-                go.Visual.slideToTerm(slideTo, true);
+                go.Terminal.switchTerminal(slideTo);
             }
         }
     },
@@ -2652,7 +2648,7 @@ GateOne.Base.update(GateOne.Visual, {
             });
             if (terms[term-2]) {
                 var slideTo = terms[term-2].id.split(prefix+'term')[1];
-                go.Visual.slideToTerm(Math.max(slideTo, 1), true);
+                go.Terminal.switchTerminal(Math.max(slideTo, 1));
             }
         }
     },
@@ -2681,7 +2677,7 @@ GateOne.Base.update(GateOne.Visual, {
             });
             u.getNode(go.prefs.goDiv).style.overflow = 'hidden';
             if (goBack) {
-                v.slideToTerm(localStorage[prefix+'selectedTerminal']); // Slide to the intended terminal
+                go.Terminal.switchTerminal(localStorage[prefix+'selectedTerminal']); // Slide to the intended terminal
             }
             if (controlsContainer) {
                 u.showElement(controlsContainer);
@@ -2732,7 +2728,7 @@ GateOne.Base.update(GateOne.Visual, {
                     var termPre = GateOne.terminals[termID]['node'];
                     localStorage[prefix+'selectedTerminal'] = termID;
                     v.toggleGridView(false);
-                    v.slideToTerm(termID, true);
+                    go.Terminal.switchTerminal(termID);
                     u.scrollToBottom(termPre);
                 }
                 termObj.onmouseover = function(e) {
@@ -3208,7 +3204,9 @@ go.Terminal.newTermCallbacks = [];
 go.Terminal.closeTermCallbacks = [];
 // All defined reattachTerminalsCallbacks are executed whenever the reattachTerminalsAction is called.  It is important to register a callback here when in embedded mode (if you want to place terminals in a specific location).
 go.Terminal.reattachTerminalsCallbacks = [];
+go.Terminal.termSelectCallback = null; // Gets assigned in switchTerminal if not already.  Can be used to override the default termimnal switching animation function (GateOne.Visual.slideToTerm)
 go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into clickable links).  Use registerTextTransform() to add new ones.
+go.Terminal.lastTermNumber = 0; // Starts at 0 since newTerminal() increments it by 1
 go.Base.update(GateOne.Terminal, {
     init: function() {
         var t = go.Terminal,
@@ -3391,6 +3389,10 @@ go.Base.update(GateOne.Terminal, {
         toolbar.insertBefore(toolbarInfo, toolbarPrefs);
         toolbar.insertBefore(toolbarNewTerm, toolbarInfo);
         toolbar.insertBefore(toolbarClose, toolbarNewTerm);
+        // Assign our visual terminal switching function (if not already assigned)
+        if (!go.Terminal.termSelectCallback) {
+            go.Terminal.termSelectCallback = go.Visual.slideToTerm;
+        }
         // Register our keyboard shortcuts
         // Ctrl-Alt-N to create a new terminal
         if (!go.prefs.embedded) {
@@ -3718,16 +3720,16 @@ go.Base.update(GateOne.Terminal, {
         if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
             // Create the grid if it isn't already present
             if (!termwrapper) {
-                var goDiv = u.getNode(go.prefs.goDiv),
-                    grid = go.Visual.createGrid('termwrapper');
-                goDiv.appendChild(grid);
+                var goDiv = u.getNode(go.prefs.goDiv);
+                termwrapper = go.Visual.createGrid('termwrapper');
+                goDiv.appendChild(termwrapper);
                 var style = window.getComputedStyle(goDiv, null),
                     adjust = 0;
                 if (style['padding-right']) {
                     adjust = parseInt(style['padding-right'].split('px')[0]);
                 }
                 var gridWidth = (go.Visual.goDimensions.w+adjust) * 2; // Will likely always be x2
-                grid.style.width = gridWidth + 'px';
+                termwrapper.style.width = gridWidth + 'px';
             }
         }
         if (term) {
@@ -3789,7 +3791,7 @@ go.Base.update(GateOne.Terminal, {
                 'em_dimensions': emDimensions
             },
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
-            slide = u.partial(go.Visual.slideToTerm, term, true),
+            slide = u.partial(go.Terminal.switchTerminal, term),
             pastearea = u.createElement('textarea', {'id': 'pastearea'+term, 'class': 'pastearea'}),
         // The following functions control the copy & paste capability
             pasteareaOnInput = function(e) {
@@ -3923,9 +3925,7 @@ go.Base.update(GateOne.Terminal, {
         }
         if (lastTerm) {
             var termNum = lastTerm.id.split('term')[1];
-            // TODO: Change the usage of slideToTerm everywhere to be something more ambiguous that can be drop-in replaced.
-            //       For example, go.Terminal.switchToTerm which would call whatever visualizations the user has loaded/selected
-            go.Visual.slideToTerm(termNum, true);
+            go.Terminal.switchTerminal(termNum);
         } else {
             // Only open a new terminal if we're not in embedded mode.  When you embed you have more explicit control but that also means taking care of stuff like this on your own.
             if (!go.prefs.embedded) {
@@ -3936,7 +3936,13 @@ go.Base.update(GateOne.Terminal, {
             }
         }
     },
-    reconnectTerminalAction: function(term){
+    switchTerminal: function(term) {
+        // Calls GateOne.Net.setTerminal(*term*) then calls whatever function is assigned to GateOne.Terminal.termSelectCallback(*term*) (default is GateOne.Terminal.switchTerminal())
+        // So if you want to write your own animation/function for switching terminals you can make it happen by simply assigning your function to GateOne.Terminal.termSelectCallback
+        go.Net.setTerminal(term);
+        go.Terminal.termSelectCallback(term);
+    },
+    reconnectTerminalAction: function(term) {
         // Called when the server reports that the terminal number supplied via 'new_terminal' already exists
         // NOTE: Doesn't do anything at the moment...  May never do anything.  You never know.
         logDebug('reconnectTerminalAction(' + term + ')');
@@ -3966,14 +3972,14 @@ go.Base.update(GateOne.Terminal, {
                 terminals.forEach(function(termNum) {
                     if (termNum == localStorage[prefix+'selectedTerminal']) {
                         selectedMatch = true;
-                        var slide = u.partial(go.Visual.slideToTerm, termNum, true);
+                        var slide = u.partial(go.Terminal.switchTerminal, termNum);
                         setTimeout(slide, 500);
                     }
                     go.Terminal.newTerminal(termNum);
                     go.Terminal.lastTermNumber = termNum;
                 });
                 if (!selectedMatch) {
-                    go.Visual.slideToTerm(go.Terminal.lastTermNumber, true);
+                    go.Terminal.switchTerminal(go.Terminal.lastTermNumber);
                 }
             } else {
                 // Create a new terminal

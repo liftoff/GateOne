@@ -2631,7 +2631,7 @@ def main():
         # First we have to make sure there's at least one pty present
         tempfd1, tempfd2 = pty.openpty()
         # Now check the owning group (doesn't matter which one so we use 0)
-        tty_gid = os.stat('/dev/pts/0').st_gid
+        tty_gid = os.stat('/dev/ptmx').st_gid
         # Close our temmporary pty/fds so we're not wasting them
         os.close(tempfd1)
         os.close(tempfd2)
