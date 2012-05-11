@@ -270,6 +270,12 @@ for i in xrange(256):
     RENDITION_CLASSES[(i+10000)] = "bx%s" % i
 del i # Cleanup
 
+try:
+    unichr(0x10000) # Will throw a ValueError on narrow Python builds
+    SPECIAL = 1048576 # U+100000 or unichr(SPECIAL) (start of Plane 16)
+except:
+    SPECIAL = 63561
+
 def handle_special(e):
     """
     Used in conjunction with codecs.register_error, will replace special ascii
@@ -509,17 +515,31 @@ def pua_counter():
     """
     A generator that returns a Unicode Private Use Area (PUA) character starting
     at the beginning of Plane 16 (U+100000); counting up by one with each
-    successive call.
+    successive call.  If this is a narrow Python build the tail end of Plane 15
+    will be used as a fallback (with a lot less characters).
 
     .. note:: Meant to be used as references to image objects in the screen array()
     """
-    n = 1048576 # U+100000 or u'\U00100000'
-    while True:
-        yield unichr(n)
-        if n == 1114111:
-            n = 1048576 # Reset--would be impressive to make it this far!
-        else:
-            n += 1
+    if SPECIAL == 1048576: # Not a narrow build of Python
+        n = SPECIAL # U+100000 or unichr(SPECIAL) (start of Plane 16)
+        while True:
+            yield unichr(n)
+            if n == 1114111:
+                n = SPECIAL # Reset--would be impressive to make it this far!
+            else:
+                n += 1
+    else:
+        # This Python build is 'narrow' so we have to settle for less
+        # Hopefully no real-world terminal will actually want to use one of
+        # these characters.  In my research I couldn't find a font that used
+        # them.  Please correct me if I'm wrong!
+        n = SPECIAL # u'\uf849'
+        while True:
+            yield unichr(n)
+            if n == 63717: # The end of nothing-but-block-chars in Plane 15
+                n = SPECIAL # Reset
+            else:
+                n += 1
 
 class Terminal(object):
     """
@@ -620,7 +640,7 @@ class Terminal(object):
         self.esc_buffer = '' # For holding escape sequences as they're typed.
         self.show_cursor = True
         self.cursor_home = 0
-        self.cur_rendition = u'\U00100000' # Should always be reset ([0])
+        self.cur_rendition = unichr(SPECIAL) # Should always be reset ([0])
         self.init_screen()
         self.init_renditions()
         self.G0_charset = self.charsets['B']
@@ -842,7 +862,7 @@ class Terminal(object):
         self.prev_dump_rend = []
         self.html_cache = [] # Force this to be reset as well
 
-    def init_renditions(self, rendition=u'\U00100000'):
+    def init_renditions(self, rendition=unichr(SPECIAL)):
         """
         Replaces :attr:`self.renditions` with arrays of *rendition* (characters)
         using :attr:`self.cols` and :attr:`self.rows` for the dimenions.
@@ -972,7 +992,7 @@ class Terminal(object):
         elif rows > self.rows: # Add rows at the bottom
             for i in xrange(rows - self.rows):
                 line = array('u', u' ' * self.cols)
-                renditions = array('u', u'\U00100000' * self.cols)
+                renditions = array('u', unichr(SPECIAL) * self.cols)
                 self.screen.append(line)
                 self.renditions.append(renditions)
         self.rows = rows
@@ -991,7 +1011,7 @@ class Terminal(object):
             for i in xrange(self.rows):
                 for j in xrange(cols - self.cols):
                     self.screen[i].append(u' ')
-                    self.renditions[i].append(u'\U00100000')
+                    self.renditions[i].append(unichr(SPECIAL))
         self.cols = cols
 
         # Fix the cursor location:
@@ -1408,7 +1428,7 @@ class Terminal(object):
             style = self.renditions.pop(self.top_margin)
             self.scrollback_renditions.append(style)
             # Insert a new empty rendition as well:
-            empty_line = array('u', u'\U00100000' * self.cols)
+            empty_line = array('u', unichr(SPECIAL) * self.cols)
             self.renditions.insert(self.bottom_margin, empty_line)
         # Execute our callback indicating lines have been updated
         try:
@@ -1437,7 +1457,7 @@ class Terminal(object):
             # Remove bottom line's style information:
             self.renditions.pop(self.bottom_margin)
             # Insert a new empty one:
-            empty_line = array('u', u'\U00100000' * self.cols)
+            empty_line = array('u', unichr(SPECIAL) * self.cols)
             self.renditions.insert(self.top_margin, empty_line)
         # Execute our callback indicating lines have been updated
         try:
@@ -1468,7 +1488,7 @@ class Terminal(object):
             empty_line = array('u', u' ' * self.cols) # Line full of spaces
             self.screen.insert(self.cursorY, empty_line) # Insert at cursor
             # Insert a new empty rendition as well:
-            empty_line = array('u', u'\U00100000' * self.cols)
+            empty_line = array('u', unichr(SPECIAL) * self.cols)
             self.renditions.insert(self.cursorY, empty_line) # Insert at cursor
 
     def delete_line(self, n=1):
@@ -1489,7 +1509,7 @@ class Terminal(object):
             # Add it to the bottom of the view:
             self.screen.insert(self.bottom_margin, empty_line) # Insert at bottom
             # Insert a new empty rendition as well:
-            empty_line = array('u', u'\U00100000' * self.cols)
+            empty_line = array('u', unichr(SPECIAL) * self.cols)
             self.renditions.insert(self.bottom_margin, empty_line)
 
     def backspace(self):
@@ -1918,7 +1938,7 @@ class Terminal(object):
             self.alt_screen = None
             self.alt_renditions = None
         # These all need to be reset no matter what
-        self.cur_rendition = u'\U00100000'
+        self.cur_rendition = unichr(SPECIAL)
         self.prev_dump = []
         self.prev_dump_rend = []
         self.html_cache = []
@@ -1969,7 +1989,7 @@ class Terminal(object):
         n = int(n)
         for i in xrange(n):
             self.screen[self.cursorY].pop() # Take one down, pass it around
-            self.screen[self.cursorY].insert(self.cursorX, u'\U00100000')
+            self.screen[self.cursorY].insert(self.cursorX, unichr(SPECIAL))
 
     def delete_characters(self, n=1):
         """
@@ -1992,7 +2012,7 @@ class Terminal(object):
                 self.screen[self.cursorY].pop(self.cursorX)
                 self.screen[self.cursorY].append(u' ')
                 self.renditions[self.cursorY].pop(self.cursorX)
-                self.renditions[self.cursorY].append(u'\U00100000')
+                self.renditions[self.cursorY].append(unichr(SPECIAL))
             except IndexError:
                 # At edge of screen, ignore
                 #print('IndexError in delete_characters(): %s' % e)
@@ -2014,7 +2034,7 @@ class Terminal(object):
         n = min(n, distance)
         for i in xrange(n):
             self.screen[self.cursorY][self.cursorX+i] = u' '
-            self.renditions[self.cursorY][self.cursorX+i] = u'\U00100000'
+            self.renditions[self.cursorY][self.cursorX+i] = unichr(SPECIAL)
 
     def cursor_left(self, n=1):
         """ESCnD CUB (Cursor Back)"""
@@ -2365,7 +2385,7 @@ class Terminal(object):
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
             # First char in PUA Plane 16 is always the default:
-            self.cur_rendition = u'\U00100000' # Should be reset (e.g. [0])
+            self.cur_rendition = unichr(SPECIAL) # Should be reset (e.g. [0])
             return # No need for further processing; save some CPU
         # Convert the string (e.g. '0;1;32') to a list (e.g. [0,1,32]
         new_renditions = [int(a) for a in n.split(';') if a != '']
@@ -2453,6 +2473,7 @@ class Terminal(object):
         results = []
         # NOTE: Why these duplicates of self.* and globals?  Local variable
         # lookups are faster--especially in loops.
+        special = SPECIAL
         rendition_classes = RENDITION_CLASSES
         screen = self.screen
         renditions = self.renditions
@@ -2485,7 +2506,7 @@ class Terminal(object):
             charcount = 0
             for char, rend in izip(line, rendition):
                 rend = renditions_store[rend] # Get actual rendition
-                if ord(char) > 1048575: # Special stuff =)
+                if ord(char) >= special: # Special stuff =)
                     # Obviously, not really a single character
                     if not Image: # Can't use images in the terminal
                         outline += "<i>Image file</i>"
@@ -2619,6 +2640,7 @@ class Terminal(object):
         """
         # NOTE: See the comments in _spanify_screen() for details on this logic
         results = []
+        special = SPECIAL
         screen = self.scrollback_buf
         renditions = self.scrollback_renditions
         rendition_classes = RENDITION_CLASSES
@@ -2632,7 +2654,7 @@ class Terminal(object):
             outline = ""
             for char, rend in izip(line, rendition):
                 rend = renditions_store[rend] # Get actual rendition
-                if ord(char) > 1048575: # Special stuff =)
+                if ord(char) >= special: # Special stuff =)
                     # Obviously, not really a single character
                     if not Image: # Can't use images in the terminal
                         outline += "<i>Image file</i>"

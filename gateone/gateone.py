@@ -921,7 +921,9 @@ class TerminalWebSocket(WebSocketHandler):
             if origin_header not in valid_origins:
                 origin = origin_header
                 short_origin = origin.split('//')[1]
-                self.write_message(_("Access denied for origin: %s" % origin))
+                denied_msg = _("Access denied for origin: %s" % origin)
+                logging.error(denied_msg)
+                self.write_message(denied_msg)
                 self.write_message(_(
                     "If you feel this is incorrect you just have to add '%s' to"
                     " the 'origin' option in your server.conf.  See the docs "
