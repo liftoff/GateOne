@@ -1127,7 +1127,7 @@ class TerminalWebSocket(WebSocketHandler):
                             self.close()
                             return
                         window = self.settings['api_timestamp_window']
-                        then = datetime.fromtimestamp(timestamp/1000)
+                        then = datetime.fromtimestamp(int(timestamp)/1000)
                         time_diff = datetime.now() - then
                         if time_diff > window:
                             logging.error(_(

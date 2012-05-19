@@ -1281,6 +1281,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 # Call the exitfunc (if set)
                 if self.exitfunc:
                     self.exitfunc(self, self.exitstatus)
+                    self.exitfunc = None # Just in case
                 return False
         else:
             return False
@@ -1338,6 +1339,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             pass # Can happen if this instance winds up in a thread
         for callback in self.callbacks[self.CALLBACK_EXIT].values():
             self._call_callback(callback)
+        # Call the exitfunc (if set)
+        if self.exitfunc:
+            self.exitfunc(self, self.exitstatus)
+            self.exitfunc = None
         if self._patterns:
             self.timeout_check(timeout_now=True)
             self.unexpect()

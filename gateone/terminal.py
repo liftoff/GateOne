@@ -151,9 +151,9 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from itertools import imap, izip
 
-# Import our own stuff
-from utils import get_translation
-_ = get_translation()
+# Inernationalization support
+import gettext
+gettext.install('terminal')
 
 # Import 3rd party stuff
 try:
