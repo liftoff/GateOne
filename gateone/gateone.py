@@ -979,9 +979,10 @@ class TerminalWebSocket(WebSocketHandler):
                             # Try, try again
                             self.commands[key]()
                     except (KeyError, TypeError, AttributeError) as e:
-                        #logging.debug(e)
-                        #import traceback
-                        #traceback.print_exc(file=sys.stdout)
+                        logging.debug(e)
+                        if self.settings['logging'] == "debug":
+                            import traceback
+                            traceback.print_exc(file=sys.stdout)
                         logging.error(_('Unknown WebSocket action: %s' % key))
 
     def on_close(self):
@@ -1277,6 +1278,14 @@ class TerminalWebSocket(WebSocketHandler):
             syslog_host=self.settings['syslog_host']
         )
 
+    def term_ended(self, term):
+        """
+        Sends the 'term_ended' message to the client letting it know that the
+        given *term* is no more.
+        """
+        message = {'term_ended': term}
+        self.write_message(json_encode(message))
+
     @require_auth
     def new_terminal(self, settings):
         """
@@ -1376,8 +1385,7 @@ class TerminalWebSocket(WebSocketHandler):
                 self.set_title(term, force=True)
             else:
                 # Tell the client this terminal is no more
-                message = {'term_ended': term}
-                self.write_message(json_encode(message))
+                self.term_ended(term)
                 return
         # Setup callbacks so that everything gets called when it should
         self.callback_id = callback_id = "%s;%s;%s" % (
@@ -1389,8 +1397,8 @@ class TerminalWebSocket(WebSocketHandler):
         refresh = partial(self.refresh_screen, term)
         multiplex = SESSIONS[self.session][term]['multiplex']
         multiplex.add_callback(multiplex.CALLBACK_UPDATE, refresh, callback_id)
-        restart = partial(self.new_terminal, settings)
-        multiplex.add_callback(multiplex.CALLBACK_EXIT, restart, callback_id)
+        ended = partial(self.term_ended, term)
+        multiplex.add_callback(multiplex.CALLBACK_EXIT, ended, callback_id)
         # Setup the terminal emulator callbacks
         term_emulator = multiplex.term
         set_title = partial(self.set_title, term)

@@ -174,6 +174,7 @@ Options:
 &nbsp;&nbsp;--origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value must contain the hostnames and FQDNs (e.g. https://foo;https://foo.bar;) users will use to connect to your Gate One server as well as the hostnames/FQDNs of any sites that will be embedding Gate One. Here's the default on your system: 'https://localhost;https://yourhostname'. Alternatively, '*' may be  specified to allow access from anywhere.
 &nbsp;&nbsp;--pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
 &nbsp;&nbsp;--pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
+&nbsp;&nbsp;--pid_file                       Path of the pid file.   Default: /var/run/gateone.pid
 &nbsp;&nbsp;--port                           Run on the given port.
 &nbsp;&nbsp;--session_dir                    Path to the location where session information will be stored.
 &nbsp;&nbsp;--session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default: Enabled
@@ -353,6 +354,47 @@ function in __main__</p>
 (TerminalWebSocket, specifically).</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="gateone.kill_session">
+<tt class="descclassname">gateone.</tt><tt class="descname">kill_session</tt><big>(</big><em>session</em>, <em>kill_dtach=False</em><big>)</big><a class="headerlink" href="#gateone.kill_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminates all the processes associated with <em>session</em> and then removes
+<em>session</em> from the global SESSIONS dict.  If <em>kill_dtach</em> is True, will
+also call kill_dtached_proc() on the terminal processes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.kill_all_sessions">
+<tt class="descclassname">gateone.</tt><tt class="descname">kill_all_sessions</tt><big>(</big><em>kill_dtach=False</em><big>)</big><a class="headerlink" href="#gateone.kill_all_sessions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls kill_session() on all sessions in the SESSIONS dict.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.timeout_sessions">
+<tt class="descclassname">gateone.</tt><tt class="descname">timeout_sessions</tt><big>(</big><em>kill_dtach=False</em><big>)</big><a class="headerlink" href="#gateone.timeout_sessions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loops over the SESSIONS dict killing any sessions that haven't been used
+for the length of time specified in <em>TIMEOUT</em> (global).  The value of
+<em>TIMEOUT</em> can be set in server.conf or specified on the command line via the
+<em>session_timeout</em> value.  Arguments:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>kill_dtach</em> - If True, will call kill_dtached_proc() on each terminal to ensure it dies.</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is meant to be called via Tornado's ioloop.PeriodicCallback().</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.cleanup_session_logs">
+<tt class="descclassname">gateone.</tt><tt class="descname">cleanup_session_logs</tt><big>(</big><em>users_dir</em>, <em>max_age</em><big>)</big><a class="headerlink" href="#gateone.cleanup_session_logs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleans up all user's session logs older than <em>max_age</em> (timedelta) given the
+<em>users_dir</em> (string).  The session log directory is assumed to be:</p>
+<blockquote>
+<div><em>users_dir</em>/&lt;user&gt;/logs</div></blockquote>
+</dd></dl>
+
 <dl class="class">
 <dt id="gateone.HTTPSRedirectHandler">
 <em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">HTTPSRedirectHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#HTTPSRedirectHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.HTTPSRedirectHandler" title="Permalink to this definition">¶</a></dt>
@@ -387,20 +429,6 @@ gateone.min.js.</p>
 &lt;source&gt; of the &lt;audio&gt; tag inside the index.html template.  Gate One
 administrators can replace bell.ogg with whatever they like but the file
 size should be less than 32k when encoded to Base64.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="gateone.StyleHandler">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">StyleHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#StyleHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.StyleHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Serves up our CSS templates (themes, colors, etc) and enumerates what's
-available depending on the given arguments:</p>
-<p>If 'enumerate' is given, returna  JSON-encoded object containing lists of
-our themes/colors in the form of:</p>
-<blockquote>
-<div>{'themes': themes, 'colors': colors}</div></blockquote>
-<p>NOTE: The .css part of filenames will be stripped when sent to the client.</p>
-<p>If 'theme' or 'colors' are provided (along with the requisite 'container'
-and 'prefix' arguments), returns the content of the requested CSS file.</p>
 </dd></dl>
 
 <dl class="class">
@@ -506,6 +534,13 @@ client-specific settings.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gateone.TerminalWebSocket.term_ended">
+<tt class="descname">term_ended</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.term_ended" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the 'term_ended' message to the client letting it know that the
+given <em>term</em> is no more.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gateone.TerminalWebSocket.new_terminal">
 <tt class="descname">new_terminal</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.new_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.new_terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Starts up a new terminal associated with the user's session using
@@ -548,6 +583,8 @@ scrollback).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;set_title&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&quot;user@host&quot;</span><span class="p">}}</span>
 </pre></div>
 </div>
+<p>If <em>force</em> resolves to True the title will be sent to the cleint even if
+it matches the previously-set title.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.</p>
@@ -629,7 +666,15 @@ too).</p>
 <dl class="method">
 <dt id="gateone.TerminalWebSocket.char_handler">
 <tt class="descname">char_handler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.char_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.char_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes <em>chars</em> (string) to the currently-selected terminal</p>
+<dd><p>Writes <em>chars</em> (string) to <em>term</em>.  If <em>term</em> is not provided the
+characters will be sent to the currently-selected terminal.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.TerminalWebSocket.write_chars">
+<tt class="descname">write_chars</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.write_chars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes <em>message['chars']</em> to <em>message['term']</em>.  If <em>message['term']</em>
+is not present, <em>self.current_term</em> will be used.</p>
 </dd></dl>
 
 <dl class="method">
@@ -640,10 +685,45 @@ process_opt_esc_sequence().</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="gateone.TerminalWebSocket.get_bell">
+<tt class="descname">get_bell</tt><big>(</big><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.get_bell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the bell sound data to the client in in the form of a <a class="reference external" href="data::URI">data::URI</a>.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="gateone.TerminalWebSocket.get_webworker">
 <tt class="descname">get_webworker</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.get_webworker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.get_webworker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the text of our go_process.js to get around the limitations of
-loading remote Web Worker URLs (for embedding Gate One into other apps).</p>
+<dd><p>Sends the text of our go_process.js to the client in order to get around
+the limitations of loading remote Web Worker URLs (for embedding Gate
+One into other apps).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.TerminalWebSocket.get_style">
+<tt class="descname">get_style</tt><big>(</big><em>settings</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.get_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends the CSS stylesheets matching the properties specified in
+<em>settings</em> to the client.  <em>settings</em> must contain the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>container</strong> - The element Gate One resides in (e.g. 'gateone')</li>
+<li><strong>prefix</strong> - The string being used to prefix all elements (e.g. '<a href="#id1"><span class="problematic" id="id2">go_</span></a>')</li>
+</ul>
+</div></blockquote>
+<p><em>settings</em> may also contain any combination of the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>theme</strong> - The name of the CSS theme to be retrieved.</li>
+<li><strong>colors</strong> - The name of the text color CSS scheme to be retrieved.</li>
+<li><strong>plugins</strong> - If true, will send all plugin .css files to the client.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.TerminalWebSocket.enumerate_themes">
+<tt class="descname">enumerate_themes</tt><big>(</big><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.enumerate_themes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a JSON-encoded object containing the installed themes and text
+color schemes.</p>
 </dd></dl>
 
 <dl class="method">
@@ -658,24 +738,6 @@ examined more closely.</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="s1">&#39;debug_terminal&#39;</span><span class="o">:</span> <span class="o">*</span><span class="nx">term</span><span class="o">*</span><span class="p">}));</span>
 </pre></div>
 </div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="gateone.TidyThread">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">TidyThread</tt><big>(</big><em>session</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TidyThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TidyThread" title="Permalink to this definition">¶</a></dt>
-<dd><p>Kills a user's termio session if the client hasn't updated the keepalive
-within <em>TIMEOUT</em> (global).  Also, tidies up sessions, logs, and whatnot based
-on Gate One's settings (when the time is right).</p>
-<p>NOTE: This is necessary to prevent shells from running eternally in the
-background.</p>
-<p><em>session</em> - 45-character string containing the user's session ID</p>
-<dl class="method">
-<dt id="gateone.TidyThread.keepalive">
-<tt class="descname">keepalive</tt><big>(</big><em>datetime_obj=None</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TidyThread.keepalive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TidyThread.keepalive" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resets the keepalive timer.  Typically called when the user performs a new action.</p>
-<p><em>datetime_obj</em> - A datetime object that will be used to measure <em>TIMEOUT</em> against.  Will end up defaulting to datetime.now() (if None) which is what you'd want 99% of the time.</p>
 </dd></dl>
 
 </dd></dl>
@@ -716,7 +778,7 @@ background.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="authpam.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="logviewer.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>

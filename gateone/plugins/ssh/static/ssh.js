@@ -75,6 +75,7 @@ GateOne.Base.update(GateOne.SSH, {
         go.Net.addAction('sshjs_identities_list', go.SSH.incomingIDsAction);
         go.Net.addAction('sshjs_delete_identity_complete', go.SSH.deleteCompleteAction);
         go.Net.addAction('sshjs_cmd_output', go.SSH.commandCompleted);
+        go.Net.addAction('sshjs_ask_passphrase', go.SSH.enterPassphraseAction);
         go.Terminal.newTermCallbacks.push(go.SSH.getConnectString);
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
@@ -270,7 +271,7 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     loadIDs: function() {
-        // After GateOne.SSH.identities has been populated, this function will redraw the view depending on sort and pagination values
+        // Toggles the panel into view (if not already visible) and tells the server to send us our list of identities
         var go = GateOne,
             u = go.Utils,
             ssh = go.SSH,
@@ -715,15 +716,17 @@ GateOne.Base.update(GateOne.SSH, {
             publicKeyFileLabel = u.createElement('label'),
             certificateFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_cert', 'name': prefix+'ssh_upload_id_cert'}),
             certificateFileLabel = u.createElement('label'),
+            note = u.createElement('p', {'style': {'font-size': '80%', 'margin-top': '1em', 'margin-bottom': '1em'}}),
             submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'});
         submit.innerHTML = "Submit";
         cancel.innerHTML = "Cancel";
+        note.innerHTML = "<b>NOTE:</b> If a public key is not provided one will be automatically generated using the private key.  You may be asked for the passphrase to perform this operation.";
         privateKeyFileLabel.innerHTML = "Private Key";
         privateKeyFileLabel.htmlFor = prefix+'ssh_upload_id_privatekey';
-        publicKeyFileLabel.innerHTML = "Public Key";
+        publicKeyFileLabel.innerHTML = "Optional: Public Key";
         publicKeyFileLabel.htmlFor = prefix+'ssh_upload_id_publickey';
-        certificateFileLabel.innerHTML = "Optional Certificate";
+        certificateFileLabel.innerHTML = "Optional: Certificate";
         certificateFileLabel.htmlFor = prefix+'ssh_upload_id_cert';
         uploadIDForm.appendChild(privateKeyFileLabel);
         uploadIDForm.appendChild(privateKeyFile);
@@ -731,6 +734,7 @@ GateOne.Base.update(GateOne.SSH, {
         uploadIDForm.appendChild(publicKeyFile);
         uploadIDForm.appendChild(certificateFileLabel);
         uploadIDForm.appendChild(certificateFile);
+        uploadIDForm.appendChild(note);
         uploadIDForm.appendChild(submit);
         uploadIDForm.appendChild(cancel);
         var closeDialog = go.Visual.dialog('Upload SSH Identity', uploadIDForm);
@@ -837,6 +841,47 @@ GateOne.Base.update(GateOne.SSH, {
             // Get the data out of the files
             certificateReader.onload = sendCertificate;
             certificateReader.readAsText(certFile);
+            closeDialog();
+        }
+    },
+    enterPassphraseAction: function(settings) {
+        // Displays the dialog/form where a user can enter a passphrase for a given identity (called by the server if something requires it)
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            goDiv = u.getNode(go.prefs.goDiv),
+            sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
+            passphraseForm = u.createElement('form', {'name': prefix+'ssh_passphrase_form', 'class': 'ssh_id_form'}),
+            passphrase = u.createElement('input', {'type': 'password', 'id': 'ssh_passphrase', 'name': prefix+'ssh_passphrase'}),
+            passphraseLabel = u.createElement('label'),
+            explanation = u.createElement('p', {'style': {'margin-top': '0.5em'}}),
+            safetyNote = u.createElement('p', {'style': {'font-size': '80%'}}),
+            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'});
+        submit.innerHTML = "Submit";
+        cancel.innerHTML = "Cancel";
+        passphrase.autofocus = "autofocus";
+        explanation.innerHTML = "The private key for this SSH identity is protected by a passphrase.  Please enter the passphrase so a public key can be generated.";
+        safetyNote.innerHTML = "<b>NOTE:</b> This passphrase will only be used to extract the public key and will not be stored.";
+        passphraseLabel.innerHTML = "Passphrase";
+        passphraseLabel.htmlFor = prefix+'ssh_passphrase';
+        passphraseForm.appendChild(explanation);
+        passphraseForm.appendChild(passphraseLabel);
+        passphraseForm.appendChild(passphrase);
+        passphraseForm.appendChild(safetyNote);
+        passphraseForm.appendChild(submit);
+        passphraseForm.appendChild(cancel);
+        if (settings['bad']) {
+            delete settings['bad'];
+            explanation.innerHTML = "<span style='color: red;'>Invalid passphrase.</span>  Please try again.";
+        }
+        var closeDialog = go.Visual.dialog('Passphrase for "' + settings['name'] + '"', passphraseForm);
+        cancel.onclick = closeDialog;
+        passphraseForm.onsubmit = function(e) {
+            // Don't actually submit it
+            e.preventDefault();
+            settings['passphrase'] = passphrase.value;
+            go.ws.send(JSON.stringify({'ssh_store_id_file': settings}));
             closeDialog();
         }
     },

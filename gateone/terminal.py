@@ -145,7 +145,7 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import os, re, logging, base64, StringIO, codecs, unicodedata, tempfile
+import re, logging, base64, StringIO, codecs, unicodedata, tempfile
 from array import array
 from datetime import datetime, timedelta
 from collections import defaultdict

@@ -9,9 +9,9 @@
 # TODO: Make the environment variables used before launching self.cmd configurable
 
 # Meta
-__version__ = '1.0'
+__version__ = '1.1'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 0)
+__version_info__ = (1, 1)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
@@ -20,13 +20,17 @@ About termio
 This module provides a Multiplex class that can perform the following:
 
  * Fork a child process that opens a given terminal program.
- * Read and write data to and from the child process (asynchronously).
+ * Read and write data to and from the child process (synchronously or asynchronously).
  * Examine the output of the child process in real-time and perform actions (also asynchronously!) based on what is "expected" (aka non-blocking, pexpect-like functionality).
  * Log the output of the child process to a file and/or syslog.
 
-The Multiplex class is meant to be used in conjunction with a running
-:class:`tornado.ioloop.IOLoop` instance.  It can be instantiated from within
-your Tornado application like so::
+The Multiplex class was built for asynchronous use in conjunction with a running
+:class:`tornado.ioloop.IOLoop` instance but it can be used in a synchronous
+(blocking) manner as well.  Synchronous use of this module is most likely to be
+useful in an interactive Python session but if blocking doesn't matter for your
+program please see the section titled, "Blocking" for tips & tricks.
+
+Here's an example instantiating a Multiplex class::
 
     multiplexer = termio.Multiplex(
         'nethack',
@@ -48,12 +52,12 @@ running the given command (e.g. 'nethack')::
     fd = multiplexer.spawn(80, 24, env=env)
     # The fd is returned from spawn() in case you want more low-level control.
 
-Input and output from the controlled program is asynchronous and gets handled
-via IOLoop.  It will automatically write all output from the terminal program to
-an instance of self.terminal_emulator (which defaults to Gate One's
-`terminal.Terminal`).  So if you want to perform an action whenever the running
-terminal application has output (like, say, sending a message to a client)
-you'll need to attach a callback::
+Asynchronous input and output from the controlled program is handled via IOLoop.
+It will automatically write all output from the terminal program to an instance
+of self.terminal_emulator (which defaults to Gate One's `terminal.Terminal`).
+So if you want to perform an action whenever the running terminal application
+has output (like, say, sending a message to a client) you'll need to attach a
+callback::
 
     def screen_update():
         'Called when new output is ready to send to the client'
@@ -92,19 +96,18 @@ Module Functions and Classes
 """
 
 # Stdlib imports
-import signal, threading, os, sys, time, struct, io, gzip, re, logging
+import os, sys, time, struct, io, gzip, re, logging
 from copy import copy
 from datetime import timedelta, datetime
 from functools import partial
 from itertools import izip
 from multiprocessing import Process
+from json import loads as json_decode
+from json import dumps as json_encode
 
-# Import our own stuff
-from utils import get_translation, human_readable_bytes, noop, which
-from utils import get_or_update_metadata, json_encode, shell_command
-from utils import timeout_func
-
-_ = get_translation()
+# Inernationalization support
+import gettext
+gettext.install('termio')
 
 # Globals
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
@@ -113,6 +116,12 @@ SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
 CALLBACK_THREAD = None # Used by add_callback()
 POSIX = 'posix' in sys.builtin_module_names
 MACOS = os.uname()[0] == 'Darwin'
+# Matches Gate One's special optional escape sequence (ssh plugin only)
+RE_OPT_SSH_SEQ = re.compile(
+    r'.*\x1b\]_\;(ssh\|.+?)(\x07|\x1b\\)', re.MULTILINE|re.DOTALL)
+# Matches an xterm title sequence
+RE_TITLE_SEQ = re.compile(
+    r'.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)', re.DOTALL|re.MULTILINE)
 
 # Helper functions
 def debug_expect(m_instance, match):
@@ -135,11 +144,137 @@ def debug_expect(m_instance, match):
             out += "    %s\n" % repr(line)
     print(out)
 
+def retrieve_first_frame(golog_path):
+    """
+    Retrieves the first frame from the given *golog_path*.
+    """
+    found_first_frame = None
+    frame = ""
+    f = gzip.open(golog_path)
+    while not found_first_frame:
+        frame += f.read(1) # One byte at a time
+        if frame.decode('UTF-8', "ignore").endswith(SEPARATOR):
+            # That's it; wrap this up
+            found_first_frame = True
+    distance = f.tell()
+    f.close()
+    return (frame.decode('UTF-8', "ignore").rstrip(SEPARATOR), distance)
+
+def retrieve_last_frame(golog_path):
+    """
+    Retrieves the last frame from the given *golog_path*.  It does this by
+    iterating over the log in reverse.
+    """
+    encoded_separator = SEPARATOR.encode('UTF-8')
+    golog = gzip.open(golog_path)
+    chunk_size = 1024*128
+    # Seek to the end of the file (gzip objects don't support negative seeking)
+    distance = chunk_size
+    prev_tell = None
+    while golog.tell() != prev_tell:
+        prev_tell = golog.tell()
+        golog.seek(distance)
+        distance += distance
+    # Now that we're at the end, go back a bit and split from there
+    golog.seek(golog.tell() - chunk_size)
+    end_frames = golog.read().split(encoded_separator)
+    if len(end_frames) > 1:
+        return end_frames[-2] # Very last item will be empty
+    else: # Just a single frame here, return it as-is
+        return end_frames[0]
+
+def get_or_update_metadata(golog_path, user, force_update=False):
+    """
+    Retrieves or creates/updates the metadata inside of *golog_path*.
+
+    If *force_update* the metadata inside the golog will be updated even if it
+    already exists.
+
+    .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.
+    """
+    #logging.debug('get_or_update_metadata()')
+    first_frame, distance = retrieve_first_frame(golog_path)
+    metadata = {}
+    if first_frame[14:].startswith('{'):
+        # This is JSON, capture existing metadata
+        metadata = json_decode(first_frame[14:])
+        # end_date gets added by this function
+        if not force_update and 'end_date' in metadata:
+            return metadata # All done
+    # '\xf3\xb0\xbc\x8f' <--UTF-8 encoded SEPARATOR (for reference)
+    encoded_separator = SEPARATOR.encode('UTF-8')
+    golog = gzip.open(golog_path)
+    # Loop over the file in big chunks (which is faster than read() by an order
+    # of magnitude)
+    chunk_size = 1024*128 # 128k should be enough for a 100x300 terminal full
+    # of 4-byte unicode characters. That would be one BIG frame (i.e. unlikely).
+    # Sadly, we have to read the whole thing into memory (log_data) in order to
+    # perform this important work (creating proper metadata).
+    # On the plus side re-compressing the log can save a _lot_ of disk space
+    # Why?  Because termio.py writes the frames using gzip.open() in append mode
+    # which is a lot less efficient than compressing all the data in one go.
+    log_data = ''
+    total_frames = 0
+    while True:
+        chunk = golog.read(chunk_size)
+        total_frames += chunk.count(encoded_separator)
+        log_data += chunk
+        if len(chunk) < chunk_size:
+            break
+    # NOTE: -1 below because split() leaves us with an empty string at the end
+    #golog_frames = log_data.split(encoded_separator)[:-1]
+    start_date = first_frame[:13] # Getting the start date is easy
+    last_frame = retrieve_last_frame(golog_path) # This takes some work
+    end_date = last_frame[:13]
+    version = u"1.0"
+    connect_string = None
+    from gateone import PLUGINS
+    if 'ssh' in PLUGINS['py']:
+        # Try to find the host that was connected to by looking for the SSH
+        # plugin's special optional escape sequence.  It looks like this:
+        #   "\x1b]_;ssh|%s@%s:%s\007"
+        match_obj = RE_OPT_SSH_SEQ.match(log_data[:(chunk_size*10)])
+        if match_obj:
+            connect_string = match_obj.group(1).split('|')[1]
+    if not connect_string:
+        # Try guessing it by looking for a title escape sequence
+        match_obj = RE_TITLE_SEQ.match(log_data[:(chunk_size*10)])
+        if match_obj:
+            # The split() here is an attempt to remove the tail end of
+            # titles like this:  'someuser@somehost: ~'
+            connect_string = match_obj.group(1)
+    # TODO: Add some hooks here for plugins to add their own metadata
+    metadata.update({
+        u'user': user,
+        u'start_date': start_date,
+        u'end_date': end_date,
+        u'frames': total_frames,
+        u'version': version,
+        u'connect_string': connect_string,
+        u'filename': os.path.split(golog_path)[1]
+    })
+    # Make a *new* first_frame
+    first_frame = u"%s:%s" % (start_date, json_encode(metadata))
+    # Replace the first frame and re-save the log
+    log_data = (
+        first_frame.encode('UTF-8') +
+        encoded_separator +
+        log_data[distance:]
+    )
+    gzip.open(golog_path, 'w').write(log_data)
+    return metadata
+
 # Exceptions
 class Timeout(Exception):
     """
     Used by :meth:`BaseMultiplex.expect` and :meth:`BaseMultiplex.await`;
     called when a timeout is reached.
+    """
+    pass
+
+class ProgramTerminated(Exception):
+    """
+    Called when we try to write to a process that's no longer running.
     """
     pass
 
@@ -156,6 +291,10 @@ class Pattern(object):
     :callback: A function that will be called when the pattern is matched.  Callbacks are called like so:
 
         >>> callback(m_instance, matched_string)
+
+        .. tip:: If you provide a string instead of a function for your *callback* it will automatically be converted into a function that writes the string to the child process.  Example::
+
+            >>> p = Pattern('(?i)password:', 'mypassword\\n')
 
     :optional: Indicates that this pattern is optional.  Meaning that it isn't required to match before the next pattern in :attr:`BaseMultiplex._patterns` is checked.
 
@@ -178,7 +317,11 @@ class Pattern(object):
             preprocess=False,
             timeout=30):
         self.pattern = pattern
-        self.callback = callback
+        if isinstance(callback, (str, unicode)):
+            # Convert the string to a write() call
+            self.callback = lambda m, match: m.write(unicode(callback))
+        else:
+            self.callback = callback
         self.errorback = errorback
         self.optional = optional
         self.sticky = sticky
@@ -213,7 +356,7 @@ class BaseMultiplex(object):
             syslog_facility=None,
             debug=False):
         self.debug = debug
-        self.lock = threading.Lock()
+        self.exitfunc = None
         self.cmd = cmd
         if not terminal_emulator:
             # Why do this?  So you could use/write your own specialty emulator.
@@ -232,7 +375,6 @@ class BaseMultiplex(object):
         self.pid = -1 # Means "no pid yet"
         self.started = "Never"
         self._patterns = []
-        self.timeout_thread = None
         # Setup our callbacks
         self.callbacks = { # Defaults do nothing which saves some conditionals
             self.CALLBACK_UPDATE: {},
@@ -457,15 +599,27 @@ class BaseMultiplex(object):
             if finished_non_sticky and not pattern_obj.sticky:
                 # We only want sticky patterns if we've already matched once
                 continue
-            match = pattern_obj.pattern.search(stream)
-            if match:
-                callback = partial(pattern_obj.callback, self, match.group())
-                self._call_callback(callback)
-                if not pattern_obj.sticky:
-                    self.unexpect(hash(pattern_obj)) # Remove it
-                if not pattern_obj.optional:
-                    # We only match the first non-optional pattern
-                    finished_non_sticky = True
+            if isinstance(pattern_obj.pattern, (list, tuple)):
+                for pat in pattern_obj.pattern:
+                    match = pat.search(term_lines)
+                    if match:
+                        callback = partial(
+                            pattern_obj.callback, self, match.group())
+                        self._call_callback(callback)
+                        if not pattern_obj.sticky:
+                            self.unexpect(hash(pattern_obj)) # Remove it
+                        break
+            else:
+                match = pattern_obj.pattern.search(stream)
+                if match:
+                    callback = partial(
+                        pattern_obj.callback, self, match.group())
+                    self._call_callback(callback)
+                    if not pattern_obj.sticky:
+                        self.unexpect(hash(pattern_obj)) # Remove it
+            if not pattern_obj.optional:
+                # We only match the first non-optional pattern
+                finished_non_sticky = True
 
     def postprocess(self):
         """
@@ -498,26 +652,30 @@ class BaseMultiplex(object):
                     match = pat.search(term_lines)
                     if match:
                         self._handle_match(pattern_obj, match)
+                        break
             else:
                 match = pattern_obj.pattern.search(term_lines)
                 if match:
                     self._handle_match(pattern_obj, match)
+            if not pattern_obj.optional and not pattern_obj.sticky:
+                # We only match the first non-optional pattern
+                finished_non_sticky = True
 
     def _handle_match(self, pattern_obj, match):
         """
-        Handles a matched regex detected by :meth:`postprocess`.  It calls :obj:`Pattern.callback` and takes care of removing it from :attr:`_patterns` (if it isn't sticky).
+        Handles a matched regex detected by :meth:`postprocess`.  It calls
+        :obj:`Pattern.callback` and takes care of removing it from
+        :attr:`_patterns` (if it isn't sticky).
         """
         callback = partial(pattern_obj.callback, self, match.group())
         self._call_callback(callback)
         if self.debug:
+            # Turn on the fancy regex debugger/pretty printer
             debug_callback = partial(
                 debug_expect, self, match.group())
             self._call_callback(debug_callback)
         if not pattern_obj.sticky:
             self.unexpect(hash(pattern_obj)) # Remove it
-        if not pattern_obj.optional and not pattern_obj.sticky:
-            # We only match the first non-optional pattern
-            finished_non_sticky = True
 
     def writeline(self, line=''):
         """
@@ -626,6 +784,10 @@ class BaseMultiplex(object):
                     self._call_callback(errorback)
                     self.unexpect()
                     return False
+            if not pattern_obj.timeout:
+                # Timeouts of 0 or None mean "wait forever"
+                remaining_patterns = True
+                continue
             elapsed = datetime.now() - pattern_obj.created
             if elapsed > pattern_obj.timeout:
                 if not pattern_obj.sticky:
@@ -646,9 +808,11 @@ class BaseMultiplex(object):
             preprocess=False):
         """
         Watches the stream of output coming from the underlying terminal program
-        for *patterns* and if there's a match *callback* will be called::
+        for *patterns* and if there's a match *callback* will be called like so::
 
             callback(multiplex_instance, matched_string)
+
+        .. tip:: You can provide a string instead of a *callback* function as a shortcut if you just want said string written to the child process.
 
         *patterns* can be a string, an :class:`re.RegexObject` (as created by
         :func:`re.compile`), or a iterator of either/or.  Returns a reference
@@ -798,12 +962,13 @@ class BaseMultiplex(object):
                     pattern_list.append(pattern)
             patterns = tuple(pattern_list) # No reason to keep it as a list
         # Convert timeout to a timedelta if necessary
-        if isinstance(timeout, (str, int, float)):
-            timeout = timedelta(seconds=float(timeout))
-        elif not isinstance(timeout, timedelta):
-            raise TypeError(_(
-                "The timeout value must be a string, integer, float, or a "
-                "timedelta object"))
+        if timeout: # 0 or None mean "wait forever"
+            if isinstance(timeout, (str, int, float)):
+                timeout = timedelta(seconds=float(timeout))
+            elif not isinstance(timeout, timedelta):
+                raise TypeError(_(
+                    "The timeout value must be a string, integer, float, or a "
+                    "timedelta object"))
         pattern_obj = Pattern(patterns, callback,
             optional=optional,
             sticky=sticky,
@@ -871,7 +1036,7 @@ class BaseMultiplex(object):
                 raise Timeout("Lingered longer than %s" % timeout.seconds)
             # Lastly we perform a read() to ensure the output is processed
             self.read() # Remember:  read() is non-blocking
-            time.sleep(0.1) # So we don't eat up all the CPU
+            time.sleep(0.01) # So we don't eat up all the CPU
         return True
 
     def terminate(self):
@@ -930,10 +1095,11 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         self.env = {}
         self.io_loop = ioloop.IOLoop.instance() # Monitors child for activity
         #self.io_loop.set_blocking_signal_threshold(2, self._blocked_io_handler)
-        signal.signal(signal.SIGALRM, self._blocked_io_handler)
+        #signal.signal(signal.SIGALRM, self._blocked_io_handler)
         self.reenable_timeout = None
         interval = 100 # A 0.1 second interval should be fast enough
         self.scheduler = ioloop.PeriodicCallback(self._timeout_checker,interval)
+        self.exitstatus = None
 
     def __del__(self):
         """
@@ -971,9 +1137,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
     def _blocked_io_handler(self, signum=None, frame=None):
         """
         Handles the situation where a terminal is blocking IO (usually because
-        of too much output).  This method would typically get called
-        automatically by IOLoop's signal threshold mechanism
-        (:meth:`IOLoop.set_blocking_signal_threshold`).
+        of too much output).  This method would typically get called inside of
+        `MultiplexPOSIXIOLoop._read` when the output of an fd is too noisy.
         """
         if not self.isalive():
             # This can happen if terminate() gets called too fast from another
@@ -983,12 +1148,15 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         logging.warning(_(
             "Noisy process (%s) kicked off rate limiter." % self.pid))
         self.ratelimiter_engaged = True
+        # CALLBACK_UPDATE is called here so the client can be made aware of the
+        # fact that the rate limiter was engaged.
         for callback in self.callbacks[self.CALLBACK_UPDATE].values():
             self._call_callback(callback)
         self.reenable_timeout = self.io_loop.add_timeout(
             timedelta(seconds=10), self._reenable_output)
 
-    def spawn(self, rows=24, cols=80, env=None, em_dimensions=None):
+    def spawn(self,
+            rows=24, cols=80, env=None, em_dimensions=None, exitfunc=None):
         """
         Creates a new virtual terminal (tty) and executes self.cmd within it.
         Also attaches :meth:`self._ioloop_read_handler` to the IOLoop so that
@@ -999,13 +1167,14 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         :rows: The number of rows to emulate (height).
         :env: Optional - A dictionary of environment variables to set when executing self.cmd.
         :em_dimensions: Optional - The dimensions of a single character within the terminal (only used when calculating the number of rows/cols images take up).
+        :exitfunc: Optional - A function that will be called with the current Multiplex instance and its exit status when the child process terminates (*exitfunc(m_instance, statuscode)*).
         """
         self.started = datetime.now()
-        signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies allowed
+        #signal.signal(signal.SIGCHLD, signal.SIG_IGN) # No zombies allowed
         logging.debug(
             "spawn(rows=%s, cols=%s, env=%s, em_dimensions=%s)" % (
                 rows, cols, repr(env), repr(em_dimensions)))
-        rows = min(200, rows) # Max 300 to limit memory utilization
+        rows = min(200, rows) # Max 200 to limit memory utilization
         cols = min(500, cols) # Max 500 for the same reason
         import pty
         pid, fd = pty.fork()
@@ -1062,13 +1231,21 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             self.fd = fd
             self.env = env
             self.em_dimensions = em_dimensions
+            self.exitfunc = exitfunc
             self.pid = pid
             self.time = time.time()
-            self.term = self.terminal_emulator(
-                rows=rows,
-                cols=cols,
-                em_dimensions=em_dimensions
-            )
+            try:
+                self.term = self.terminal_emulator(
+                    rows=rows,
+                    cols=cols,
+                    em_dimensions=em_dimensions
+                )
+            except TypeError:
+                # Terminal emulator doesn't support em_dimensions.  That's OK
+                self.term = self.terminal_emulator(
+                    rows=rows,
+                    cols=cols
+                )
             # Tell our IOLoop instance to start watching the child
             self.io_loop.add_handler(
                 fd, self._ioloop_read_handler, self.io_loop.READ)
@@ -1086,19 +1263,27 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         Checks the underlying process to see if it is alive and sets self._alive
         appropriately.
         """
+        if self.exitstatus == None:
+            # This doesn't hurt anything if the process is still running
+            if self.pid != -1:
+                pid, status = os.waitpid(self.pid, os.WNOHANG)
+                if pid: # pid is 0 if the process is still running
+                    self.exitstatus = os.WEXITSTATUS(status)
         if self._alive: # Re-check it
-            for f in os.listdir('/proc'):
-                pid_dir = os.path.join('/proc', f)
-                if os.path.isdir(pid_dir):
-                    try:
-                        pid = int(f)
-                    except ValueError:
-                        continue # Not a PID
-                    if pid == self.pid:
-                        self._alive = True
-                        return True
-        self._alive = False
-        return False
+            try:
+                os.kill(self.pid, 0)
+                return self._alive
+            except OSError:
+                # Process is dead
+                self._alive = False
+                if self.debug: # Useful to know when debugging...
+                    print(_("Child exited with status: %s\n" % self.exitstatus))
+                # Call the exitfunc (if set)
+                if self.exitfunc:
+                    self.exitfunc(self, self.exitstatus)
+                return False
+        else:
+            return False
 
     def resize(self, rows, cols, em_dimensions=None, ctrl_l=True):
         """
@@ -1171,13 +1356,17 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             pass
         try:
             # TODO: Make this walk the series from SIGINT to SIGKILL
+            import signal
             #os.kill(self.pid, signal.SIGINT)
             os.kill(self.pid, signal.SIGTERM)
             #os.kill(self.pid, signal.SIGKILL)
-            os.waitpid(-1, os.WNOHANG)
         except OSError:
             # The process is already dead--great.
             pass
+        if not self.exitstatus:
+            pid, status = os.waitpid(-1, os.WNOHANG)
+            if pid:
+                self.exitstatus = os.WEXITSTATUS(status)
         # Reset all callbacks so there's nothing to prevent GC
         self.callbacks = {
             self.CALLBACK_UPDATE: {},
@@ -1227,37 +1416,39 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
         .. note:: Non-blocking.
         """
+        #logging.debug("MultiplexPOSIXIOLoop._read()")
         result = ""
         try:
-            with self.lock:
-                with io.open(self.fd, 'rb', closefd=False) as reader:
-                    if bytes == -1:
-                        while True:
-                            updated = reader.read(bytes)
-                            if not updated:
-                                break
-                            if self.ratelimiter_engaged:
-                                # Truncate the output to the last 1024 chars
-                                timeout_func(
-                                    self.term_write,
-                                    args=(updated[-1024:],),
-                                    default=self._blocked_io_handler,
-                                    timeout_duration=2
-                                )
-                                # NOTE: If we didn't truncate the output we'd
-                                # eventually have to process it all which would
-                                # take forever.
-                                break
-                            result += str(updated)
-                            timeout_func(
-                                self.term_write,
-                                args=(updated,),
-                                default=self._blocked_io_handler,
-                                timeout_duration=2
-                            )
-                    elif bytes:
-                        result = reader.read(bytes)
-                        self.term_write(result)
+            with io.open(self.fd, 'rb', closefd=False, buffering=0) as reader:
+                if bytes == -1:
+                    # Even though -1 indicates "read everything" we still
+                    # want to read in chunks so we can catch when an fd is
+                    # feeding us too much data (so we can engage the rate
+                    # limiter).
+                    bytes = 8192 # Should be plenty
+                    # If we need to block/read for longer than two seconds
+                    # the fd is outputting too much data.
+                    two_seconds = timedelta(seconds=2)
+                    loop_start = datetime.now()
+                    while True:
+                        updated = reader.read(bytes)
+                        if not updated:
+                            break
+                        if self.ratelimiter_engaged:
+                            # Truncate the output to the last 1024 chars
+                            self.term_write(updated[-1024:])
+                            result += updated[-1024:]
+                            # NOTE: If we didn't truncate the output we'd
+                            # eventually have to process it all which would
+                            # take forever.
+                            break
+                        elif datetime.now() - loop_start > two_seconds:
+                            self._blocked_io_handler()
+                        result += str(updated)
+                        self.term_write(updated)
+                elif bytes:
+                    result = reader.read(bytes)
+                    self.term_write(result)
         except IOError as e:
             # IOErrors can happen when self.fd is closed before we finish
             # reading from it.  Not a big deal.
@@ -1311,6 +1502,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             # Start 'er up in case we don't get any more output
             logging.debug("Starting self.scheduler to check for timeouts")
             self.scheduler.start()
+        self.isalive() # This just ensures the exitfunc is called (if necessary)
         return result
 
     def _write(self, chars):
@@ -1319,16 +1511,25 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         OSError exceptions are encountered, will run `terminate`.  All other
         exceptions are logged but no action will be taken.
         """
+        #logging.debug("MultiplexPOSIXIOLoop._write()")
         try:
+            if self.ratelimiter_engaged:
+                # This empties the fd buffer so the user gets immediate
+                # responses to their keystrokes.  Just note that this can
+                # truncating a lot of data.
+                with io.open(
+                    self.fd, 'rb', closefd=False, buffering=0) as reader:
+                        reader.read() # Empty it out
+                # In testing, emptying out the fd read buffer in this way
+                # increased responsiveness to user keystrokes when the rate
+                # limiter is engaged by about 3-4 seconds (which is a lot!)
+                self.ratelimiter_engaged = False
+                # For reference, the time between reader.read() above and
+                # writer.write() below is enough for the 'yes' command to
+                # output a few lines.
             with io.open(
-                self.fd,
-                'wt',
-                newline="",
-                encoding='UTF-8',
-                closefd=False
-            ) as writer:
-                writer.write(chars)
-            self.ratelimiter_engaged = False
+                self.fd, 'wt', encoding='UTF-8', closefd=False) as writer:
+                    writer.write(chars)
         except (IOError, OSError) as e:
             if self.isalive():
                 self.terminate()
@@ -1339,28 +1540,38 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         """
         Calls `_write(*chars*)` via `_call_callback` to ensure thread safety.
         """
+        if not self.isalive():
+            raise ProgramTerminated(_("Child process is not running."))
         write = partial(self._write, chars)
         self._call_callback(write)
 
-class MultiplexMacOSIOLoop(MultiplexPOSIXIOLoop):
-    """
-    This class is a subclass of `MultiplexPOSIXIOLoop` that overrides the
-    `isalive` function since Mac OS X doesn't have /proc.
-    """
-    def isalive(self):
-        """
-        A Mac OS X-specific version of `MultiplexPOSIXIOLoop.isalive` that
-        checks the underlying process to see if it is alive and sets
-        `self._alive` appropriately.
-        """
-        # sub-subprocesses are inefficient (and blocking) but what can you do?
-        exitstatus, output = shell_command(
-            "ps -ef | awk '{print $2}' | grep %s" % self.pid)
-        if exitstatus == 0:
-            self._alive = True
-        else:
-            self._alive = False
-        return self._alive
+# Here's an example of how termio compares to pexpect:
+#import pexpect
+#child = pexpect.spawn ('ftp ftp.openbsd.org')
+#child.expect ('Name .*: ')
+#child.sendline ('anonymous')
+#child.expect ('Password:')
+#child.sendline ('noah@example.com')
+#child.expect ('ftp> ')
+#child.sendline ('cd pub')
+#child.expect('ftp> ')
+#child.sendline ('get ls-lR.gz')
+#child.expect('ftp> ')
+#child.sendline ('bye')
+# NOTE: Every expect() in the above example is a blocking call.
+
+# This is the same thing, rewritten using termio:
+#import termio
+#child = termio.Multiplex('ftp ftp.openbsd.org', debug=True)
+## Expectations come first
+#child.expect('Name .*:', "anonymous\n")
+#child.expect('Password:', 'user@company.com\n')
+#child.expect('ftp>$', 'cd pub\n')
+#child.expect('ftp>$', 'get ls-lR.gz\n')
+#child.expect('ftp>$', 'bye\n')
+#child.await() # Blocks until all patterns have been matched or a timeout
+# NOTE: If this code were called inside of an already-started IOLoop there would
+# be no need to call await(). Everything would be asynchronous and non-blocking.
 
 def spawn(cmd, rows=24, cols=80, env=None, em_dimensions=None, *args, **kwargs):
     """
@@ -1374,11 +1585,26 @@ def spawn(cmd, rows=24, cols=80, env=None, em_dimensions=None, *args, **kwargs):
     m.spawn(rows, cols, env, em_dimensions=em_dimensions)
     return m
 
+def getstatusoutput(cmd, **kwargs):
+    """
+    Emulates Python's commands.getstatusoutput() function using a Multiplex
+    instance.
+
+    Optionally, any additional keyword arguments (**kwargs) provided will be
+    passed to the spawn() command.
+    """
+    # NOTE: This function is primarily here to provide an example of how to use
+    # termio.Multiplex instances in a traditional, blocking manner.
+    output = ""
+    m = Multiplex(cmd)
+    m.spawn(**kwargs)
+    while m.isalive():
+        output += m.read()
+        time.sleep(0.01)
+    return (m.exitstatus, output)
+
 if POSIX:
-    if MACOS:
-        Multiplex = MultiplexMacOSIOLoop
-    else:
-        Multiplex = MultiplexPOSIXIOLoop
+    Multiplex = MultiplexPOSIXIOLoop
 else:
     raise NotImplementedError(_(
         "termio currently only works on Unix platforms."))

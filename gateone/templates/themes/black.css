@@ -323,6 +323,7 @@ hr {
     opacity: 0.5;
     font-weight: bold;
     margin-bottom: 0.1em;
+    z-index: 10;
 }
 #{{prefix}}notice {
     -webkit-transition: all 5.0s ease-in-out;

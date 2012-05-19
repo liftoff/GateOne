@@ -28,6 +28,7 @@ _ = get_translation()
 
 # Tornado stuff
 import tornado.web
+import tornado.ioloop
 
 # Globals
 OPENSSH_VERSION = None
@@ -36,6 +37,10 @@ OPEN_SUBCHANNELS = {}
 SUBCHANNEL_TIMEOUT = timedelta(minutes=5) # How long to wait before auto-closing
 READY_STRING = "GATEONE_SSH_EXEC_CMD_CHANNEL_READY"
 READY_MATCH = re.compile("^%s$" % READY_STRING, re.MULTILINE)
+VALID_PRIVATE_KEY = valid = re.compile(
+    r'^-----BEGIN [A-Z]+ PRIVATE KEY-----.*-----END [A-Z]+ PRIVATE KEY-----$',
+    re.MULTILINE|re.DOTALL)
+TIMER = None # Used to store temporary, cancellable timeouts
 # TODO: make execute_command() a user-configurable option...  So it will automatically run whatever command(s) the user likes whenever they connect to a given server.  Differentiate between when they connect and when they start up a master or slave channel.
 # TODO: Make it so that equivalent KnownHostsHandler functionality works over the WebSocket.
 
@@ -63,6 +68,13 @@ class SSHKeypairException(Exception):
     """
     Called when there's an error trying to save public/private keypair or
     certificate.
+    """
+    pass
+
+class SSHPassphraseException(Exception):
+    """
+    Called when we try to generate/decode something that requires a passphrase
+    but no passphrase was given.
     """
     pass
 
@@ -606,9 +618,11 @@ def openssh_generate_new_keypair(name, path,
     )
     m.spawn()
 
-def openssh_generate_public_key(path):
+def openssh_generate_public_key(path, passphrase=None, settings=None, tws=None):
     """
-    Generates a public key from the given private key at *path*.
+    Generates a public key from the given private key at *path*.  If a
+    *passphrase* is provided, it will be used to generate the public key (if
+    necessary).
     """
     ssh_keygen_path = which('ssh-keygen')
     pubkey_path = "%s.pub" % path
@@ -616,13 +630,40 @@ def openssh_generate_public_key(path):
         "%s "       # Path to ssh-keygen
         "-f %s "    # Key path
         "-y "       # Output public key to stdout
+        "2>&1 "     # Redirect stderr to stdout so we can catch failures
         "> %s"      # Redirect stdout to the public key path
         % (ssh_keygen_path, path, pubkey_path)
     )
-    exitstatus, output = shell_command(command)
-    if exitstatus != 0:
-        raise SSHKeygenException(_(
-            "Error generating public key from private key at %s" % path))
+    import termio
+    m = termio.Multiplex(command)
+    def request_passphrase(*args, **kwargs):
+        "Called if this key requires a passphrase.  Ask the client to provide"
+        print("requesting passphrase")
+        message = {'sshjs_ask_passphrase': settings}
+        tws.write_message(message)
+    def bad_passphrase(m_instance, match):
+        "Called if the user entered a bad passphrase"
+        print("Bad passphrase")
+        settings['bad'] = True
+        request_passphrase()
+    if passphrase:
+        m.expect('^Enter passphrase',
+            "%s\n" % passphrase, optional=True, timeout=5)
+        m.expect('^load failed',
+            bad_passphrase, optional=True, timeout=5)
+    elif settings:
+        m.expect('^Enter passphrase',
+            request_passphrase, optional=True, timeout=5)
+    def atexit(child, exitstatus):
+        "Raises an SSHKeygenException if the *exitstatus* isn't 0"
+        if exitstatus != 0:
+            raise SSHKeygenException(_(
+                "Error generating public key from private key at %s" % path))
+    fd = m.spawn(exitfunc=atexit)
+    #exitstatus, output = shell_command(command)
+    #if exitstatus != 0:
+        #raise SSHKeygenException(_(
+            #"Error generating public key from private key at %s" % path))
 
 # ssh-kegen example for reference:
     #$ ssh-keygen -b 521 -t ecdsa "Testing" -f /tmp/testkey
@@ -656,7 +697,6 @@ def openssh_generate_public_key(path):
     #Fingerprint: md5 c6:f9:f2:95:b8:40:ac:f3:53:f1:39:e9:57:a0:58:18
 
 # TODO: Get this validating uploaded keys.
-# TODO: Get this taking a passphrase as an option in settings (for creating the public key)
 def store_id_file(settings, tws=None):
     """
     Stores the given *settings['private']* and/or *settings['public']* keypair
@@ -676,6 +716,8 @@ def store_id_file(settings, tws=None):
     logging.debug('store_id_file()')
     out_dict = {'result': 'Success'}
     name, private, public, certificate = None, None, None, None
+    passphrase = None
+    global TIMER
     try:
         if 'name' in settings:
             name = settings['name']
@@ -687,6 +729,8 @@ def store_id_file(settings, tws=None):
             public = settings['public']
         if 'certificate' in settings:
             certificate = settings['certificate']
+        if 'passphrase' in settings:
+            passphrase = settings['passphrase']
         if not private and not public and not certificate:
             raise SSHKeypairException(_("No files were given to save!"))
         users_ssh_dir = get_ssh_dir(tws)
@@ -694,14 +738,42 @@ def store_id_file(settings, tws=None):
         public_key_path = os.path.join(users_ssh_dir, name+'.pub')
         certificate_path = os.path.join(users_ssh_dir, name+'-cert.pub')
         if private:
-            with open(private_key_path, 'w') as f:
-                f.write(private)
-            os.chmod(private_key_path, 0600) # Without this you get a warning
+            if VALID_PRIVATE_KEY.match(private):
+                with open(private_key_path, 'w') as f:
+                    f.write(private)
+                # Without this you get a warning:
+                os.chmod(private_key_path, 0600)
+            else:
+                tws.write_message({'notice': _(
+                    "ERROR: Private key is not valid.")})
+                return
         if public:
             with open(public_key_path, 'w') as f:
                 f.write(public)
+            # Now remove the timer that will generate the public key from the
+            # private key if it is set.
+            if TIMER:
+                logging.debug(_(
+                    "Got public key, cancelling public key generation timer."))
+                io_loop = tornado.ioloop.IOLoop.instance()
+                io_loop.remove_timeout(TIMER)
+                TIMER = None
         elif private: # No biggie, generate one
-            openssh_generate_public_key(private_key_path)
+            # Only generate a new public key if one isn't uploaded within 2
+            # seconds (should be plenty of time since they're typically sent
+            # simultaneously but inside different WebSocket messages).
+            logging.debug(_(
+                "Only received a private key.  Setting timeout to generate the "
+                "public key if not received within 3 seconds."))
+            io_loop = tornado.ioloop.IOLoop.instance()
+            deadline = timedelta(seconds=2)
+            def generate_public_key(): # I love closures
+                openssh_generate_public_key(
+                    private_key_path, passphrase, settings=settings, tws=tws)
+                get_ids = partial(get_identities, None, tws)
+                io_loop.add_timeout(timedelta(seconds=2), get_ids)
+            # This gets removed if the public key is uploaded
+            TIMER = io_loop.add_timeout(deadline, generate_public_key)
         if certificate:
             with open(certificate_path, 'w') as f:
                 f.write(certificate)

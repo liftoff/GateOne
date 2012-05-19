@@ -181,6 +181,8 @@ def get_identities(users_ssh_dir, only_defaults=False):
     if defaults_present:
         # Only include identities marked as default
         identities = [a for a in identities if os.path.split(a)[1] in defaults]
+    elif only_defaults:
+        return []
     return identities
 
 def openssh_connect(

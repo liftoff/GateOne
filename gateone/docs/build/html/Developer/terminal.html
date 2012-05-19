@@ -243,6 +243,19 @@ far as renditions go).  Example:</p>
 </div>
 </dd></dl>
 
+<dl class="function">
+<dt id="terminal.pua_counter">
+<tt class="descclassname">terminal.</tt><tt class="descname">pua_counter</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.pua_counter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A generator that returns a Unicode Private Use Area (PUA) character starting
+at the beginning of Plane 16 (U+100000); counting up by one with each
+successive call.  If this is a narrow Python build the tail end of Plane 15
+will be used as a fallback (with a lot less characters).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Meant to be used as references to image objects in the screen array()</p>
+</div>
+</dd></dl>
+
 <dl class="class">
 <dt id="terminal.Terminal">
 <em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">Terminal</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal" title="Permalink to this definition">¶</a></dt>
@@ -275,9 +288,9 @@ their tops cut off.  <em>em_dimensions</em> should be a dict in the form of:</p>
 
 <dl class="method">
 <dt id="terminal.Terminal.init_renditions">
-<tt class="descname">init_renditions</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.init_renditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.init_renditions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fills <tt class="xref py py-attr docutils literal"><span class="pre">self.renditions</span></tt> with lists of [0] using <tt class="xref py py-attr docutils literal"><span class="pre">self.cols</span></tt>
-and <tt class="xref py py-attr docutils literal"><span class="pre">self.rows</span></tt> for the dimenions.</p>
+<tt class="descname">init_renditions</tt><big>(</big><em>rendition=u'U00100000'</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.init_renditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.init_renditions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces <tt class="xref py py-attr docutils literal"><span class="pre">self.renditions</span></tt> with arrays of <em>rendition</em> (characters)
+using <tt class="xref py py-attr docutils literal"><span class="pre">self.cols</span></tt> and <tt class="xref py py-attr docutils literal"><span class="pre">self.rows</span></tt> for the dimenions.</p>
 </dd></dl>
 
 <dl class="method">
@@ -678,15 +691,33 @@ sequence).</p>
 <dd><p>This gets called when an image (PNG or JPEG) was detected by
 <a class="reference internal" href="#terminal.Terminal.write" title="terminal.Terminal.write"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.write()</span></tt></a> and captured in <tt class="xref py py-attr docutils literal"><span class="pre">self.image</span></tt>.  It cleans up
 the data inside <tt class="xref py py-attr docutils literal"><span class="pre">self.image</span></tt> (getting rid of carriage returns) and
-stores self.image as if it were a single character in
-<tt class="xref py py-attr docutils literal"><span class="pre">self.screen</span></tt> at the current cursor position.</p>
+stores a reference to self.image as a single character (using
+<tt class="xref py py-attr docutils literal"><span class="pre">self.image_counter</span></tt>) in <tt class="xref py py-attr docutils literal"><span class="pre">self.screen</span></tt> at the current cursor
+position.  The actual image will be written to disk and read on-demand
+by <tt class="xref py py-meth docutils literal"><span class="pre">self__spanify_screen()</span></tt> when it needs to be displayed.  The
+image on disk will be automatically removed  when it is no longer
+visible.</p>
 <p>It also moves the cursor to the beginning of the last line before doing
 this in order to ensure that the captured image stays within the
 browser's current window.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The <a class="reference internal" href="#terminal.Terminal._spanify_screen" title="terminal.Terminal._spanify_screen"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal._spanify_screen()</span></tt></a> function is aware of this logic and knows that a 'character' longer than an actual character indicates the presence of something like an image that needs special processing.</p>
+<p class="last">The <a class="reference internal" href="#terminal.Terminal._spanify_screen" title="terminal.Terminal._spanify_screen"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal._spanify_screen()</span></tt></a> function is aware of this logic and knows that a 'character' in Plane 16 of the Unicode PUA indicates the presence of something like an image that needs special processing.</p>
 </div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._image_fd_watcher">
+<tt class="descname">_image_fd_watcher</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal._image_fd_watcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Meant to be run inside of a thread, calls close_image_fds() until there
+are no more open image file descriptors.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.close_image_fds">
+<tt class="descname">close_image_fds</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal.close_image_fds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the file descriptors of any images that are no longer on the
+screen.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1103,8 +1134,12 @@ location of the cursor (to make it just a tiny bit faster).</p>
 
 <dl class="method">
 <dt id="terminal.Terminal.dump_html">
-<tt class="descname">dump_html</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.dump_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.dump_html" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dumps the terminal screen as a list of HTML-formatted lines.</p>
+<tt class="descname">dump_html</tt><big>(</big><em>renditions=True</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.dump_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.dump_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps the terminal screen as a list of HTML-formatted lines.  If
+<em>renditions</em> is True (default) then terminal renditions will be
+converted into HTML &lt;span&gt; elements so they will be displayed properly
+in a browser.  Otherwise only the cursor &lt;span&gt; will be added to mark
+its location.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This places &lt;span class=&quot;cursor&quot;&gt;(current character)&lt;/span&gt; around the cursor location.</p>
@@ -1130,6 +1165,13 @@ and the current cursor coordinates.  Also, empties the scrollback buffer</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="terminal.Terminal._Terminal__ignore">
+<tt class="descname">_Terminal__ignore</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#terminal.Terminal._Terminal__ignore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does nothing (on purpose!).  Used as a placeholder for unimplemented
+functions.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="terminal.Terminal.dump">
 <tt class="descname">dump</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.dump" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns self.screen as a list of strings with no formatting.
@@ -1139,13 +1181,6 @@ quick glance of what is being displayed (when debugging).</p>
 <p class="first admonition-title">Note</p>
 <p class="last">This method does not empty the scrollback buffer.</p>
 </div>
-</dd></dl>
-
-<dl class="method">
-<dt id="terminal.Terminal._Terminal__ignore">
-<tt class="descname">_Terminal__ignore</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#terminal.Terminal._Terminal__ignore" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does nothing (on purpose!).  Used as a placeholder for unimplemented
-functions.</p>
 </dd></dl>
 
 </dd></dl>

@@ -81,10 +81,35 @@ a known syslog facility.</p>
 self-signed SSL certificate.</p>
 </dd></dl>
 
+<dl class="exception">
+<dt id="utils.ChownError">
+<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">ChownError</tt><a class="headerlink" href="#utils.ChownError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised by <a class="reference internal" href="#utils.recursive_chown" title="utils.recursive_chown"><tt class="xref py py-obj docutils literal"><span class="pre">recursive_chown</span></tt></a> if an OSError is encountered while trying to
+recursively chown a directory.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="utils.noop">
 <tt class="descclassname">utils.</tt><tt class="descname">noop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/utils.html#noop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.noop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Do nothing (i.e. &quot;No Operation&quot;)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.write_pid">
+<tt class="descclassname">utils.</tt><tt class="descname">write_pid</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#utils.write_pid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes our PID to <em>path</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.read_pid">
+<tt class="descclassname">utils.</tt><tt class="descname">read_pid</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#utils.read_pid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads our current PID from <em>path</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.remove_pid">
+<tt class="descclassname">utils.</tt><tt class="descname">remove_pid</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#utils.remove_pid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the PID file at <em>path</em>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -107,7 +132,7 @@ auto-killed and the following will be returned:</p>
 <dl class="function">
 <dt id="utils.json_encode">
 <tt class="descclassname">utils.</tt><tt class="descname">json_encode</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/utils.html#json_encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.json_encode" title="Permalink to this definition">¶</a></dt>
-<dd><p>On some platforms (CentOS 6.2, specifically) <a class="reference external" href="http://www.tornadoweb.org/documentation/escape.html#tornado.escape.json_decode" title="(in Tornado v2.2)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.escape.json_decode</span></tt></a>
+<dd><p>On some platforms (CentOS 6.2, specifically) <a class="reference external" href="http://www.tornadoweb.org/documentation/escape.html#tornado.escape.json_decode" title="(in Tornado v2.2.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.escape.json_decode</span></tt></a>
 doesn't seem to work just right when it comes to returning unicode strings.
 This is just a wrapper that ensures that the returned string is unicode.</p>
 </dd></dl>
@@ -418,6 +443,79 @@ following '&lt;num&gt;&lt;char&gt;' formats:</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="utils.convert_to_bytes">
+<tt class="descclassname">utils.</tt><tt class="descname">convert_to_bytes</tt><big>(</big><em>size_val</em><big>)</big><a class="headerlink" href="#utils.convert_to_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <em>size_val</em> (string) such as '100M', returns an integer representing
+an equivalent amount of bytes.  Accepts the following '&lt;num&gt;&lt;char&gt;' formats:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="18%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Character</th>
+<th class="head">Meaning</th>
+<th class="head">Example</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>B (or none)</td>
+<td>Bytes</td>
+<td>'100' or '100b' -&gt; 100</td>
+</tr>
+<tr class="row-odd"><td>K</td>
+<td>Kilobytes</td>
+<td>'1k' -&gt; 1024</td>
+</tr>
+<tr class="row-even"><td>M</td>
+<td>Megabytes</td>
+<td>'1m' -&gt; 1048576</td>
+</tr>
+<tr class="row-odd"><td>G</td>
+<td>Gigabytes</td>
+<td>'1g' -&gt; 1073741824</td>
+</tr>
+<tr class="row-even"><td>T</td>
+<td>Terabytes</td>
+<td>'1t' -&gt; 1099511627776</td>
+</tr>
+<tr class="row-odd"><td>P</td>
+<td>Petabytes</td>
+<td>'1p' -&gt; 1125899906842624</td>
+</tr>
+<tr class="row-even"><td>E</td>
+<td>Exabytes</td>
+<td>'1e' -&gt; 1152921504606846976</td>
+</tr>
+<tr class="row-odd"><td>Z</td>
+<td>Zettabytes</td>
+<td>'1z' -&gt; 1180591620717411303424L</td>
+</tr>
+<tr class="row-even"><td>Y</td>
+<td>Yottabytes</td>
+<td>'7y' -&gt; 1208925819614629174706176L</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If no character is given the <em>size_val</em> will be assumed to be in bytes.</p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">All characters will be converted to upper case before conversion (case-insensitive).</p>
+</div>
+<p>Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">convert_to_bytes</span><span class="p">(</span><span class="s">&#39;2M&#39;</span><span class="p">)</span>
+<span class="go">2097152</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">convert_to_bytes</span><span class="p">(</span><span class="s">&#39;2g&#39;</span><span class="p">)</span>
+<span class="go">2147483648</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="utils.process_opt_esc_sequence">
 <tt class="descclassname">utils.</tt><tt class="descname">process_opt_esc_sequence</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/utils.html#process_opt_esc_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.process_opt_esc_sequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse the <em>chars</em> passed from <a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-obj docutils literal"><span class="pre">terminal.Terminal</span></tt></a> by way of the special,
@@ -458,27 +556,9 @@ syslog.LOG_* equivalent.</p>
 
 <dl class="function">
 <dt id="utils.human_readable_bytes">
-<tt class="descclassname">utils.</tt><tt class="descname">human_readable_bytes</tt><big>(</big><em>bytes</em><big>)</big><a class="reference internal" href="../_modules/utils.html#human_readable_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.human_readable_bytes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <em>bytes</em> as a human-readable string in a similar fashion to how it
+<tt class="descclassname">utils.</tt><tt class="descname">human_readable_bytes</tt><big>(</big><em>nbytes</em><big>)</big><a class="reference internal" href="../_modules/utils.html#human_readable_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.human_readable_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>nbytes</em> as a human-readable string in a similar fashion to how it
 would be displayed by 'ls -lh' or 'df -h'.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utils.retrieve_first_frame">
-<tt class="descclassname">utils.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#retrieve_first_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the first frame from the given <em>golog_path</em>.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utils.get_or_update_metadata">
-<tt class="descclassname">utils.</tt><tt class="descname">get_or_update_metadata</tt><big>(</big><em>golog_path</em>, <em>user</em>, <em>force_update=False</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_or_update_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_or_update_metadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves or creates/updates the metadata inside of <em>golog_path</em>.</p>
-<p>If <em>force_update</em> the metadata inside the golog will be updated even if it
-already exists.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">All logs will need &quot;fixing&quot; the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.</p>
-</div>
 </dd></dl>
 
 <dl class="function">
@@ -533,6 +613,35 @@ underscore (if <em>allow_underscore</em> is True).</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="utils.recursive_chown">
+<tt class="descclassname">utils.</tt><tt class="descname">recursive_chown</tt><big>(</big><em>path</em>, <em>uid</em>, <em>gid</em><big>)</big><a class="headerlink" href="#utils.recursive_chown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Emulates 'chown -R <em>uid</em>:<em>gid</em> <em>path</em>' in pure Python</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.drop_privileges">
+<tt class="descclassname">utils.</tt><tt class="descname">drop_privileges</tt><big>(</big><em>uid='nobody'</em>, <em>gid='nogroup'</em>, <em>supl_groups=None</em><big>)</big><a class="headerlink" href="#utils.drop_privileges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop privileges by changing the current process owner/group to
+<em>uid</em>/<em>gid</em> (both may be an integer or a string).  If <em>supl_groups</em> (list)
+is given the process will be assigned those values as its effective
+supplemental groups.  If <em>supl_groups</em> is None it will default to using
+'tty' as the only supplemental group.  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">drop_privileges</span><span class="p">(</span><span class="s">&#39;gateone&#39;</span><span class="p">,</span> <span class="s">&#39;gateone&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;tty&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>This would change the current process owner to gateone/gateone with 'tty' as
+its only supplemental group.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">On most Unix systems users must belong to the 'tty' group to create new controlling TTYs which is necessary for 'pty.fork()' to work.</p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">If you get errors like, &quot;OSError: out of pty devices&quot; it likely means that your OS uses something other than 'tty' as the group owner of the devpts filesystem.  'mount | grep pts' will tell you the owner.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="utils.kill_dtached_proc">
 <tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Kills the dtach processes associated with the given <em>term</em> and all its
@@ -568,7 +677,7 @@ sessions.</p>
             </a></p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="termio.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="js_gateone.html"
                         title="next chapter">gateone.js</a></p>

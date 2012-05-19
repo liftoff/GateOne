@@ -1660,6 +1660,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
         tagList.sort();
         return tagList;
     },
+    // TODO: Get this providing the option to use a specific SSH identity
     openNewBookmarkForm: function(/*Opt*/URL) {
         // Displays the form where a user can create or edit a bookmark.
         // If *URL* is given, pre-fill the form with the associated bookmark for editing.
