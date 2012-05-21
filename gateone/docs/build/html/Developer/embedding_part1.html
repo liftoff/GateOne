@@ -1,0 +1,182 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Embedding Gate One Into Other Applications, Part 1 &mdash; Gate One 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="prev" title="The SSH Plugin" href="plugin_ssh.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin_ssh.html" title="The SSH Plugin"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="embedding-gate-one-into-other-applications-part-1">
+<span id="gateone-embedding"></span><h1>Embedding Gate One Into Other Applications, Part 1<a class="headerlink" href="#embedding-gate-one-into-other-applications-part-1" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial will walk you through embedding Gate One into a completely different web application.  It is divided into two parts:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Basics: Embedding Gate One into any web page.</li>
+<li>Advanced: API-based authentication and customizing everything.</li>
+</ol>
+</div></blockquote>
+<p>We'll assume you have Gate One installed and running with the following settings (in your server.conf):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">auth</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># anonymous authentication mode</span>
+<span class="n">port</span> <span class="o">=</span> <span class="mi">443</span>
+<span class="n">disable_ssl</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">origins</span> <span class="o">=</span> <span class="s">&quot;*&quot;</span> <span class="c"># Disable origin checking (this will be covered in Part 2)</span>
+<span class="n">url_prefix</span> <span class="o">=</span> <span class="s">&quot;/&quot;</span> <span class="c"># Keep it simple for the tutorial</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">'origins' is the only setting above that is differs from defaults.</p>
+</div>
+<p>Before we continue please test your Gate One server by loading it in your browser.  This will also ensure that you've accepted the server's SSL certificate (if necessary).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Gate One's SSL certificate must be trusted by clients in order to embed Gate One.  This usually means purchasing an SSL certificate when you move to production.</p>
+</div>
+<div class="section" id="placement">
+<h2>Placement<a class="headerlink" href="#placement" title="Permalink to this headline">¶</a></h2>
+<p>You must decide where you want Gate One to appear in your application.  The simplest way to do this is to create a DIV element like so:</p>
+<div class="highlight-html"><div class="highlight"><pre><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;gateone&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+</pre></div>
+</div>
+<p>By default <tt class="xref py py-obj docutils literal"><span class="pre">#gateone</span></tt> will fill itself out to the full size of its parent element.  So it is usually a good idea to wrap it inside of a container which has some explicit dimensions set:</p>
+<div class="highlight-html"><div class="highlight"><pre><span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">&quot;width: 60em; height: 30em;&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;gateone&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="include-gateone-js">
+<h2>Include gateone.js<a class="headerlink" href="#include-gateone-js" title="Permalink to this headline">¶</a></h2>
+<p>Before you can initialize Gate One you need to include gateone.js in the web page.  You can, of course, just copy it out of <tt class="xref py py-obj docutils literal"><span class="pre">/opt/gateone/static</span></tt> and include it in a <tt class="xref py py-obj docutils literal"><span class="pre">&lt;script&gt;</span></tt> tag somewhere in your web page.  However, to ensure that you're always running the latest version of gateone.js it is recommended that you source the script from the Gate One server itself:</p>
+<div class="highlight-html"><div class="highlight"><pre><span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;https://your-gateone-server/static/gateone.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">You can also load the script dynamically via JS (if you know how).</p>
+</div>
+</div>
+<div class="section" id="call-gateone-init">
+<h2>Call GateOne.init()<a class="headerlink" href="#call-gateone-init" title="Permalink to this headline">¶</a></h2>
+<p>The <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.init()</span></tt> function takes a number of optional arguments but for this example all we need is <tt class="xref py py-obj docutils literal"><span class="pre">goURL</span></tt>.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">init</span><span class="p">({</span><span class="nx">goURL</span><span class="o">:</span> <span class="s2">&quot;https://your-gateone-server/&quot;</span><span class="p">});</span>
+</pre></div>
+</div>
+<p>Put that somewhere in your <tt class="xref py py-obj docutils literal"><span class="pre">window.onload</span></tt> function and you should see something like this:</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Embedding Gate One Into Other Applications, Part 1</a><ul>
+<li><a class="reference internal" href="#placement">Placement</a></li>
+<li><a class="reference internal" href="#include-gateone-js">Include gateone.js</a></li>
+<li><a class="reference internal" href="#call-gateone-init">Call GateOne.init()</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plugin_ssh.html"
+                        title="previous chapter">The SSH Plugin</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/embedding_part1.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plugin_ssh.html" title="The SSH Plugin"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

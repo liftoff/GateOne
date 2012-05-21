@@ -685,6 +685,9 @@ def cleanup_session_logs(users_dir, max_age):
     logging.debug("cleanup_session_logs()")
     for user in os.listdir(users_dir):
         logs_path = os.path.join(users_dir, user, 'logs')
+        if not os.path.exists(logs_path):
+            # Nothing to do
+            continue
         for log_name in os.listdir(logs_path):
             log_path = os.path.join(logs_path, log_name)
             mtime = time.localtime(os.stat(log_path).st_mtime)
@@ -1781,7 +1784,7 @@ class TerminalWebSocket(WebSocketHandler):
         *settings* to the client.  *settings* must contain the following:
 
             * **container** - The element Gate One resides in (e.g. 'gateone')
-            * **prefix** - The string being used to prefix all elements (e.g. 'go_')
+            * **prefix** - The string being used to prefix all elements (e.g. 'go\_')
 
         *settings* may also contain any combination of the following:
 

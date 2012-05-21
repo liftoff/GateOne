@@ -28,6 +28,22 @@ this file.
 
 var document = window.document; // Have to do this because we're sandboxed
 
+//  Capabilities checks go before everything else so we don't waste time
+// Choose the appropriate WebSocket
+var WebSocket =  window.MozWebSocket || window.WebSocket || window.WebSocketDraft || null;
+if (!WebSocket) {
+    alert("Sorry but your web browser does not appear to support WebSockets.  Gate One requires WebSockets in order to (efficiently) communicate with the server.");
+    return;
+}
+// Choose the appropriate BlobBuilder and URL
+var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
+    urlObj = (window.URL || window.webkitURL);
+
+if (!BlobBuilder) {
+    alert("Sorry but your browser does not appear to support the HTML5 File API (specifically, BlobBuilder).  Gate One requires this in order to download its Web Worker over the WebSocket.");
+    return;
+}
+
 // Sandbox-wide shortcuts
 var noop = function(a) { return a }; // Let's us reference functions that may or may not be available (see logging shortcuts below).
 var ESC = String.fromCharCode(27); // Saves a lot of typing and it's easy to read
@@ -118,12 +134,6 @@ GateOne.Base.update = function (self, obj/*, ... */) {
     }
     return self;
 };
-
-// Choose the appropriate WebSocket
-var WebSocket =  window.MozWebSocket || window.WebSocket || window.WebSocketDraft || null;
-// Choose the appropriate BlobBuilder and URL
-var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
-    urlObj = (window.URL || window.webkitURL);
 
 // GateOne Settings
 GateOne.prefs = { // Tunable prefs (things users can change)

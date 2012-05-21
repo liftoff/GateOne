@@ -46,4 +46,7 @@ Developing Plugins
 
 Embeddeding Gate One Into Other Applications
 --------------------------------------------
-.. todo:: Write documentation on embedding Gate One into other applications.  Include details on how to make it hidden until a certain keystroke is entered.
+
+.. toctree::
+
+    embedding_part1.rst
