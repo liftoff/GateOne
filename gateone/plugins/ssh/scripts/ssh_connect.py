@@ -616,7 +616,7 @@ if __name__ == "__main__":
         dest="logo",
         default=False,
         action="store_true",
-        help=_("Display the Liftoff Software logo inline in the terminal.")
+        help=_("Display the logo image inline in the terminal.")
     )
     parser.add_option("--default_host",
         dest="default_host",

@@ -6,14 +6,14 @@ Embedding Gate One Into Other Applications, Part 1
 This tutorial will walk you through embedding Gate One into a completely different web application.  It is divided into two parts:
 
     #. Basics: Embedding Gate One into any web page.
-    #. Advanced: API-based authentication and customizing everything.
+    #. Advanced: API-based authentication, "embedded mode", and customizing *everything*.
 
 We'll assume you have Gate One installed and running with the following settings (in your server.conf)::
 
-    auth = None # anonymous authentication mode
+    auth = None # Anonymous authentication
     port = 443
     disable_ssl = False
-    origins = "*" # Disable origin checking (this will be covered in Part 2)
+    origins = "*" # Disable origin checking for now (this will be covered in Part 2)
     url_prefix = "/" # Keep it simple for the tutorial
 
 .. note:: 'origins' is the only setting above that is differs from defaults.

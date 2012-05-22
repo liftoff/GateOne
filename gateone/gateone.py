@@ -328,6 +328,10 @@ PLUGIN_AUTH_HOOKS = [] # For plugins to register functions to be called after a
 # The <whatever> part will be passed to any plugin matching <plugin name> if the
 # plugin has 'Escape': <function> registered in its hooks.
 PLUGIN_ESC_HANDLERS = {}
+# This is used to store plugin terminal hooks that are called when a new
+# terminal is created (so a plugin could override/attach callbacks to the
+# multiplex or terminal emulator instances).
+PLUGIN_TERM_HOOKS = {}
 
 # Secondary locale setup
 locale_dir = os.path.join(GATEONE_DIR, 'i18n')
@@ -1422,6 +1426,10 @@ class TerminalWebSocket(WebSocketHandler):
         dsr = partial(self.dsr, term)
         term_emulator.add_callback(
             terminal.CALLBACK_DSR, dsr, callback_id)
+        # Call any registered plugin Terminal hooks
+        if PLUGIN_TERM_HOOKS:
+            for hook, func in PLUGIN_TERM_HOOKS.items():
+                term_emulator.add_callback(hook, func(self))
         # NOTE: refresh_screen will also take care of cleaning things up if
         #       SESSIONS[self.session][term]['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
@@ -1823,7 +1831,7 @@ class TerminalWebSocket(WebSocketHandler):
                     container, i, COLORS_256[i])
                 bg_rev = "#%s span.reverse.bx%s {color: #%s; background-color: inherit;} " % (
                     container, i, COLORS_256[i])
-                colors_256 += "%s %s %s %s" % (fg, bg, fg_rev, bg_rev)
+                colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
             colors_256 += "\n"
             theme_path = os.path.join(themes_path, "%s.css" % theme)
             theme_css = self.render_string(
@@ -1990,6 +1998,7 @@ class Application(tornado.web.Application):
         global PLUGIN_HOOKS
         global PLUGIN_ESC_HANDLERS
         global PLUGIN_AUTH_HOOKS
+        global PLUGIN_TERM_HOOKS
         # Base settings for our Tornado app
         tornado_settings = dict(
             cookie_secret=settings['cookie_secret'],
@@ -2071,6 +2080,9 @@ class Application(tornado.web.Application):
                     PLUGIN_AUTH_HOOKS.extend(hooks['Auth'])
                 else:
                     PLUGIN_AUTH_HOOKS.append(hooks['Auth'])
+            if 'Terminal' in hooks:
+                # Apply the plugin's Terminal hooks (called by new_terminal)
+                PLUGIN_TERM_HOOKS.update(hooks['Terminal'])
         # This removes duplicate handlers for the same regex, allowing plugins
         # to override defaults:
         handlers = merge_handlers(handlers)
@@ -2115,7 +2127,12 @@ def main():
         'https://127.0.0.1'
     ]
     # Used both http and https above to demonstrate that both are acceptable
-    for host in socket.gethostbyname_ex(socket.gethostname()):
+    try:
+        additional_origins = socket.gethostbyname_ex(socket.gethostname())
+    except socket.gaierror:
+        # Couldn't get any IPs from the hostname
+        additional_origins = []
+    for host in additional_origins:
         if isinstance(host, str):
             default_origins.append('https://%s' % host)
         else: # It's a list
@@ -2177,6 +2194,20 @@ def main():
                " provided."),
         type=str
     )
+    #define(
+        #"ca_certs",
+        #default="",
+        #help=_("Path to a PEM-formatted file containing any number of CA "
+               #"certificates (that will be used to authenticate clients)."),
+        #type=str
+    #)
+    #define(
+        #"ssl_auth",
+        #default=None,
+        #help=_("Specify whether SSL client certificates will be 'optional' or "
+              #"'required'.  NOTE: Only works if the 'ca_certs' option is set."),
+        #type=str
+    #)
     define(
         "user_dir",
         default=os.path.join(GATEONE_DIR, "users"),
@@ -2388,13 +2419,20 @@ def main():
     tornado.options.parse_command_line()
     if os.path.exists(options.config):
         tornado.options.parse_config_file(options.config)
-    else: # Generate a default server.conf with a random cookie secret
+    # If you want any missing config file entries re-generated just delete the
+    # cookie_secret line...
+    if not options.cookie_secret:
+        # Generate a default server.conf with a random cookie secret
+        # NOTE: This will also generate a new server.conf if it is missing.
         logging.info(_(
-           "%s not found.  A new one will be generated with defaults." %
-           options.config))
+          "%s not found or missing cookie_secret.  A new one will be generated."
+          % options.config))
         config_defaults = {}
         for key, value in options.items():
-            config_defaults.update({key: value.default})
+            if value._value != None:
+                config_defaults.update({key: value._value})
+            else:
+                config_defaults.update({key: value.default})
         # A few config defaults need special handling
         del config_defaults['kill'] # This shouldn't be in server.conf
         del config_defaults['help'] # Neither should this
@@ -2405,11 +2443,16 @@ def main():
         config_defaults.update({'log_file_max_size': 100 * 1024 * 1024}) # 100MB
         config_defaults.update({'log_file_num_backups': 10})
         config_defaults.update({'log_to_stderr': False})
-        web_log_path = os.path.join(GATEONE_DIR, 'logs')
+        if options.log_file_prefix == None:
+            web_log_path = os.path.join(GATEONE_DIR, 'logs')
+            config_defaults.update({
+                'log_file_prefix': os.path.join(web_log_path, 'webserver.log')})
+        else:
+            web_log_path = os.path.split(options.log_file_prefix)[0]
         if not os.path.exists(web_log_path):
             mkdir_p(web_log_path)
-        config_defaults.update(
-            {'log_file_prefix': os.path.join(web_log_path, 'webserver.log')})
+        if not os.path.exists(config_defaults['log_file_prefix']):
+            open(config_defaults['log_file_prefix'], 'w').write('')
         config = open(options.config, "w")
         for key, value in config_defaults.items():
             if isinstance(value, basestring):
