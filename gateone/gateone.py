@@ -249,6 +249,7 @@ import socket
 import pty
 import pwd, grp
 import atexit
+import ssl
 from functools import partial, wraps
 from datetime import datetime, timedelta
 
@@ -2140,6 +2141,7 @@ def main():
                 default_origins.append('https://%s' % _host)
     default_origins = ";".join(default_origins)
     config_default = os.path.join(GATEONE_DIR, "server.conf")
+    # TODO:  These configuration options are getting a bit unwiedly.  Move them into a separate file or something.  Might want to switch over to using optparse and/or ConfigParser as well.
     define("config",
         default=config_default,
         help=_(
@@ -2194,20 +2196,25 @@ def main():
                " provided."),
         type=str
     )
-    #define(
-        #"ca_certs",
-        #default="",
-        #help=_("Path to a PEM-formatted file containing any number of CA "
-               #"certificates (that will be used to authenticate clients)."),
-        #type=str
-    #)
-    #define(
-        #"ssl_auth",
-        #default=None,
-        #help=_("Specify whether SSL client certificates will be 'optional' or "
-              #"'required'.  NOTE: Only works if the 'ca_certs' option is set."),
-        #type=str
-    #)
+    define(
+        "ca_certs",
+        default=None,
+        help=_("Path to a file containing any number of concatenated CA "
+               "certificates in PEM format.  They will be used to authenticate "
+               "clients if the 'ssl_auth' option is set to 'optional' or "
+               "'required'."),
+        type=str
+    )
+    define(
+        "ssl_auth",
+        default='none',
+        help=_("Enable the use of client SSL (X.509) certificates as a "
+               "secondary authentication factor (the configured 'auth' type "
+               "will come after SSL auth).  May be one of 'none', 'optional', "
+               "or 'required'.  NOTE: Only works if the 'ca_certs' option is "
+               "configured."),
+        type=str
+    )
     define(
         "user_dir",
         default=os.path.join(GATEONE_DIR, "users"),
@@ -2464,15 +2471,15 @@ def main():
     tornado.options.parse_command_line()
     # Change the uid/gid strings into integers
     try:
-        options.uid = int(options.uid)
+        uid = int(options.uid)
     except ValueError:
         # Assume it's a username and grab its uid
-        options.uid = pwd.getpwnam(options.uid).pw_uid
+        uid = pwd.getpwnam(options.uid).pw_uid
     try:
-        options.gid = int(options.gid)
+        gid = int(options.gid)
     except ValueError:
         # Assume it's a group name and grab its gid
-        options.gid = grp.getgrnam(options.gid).gr_gid
+        gid = grp.getgrnam(options.gid).gr_gid
     if not os.path.exists(options.user_dir): # Make our user_dir
         try:
             mkdir_p(options.user_dir)
@@ -2485,10 +2492,10 @@ def main():
             sys.exit(1)
         # If we could create it we should be able to adjust its permissions:
         os.chmod(options.user_dir, 0o770)
-    if os.stat(options.user_dir).st_uid != options.uid:
+    if os.stat(options.user_dir).st_uid != uid:
         # Try correcting this first
         try:
-            recursive_chown(options.user_dir, options.uid, options.gid)
+            recursive_chown(options.user_dir, uid, gid)
         except ChownError as e:
             logging.error(e)
             sys.exit(1)
@@ -2503,10 +2510,10 @@ def main():
                 repr(os.getlogin()), repr(os.getlogin()))))
             sys.exit(1)
         os.chmod(options.session_dir, 0o770)
-    if os.stat(options.session_dir).st_uid != options.uid:
+    if os.stat(options.session_dir).st_uid != uid:
         # Try correcting it
         try:
-            recursive_chown(options.session_dir, options.uid, options.gid)
+            recursive_chown(options.session_dir, uid, gid)
         except ChownError as e:
             logging.error(e)
             sys.exit(1)
@@ -2525,10 +2532,10 @@ def main():
                   "One as root, or create that directory and give the proper "
                   "user ownership of it."))
             sys.exit(1)
-    if os.stat(log_dir).st_uid != options.uid:
+    if os.stat(log_dir).st_uid != uid:
         # Try to correct it
         try:
-            recursive_chown(log_dir, options.uid, options.gid)
+            recursive_chown(log_dir, uid, gid)
         except ChownError as e:
             logging.error(e)
             sys.exit(1)
@@ -2628,10 +2635,10 @@ def main():
     # Setup static file links for plugins (if any)
     static_dir = os.path.join(GATEONE_DIR, "static")
     # Verify static_dir's permissions
-    if os.stat(static_dir).st_uid != options.uid:
+    if os.stat(static_dir).st_uid != uid:
         # Try correcting it
         try: # Just os.chown on this one (recursive could be bad)
-            os.chown(static_dir, options.uid, options.gid)
+            os.chown(static_dir, uid, gid)
         except OSError:
             logging.error(_(
                 "Error: Gate One does not have permission to write to %s.  "
@@ -2652,10 +2659,19 @@ def main():
         logging.warning(_(
             "Logging is set to DEBUG.  Be aware that this will record the "
             "keystrokes of all users.  Don't be evil!"))
+    if options.ssl_auth.lower() == 'required':
+        # Convert to an integer using the ssl module
+        cert_reqs = ssl.CERT_REQUIRED
+    elif options.ssl_auth.lower() == 'optional':
+        cert_reqs = ssl.CERT_OPTIONAL
+    else:
+        cert_reqs = ssl.CERT_NONE
     # Instantiate our Tornado web server
     ssl_options = {
         "certfile": options.certificate,
-        "keyfile": options.keyfile
+        "keyfile": options.keyfile,
+        "ca_certs": options.ca_certs,
+        "cert_reqs": cert_reqs
     }
     if options.disable_ssl:
         ssl_options = None
@@ -2700,8 +2716,8 @@ def main():
         # Close our temmporary pty/fds so we're not wasting them
         os.close(tempfd1)
         os.close(tempfd2)
-        if options.uid != os.getuid():
-            drop_privileges(options.uid, options.gid, [tty_gid])
+        if uid != os.getuid():
+            drop_privileges(uid, gid, [tty_gid])
         # Make sure that old logs get cleaned up
         global CLEANER
         if not CLEANER:

@@ -218,6 +218,12 @@ def enumerate_logs(limit=None, tws=None):
     # doing a get() from the queue.  This variable is used to ensure we don't
     # send the client duplicates:
     results = []
+    if tws.settings['session_logging'] == False:
+        message = {'notice': _(
+            "NOTE: User session logging is disabled.  To enable it, set "
+            "'session_logging = True' in your server.conf.")}
+        tws.write_message(message)
+        return # Nothing left to do
     user = tws.get_current_user()['upn']
     users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
     io_loop = tornado.ioloop.IOLoop.instance()

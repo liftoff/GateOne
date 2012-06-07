@@ -375,6 +375,7 @@ class BaseMultiplex(object):
         self.pid = -1 # Means "no pid yet"
         self.started = "Never"
         self._patterns = []
+        self._handling_match = False
         # Setup our callbacks
         self.callbacks = { # Defaults do nothing which saves some conditionals
             self.CALLBACK_UPDATE: {},
@@ -667,6 +668,13 @@ class BaseMultiplex(object):
         :obj:`Pattern.callback` and takes care of removing it from
         :attr:`_patterns` (if it isn't sticky).
         """
+        if self._handling_match:
+            # Don't process anything if we're in the middle of handling a match.
+            # NOTE: This can happen when there's more than one thread,
+            # processes, or PeriodicCallback going on simultaneously.  It seems
+            # to work better than threading.Lock()
+            return
+        self._handling_match = True
         callback = partial(pattern_obj.callback, self, match.group())
         self._call_callback(callback)
         if self.debug:
@@ -676,6 +684,7 @@ class BaseMultiplex(object):
             self._call_callback(debug_callback)
         if not pattern_obj.sticky:
             self.unexpect(hash(pattern_obj)) # Remove it
+        self._handling_match = False
 
     def writeline(self, line=''):
         """
@@ -1024,6 +1033,8 @@ class BaseMultiplex(object):
                 "The timeout value must be a string, integer, float, or a "
                 "timedelta object"))
         remaining_patterns = True
+        # This starts up the scheduler that constantly checks patterns
+        self.read() # Remember:  read() is non-blocking
         while remaining_patterns:
             # First we need to discount optional patterns
             remaining_patterns = False
@@ -1100,6 +1111,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         interval = 100 # A 0.1 second interval should be fast enough
         self.scheduler = ioloop.PeriodicCallback(self._timeout_checker,interval)
         self.exitstatus = None
+        self._checking_patterns = False
 
     def __del__(self):
         """
@@ -1377,7 +1389,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             self.CALLBACK_UPDATE: {},
             self.CALLBACK_EXIT: {},
         }
-        del self.term
+        # Commented this out so that you can see what was in the terminal
+        # emulator after the process terminates.
+        #del self.term
         # Kick off a process that finalizes the log (updates metadata and
         # recompresses everything to save disk space)
         if not self.log_path:
@@ -1475,19 +1489,22 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         Runs `timeout_check` and if there are no more non-sticky
         patterns in :attr:`self._patterns`, stops :attr:`scheduler`.
         """
-        remaining_patterns = self.timeout_check()
-        if not remaining_patterns:
-            # No reason to keep the PeriodicCallback going
-            logging.debug("Stopping self.scheduler (no remaining patterns)")
-            try:
-                self.scheduler.stop()
-            except AttributeError:
+        if not self._checking_patterns:
+            self._checking_patterns = True
+            remaining_patterns = self.timeout_check()
+            if not remaining_patterns:
+                # No reason to keep the PeriodicCallback going
+                logging.debug("Stopping self.scheduler (no remaining patterns)")
+                try:
+                    self.scheduler.stop()
+                except AttributeError:
                 # Now this is a neat trick:  The way IOLoop works with its
                 # stack_context thingamabob the scheduler doesn't actualy end up
                 # inside the MultiplexPOSIXIOLoop instance inside of this
                 # instance of _timeout_checker() *except* inside the main
                 # thread.  It is absolutely wacky but it works and works well :)
-                pass
+                    pass
+            self._checking_patterns = False
 
     def read(self, bytes=-1):
         """
