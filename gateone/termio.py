@@ -124,7 +124,7 @@ RE_TITLE_SEQ = re.compile(
     r'.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)', re.DOTALL|re.MULTILINE)
 
 # Helper functions
-def debug_expect(m_instance, match):
+def debug_expect(m_instance, match, pattern):
     """
     This method is used by :meth:`BaseMultiplex.expect` if :attr:`self.debug` is
     True.  It facilitates easy debugging of regular expressions.  It will print
@@ -135,8 +135,7 @@ def debug_expect(m_instance, match):
     print("%s was matched..." % repr(match))
     out = ""
     for line in m_instance.dump():
-        regex = re.escape(match)
-        match_obj = re.match(regex, line)
+        match_obj = pattern.search(line)
         if match_obj:
             out += "--->%s\n" % repr(line)
             break
@@ -680,7 +679,7 @@ class BaseMultiplex(object):
         if self.debug:
             # Turn on the fancy regex debugger/pretty printer
             debug_callback = partial(
-                debug_expect, self, match.group())
+                debug_expect, self, match.group(), pattern_obj.pattern)
             self._call_callback(debug_callback)
         if not pattern_obj.sticky:
             self.unexpect(hash(pattern_obj)) # Remove it
@@ -692,7 +691,7 @@ class BaseMultiplex(object):
 
         If no *line* is given a newline will be written.
         """
-        self.write(line + u'\n')
+        self.write(line + u'\r\n')
 
     def writelines(self, lines):
         """
@@ -701,7 +700,7 @@ class BaseMultiplex(object):
         """
         if getattr(lines, '__iter__', False):
             for line in lines:
-                self.write(line + u'\n')
+                self.write(line + u'\r\n')
         else:
             raise TypeError(_(
                 "%s is not iterable (strings don't count :)" % type(lines)))
