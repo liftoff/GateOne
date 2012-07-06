@@ -366,6 +366,7 @@ class BaseMultiplex(object):
         else:
             self.terminal_emulator = terminal_emulator
         self.log_path = log_path # Logs of the terminal output wind up here
+        self.log = None # Just a placeholder until it is opened
         self.syslog = syslog # See "if self.syslog:" below
         self._alive = False
         self.ratelimiter_engaged = False
@@ -541,7 +542,8 @@ class BaseMultiplex(object):
                 metadata_frame = "%s:%s\xf3\xb0\xbc\x8f" % (now, metadata_frame)
                 self.log = gzip.open(self.log_path, mode='a')
                 self.log.write(metadata_frame)
-                #log.close()
+            if not self.log: # Only comes into play if the file already exists
+                self.log = gzip.open(self.log_path, mode='a')
             # NOTE: I'm using an obscure unicode symbol in order to avoid
             # conflicts.  We need to dpo our best to ensure that we can
             # differentiate between terminal output and our log format...
