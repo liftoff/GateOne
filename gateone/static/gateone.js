@@ -222,7 +222,8 @@ var go = GateOne.Base.update(GateOne, {
             u = go.Utils,
             parseResponse = function(response) {
                 if (response == 'authenticated') {
-                    // Load Plugins (GateOne.initialize is passed as a callback)
+                    // Connect (GateOne.initialize() will be called after the connection is made)
+                    logDebug("GateOne.init() calling GateOne.Net.connect()");
                     go.Net.connect();
                 } else {
                     if (go.prefs.auth) {
@@ -1052,7 +1053,7 @@ GateOne.Base.update(GateOne.Utils, {
                 var acceptURL = go.prefs.url + 'static/accept_certificate.html';
                 // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
                 alert("You will now be directed to a page where you can accept the Gate One server's SSL certificate.");
-                window.location.href = acceptURL + '?url=' + window.location.href;
+                window.location.href = acceptURL + '?url=' + window.location.href.replace(/:\/\/(.*@)?/g, '://'+u.randomString(8)+'@');
             }
         }, 5000);
     },
@@ -1136,6 +1137,16 @@ GateOne.Base.update(GateOne.Utils, {
             i = Math.floor(Math.random()*1000000000);
         }
         return i;
+    },
+    randomString: function(length, chars) {
+        // Returns a random string of the given *length* using the given *chars*.
+        // If *chars* is not given it will use ASCII alphanumerics (lower case)
+        var result = '';
+        if (!chars) {
+            chars = "1234567890abcdefghijklmnopqrstuvwxyz";
+        }
+        for (var i = length; i > 0; --i) result += chars[Math.round(Math.random() * (chars.length - 1))];
+        return result;
     },
     saveAs: function(blob, filename) {
         // Saves the given *blob* (which must be a proper Blob object with data inside of it) as *filename* (as a file) in the browser.  Just as if you clicked on a link to download it.
@@ -4186,8 +4197,9 @@ GateOne.Base.update(GateOne.User, {
             });
         }
     },
-    logout: function() {
+    logout: function(redirectURL) {
         // Logs the user out of Gate One by deleting the "user" cookie and everything related to Gate One in localStorage
+        // If *redirectURL* is given, the user will be redirected to that URL after they are logged out.
         var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix;
@@ -4197,10 +4209,16 @@ GateOne.Base.update(GateOne.User, {
                 delete localStorage[key];
             }
         }
+        if (!redirectURL) {
+            redirectURL = go.prefs.url;
+        } else {
+            redirectURL = '';
+        }
         // NOTE: This takes care of deleting the "user" cookie
-        u.xhrGet(go.prefs.url+'auth?logout=True', function(response) {
+        u.xhrGet(go.prefs.url+'auth?logout=True&redirect='+redirectURL, function(response) {
             logDebug("Logout Response: " + response);
-            var url = response;
+            // Need to modify the URL to include a random username so that when a user logs out with PAM authentication enabled they will be asked for their username/password again
+            var url = response.replace(/:\/\/(.*@)?/g, '://'+u.randomString(8)+'@');
             v.displayMessage("You have been logged out.  Redirecting to: " + url);
             setTimeout(function() {
                 window.location.href = url;

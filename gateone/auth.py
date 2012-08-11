@@ -120,12 +120,14 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         information and optionally, redirects them to *redirect* (URL).
         """
         logging.debug("user_logout(%s)" % user)
-        url_prefix = self.settings['url_prefix']
+        if not redirect:
+            # Try getting it from the query string
+            redirect = self.get_argument("redirect", None)
         if redirect:
             self.write(redirect)
             self.finish()
         else:
-            self.write(url_prefix)
+            self.write(self.settings['url_prefix'])
             self.finish()
 
 class NullAuthHandler(BaseAuthHandler):

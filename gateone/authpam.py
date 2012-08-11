@@ -40,8 +40,8 @@ class PAMAuthMixin(tornado.web.RequestHandler):
         Print out helpful error messages if the requisite settings aren't
         configured.
         """
-        self.require_setting("pam_realm", "PAM Single Sign-On")
-        self.require_setting("pam_service", "PAM Single Sign-On")
+        self.require_setting("pam_realm", "PAM Realm")
+        self.require_setting("pam_service", "PAM Service")
 
     def get_authenticated_user(self, callback):
         """

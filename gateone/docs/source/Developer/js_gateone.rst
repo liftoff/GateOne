@@ -908,6 +908,24 @@ Functions
         > GateOne.Utils.randomPrime();
         618690239
 
+.. js:function:: GateOne.Utils.randomString(length, chars)
+
+    :returns: A random string of the given *length* using the given *chars*.
+
+    If *chars* is omitted the returned string will consist of lower-case ASCII alphanumerics.
+
+    :param int length: The length of the random string to be returned.
+    :param string chars: Optional; a string containing the characters to use when generating the random string.
+
+    Example:
+
+    .. code-block:: javascript
+
+        > GateOne.Utils.randomString(8);
+        "oa2f9txf"
+        > GateOne.Utils.randomString(8, '123abc');
+        "1b3ac12b"
+
 .. js:function:: GateOne.Utils.removeElement(elem)
 
     Removes the given *elem* from the DOM.
@@ -1863,3 +1881,5 @@ Functions
     *ratelimiter* will be a boolean value representing whether or not the rate limiter has been engaged (if the program running on this terminal is updating the screen too fast).
 
     :param object termObj: An object that contains the terminal number ('term'), the 'scrollback' buffer, the terminal 'screen', and a boolean idicating whether or not the rate limiter has been engaged ('ratelimiter').
+
+.. todo.. Add GateOne.User docs

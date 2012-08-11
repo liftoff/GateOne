@@ -1339,6 +1339,39 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Utils.randomString">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">randomString</tt><big>(</big><em>length</em>, <em>chars</em><big>)</big><a class="headerlink" href="#GateOne.Utils.randomString" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A random string of the given <em>length</em> using the given <em>chars</em>.</td>
+</tr>
+</tbody>
+</table>
+<p>If <em>chars</em> is omitted the returned string will consist of lower-case ASCII alphanumerics.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>length</strong> (<em>int</em>) -- The length of the random string to be returned.</li>
+<li><strong>chars</strong> (<em>string</em>) -- Optional; a string containing the characters to use when generating the random string.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">randomString</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span>
+<span class="s2">&quot;oa2f9txf&quot;</span>
+<span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">randomString</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="s1">&#39;123abc&#39;</span><span class="p">);</span>
+<span class="s2">&quot;1b3ac12b&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Utils.removeElement">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">removeElement</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Utils.removeElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the given <em>elem</em> from the DOM.</p>
