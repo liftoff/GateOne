@@ -30,17 +30,23 @@ var document = window.document; // Have to do this because we're sandboxed
 
 //  Capabilities checks go before everything else so we don't waste time
 // Choose the appropriate WebSocket
-var WebSocket =  window.MozWebSocket || window.WebSocket || window.WebSocketDraft || null;
+var WebSocket =  (window.MozWebSocket || window.WebSocket || window.WebSocketDraft);
 if (!WebSocket) {
     alert("Sorry but your web browser does not appear to support WebSockets.  Gate One requires WebSockets in order to (efficiently) communicate with the server.");
     return;
 }
-// Choose the appropriate BlobBuilder and URL
-var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
+// Blob and window.URL checks
+var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder), // Deprecated but still supported by Gate One.  Will be removed at some later date
+    Blob = window.Blob, // This will be favored (used by GateOne.Utils.createBlob())
     urlObj = (window.URL || window.webkitURL);
 
-if (!BlobBuilder) {
-    alert("Sorry but your browser does not appear to support the HTML5 File API (specifically, BlobBuilder).  Gate One requires this in order to download its Web Worker over the WebSocket.");
+if (!BlobBuilder || !Blob) {
+    alert("Sorry but your browser does not appear to support the HTML5 File API (Blob objects, specifically).  Gate One requires this in order to download its Web Worker over the WebSocket.");
+    return;
+}
+
+if (!urlObj) {
+    alert("Sorry but your browser does not appear to support the window.URL object.  Gate One requires this in order to download its Web Worker over the WebSocket.");
     return;
 }
 
@@ -1178,9 +1184,7 @@ GateOne.Base.update(GateOne.Utils, {
             if (message['mimetype']) {
                 mimetype = message['mimetype'];
             }
-            var bb = new BlobBuilder();
-            bb.append(message['data']);
-            var blob = bb.getBlob(mimetype);
+            var blob = u.createBlob(message['data'], mimetype);
             u.saveAs(blob, message['filename']);
         } else {
             go.Visual.displayMessage('An error was encountered trying to save a file...');
@@ -1206,6 +1210,26 @@ GateOne.Base.update(GateOne.Utils, {
     isPageHidden: function() {
         // Returns true if the page (browser tab) is hidden (e.g. inactive).  Returns false otherwise.
         return document.hidden || document.msHidden || document.webkitHidden;
+    },
+    createBlob: function(array, mimetype) {
+        // Returns a Blob constructed from the data in *array* of the given *mimetype*.  *array* may be passed as a string; it will be automatically wrapped in an array.
+        // If *mimetype* is omitted it will be set to 'text/plain'.
+        // NOTE:  The point of this function is favor the Blob function while maintaining backwards-compatibility with the deprecated BlobBuilder interface (for browsers that don't support Blob() yet).
+        if (typeof(array) == 'string') {
+            array = [array]; // Convert to actual array
+        }
+        if (!mimetype) {
+            // Use text/plain by default
+            mimetype = 'text/plain';
+        }
+        // Prefer Blob()
+        if (Blob) {
+            return new Blob(array, {'type': mimetype});
+        } else { // Fall back to BlobBuilder
+            var bb = new BlobBuilder();
+            bb.push.apply(bb, array)
+            return bb.getBlob(mimetype);
+        }
     }
 });
 
@@ -2200,7 +2224,7 @@ GateOne.Base.update(GateOne.Input, {
             }
         }
         q = null;
-    },
+    }
 });
 // Expand GateOne.Input.specialKeys to be more complete:
 (function () { // Note:  Copied from MochiKit.Signal.
@@ -3283,7 +3307,8 @@ window.GateOne = GateOne; // Make everything usable
 (function(window, undefined) {
 "use strict";
 
-var go = GateOne;
+var go = GateOne,
+    urlObj = (window.URL || window.webkitURL);
 
 // Sandbox-wide shortcuts for each log level (actually assigned in init())
 var logFatal = go.Utils.noop,
@@ -3291,10 +3316,6 @@ var logFatal = go.Utils.noop,
     logWarning = go.Utils.noop,
     logInfo = go.Utils.noop,
     logDebug = go.Utils.noop;
-
-// Choose the appropriate BlobBuilder and URL
-var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder),
-    urlObj = (window.URL || window.webkitURL);
 
 go.Base.module(GateOne, "Terminal", "1.0", ['Base', 'Utils', 'Visual']);
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
@@ -3721,14 +3742,13 @@ go.Base.update(GateOne.Terminal, {
         var u = go.Utils,
             t = go.Terminal,
             prefix = go.prefs.prefix,
-            bb = new BlobBuilder();
-        bb.append(source); // Add the Web Worker source code
+            blob = u.createBlob(source, 'application/javascript');
         // Obtain a blob URL reference to our worker 'file'.
         if (urlObj.createObjectURL) {
-            var blobURL = urlObj.createObjectURL(bb.getBlob());
+            var blobURL = urlObj.createObjectURL(blob);
             t.termUpdatesWorker = new Worker(blobURL);
         } else {
-            // Fall back to the old way
+            // Fall back to the old way (try it anyway--won't work for most embedded situations)
             t.termUpdatesWorker = new Worker(go.prefs.url+'static/go_process.js');
             // Why bother with Blobs?  Because you can't load Web Workers from a different origin *type*.  What?!?
             // The origin type would be, say, HTTPS on port 443.  So if I wanted to load a Web Worker from such a page where the Worker's URL is from an HTTPS server on port 10443 it would throw errors.  Even if it is from the same domain.  The same holds true for loading a Worker from an HTTP URL.  What's odd is that you can load a Worker from HTTPS on a completely *different* domain as long as it's the same origin *type*!  Who comes up with this stuff?!?

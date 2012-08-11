@@ -490,6 +490,20 @@ Functions
 
     Like all plugin init() functions this gets called from :js:func:`GateOne.Utils.postInit` which itself is called at the end of :js:func:`GateOne.initialize`.  It simply attaches the 'save_file' (WebSocket) action to :js:func:`GateOne.Utils.saveAsAction` (in :js:attr:`GateOne.Net.actions`).
 
+.. js:function:: GateOne.Utils.createBlob(array, mimetype)
+
+    Returns a Blob() object using the given *array* and *mimetype*.  If *mimetype* is omitted it will default to 'text/plain'.  Optionally, *array* may be given as a string in which case it will be automatically wrapped in an array.
+
+    :param array array: A string or array containing the data that the Blob will contain.
+    :param string mimetype: A string representing the mimetype of the data (e.g. 'application/javascript').
+    :returns: A Blob()
+
+    Examples:
+
+    .. code-block:: javascript
+
+        blob = GateOne.Utils.createBlob('some data here', 'text/plain);
+
 .. js:function:: GateOne.Utils.createElement(tagname, properties)
 
     A simplified version of MochiKit's `createDOM <http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-createdom>`_ function, it creates a *tagname* (e.g. "div") element using the given *properties*.
@@ -958,14 +972,6 @@ Functions
     Saves the given *blob* (which must be a proper `Blob <https://developer.mozilla.org/en/DOM/Blob>`_ object with data inside of it) as *filename* (as a file) in the browser.  Just as if you clicked on a link to download it.
 
     .. note:: This is amazingly handy for downloading files over the WebSocket.
-
-    For reference, this is how to construct a "proper" Blob (assming the file you're saving is just text):
-
-    .. code-block:: javascript
-
-        var bb = new BlobBuilder();
-        bb.append(<your data here>);
-        var blob = bb.getBlob("text/plain;charset=" + document.characterSet);
 
 .. js:function:: GateOne.Utils.saveAsAction(message)
 
@@ -1881,3 +1887,5 @@ Functions
     *ratelimiter* will be a boolean value representing whether or not the rate limiter has been engaged (if the program running on this terminal is updating the screen too fast).
 
     :param object termObj: An object that contains the terminal number ('term'), the 'scrollback' buffer, the terminal 'screen', and a boolean idicating whether or not the rate limiter has been engaged ('ratelimiter').
+
+.. todo.. Add GateOne.User docs

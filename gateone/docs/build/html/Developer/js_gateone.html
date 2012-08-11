@@ -650,6 +650,30 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Utils.createBlob">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">createBlob</tt><big>(</big><em>array</em>, <em>mimetype</em><big>)</big><a class="headerlink" href="#GateOne.Utils.createBlob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a Blob() object using the given <em>array</em> and <em>mimetype</em>.  If <em>mimetype</em> is omitted it will default to 'text/plain'.  Optionally, <em>array</em> may be given as a string in which case it will be automatically wrapped in an array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>array</strong> (<em>array</em>) -- A string or array containing the data that the Blob will contain.</li>
+<li><strong>mimetype</strong> (<em>string</em>) -- A string representing the mimetype of the data (e.g. 'application/javascript').</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A Blob()</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Examples:</p>
+<div class="highlight-javascript"><pre>blob = GateOne.Utils.createBlob('some data here', 'text/plain);</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Utils.createElement">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">createElement</tt><big>(</big><em>tagname</em>, <em>properties</em><big>)</big><a class="headerlink" href="#GateOne.Utils.createElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>A simplified version of MochiKit's <a class="reference external" href="http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-createdom">createDOM</a> function, it creates a <em>tagname</em> (e.g. &quot;div&quot;) element using the given <em>properties</em>.</p>
@@ -1429,12 +1453,6 @@
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This is amazingly handy for downloading files over the WebSocket.</p>
-</div>
-<p>For reference, this is how to construct a &quot;proper&quot; Blob (assming the file you're saving is just text):</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">bb</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">BlobBuilder</span><span class="p">();</span>
-<span class="nx">bb</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="o">&lt;</span><span class="nx">your</span> <span class="nx">data</span> <span class="nx">here</span><span class="o">&gt;</span><span class="p">);</span>
-<span class="kd">var</span> <span class="nx">blob</span> <span class="o">=</span> <span class="nx">bb</span><span class="p">.</span><span class="nx">getBlob</span><span class="p">(</span><span class="s2">&quot;text/plain;charset=&quot;</span> <span class="o">+</span> <span class="nb">document</span><span class="p">.</span><span class="nx">characterSet</span><span class="p">);</span>
-</pre></div>
 </div>
 </dd></dl>
 
