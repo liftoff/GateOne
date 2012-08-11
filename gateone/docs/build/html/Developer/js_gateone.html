@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>gateone.js &mdash; Gate One 1.0 documentation</title>
+    <title>gateone.js &mdash; Gate One 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.1 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="go_process.js" href="js_go_process.html" />
     <link rel="prev" title="utils.py - Supporting Functions" href="utils.html" /> 
@@ -646,7 +646,7 @@
 <dl class="function">
 <dt id="GateOne.Utils.init">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Like all plugin init() functions this gets called from <a class="reference internal" href="#GateOne.Utils.postOnLoad" title="GateOne.Utils.postOnLoad"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.postOnLoad()</span></tt></a> which itself is called at the end of <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a>.  It simply attaches the 'save_file' (WebSocket) action to <a class="reference internal" href="#GateOne.Utils.saveAsAction" title="GateOne.Utils.saveAsAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.saveAsAction()</span></tt></a> (in <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a>).</p>
+<dd><p>Like all plugin init() functions this gets called from <a class="reference internal" href="#GateOne.Utils.postInit" title="GateOne.Utils.postInit"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.postInit()</span></tt></a> which itself is called at the end of <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a>.  It simply attaches the 'save_file' (WebSocket) action to <a class="reference internal" href="#GateOne.Utils.saveAsAction" title="GateOne.Utils.saveAsAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.saveAsAction()</span></tt></a> (in <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a>).</p>
 </dd></dl>
 
 <dl class="function">
@@ -1315,8 +1315,8 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Utils.postOnLoad">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">postOnLoad</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.postOnLoad" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Utils.postInit">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">postInit</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.postInit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called by <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a>, iterates over the list of plugins in <a class="reference internal" href="#GateOne.loadedModules" title="GateOne.loadedModules"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.loadedModules</span></tt></a> calling the <tt class="docutils literal"><span class="pre">init()</span></tt> function of each (if present).  When that's done it does the same thing with each respective plugin's <tt class="docutils literal"><span class="pre">postInit()</span></tt> function.</p>
 </dd></dl>
 

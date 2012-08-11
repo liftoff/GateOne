@@ -57,11 +57,14 @@ GateOne.Base.update(GateOne.Playback, {
             }
             pTag.appendChild(infoPanelSaveRecording);
         }
-        GateOne.Playback.addPlaybackControls();
-        // This makes sure our playback frames get added to the terminal object whenever the screen is updated
-        go.Terminal.updateTermCallbacks.push(GateOne.Playback.pushPlaybackFrame);
-        // This makes sure our prefs get saved along with everything else
-        go.savePrefsCallbacks.push(GateOne.Playback.savePrefsCallback);
+        if (!go.prefs.embedded) {
+            // Don't automatically add the playback controls in embedded mode.  Let the embedder decide if they want to do that.
+            p.addPlaybackControls();
+        }
+            // This makes sure our playback frames get added to the terminal object whenever the screen is updated
+            go.Terminal.updateTermCallbacks.push(GateOne.Playback.pushPlaybackFrame);
+            // This makes sure our prefs get saved along with everything else
+            go.savePrefsCallbacks.push(GateOne.Playback.savePrefsCallback);
     },
     pushPlaybackFrame: function(term) {
         // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']
@@ -92,8 +95,6 @@ GateOne.Base.update(GateOne.Playback, {
                 GateOne.Playback.frameUpdater = null;
                 GateOne.Playback.milliseconds = 0; // Reset this in case the user was in the middle of playing something back when the screen updated
                 GateOne.Playback.progressBarElement.style.width = '0%';
-                // Also make sure the pastearea is put back if missing
-//                 GateOne.Utils.showElement('#'+prefix+'pastearea');
             }
         }
     },

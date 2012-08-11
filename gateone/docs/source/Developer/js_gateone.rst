@@ -488,7 +488,7 @@ Functions
 
 .. js:function:: GateOne.Utils.init
 
-    Like all plugin init() functions this gets called from :js:func:`GateOne.Utils.postOnLoad` which itself is called at the end of :js:func:`GateOne.initialize`.  It simply attaches the 'save_file' (WebSocket) action to :js:func:`GateOne.Utils.saveAsAction` (in :js:attr:`GateOne.Net.actions`).
+    Like all plugin init() functions this gets called from :js:func:`GateOne.Utils.postInit` which itself is called at the end of :js:func:`GateOne.initialize`.  It simply attaches the 'save_file' (WebSocket) action to :js:func:`GateOne.Utils.saveAsAction` (in :js:attr:`GateOne.Net.actions`).
 
 .. js:function:: GateOne.Utils.createElement(tagname, properties)
 
@@ -893,7 +893,7 @@ Functions
 
     .. note:: This function can also be useful to simply save yourself a lot of typing.  If you're planning on calling a function with the same parameters a number of times it is a good idea to use partial() to create a new function with all the parameters pre-applied.  Can make code easier to read too.
 
-.. js:function:: GateOne.Utils.postOnLoad
+.. js:function:: GateOne.Utils.postInit
 
     Called by :js:func:`GateOne.init()`, iterates over the list of plugins in :js:attr:`GateOne.loadedModules` calling the ``init()`` function of each (if present).  When that's done it does the same thing with each respective plugin's ``postInit()`` function.
 

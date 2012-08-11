@@ -458,6 +458,7 @@ codecs.register_error('handle_special', handle_special)
 # TODO List:
 #
 #   * We need unit tests!
+#   * Add a function that can dump the screen with text renditions represented as their usual escape sequences so applications that try to perform screen-scraping can match things like '\x1b[41mAuthentication configuration' without having to find specific character positions and then examining the renditions on that line.
 
 # Helper functions
 def _reduce_renditions(renditions):

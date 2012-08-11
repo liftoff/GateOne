@@ -157,7 +157,7 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     audibleBell: true, // If false, the bell sound will not be played (visual notification will still occur),
     bellSound: '', // Stores the bell sound data::URI (cached).
     bellSoundType: '' // Stores the mimetype of the bell sound.
-};
+}
 // Properties in this object will get ignored when GateOne.prefs is saved to localStorage
 GateOne.noSavePrefs = {
     // Plugin authors:  If you want to have your own property in GateOne.prefs but it isn't a per-user setting, add your property here
@@ -189,6 +189,32 @@ var go = GateOne.Base.update(GateOne, {
     doingUpdate: false, // Used to prevent out-of-order character events
     ws: null, // Where our WebSocket gets stored
     savePrefsCallbacks: [], // For plugins to use so they can have their own preferences saved when the user clicks "Save" in the Gate One prefs panel
+    restoreDefaults: function() {
+        // Restores all of Gate One's prefs to default values
+        GateOne.prefs = { // Tunable prefs (things users can change)
+            url: null,
+            fillContainer: true,
+            style: {},
+            goDiv: '#gateone',
+            scrollback: 500,
+            rows: null,
+            cols: null,
+            prefix: 'go_',
+            theme: 'black',
+            colors: 'default',
+            fontSize: '100%',
+            autoConnectURL: null,
+            embedded: false,
+            disableTermTransitions: false,
+            auth: null,
+            showTitle: true,
+            showToolbar: true,
+            audibleBell: true,
+            bellSound: '',
+            bellSoundType: ''
+        }
+        GateOne.Utils.savePrefs(true); // 'true' here skips the notification
+    },
     // This starts up GateOne using the given *prefs*
     init: function(prefs) {
         // Before we do anything else, load our prefs
@@ -197,12 +223,12 @@ var go = GateOne.Base.update(GateOne, {
             parseResponse = function(response) {
                 if (response == 'authenticated') {
                     // Load Plugins (GateOne.initialize is passed as a callback)
-                    go.initialize();
+                    go.Net.connect();
                 } else {
                     if (go.prefs.auth) {
                         // API authentication
                         logDebug("Using API authentiation object: " + go.prefs.auth);
-                        go.initialize();
+                        go.Net.connect();
                     } else {
                         // Regular auth.  Clear the cookie and redirect the user...
                         GateOne.Net.reauthenticate();
@@ -429,7 +455,7 @@ var go = GateOne.Base.update(GateOne, {
             }, 3000);
         }
         // Connect to the server
-        go.Net.connect(go.prefs.url);
+//         go.Net.connect();
         // Apply user-specified dimension styles and settings
         go.Visual.applyStyle(goDiv, go.prefs.style);
         if (go.prefs.fillContainer) {
@@ -529,9 +555,10 @@ var go = GateOne.Base.update(GateOne, {
         // Make sure the termwrapper is the proper width for 2 columns
         go.Visual.updateDimensions();
         // This calls plugins init() and postInit() functions:
-        u.postOnLoad();
+        u.runPostInit();
         // Start capturing keyboard input
         go.Input.capture();
+        goDiv.addEventListener('blur', go.Input.disableCapture, true); // So we don't end up stealing input from something else on the page
     }
 });
 
@@ -542,6 +569,7 @@ if (!localStorage[GateOne.prefs.prefix+'selectedTerminal']) {
 
 // GateOne.Utils (generic utility functions)
 GateOne.Base.module(GateOne, "Utils", "1.0", ['Base']);
+GateOne.Utils.scriptsLoaded = false; // Used to track whether or not combined_js loaded or not
 GateOne.Base.update(GateOne.Utils, {
     init: function() {
         go.Net.addAction('save_file', go.Utils.saveAsAction);
@@ -850,7 +878,7 @@ GateOne.Base.update(GateOne.Utils, {
             }
         }
     },
-    postOnLoad: function() {
+    runPostInit: function() {
         // Called after all the plugins have been loaded.
         // NOTE: Probably don't need a preInit() since modules can just put stuff inside their main .js for that.  If you can think of a use case let me know and I'll add it.
         // Go through all our loaded modules and run their init functions (if any)
@@ -864,10 +892,17 @@ GateOne.Base.update(GateOne.Utils, {
         // Go through all our loaded modules and run their postInit functions (if any)
         go.loadedModules.forEach(function(module) {
             var moduleObj = eval(module);
+            // TODO:  Remove postOnLoad support in a future release.
+            logDebug('Running: ' + moduleObj.NAME + '.postOnLoad()');
+            if (typeof(moduleObj.postOnLoad) == "function") {
+                go.Visual.displayMessage('WARNING: Deprecated postOnLoad() function found in ' + moduleObj.NAME + '. "postOnLoad" has been renamed "postInit" and support for the older naming will be removed in a future version of Gate One.');
+                moduleObj.postOnLoad();
+            }
             logDebug('Running: ' + moduleObj.NAME + '.postInit()');
             if (typeof(moduleObj.postInit) == "function") {
                 moduleObj.postInit();
             }
+
         });
     },
     // This may be used in the future...  Loads JS over the WebSocket but some stuff in plugins needs to load before the WebSocket is connected.  Might make use of it in the future for something--not sure yet.
@@ -1000,15 +1035,26 @@ GateOne.Base.update(GateOne.Utils, {
     loadScript: function(url, callback){
         // Imports the given JS *url*
         // If *callback* is given, it will be called in the onload() event handler for the script
-        var tag = document.createElement("script");
+        var self = this,
+            tag = document.createElement("script");
         tag.type="text/javascript";
         tag.src = url;
         if (callback) {
             tag.onload = function() {
+                GateOne.Utils.scriptsLoaded = true;
                 callback();
             }
         }
         document.body.appendChild(tag);
+        setTimeout(function() {
+            // If combined_js doesn't load within 5 seconds assume it is an SSL certificate issue
+            if (!GateOne.Utils.scriptsLoaded) {
+                var acceptURL = go.prefs.url + 'static/accept_certificate.html';
+                // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
+                alert("You will now be directed to a page where you can accept the Gate One server's SSL certificate.");
+                window.location.href = acceptURL + '?url=' + window.location.href;
+            }
+        }, 5000);
     },
     enumerateThemes: function(messageObj) {
         // Meant to be called from the xhrGet() below
@@ -1154,6 +1200,7 @@ GateOne.Base.update(GateOne.Utils, {
 
 GateOne.Base.module(GateOne, 'Net', '1.0', ['Base', 'Utils']);
 GateOne.Net.charSendTimer = null; // Just a place to keep track of the scrollToBottom timer in sendChars()
+GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
 GateOne.Base.update(GateOne.Net, {
     sendChars: function() {
         // pop()s out the current charBuffer and sends it to the server.
@@ -1251,6 +1298,7 @@ GateOne.Base.update(GateOne.Net, {
     connectionError: function(msg) {
         // Displays an error in the browser indicating that there was a problem with the connection.
         // if *msg* is given, it will be added to the standard error.
+        go.Net.connectionProblem = true;
         var u = go.Utils,
             errorElem = u.createElement('div', {'id': 'error_message'}),
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
@@ -1267,8 +1315,29 @@ GateOne.Base.update(GateOne.Net, {
         u.getNode(go.prefs.goDiv).appendChild(errorElem);
         setTimeout(go.Net.connect, 5000);
     },
+    sslError: function(callback) {
+        // Called when we fail to connect due to an SSL error (user must accept the SSL certificate).  It opens a dialog where the user can click accept
+        // *callback* will be called when the user closes the dialog
+        GateOne.Net.connectionProblem = true;
+        // NOTE:  Only likely to happen in situations where Gate One is embedded into another application
+        var go = GateOne,
+            u = go.Utils,
+            acceptURL = go.prefs.url + 'static/accept_certificate.html',
+            sslAcceptIframe = u.createElement('iframe', {'id': 'ssl_accept', 'src': acceptURL, 'style': {'width': '80%', 'height': '93%'}}),
+            container = u.createElement('div', {'style': {'text-align': 'center', 'width': '40em', 'height': '20em'}}),
+            done = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            closeDialog = go.Visual.dialog('Please accept the SSL certificate', container);
+        done.innerHTML = "Done";
+        container.appendChild(sslAcceptIframe);
+        container.appendChild(done);
+        done.onclick = function(e) {
+            callback();
+            closeDialog();
+        }
+    },
     connect: function() {
         // Connects to the WebSocket defined in GateOne.prefs.url
+        go.Net.connectionProblem = false;
         // TODO: Get this appending a / if it isn't provided.  Also get it working with ws:// and wss:// URLs in go.prefs.url
         var u = go.Utils,
             errorElem = u.getNode('#'+go.prefs.prefix+'error_message'),
@@ -1303,6 +1372,10 @@ GateOne.Base.update(GateOne.Net, {
             logError("ERROR on WebSocket: " + evt.data);
         }
         go.ws.onmessage = go.Net.onMessage;
+        // Assume SSL connect failure if readyState doesn't change from 3 within 5 seconds
+        go.Net.sslErrorTimeout = setTimeout(function() {
+            go.Net.sslError(go.Net.connect);
+        }, 5000);
         return go.ws;
     },
     onOpen: function() {
@@ -1311,28 +1384,36 @@ GateOne.Base.update(GateOne.Net, {
             prefix = go.prefs.prefix,
             termwrapper = u.getNode('#'+prefix+'termwrapper'),
             settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix};
-        // Load our CSS right away so the dimensions/placement of things is correct.
-        u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
-        u.loadPluginCSS();
-        // Clear the error message if it's still there
-        if (termwrapper) {
-            termwrapper.innerHTML = "";
-        }
-        // Load the Web Worker
-        logDebug("Attempting to download our WebWorker...");
-        go.ws.send(JSON.stringify({'get_webworker': null}));
-        // Load the bell sound
-        if (go.prefs.bellSound.length) {
-            go.User.loadBell({'mimetype': go.prefs.bellSoundType, 'data_uri': go.prefs.bellSound});
-        } else {
-            logDebug("Attempting to download our bell sound...");
-            go.ws.send(JSON.stringify({'get_bell': null}));
-        }
-        // Check if there are any existing terminals for the current session ID
-        go.ws.send(JSON.stringify({'authenticate': settings}));
+        // Cancel our SSL error timeout since everything is working fine.
+        clearTimeout(go.Net.sslErrorTimeout);
+        // When we fail an origin check we'll get an error within a split second of onOpen() being called so we need to check for that and stop loading stuff if we're not truly connected.
         setTimeout(function() {
-            go.Net.ping(); // Check latency (after things have calmed down a bit =)
-        }, 3000);
+            if (!go.Net.connectionProblem) {
+                // Load our CSS right away so the dimensions/placement of things is correct.
+                u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
+                u.loadPluginCSS();
+                // Clear the error message if it's still there
+                if (termwrapper) {
+                    termwrapper.innerHTML = "";
+                }
+                // Load the Web Worker
+                logDebug("Attempting to download our WebWorker...");
+                go.ws.send(JSON.stringify({'get_webworker': null}));
+                // Load the bell sound
+                if (go.prefs.bellSound.length) {
+                    go.User.loadBell({'mimetype': go.prefs.bellSoundType, 'data_uri': go.prefs.bellSound});
+                } else {
+                    logDebug("Attempting to download our bell sound...");
+                    go.ws.send(JSON.stringify({'get_bell': null}));
+                }
+                // Check if there are any existing terminals for the current session ID
+                go.ws.send(JSON.stringify({'authenticate': settings}));
+                setTimeout(function() {
+                    go.Net.ping(); // Check latency (after things have calmed down a bit =)
+                }, 3000);
+                go.initialize();
+            }
+        }, 100);
     },
     onMessage: function (evt) {
         logDebug('message: ' + evt.data);
@@ -1346,13 +1427,13 @@ GateOne.Base.update(GateOne.Net, {
         } catch (e) {
             // Non-JSON messages coming over the WebSocket are assumed to be errors, display them as-is (could be handy shortcut to display a message instead of using the 'notice' action).
             var noticeContainer = u.getNode('#'+prefix+'noticecontainer'),
-                msg = 'Message From Server: ' + evt.data;
+                msg = '<b>Message From Gate One Server:</b> ' + evt.data;
             if (noticeContainer) {
                 // This only works if Gate One loaded successfuly
                 v.displayMessage(msg, 5000, 5000);
             } else {
                 // Fallback to this:
-                var msgContainer = u.createElement('div', {'id': 'messagecontainer', 'style': {'font-size': '4em', 'background-color': '#000', 'color': '#fff', 'display': 'block', 'position': 'fixed', 'bottom': '2em', 'right': '3em', 'z-index': 9999}}); // Have to use 'style' since CSS may not have been loaded
+                var msgContainer = u.createElement('div', {'id': 'noticecontainer', 'style': {'font-size': '1.5em', 'background-color': '#000', 'color': '#fff', 'display': 'block', 'position': 'fixed', 'bottom': '1em', 'right': '2em', 'left': '2em', 'z-index': 9999}}); // Have to use 'style' since CSS may not have been loaded
                 msgContainer.innerHTML = msg;
                 document.body.appendChild(msgContainer);
                 setTimeout(function() {
@@ -3793,6 +3874,8 @@ go.Base.update(GateOne.Terminal, {
         } else {
             terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': 'terminal'});
         }
+        // This ensures that we re-enable input if the user clicked somewhere else on the page then clicked back on the terminal:
+        terminal.addEventListener('click', go.Input.capture, false);
         // Get any previous term's dimensions so we can use them for the new terminal
         var termSettings = {
                 'term': term,

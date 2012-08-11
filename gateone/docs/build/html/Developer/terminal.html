@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>terminal.py - A Pure Python Terminal Emulator &mdash; Gate One 1.0 documentation</title>
+    <title>terminal.py - A Pure Python Terminal Emulator &mdash; Gate One 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.1 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="termio.py - Terminal Input/Output Module" href="termio.html" />
     <link rel="prev" title="sso.py - A Tornado Kerberos Single Sign-On Module" href="sso.html" /> 
@@ -1165,13 +1165,6 @@ and the current cursor coordinates.  Also, empties the scrollback buffer</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="terminal.Terminal._Terminal__ignore">
-<tt class="descname">_Terminal__ignore</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#terminal.Terminal._Terminal__ignore" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does nothing (on purpose!).  Used as a placeholder for unimplemented
-functions.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="terminal.Terminal.dump">
 <tt class="descname">dump</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.dump" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns self.screen as a list of strings with no formatting.
@@ -1183,6 +1176,28 @@ quick glance of what is being displayed (when debugging).</p>
 </div>
 </dd></dl>
 
+<dl class="method">
+<dt id="terminal.Terminal._Terminal__ignore">
+<tt class="descname">_Terminal__ignore</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#terminal.Terminal._Terminal__ignore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does nothing (on purpose!).  Used as a placeholder for unimplemented
+functions.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="terminal.css_colors">
+<tt class="descclassname">terminal.</tt><tt class="descname">css_colors</tt><big>(</big><em>selector=None</em><big>)</big><a class="headerlink" href="#terminal.css_colors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a (long) string containing all the CSS styles in order to support
+color in an HTML terminal using the dump_html() function.  If <em>selector</em> is
+provided, all styles will be prefixed with said selector like so:</p>
+<div class="highlight-python"><pre>${selector} span.f0 { color: #5C5C5C; }</pre>
+</div>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">css_colors</span><span class="p">(</span><span class="s">&quot;#gateone&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">&#39;#gateone span.f0 { color: #5C5C5C; } /* Black */&#39;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -1216,7 +1231,7 @@ quick glance of what is being displayed (when debugging).</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="sso.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="termio.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>

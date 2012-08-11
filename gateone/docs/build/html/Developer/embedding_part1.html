@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Embedding Gate One Into Other Applications, Part 1 &mdash; Gate One 1.0 documentation</title>
+    <title>Embedding Gate One Into Other Applications, Part 1 &mdash; Gate One 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.1 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="prev" title="The SSH Plugin" href="plugin_ssh.html" /> 
   </head>
@@ -60,14 +60,14 @@
 <blockquote>
 <div><ol class="arabic simple">
 <li>Basics: Embedding Gate One into any web page.</li>
-<li>Advanced: API-based authentication and customizing everything.</li>
+<li>Advanced: API-based authentication, &quot;embedded mode&quot;, and customizing <em>everything</em>.</li>
 </ol>
 </div></blockquote>
 <p>We'll assume you have Gate One installed and running with the following settings (in your server.conf):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">auth</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># anonymous authentication mode</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">auth</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Anonymous authentication</span>
 <span class="n">port</span> <span class="o">=</span> <span class="mi">443</span>
 <span class="n">disable_ssl</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">origins</span> <span class="o">=</span> <span class="s">&quot;*&quot;</span> <span class="c"># Disable origin checking (this will be covered in Part 2)</span>
+<span class="n">origins</span> <span class="o">=</span> <span class="s">&quot;*&quot;</span> <span class="c"># Disable origin checking for now (this will be covered in Part 2)</span>
 <span class="n">url_prefix</span> <span class="o">=</span> <span class="s">&quot;/&quot;</span> <span class="c"># Keep it simple for the tutorial</span>
 </pre></div>
 </div>

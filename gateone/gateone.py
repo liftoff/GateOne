@@ -10,9 +10,9 @@
 # * Write a permissions check function so we don't have to repeat ourselves all over the place inside of main()
 
 # Meta
-__version__ = '1.0'
+__version__ = '1.1'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 0)
+__version_info__ = (1, 1)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
@@ -821,7 +821,10 @@ class JSPluginsHandler(BaseHandler):
     """
     # No auth for this...  Not really necessary (just serves up a static file).
     def get(self):
-        self.set_header ('Content-Type', 'application/javascript')
+        self.set_header('Content-Type', 'application/javascript')
+        # This is so we can load combined_plugins in a <script> tag without
+        # having to accept the SSL certificate:
+        self.set_header('Access-Control-Allow-Origin', '*')
         plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
         static_dir = os.path.join(GATEONE_DIR, "static")
         combined_plugins = os.path.join(static_dir, "combined_plugins.js")
@@ -887,6 +890,7 @@ class TerminalWebSocket(WebSocketHandler):
         # This is used to keep track of used API authentication signatures so
         # we can prevent replay attacks.
         self.prev_signatures = []
+        self.origin_denied = True # Only allow valid origins
 
     def allow_draft76(self):
         """
@@ -927,6 +931,7 @@ class TerminalWebSocket(WebSocketHandler):
         origin_header = origin_header.lower() # hostnames are case-insensitive
         if '*' not in valid_origins:
             if origin_header not in valid_origins:
+                self.origin_denied = True
                 origin = origin_header
                 short_origin = origin.split('//')[1]
                 denied_msg = _("Access denied for origin: %s" % origin)
@@ -938,6 +943,7 @@ class TerminalWebSocket(WebSocketHandler):
                     "for details." % short_origin
                 ))
                 self.close()
+        self.origin_denied = False
         # TODO: Make it so that idle WebSockets that haven't passed authentication tests get auto-closed within N seconds in order to prevent a DoS scenario where the attacker keeps all possible ports open indefinitely.
         # client_id is unique to the browser/client whereas session_id is unique
         # to the user.  It isn't used much right now but it will be useful in
@@ -962,6 +968,9 @@ class TerminalWebSocket(WebSocketHandler):
         """Called when we receive a message from the client."""
         # This is super useful when debugging:
         logging.debug("message: %s" % repr(message))
+        if self.origin_denied:
+            logging.error(_("Message rejected due to invalid origin."))
+            self.close() # Close the WebSocket
         message_obj = None
         try:
             message_obj = json_decode(message) # JSON FTW!

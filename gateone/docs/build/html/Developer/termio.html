@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>termio.py - Terminal Input/Output Module &mdash; Gate One 1.0 documentation</title>
+    <title>termio.py - Terminal Input/Output Module &mdash; Gate One 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.1 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="utils.py - Supporting Functions" href="utils.html" />
     <link rel="prev" title="terminal.py - A Pure Python Terminal Emulator" href="terminal.html" /> 
@@ -72,7 +72,7 @@
 </ul>
 </div></blockquote>
 <p>The Multiplex class was built for asynchronous use in conjunction with a running
-<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.2.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt></a> instance but it can be used in a synchronous
+<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt></a> instance but it can be used in a synchronous
 (blocking) manner as well.  Synchronous use of this module is most likely to be
 useful in an interactive Python session but if blocking doesn't matter for your
 program please see the section titled, &quot;Blocking&quot; for tips &amp; tricks.</p>
@@ -144,7 +144,7 @@ sequence):</p>
 <h2>Module Functions and Classes<a class="headerlink" href="#module-functions-and-classes" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="termio.debug_expect">
-<tt class="descclassname">termio.</tt><tt class="descname">debug_expect</tt><big>(</big><em>m_instance</em>, <em>match</em><big>)</big><a class="reference internal" href="../_modules/termio.html#debug_expect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.debug_expect" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">termio.</tt><tt class="descname">debug_expect</tt><big>(</big><em>m_instance</em>, <em>match</em>, <em>pattern</em><big>)</big><a class="reference internal" href="../_modules/termio.html#debug_expect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.debug_expect" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method is used by <a class="reference internal" href="#termio.BaseMultiplex.expect" title="termio.BaseMultiplex.expect"><tt class="xref py py-meth docutils literal"><span class="pre">BaseMultiplex.expect()</span></tt></a> if <tt class="xref py py-attr docutils literal"><span class="pre">self.debug</span></tt> is
 True.  It facilitates easy debugging of regular expressions.  It will print
 out precisely what was matched and where.</p>
@@ -656,7 +656,7 @@ then return the result.</p>
 <dd><p>The MultiplexPOSIXIOLoop class takes care of executing a child process on
 POSIX (aka Unix) systems and keeping track of its state via a terminal
 emulator (<a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-obj docutils literal"><span class="pre">terminal.Terminal</span></tt></a> by default).  If there's a started instance
-of <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.2.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt></a>, handlers will be added to it that
+of <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt></a>, handlers will be added to it that
 automatically keep the terminal emulator synchronized with the output of the
 child process.</p>
 <p>If there's no IOLoop (or it just isn't started), terminal applications can
@@ -795,7 +795,7 @@ patterns in <tt class="xref py py-attr docutils literal"><span class="pre">self.
 <p>Calls <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop._read" title="termio.MultiplexPOSIXIOLoop._read"><tt class="xref py py-obj docutils literal"><span class="pre">_read</span></tt></a> and checks if any timeouts have been reached
 in <tt class="xref py py-attr docutils literal"><span class="pre">self._patterns</span></tt>.  Returns the result of <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop._read" title="termio.MultiplexPOSIXIOLoop._read"><tt class="xref py py-meth docutils literal"><span class="pre">_read()</span></tt></a>.  This
 is an override of <a class="reference internal" href="#termio.BaseMultiplex.read" title="termio.BaseMultiplex.read"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex.read</span></tt></a> that will create a
-<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.PeriodicCallback" title="(in Tornado v2.2.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.PeriodicCallback</span></tt></a> (as <tt class="xref py py-obj docutils literal"><span class="pre">self.scheduler</span></tt>) that
+<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.PeriodicCallback" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.PeriodicCallback</span></tt></a> (as <tt class="xref py py-obj docutils literal"><span class="pre">self.scheduler</span></tt>) that
 executes <tt class="xref py py-attr docutils literal"><span class="pre">timeout_check</span></tt> at a regular interval.  The
 <tt class="xref py py-obj docutils literal"><span class="pre">PeriodicCallback</span></tt> will automatically cancel itself if there are no more
 non-sticky patterns in <tt class="xref py py-attr docutils literal"><span class="pre">self._patterns</span></tt>.</p>
@@ -866,10 +866,10 @@ passed to the spawn() command.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="terminal.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="utils.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/termio.txt"
