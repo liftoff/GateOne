@@ -11,6 +11,7 @@ Gate One's JavaScript is made up of several modules (aka plugins), each pertaini
 * `GateOne.Input`_
 * `GateOne.Visual`_
 * `GateOne.Terminal`_
+* `GateOne.User`_
 
 The properties and functions of each respective module are outlined below.
 
@@ -1888,4 +1889,56 @@ Functions
 
     :param object termObj: An object that contains the terminal number ('term'), the 'scrollback' buffer, the terminal 'screen', and a boolean idicating whether or not the rate limiter has been engaged ('ratelimiter').
 
-.. todo.. Add GateOne.User docs
+GateOne.User
+------------
+.. js:attribute:: GateOne.User
+
+GateOne.User is for things like logging out, synchronizing preferences with the server (not implemented yet), and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.  It also provides the UI elements necessary for the user to change their bell sound.
+
+Properties
+^^^^^^^^^^
+.. js:attribute:: GateOne.User.userLoginCallbacks
+
+    If a plugin wants to perform an action immediately after the user is authenticated a callback may be appended to this array like so:
+
+    .. code-block:: javascript
+
+        GateOne.User.userLoginCallbacks.push(GateOne.MyPlugin.userAuthenticated);
+
+    This is very useful if you want to ensure that a function does not get executed until after :js:attr:`~GateOne.User.username` has been set.
+
+    All callbacks in :js:attr:`~GateOne.User.userLoginCallbacks` will be called with the authenticated user's username as the only argument like so:
+
+    .. code-block:: javascript
+
+        myCallback(username);
+
+.. js:attribute:: GateOne.User.username
+
+    Stores the authenticated user's username.  If Gate One is configured with anonymous authenticationn ( `auth = none` in server.conf) the username will be set to 'ANONYMOUS'.
+
+Functions
+^^^^^^^^^
+.. js:function:: GateOne.User.init
+
+    Like all plugin init() functions this gets called from :js:func:`GateOne.Utils.postInit` which itself is called at the end of :js:func:`GateOne.initialize`.  It adds the username to the preferences panel as well as a link that allows the user to logout.  It also attaches the 'set_username' and 'load_bell' actions to :js:attr:`GateOne.Net.actions`.
+
+.. js:function:: GateOne.User.setUsername
+
+    This is what gets attached to the 'set_username' WebSocket action in :js:attr:`GateOne.Net.actions` and gets called immediately after the user is successfully authenticated.
+
+.. js:function:: GateOne.User.logout(redirectURL)
+
+    This function will log the user out by deleting all Gate One cookies and forcing them to re-authenticate.  By default this is what is attached to the 'logout' link in the preferences panel.
+
+    *redirectURL* if provided, will be used to automatically redirect the user to the given URL after they are logged out (as opposed to just reloading the main Gate One page).
+
+.. js:function:: GateOne.User.loadBell
+
+    This is what gets attached to the 'load_bell' WebSocket action in :js:attr:`GateOne.Net.actions` and gets called by the server whenever it is asked to perform the 'get_bell' action.  The server-side 'get_bell' action is normally called by :js:func:`GateOne.Net.onOpen` if a bell sound doesn't already exist in :js:attr:`GateOne.Prefs.bellSound`.  This will download the default bell sound from the server and store it in :js:attr:`GateOne.Prefs.bellSound`.
+
+.. js:function:: GateOne.User.uploadBellDialog
+
+    Displays a dialog/form where the user can set a replacement bell sound or reset it to the default (which is whatever is at '<gateone>/static/bell.ogg' on the server).
+
+    .. note:: When the user sets a custom bell sound it doesn't involve the server at all (no network traffic).  It is set locally using the HTML5 File API; the FileReader() function, specifically.

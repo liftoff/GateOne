@@ -542,10 +542,13 @@ def parse_ssh_url(url):
                 port = url.split('@')[1].split(':')[1]
                 port = port.split('/')[0] # In case there's a query string
     else: # Just host[:port] (assume $GO_USER)
-        try:
-            user = os.environ['GO_USER']
-        except KeyError: # Fall back to $USER
-            user = os.environ['USER']
+        # Commented these out since it is more user-friendly to let them type in
+        # their username (in case you might want to login using different names)
+        #try:
+            #user = os.environ['GO_USER']
+        #except KeyError: # Fall back to $USER
+            #user = os.environ['USER']
+        user = None
         url = url[6:] # Remove the protocol
         host = url.split(':')[0]
         if len(url.split(':')) == 2: # There's a port #

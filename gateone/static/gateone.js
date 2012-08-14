@@ -565,7 +565,7 @@ var go = GateOne.Base.update(GateOne, {
         u.runPostInit();
         // Start capturing keyboard input
         go.Input.capture();
-        goDiv.addEventListener('blur', go.Input.disableCapture, true); // So we don't end up stealing input from something else on the page
+        goDiv.addEventListener('blur', go.Input.disableCapture, false); // So we don't end up stealing input from something else on the page
     }
 });
 
@@ -1574,6 +1574,7 @@ GateOne.Base.update(GateOne.Input, {
         }
         goDiv.onmousedown = go.Input.goDivMouseDown;
         goDiv.onmouseup = function(e) {
+            logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
             // Once the user is done pasting (or clicking), set it back to false for speed
 //             goDiv.contentEditable = false; // Having this as false makes screen updates faster
             var selectedText = u.getSelText();
@@ -1596,8 +1597,9 @@ GateOne.Base.update(GateOne.Input, {
             u.noop();
         }
     },
-    disableCapture: function() {
+    disableCapture: function(e) {
         // Turns off keyboard input and certain mouse capture events so that other things (e.g. forms) can work properly
+        logDebug('disableCapture()');
         var u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv);
 //         goDiv.contentEditable = false; // This needs to be turned off or it might capture paste events (which is really annoying when you're trying to edit a form)
@@ -1608,11 +1610,13 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onkeypress = null;
         goDiv.onmousedown = null;
         goDiv.onmouseup = null;
-        try {
-            u.hideElements('.pastearea');
-        } catch (e) {
-            u.noop();
-        }
+        // Commented this out since it likely isn't necessary since I moved the pastearea to live inside of each terminal instead of hovering above everything.
+        // After this change has been out in the wild for a while without any problems I'll remove the code below (and these comments).
+//         try {
+//             u.hideElements('.pastearea');
+//         } catch (e) {
+//             u.noop();
+//         }
     },
     queue: function(text) {
         // Adds 'text' to the charBuffer Array
@@ -2433,6 +2437,8 @@ GateOne.Base.update(GateOne.Visual, {
         } else {
             // Send it away
             v.applyTransform(panel, 'scale(0)');
+            // Activate capturing of keystrokes so the user doesn't have to click on #gateone to start typing again
+            go.Input.capture();
             // Call any registered 'out' callbacks for all of these panels
             if (v.panelToggleCallbacks['out']['#'+panel.id]) {
                 for (var ref in v.panelToggleCallbacks['out']['#'+panel.id]) {
@@ -3987,7 +3993,10 @@ go.Base.update(GateOne.Terminal, {
                         clearTimeout(go.terminals[selectedTerm]['scrollbackTimer']);
                     }
                 }
-                u.getNode(go.prefs.goDiv).focus();
+                go.Input.capture();
+            } else {
+                u.showElement(pastearea);
+                pastearea.focus();
             }
         }
         terminal.appendChild(pastearea);

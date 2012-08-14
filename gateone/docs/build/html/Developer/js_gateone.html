@@ -69,6 +69,7 @@
 <li><a class="reference internal" href="#gateone-input">GateOne.Input</a></li>
 <li><a class="reference internal" href="#gateone-visual">GateOne.Visual</a></li>
 <li><a class="reference internal" href="#gateone-terminal">GateOne.Terminal</a></li>
+<li><a class="reference internal" href="#gateone-user">GateOne.User</a></li>
 </ul>
 <p>The properties and functions of each respective module are outlined below.</p>
 <div class="section" id="gateone-base">
@@ -2912,6 +2913,76 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 
 </div>
 </div>
+<div class="section" id="gateone-user">
+<h2>GateOne.User<a class="headerlink" href="#gateone-user" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="GateOne.User">
+<tt class="descclassname">GateOne.</tt><tt class="descname">User</tt><a class="headerlink" href="#GateOne.User" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>GateOne.User is for things like logging out, synchronizing preferences with the server (not implemented yet), and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.  It also provides the UI elements necessary for the user to change their bell sound.</p>
+<div class="section" id="id32">
+<h3>Properties<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
+<dl class="attribute">
+<dt id="GateOne.User.userLoginCallbacks">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">userLoginCallbacks</tt><a class="headerlink" href="#GateOne.User.userLoginCallbacks" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a plugin wants to perform an action immediately after the user is authenticated a callback may be appended to this array like so:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">User</span><span class="p">.</span><span class="nx">userLoginCallbacks</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">MyPlugin</span><span class="p">.</span><span class="nx">userAuthenticated</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This is very useful if you want to ensure that a function does not get executed until after <a class="reference internal" href="#GateOne.User.username" title="GateOne.User.username"><tt class="xref js js-attr docutils literal"><span class="pre">username</span></tt></a> has been set.</p>
+<p>All callbacks in <a class="reference internal" href="#GateOne.User.userLoginCallbacks" title="GateOne.User.userLoginCallbacks"><tt class="xref js js-attr docutils literal"><span class="pre">userLoginCallbacks</span></tt></a> will be called with the authenticated user's username as the only argument like so:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">myCallback</span><span class="p">(</span><span class="nx">username</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.User.username">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">username</tt><a class="headerlink" href="#GateOne.User.username" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the authenticated user's username.  If Gate One is configured with anonymous authenticationn ( <tt class="xref py py-obj docutils literal"><span class="pre">auth</span> <span class="pre">=</span> <span class="pre">none</span></tt> in server.conf) the username will be set to 'ANONYMOUS'.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="id33">
+<h3>Functions<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="GateOne.User.init">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like all plugin init() functions this gets called from <a class="reference internal" href="#GateOne.Utils.postInit" title="GateOne.Utils.postInit"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.postInit()</span></tt></a> which itself is called at the end of <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a>.  It adds the username to the preferences panel as well as a link that allows the user to logout.  It also attaches the 'set_username' and 'load_bell' actions to <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.User.setUsername">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">setUsername</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.setUsername" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is what gets attached to the 'set_username' WebSocket action in <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a> and gets called immediately after the user is successfully authenticated.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.User.logout">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">logout</tt><big>(</big><em>redirectURL</em><big>)</big><a class="headerlink" href="#GateOne.User.logout" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will log the user out by deleting all Gate One cookies and forcing them to re-authenticate.  By default this is what is attached to the 'logout' link in the preferences panel.</p>
+<p><em>redirectURL</em> if provided, will be used to automatically redirect the user to the given URL after they are logged out (as opposed to just reloading the main Gate One page).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.User.loadBell">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">loadBell</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.loadBell" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is what gets attached to the 'load_bell' WebSocket action in <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a> and gets called by the server whenever it is asked to perform the 'get_bell' action.  The server-side 'get_bell' action is normally called by <a class="reference internal" href="#GateOne.Net.onOpen" title="GateOne.Net.onOpen"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.onOpen()</span></tt></a> if a bell sound doesn't already exist in <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Prefs.bellSound</span></tt>.  This will download the default bell sound from the server and store it in <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Prefs.bellSound</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.User.uploadBellDialog">
+<tt class="descclassname">GateOne.User.</tt><tt class="descname">uploadBellDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.uploadBellDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays a dialog/form where the user can set a replacement bell sound or reset it to the default (which is whatever is at '&lt;gateone&gt;/static/bell.ogg' on the server).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When the user sets a custom bell sound it doesn't involve the server at all (no network traffic).  It is set locally using the HTML5 File API; the FileReader() function, specifically.</p>
+</div>
+</dd></dl>
+
+</div>
+</div>
 </div>
 
 
@@ -2954,6 +3025,11 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <li><a class="reference internal" href="#gateone-terminal">GateOne.Terminal</a><ul>
 <li><a class="reference internal" href="#id30">Properties</a></li>
 <li><a class="reference internal" href="#id31">Functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#gateone-user">GateOne.User</a><ul>
+<li><a class="reference internal" href="#id32">Properties</a></li>
+<li><a class="reference internal" href="#id33">Functions</a></li>
 </ul>
 </li>
 </ul>

@@ -824,6 +824,7 @@ def get_identities(anything, tws):
     out_dict['identities'] = []
     ssh_keygen_path = which('ssh-keygen')
     keytype_re = re.compile('.*\(([A-Z]+)\)$', re.MULTILINE)
+    # TODO:  Switch this from using ssh-keygen to determine the keytype to using the string inside the public key.
     try:
         if os.path.exists(users_ssh_dir):
             ssh_files = os.listdir(users_ssh_dir)
@@ -836,15 +837,16 @@ def get_identities(anything, tws):
                         pub_key_path = os.path.join(users_ssh_dir, f)
                         public_key_contents = open(pub_key_path).read()
                         comment = ' '.join(public_key_contents.split(' ')[2:])
+                        if public_key_contents.startswith('ecdsa'):
+                            keytype = 'ECDSA'
+                        elif public_key_contents.startswith('ssh-dss'):
+                            keytype = 'DSA'
+                        elif public_key_contents.startswith('ssh-rsa'):
+                            keytype = 'RSA'
+                        else:
+                            keytype = 'Unknown'
                         keygen_cmd = "%s -vlf %s" % (ssh_keygen_path, id_path)
                         retcode, key_info = shell_command(keygen_cmd)
-                        try:
-                            keytype = keytype_re.search(key_info).group(1)
-                        except AttributeError:
-                            # Couldn't match keytype? Something went wrong
-                            out_dict = {
-                                'result': _(
-                                    "Error: Couldn't determine keytype?")}
                         # This will just wind up as an empty string if the
                         # version of ssh doesn't support randomart:
                         randomart = '\n'.join(key_info.splitlines()[1:])
@@ -895,7 +897,9 @@ def get_identities(anything, tws):
                 else:
                     out_dict['identities'][i]['default'] = False
     except Exception as e:
-        out_dict['result'] = _("Error getting identities: %s" % e)
+        error_msg = _("Error getting identities: %s" % e)
+        logging.error(error_msg)
+        out_dict['result'] = error_msg
     message = {
         'sshjs_identities_list': out_dict
     }
