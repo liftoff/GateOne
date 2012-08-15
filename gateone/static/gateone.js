@@ -1521,6 +1521,7 @@ GateOne.Base.update(GateOne.Input, {
     // This object holds all of the special key handlers and controls the "escape"/"escape escape" sequences
     goDivMouseDown: function(e) {
         // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
+        logDebug("goDivMouseDown() button: " + e.button + ", which: " + e.which);
         var u = go.Utils,
             m = go.Input.mouse(e),
             selectedText = u.getSelText();
@@ -1535,6 +1536,10 @@ GateOne.Base.update(GateOne.Input, {
                 go.Net.sendChars();
                 go.Input.handledPaste = true;
             }
+        } else if (m.button.right) {
+            // Commented this out because it just plain doesn't work in Windows.  I mean, WTF Windows!
+//             var goDiv = u.getNode(go.prefs.goDiv);
+//             goDiv.contentEditable = true;
         } /*else {*/
 //             var panels = u.getNodes(go.prefs.goDiv + ' .panel'),
 //                 visiblePanel = false;
@@ -1552,13 +1557,13 @@ GateOne.Base.update(GateOne.Input, {
     },
     capture: function() {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
+        logDebug('capture()');
         var u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv);
         goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
         goDiv.onkeydown = go.Input.onKeyDown;
         goDiv.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
         goDiv.onkeypress = go.Input.emulateKeyFallback;
-        goDiv.focus();
         // NOTE: This might not be necessary anymore with the pastearea:
         goDiv.onpaste = function(e) {
             if (!go.Input.handledPaste) {
@@ -1590,12 +1595,7 @@ GateOne.Base.update(GateOne.Input, {
             }
             goDiv.focus();
         }
-        // This is necessary because sometimes the timer to re-show the pastearea finishes before the user does something that would otherwise re-show the pastearea (if that makes sense).
-        try {
-            u.showElements('.pastearea');
-        } catch (e) {
-            u.noop();
-        }
+        goDiv.focus();
     },
     disableCapture: function(e) {
         // Turns off keyboard input and certain mouse capture events so that other things (e.g. forms) can work properly
@@ -2310,9 +2310,10 @@ GateOne.Base.update(GateOne.Visual, {
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             wrapperDiv = u.getNode('#'+go.prefs.prefix+'termwrapper'),
             style = window.getComputedStyle(goDiv, null),
-            rightAdjust = 0;
+            rightAdjust = 0,
+            paddingRight = (style['padding-right'] || style['paddingRight']);
         if (style['padding-right']) {
-            var rightAdjust = parseInt(style['padding-right'].split('px')[0]);
+            var rightAdjust = parseInt(paddingRight.split('px')[0]);
         }
         go.Visual.goDimensions.w = parseInt(style.width.split('px')[0]);
         go.Visual.goDimensions.h = parseInt(style.height.split('px')[0]);
@@ -2667,17 +2668,19 @@ GateOne.Base.update(GateOne.Visual, {
             style = window.getComputedStyle(u.getNode(go.prefs.goDiv), null),
             rightAdjust = 0,
             bottomAdjust = 0,
-            reScrollback = u.partial(v.enableScrollback, term);
+            reScrollback = u.partial(v.enableScrollback, term),
+            paddingRight = (style['padding-right'] || style['paddingRight']),
+            paddingBottom = (style['padding-bottom'] || style['paddingBottom']);
         if (termObj) {
             displayText = termObj.id.split(go.prefs.prefix+'term')[1] + ": " + termObj.title;
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
-        if (style['padding-right'] != "0px") {
-            rightAdjust = parseInt(style['padding-right'].split('px')[0]);
+        if (paddingRight != "0px") {
+            rightAdjust = parseInt(paddingRight.split('px')[0]);
         }
-        if (style['padding-bottom'] != "0px") {
-            bottomAdjust = parseInt(style['padding-bottom'].split('px')[0]);
+        if (paddingRight != "0px") {
+            bottomAdjust = parseInt(paddingRight.split('px')[0]);
         }
         go.Net.setTerminal(term);
         u.getNode('#'+go.prefs.prefix+'sideinfo').innerHTML = displayText;
@@ -3852,9 +3855,10 @@ go.Base.update(GateOne.Terminal, {
                 termwrapper = go.Visual.createGrid('termwrapper');
                 goDiv.appendChild(termwrapper);
                 var style = window.getComputedStyle(goDiv, null),
-                    adjust = 0;
-                if (style['padding-right']) {
-                    adjust = parseInt(style['padding-right'].split('px')[0]);
+                    adjust = 0,
+                    paddingRight = (style['padding-right'] || style['paddingRight']);
+                if (paddingRight) {
+                    adjust = parseInt(paddingRight.split('px')[0]);
                 }
                 var gridWidth = (go.Visual.goDimensions.w+adjust) * 2; // Will likely always be x2
                 termwrapper.style.width = gridWidth + 'px';
@@ -3994,6 +3998,12 @@ go.Base.update(GateOne.Terminal, {
                     }
                 }
                 go.Input.capture();
+            } else if (m.button.middle) {
+                // This is here to enable middle-click-to-paste in Windows but it only works if the user has launched Gate One in "application mode".
+                // Gate One can be launched in "application mode" if the user selects the "create application shortcut..." option from the tools menu.
+                document.execCommand('paste');
+                // Oddly, this doesn't interfere with anthing or create errors when NOT in application mode.  You'd think it would end up sending two of every paste but it doesn't.
+                pastearea.focus();
             } else {
                 u.showElement(pastearea);
                 pastearea.focus();
