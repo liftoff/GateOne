@@ -1042,20 +1042,21 @@ GateOne.Base.update(GateOne.Utils, {
     loadScript: function(url, callback){
         // Imports the given JS *url*
         // If *callback* is given, it will be called in the onload() event handler for the script
-        var self = this,
+        var u = GateOne.Utils,
+            self = this,
             tag = document.createElement("script");
         tag.type="text/javascript";
         tag.src = url;
         if (callback) {
             tag.onload = function() {
-                GateOne.Utils.scriptsLoaded = true;
+                u.scriptsLoaded = true;
                 callback();
             }
         }
         document.body.appendChild(tag);
         setTimeout(function() {
             // If combined_js doesn't load within 5 seconds assume it is an SSL certificate issue
-            if (!GateOne.Utils.scriptsLoaded) {
+            if (!u.scriptsLoaded) {
                 var acceptURL = go.prefs.url + 'static/accept_certificate.html';
                 // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
                 alert("You will now be directed to a page where you can accept the Gate One server's SSL certificate.");
@@ -1565,23 +1566,34 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
         goDiv.onkeypress = go.Input.emulateKeyFallback;
         // NOTE: This might not be necessary anymore with the pastearea:
-        goDiv.onpaste = function(e) {
+        var onPaste = function(e) {
+            console.log("registered paste event.");
             if (!go.Input.handledPaste) {
                 // Grab the text being pasted
-                var contents = e.clipboardData.getData('Text');
-                // Don't actually paste the text where the user clicked
-                e.preventDefault();
-                // Queue it up and send the characters as if we typed them in
-                GateOne.Input.queue(contents);
-                GateOne.Net.sendChars();
+                var contents = null;
+                if (e.clipboardData) {
+                    if (/text\/html/.test(e.clipboardData.types)) {
+                        contents = e.clipboardData.getData('text/html');
+                    }
+                    else if (/text\/plain/.test(e.clipboardData.types)) {
+                        contents = e.clipboardData.getData('text/plain');
+                    }
+    //                 var contents = e.clipboardData.getData('Text');
+                    // Don't actually paste the text where the user clicked
+                    e.preventDefault();
+                    // Queue it up and send the characters as if we typed them in
+                    GateOne.Input.queue(contents);
+                    GateOne.Net.sendChars();
+                }
             }
             go.Input.handledPaste = false;
         }
+        goDiv.addEventListener('paste', onPaste, true);
         goDiv.onmousedown = go.Input.goDivMouseDown;
         goDiv.onmouseup = function(e) {
             logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
             // Once the user is done pasting (or clicking), set it back to false for speed
-//             goDiv.contentEditable = false; // Having this as false makes screen updates faster
+            goDiv.contentEditable = false; // Having this as false makes screen updates faster
             var selectedText = u.getSelText();
             if (selectedText) {
                 // Don't show the pastearea as it will prevent the user from right-clicking to copy.
@@ -2563,7 +2575,8 @@ GateOne.Base.update(GateOne.Visual, {
         if (term && term in GateOne.terminals) {
             var termPreNode = GateOne.terminals[term]['node'],
                 termScreen = GateOne.terminals[term]['screenNode'],
-                termScrollback = GateOne.terminals[term]['scrollbackNode'];
+                termScrollback = GateOne.terminals[term]['scrollbackNode'],
+                parentHeight = termPreNode.parentElement.clientHeight;
             if (!go.terminals[term]) { // The terminal was just closed
                 return; // We're done here
             }
@@ -2576,7 +2589,7 @@ GateOne.Base.update(GateOne.Visual, {
                 }, 3500);
                 return;
             }
-            termPreNode.style.height = '100%';
+            termPreNode.style.height = (parentHeight - go.terminals[term]['heightAdjust']) + 'px';
             if (termScrollback) {
                 var scrollbackHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
                 if (termScrollback.innerHTML != scrollbackHTML) {
@@ -2587,7 +2600,7 @@ GateOne.Base.update(GateOne.Visual, {
                 termScrollback = u.createElement('span', {'id': 'term'+term+'scrollback'});
                 termScrollback.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
                 termPreNode.insertBefore(termScrollback, termScreen);
-                GateOne.terminals[term]['scrollbackNode'] = termScrollback;
+                go.terminals[term]['scrollbackNode'] = termScrollback;
                 termScrollback.style.display == null; // Reset
                 u.scrollToBottom(termPreNode); // Since we just created it for the first time we have to get to the bottom of things, so to speak =)
             }
@@ -3636,6 +3649,7 @@ go.Base.update(GateOne.Terminal, {
                     GateOne.Terminal.applyScreen(screen, term);
                 } else { // Create the elements necessary to display the screen
                     var screenSpan = u.createElement('span', {'id': 'term'+term+'screen'});
+                    screenSpan.addEventListener('paste', GateOne.Input.paste, true);
                     for (var i=0; i < screen.length; i++) {
                         var lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
                         lineSpan.innerHTML = screen[i] + '\n';
@@ -3649,6 +3663,7 @@ go.Base.update(GateOne.Terminal, {
                         u.scrollToBottom(existingPre);
                     } else {
                         var termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
+                        termPre.addEventListener('paste', GateOne.Input.paste, true);
                         termPre.appendChild(screenSpan);
                         termContainer.appendChild(termPre);
                         u.scrollToBottom(termPre);
@@ -3660,9 +3675,13 @@ go.Base.update(GateOne.Terminal, {
                                 GateOne.Visual.applyTransform(termPre, transform);
                             }
                         } else {
-                            var distance = goDiv.clientHeight - screenSpan.offsetHeight,
-                            transform = "translateY(-" + distance + "px)";
-                            GateOne.Visual.applyTransform(termPre, transform); // Move it to the top
+                            var distance = goDiv.clientHeight - screenSpan.offsetHeight;
+                            GateOne.terminals[term]['heightAdjust'] = distance; // So we can quickly reference it
+                            go.Visual.applyStyle(termPre, {'margin-bottom': distance + 'px'});
+                            termPre.style['marginBottom'] = distance + 'px'; // Firefox
+                            // Changing to using padding-bottom from the transform because it was causing overlap issues
+//                             transform = "translateY(-" + distance + "px)";
+//                             GateOne.Visual.applyTransform(termPre, transform); // Move it to the top
                         }
                         GateOne.terminals[term]['node'] = termPre; // For faster access
                     }
