@@ -40,9 +40,12 @@ var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozB
     Blob = window.Blob, // This will be favored (used by GateOne.Utils.createBlob())
     urlObj = (window.URL || window.webkitURL);
 
-if (!BlobBuilder || !Blob) {
-    alert("Sorry but your browser does not appear to support the HTML5 File API (Blob objects, specifically).  Gate One requires this in order to download its Web Worker over the WebSocket.");
-    return;
+//  Need either BlobBuilder (deprecated) or Blob support
+if (!BlobBuilder) {
+    if (!Blob) {
+        alert("Sorry but your browser does not appear to support the HTML5 File API (Blob objects, specifically).  Gate One requires this in order to download its Web Worker over the WebSocket.");
+        return;
+    }
 }
 
 if (!urlObj) {
@@ -144,6 +147,7 @@ GateOne.Base.update = function (self, obj/*, ... */) {
 // GateOne Settings
 GateOne.prefs = { // Tunable prefs (things users can change)
     url: null, // URL of the GateOne server.  Will default to whatever is in window.location
+    webWorker: null, // This is the fallback path to Gate One's Web Worker.  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.
     fillContainer: true, // If set to true, #gateone will fill itself out to the full size of its parent element
     style: {}, // Whatever CSS the user wants to apply to #gateone.  NOTE: Width and height will be skipped if fillContainer is true
     goDiv: '#gateone', // Default element to place gateone inside
@@ -168,6 +172,7 @@ GateOne.prefs = { // Tunable prefs (things users can change)
 GateOne.noSavePrefs = {
     // Plugin authors:  If you want to have your own property in GateOne.prefs but it isn't a per-user setting, add your property here
     url: null,
+    webWorker: null,
     fillContainer: null,
     style: null,
     goDiv: null, // Why an object and not an array?  So the logic is simpler:  "for (var objName in noSavePrefs) ..."
@@ -262,6 +267,9 @@ var go = GateOne.Base.update(GateOne, {
                 go.prefs.url = go.prefs.url.split('?')[0];
             }
             go.prefs.url = go.prefs.url.split('#')[0]; // Get rid of any hash at the end (just in case)
+        }
+        if (!go.prefs.webWorker) {
+            go.prefs.webWorker = go.prefs.url + 'static/go_process.js';
         }
         if (!u.endsWith('/', go.prefs.url)) {
             go.prefs.url = go.prefs.url + '/';
@@ -796,6 +804,8 @@ GateOne.Base.update(GateOne.Utils, {
             if (node.scrollTop != node.scrollHeight) {
                 node.scrollTop = node.scrollHeight;
             }
+        } catch (e) {
+            // Terminal probably just hasn't come up yet...  No big deal, ignore.
         } finally {
             node = null;
         }
@@ -1094,7 +1104,7 @@ GateOne.Base.update(GateOne.Utils, {
             userPrefs = {};
         for (var pref in prefs) {
             if (pref in GateOne.noSavePrefs) {
-                ;;
+                ;; // Don't save it
             } else {
                 userPrefs[pref] = prefs[pref];
             }
@@ -3773,11 +3783,17 @@ go.Base.update(GateOne.Terminal, {
             blob = u.createBlob(source, 'application/javascript');
         // Obtain a blob URL reference to our worker 'file'.
         if (urlObj.createObjectURL) {
-            var blobURL = urlObj.createObjectURL(blob);
-            t.termUpdatesWorker = new Worker(blobURL);
+            try {
+                var blobURL = urlObj.createObjectURL(blob);
+                t.termUpdatesWorker = new Worker(blobURL);
+            } catch (e) {
+                // Some browsers (IE 10) don't allow you to load Web Workers via Blobs  For these we need to load the old fashioned way.
+                // NOTE:  This means that if you're embedding Gate One you MUST have it listening on the same port as the web page embedding it.  Web Workers have the odd security restriction of being required to load via the same origin *type* (aka port) which is just plain wacky.
+                t.termUpdatesWorker = new Worker(go.prefs.webWorker);
+            }
         } else {
             // Fall back to the old way (try it anyway--won't work for most embedded situations)
-            t.termUpdatesWorker = new Worker(go.prefs.url+'static/go_process.js');
+            t.termUpdatesWorker = new Worker(go.prefs.webWorker);
             // Why bother with Blobs?  Because you can't load Web Workers from a different origin *type*.  What?!?
             // The origin type would be, say, HTTPS on port 443.  So if I wanted to load a Web Worker from such a page where the Worker's URL is from an HTTPS server on port 10443 it would throw errors.  Even if it is from the same domain.  The same holds true for loading a Worker from an HTTP URL.  What's odd is that you can load a Worker from HTTPS on a completely *different* domain as long as it's the same origin *type*!  Who comes up with this stuff?!?
             // So by loading the Web Worker code via the WebSocket we can get around all that nonsense since WebSockets can be anywhere and on any port without silly restrictions.

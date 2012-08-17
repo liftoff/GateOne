@@ -198,7 +198,7 @@ GateOne.Base.update(GateOne.Logging, {
             logPagination = u.createElement('div', {'id': 'log_pagination', 'class': 'sectrans'}),
             logInfoContainer = u.createElement('div', {'id': 'log_info'}),
             logListContainer = u.createElement('div', {'id': 'log_listcontainer'}),
-            logPreviewIframe = u.createElement('iframe', {'id': 'log_preview'}),
+            logPreviewIframe = u.createElement('iframe', {'id': 'log_preview', 'style': {'display': 'none'}}), // Initial display:none to work around a (minor) IE 10 bug
             hr = u.createElement('hr'),
             logElemHeader = u.createElement('div', {'id': 'logitems_header', 'class':'table_header_row'}),
             titleSpan = u.createElement('span', {'id': 'log_titlespan', 'class':'table_cell table_header_cell'}),
@@ -359,6 +359,20 @@ GateOne.Base.update(GateOne.Logging, {
         logPreviewIframeDoc.open();
         logPreviewIframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">Click on a log to view a preview and metadata.</body></html>');
         logPreviewIframeDoc.close();
+        if (!GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_logs']) {
+            GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_logs'] = {};
+        }
+        if (!GateOne.Visual.panelToggleCallbacks['out']['#'+prefix+'panel_logs']) {
+            GateOne.Visual.panelToggleCallbacks['out']['#'+prefix+'panel_logs'] = {};
+        }
+        GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_logs']['fixIframe'] = function(e) {
+            // Make the iframe visible
+            u.showElement(logPreviewIframe);
+        };
+        GateOne.Visual.panelToggleCallbacks['out']['#'+prefix+'panel_logs']['fixIframe'] = function(e) {
+            // Make the iframe INvisible
+            u.hideElement(logPreviewIframe);
+        };
     },
     loadLogs: function(forceUpdate) {
         // After GateOne.Logging.serverLogs has been populated, this function will redraw the view depending on sort and pagination values

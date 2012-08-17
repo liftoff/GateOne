@@ -891,7 +891,6 @@ GateOne.Base.update(GateOne.Bookmarks, {
         bmElement.appendChild(bmContent);
         bmDesc.innerHTML = bookmark.notes;
         bmContent.appendChild(bmDesc);
-        // TODO: Get this adding the autotags to the taglist
         if (!ad && b.bookmarks.length) {
             var bmDateTag = u.createElement('li', {'class': 'bm_autotag'}),
                 goTag = u.createElement('li', {'class': 'bm_autotag bm_urltype_tag'}),
@@ -900,6 +899,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmVisited.innerHTML = bookmark.visits;
             bmElement.appendChild(bmVisited);
             bmElement.appendChild(bmControls);
+            bookmark.tags.sort(); // Make them alphabetical
             bookmark.tags.forEach(function(tag) {
                 var bmTag = u.createElement('li', {'class': 'bm_tag'});
                 bmTag.innerHTML = tag;
