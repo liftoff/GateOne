@@ -1319,7 +1319,8 @@ GateOne.Base.update(GateOne.Net, {
         // Delete our session ID as it obviously isn't valid
         // Also delete our 'user' cookie
         GateOne.Utils.deleteCookie('gateone_user', '/', '');
-//         window.location.reload(); // This *should* force a re-auth if we simply had our session expire (or similar)
+        alert('You must re-authenticate with the Gate One server.  The page will now be reloaded.');
+        window.location.reload(); // This *should* force a re-auth if we simply had our session expire (or similar)
     },
     sendDimensions: function(term, /*opt*/ctrl_l) {
         if (!term) {
