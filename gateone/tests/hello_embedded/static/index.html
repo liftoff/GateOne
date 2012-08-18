@@ -176,6 +176,11 @@
     </section>
 
 <script>
+    var reauthenticate = function() {
+        // This will override the GateOne.Net.reauthenticate function so we can let users know that this tutorial only works with anonymous auth
+        alert('Your Gate One server is configured to authenticate users.\nThis part of the tutorial only works if authentication is disabled (aka anonymous auth).\n\nPlease configure your Gate One server for anonymous authentication: "./gateone.py --auth=None" or put "auth = None" in your server.conf).\n\nPress OK to reload this page.');
+        window.location.reload();
+    }
     document.querySelector('#go_embed1').onsubmit = function(e) {
         var gourl = document.querySelector('#gourl1').value;
         e.preventDefault(); // Don't actually submit the form
@@ -186,6 +191,8 @@
         document.querySelector('#gourl2').value = localStorage['gourl'];
         // Load Gate One instead
         GateOne.init({url: gourl, logLevel: 'DEBUG'});
+        // Override reauthenticate() for this part of the tutorial so users aren't left scratching their heads wondering why the page reloads every time they click on the "Go" button.
+        GateOne.Net.reauthenticate = reauthenticate;
     }
     document.querySelector('#go_embed2').onsubmit = function(e) {
         var gourl = document.querySelector('#gourl2').value;
@@ -195,6 +202,7 @@
         GateOne.restoreDefaults(); // Have to do this or the theme and font size will be overridden by the prefs stored by the browser (some prefs can always be overridden by the user)
         GateOne.init({url: gourl, theme: 'white', fontSize: '130%', goDiv: '#gateone2', prefix: 'go2_', logLevel: 'DEBUG'});
         // NOTE: Using #gateone2 and 'go2_' as the prefix above to make sure it loads on the appropriate element
+        GateOne.Net.reauthenticate = reauthenticate;
     }
     document.querySelector('#go_embed3').onsubmit = function(e) {
         var gourl = document.querySelector('#gourl3').value;
@@ -203,6 +211,7 @@
         // Load Gate One with the settings we defined in the code example
         GateOne.restoreDefaults(); // Have to do this or the theme and font size will be overridden by the prefs stored by the browser (some prefs can always be overridden by the user)
         GateOne.init({url: gourl, embedded: true, goDiv: '#gateone3', prefix: 'go3_', style: {'background-color': 'yellowgreen', 'box-shadow': '0 0 40px blueViolet'}, logLevel: 'DEBUG'});
+        GateOne.Net.reauthenticate = reauthenticate;
     }
     document.querySelector('#add_terminal').onsubmit = function(e) {
         var termplace = GateOne.Utils.createElement('div', {'id': 'termplace', 'class': 'terminal', 'style': {'height': '50%', 'width': '100%'}}),

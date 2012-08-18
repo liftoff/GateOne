@@ -65,7 +65,12 @@ var processScreen = function(scrollback, termUpdateObj, prevScrollback, prefs, t
                     newString = textTransforms[trans]['newString'];
                 line = linkify(line, pattern, newString);
             }
-            screen[i] = line.replace(/\s*$/g, ""); // Trim trailing whitespace while we're at it
+            // Trim trailing whitespace only if the line isn't just full of whitespace
+            var trimmedLine = line.replace(/\s*$/g, "");
+            if (trimmedLine) {
+                line = trimmedLine;
+            }
+            screen[i] = line;
         } else {
             // Line is unchanged
             screen[i] = '';
