@@ -27,6 +27,8 @@ var logWarning = noop;
 var logInfo = noop;
 var logDebug = noop;
 
+// TODO:  Add the ability to have Search bookmarks for query types that use POST instead of GET
+
 // GateOne.Bookmarks (bookmark management functions)
 GateOne.Base.module(GateOne, "Bookmarks", "1.0", ['Base']);
 GateOne.Bookmarks.bookmarks = [];

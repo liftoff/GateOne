@@ -799,13 +799,16 @@ GateOne.Base.update(GateOne.Utils, {
         node.scrollTop = node.scrollTop + (emDimensions.h * lines);
     },
     scrollToBottom: function(elem) {
+        // Scrolls to the bottom of *elem*
         var node = GateOne.Utils.getNode(elem);
         try {
-            if (node.scrollTop != node.scrollHeight) {
-                node.scrollTop = node.scrollHeight;
+            if (node) {
+                if (node.scrollTop != node.scrollHeight) {
+                    node.scrollTop = node.scrollHeight;
+                }
             }
         } catch (e) {
-            // Terminal probably just hasn't come up yet...  No big deal, ignore.
+            // *elem* was probably removed or hasn't come up yet.  Ignore
         } finally {
             node = null;
         }
@@ -1540,6 +1543,7 @@ GateOne.Base.update(GateOne.Input, {
         // However, we only want this when the user is actually bringing up the context menu because
         // having it enabled slows down screen updates by a non-trivial amount.
         if (m.button.middle) {
+            u.showElements('.pastearea');
             if (selectedText.length) {
                 // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
                 e.preventDefault();
@@ -1548,62 +1552,60 @@ GateOne.Base.update(GateOne.Input, {
                 go.Input.handledPaste = true;
             }
         } else if (m.button.right) {
-            // Commented this out because it just plain doesn't work in Windows.  I mean, WTF Windows!
-//             var goDiv = u.getNode(go.prefs.goDiv);
-//             goDiv.contentEditable = true;
-        } /*else {*/
-//             var panels = u.getNodes(go.prefs.goDiv + ' .panel'),
-//                 visiblePanel = false;
-//                 u.getNode(go.prefs.goDiv).focus();
-            // Hide all the panels
-//             for (var i in u.toArray(panels)) {
-//                 if (v.getTransform(panel) != 'scale(0)') {
-//                     visiblePanel = true;
-//                 }
-//             }
-//                 if (!visiblePanel) {
-//                     goDiv.contentEditable = true;
-//                 }
-//         }
+            if (!u.getSelText()) {
+                // Rediplay the pastearea so we can get a proper context menu in case the user wants to paste
+                u.showElements('.pastearea');
+            }
+        }
     },
     capture: function() {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
         logDebug('capture()');
-        var u = go.Utils,
+        var go = GateOne,
+            u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv);
-        goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
+//         goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
         goDiv.onkeydown = go.Input.onKeyDown;
         goDiv.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
         goDiv.onkeypress = go.Input.emulateKeyFallback;
         // NOTE: This might not be necessary anymore with the pastearea:
         var onPaste = function(e) {
-            console.log("registered paste event.");
+            logDebug("registered paste event.");
+            if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
+                return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
+            }
             if (!go.Input.handledPaste) {
                 // Grab the text being pasted
                 var contents = null;
                 if (e.clipboardData) {
+                    // Don't actually paste the text where the user clicked
+                    e.preventDefault();
                     if (/text\/html/.test(e.clipboardData.types)) {
                         contents = e.clipboardData.getData('text/html');
                     }
                     else if (/text\/plain/.test(e.clipboardData.types)) {
                         contents = e.clipboardData.getData('text/plain');
                     }
-    //                 var contents = e.clipboardData.getData('Text');
-                    // Don't actually paste the text where the user clicked
-                    e.preventDefault();
+                    logDebug('contents: ' + contents);
                     // Queue it up and send the characters as if we typed them in
-                    GateOne.Input.queue(contents);
-                    GateOne.Net.sendChars();
+                    go.Input.queue(contents);
+                    go.Net.sendChars();
+                } else {
+                    // Change focus to the current pastearea and hope for the best
+                    go.Terminal.paste();
                 }
             }
-            go.Input.handledPaste = false;
+            // This is wrapped in a timeout so that the paste events that bubble up after the first get ignored
+            setTimeout(function() {
+                go.Input.handledPaste = false;
+            }, 10);
         }
-        goDiv.addEventListener('paste', onPaste, true);
+        goDiv.addEventListener('paste', onPaste, false);
         goDiv.onmousedown = go.Input.goDivMouseDown;
         goDiv.onmouseup = function(e) {
             logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
             // Once the user is done pasting (or clicking), set it back to false for speed
-            goDiv.contentEditable = false; // Having this as false makes screen updates faster
+//             goDiv.contentEditable = false; // Having this as false makes screen updates faster
             var selectedText = u.getSelText();
             if (selectedText) {
                 // Don't show the pastearea as it will prevent the user from right-clicking to copy.
@@ -1613,7 +1615,11 @@ GateOne.Base.update(GateOne.Input, {
                 return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
             }
             if (!go.Visual.gridView) {
-                u.showElements('.pastearea');
+                setTimeout(function() {
+                    if (!u.getSelText()) {
+                        u.showElements('.pastearea');
+                    }
+                }, 100);
             }
             goDiv.focus();
         }
@@ -2457,6 +2463,8 @@ GateOne.Base.update(GateOne.Visual, {
                     }
                 }
             }
+            // Disable input into the terminal so we can type into forms and whatnot
+            go.Input.disableCapture();
         } else {
             // Send it away
             v.applyTransform(panel, 'scale(0)');
@@ -2712,6 +2720,7 @@ GateOne.Base.update(GateOne.Visual, {
         terms.forEach(function(termObj) {
             // Loop through once to get the correct wPX and hPX values
             count = count + 1;
+//             termObj.style.opacity = 1;
             if (termObj.id == go.prefs.prefix+'term' + term) {
                 if (u.isEven(count)) {
                     wPX = ((v.goDimensions.w+rightAdjust) * 2) - (v.goDimensions.w+rightAdjust);
@@ -2722,7 +2731,14 @@ GateOne.Base.update(GateOne.Visual, {
                 }
             }
         });
-        v.applyTransform(terms, 'translate(-' + wPX + 'px, -' + hPX + 'px)');
+        terms.forEach(function(termObj) {
+            if (termObj.id == go.prefs.prefix+'term' + term) {
+                v.applyTransform(termObj, 'translate(-' + wPX + 'px, -' + hPX + 'px)');
+            } else {
+                v.applyTransform(termObj, 'translate(-' + wPX + 'px, -' + hPX + 'px) scale(0.5)');
+            }
+        });
+//         v.applyTransform(terms, 'translate(-' + wPX + 'px, -' + hPX + 'px)');
         v.displayTermInfo(term);
         if (!v.scrollbackToggle) {
             // Cancel any pending scrollback timers to keep the user experience smooth
@@ -3569,7 +3585,31 @@ go.Base.update(GateOne.Terminal, {
     },
     paste: function(e) {
         // This gets attached to Shift-Insert (KEY_INSERT) as a shortcut in order to support pasting
-        GateOne.Utils.getNode('#' + GateOne.prefs.prefix + 'pastearea').focus();
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            goDiv = u.getNode(go.prefs.goDiv),
+            tempPaste = u.createElement('textarea', {'style': {'position': 'fixed', 'top': '-100000px', 'left': '-100000px', 'opacity': 0}});
+        tempPaste.oninput = function(e) {
+            var pasted = tempPaste.value,
+                lines = pasted.split('\n');
+            if (lines.length > 1) {
+                // If we're pasting stuff with newlines we should strip trailing whitespace so the lines show up correctly.  In all but a few cases this is what the user expects.
+                for (var i=0; i < lines.length; i++) {
+                    lines[i] = lines[i].replace(/\s*$/g, ""); // Remove trailing whitespace
+                }
+                pasted = lines.join('\n');
+            }
+            go.Input.queue(pasted);
+            tempPaste.value = "";
+            go.Net.sendChars();
+            u.removeElement(tempPaste); // Don't need this anymore
+            setTimeout(function() {
+                go.Input.capture();
+            }, 10);
+        }
+        goDiv.appendChild(tempPaste);
+        tempPaste.focus();
         // Since we're not calling preventDefault() on this event, by shifting focus to the pastearea (which is a textarea) the browser will execute the regular shift-Inert event (which is pasting =)
     },
     timeoutAction: function() {
@@ -3659,7 +3699,6 @@ go.Base.update(GateOne.Terminal, {
                     GateOne.Terminal.applyScreen(screen, term);
                 } else { // Create the elements necessary to display the screen
                     var screenSpan = u.createElement('span', {'id': 'term'+term+'screen'});
-                    screenSpan.addEventListener('paste', GateOne.Input.paste, true);
                     for (var i=0; i < screen.length; i++) {
                         var lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
                         lineSpan.innerHTML = screen[i] + '\n';
@@ -3673,7 +3712,6 @@ go.Base.update(GateOne.Terminal, {
                         u.scrollToBottom(existingPre);
                     } else {
                         var termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
-                        termPre.addEventListener('paste', GateOne.Input.paste, true);
                         termPre.appendChild(screenSpan);
                         termContainer.appendChild(termPre);
                         u.scrollToBottom(termPre);
@@ -4003,6 +4041,10 @@ go.Base.update(GateOne.Terminal, {
             // Start capturing input again
             setTimeout(function() { GateOne.Input.capture(); }, 150);
         }
+//         pastearea.ondoubleclick = function(e) {
+//             // Hide self in an attempt to get double-click-to-highlight working
+//             u.hideElement(pastearea);
+//         }
         pastearea.onmousedown = function(e) {
             // When the user left-clicks assume they're trying to highlight text
             // so bring the terminal to the front and try to emulate normal
@@ -4036,12 +4078,16 @@ go.Base.update(GateOne.Terminal, {
             } else if (m.button.middle) {
                 // This is here to enable middle-click-to-paste in Windows but it only works if the user has launched Gate One in "application mode".
                 // Gate One can be launched in "application mode" if the user selects the "create application shortcut..." option from the tools menu.
-                document.execCommand('paste');
-                // Oddly, this doesn't interfere with anthing or create errors when NOT in application mode.  You'd think it would end up sending two of every paste but it doesn't.
-                pastearea.focus();
+                try {
+                    document.execCommand('paste');
+                    // Oddly, this doesn't interfere with anthing or create errors when NOT in application mode.  You'd think it would end up sending two of every paste but it doesn't.
+                    pastearea.focus();
+                } catch (e) {
+                    // Just ignore the error
+                }
             } else {
                 u.showElement(pastearea);
-                pastearea.focus();
+//                 pastearea.focus();
             }
         }
         terminal.appendChild(pastearea);
