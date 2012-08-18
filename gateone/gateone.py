@@ -885,7 +885,7 @@ class TerminalWebSocket(WebSocketHandler):
         self.terms = {}
         # So we can keep track and avoid sending unnecessary messages:
         self.titles = {}
-        self.api_user = None
+        self.user = None
         self.em_dimensions = None
         # This is used to keep track of used API authentication signatures so
         # we can prevent replay attacks.
@@ -907,8 +907,8 @@ class TerminalWebSocket(WebSocketHandler):
         difference being that when API authentication is enabled the WebSocket
         will expect and perform its own auth of the client.
         """
-        if self.settings['auth'] == 'api':
-            return self.api_user
+        if self.user:
+            return self.user
         user_json = self.get_secure_cookie("gateone_user")
         if not user_json:
             if not self.settings['auth']:
@@ -1167,29 +1167,39 @@ class TerminalWebSocket(WebSocketHandler):
                         session_file = os.path.join(user_dir, 'session')
                         if os.path.exists(session_file):
                             session_data = open(session_file).read()
-                            self.api_user = json_decode(session_data)
+                            self.user = json_decode(session_data)
                         else:
                             with open(session_file, 'w') as f:
                         # Save it so we can keep track across multiple clients
-                                self.api_user = {
+                                self.user = {
                                     'upn': upn, # FYI: UPN == userPrincipalName
                                     'session': generate_session_id()
                                 }
-                                session_info_json = json_encode(self.api_user)
+                                session_info_json = json_encode(self.user)
                                 f.write(session_info_json)
                     else:
                         logging.error(_(
                             "WebSocket auth failed signature check."))
             else:
                 logging.error(_("Missing API Key in authentication object"))
-        else:
+        else: # Anonymous auth
             # Double-check there isn't a user set in the cookie (i.e. we have
             # recently changed Gate One's settings).  If there is, force it
             # back to ANONYMOUS.
-            user = self.get_current_user()
-            if user:
-                user = user['upn']
-            if user != 'ANONYMOUS':
+            if settings['auth']: # Authentication from localStorage data
+                # Authenticate/decode the encoded auth info
+                self.user = json_decode(self.get_secure_cookie(
+                    'gateone_user', value=settings['auth']))
+                print("decoded user: %s" % self.user)
+            else:
+                # Generate a new session/anon user
+                self.user = self.get_current_user()
+                # Also store/update their session info in localStorage
+                encoded_user = self.create_signed_value(
+                    'gateone_user', tornado.escape.json_encode(self.user))
+                session_message = {'gateone_user': encoded_user}
+                self.write_message(json_encode(session_message))
+            if self.user['upn'] != 'ANONYMOUS':
                 message = {'reauthenticate': True}
                 self.write_message(json_encode(message))
                 self.close() # Close the WebSocket

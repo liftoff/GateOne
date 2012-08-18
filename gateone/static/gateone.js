@@ -1462,7 +1462,11 @@ GateOne.Base.update(GateOne.Net, {
                     logDebug("Attempting to download our bell sound...");
                     go.ws.send(JSON.stringify({'get_bell': null}));
                 }
-                // Check if there are any existing terminals for the current session ID
+                if (!go.prefs.auth) {
+                    // If 'auth' isn't set that means we're not in API mode but we could still be embedded so check for the user's session info in localStorage
+                    go.prefs.auth = localStorage[prefix+'gateone_user'];
+                    settings['auth'] = go.prefs.auth;
+                }
                 go.ws.send(JSON.stringify({'authenticate': settings}));
                 setTimeout(function() {
                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
@@ -4303,6 +4307,7 @@ GateOne.Base.update(GateOne.User, {
             prefsPanelUserLogout.insertAdjacentHTML("afterEnd", ")");
         }
         // Register our actions
+        go.Net.addAction('gateone_user', go.User.storeSession);
         go.Net.addAction('set_username', go.User.setUsername);
         go.Net.addAction('load_bell', go.User.loadBell);
     },
@@ -4424,6 +4429,10 @@ GateOne.Base.update(GateOne.User, {
             closeDialog();
         }
     },
+    storeSession: function(message) {
+        //  Stores the 'gateone_user' data in localStorage in a nearly identical fashion to how it gets stored in the 'gateone_user' cookie.
+        localStorage[GateOne.prefs.prefix+'gateone_user'] = message;
+    }
 });
 
 // Protocol actions
