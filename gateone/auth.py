@@ -199,8 +199,10 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
             self.set_header ('Access-Control-Allow-Origin', '*')
             user = self.get_current_user()
             if user:
+                logging.debug('GoogleAuthHandler: user is authenticated')
                 self.write('authenticated')
             else:
+                logging.debug('GoogleAuthHandler: user is NOT authenticated')
                 self.write('unauthenticated')
             self.finish()
             return
@@ -262,8 +264,10 @@ try:
             if check:
                 user = self.get_current_user()
                 if user:
+                    logging.debug('KerberosAuthHandler: user is authenticated')
                     self.write('authenticated')
                 else:
+                    logging.debug('KerberosAuthHandler: user is NOT authenticated')
                     self.write('unauthenticated')
                 self.finish()
                 return
@@ -314,9 +318,12 @@ try:
             if check:
                 user = self.get_current_user()
                 if user:
+                    logging.debug('PAMAuthHandler: user is authenticated')
                     self.write('authenticated')
                 else:
+                    logging.debug('PAMAuthHandler: user is NOT authenticated')
                     self.write('unauthenticated')
+                    self.get_authenticated_user(self._on_auth)
                 self.finish()
                 return
             logout = self.get_argument("logout", None)

@@ -48,7 +48,7 @@ class PAMAuthMixin(tornado.web.RequestHandler):
         Processes the client's Authorization header and call self.auth_basic()
         """
         auth_header = self.request.headers.get('Authorization')
-        if auth_header.startswith('Basic '):
+        if auth_header and auth_header.startswith('Basic '):
             self.auth_basic(auth_header, callback)
 
     def auth_basic(self, auth_header, callback):

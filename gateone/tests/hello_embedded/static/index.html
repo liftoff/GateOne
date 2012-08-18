@@ -185,7 +185,7 @@
         // Set it down below too to save the user some typing
         document.querySelector('#gourl2').value = localStorage['gourl'];
         // Load Gate One instead
-        GateOne.init({url: gourl});
+        GateOne.init({url: gourl, logLevel: 'DEBUG'});
     }
     document.querySelector('#go_embed2').onsubmit = function(e) {
         var gourl = document.querySelector('#gourl2').value;
@@ -193,7 +193,7 @@
         localStorage['gourl'] = gourl;
         // Load Gate One with the settings we defined in the code example
         GateOne.restoreDefaults(); // Have to do this or the theme and font size will be overridden by the prefs stored by the browser (some prefs can always be overridden by the user)
-        GateOne.init({url: gourl, theme: 'white', fontSize: '130%', goDiv: '#gateone2', prefix: 'go2_'});
+        GateOne.init({url: gourl, theme: 'white', fontSize: '130%', goDiv: '#gateone2', prefix: 'go2_', logLevel: 'DEBUG'});
         // NOTE: Using #gateone2 and 'go2_' as the prefix above to make sure it loads on the appropriate element
     }
     document.querySelector('#go_embed3').onsubmit = function(e) {
@@ -202,7 +202,7 @@
         localStorage['gourl'] = gourl;
         // Load Gate One with the settings we defined in the code example
         GateOne.restoreDefaults(); // Have to do this or the theme and font size will be overridden by the prefs stored by the browser (some prefs can always be overridden by the user)
-        GateOne.init({url: gourl, embedded: true, goDiv: '#gateone3', prefix: 'go3_', style: {'background-color': 'yellowgreen', 'box-shadow': '0 0 40px blueViolet'}});
+        GateOne.init({url: gourl, embedded: true, goDiv: '#gateone3', prefix: 'go3_', style: {'background-color': 'yellowgreen', 'box-shadow': '0 0 40px blueViolet'}, logLevel: 'DEBUG'});
     }
     document.querySelector('#add_terminal').onsubmit = function(e) {
         var termplace = GateOne.Utils.createElement('div', {'id': 'termplace', 'class': 'terminal', 'style': {'height': '50%', 'width': '100%'}}),

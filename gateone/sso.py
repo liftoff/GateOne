@@ -139,9 +139,9 @@ class KerberosAuthMixin(tornado.web.RequestHandler):
         were provided by the client.
         """
         auth_header = self.request.headers.get('Authorization')
-        if auth_header.startswith('Negotiate'):
+        if auth_header and auth_header.startswith('Negotiate'):
             self.auth_negotiate(auth_header, callback)
-        elif auth_header.startswith('Basic '):
+        elif auth_header and auth_header.startswith('Basic '):
             self.auth_basic(auth_header, callback)
 
     def auth_negotiate(self, auth_header, callback):
