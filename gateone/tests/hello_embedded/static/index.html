@@ -121,8 +121,6 @@
 
             <h2 class="intro">The Hard Way aka "Embedded Mode"</h2>
 
-            <p><b>NOTE:</b> This is a work-in-progress and presently has issues.  I am working on it =)</p>
-
             <p>So you want every little thing to be customized?  A tab-based interface with custom pink icons?  No problem!  That's what "embedded mode" is for.  To initialize Gate One in embedded mode you have only to pass '{embedded: true}' to GateOne.init():</p>
 
             <pre><code class="xml">
@@ -159,7 +157,36 @@
 
             <p>Notice anything missing?  The actual terminal!  Why isn't it there?  Because we haven't placed it yet.  That's one of the caveats of embedded mode...  You have to be explicity about nearly <i>everything</i>.</p>
 
-            <p><form id="add_terminal"><input type="submit" value="Add a Terminal!" style="margin-left: .5em;" onclick="GateOne.Terminal.newTerminal()"></input></form></p>
+            <p>To solve this problem we'll add a button that when clicked adds a new terminal...</p>
+            <pre><code class="xml">
+    &lt;form id="add_terminal"&gt;
+    &lt;input type="submit" value="Add a Terminal!" style="margin-left: .5em;"&gt;&lt;/input&gt;
+    &lt;/form&gt;
+    &lt;script&gt;
+    document.querySelector('#add_terminal').onsubmit = function(e) {
+        // NOTE: To avoid name conflicts GateOne.Utils.createElement() automatically prepends
+        //       GateOne.prefs.prefix to the ID of the created element.  This is why
+        //       GateOne.Utils.getNode() below has the prefix inserted in the middle...
+        var existingTermplace = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'termplace'),
+            termplace = GateOne.Utils.createElement('div', {
+                'id': 'termplace', 'class': 'terminal', 'style': {'height': '100%', 'width': '100%'}
+            }),
+            gateone3 = GateOne.Utils.getNode('#gateone3');
+        e.preventDefault(); // Don't actually submit the form
+        if (!existingTermplace) {
+            gateone3.appendChild(termplace); // Put our terminal in the container
+        } else {
+            termplace = existingTermplace;
+        }
+        termNum = GateOne.Terminal.newTerminal(null, null, termplace); // Create the new terminal
+    }
+    &lt;/script&gt;
+            </code></pre>
+            <p><form id="add_terminal"><input type="submit" value="Add a Terminal!" style="margin-left: .5em;"></input></form><i>You might have to scroll back up a bit after clicking the button.</i>  What happens if you add a <i>second</i> terminal?</p>
+
+            <p>In the next section we'll cover how to handle overlapping terminals and switching between them.</p>
+
+            <p><b>NOTE:</b> Stay tuned...</p>
 
         </section>
 
@@ -208,17 +235,25 @@
         var gourl = document.querySelector('#gourl3').value;
         e.preventDefault(); // Don't actually submit the form
         localStorage['gourl'] = gourl;
-        // Load Gate One with the settings we defined in the code example
+        // Set termSelectCallback to noop (no operation) so we the user doesn't get a warning message in their JS console
+        GateOne.Terminal.termSelectCallback = GateOne.Utils.noop; // It's too early in the tutorial to worry about stuff like this =D
         GateOne.restoreDefaults(); // Have to do this or the theme and font size will be overridden by the prefs stored by the browser (some prefs can always be overridden by the user)
-        GateOne.init({url: gourl, embedded: true, goDiv: '#gateone3', prefix: 'go3_', style: {'background-color': 'yellowgreen', 'box-shadow': '0 0 40px blueViolet'}, logLevel: 'DEBUG'});
+        // Load Gate One with the settings we defined in the code example
+        GateOne.init({url: gourl, embedded: true, goDiv: '#gateone3', prefix: 'go3_', logLevel: 'DEBUG', 'style': {'background-color': 'yellowgreen', 'box-shadow': '0 0 40px blueViolet'}});
         GateOne.Net.reauthenticate = reauthenticate;
     }
     document.querySelector('#add_terminal').onsubmit = function(e) {
-        var termplace = GateOne.Utils.createElement('div', {'id': 'termplace', 'class': 'terminal', 'style': {'height': '50%', 'width': '100%'}}),
-            gateone3 = document.querySelector('#gateone3');
+        // NOTE: We check for an existing 'termplace' below so we can append to it when a second terminal is added.  In your own code you can do something similar or just pass a different location to GateOne.Terminal.newTerminal() (as the 3rd argument).
+        var existingTermplace = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'termplace'), // In case the user clicks the button a second time
+            termplace = GateOne.Utils.createElement('div', {'id': 'termplace', 'class': 'terminal', 'style': {'height': '100%', 'width': '100%'}}),
+            gateone3 = GateOne.Utils.getNode('#gateone3');
         e.preventDefault(); // Don't actually submit the form
-        gateone3.appendChild(termplace); // Put our half-size terminal in the container
-        GateOne.Terminal.newTerminal(null, null, termplace); // Tell Gate One to use the new half-size terminal
+        if (!existingTermplace) {
+            gateone3.appendChild(termplace); // Put our half-size terminal in the container
+        } else {
+            termplace = existingTermplace;
+        }
+        termNum = GateOne.Terminal.newTerminal(null, null, termplace); // Tell Gate One to use the new half-size terminal
     }
 // Enable highlight.js
 hljs.tabReplace = '    ';

@@ -57,14 +57,11 @@ GateOne.Base.update(GateOne.Playback, {
             }
             pTag.appendChild(infoPanelSaveRecording);
         }
-        if (!go.prefs.embedded) {
-            // Don't automatically add the playback controls in embedded mode.  Let the embedder decide if they want to do that.
-            p.addPlaybackControls();
-        }
-            // This makes sure our playback frames get added to the terminal object whenever the screen is updated
-            go.Terminal.updateTermCallbacks.push(GateOne.Playback.pushPlaybackFrame);
-            // This makes sure our prefs get saved along with everything else
-            go.savePrefsCallbacks.push(GateOne.Playback.savePrefsCallback);
+        p.addPlaybackControls();
+        // This makes sure our playback frames get added to the terminal object whenever the screen is updated
+        go.Terminal.updateTermCallbacks.push(GateOne.Playback.pushPlaybackFrame);
+        // This makes sure our prefs get saved along with everything else
+        go.savePrefsCallbacks.push(GateOne.Playback.savePrefsCallback);
     },
     pushPlaybackFrame: function(term) {
         // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']

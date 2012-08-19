@@ -1464,8 +1464,10 @@ GateOne.Base.update(GateOne.Net, {
                 }
                 if (!go.prefs.auth) {
                     // If 'auth' isn't set that means we're not in API mode but we could still be embedded so check for the user's session info in localStorage
-                    go.prefs.auth = localStorage[prefix+'gateone_user'];
-                    settings['auth'] = go.prefs.auth;
+                    if (localStorage[prefix+'gateone_user']) {
+                        go.prefs.auth = localStorage[prefix+'gateone_user'];
+                        settings['auth'] = go.prefs.auth;
+                    }
                 }
                 go.ws.send(JSON.stringify({'authenticate': settings}));
                 setTimeout(function() {
@@ -3572,8 +3574,16 @@ go.Base.update(GateOne.Terminal, {
         toolbar.insertBefore(toolbarNewTerm, toolbarInfo);
         toolbar.insertBefore(toolbarClose, toolbarNewTerm);
         // Assign our visual terminal switching function (if not already assigned)
-        if (!go.Terminal.termSelectCallback) {
-            go.Terminal.termSelectCallback = go.Visual.slideToTerm;
+        if (!go.prefs.embedded) { // In embedded mode the developer must choose their own way to switch terminals explicitly
+            if (!go.Terminal.termSelectCallback) {
+                go.Terminal.termSelectCallback = go.Visual.slideToTerm;
+            }
+        } else {
+            if (!go.Terminal.termSelectCallback) {
+                logWarning('You have not set GateOne.Terminal.termSelectCallback.');
+                logWarning('Without this you will need to provide some very explicit controls to the user in order to switch terminals (you need to *really* know what you are doing).');
+                logWarning('To make this warning message go away just set "GateOne.Terminal.termSelectCallback = GateOne.Utils.noop;".');
+            }
         }
         // Register our keyboard shortcuts
         // Ctrl-Alt-N to create a new terminal
@@ -4175,11 +4185,14 @@ go.Base.update(GateOne.Terminal, {
         // Calls GateOne.Net.setTerminal(*term*) then calls whatever function is assigned to GateOne.Terminal.termSelectCallback(*term*) (default is GateOne.Terminal.switchTerminal())
         // So if you want to write your own animation/function for switching terminals you can make it happen by simply assigning your function to GateOne.Terminal.termSelectCallback
         go.Net.setTerminal(term);
-        go.Terminal.termSelectCallback(term);
+        if (go.Terminal.termSelectCallback) {
+            go.Terminal.termSelectCallback(term);
+        }
     },
     reconnectTerminalAction: function(term) {
         // Called when the server reports that the terminal number supplied via 'new_terminal' already exists
         // NOTE: Doesn't do anything at the moment...  May never do anything.  You never know.
+        // NOTE: Might be useful to override if you're embedding Gate One into something else
         logDebug('reconnectTerminalAction(' + term + ')');
     },
     reattachTerminalsAction: function(terminals){

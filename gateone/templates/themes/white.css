@@ -298,7 +298,7 @@ hr {
     margin: 0;
     opacity: 0;
     width: 96%; /* For whatever reason Firefox needs the width/height set */
-    height: 97%;
+    height: 95%;
 }
 /* This is to work around a Chrome/Windows bug where pasting gets disabled if you use JS to set display: none */
 #{{container}} .go_none { /* No prefix on this one because of issues with that in the JS code */

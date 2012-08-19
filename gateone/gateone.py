@@ -1190,7 +1190,6 @@ class TerminalWebSocket(WebSocketHandler):
                 # Authenticate/decode the encoded auth info
                 self.user = json_decode(self.get_secure_cookie(
                     'gateone_user', value=settings['auth']))
-                print("decoded user: %s" % self.user)
             else:
                 # Generate a new session/anon user
                 self.user = self.get_current_user()
@@ -1360,7 +1359,7 @@ class TerminalWebSocket(WebSocketHandler):
                 user = self.get_current_user()['upn']
             except:
                 # No auth, use ANONYMOUS (% is there to prevent conflicts)
-                user = r'ANONYMOUS' # Don't get on this guy's bad side
+                user = 'ANONYMOUS' # Don't get on this guy's bad side
             cmd = cmd_var_swap(CMD,   # Swap out variables like %USER% in CMD
                 session=self.session, # with their real-world values.
                 session_hash=short_hash(self.session),
