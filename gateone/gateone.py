@@ -8,6 +8,7 @@
 # TODO:
 # * Write init scripts to stop/start/restart Gate One safely.  Also make sure that .deb and .rpm packages safely restart Gate One without impacting running sessions.  The setup.py should also attempt to minify the .css and .js files.
 # * Write a permissions check function so we don't have to repeat ourselves all over the place inside of main()
+# * Make it so that the session_dir gets cleaned up.  Will require some logic in regards dtach detection.
 
 # Meta
 __version__ = '1.1'

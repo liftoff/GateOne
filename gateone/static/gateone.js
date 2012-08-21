@@ -21,6 +21,7 @@ this file.
 // General TODOs
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
 // TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated with the base themes.
+// TODO: Make it so that variables like GateOne.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
 
 // Everything goes in GateOne
 (function(window, undefined) {
@@ -166,7 +167,10 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     showToolbar: true, // If false, the toolbar will now be shown in the sidebar.
     audibleBell: true, // If false, the bell sound will not be played (visual notification will still occur),
     bellSound: '', // Stores the bell sound data::URI (cached).
-    bellSoundType: '' // Stores the mimetype of the bell sound.
+    bellSoundType: '', // Stores the mimetype of the bell sound.
+    rowAdjust: 0, // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
+                  // rowAdjust is necessary so that plugins can increment it if they're adding things to the top or bottom of GateOne.
+    colAdjust: 0  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
 }
 // Properties in this object will get ignored when GateOne.prefs is saved to localStorage
 GateOne.noSavePrefs = {
@@ -181,7 +185,9 @@ GateOne.noSavePrefs = {
     embedded: null,
     auth: null,
     showTitle: null,
-    showToolbar: null
+    showToolbar: null,
+    rowAdjust: null,
+    colAdjust: null
 }
 // Example 'auth' object:
 // {
@@ -222,7 +228,9 @@ var go = GateOne.Base.update(GateOne, {
             showToolbar: true,
             audibleBell: true,
             bellSound: '',
-            bellSoundType: ''
+            bellSoundType: '',
+            rowAdjust: 0,
+            colAdjust: 0
         }
         GateOne.Utils.savePrefs(true); // 'true' here skips the notification
     },
@@ -1256,6 +1264,7 @@ GateOne.Base.update(GateOne.Utils, {
 GateOne.Base.module(GateOne, 'Net', '1.0', ['Base', 'Utils']);
 GateOne.Net.charSendTimer = null; // Just a place to keep track of the scrollToBottom timer in sendChars()
 GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
+GateOne.Net.sendDimensionsCallbacks = []; // A hook plugins can use if they want to call something whenever the terminal dimensions change
 GateOne.Base.update(GateOne.Net, {
     sendChars: function() {
         // pop()s out the current charBuffer and sends it to the server.
@@ -1323,31 +1332,37 @@ GateOne.Base.update(GateOne.Net, {
         window.location.reload(); // This *should* force a re-auth if we simply had our session expire (or similar)
     },
     sendDimensions: function(term, /*opt*/ctrl_l) {
+        logDebug('sendDimensions(' + term + ', ' + ctrl_l + ')');
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
-        }
-        var rowAdjust = 2;
-        if (!GateOne.Playback) {
-            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
         }
         if (typeof(ctrl_l) == 'undefined') {
             ctrl_l = true;
         }
-        var u = go.Utils,
+        var go = GateOne,
+            u = go.Utils,
+            rowAdjust = go.prefs.rowAdjust + 1, // Always 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
+            colAdjust = go.prefs.colAdjust + 2, // Always 2 for the scrollbar
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             prefs = {
                 'term': term,
-                'rows': Math.ceil(dimensions.rows - rowAdjust), // -1 for the playback controls and -1 because we're using Math.ceil
-                'cols': Math.ceil(dimensions.cols - 7), // -6 for the sidebar + scrollbar and -1 because we're using Math.ceil
+                'rows': Math.ceil(dimensions.rows - rowAdjust),
+                'cols': Math.ceil(dimensions.cols - colAdjust),
                 'em_dimensions': emDimensions
             }
-        if (!go.prefs.showToolbar && !go.prefs.showTitle) {
-            prefs['cols'] = dimensions.cols - 1; // If there's no toolbar and no title there's no reason to have empty space on the right.
+        if (go.prefs.showToolbar || go.prefs.showTitle) {
+            prefs['cols'] = prefs['cols'] - 4; // If there's no toolbar and no title there's no reason to have empty space on the right.
         }
         // Apply user-defined rows and cols (if set)
         if (go.prefs.cols) { prefs.cols = go.prefs.cols };
         if (go.prefs.rows) { prefs.rows = go.prefs.rows };
+        // Execute any sendDimensionsCallbacks
+        if (GateOne.Net.sendDimensionsCallbacks.length) {
+            for (var i=0; i<GateOne.Net.sendDimensionsCallbacks.length; i++) {
+                GateOne.Net.sendDimensionsCallbacks[i](term);
+            }
+        }
         // Tell the server the new dimensions
         go.ws.send(JSON.stringify({'resize': prefs}));
     },
@@ -2365,18 +2380,15 @@ GateOne.Base.update(GateOne.Visual, {
                 terms.forEach(function(termObj) {
                     termObj.style.height = go.Visual.goDimensions.h + 'px';
                     termObj.style.width = go.Visual.goDimensions.w + 'px';
-    //                 termObj.style['margin-right'] = style['padding-right'];
-    //                 termObj.style['margin-bottom'] = style['padding-bottom'];
                 });
             }
         }
-
     },
     applyTransform: function (obj, transform) {
         // Applys the given CSS3 *transform* to *obj* for all known vendor prefixes (e.g. -<whatever>-transform)
         // *obj* can be a string, a node, an array of nodes, or a NodeList.  In the case that *obj* is a string,
         // GateOne.Utils.getNode(*obj*) will be performed under the assumption that the string represents a CSS selector.
-//         log('applyTransform(' + typeof(obj) + ', ' + transform + ')');
+//         logDebug('applyTransform(' + typeof(obj) + ', ' + transform + ')');
         var transforms = {
             '-webkit-transform': '', // Chrome/Safari/Webkit-based stuff
             '-moz-transform': '', // Mozilla/Firefox/Gecko-based stuff
@@ -2620,7 +2632,12 @@ GateOne.Base.update(GateOne.Visual, {
                 }, 3500);
                 return;
             }
-            termPreNode.style.height = (parentHeight - go.terminals[term]['heightAdjust']) + 'px';
+            // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
+            if (parentHeight) {
+                termPreNode.style.height = (parentHeight - go.terminals[term]['heightAdjust']) + 'px';
+            } else {
+                termPreNode.style.height = "100%"; // This ensures there's a scrollbar
+            }
             if (termScrollback) {
                 var scrollbackHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
                 if (termScrollback.innerHTML != scrollbackHTML) {
@@ -3713,8 +3730,16 @@ go.Base.update(GateOne.Terminal, {
                 if (existingScreen && GateOne.terminals[term]['screen'].length != screen.length) {
                     // Resized
                     GateOne.terminals[term]['screen'].length = screen.length; // Resize the array to match
-                    u.removeElement(existingScreen); // Force it to be re-created
-                    existingScreen = null;
+                    existingScreen.innerHTML = "";
+                    for (var i=0; i < screen.length; i++) {
+                        var lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
+                        lineSpan.innerHTML = screen[i] + '\n';
+                        existingScreen.appendChild(lineSpan);
+                        // Update the existing screen array in-place to cut down on GC
+                        GateOne.terminals[term]['screen'][i] = screen[i];
+                    }
+//                     u.removeElement(existingScreen); // Force it to be re-created
+//                     existingScreen = null;
                 }
                 if (existingScreen) { // Update the terminal display
                     GateOne.Terminal.applyScreen(screen, term);
@@ -3744,13 +3769,10 @@ go.Base.update(GateOne.Terminal, {
                                 GateOne.Visual.applyTransform(termPre, transform);
                             }
                         } else {
-                            var distance = goDiv.clientHeight - screenSpan.offsetHeight;
-                            GateOne.terminals[term]['heightAdjust'] = distance; // So we can quickly reference it
-                            go.Visual.applyStyle(termPre, {'margin-bottom': distance + 'px'});
-                            termPre.style['marginBottom'] = distance + 'px'; // Firefox
-                            // Changing to using padding-bottom from the transform because it was causing overlap issues
-//                             transform = "translateY(-" + distance + "px)";
-//                             GateOne.Visual.applyTransform(termPre, transform); // Move it to the top
+                            var distance = goDiv.clientHeight - termPre.offsetHeight;
+                            GateOne.terminals[term]['heightAdjust'] = 0;
+                            transform = "translateY(-" + distance + "px)";
+                            GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
                         }
                         GateOne.terminals[term]['node'] = termPre; // For faster access
                     }
@@ -3758,7 +3780,7 @@ go.Base.update(GateOne.Terminal, {
                 screenUpdate = true;
                 GateOne.terminals[term]['scrollbackVisible'] = false;
             } catch (e) { // Likely the terminal just closed
-                console.log(e);
+                logDebug(e);
                 u.noop(); // Just ignore it.
             } finally { // Instant GC
                 termContainer = null;
@@ -3926,10 +3948,6 @@ go.Base.update(GateOne.Terminal, {
         // Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         // TODO: Finish supporting terminal types.
         logDebug("calling newTerminal(" + term + ")");
-        var rowAdjust = 2;
-        if (!GateOne.Playback) {
-            rowAdjust = 1; //  Don't waste that bottom row if no playback plugin
-        }
         var u = go.Utils,
             t = go.Terminal,
             prefix = go.prefs.prefix,
@@ -3937,10 +3955,12 @@ go.Base.update(GateOne.Terminal, {
             terminal = null,
             termUndefined = false,
             termwrapper = u.getNode('#'+prefix+'termwrapper'),
+            rowAdjust = go.prefs.rowAdjust + 1, // Always minus 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
+            colAdjust = go.prefs.colAdjust + 2, // Always minus 2 for the scrollbar
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             rows = Math.ceil(dimensions.rows - rowAdjust),
-            cols = Math.ceil(dimensions.cols - 7),
+            cols = Math.ceil(dimensions.cols - colAdjust),
             prevScrollback = localStorage.getItem(prefix+"scrollback" + term);
         if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
             // Create the grid if it isn't already present
@@ -3957,6 +3977,9 @@ go.Base.update(GateOne.Terminal, {
                 var gridWidth = (go.Visual.goDimensions.w+adjust) * 2; // Will likely always be x2
                 termwrapper.style.width = gridWidth + 'px';
             }
+        }
+        if (go.prefs.showToolbar || go.prefs.showTitle) {
+            cols = cols - 4; // Leave some empty space on the right if the toolbar or title are present
         }
         if (term) {
             currentTerm = prefix+'term' + term;
@@ -4062,10 +4085,6 @@ go.Base.update(GateOne.Terminal, {
             // Start capturing input again
             setTimeout(function() { GateOne.Input.capture(); }, 150);
         }
-//         pastearea.ondoubleclick = function(e) {
-//             // Hide self in an attempt to get double-click-to-highlight working
-//             u.hideElement(pastearea);
-//         }
         pastearea.onmousedown = function(e) {
             // When the user left-clicks assume they're trying to highlight text
             // so bring the terminal to the front and try to emulate normal

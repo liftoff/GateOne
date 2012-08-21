@@ -136,15 +136,28 @@ def parse_bookmarks_html(html):
                     out_list[-1]['notes'] = unescape(token['data'].strip())
         if aon:
             if token['type'] == 'StartTag':
-                for tup in token['data']:
-                    if tup[0] == 'add_date':
-                        add_date = tup[1]
-                    elif tup[0] == 'href':
-                        url = tup[1]
-                    elif tup[0] == 'icon':
-                        icon = tup[1]
-                    elif tup[0] == 'tags':
-                        tags = tup[1].split(',') # Delicious-style
+                # html5lib changed from using lists to using dicts at some point
+                # after 0.90.  Hence the two conditionals below
+                if isinstance(token['data'], list):
+                    for tup in token['data']:
+                        if tup[0] == 'add_date':
+                            add_date = tup[1]
+                        elif tup[0] == 'href':
+                            url = tup[1]
+                        elif tup[0] == 'icon':
+                            icon = tup[1]
+                        elif tup[0] == 'tags':
+                            tags = tup[1].split(',') # Delicious-style
+                elif isinstance(token['data'], dict):
+                    for tup in token['data']:
+                        if 'add_date' in tup:
+                            add_date = token['data'][tup]
+                        elif 'href' in tup:
+                            url = token['data'][tup]
+                        elif 'icon' in tup:
+                            icon = token['data'][tup]
+                        elif 'tags' in tup:
+                            tags = token['data'][tup].split(',') # Delicious
             elif token['type'] == 'Characters':
                 name += unescape(token['data'])
     return out_list

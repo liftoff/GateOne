@@ -57,11 +57,57 @@ GateOne.Base.update(GateOne.Playback, {
             }
             pTag.appendChild(infoPanelSaveRecording);
         }
+        // Make room for the playback controls by increasing rowAdjust (the number of rows in the terminal will be reduced by this amount)
+        go.prefs.rowAdjust += 1;
+        // Add our callback that adds an extra newline to all terminals
+        go.Terminal.newTermCallbacks.push(p.newTerminalCallback);
         p.addPlaybackControls();
         // This makes sure our playback frames get added to the terminal object whenever the screen is updated
-        go.Terminal.updateTermCallbacks.push(GateOne.Playback.pushPlaybackFrame);
+        go.Terminal.updateTermCallbacks.push(p.pushPlaybackFrame);
         // This makes sure our prefs get saved along with everything else
-        go.savePrefsCallbacks.push(GateOne.Playback.savePrefsCallback);
+        go.savePrefsCallbacks.push(p.savePrefsCallback);
+        go.Net.sendDimensionsCallbacks.push(p.termAdjust);
+    },
+    termAdjust: function(term) {
+        // Moves the terminal screen up a little bit using CSS transforms to ensure that the scrollback buffer is only visible if you scroll
+        // This function gets added to GateOne.Net.sendDimensionsCallbacks
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            goDiv = u.getNode(go.prefs.goDiv),
+            terminals = u.getNodes(go.prefs.goDiv + ' .terminal');
+        // Wrapped in a timeout since it can take a moment for all the dimensions to settle down
+        setTimeout(function() {
+            u.toArray(terminals).forEach(function(termNode) {
+                var term = termNode.id.split('term')[1],
+                    termPre = u.getNode('#'+prefix+'term'+term+'_pre'),
+                    distance = goDiv.clientHeight - termPre.offsetHeight;
+                transform = "translateY(-" + distance + "px)";
+                go.Visual.applyTransform(termPre, transform);
+                u.scrollToBottom(termPre);
+            });
+        }, 2000);
+    },
+    newTerminalCallback: function(term) {
+        // This gets added to GateOne.Terminal.newTermCallbacks to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            goDiv = u.getNode(go.prefs.goDiv),
+            termPre = u.getNode('#'+prefix+'term'+term+'_pre'),
+            extraSpace = u.createElement('span'); // This goes at the bottom of terminals to fill the space where the playback controls go
+        extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
+        if (termPre) {
+            termPre.appendChild(extraSpace);
+            var distance = goDiv.clientHeight - termPre.offsetHeight;
+            transform = "translateY(-" + distance + "px)";
+            go.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+        } else {
+            // Try again...  It can take a moment for the server to respond and the terminal PRE to be created the first time
+            setTimeout(function() {
+                go.Playback.newTerminalCallback(term);
+            }, 100);
+        }
     },
     pushPlaybackFrame: function(term) {
         // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']

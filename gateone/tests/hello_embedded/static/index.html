@@ -167,18 +167,18 @@
         // NOTE: To avoid name conflicts GateOne.Utils.createElement() automatically prepends
         //       GateOne.prefs.prefix to the ID of the created element.  This is why
         //       GateOne.Utils.getNode() below has the prefix inserted in the middle...
-        var existingTermplace = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'termplace'),
-            termplace = GateOne.Utils.createElement('div', {
-                'id': 'termplace', 'class': 'terminal', 'style': {'height': '100%', 'width': '100%'}
+        var existingContainer = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'container'),
+            container = GateOne.Utils.createElement('div', {
+                'id': 'container', 'class': 'terminal', 'style': {'height': '100%', 'width': '100%'}
             }),
             gateone3 = GateOne.Utils.getNode('#gateone3');
         e.preventDefault(); // Don't actually submit the form
-        if (!existingTermplace) {
-            gateone3.appendChild(termplace); // Put our terminal in the container
+        if (!existingContainer) {
+            gateone3.appendChild(container); // Put our terminal in the container
         } else {
-            termplace = existingTermplace;
+            container = existingContainer;
         }
-        termNum = GateOne.Terminal.newTerminal(null, null, termplace); // Create the new terminal
+        termNum = GateOne.Terminal.newTerminal(null, null, container); // Create the new terminal
     }
     &lt;/script&gt;
             </code></pre>
@@ -186,7 +186,169 @@
 
             <p>In the next section we'll cover how to handle overlapping terminals and switching between them.</p>
 
-            <p><b>NOTE:</b> Stay tuned...</p>
+        </section>
+
+        <section id="diy2" style="margin-bottom: 1000px;">
+
+            <h2 class="intro">A Custom Interface</h2>
+
+            <p>Let's take things to the next level and make a tabbed interface for our Gate One terminal.  Like the previous example we'll pass 'embedded: true' to GateOne.init() but this time we'll create a function, newTabTerminal(),  that creates tabs and puts new terminals inside of them.  We'll also make a function, reattachTerminals(<i>terminals</i>), that gets attached to GateOne.Terminal.reattachTerminalsCallbacks so that these tabs will get re-created automatically when the user's session is resumed (e.g. reload).  Finally, we'll make a function, selectTerminal(<i>termNum</i>) that we can call to switch to whatever tab we want (will be important in the next part of the tutorial).</p>
+
+            <pre><code class="xml">
+    &lt;script src="static/gateone.js"&gt;&lt;/script&gt;
+
+    &lt;div id="tabContainer"&gt;
+        &lt;div class="tabs"&gt;
+            &lt;ul id="tabs1"&gt;
+            &lt;!-- Tabs will go here --&gt;
+            &lt;/ul&gt;
+        &lt;/div&gt;
+        &lt;div id="gateonecontainer4" style="position: relative; width: 60em; height: 30em;"&gt;
+            &lt;div id="gateone4"&gt;
+            &lt;form id="go_embed4" style="background-color: #fff; color: #000; text-align: center;"&gt;
+            Enter the URL for your Gate One server&lt;br&gt;&lt;br&gt;
+            &lt;p&gt;
+            &lt;input name="gourl4" id="gourl4" size=40 /&gt;
+            &lt;input type="submit" value="Go!" style="margin-left: .5em;"&gt;&lt;/input&gt;
+            &lt;/p&gt;
+            &lt;/form&gt;&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;script&gt;
+    window.onload = function() {
+        // Initialize Gate One:
+        GateOne.init({
+            url: 'https://gateone.mycompany.com/',
+            embedded: true,
+            // Let's apply some custom styles while we're at it...
+            style: {'background-color': 'transparent', 'box-shadow': '0 0 40px black'}
+        });
+    }
+    var selectTerminal = function(termNum) {
+        // Switches to the terminal tab given by *termNum*
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            terminals = u.getNodes(go.prefs.goDiv + ' .terminal');
+        u.toArray(terminals).forEach(function(termNode) {
+            // Hide all but the selected terminal...
+            if (termNode.id == prefix+'term'+termNum) { // Translation: 'go4_term1'
+                termNode.style.display = ''; // Default to visible
+            } else {
+                termNode.style.display = 'none'; // Hide it
+            }
+        });
+        // This makes sure our keystrokes are sent to the correct terminal
+        go.Net.setTerminal(termNum);
+        // This makes sure that we (re)enable keyboard input after switching terminals
+        go.Input.capture();
+        // NOTE: disableCapture() gets called whenever you click outside of a terminal
+    }
+    var newTabTerminal = function(termNum) {
+        // Creates a new Gate One terminal in a new tab
+        // *termNum* is optional and really only used when re-attaching existing terminals
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            existingContainer = u.getNode('#'+prefix+'tab_container'),
+            container = u.createElement('div', {
+                'id': 'tab_container',
+                'style': {'height': '100%', 'width': '100%'}
+            }),
+            gateone4 = u.getNode('#gateone4'),
+            tabContainer = u.getNode('#tabs1'),
+            newTab = u.createElement('li'),
+            existingTerminals = u.getNodes(go.prefs.goDiv + ' .terminal');
+        // Hide all existing terminals to ensure the user only sees the new one
+        if (existingTerminals) {
+            u.toArray(existingTerminals).forEach(function(termNode) {
+                // Tip: You could get really fancy here with effects if you wanted...
+                termNode.style.display = 'none';
+            });
+        }
+        // Figure out if we need to add our terminal container or if we can use an existing one
+        if (!existingContainer) {
+            gateone4.appendChild(container);
+        } else {
+            container = existingContainer;
+        }
+        // Tell Gate One to create the new terminal
+        if (termNum) {
+            GateOne.Terminal.newTerminal(termNum, null, container);
+        } else {
+            termNum = GateOne.Terminal.newTerminal(null, null, container);
+        }
+        // Make our tab header information to match the new terminal
+        newTab.id = 'tabHeader' + termNum;
+        newTab.innerHTML = 'Term ' + termNum;
+        // Make the tabs clickable
+        newTab.onclick = function(e) {
+            selectTerminal(termNum);
+        }
+        // Add our new tab
+        tabContainer.appendChild(newTab);
+    }
+    var reattachTerminals = function(terminals) {
+        // This gets appended to GateOne.Terminal.reattachTerminalsCallbacks.
+        // It just calls newTabTerminal() for each term in *terminals*
+        var go = GateOne,
+            u = go.Utils;
+        terminals.forEach(function(termNum) {
+            newTabTerminal(termNum);
+        });
+    }
+    // This is what loads the Gate One terminal when you press that "Go!" button...
+    // Figured I'd put it in the code example this time since we're getting all "advaced"
+    document.querySelector('#go_embed4').onsubmit = function(e) {
+        var gourl = document.querySelector('#gourl4').value;
+        e.preventDefault(); // Don't actually submit the form
+        localStorage['gourl'] = gourl;
+        // Initialize Gate One like usual...
+        GateOne.init({
+            url: gourl,
+            embedded: true,
+            goDiv: '#gateone4',
+            prefix: 'go4_',
+            logLevel: 'DEBUG', 'style': {
+                'background-color': 'rgba(0, 0, 0, 0.85)',
+                'box-shadow': '.5em .5em .5em black',
+                'margin-bottom': '0.5em'
+            }
+        });
+        GateOne.Net.reauthenticate = reauthenticate;
+        GateOne.Terminal.reattachTerminalsCallbacks.push(reattachTerminals);
+    }
+    // Attach the newTabTerminal function to our little "Add a Terminal!" button
+    document.querySelector('#add_tab').onsubmit = function(e) {
+        e.preventDefault(); // Don't actually submit the form
+        newTabTerminal();
+    }
+    &lt;/script&gt;
+            </code></pre>
+
+            <p>Click on <a class="anchorLink" href="#terminal4">Tabbed Terminal</a> to see an example of the above code in action.</p>
+
+        </section>
+
+        <section id="terminalsection4">
+            <h2 class="work" id="terminal4">Tabbed Terminal</h2>
+
+            <div id="tabContainer">
+                <div class="tabs">
+                    <ul id="tabs1">
+                    <!-- Tabs will go here -->
+                    </ul>
+                </div>
+                <div id="gateonecontainer4" style="position: relative; width: 60em; height: 30em;">
+                    <div id="gateone4"><form id="go_embed4" style="background-color: #fff; color: #000; text-align: center;">Enter the URL for your Gate One server<br><br><p><input name="gourl4" id="gourl4" size=40 placeholder="https://your-gateone-server/" /><input type="submit" value="Go!" style="margin-left: .5em;"></input></p></form></div>
+                </div>
+            </div>
+
+
+            <p><form id="add_tab"><input type="submit" value="Add a Terminal!" style="margin-left: .5em;"></input> What happens if you close a terminal (type ctrl-c or 'exit' if logged in)?</form></p>
+
+            <p><b>Stay Tuned...</b>  Coming up:  How to automatically handle cleanup after terminals are closed, adding interface elements, keyboard shortcuts, and more.</p>
 
         </section>
 
@@ -203,58 +365,157 @@
     </section>
 
 <script>
-    var reauthenticate = function() {
-        // This will override the GateOne.Net.reauthenticate function so we can let users know that this tutorial only works with anonymous auth
-        alert('Your Gate One server is configured to authenticate users.\nThis part of the tutorial only works if authentication is disabled (aka anonymous auth).\n\nPlease configure your Gate One server for anonymous authentication: "./gateone.py --auth=None" or put "auth = None" in your server.conf).\n\nPress OK to reload this page.');
-        window.location.reload();
+var reauthenticate = function() {
+    // This will override the GateOne.Net.reauthenticate function so we can let users know that this tutorial only works with anonymous auth
+    alert('Your Gate One server is configured to authenticate users.\nThis part of the tutorial only works if authentication is disabled (aka anonymous auth).\n\nPlease configure your Gate One server for anonymous authentication: "./gateone.py --auth=None" or put "auth = None" in your server.conf).\n\nPress OK to reload this page.');
+    window.location.reload();
+}
+document.querySelector('#go_embed1').onsubmit = function(e) {
+    var gourl = document.querySelector('#gourl1').value;
+    e.preventDefault(); // Don't actually submit the form
+    // Save this value for later
+    localStorage['gourl'] = gourl;
+    GateOne.restoreDefaults();
+    // Set it down below too to save the user some typing
+    document.querySelector('#gourl2').value = localStorage['gourl'];
+    // Load Gate One instead
+    GateOne.init({url: gourl, logLevel: 'DEBUG'});
+    // Override reauthenticate() for this part of the tutorial so users aren't left scratching their heads wondering why the page reloads every time they click on the "Go" button.
+    GateOne.Net.reauthenticate = reauthenticate;
+}
+document.querySelector('#go_embed2').onsubmit = function(e) {
+    var gourl = document.querySelector('#gourl2').value;
+    e.preventDefault(); // Don't actually submit the form
+    localStorage['gourl'] = gourl;
+    // Load Gate One with the settings we defined in the code example
+    GateOne.restoreDefaults(); // Have to do this or the theme and font size will be overridden by the prefs stored by the browser (some prefs can always be overridden by the user)
+    GateOne.init({url: gourl, theme: 'white', fontSize: '130%', goDiv: '#gateone2', prefix: 'go2_', logLevel: 'DEBUG'});
+    // NOTE: Using #gateone2 and 'go2_' as the prefix above to make sure it loads on the appropriate element
+    GateOne.Net.reauthenticate = reauthenticate;
+}
+document.querySelector('#go_embed3').onsubmit = function(e) {
+    var gourl = document.querySelector('#gourl3').value;
+    e.preventDefault(); // Don't actually submit the form
+    localStorage['gourl'] = gourl;
+    // Set termSelectCallback to noop (no operation) so we the user doesn't get a warning message in their JS console
+    GateOne.Terminal.termSelectCallback = GateOne.Utils.noop; // It's too early in the tutorial to worry about stuff like this =D
+    GateOne.restoreDefaults(); // Have to do this or the theme and font size will be overridden by the prefs stored by the browser (some prefs can always be overridden by the user)
+    // Load Gate One with the settings we defined in the code example
+    GateOne.init({url: gourl, embedded: true, goDiv: '#gateone3', prefix: 'go3_', logLevel: 'DEBUG', 'style': {'background-color': 'yellowgreen', 'box-shadow': '0 0 40px blueViolet'}});
+    GateOne.Net.reauthenticate = reauthenticate;
+}
+document.querySelector('#add_terminal').onsubmit = function(e) {
+    // NOTE: We check for an existing 'container' below so we can append to it when a second terminal is added.  In your own code you can do something similar or just pass a different location to GateOne.Terminal.newTerminal() (as the 3rd argument).
+    var existingContainer = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'container'), // In case the user clicks the button a second time
+        container = GateOne.Utils.createElement('div', {'id': 'container', 'style': {'height': '100%', 'width': '100%'}}),
+        gateone3 = GateOne.Utils.getNode('#gateone3');
+    e.preventDefault(); // Don't actually submit the form
+    if (!existingContainer) {
+        gateone3.appendChild(container); // Put our half-size terminal in the container
+    } else {
+        container = existingContainer;
     }
-    document.querySelector('#go_embed1').onsubmit = function(e) {
-        var gourl = document.querySelector('#gourl1').value;
-        e.preventDefault(); // Don't actually submit the form
-        // Save this value for later
-        localStorage['gourl'] = gourl;
-        GateOne.restoreDefaults();
-        // Set it down below too to save the user some typing
-        document.querySelector('#gourl2').value = localStorage['gourl'];
-        // Load Gate One instead
-        GateOne.init({url: gourl, logLevel: 'DEBUG'});
-        // Override reauthenticate() for this part of the tutorial so users aren't left scratching their heads wondering why the page reloads every time they click on the "Go" button.
-        GateOne.Net.reauthenticate = reauthenticate;
-    }
-    document.querySelector('#go_embed2').onsubmit = function(e) {
-        var gourl = document.querySelector('#gourl2').value;
-        e.preventDefault(); // Don't actually submit the form
-        localStorage['gourl'] = gourl;
-        // Load Gate One with the settings we defined in the code example
-        GateOne.restoreDefaults(); // Have to do this or the theme and font size will be overridden by the prefs stored by the browser (some prefs can always be overridden by the user)
-        GateOne.init({url: gourl, theme: 'white', fontSize: '130%', goDiv: '#gateone2', prefix: 'go2_', logLevel: 'DEBUG'});
-        // NOTE: Using #gateone2 and 'go2_' as the prefix above to make sure it loads on the appropriate element
-        GateOne.Net.reauthenticate = reauthenticate;
-    }
-    document.querySelector('#go_embed3').onsubmit = function(e) {
-        var gourl = document.querySelector('#gourl3').value;
-        e.preventDefault(); // Don't actually submit the form
-        localStorage['gourl'] = gourl;
-        // Set termSelectCallback to noop (no operation) so we the user doesn't get a warning message in their JS console
-        GateOne.Terminal.termSelectCallback = GateOne.Utils.noop; // It's too early in the tutorial to worry about stuff like this =D
-        GateOne.restoreDefaults(); // Have to do this or the theme and font size will be overridden by the prefs stored by the browser (some prefs can always be overridden by the user)
-        // Load Gate One with the settings we defined in the code example
-        GateOne.init({url: gourl, embedded: true, goDiv: '#gateone3', prefix: 'go3_', logLevel: 'DEBUG', 'style': {'background-color': 'yellowgreen', 'box-shadow': '0 0 40px blueViolet'}});
-        GateOne.Net.reauthenticate = reauthenticate;
-    }
-    document.querySelector('#add_terminal').onsubmit = function(e) {
-        // NOTE: We check for an existing 'termplace' below so we can append to it when a second terminal is added.  In your own code you can do something similar or just pass a different location to GateOne.Terminal.newTerminal() (as the 3rd argument).
-        var existingTermplace = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'termplace'), // In case the user clicks the button a second time
-            termplace = GateOne.Utils.createElement('div', {'id': 'termplace', 'class': 'terminal', 'style': {'height': '100%', 'width': '100%'}}),
-            gateone3 = GateOne.Utils.getNode('#gateone3');
-        e.preventDefault(); // Don't actually submit the form
-        if (!existingTermplace) {
-            gateone3.appendChild(termplace); // Put our half-size terminal in the container
+    termNum = GateOne.Terminal.newTerminal(null, null, container); // Tell Gate One to use the new terminal
+}
+var selectTerminal = function(termNum) {
+    // Switches to the terminal tab given by *termNum*
+    var go = GateOne,
+        u = go.Utils,
+        prefix = go.prefs.prefix,
+        terminals = u.getNodes(go.prefs.goDiv + ' .terminal');
+    u.toArray(terminals).forEach(function(termNode) {
+        if (termNode.id == prefix+'term'+termNum) { // Translation: 'go4_term1'
+            termNode.style.display = ''; // Default to visible
         } else {
-            termplace = existingTermplace;
+            termNode.style.display = 'none'; // Hide it
         }
-        termNum = GateOne.Terminal.newTerminal(null, null, termplace); // Tell Gate One to use the new half-size terminal
+    });
+    // This makes sure our keystrokes are sent to the correct terminal
+    go.Net.setTerminal(termNum);
+    // This makes sure that we (re)enable keyboard input after switching terminals
+    go.Input.capture();
+    // NOTE: disableCapture() gets called whenever you click outside of a terminal
+}
+var newTabTerminal = function(termNum) {
+    // Creates a new Gate One terminal in a new tab
+    // *termNum* is optional and really only used when re-attaching existing terminals
+    var go = GateOne,
+        u = go.Utils,
+        prefix = go.prefs.prefix,
+        existingContainer = u.getNode('#'+prefix+'tab_container'),
+        container = u.createElement('div', {
+            'id': 'tab_container',
+            'style': {'height': '100%', 'width': '100%'}
+        }),
+        gateone4 = u.getNode('#gateone4'),
+        tabContainer = u.getNode('#tabs1'),
+        newTab = u.createElement('li'),
+        existingTerminals = u.getNodes(go.prefs.goDiv + ' .terminal');
+    // Hide all existing terminals to ensure the user only sees the new one
+    if (existingTerminals) {
+        u.toArray(existingTerminals).forEach(function(termNode) {
+            // Tip: You could get really fancy here with effects if you wanted...  Fade away terminals, slide them out of view, etc
+            termNode.style.display = 'none';
+        });
     }
+    // Figure out if we need to add our terminal container or if we can use an existing one
+    if (!existingContainer) {
+        gateone4.appendChild(container); // Put our half-size terminal in the container
+    } else {
+        container = existingContainer;
+    }
+    // Tell Gate One to create the new terminal
+    if (termNum) {
+        GateOne.Terminal.newTerminal(termNum, null, container); // Tell Gate One to use the new terminal
+    } else {
+        termNum = GateOne.Terminal.newTerminal(null, null, container); // Tell Gate One to use the new terminal
+    }
+    // Make our tab header information to match the new terminal
+    newTab.id = 'tabHeader' + termNum;
+    newTab.innerHTML = 'Term ' + termNum;
+    // Make the tabs clickable
+    newTab.onclick = function(e) {
+        selectTerminal(termNum);
+    }
+    // Add our new tab
+    tabContainer.appendChild(newTab);
+}
+var reattachTerminals = function(terminals) {
+    // This gets appended to GateOne.Terminal.reattachTerminalsCallbacks.
+    // It just calls newTabTerminal() for each term in *terminals*
+    var go = GateOne,
+        u = go.Utils;
+    terminals.forEach(function(termNum) {
+        newTabTerminal(termNum);
+    });
+}
+document.querySelector('#go_embed4').onsubmit = function(e) {
+    var gourl = document.querySelector('#gourl4').value;
+    e.preventDefault(); // Don't actually submit the form
+    localStorage['gourl'] = gourl;
+    // Set termSelectCallback to noop (no operation) so we the user doesn't get a warning message in their JS console
+    GateOne.Terminal.termSelectCallback = GateOne.Utils.noop;
+    GateOne.restoreDefaults(); // This is only necessary in the tutorial
+    // Load Gate One with the settings we defined in the code example
+    GateOne.init({
+        url: gourl,
+        embedded: true,
+        goDiv: '#gateone4',
+        prefix: 'go4_',
+        logLevel: 'DEBUG', 'style': {
+            'background-color': 'rgba(0, 0, 0, 0.85)',
+            'box-shadow': '.5em .5em .5em black',
+            'margin-bottom': '0.5em'
+        }
+    });
+    console.log('wtf rowAdjust: ' + GateOne.prefs.rowAdjust);
+    GateOne.Net.reauthenticate = reauthenticate;
+    GateOne.Terminal.reattachTerminalsCallbacks.push(reattachTerminals);
+}
+document.querySelector('#add_tab').onsubmit = function(e) {
+    e.preventDefault(); // Don't actually submit the form
+    newTabTerminal();
+}
 // Enable highlight.js
 hljs.tabReplace = '    ';
 hljs.initHighlightingOnLoad();
@@ -264,6 +525,7 @@ window.onload = function() {
         document.querySelector('#gourl1').value = localStorage['gourl'];
         document.querySelector('#gourl2').value = localStorage['gourl'];
         document.querySelector('#gourl3').value = localStorage['gourl'];
+        document.querySelector('#gourl4').value = localStorage['gourl'];
     }
 }
 </script>

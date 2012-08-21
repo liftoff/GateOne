@@ -357,7 +357,7 @@ def openssh_connect(
         # Create a temporary script to use with SSH_ASKPASS
         temp = tempfile.NamedTemporaryFile(delete=False)
         os.chmod(temp.name, 0o700)
-        temp.write('#!/bin/bash\necho "%s"\n' % password)
+        temp.write('#!/bin/sh\necho "%s"\n' % password)
         temp.close()
         env['SSH_ASKPASS'] = temp.name
         env['DISPLAY'] = ':9999'
@@ -392,19 +392,11 @@ def openssh_connect(
     os.chmod(script_path, 0o700) # 0700 for good security practices
     if password:
         # SSH_ASKPASS needs some special handling
-        pid = os.fork()
-        if pid == 0:
-            # Ensure that process is detached from TTY so SSH_ASKPASS will work
-            os.setsid() # This is the key
-            # Execute then immediately quit so we don't use up any more memory
-            # than we need.
-            os.execvpe(script_path, [], env)
-            os._exit(0)
-        else:
-            os._exit(0)
-    else:
-        os.execvpe(script_path, [], env)
-        os._exit(0)
+        os.setsid() # This is the key
+    # Execute then immediately quit so we don't use up any more memory
+    # than we need.
+    os.execvpe(script_path, [], env)
+    os._exit(0)
 
 def telnet_connect(user, host, port=23, env=None):
     """
@@ -631,6 +623,8 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
     # This is to prevent things like "ssh://user@host && <malicious commands>"
     bad_chars = re.compile('.*[\$\n\!\;&` |<>].*')
+    # NOTE: This also means you can't use these characters in things like
+    #       usernames or passwords (if using autoConnectURL).
     try:
         if len(args) == 1:
             (user, host, port, password, identities) = parse_ssh_url(args[0])
