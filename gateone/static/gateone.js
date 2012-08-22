@@ -54,6 +54,23 @@ if (!urlObj) {
     return;
 }
 
+// Choose appropriate Page Visibility API attribute
+var hidden, visibilityChange;
+if (typeof document.hidden !== "undefined") {
+    hidden = "hidden";
+    visibilityChange = "visibilitychange";
+} else if (typeof document.mozHidden !== "undefined") {
+    hidden = "mozHidden";
+    visibilityChange = "mozvisibilitychange";
+} else if (typeof document.msHidden !== "undefined") {
+    hidden = "msHidden";
+    visibilityChange = "msvisibilitychange";
+} else if (typeof document.webkitHidden !== "undefined") {
+    hidden = "webkitHidden";
+    visibilityChange = "webkitvisibilitychange";
+}
+// NOTE:  If the browser doesn't support the Page Visibility API it isn't a big deal; the user will merely have to click on the page for input to start being captured.
+
 // Sandbox-wide shortcuts
 var noop = function(a) { return a }; // Let's us reference functions that may or may not be available (see logging shortcuts below).
 var ESC = String.fromCharCode(27); // Saves a lot of typing and it's easy to read
@@ -200,6 +217,7 @@ GateOne.noSavePrefs = {
 // }
 // Icons (so we can use them in more than one place or replace them all by applying a theme)
 GateOne.Icons = {}; // NOTE: The built-in icons are actually at the bottom of this file.
+GateOne.initialized = false; // Used to detect if we've already called initialize()
 var go = GateOne.Base.update(GateOne, {
     // GateOne internal tracking variables and user functions
     terminals: {}, // For keeping track of running terminals
@@ -293,6 +311,11 @@ var go = GateOne.Base.update(GateOne, {
         u.getNode(go.prefs.goDiv).innerHTML = '';
     },
     initialize: function() {
+        if (GateOne.initialized) {
+            // If we've already called initialize() we don't need to re-create all these panels and whatnot
+            GateOne.Visual.updateDimensions(); // Just in case
+            return; // Nothing left to do
+        }
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
         if (GateOne.Logging) {
             logFatal = GateOne.Logging.logFatal;
@@ -581,7 +604,9 @@ var go = GateOne.Base.update(GateOne, {
         u.runPostInit();
         // Start capturing keyboard input
         go.Input.capture();
+        document.addEventListener(visibilityChange, go.Input.handleVisibility, false);
         goDiv.addEventListener('blur', go.Input.disableCapture, false); // So we don't end up stealing input from something else on the page
+        GateOne.initialized = true;
     }
 });
 
@@ -1231,7 +1256,7 @@ GateOne.Base.update(GateOne.Utils, {
     },
     isPageHidden: function() {
         // Returns true if the page (browser tab) is hidden (e.g. inactive).  Returns false otherwise.
-        return document.hidden || document.msHidden || document.webkitHidden;
+        return document.hidden || document.msHidden || document.webkitHidden || document.mozHidden;
     },
     createBlob: function(array, mimetype) {
         // Returns a Blob constructed from the data in *array* of the given *mimetype*.  *array* may be passed as a string; it will be automatically wrapped in an array.
@@ -1264,6 +1289,7 @@ GateOne.Base.update(GateOne.Utils, {
 GateOne.Base.module(GateOne, 'Net', '1.0', ['Base', 'Utils']);
 GateOne.Net.charSendTimer = null; // Just a place to keep track of the scrollToBottom timer in sendChars()
 GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
+GateOne.Net.connectionSuccess = false; // Gets set after we connect successfully at least once
 GateOne.Net.sendDimensionsCallbacks = []; // A hook plugins can use if they want to call something whenever the terminal dimensions change
 GateOne.Base.update(GateOne.Net, {
     sendChars: function() {
@@ -1444,9 +1470,12 @@ GateOne.Base.update(GateOne.Net, {
         }
         go.ws.onmessage = go.Net.onMessage;
         // Assume SSL connect failure if readyState doesn't change from 3 within 5 seconds
-        go.Net.sslErrorTimeout = setTimeout(function() {
-            go.Net.sslError(go.Net.connect);
-        }, 5000);
+        if (!go.Net.connectionSuccess) {
+            // Only try the SSL redirect thing if we've never successfully connected
+            go.Net.sslErrorTimeout = setTimeout(function() {
+                go.Net.sslError(go.Net.connect);
+            }, 5000);
+        }
         return go.ws;
     },
     onOpen: function() {
@@ -1457,9 +1486,11 @@ GateOne.Base.update(GateOne.Net, {
             settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix};
         // Cancel our SSL error timeout since everything is working fine.
         clearTimeout(go.Net.sslErrorTimeout);
+        // Set connectionSuccess so we don't do an SSL check if the server goes down for a while.
+        go.Net.connectionSuccess = true;
         // When we fail an origin check we'll get an error within a split second of onOpen() being called so we need to check for that and stop loading stuff if we're not truly connected.
-        setTimeout(function() {
-            if (!go.Net.connectionProblem) {
+        if (!go.Net.connectionProblem) {
+            setTimeout(function() {
                 // Load our CSS right away so the dimensions/placement of things is correct.
                 u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
                 u.loadPluginCSS();
@@ -1489,8 +1520,8 @@ GateOne.Base.update(GateOne.Net, {
                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
                 }, 3000);
                 go.initialize();
-            }
-        }, 100);
+            }, 100);
+        }
     },
     onMessage: function (evt) {
         logDebug('message: ' + evt.data);
@@ -2284,6 +2315,22 @@ GateOne.Base.update(GateOne.Input, {
             }
         }
         q = null;
+    },
+    handleVisibility: function(e) {
+        // Calls GateOne.Input.capture() when the page becomes visible again *if* goDiv had focus before the document went invisible
+        var go = GateOne,
+            u = go.Utils,
+            goDiv = u.getNode(go.prefs.goDiv);
+        if (!u.isPageHidden()) {
+            // Page has become visibile again
+            logDebug("Ninja Mode disabled.");
+            if (document.activeElement == goDiv) {
+                // Gate One was active when the page became hidden
+                go.Input.capture(); // Resume keyboard input
+            }
+        } else {
+            logDebug("Ninja Mode!  Gate One has become hidden.");
+        }
     }
 });
 // Expand GateOne.Input.specialKeys to be more complete:
@@ -4140,10 +4187,13 @@ go.Base.update(GateOne.Terminal, {
         go.ws.send(JSON.stringify({'new_terminal': termSettings}));
         // Autoconnect if autoConnectURL is specified
         if (go.prefs.autoConnectURL) {
-            setTimeout(function () {
-                go.Input.queue(go.prefs.autoConnectURL+'\n');
-                go.Net.sendChars();
-            }, 500);
+            // Only execute the autoConnectURL if this is a *new* terminal so resumed terminals don't get spammed with the autoConnectURL
+            if (termUndefined) {
+                setTimeout(function () {
+                    go.Input.queue(go.prefs.autoConnectURL+'\n');
+                    go.Net.sendChars();
+                }, 500);
+            }
         }
         // Switch to our new terminal if *term* is set (no matter where it is)
         if (termUndefined) {

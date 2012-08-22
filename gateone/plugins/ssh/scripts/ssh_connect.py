@@ -393,8 +393,8 @@ def openssh_connect(
     if password:
         # SSH_ASKPASS needs some special handling
         os.setsid() # This is the key
-    # Execute then immediately quit so we don't use up any more memory
-    # than we need.
+    # Execute then immediately quit so we don't use up any more memory than we
+    # need.
     os.execvpe(script_path, [], env)
     os._exit(0)
 

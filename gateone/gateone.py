@@ -2755,6 +2755,13 @@ def main():
         tornado.ioloop.IOLoop.instance().stop()
         remove_pid(options.pid_file)
         logging.info(_("pid file removed."))
+        if not options.dtach:
+            # If we're not using dtach play it safe by cleaning up any leftover
+            # processes.  When passwords are used with the ssh_conenct.py script
+            # it runs os.setsid() on the child process which means it won't die
+            # when Gate One is closed.  This is primarily to handle that
+            # specific situation.
+            killall(options.session_dir)
 
 if __name__ == "__main__":
     main()
