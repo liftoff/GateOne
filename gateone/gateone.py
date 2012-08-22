@@ -1511,7 +1511,7 @@ class TerminalWebSocket(WebSocketHandler):
         Sends a message to the client telling it to set the window title of
         *term* to whatever comes out of::
 
-            SESSIONS[self.session][term]['multiplex'].term.get_title() #(Whew! Say that three times fast!).
+            SESSIONS[self.session][term]['multiplex'].term.get_title() # Whew! Say that three times fast!
 
         Example message::
 

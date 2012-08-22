@@ -2628,18 +2628,20 @@ GateOne.Base.update(GateOne.Visual, {
             goDiv = u.getNode(go.prefs.goDiv),
             heightDiff = goDiv.clientHeight - toolbar.clientHeight;
         logDebug("Setting term " + term + " to title: " + title);
-        termNode.title = title;
-        sideinfo.innerHTML = term + ": " + title;
-        // Also update the info panel
-        u.getNode('#'+prefix+'termtitle').innerHTML = term+': '+title;
-        // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
-        go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(1)"); // Have to reset it first
-        if (sideinfo.clientWidth > heightDiff) { // We have overlap
-            var scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
-            go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")");
+        go.terminals[term]['X11Title'] = title;
+        // Only set the title of the terminal if it hasn't been overridden
+        if (!go.Terminal.manualTitle) {
+            termNode.title = title;
+            sideinfo.innerHTML = term + ": " + title;
+            // Also update the info panel
+            u.getNode('#'+prefix+'termtitle').innerHTML = term+': '+title;
+            // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
+            go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(1)"); // Have to reset it first
+            if (sideinfo.clientWidth > heightDiff) { // We have overlap
+                var scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
+                go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")");
+            }
         }
-        // NOTE: Commented this out since with term type, 'xterm' it can result in the title being set every time you hit the enter key...  Having the title pop up constantly gets annoying real fast!
-//         GateOne.Visual.displayTermInfo(term);
     },
     bellAction: function(bellObj) {
         // Plays a bell sound and pops up a message indiciating which terminal issued a bell
@@ -3455,6 +3457,7 @@ go.Terminal.reattachTerminalsCallbacks = [];
 go.Terminal.termSelectCallback = null; // Gets assigned in switchTerminal if not already.  Can be used to override the default termimnal switching animation function (GateOne.Visual.slideToTerm)
 go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into clickable links).  Use registerTextTransform() to add new ones.
 go.Terminal.lastTermNumber = 0; // Starts at 0 since newTerminal() increments it by 1
+go.Terminal.manualTitle = false; // If a user overrides the title this variable will be used to keep track of that so setTitleAction won't overwrite it
 go.Base.update(GateOne.Terminal, {
     init: function() {
         var t = go.Terminal,
@@ -3506,6 +3509,7 @@ go.Base.update(GateOne.Terminal, {
         go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient12259" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#linearGradient12259)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#linearGradient12259)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#linearGradient12259)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#linearGradient12259)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#linearGradient12259)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#linearGradient12259)"/></g></g></svg>';
         toolbarNewTerm.innerHTML = go.Icons['newTerm'];
         infoPanelH2.innerHTML = "Gate One";
+        infoPanelH2.title = "Click to edit.  Leave blank for default.";
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
             go.Visual.togglePanel('#'+prefix+'panel_info'); // Scale away, scale away, scale away.
@@ -3595,15 +3599,31 @@ go.Base.update(GateOne.Terminal, {
                 title = u.getNode('#'+prefix+'term'+term).title,
                 titleEdit = u.createElement('input', {'type': 'text', 'name': 'title', 'value': title, 'id': go.prefs.prefix + 'title_edit'}),
                 finishEditing = function(e) {
-                    var newTitle = titleEdit.value;
-                    if (newTitle) {
-                        u.getNode('#'+prefix+'term' + term).title = newTitle;
-                        u.getNode('#'+prefix+'sideinfo').innerHTML = term + ": " + newTitle;
-                        go.Visual.displayTermInfo(term);
-                        infoPanelH2.onclick = editTitle;
-                        setTimeout(function() {infoPanelH2.innerHTML = term + ': ' + newTitle;}, 100);
-                        go.Input.capture();
+                    var newTitle = titleEdit.value,
+                        termObj = u.getNode('#'+prefix+'term' + term),
+                        sideInfo = u.getNode('#'+prefix+'sideinfo');
+                    if (newTitle && newTitle != title) {
+                        go.Terminal.manualTitle = true;
+                        go.terminals[term]['title'] = newTitle;
+                    } else {
+                        // User left the field emtpy.  Assume they want it reset to default
+                        go.Terminal.manualTitle = false;
+                        if (go.terminals[term]['X11Title']) {
+                            // Use the stored X11 title
+                            newTitle = go.terminals[term]['X11Title'];
+                            go.terminals[term]['title'] = go.terminals[term]['X11Title'];
+                            termObj.title = newTitle;
+                        } else {
+                            // No stored X11 title means a boring fallback
+                            newTitle = "No Title";
+                        }
                     }
+                    termObj.title = newTitle;
+                    sideInfo.innerHTML = term + ": " + newTitle;
+                    infoPanelH2.onclick = editTitle;
+                    setTimeout(function() {infoPanelH2.innerHTML = term + ': ' + newTitle;}, 100);
+                    go.Visual.displayTermInfo(term);
+                    go.Input.capture();
                 };
             go.Input.disableCapture();
             titleEdit.onblur = finishEditing;
