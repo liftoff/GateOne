@@ -1381,7 +1381,8 @@ class Terminal(object):
                             self.screen[self.cursorY][self.cursorX] = char
                 except IndexError as e:
                     # This can happen when escape sequences go haywire
-                    logging.error("IndexError in write(): %s" % e)
+                    logging.error(_(
+                        "IndexError in write() (rate limiter?): %s" % e))
                     pass
                 cursor_right()
         if changed:
@@ -2375,14 +2376,19 @@ class Terminal(object):
         cursorY = self.cursorY
         cursorX = self.cursorX
         if cursorX >= self.cols: # We're at the end of the row
-            if len(self.renditions[cursorY]) <= cursorX:
-                # Make it all longer
-                self.renditions[cursorY].append(u' ') # Make it longer
-                self.screen[cursorY].append(u'\x00') # This needs to match
+            try:
+                if len(self.renditions[cursorY]) <= cursorX:
+                    # Make it all longer
+                    self.renditions[cursorY].append(u' ') # Make it longer
+                    self.screen[cursorY].append(u'\x00') # This needs to match
+            except IndexError:
+                # This can happen if the rate limiter kicks in and starts
+                # cutting off escape sequences at random.
+                return # Don't bother attempting to process anything else
         if cursorY >= self.rows:
-            # This should never happen
             logging.error(_(
-                "cursorY >= self.rows! This should not happen! Bug!"))
+                "cursorY >= self.rows!  This is either a bug or just a symptom "
+                "of the rate limiter kicking in."))
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
             # First char in PUA Plane 16 is always the default:
@@ -2393,22 +2399,27 @@ class Terminal(object):
         # Handle 256-color renditions by getting rid of the (38|48);5 part and
         # incrementing foregrounds by 1000 and backgrounds by 10000 so we can
         # tell them apart in _spanify_screen().
-        if 38 in new_renditions:
-            foreground_index = new_renditions.index(38)
-            if len(new_renditions[foreground_index:]) >= 2:
-                if new_renditions[foreground_index+1] == 5:
-                    # This is a valid 256-color rendition (38;5;<num>)
-                    new_renditions.pop(foreground_index) # Goodbye 38
-                    new_renditions.pop(foreground_index) # Goodbye 5
-                    new_renditions[foreground_index] += 1000
-        if 48 in new_renditions:
-            background_index = new_renditions.index(48)
-            if len(new_renditions[background_index:]) >= 2:
-                if new_renditions[background_index+1] == 5:
-                    # This is a valid 256-color rendition (48;5;<num>)
-                    new_renditions.pop(background_index) # Goodbye 48
-                    new_renditions.pop(background_index) # Goodbye 5
-                    new_renditions[background_index] += 10000
+        try:
+            if 38 in new_renditions:
+                foreground_index = new_renditions.index(38)
+                if len(new_renditions[foreground_index:]) >= 2:
+                    if new_renditions[foreground_index+1] == 5:
+                        # This is a valid 256-color rendition (38;5;<num>)
+                        new_renditions.pop(foreground_index) # Goodbye 38
+                        new_renditions.pop(foreground_index) # Goodbye 5
+                        new_renditions[foreground_index] += 1000
+            if 48 in new_renditions:
+                background_index = new_renditions.index(48)
+                if len(new_renditions[background_index:]) >= 2:
+                    if new_renditions[background_index+1] == 5:
+                        # This is a valid 256-color rendition (48;5;<num>)
+                        new_renditions.pop(background_index) # Goodbye 48
+                        new_renditions.pop(background_index) # Goodbye 5
+                        new_renditions[background_index] += 10000
+        except IndexError:
+            # Likely that the rate limiter has caused all sorts of havoc with
+            # escape sequences.  Just ignore it and halt further processing
+            return
         out_renditions = []
         for rend in new_renditions:
             if rend == 0:
