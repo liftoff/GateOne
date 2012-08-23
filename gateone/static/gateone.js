@@ -3624,9 +3624,13 @@ go.Base.update(GateOne.Terminal, {
             titleEdit.select();
         }
         infoPanelH2.onclick = editTitle;
-        toolbarNewTerm.onclick = function(e) {go.Terminal.newTerminal()};
+        toolbarNewTerm.onclick = function(e) {
+            go.Terminal.newTerminal();
+            go.Input.capture();
+        };
         var closeCurrentTerm = function() {
             go.Terminal.closeTerminal(localStorage[prefix+'selectedTerminal']);
+            go.Input.capture();
         }
         toolbarClose.onclick = closeCurrentTerm;
         // TODO: Get showInfo() displaying the proper status of the activity monitor checkboxes
