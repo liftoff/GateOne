@@ -2770,6 +2770,7 @@ GateOne.Base.update(GateOne.Visual, {
         var u = go.Utils,
             v = go.Visual,
             termObj = u.getNode('#'+go.prefs.prefix+'term' + term),
+            termTitleH2 = u.getNode('#'+go.prefs.prefix+'termtitle'),
             displayText = "",
             count = 0,
             wPX = 0,
@@ -2783,6 +2784,7 @@ GateOne.Base.update(GateOne.Visual, {
             paddingBottom = (style['padding-bottom'] || style['paddingBottom']);
         if (termObj) {
             displayText = termObj.id.split(go.prefs.prefix+'term')[1] + ": " + termObj.title;
+            termTitleH2.innerHTML = displayText;
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
@@ -3602,26 +3604,9 @@ go.Base.update(GateOne.Terminal, {
                     var newTitle = titleEdit.value,
                         termObj = u.getNode('#'+prefix+'term' + term),
                         sideInfo = u.getNode('#'+prefix+'sideinfo');
-                    if (newTitle && newTitle != title) {
-                        go.Terminal.manualTitle = true;
-                        go.terminals[term]['title'] = newTitle;
-                    } else {
-                        // User left the field emtpy.  Assume they want it reset to default
-                        go.Terminal.manualTitle = false;
-                        if (go.terminals[term]['X11Title']) {
-                            // Use the stored X11 title
-                            newTitle = go.terminals[term]['X11Title'];
-                            go.terminals[term]['title'] = go.terminals[term]['X11Title'];
-                            termObj.title = newTitle;
-                        } else {
-                            // No stored X11 title means a boring fallback
-                            newTitle = "No Title";
-                        }
-                    }
-                    termObj.title = newTitle;
-                    sideInfo.innerHTML = term + ": " + newTitle;
+                    // Send a message to the server with the new title so it can stay in sync if the user reloads the page or reconnects from a different browser/machine
+                    go.ws.send(JSON.stringify({'manual_title': {'term': term, 'title': newTitle}}));
                     infoPanelH2.onclick = editTitle;
-                    setTimeout(function() {infoPanelH2.innerHTML = term + ': ' + newTitle;}, 100);
                     go.Visual.displayTermInfo(term);
                     go.Input.capture();
                 };
@@ -4095,9 +4080,9 @@ go.Base.update(GateOne.Terminal, {
         }
         if (!go.prefs.embedded) {
             // Add the terminal div to the grid
-            terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': 'terminal', 'style': {'width': go.Visual.goDimensions.w + 'px', 'height': go.Visual.goDimensions.h + 'px'}});
+            terminal = u.createElement('div', {'id': currentTerm, 'title': 'Gate One', 'class': 'terminal', 'style': {'width': go.Visual.goDimensions.w + 'px', 'height': go.Visual.goDimensions.h + 'px'}});
         } else {
-            terminal = u.createElement('div', {'id': currentTerm, 'title': 'New Terminal', 'class': 'terminal'});
+            terminal = u.createElement('div', {'id': currentTerm, 'title': 'Gate One', 'class': 'terminal'});
         }
         // This ensures that we re-enable input if the user clicked somewhere else on the page then clicked back on the terminal:
         terminal.addEventListener('click', go.Input.capture, false);

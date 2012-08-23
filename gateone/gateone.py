@@ -881,6 +881,7 @@ class TerminalWebSocket(WebSocketHandler):
             'get_style': self.get_style,
             #'get_js': self.get_js,
             'enumerate_themes': self.enumerate_themes,
+            'manual_title': self.manual_title,
             'debug_terminal': self.debug_terminal
         }
         self.terms = {}
@@ -1344,7 +1345,9 @@ class TerminalWebSocket(WebSocketHandler):
         if term not in SESSIONS[self.session]:
             # Setup the requisite dict
             SESSIONS[self.session][term] = {
-                'last_activity': datetime.now()
+                'last_activity': datetime.now(),
+                'title': 'Gate One',
+                'manual_title': False
             }
         if self.client_id not in SESSIONS[self.session][term]:
             SESSIONS[self.session][term][self.client_id] = {
@@ -1522,16 +1525,38 @@ class TerminalWebSocket(WebSocketHandler):
 
         .. note:: Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.
         """
-        logging.debug("set_title(%s)" % term)
+        logging.debug("set_title(%s, %s)" % (term, force))
+        if SESSIONS[self.session][term]['manual_title']:
+            if force:
+                title = SESSIONS[self.session][term]['title']
+                title_message = {'set_title': {'term': term, 'title': title}}
+                self.write_message(json_encode(title_message))
+            return
         title = SESSIONS[self.session][term]['multiplex'].term.get_title()
         # Only send a title update if it actually changed
-        if 'title' not in SESSIONS[self.session][term]:
-            # There's a first time for everything
-            SESSIONS[self.session][term]['title'] = ''
         if title != SESSIONS[self.session][term]['title'] or force:
             SESSIONS[self.session][term]['title'] = title
             title_message = {'set_title': {'term': term, 'title': title}}
             self.write_message(json_encode(title_message))
+
+    @require_auth
+    def manual_title(self, settings):
+        """
+        Sets the title of *settings['term']* to *settings['title']*.  Differs
+        from :func:`set_title` in that this is an action that gets called by the
+        client when the user sets a terminal title manually.
+        """
+        logging.debug("manual_title: %s" % settings)
+        term = int(settings['term'])
+        title = settings['title']
+        if not title:
+            title = SESSIONS[self.session][term]['multiplex'].term.get_title()
+            SESSIONS[self.session][term]['manual_title'] = False
+        else:
+            SESSIONS[self.session][term]['manual_title'] = True
+        SESSIONS[self.session][term]['title'] = title
+        title_message = {'set_title': {'term': term, 'title': title}}
+        self.write_message(json_encode(title_message))
 
     @require_auth
     def bell(self, term):
