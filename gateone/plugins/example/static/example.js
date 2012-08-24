@@ -27,7 +27,8 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
             prefix = go.prefs.prefix, // Ditto again
             infoPanel = u.getNode('#'+prefix+'panel_info'), // Need this since we're going to be adding a button here
             h3 = u.createElement('h3'), // We'll add an "Example Plugin" header to the info panel just like the SSH plugin has
-            infoPanelLoadGraph = u.createElement('button', {'id': 'load_g', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
+            infoPanelLoadGraph = u.createElement('button', {'id': 'load_g', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            infoPanelTopButton = u.createElement('button', {'id': 'load_top', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
         // Assign our logging function shortcuts if the (JS) Logging plugin is available with a safe fallback
         if (go.Logging) { // You can ignore this if you don't care about Gate One's fancy JavaScript logging plugin =)
             logFatal = go.Logging.logFatal; // If you actually have a legitimate use for logFatal in your plugin...  Awesome!
@@ -43,11 +44,19 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
             GateOne.Example.toggleLoadGraph();
             GateOne.Visual.togglePanel(); // Hide the panel while we're at so the widget isn't hidden underneath
         }
+        // Let's attach the load graph toggle to a keyboard shortcut too:
+        GateOne.Input.registerShortcut('KEY_L', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Example.toggleLoadGraph()'}); // L for 'load'
+        // Add the 'top top' button (not going to bother with a keyboard shortcut on this one)
+        infoPanelTopButton.innerHTML = "Top Widget";
+        infoPanelTopButton.onclick = function(e) {
+            e.preventDefault();
+            GateOne.Example.topTop();
+            GateOne.Visual.togglePanel(); // Hide the panel while we're at so the widget isn't hidden underneath
+        }
         // Now add these elements to the info panel:
         infoPanel.appendChild(h3);
         infoPanel.appendChild(infoPanelLoadGraph);
-        // Let's attach the load graph toggle to a keyboard shortcut too:
-        GateOne.Input.registerShortcut('KEY_L', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Example.toggleLoadGraph()'}); // L for 'load'
+        infoPanel.appendChild(infoPanelTopButton);
         // This sets a Google Analytics custom variable so you can tell what version of your plugin is in use out in the wild.
         _gaq.push(
             ['_setAccount', 'UA-30421535-1'], // Replace this with your own UA
@@ -83,7 +92,6 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
             u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv),
             prefix = go.prefs.prefix,
-            termDiv = u.getNode('#'+prefix+'term'+term),
             canvas = u.createElement('canvas', {'id': 'load_graph', 'width': 300, 'height': 40}), // <canvas id="mycanvas" width="400" height="100"></canvas>
             smoothie = new SmoothieChart({
                 grid: {strokeStyle:'rgba(125, 0, 0, 0.7)', fillStyle:'transparent', lineWidth: 1, millisPerLine: 3000, verticalSections: 6},
@@ -139,12 +147,12 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         }
         var go = GateOne,
             u = go.Utils,
-            prefix = go.prefs.prefix,
-            termDiv = u.getNode('#'+prefix+'term'+term);
+            prefix = go.prefs.prefix;
         go.Example.toptop = u.getNode('#'+prefix+'toptop');
         if (!go.Example.toptop) {
-            go.Example.toptop = u.createElement('pre', {'id': 'toptop', 'style': {'position': 'absolute', 'top': '5em', 'right': '3em', 'z-index': 500, 'border': '1px #ccc solid', 'width': '40em', 'height': '4em', 'opacity': '.6', 'overflow': 'hidden'}});
-            termDiv.appendChild(go.Example.toptop);
+            // NOTE: Have to set position:static below since GateOne's default CSS says that '<goDiv> .terminal pre' should be position:absolute
+            go.Example.toptop = u.createElement('pre', {'id': 'toptop', 'style': {'width': '40em', 'height': '4em', 'position': 'static'}});
+            go.Visual.widget('Top Top', go.Example.toptop, {'onclose': go.Example.stopTop});
         }
         if (go.Example.topUpdateTimer) {
             // Toptop already present/running.  Stop it
