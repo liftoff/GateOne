@@ -304,16 +304,16 @@ hr {
 }
 #{{container}} .sideinfo {
     -webkit-transform: rotate(90deg);
-    -webkit-transform-origin: right bottom;
+    -webkit-transform-origin: right top;
     -moz-transform: rotate(90deg);
-    -moz-transform-origin: right bottom;
+    -moz-transform-origin: right top;
     -ms-transform: rotate(90deg);
-    -ms-transform-origin: right bottom;
+    -ms-transform-origin: right top;
     -o-transform: rotate(90deg);
-    -o-transform-origin: right bottom;
+    -o-transform-origin: right top;
     transform: rotate(90deg);
-    transform-origin: right bottom;
-    right: 2.2em;
+    transform-origin: right top;
+    right: 1em; /* This will get overridden by a px value calculated based on the width of the scrollbar */
     bottom: 0;
     color: white;
     position: absolute;
@@ -322,7 +322,7 @@ hr {
     font-size: 1.3em;
     opacity: 0.5;
     font-weight: bold;
-    margin-bottom: 0.1em;
+    margin-bottom: -1em;
     z-index: 10;
 }
 #{{prefix}}notice {

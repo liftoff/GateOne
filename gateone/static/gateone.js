@@ -1283,6 +1283,21 @@ GateOne.Base.update(GateOne.Utils, {
     },
     ltrim: function(string) {
         return string.replace(/^\s*/g, "");
+    },
+    isVisible: function(node) {
+        // Returns true if *node* is visible (checks parent nodes recursively too).  *node* may be a DOM node or a selector string.
+        // NOTE: Relies on checking node.style.opacity and node.style.display.  Does NOT check transforms.
+        var node = GateOne.Utils.getNode(node);
+        if (node.style.display == 'none') {
+            return false;
+        } else if (parseInt(node.style.opacity) == 0) {
+            return false;
+        }
+        if (node.parentElement) {
+            return GateOne.Utils.isVisible(node.parentElement);
+        } else {
+            return true;
+        }
     }
 });
 
@@ -2067,6 +2082,7 @@ GateOne.Base.update(GateOne.Input, {
             GateOne.Input.shortcuts[keyString] = [shortcutObj];
         }
     },
+    // TODO: This...
     humanReadableShortcuts: function() {
         // Returns a human-readable string representing the objects inside of GateOne.Input.shortcuts. Each string will be in the form of:
         //  <modifiers>-<key>
@@ -2093,12 +2109,6 @@ GateOne.Base.update(GateOne.Input, {
             out.push(outStr);
         }
         return out;
-    },
-    // NOTE:  Work-in-progress
-    moveCursorUp: function() {
-        // Moves the cursor up one row
-        var u = GateOne.Utils,
-            cursor = u.getNode(GateOne.prefs.goDiv + ' cursor')
     },
     emulateKey: function(e, skipF11check) {
         // This method handles all regular keys registered via onkeydown events (not onkeypress)
@@ -2623,23 +2633,28 @@ GateOne.Base.update(GateOne.Visual, {
             term = titleObj['term'],
             title = titleObj['title'],
             sideinfo = u.getNode('#'+prefix+'sideinfo'),
+            termTitle = u.getNode('#'+prefix+'termtitle'),
+            oldTitle = sideinfo.innerHTML,
             toolbar = u.getNode('#'+prefix+'toolbar'),
             termNode = u.getNode('#'+prefix+'term' + term),
             goDiv = u.getNode(go.prefs.goDiv),
-            heightDiff = goDiv.clientHeight - toolbar.clientHeight;
+            heightDiff = goDiv.clientHeight - toolbar.clientHeight,
+            scrollbarAdjust = (go.Terminal.scrollbarWidth || 15); // Fallback to 15px if this hasn't been set yet (a common width)
         logDebug("Setting term " + term + " to title: " + title);
         go.terminals[term]['X11Title'] = title;
         // Only set the title of the terminal if it hasn't been overridden
         if (!go.Terminal.manualTitle) {
             termNode.title = title;
             sideinfo.innerHTML = term + ": " + title;
+            sideinfo.style.right = scrollbarAdjust + 'px';
             // Also update the info panel
-            u.getNode('#'+prefix+'termtitle').innerHTML = term+': '+title;
+            termTitle.innerHTML = term+': '+title;
             // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
-            go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(1)"); // Have to reset it first
+            go.Visual.applyTransform(sideinfo, "rotate(90deg)"); // Have to reset it first
             if (sideinfo.clientWidth > heightDiff) { // We have overlap
                 var scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
-                go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")");
+                scrollbarAdjust = Math.ceil(scrollbarAdjust * (1-scaleDown));
+                go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")" + "translateY(" + scrollbarAdjust + "px)");
             }
         }
     },
@@ -2955,10 +2970,14 @@ GateOne.Base.update(GateOne.Visual, {
                 transform = "";
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
-                    pastearea = go.terminals[termID]['pasteNode'];
-                if (pastearea) {
-                    u.hideElement(pastearea);
-                }
+                    pastearea = go.terminals[termID]['pasteNode'],
+                    selectTermFunc = function(e) {
+                        var termPre = GateOne.terminals[termID]['node'];
+                        localStorage[prefix+'selectedTerminal'] = termID;
+                        v.toggleGridView(false);
+                        go.Terminal.switchTerminal(termID);
+                        u.scrollToBottom(termPre);
+                    }
                 if (odd) {
                     if (count == 1) {
                         oddAmount = 50;
@@ -2979,13 +2998,7 @@ GateOne.Base.update(GateOne.Visual, {
                     odd = true;
                 }
                 count += 1;
-                termObj.onclick = function(e) {
-                    var termPre = GateOne.terminals[termID]['node'];
-                    localStorage[prefix+'selectedTerminal'] = termID;
-                    v.toggleGridView(false);
-                    go.Terminal.switchTerminal(termID);
-                    u.scrollToBottom(termPre);
-                }
+                termObj.onclick = selectTermFunc;
                 termObj.onmouseover = function(e) {
                     var displayText = termObj.id.split(prefix+'term')[1] + ": " + termObj.title,
                         termInfoDiv = u.createElement('div', {'id': 'terminfo'}),
@@ -2999,6 +3012,12 @@ GateOne.Base.update(GateOne.Visual, {
                     setTimeout(function() {
                         infoContainer.style.opacity = 0;
                     }, 1000);
+                }
+                if (pastearea) {
+                    // Wrapped in a timeout to ensure it gets called after other events that might make it reappear (e.g. goDiv.onmousedown)
+                    setTimeout(function() {
+                        u.hideElement(pastearea);
+                    }, 250);
                 }
             });
         }
@@ -3460,6 +3479,7 @@ go.Terminal.termSelectCallback = null; // Gets assigned in switchTerminal if not
 go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into clickable links).  Use registerTextTransform() to add new ones.
 go.Terminal.lastTermNumber = 0; // Starts at 0 since newTerminal() increments it by 1
 go.Terminal.manualTitle = false; // If a user overrides the title this variable will be used to keep track of that so setTitleAction won't overwrite it
+go.Terminal.scrollbarWidth = null; // Used to keep track of the scrollbar width so we can adjust the toolbar appropriately.  It is saved here since we have to measure the inside of a terminal to get this value reliably.
 go.Base.update(GateOne.Terminal, {
     init: function() {
         var t = go.Terminal,
@@ -3663,7 +3683,7 @@ go.Base.update(GateOne.Terminal, {
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_N', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'});
             // Ctrl-Alt-W to close the current terminal
-            go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'go.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
+            go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
         }
         // Get shift-Insert working in a natural way
         go.Input.registerShortcut('KEY_INSERT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': go.Terminal.paste, 'preventDefault': false});
@@ -3760,7 +3780,7 @@ go.Base.update(GateOne.Terminal, {
     },
     termUpdateFromWorker: function(e) {
         var u = GateOne.Utils,
-            prefix = GateOne.prefs.prefix + "",
+            prefix = GateOne.prefs.prefix,
             data = e.data,
             term = data.term,
             screen = data.screen,
@@ -3794,8 +3814,6 @@ go.Base.update(GateOne.Terminal, {
                         // Update the existing screen array in-place to cut down on GC
                         GateOne.terminals[term]['screen'][i] = screen[i];
                     }
-//                     u.removeElement(existingScreen); // Force it to be re-created
-//                     existingScreen = null;
                 }
                 if (existingScreen) { // Update the terminal display
                     GateOne.Terminal.applyScreen(screen, term);
@@ -3827,17 +3845,40 @@ go.Base.update(GateOne.Terminal, {
                         } else {
                             var distance = goDiv.clientHeight - termPre.offsetHeight;
                             GateOne.terminals[term]['heightAdjust'] = 0;
-                            transform = "translateY(-" + distance + "px)";
-                            GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                            if (!GateOne.prefs.embedded) { // When embedding the code below can end up hiding terminals.
+                                // Feel free to put something like this in updateTermCallbacks if you want.
+                                if (GateOne.Utils.isVisible(termPre)) {
+                                    transform = "translateY(-" + distance + "px)";
+                                    GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                                }
+                            }
                         }
                         GateOne.terminals[term]['node'] = termPre; // For faster access
                     }
                 }
                 screenUpdate = true;
                 GateOne.terminals[term]['scrollbackVisible'] = false;
-            } catch (e) { // Likely the terminal just closed
-                logDebug(e);
-                u.noop(); // Just ignore it.
+                // Adjust the toolbar so it isn't too close or too far from the scrollbar
+                if (!GateOne.Terminal.scrollbarWidth) { // Only need to do this once
+                    var emDimensions = u.getEmDimensions(GateOne.prefs.goDiv),
+                        pre = (existingPre || termPre); // Whatever was used in the code above
+                    GateOne.Terminal.scrollbarWidth = pre.offsetWidth - pre.clientWidth;
+                    if (GateOne.prefs.showToolbar) {
+                        // Normalize the toolbar's position
+                        var toolbar = u.getNode('#'+prefix+'toolbar');
+                        toolbar.style.right = (GateOne.Terminal.scrollbarWidth + 3) + 'px'; // +3 to put some space between the scrollbar and the toolbar
+                    }
+                    if (GateOne.prefs.showTitle) {
+                        // Normalize the side title as well
+                        var sideInfo = u.getNode('#'+prefix+'sideinfo');
+                        sideInfo.style.right = GateOne.Terminal.scrollbarWidth + 'px'; // The title on the side doesn't need the extra 3px ("right top" rotation)
+                        // Explanation: The height of the font box on the sideinfo div extends higher than the text which is why we don't need an extra 5px spacing.
+                        // Take a rectangular piece of paper and write some words across it in "landscape mode" so that the text covers the full width of the page.  Next rotate it 90deg clockwise along the "right top" axis (hold the "right top" with your thumb while rotating).  Voila!  Lots of space on the right.  No need to pad it.
+                    }
+                }
+//             } catch (e) { // Likely the terminal just closed
+//                 logDebug('Caught exception in termUpdateFromWorker: ' + e);
+//                 u.noop(); // Just ignore it.
             } finally { // Instant GC
                 termContainer = null;
                 screen = null;
@@ -3857,6 +3898,7 @@ go.Base.update(GateOne.Terminal, {
             }
         }
         if (consoleLog) {
+            // This is only used when debugging the Web Worker
             try {
                 logInfo(consoleLog);
             } finally {

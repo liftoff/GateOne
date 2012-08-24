@@ -83,7 +83,9 @@ GateOne.Base.update(GateOne.Playback, {
                     termPre = u.getNode('#'+prefix+'term'+term+'_pre'),
                     distance = goDiv.clientHeight - termPre.offsetHeight;
                 transform = "translateY(-" + distance + "px)";
-                go.Visual.applyTransform(termPre, transform);
+                if (u.isVisible(termPre)) {
+                    go.Visual.applyTransform(termPre, transform);
+                }
                 u.scrollToBottom(termPre);
             });
         }, 2000);
@@ -99,9 +101,13 @@ GateOne.Base.update(GateOne.Playback, {
         extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
         if (termPre) {
             termPre.appendChild(extraSpace);
-            var distance = goDiv.clientHeight - termPre.offsetHeight;
-            transform = "translateY(-" + distance + "px)";
-            go.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+            if (u.isVisible(termPre)) {
+                var distance = goDiv.clientHeight - termPre.offsetHeight;
+                transform = "translateY(-" + distance + "px)";
+                go.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+            }
+            // This is necessary because we add the extraSpace:
+            u.scrollToBottom(termPre);
         } else {
             // Try again...  It can take a moment for the server to respond and the terminal PRE to be created the first time
             setTimeout(function() {
