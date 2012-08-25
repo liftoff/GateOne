@@ -731,7 +731,9 @@ GateOne.Base.update(GateOne.Logging, {
             l = go.Logging,
             prefix = go.prefs.prefix,
             logViewHeader = u.getNode('#'+prefix+'logging_title');
-        go.Visual.displayMessage('<b>Log listing complete:</b> ' + message['total_logs'] + ' logs representing ' + l.humanReadableBytes(message['total_bytes'], 1) + ' of disk space.');
+        // Switched to using serverLogs.length below since bad logs won't get sent, throwing off 'total_logs' number.
+//         go.Visual.displayMessage('<b>Log listing complete:</b> ' + message['total_logs'] + ' logs representing ' + l.humanReadableBytes(message['total_bytes'], 1) + ' of disk space.');
+        go.Visual.displayMessage('<b>Log listing complete:</b> ' + l.serverLogs.length + ' logs representing ' + l.humanReadableBytes(message['total_bytes'], 1) + ' of disk space.');
         logViewHeader.innerHTML = 'Log Viewer';
     },
     displayFlatLogAction: function(message) {

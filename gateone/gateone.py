@@ -1618,7 +1618,12 @@ class TerminalWebSocket(WebSocketHandler):
 
     def _send_refresh(self, term, full=False):
         """Sends a screen update to the client."""
-        SESSIONS[self.session][term]['last_activity'] = datetime.now()
+        try:
+            SESSIONS[self.session][term]['last_activity'] = datetime.now()
+        except KeyError:
+            # This can happen if the user disconnected in the middle of a screen
+            # update.  Nothing to be concerned about.
+            return # Ignore
         multiplex = SESSIONS[self.session][term]['multiplex']
         scrollback, screen = multiplex.dump_html(
             full=full, client_id=self.client_id)

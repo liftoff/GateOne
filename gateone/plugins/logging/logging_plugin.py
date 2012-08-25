@@ -126,7 +126,13 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.
     """
     #logging.debug('get_or_update_metadata()')
-    first_frame, distance = retrieve_first_frame(golog_path)
+    if not os.path.getsize(golog_path): # 0 bytes
+        return # Nothing to do
+    try:
+        first_frame, distance = retrieve_first_frame(golog_path)
+    except IOError:
+        # Something wrong with the log...  Probably still being written to
+        return
     metadata = {}
     if first_frame[14:].startswith('{'):
         # This is JSON, capture existing metadata
@@ -149,7 +155,11 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     log_data = ''
     total_frames = 0
     while True:
-        chunk = golog.read(chunk_size)
+        try:
+            chunk = golog.read(chunk_size)
+        except IOError:
+            # Log is incomplete/broken; just skip it
+            return
         total_frames += chunk.count(encoded_separator)
         log_data += chunk
         if len(chunk) < chunk_size:
@@ -253,9 +263,9 @@ def enumerate_logs(limit=None, tws=None):
         #logging.debug('message: %s' % message)
         if message == 'complete':
             io_loop.remove_handler(fd)
+            total_bytes = 0
             logs_dir = os.path.join(users_dir, "logs")
             log_files = os.listdir(logs_dir)
-            total_bytes = 0
             for log in log_files:
                 log_path = os.path.join(logs_dir, log)
                 total_bytes += os.stat(log_path).st_size
@@ -269,6 +279,7 @@ def enumerate_logs(limit=None, tws=None):
             return
         message = json_encode(message)
         if message not in results:
+            # Keep track of how many/how much
             if results:
                 results.pop() # No need to keep old stuff hanging around
             results.append(message)
@@ -294,11 +305,13 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
     log_files.reverse() # Make the newest ones first
     out_dict = {}
     for log in log_files:
-        metadata = {}
         log_path = os.path.join(logs_dir, log)
         logfile = gzip.open(log_path)
         logging.debug("Getting metadata from: %s" % log_path)
         metadata = get_or_update_metadata(log_path, user)
+        if not metadata:
+            # Broken log file -- may be being written to
+            continue # Just skip it
         metadata['size'] = os.stat(log_path).st_size
         out_dict['log'] = metadata
         message = {'logging_log': out_dict}

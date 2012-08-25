@@ -1302,7 +1302,6 @@ GateOne.Base.update(GateOne.Utils, {
 });
 
 GateOne.Base.module(GateOne, 'Net', '1.0', ['Base', 'Utils']);
-GateOne.Net.charSendTimer = null; // Just a place to keep track of the scrollToBottom timer in sendChars()
 GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
 GateOne.Net.connectionSuccess = false; // Gets set after we connect successfully at least once
 GateOne.Net.sendDimensionsCallbacks = []; // A hook plugins can use if they want to call something whenever the terminal dimensions change
@@ -1321,14 +1320,6 @@ GateOne.Base.update(GateOne.Net, {
             if (charString != "undefined") {
                 var message = {'c': charString};
                 go.ws.send(JSON.stringify(message));
-                if (go.Net.charSendTimer) {
-                    clearTimeout(go.Net.charSendTimer);
-                    go.Net.charSendTimer = null;
-                }
-                go.Net.charSendTimer = setTimeout(function() {
-                    // Wrapped in a timeout since it can take a moment for images to process sometimes
-                    u.scrollToBottom(termPre);
-                }, 350);
                 go.doingUpdate = false;
             } else {
                 go.doingUpdate = false;
@@ -1613,6 +1604,7 @@ GateOne.Base.update(GateOne.Input, {
         var u = go.Utils,
             m = go.Input.mouse(e),
             selectedText = u.getSelText();
+        go.Input.mouseDown = true;
         // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
         // However, we only want this when the user is actually bringing up the context menu because
         // having it enabled slows down screen updates by a non-trivial amount.
@@ -1644,7 +1636,7 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onkeypress = go.Input.emulateKeyFallback;
         // NOTE: This might not be necessary anymore with the pastearea:
         var onPaste = function(e) {
-            logDebug("registered paste event.");
+            logDebug("goDiv registered paste event.");
             if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
                 return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
             }
@@ -1680,6 +1672,7 @@ GateOne.Base.update(GateOne.Input, {
             logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
             // Once the user is done pasting (or clicking), set it back to false for speed
 //             goDiv.contentEditable = false; // Having this as false makes screen updates faster
+            go.Input.mouseDown = false;
             var selectedText = u.getSelText();
             if (selectedText) {
                 // Don't show the pastearea as it will prevent the user from right-clicking to copy.
@@ -1697,21 +1690,45 @@ GateOne.Base.update(GateOne.Input, {
             }
             goDiv.focus();
         }
-        goDiv.focus();
+        if (go.Input.overlayTimer) {
+            clearTimeout(go.Input.overlayTimer);
+            go.Input.overlayTimer = null;
+        }
+        if (go.Visual.overlay) {
+            go.Visual.toggleOverlay();
+        }
+        if (document.activeElement != goDiv) {
+            goDiv.focus();
+        }
     },
     disableCapture: function(e) {
         // Turns off keyboard input and certain mouse capture events so that other things (e.g. forms) can work properly
         logDebug('disableCapture()');
         var u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv);
+        if (go.Input.mouseDown) {
+            return; // Work around Firefox's occasional inability to properly register mouse events (WTF Firefox!)
+        }
+        if (e) {
+            // This was called from an onblur event
+            if (document.activeElement == goDiv || document.activeElement.className == 'pastearea') {
+                // Nothing to do
+                return;
+            }
+            e.preventDefault();
+        }
 //         goDiv.contentEditable = false; // This needs to be turned off or it might capture paste events (which is really annoying when you're trying to edit a form)
-        goDiv.onpaste = null;
+//         goDiv.onpaste = null;
         goDiv.tabIndex = null;
         goDiv.onkeydown = null;
         goDiv.onkeyup = null;
         goDiv.onkeypress = null;
         goDiv.onmousedown = null;
         goDiv.onmouseup = null;
+        if (!go.Visual.overlay) {
+            // The timer here is to prevent the screen from flashing whenever something is pasted.
+            go.Input.overlayTimer = setTimeout(go.Visual.toggleOverlay, 250);
+        }
         // Commented this out since it likely isn't necessary since I moved the pastearea to live inside of each terminal instead of hovering above everything.
         // After this change has been out in the wild for a while without any problems I'll remove the code below (and these comments).
 //         try {
@@ -2678,63 +2695,57 @@ GateOne.Base.update(GateOne.Visual, {
         // If *term* is given, only disable scrollback for that terminal
         logDebug('enableScrollback(' + term + ')');
         var u = go.Utils,
-            prefix = go.prefs.prefix;
-        if (term && term in GateOne.terminals) {
-            var termPreNode = GateOne.terminals[term]['node'],
-                termScreen = GateOne.terminals[term]['screenNode'],
-                termScrollback = GateOne.terminals[term]['scrollbackNode'],
-                parentHeight = termPreNode.parentElement.clientHeight;
-            if (!go.terminals[term]) { // The terminal was just closed
-                return; // We're done here
-            }
-            if (u.getSelText()) {
-                // Don't re-enable the scrollback buffer if the user is selecting text (so we don't clobber their highlight)
-                // Retry again in 3.5 seconds
-                clearTimeout(go.terminals[term]['scrollbackTimer']);
-                go.terminals[term]['scrollbackTimer'] = setTimeout(function() {
-                    go.Visual.enableScrollback(term);
-                }, 3500);
-                return;
-            }
-            // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
-            if (parentHeight) {
-                termPreNode.style.height = (parentHeight - go.terminals[term]['heightAdjust']) + 'px';
-            } else {
-                termPreNode.style.height = "100%"; // This ensures there's a scrollbar
-            }
-            if (termScrollback) {
-                var scrollbackHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
-                if (termScrollback.innerHTML != scrollbackHTML) {
-                    termScrollback.innerHTML = scrollbackHTML;
+            prefix = go.prefs.prefix,
+            enableSB = function(termNum) {
+                var termPreNode = GateOne.terminals[termNum]['node'],
+                    termScreen = GateOne.terminals[termNum]['screenNode'],
+                    termScrollback = GateOne.terminals[termNum]['scrollbackNode'],
+                    parentHeight = termPreNode.parentElement.clientHeight;
+                if (!go.terminals[termNum]) { // The terminal was just closed
+                    return; // We're done here
                 }
-            } else {
-                // Create the span that holds the scrollback buffer
-                termScrollback = u.createElement('span', {'id': 'term'+term+'scrollback'});
-                termScrollback.innerHTML = go.terminals[term]['scrollback'].join('\n') + '\n';
-                termPreNode.insertBefore(termScrollback, termScreen);
-                go.terminals[term]['scrollbackNode'] = termScrollback;
-                termScrollback.style.display == null; // Reset
-                u.scrollToBottom(termPreNode); // Since we just created it for the first time we have to get to the bottom of things, so to speak =)
-            }
-            if (go.terminals[term]['scrollbackTimer']) {
-                clearTimeout(go.terminals[term]['scrollbackTimer']);
-            }
-            go.terminals[term]['scrollbackVisible'] = true;
+                if (u.getSelText()) {
+                    // Don't re-enable the scrollback buffer if the user is selecting text (so we don't clobber their highlight)
+                    // Retry again in 3.5 seconds
+                    clearTimeout(go.terminals[termNum]['scrollbackTimer']);
+                    go.terminals[termNum]['scrollbackTimer'] = setTimeout(function() {
+                        go.Visual.enableScrollback(termNum);
+                    }, 3500);
+                    return;
+                }
+                // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
+                if (parentHeight) {
+                    termPreNode.style.height = (parentHeight - go.terminals[termNum]['heightAdjust']) + 'px';
+                } else {
+                    termPreNode.style.height = "100%"; // This ensures there's a scrollbar
+                }
+                if (termScrollback) {
+                    var scrollbackHTML = go.terminals[termNum]['scrollback'].join('\n') + '\n';
+                    if (termScrollback.innerHTML != scrollbackHTML) {
+                        termScrollback.innerHTML = scrollbackHTML;
+                    }
+                    termScrollback.style.display = null; // Reset
+                } else {
+                    // Create the span that holds the scrollback buffer
+                    termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback'});
+                    termScrollback.innerHTML = go.terminals[termNum]['scrollback'].join('\n') + '\n';
+                    termPreNode.insertBefore(termScrollback, termScreen);
+                    go.terminals[termNum]['scrollbackNode'] = termScrollback;
+                    u.scrollToBottom(termPreNode); // Since we just created it for the first time we have to get to the bottom of things, so to speak =)
+                }
+                if (go.terminals[termNum]['scrollbackTimer']) {
+                    clearTimeout(go.terminals[termNum]['scrollbackTimer']);
+                }
+                go.terminals[termNum]['scrollbackVisible'] = true;
+            };
+        if (term && term in GateOne.terminals) {
+            enableSB(term);
         } else {
             var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
             terms.forEach(function(termObj) {
-                var termID = termObj.id.split(prefix+'term')[1];
-                if (termID in GateOne.terminals) {
-                    var termPreNode = go.terminals[termID]['node'],
-                        termScreen = go.terminals[termID]['screenNode'],
-                        termScrollback = go.terminals[termID]['scrollbackNode'];
-                    termScrollback.innerHTML = go.terminals[termID]['scrollback'].join('\n') + '\n';
-                    termScrollback.style.display == null; // Reset
-                    if (go.terminals[termID]['scrollbackTimer']) {
-                        clearTimeout(go.terminals[termID]['scrollbackTimer']);
-                    }
-                    go.terminals[termID]['scrollbackVisible'] = true;
-                    u.scrollToBottom(termPreNode);
+                var termNum = termObj.id.split(prefix+'term')[1];
+                if (termNum in GateOne.terminals) {
+                    enableSB(termNum);
                 }
             });
         }
@@ -2749,7 +2760,6 @@ GateOne.Base.update(GateOne.Visual, {
         if (term) {
             var termPreNode = GateOne.terminals[term]['node'],
                 termScrollback = go.terminals[term]['scrollbackNode'];
-//             termScrollback.innerHTML = "";
                 if (termScrollback) {
                     termScrollback.style.display = "none";
                 }
@@ -2759,7 +2769,6 @@ GateOne.Base.update(GateOne.Visual, {
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
                     termScrollback = go.terminals[termID]['scrollbackNode'];
-//                 termScrollback.innerHTML = "";
                 if (termScrollback) {
                     termScrollback.style.display = "none";
                 }
@@ -2934,6 +2943,7 @@ GateOne.Base.update(GateOne.Visual, {
             goBack == true;
         }
         if (v.gridView) {
+            // Switch to the selected terminal and undo the grid
             v.gridView = false;
             // Remove the events we added for the grid:
             terms.forEach(function(termObj) {
@@ -2952,7 +2962,9 @@ GateOne.Base.update(GateOne.Visual, {
             if (controlsContainer) {
                 u.showElement(controlsContainer);
             }
+            v.enableScrollback();
         } else {
+            // Bring up the grid
             v.gridView = true;
             setTimeout(function() {
                 u.getNode(go.prefs.goDiv).style.overflowY = 'visible';
@@ -3430,6 +3442,31 @@ GateOne.Base.update(GateOne.Visual, {
         }
         return closeWidget;
     },
+    toggleOverlay: function(element) {
+        // Toggles the overlay that visually indicates whether or not Gate One is ready for input
+        var go = GateOne,
+            u = go.Utils,
+            v = go.Visual,
+            goDiv = u.getNode(go.prefs.goDiv),
+            existingOverlay = u.getNode('#'+go.prefs.prefix+'overlay'),
+            overlay = u.createElement('div', {'id': 'overlay'});
+        if (existingOverlay) {
+            // Remove it
+            u.removeElement(existingOverlay);
+            v.overlay = false;
+        } else {
+            overlay.onmousedown = function(e) {
+                // NOTE: Do not set 'onmousedown = go.Input.capture' as this will trigger capture() into thinking it was called via an onblur event.
+                u.removeElement(overlay);
+                v.overlay = false;
+                setTimeout(function() {
+                    go.Input.capture();
+                }, 250);
+            }
+            goDiv.appendChild(overlay);
+            v.overlay = true;
+        }
+    },
     // NOTE: Below is a work in progress.  Not used by anything yet.
     fitWindow: function(termPre, screenSpan) {
         // Scales the terminal <pre> (*termPre*) to fit within the browser window based on the size of the screen <span> (*screenSpan*) if rows/cols has been explicitly set.
@@ -3699,6 +3736,7 @@ go.Base.update(GateOne.Terminal, {
     },
     paste: function(e) {
         // This gets attached to Shift-Insert (KEY_INSERT) as a shortcut in order to support pasting
+        logDebug('paste()');
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
@@ -3777,6 +3815,7 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
         }
+        u.scrollToBottom(existingPre);
     },
     termUpdateFromWorker: function(e) {
         var u = GateOne.Utils,
@@ -3859,23 +3898,26 @@ go.Base.update(GateOne.Terminal, {
                 screenUpdate = true;
                 GateOne.terminals[term]['scrollbackVisible'] = false;
                 // Adjust the toolbar so it isn't too close or too far from the scrollbar
-                if (!GateOne.Terminal.scrollbarWidth) { // Only need to do this once
-                    var emDimensions = u.getEmDimensions(GateOne.prefs.goDiv),
-                        pre = (existingPre || termPre); // Whatever was used in the code above
-                    GateOne.Terminal.scrollbarWidth = pre.offsetWidth - pre.clientWidth;
-                    if (GateOne.prefs.showToolbar) {
-                        // Normalize the toolbar's position
-                        var toolbar = u.getNode('#'+prefix+'toolbar');
-                        toolbar.style.right = (GateOne.Terminal.scrollbarWidth + 3) + 'px'; // +3 to put some space between the scrollbar and the toolbar
+                setTimeout(function() {
+                    // This is wrapped in a long timeout to allow the browser to finish drawing everything (especially the scroll bars)
+                    if (!GateOne.Terminal.scrollbarWidth) { // Only need to do this once
+                        var emDimensions = u.getEmDimensions(GateOne.prefs.goDiv),
+                            pre = (existingPre || termPre); // Whatever was used in the code above
+                        GateOne.Terminal.scrollbarWidth = pre.offsetWidth - pre.clientWidth;
+                        if (GateOne.prefs.showToolbar) {
+                            // Normalize the toolbar's position
+                            var toolbar = u.getNode('#'+prefix+'toolbar');
+                            toolbar.style.right = (GateOne.Terminal.scrollbarWidth + 3) + 'px'; // +3 to put some space between the scrollbar and the toolbar
+                        }
+                        if (GateOne.prefs.showTitle) {
+                            // Normalize the side title as well
+                            var sideInfo = u.getNode('#'+prefix+'sideinfo');
+                            sideInfo.style.right = GateOne.Terminal.scrollbarWidth + 'px'; // The title on the side doesn't need the extra 3px ("right top" rotation)
+                            // Explanation: The height of the font box on the sideinfo div extends higher than the text which is why we don't need an extra 5px spacing.
+                            // Take a rectangular piece of paper and write some words across it in "landscape mode" so that the text covers the full width of the page.  Next rotate it 90deg clockwise along the "right top" axis (hold the "right top" with your thumb while rotating).  Voila!  Lots of space on the right.  No need to pad it.
+                        }
                     }
-                    if (GateOne.prefs.showTitle) {
-                        // Normalize the side title as well
-                        var sideInfo = u.getNode('#'+prefix+'sideinfo');
-                        sideInfo.style.right = GateOne.Terminal.scrollbarWidth + 'px'; // The title on the side doesn't need the extra 3px ("right top" rotation)
-                        // Explanation: The height of the font box on the sideinfo div extends higher than the text which is why we don't need an extra 5px spacing.
-                        // Take a rectangular piece of paper and write some words across it in "landscape mode" so that the text covers the full width of the page.  Next rotate it 90deg clockwise along the "right top" axis (hold the "right top" with your thumb while rotating).  Voila!  Lots of space on the right.  No need to pad it.
-                    }
-                }
+                }, 5000);
 //             } catch (e) { // Likely the terminal just closed
 //                 logDebug('Caught exception in termUpdateFromWorker: ' + e);
 //                 u.noop(); // Just ignore it.
@@ -4181,7 +4223,15 @@ go.Base.update(GateOne.Terminal, {
         pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
         pastearea.onpaste = function(e) {
             // Start capturing input again
-            setTimeout(function() { GateOne.Input.capture(); }, 150);
+            pastearea.value = '';
+            setTimeout(function() {
+                // For some reason when you paste the onmouseup event doesn't fire on goDiv; goFigure
+                go.Input.mouseDown = false;
+                GateOne.Input.capture();
+            }, 1);
+        }
+        pastearea.oncontextmenu = function(e) {
+            pastearea.focus();
         }
         pastearea.onmousedown = function(e) {
             // When the user left-clicks assume they're trying to highlight text
@@ -4212,7 +4262,7 @@ go.Base.update(GateOne.Terminal, {
                         clearTimeout(go.terminals[selectedTerm]['scrollbackTimer']);
                     }
                 }
-                go.Input.capture();
+//                 go.Input.capture();
             } else if (m.button.middle) {
                 // This is here to enable middle-click-to-paste in Windows but it only works if the user has launched Gate One in "application mode".
                 // Gate One can be launched in "application mode" if the user selects the "create application shortcut..." option from the tools menu.

@@ -638,12 +638,10 @@ def openssh_generate_public_key(path, passphrase=None, settings=None, tws=None):
     m = termio.Multiplex(command)
     def request_passphrase(*args, **kwargs):
         "Called if this key requires a passphrase.  Ask the client to provide"
-        print("requesting passphrase")
         message = {'sshjs_ask_passphrase': settings}
         tws.write_message(message)
     def bad_passphrase(m_instance, match):
         "Called if the user entered a bad passphrase"
-        print("Bad passphrase")
         settings['bad'] = True
         request_passphrase()
     if passphrase:

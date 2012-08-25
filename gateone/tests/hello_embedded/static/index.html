@@ -577,6 +577,7 @@ var newTabTerminal = function(termNum) {
     }
     // Add our new tab
     tabContainer.appendChild(newTab);
+    GateOne.Input.capture(); // Make sure that keyboard input works right away
 }
 var reattachTerminals = function(terminals) {
     // This gets appended to GateOne.Terminal.reattachTerminalsCallbacks.
