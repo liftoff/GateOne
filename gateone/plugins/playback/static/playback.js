@@ -61,7 +61,6 @@ GateOne.Base.update(GateOne.Playback, {
         go.prefs.rowAdjust += 1;
         // Add our callback that adds an extra newline to all terminals
         go.Terminal.newTermCallbacks.push(p.newTerminalCallback);
-        p.addPlaybackControls();
         // This makes sure our playback frames get added to the terminal object whenever the screen is updated
         go.Terminal.updateTermCallbacks.push(p.pushPlaybackFrame);
         // This makes sure our prefs get saved along with everything else
@@ -92,8 +91,10 @@ GateOne.Base.update(GateOne.Playback, {
     },
     newTerminalCallback: function(term) {
         // This gets added to GateOne.Terminal.newTermCallbacks to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls
+        // It also calls addPlaybackControls() to make sure they're present only after a new terminal is open
         var go = GateOne,
             u = go.Utils,
+            p = go.Playback,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
             termPre = u.getNode('#'+prefix+'term'+term+'_pre'),
@@ -111,9 +112,10 @@ GateOne.Base.update(GateOne.Playback, {
         } else {
             // Try again...  It can take a moment for the server to respond and the terminal PRE to be created the first time
             setTimeout(function() {
-                go.Playback.newTerminalCallback(term);
+                p.newTerminalCallback(term);
             }, 100);
         }
+        p.addPlaybackControls();
     },
     pushPlaybackFrame: function(term) {
         // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']
@@ -165,12 +167,15 @@ GateOne.Base.update(GateOne.Playback, {
     },
     updateClock: function(/*opt:*/dateObj) {
         // Updates the clock with the time in the given *dateObj*.
+        var go = GateOne,
+            u = go.Utils
+            p = go.Playback;
         // If no *dateObj* is given, the clock will be updated with the current local time
         if (!dateObj) { dateObj = new Date() }
-        if (!GateOne.Playback.clockElement) {
-            GateOne.Playback.clockElement = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'clock');
+        if (!p.clockElement) {
+            p.clockElement = u.getNode('#'+go.prefs.prefix+'clock');
         }
-        GateOne.Playback.clockElement.innerHTML = dateObj.toLocaleTimeString();
+        p.clockElement.innerHTML = dateObj.toLocaleTimeString();
     },
     startPlayback: function(term) {
         // Plays back the given terminal's session in real-time
@@ -207,6 +212,8 @@ GateOne.Base.update(GateOne.Playback, {
             u = go.Utils,
             p = go.Playback,
             prefix = go.prefs.prefix,
+            sideinfo = u.getNode('#'+prefix+'sideinfo'),
+            progressBar = u.getNode('#'+prefix+'progressBar'),
             selectedFrame = go.terminals[term]['playbackFrames'][p.selectFrame(term, p.milliseconds)],
             frameTime = new Date(go.terminals[term]['playbackFrames'][0]['time']),
             lastFrame = go.terminals[term]['playbackFrames'].length - 1,
@@ -217,9 +224,9 @@ GateOne.Base.update(GateOne.Playback, {
             playPause.innerHTML = '▶';
             go.Visual.applyTransform(playPause, ''); // Set it back to normal
             go.Terminal.applyScreen(go.terminals[term]['playbackFrames'][lastFrame]['screen'], term);
-            u.getNode('#'+prefix+'clock').innerHTML = lastDateTime.toLocaleTimeString();
-            u.getNode('#'+prefix+'sideinfo').innerHTML = lastDateTime.toLocaleDateString();
-            u.getNode('#'+prefix+'progressBar').style.width = '100%';
+            p.clockElement.innerHTML = lastDateTime.toLocaleTimeString();
+            sideinfo.innerHTML = lastDateTime.toLocaleDateString();
+            progressBar.style.width = '100%';
             clearInterval(p.frameUpdater);
             p.frameUpdater = null;
             p.milliseconds = 0;
@@ -227,8 +234,8 @@ GateOne.Base.update(GateOne.Playback, {
             p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
             return
         }
-        u.getNode('#'+prefix+'clock').innerHTML = frameTime.toLocaleTimeString();
-        u.getNode('#'+prefix+'sideinfo').innerHTML = frameTime.toLocaleDateString();
+        p.clockElement.innerHTML = frameTime.toLocaleTimeString();
+        sideinfo.innerHTML = frameTime.toLocaleDateString();
         go.Terminal.applyScreen(selectedFrame['screen'], term);
         // Update progress bar
         var firstDateTime = new Date(go.terminals[term]['playbackFrames'][0]['time']);
@@ -236,7 +243,7 @@ GateOne.Base.update(GateOne.Playback, {
         if (percent > 1) {
             percent = 1; // Last frame might be > 100% due to timing...  No biggie
         }
-        u.getNode('#'+prefix+'progressBar').style.width = (percent*100) + '%';
+        progressBar.style.width = (percent*100) + '%';
         p.milliseconds += p.frameInterval; // Increment determines our framerate
     },
     playPauseControl: function(e) {
@@ -263,6 +270,7 @@ GateOne.Base.update(GateOne.Playback, {
             u = go.Utils,
             p = go.Playback,
             prefix = go.prefs.prefix,
+            existingControls = u.getNode('#'+prefix+'playbackControls'),
             playPause = u.createElement('div', {'id': 'playPause'}),
             progressBar = u.createElement('div', {'id': 'progressBar'}),
             progressBarContainer = u.createElement('div', {
@@ -276,6 +284,9 @@ GateOne.Base.update(GateOne.Playback, {
             controlsWidth = parseInt(style.width.split('px')[0]) - (emDimensions.w * 3),
             // Firefox doesn't support 'mousewheel'
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
+        if (existingControls) {
+            return; // Controls have already been added; Nothing to do
+        }
         playPause.innerHTML = '▶';
         playPause.onclick = p.playPauseControl;
         progressBarContainer.appendChild(progressBar);
@@ -301,11 +312,16 @@ GateOne.Base.update(GateOne.Playback, {
                 }
                 pB.style.width = (percent*100) + '%'; // Update the progress bar to reflect the user's click
                 // Now update the terminal window to reflect the (approximate) selected frame
-                u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
-                u.getNode('#'+prefix+'clock').innerHTML = dateTime.toLocaleTimeString();
+//                 u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
+                go.Terminal.applyScreen(selectedFrame['screen'], term);
+                p.clockElement.innerHTML = dateTime.toLocaleTimeString();
             }
         }
         progressBarContainer.onmousedown = function(e) {
+            var m = go.Input.mouse(e);
+            if (!m.button.left) {
+                return; // Don't do anything when someone right-clicks or middle-clicks on the progess bar
+            }
             p.progressBarMouseDown = true;
             this.style.cursor = "col-resize";
             updateProgress(e);
@@ -359,7 +375,8 @@ GateOne.Base.update(GateOne.Playback, {
                         if (p.currentFrame >= terminalObj['playbackFrames'].length) {
                             p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
                             p.progressBarElement.style.width = '100%';
-                            u.getNode('#'+prefix+'term'+term+'_pre').innerHTML = terminalObj['screen'].join('\n') + '\n\n';
+//                             u.getNode('#'+prefix+'term'+term+'_pre').innerHTML = terminalObj['screen'].join('\n') + '\n\n';
+                            go.Terminal.applyScreen(terminalObj['screen'], term);
                             if (!p.clockUpdater) { // Get the clock updating again
                                 p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1);
                             }
@@ -370,7 +387,8 @@ GateOne.Base.update(GateOne.Playback, {
                             percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
                             p.progressBarElement.style.width = percent + '%';
                             if (selectedFrame) {
-                                u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
+//                                 u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
+                                go.Terminal.applyScreen(selectedFrame['screen'], term);
                                 u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
                             }
                         }
@@ -379,7 +397,8 @@ GateOne.Base.update(GateOne.Playback, {
                         percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
                         p.progressBarElement.style.width = percent + '%';
                         if (selectedFrame) {
-                            u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
+//                             u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
+                            go.Terminal.applyScreen(selectedFrame['screen'], term);
                             u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
                         } else {
                             p.currentFrame = 0; // First frame
