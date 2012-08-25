@@ -554,18 +554,20 @@ var go = GateOne.Base.update(GateOne, {
             var m = go.Input.mouse(e),
                 modifiers = go.Input.modifiers(e);
             if (!modifiers.shift && !modifiers.ctrl && !modifiers.alt) { // Only for basic scrolling
-                var term = localStorage[prefix+'selectedTerminal'],
-                    terminalObj = go.terminals[term],
-                    screen = terminalObj['screen'],
-                    scrollback = terminalObj['scrollback'],
-                    sbT = terminalObj['scrollbackTimer'];
-                if (sbT) {
-                    clearTimeout(sbT);
-                    sbT = null;
-                }
-                if (!terminalObj['scrollbackVisible']) {
-                    // Immediately re-enable the scrollback buffer
-                    go.Visual.enableScrollback(term);
+                if (go.terminals[term]) {
+                    var term = localStorage[prefix+'selectedTerminal'],
+                        terminalObj = go.terminals[term],
+                        screen = terminalObj['screen'],
+                        scrollback = terminalObj['scrollback'],
+                        sbT = terminalObj['scrollbackTimer'];
+                    if (sbT) {
+                        clearTimeout(sbT);
+                        sbT = null;
+                    }
+                    if (!terminalObj['scrollbackVisible']) {
+                        // Immediately re-enable the scrollback buffer
+                        go.Visual.enableScrollback(term);
+                    }
                 }
             } else {
                 e.preventDefault();

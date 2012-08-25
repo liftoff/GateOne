@@ -227,7 +227,7 @@ Options:
 &nbsp;&nbsp;--debug                          Enable debugging features such as auto-restarting when files are modified.
 &nbsp;&nbsp;--disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
 &nbsp;&nbsp;--dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
-&nbsp;&nbsp;--embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
+&nbsp;&nbsp;--embedded                       Doesn't do anything (yet).
 &nbsp;&nbsp;--https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
 &nbsp;&nbsp;--js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init=&quot;{scheme: 'white'}&quot; would result in GateOne.init({scheme: 'white'})
 &nbsp;&nbsp;--keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
@@ -472,7 +472,11 @@ Options:
 <div class="highlight-python"><div class="highlight"><pre><span class="n">embedded</span> <span class="o">=</span> <span class="bp">False</span>
 </pre></div>
 </div>
-<p>This option tells Gate One to run in embedded mode:  No interface icons will be displayed and the ability to open additional terminals will be disabled.</p>
+<p>This option doesn't do anything at the moment.  In the future it may be used to change the behavior of Gate One's server-side behavior.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This isn't the same thing as &quot;embedded mode&quot; in the JavaScript code.  See <a class="reference internal" href="../Developer/js_gateone.html#embedded-mode"><em>GateOne.prefs.embedded</em></a> in <a class="reference internal" href="../Developer/js_gateone.html#gateone-javascript"><em>gateone.js</em></a>.</p>
+</div>
 </div>
 <div class="section" id="https-redirect">
 <h3>https_redirect<a class="headerlink" href="#https-redirect" title="Permalink to this headline">¶</a></h3>

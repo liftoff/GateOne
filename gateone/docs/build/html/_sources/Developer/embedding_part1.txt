@@ -1,7 +1,9 @@
 .. _gateone-embedding:
 
-Embedding Gate One Into Other Applications, Part 1
-==================================================
+Embedding Gate One Into Other Applications
+==========================================
+
+.. note:: A *much better* interactive tutorial is available in Gate One's 'tests' directory: <gateone dir>/tests/hello_embedded/.  The future of the documentation you're reading is uncertain.
 
 This tutorial will walk you through embedding Gate One into a completely different web application.  It is divided into two parts:
 

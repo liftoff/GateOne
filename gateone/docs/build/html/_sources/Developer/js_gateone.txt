@@ -202,17 +202,19 @@ GateOne JavaScript Properties
 
         .. warning:: If you provide a password in the ssh:// URL clients will be able to see it.
 
+    .. _embedded-mode:
+
     .. js:attribute:: GateOne.prefs.embedded
 
         .. code-block:: javascript
 
             GateOne.prefs.embedded = false;
 
-        This instructs Gate One to run without any interface elements, strictly applying what was provided to :js:func:`GateOne.init`.  It also prevents opening more than one terminal and certain keyboard shortcuts from being registered (e.g. to switch between terminals).  In terms of the interface, it is equivalent to calling :js:func:`GateOne.init` like so:
+        This option tells Gate One (at the client) to run in embedded mode.  In embedded mode there will be no toolbar, no side information panel, and new terminals will not be opened automatically.  In essence, it just connects to the Gate One server, downloads additional JavaScript/CSS (plugins/themes), and calls each plugin's init() and postInit() functions (which may also behave differently in embedded mode).  The point is to provide developers with the flexibility to control every aspect of Gate One's look and feel.
 
-        .. code-block:: javascript
+        In GateOne's 'tests' directory there is a walkthrough/tutorial of embedded mode called "hello_embedded".  To run it simply execute ./hello_embedded.py and connect to https://localhost/ in your browser.
 
-            GateOne.init({showTitle: false, showToolbar: false});
+        .. note:: Why is the hello_embedded tutorial separate from this documentation?  It needs to be run on a different address/port than the Gate One server itself in order to properly demonstrate how Gate One would be embedded "in the wild."  Also note that the documentation you're reading is meant to be viewable offline (e.g. file:///path/to/the/docs in your browser) but web browsers don't allow WebSockets connections from documents loaded via file:// URLs.
 
     .. js:attribute:: GateOne.prefs.showTitle
 

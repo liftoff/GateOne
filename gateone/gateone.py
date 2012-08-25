@@ -122,7 +122,7 @@ well as descriptions of what each configurable option does:
       --debug                          Enable debugging features such as auto-restarting when files are modified.
       --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
       --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
-      --embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
+      --embedded                       Doesn't do anything (yet).
       --https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
       --js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init="{scheme: 'white'}" would result in GateOne.init({scheme: 'white'})
       --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
@@ -2370,8 +2370,7 @@ def main():
     define(
         "embedded",
         default=False,
-        help=_("Run Gate One in Embedded Mode (no toolbar, only one terminal "
-               "allowed, etc.  See docs).")
+        help=_("Doesn't do anything (yet).")
     )
     define(
         "dtach",

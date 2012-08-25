@@ -170,7 +170,7 @@ These options match up directly with Gate One's command line options which you c
       --debug                          Enable debugging features such as auto-restarting when files are modified.
       --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
       --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
-      --embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
+      --embedded                       Doesn't do anything (yet).
       --https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
       --js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init="{scheme: 'white'}" would result in GateOne.init({scheme: 'white'})
       --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
@@ -366,7 +366,9 @@ embedded
 
     embedded = False
 
-This option tells Gate One to run in embedded mode:  No interface icons will be displayed and the ability to open additional terminals will be disabled.
+This option doesn't do anything at the moment.  In the future it may be used to change the behavior of Gate One's server-side behavior.
+
+.. note:: This isn't the same thing as "embedded mode" in the JavaScript code.  See :ref:`GateOne.prefs.embedded <embedded-mode>` in :ref:`gateone-javascript`.
 
 https_redirect
 --------------

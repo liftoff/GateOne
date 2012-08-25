@@ -164,7 +164,7 @@ Options:
 &nbsp;&nbsp;--debug                          Enable debugging features such as auto-restarting when files are modified.
 &nbsp;&nbsp;--disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
 &nbsp;&nbsp;--dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
-&nbsp;&nbsp;--embedded                       Run Gate One in Embedded Mode (no toolbar, only one terminal allowed, etc.  See docs).
+&nbsp;&nbsp;--embedded                       Doesn't do anything (yet).
 &nbsp;&nbsp;--https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
 &nbsp;&nbsp;--js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init=&quot;{scheme: 'white'}&quot; would result in GateOne.init({scheme: 'white'})
 &nbsp;&nbsp;--keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
@@ -576,7 +576,7 @@ scrollback).</p>
 <tt class="descname">set_title</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.set_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.set_title" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a message to the client telling it to set the window title of
 <em>term</em> to whatever comes out of:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">get_title</span><span class="p">()</span> <span class="c">#(Whew! Say that three times fast!).</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">get_title</span><span class="p">()</span> <span class="c"># Whew! Say that three times fast!</span>
 </pre></div>
 </div>
 <p>Example message:</p>
@@ -589,6 +589,14 @@ it matches the previously-set title.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.</p>
 </div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.TerminalWebSocket.manual_title">
+<tt class="descname">manual_title</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.manual_title" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the title of <em>settings['term']</em> to <em>settings['title']</em>.  Differs
+from <a class="reference internal" href="#gateone.TerminalWebSocket.set_title" title="gateone.TerminalWebSocket.set_title"><tt class="xref py py-func docutils literal"><span class="pre">set_title()</span></tt></a> in that this is an action that gets called by the
+client when the user sets a terminal title manually.</p>
 </dd></dl>
 
 <dl class="method">

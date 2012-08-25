@@ -329,60 +329,62 @@ GateOne.Base.update(GateOne.Playback, {
             var m = go.Input.mouse(e),
                 percent = 0,
                 modifiers = go.Input.modifiers(e),
-                term = localStorage[prefix+'selectedTerminal'],
-                terminalObj = go.terminals[term],
-                selectedFrame = terminalObj['playbackFrames'][p.currentFrame],
-                sbT = terminalObj['scrollbackTimer'];
-            if (modifiers.shift) { // If shift is held, go back/forth in the recording instead of scrolling up/down
-                e.preventDefault();
-                // Stop updating the clock
-                clearInterval(p.clockUpdater);
-                p.clockUpdater = null;
-                clearInterval(go.scrollTimeout);
-                go.scrollTimeout = null;
-                if (sbT) {
-                    clearTimeout(sbT);
-                    sbT = null;
-                }
-                if (terminalObj['scrollbackVisible']) {
-                    // This just ensures that we're keeping states set properly
-                    terminalObj['scrollbackVisible'] = false;
-                }
-                if (typeof(p.currentFrame) == "undefined") {
-                    p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
-                    selectedFrame = terminalObj['playbackFrames'][p.currentFrame]
-                    p.progressBarElement.style.width = '100%';
-                }
-                if (m.wheel.x > 0 || (e.type == 'DOMMouseScroll' && m.wheel.y > 0)) { // Shift + scroll shows up as left/right scroll (x instead of y)
-                    p.currentFrame = p.currentFrame + 1;
-                    if (p.currentFrame >= terminalObj['playbackFrames'].length) {
+                term = localStorage[prefix+'selectedTerminal'];
+            if (go.terminals[term]) { // Only do this if there's an actual terminal present
+                var terminalObj = go.terminals[term],
+                    selectedFrame = terminalObj['playbackFrames'][p.currentFrame],
+                    sbT = terminalObj['scrollbackTimer'];
+                if (modifiers.shift) { // If shift is held, go back/forth in the recording instead of scrolling up/down
+                    e.preventDefault();
+                    // Stop updating the clock
+                    clearInterval(p.clockUpdater);
+                    p.clockUpdater = null;
+                    clearInterval(go.scrollTimeout);
+                    go.scrollTimeout = null;
+                    if (sbT) {
+                        clearTimeout(sbT);
+                        sbT = null;
+                    }
+                    if (terminalObj['scrollbackVisible']) {
+                        // This just ensures that we're keeping states set properly
+                        terminalObj['scrollbackVisible'] = false;
+                    }
+                    if (typeof(p.currentFrame) == "undefined") {
                         p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
+                        selectedFrame = terminalObj['playbackFrames'][p.currentFrame]
                         p.progressBarElement.style.width = '100%';
-                        u.getNode('#'+prefix+'term'+term+'_pre').innerHTML = terminalObj['screen'].join('\n') + '\n\n';
-                        if (!p.clockUpdater) { // Get the clock updating again
-                            p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1);
+                    }
+                    if (m.wheel.x > 0 || (e.type == 'DOMMouseScroll' && m.wheel.y > 0)) { // Shift + scroll shows up as left/right scroll (x instead of y)
+                        p.currentFrame = p.currentFrame + 1;
+                        if (p.currentFrame >= terminalObj['playbackFrames'].length) {
+                            p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
+                            p.progressBarElement.style.width = '100%';
+                            u.getNode('#'+prefix+'term'+term+'_pre').innerHTML = terminalObj['screen'].join('\n') + '\n\n';
+                            if (!p.clockUpdater) { // Get the clock updating again
+                                p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1);
+                            }
+                            terminalObj['scrollbackTimer'] = setTimeout(function() { // Get the scrollback timer going again
+                                go.Visual.enableScrollback(term);
+                            }, 3500);
+                        } else {
+                            percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
+                            p.progressBarElement.style.width = percent + '%';
+                            if (selectedFrame) {
+                                u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
+                                u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
+                            }
                         }
-                        terminalObj['scrollbackTimer'] = setTimeout(function() { // Get the scrollback timer going again
-                            go.Visual.enableScrollback(term);
-                        }, 3500);
                     } else {
+                        p.currentFrame = p.currentFrame - 1;
                         percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
                         p.progressBarElement.style.width = percent + '%';
                         if (selectedFrame) {
                             u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
                             u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
+                        } else {
+                            p.currentFrame = 0; // First frame
+                            p.progressBarElement.style.width = '0%';
                         }
-                    }
-                } else {
-                    p.currentFrame = p.currentFrame - 1;
-                    percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
-                    p.progressBarElement.style.width = percent + '%';
-                    if (selectedFrame) {
-                        u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
-                        u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
-                    } else {
-                        p.currentFrame = 0; // First frame
-                        p.progressBarElement.style.width = '0%';
                     }
                 }
             }

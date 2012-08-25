@@ -314,15 +314,17 @@
 </div>
 </dd></dl>
 
-<dl class="attribute">
+<span class="target" id="embedded-mode"></span><dl class="attribute">
 <dt id="GateOne.prefs.embedded">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">embedded</tt><a class="headerlink" href="#GateOne.prefs.embedded" title="Permalink to this definition">¶</a></dt>
 <dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">embedded</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>This instructs Gate One to run without any interface elements, strictly applying what was provided to <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a>.  It also prevents opening more than one terminal and certain keyboard shortcuts from being registered (e.g. to switch between terminals).  In terms of the interface, it is equivalent to calling <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> like so:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">init</span><span class="p">({</span><span class="nx">showTitle</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="nx">showToolbar</span><span class="o">:</span> <span class="kc">false</span><span class="p">});</span>
-</pre></div>
+<p>This option tells Gate One (at the client) to run in embedded mode.  In embedded mode there will be no toolbar, no side information panel, and new terminals will not be opened automatically.  In essence, it just connects to the Gate One server, downloads additional JavaScript/CSS (plugins/themes), and calls each plugin's init() and postInit() functions (which may also behave differently in embedded mode).  The point is to provide developers with the flexibility to control every aspect of Gate One's look and feel.</p>
+<p>In GateOne's 'tests' directory there is a walkthrough/tutorial of embedded mode called &quot;hello_embedded&quot;.  To run it simply execute ./hello_embedded.py and connect to <a class="reference external" href="https://localhost/">https://localhost/</a> in your browser.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Why is the hello_embedded tutorial separate from this documentation?  It needs to be run on a different address/port than the Gate One server itself in order to properly demonstrate how Gate One would be embedded &quot;in the wild.&quot;  Also note that the documentation you're reading is meant to be viewable offline (e.g. <a class="reference external" href="file:///path/to/the/docs">file:///path/to/the/docs</a> in your browser) but web browsers don't allow WebSockets connections from documents loaded via <a class="reference external" href="file://">file://</a> URLs.</p>
 </div>
 </dd></dl>
 
