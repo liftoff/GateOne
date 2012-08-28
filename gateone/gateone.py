@@ -134,6 +134,8 @@ well as descriptions of what each configurable option does:
       --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
       --pid_file                       Path of the pid file.   Default: /var/run/gateone.pid
       --port                           Run on the given port.
+      --use_unix_sockets               Decides if to Unix sockets or not
+      --unixsocketfile                 Run on the given socket file.
       --session_dir                    Path to the location where session information will be stored.
       --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/<user>/logs.  Default: Enabled
       --session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts <num>X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is '5d' (5 days).
@@ -262,6 +264,7 @@ try:
     import tornado.web
     import tornado.auth
     import tornado.template
+    import tornado.netutil
     from tornado.websocket import WebSocketHandler
     from tornado.escape import json_decode
     from tornado.options import define, options
@@ -2224,6 +2227,8 @@ def main():
                " as a separator (e.g. '127.0.0.1;::1;10.1.1.100')."),
         type=str)
     define("port", default=443, help=_("Run on the given port."), type=int)
+    define("use_unix_sockets", default=True, help=_("Decides if to Unix sockets or not"), type=bool)
+    define("unixsocketfile", default="/tmp/gotest.sock", help=_("Run on the given unix socket."), type=str)
     # Please only use this if Gate One is running behind something with SSL:
     define(
         "disable_ssl",
@@ -2732,27 +2737,32 @@ def main():
     )
     tornado.web.ErrorHandler = ErrorHandler
     try: # Start your engines!
-        if options.address:
-            for addr in options.address.split(';'):
-                if addr: # Listen on all given addresses
-                    if options.https_redirect:
-                        logging.info(_(
-                         "http://{address}:80/ will be redirected to...".format(
-                                address=addr)
-                        ))
-                        https_redirect.listen(port=80, address=addr)
-                    logging.info(_(
-                        "Listening on https://{address}:{port}/".format(
-                            address=addr, port=options.port)
-                    ))
-                    https_server.listen(port=options.port, address=addr)
-        else: # Listen on all addresses (including IPv6)
-            if options.https_redirect:
-                logging.info(_("http://*:80/ will be redirected to..."))
-                https_redirect.listen(port=80, address="")
-            logging.info(_(
-                "Listening on https://*:{port}/".format(port=options.port)))
-            https_server.listen(port=options.port, address="")
+        if options.use_unix_sockets:
+            https_server.add_socket(tornado.netutil.bind_unix_socket(options.unixsocketfile))
+            logging.info(_("Listening on Unix socket '{socketfile}'".format(socketfile=options.unixsocketfile)))
+        else:
+		    if options.address:
+		        for addr in options.address.split(';'):
+		            if addr: # Listen on all given addresses
+		                if options.https_redirect:
+		                    logging.info(_(
+		                     "http://{address}:80/ will be redirected to...".format(
+		                            address=addr)
+		                    ))
+		                    https_redirect.listen(port=80, address=addr)
+		                logging.info(_(
+		                    "Listening on https://{address}:{port}/".format(
+		                        address=addr, port=options.port)
+		                ))
+		                https_server.listen(port=options.port, address=addr)
+		    else: # Listen on all addresses (including IPv6)
+		        if options.https_redirect:
+		            logging.info(_("http://*:80/ will be redirected to..."))
+		            https_redirect.listen(port=80, address="")
+		        logging.info(_(
+		            "Listening on https://*:{port}/".format(port=options.port)))
+		        https_server.listen(port=options.port, address="")
+
         write_pid(options.pid_file)
         pid = read_pid(options.pid_file)
         logging.info(_("Process running with pid " + pid))
