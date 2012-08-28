@@ -2750,8 +2750,9 @@ def main():
                 tornado.netutil.bind_unix_socket(options.unix_socket_path))
             logging.info(_("Listening on Unix socket '{socketpath}'".format(
                 socketpath=options.unix_socket_path)))
-        if options.address:
-            for addr in options.address.split(';'):
+        address = none_fix(options.address)
+        if address:
+            for addr in address.split(';'):
                 if addr: # Listen on all given addresses
                     if options.https_redirect:
                         logging.info(_(
@@ -2764,13 +2765,16 @@ def main():
                             address=addr, port=options.port)
                     ))
                     https_server.listen(port=options.port, address=addr)
-        else: # Listen on all addresses (including IPv6)
+        elif address == '':
+            # Listen on all addresses (including IPv6)
             if options.https_redirect:
                 logging.info(_("http://*:80/ will be redirected to..."))
                 https_redirect.listen(port=80, address="")
             logging.info(_(
                 "Listening on https://*:{port}/".format(port=options.port)))
             https_server.listen(port=options.port, address="")
+        # NOTE:  To have Gate One *not* listen on a TCP/IP address you may set
+        #        address=None
         write_pid(options.pid_file)
         pid = read_pid(options.pid_file)
         logging.info(_("Process running with pid " + pid))
