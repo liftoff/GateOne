@@ -267,6 +267,7 @@ GateOne.Base.update(GateOne.SSH, {
             sshIDPanel.appendChild(sshNewID);
             sshIDPanel.appendChild(sshUploadID);
             sshIDPanel.appendChild(sshIDContent);
+            u.hideElement(sshIDPanel);
             u.getNode(go.prefs.goDiv).appendChild(sshIDPanel);
         }
     },
@@ -1038,6 +1039,7 @@ GateOne.Base.update(GateOne.SSH, {
             existingPanel.appendChild(form);
         } else {
             sshPanel.appendChild(form);
+            u.hideElement(sshPanel);
             u.getNode(go.prefs.goDiv).appendChild(sshPanel);
         }
     },

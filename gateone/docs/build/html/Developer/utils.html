@@ -83,7 +83,7 @@ self-signed SSL certificate.</p>
 
 <dl class="exception">
 <dt id="utils.ChownError">
-<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">ChownError</tt><a class="headerlink" href="#utils.ChownError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">ChownError</tt><a class="reference internal" href="../_modules/utils.html#ChownError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.ChownError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Raised by <a class="reference internal" href="#utils.recursive_chown" title="utils.recursive_chown"><tt class="xref py py-obj docutils literal"><span class="pre">recursive_chown</span></tt></a> if an OSError is encountered while trying to
 recursively chown a directory.</p>
 </dd></dl>
@@ -96,19 +96,19 @@ recursively chown a directory.</p>
 
 <dl class="function">
 <dt id="utils.write_pid">
-<tt class="descclassname">utils.</tt><tt class="descname">write_pid</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#utils.write_pid" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">write_pid</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#write_pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.write_pid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes our PID to <em>path</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="utils.read_pid">
-<tt class="descclassname">utils.</tt><tt class="descname">read_pid</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#utils.read_pid" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">read_pid</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#read_pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.read_pid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads our current PID from <em>path</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="utils.remove_pid">
-<tt class="descclassname">utils.</tt><tt class="descname">remove_pid</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#utils.remove_pid" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">remove_pid</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#remove_pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.remove_pid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes the PID file at <em>path</em>.</p>
 </dd></dl>
 
@@ -284,7 +284,7 @@ necessarily have to match their intended values.</p>
 
 <dl class="function">
 <dt id="utils.get_process_tree">
-<tt class="descclassname">utils.</tt><tt class="descname">get_process_tree</tt><big>(</big><em>parent_pid</em><big>)</big><a class="headerlink" href="#utils.get_process_tree" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">get_process_tree</tt><big>(</big><em>parent_pid</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_process_tree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_process_tree" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of child pids that were spawned from <em>parent_pid</em>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -294,7 +294,7 @@ necessarily have to match their intended values.</p>
 
 <dl class="function">
 <dt id="utils.kill_dtached_proc_macos">
-<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc_macos</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="headerlink" href="#utils.kill_dtached_proc_macos" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc_macos</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc_macos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc_macos" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Mac OS-specific implementation of <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-obj docutils literal"><span class="pre">kill_dtached_proc</span></tt></a> since Macs don't
 have /proc.  Seems simpler than <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-func docutils literal"><span class="pre">kill_dtached_proc()</span></tt></a> but actually
 having to call a subprocess is less efficient (due to the sophisticated
@@ -303,7 +303,7 @@ signal handling required by <a class="reference internal" href="#utils.shell_com
 
 <dl class="function">
 <dt id="utils.killall_macos">
-<tt class="descclassname">utils.</tt><tt class="descname">killall_macos</tt><big>(</big><em>session_dir</em><big>)</big><a class="headerlink" href="#utils.killall_macos" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">killall_macos</tt><big>(</big><em>session_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#killall_macos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.killall_macos" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Mac OS X-specific version of <a class="reference internal" href="#utils.killall" title="utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a> since Macs don't have /proc.</p>
 </dd></dl>
 
@@ -444,7 +444,7 @@ following '&lt;num&gt;&lt;char&gt;' formats:</p>
 
 <dl class="function">
 <dt id="utils.convert_to_bytes">
-<tt class="descclassname">utils.</tt><tt class="descname">convert_to_bytes</tt><big>(</big><em>size_val</em><big>)</big><a class="headerlink" href="#utils.convert_to_bytes" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">convert_to_bytes</tt><big>(</big><em>size_val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#convert_to_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.convert_to_bytes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a <em>size_val</em> (string) such as '100M', returns an integer representing
 an equivalent amount of bytes.  Accepts the following '&lt;num&gt;&lt;char&gt;' formats:</p>
 <table border="1" class="docutils">
@@ -579,7 +579,7 @@ a function that function will be called in the event of a timeout.</p>
 
 <dl class="function">
 <dt id="utils.valid_hostname">
-<tt class="descclassname">utils.</tt><tt class="descname">valid_hostname</tt><big>(</big><em>hostname</em>, <em>allow_underscore=False</em><big>)</big><a class="headerlink" href="#utils.valid_hostname" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">valid_hostname</tt><big>(</big><em>hostname</em>, <em>allow_underscore=False</em><big>)</big><a class="reference internal" href="../_modules/utils.html#valid_hostname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.valid_hostname" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns True if the given <em>hostname</em> is valid according to RFC rules.  Works
 with Internationalized Domain Names (IDN) and optionally, hostnames with an
 underscore (if <em>allow_underscore</em> is True).</p>
@@ -614,13 +614,13 @@ underscore (if <em>allow_underscore</em> is True).</p>
 
 <dl class="function">
 <dt id="utils.recursive_chown">
-<tt class="descclassname">utils.</tt><tt class="descname">recursive_chown</tt><big>(</big><em>path</em>, <em>uid</em>, <em>gid</em><big>)</big><a class="headerlink" href="#utils.recursive_chown" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">recursive_chown</tt><big>(</big><em>path</em>, <em>uid</em>, <em>gid</em><big>)</big><a class="reference internal" href="../_modules/utils.html#recursive_chown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.recursive_chown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Emulates 'chown -R <em>uid</em>:<em>gid</em> <em>path</em>' in pure Python</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="utils.drop_privileges">
-<tt class="descclassname">utils.</tt><tt class="descname">drop_privileges</tt><big>(</big><em>uid='nobody'</em>, <em>gid='nogroup'</em>, <em>supl_groups=None</em><big>)</big><a class="headerlink" href="#utils.drop_privileges" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">drop_privileges</tt><big>(</big><em>uid='nobody'</em>, <em>gid='nogroup'</em>, <em>supl_groups=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#drop_privileges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.drop_privileges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Drop privileges by changing the current process owner/group to
 <em>uid</em>/<em>gid</em> (both may be an integer or a string).  If <em>supl_groups</em> (list)
 is given the process will be assigned those values as its effective
@@ -722,9 +722,32 @@ sessions.</p>
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
   </body>
 </html>

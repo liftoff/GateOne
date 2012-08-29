@@ -164,18 +164,75 @@
 <dd></dd></dl>
 
 <p>GateOne is the base object for all of GateOne's client-side JavaScript.  Besides the aforementioned modules (<a class="reference internal" href="#GateOne.Utils" title="GateOne.Utils"><tt class="xref js js-attr docutils literal"><span class="pre">Utils</span></tt></a>, <a class="reference internal" href="#GateOne.Net" title="GateOne.Net"><tt class="xref js js-attr docutils literal"><span class="pre">Net</span></tt></a>, <a class="reference internal" href="#GateOne.Input" title="GateOne.Input"><tt class="xref js js-attr docutils literal"><span class="pre">Input</span></tt></a>, <a class="reference internal" href="#GateOne.Visual" title="GateOne.Visual"><tt class="xref js js-attr docutils literal"><span class="pre">Visual</span></tt></a>, and <a class="reference internal" href="#GateOne.Terminal" title="GateOne.Terminal"><tt class="xref js js-attr docutils literal"><span class="pre">Terminal</span></tt></a>), it contains the following properties, objects, and methods:</p>
-<div class="section" id="gateone-javascript-properties">
-<span id="gateone-properties"></span><h3>GateOne JavaScript Properties<a class="headerlink" href="#gateone-javascript-properties" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="properties">
+<span id="gateone-properties"></span><h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
+<div class="collapseindex container">
+<table class="hlist"><tr><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.prefs" title="GateOne.prefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.url" title="GateOne.prefs.url"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.url</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.fillContainer" title="GateOne.prefs.fillContainer"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.fillContainer</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.style" title="GateOne.prefs.style"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.style</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.goDiv" title="GateOne.prefs.goDiv"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.scrollback" title="GateOne.prefs.scrollback"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.scrollback</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.rows" title="GateOne.prefs.rows"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.rows</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.cols" title="GateOne.prefs.cols"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.cols</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.prefix" title="GateOne.prefs.prefix"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.prefix</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.theme" title="GateOne.prefs.theme"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.theme</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.colors" title="GateOne.prefs.colors"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.colors</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.fontSize" title="GateOne.prefs.fontSize"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.fontSize</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.autoConnectURL" title="GateOne.prefs.autoConnectURL"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.autoConnectURL</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.embedded" title="GateOne.prefs.embedded"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.embedded</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.showTitle" title="GateOne.prefs.showTitle"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.showTitle</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.showToolbar" title="GateOne.prefs.showToolbar"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.showToolbar</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.audibleBell" title="GateOne.prefs.audibleBell"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.audibleBell</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.bellSound" title="GateOne.prefs.bellSound"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.bellSound</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.bellSoundType" title="GateOne.prefs.bellSoundType"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.bellSoundType</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.disableTermTransitions" title="GateOne.prefs.disableTermTransitions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.disableTermTransitions</span></tt></a></li>
+</ul>
+</td><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.prefs.colAdjust" title="GateOne.prefs.colAdjust"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.colAdjust</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.rowAdjust" title="GateOne.prefs.rowAdjust"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.rowAdjust</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.webWorker" title="GateOne.prefs.webWorker"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.webWorker</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.auth" title="GateOne.prefs.auth"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.auth</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.noSavePrefs" title="GateOne.noSavePrefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.noSavePrefs</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals" title="GateOne.terminals"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].backspace" title="GateOne.terminals[num].backspace"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].backspace</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].columns" title="GateOne.terminals[num].columns"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].columns</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].created" title="GateOne.terminals[num].created"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].created</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].mode" title="GateOne.terminals[num].mode"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].mode</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].playbackFrames" title="GateOne.terminals[num].playbackFrames"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].playbackFrames</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].prevScreen" title="GateOne.terminals[num].prevScreen"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].prevScreen</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].rows" title="GateOne.terminals[num].rows"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].rows</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].screen" title="GateOne.terminals[num].screen"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].screen</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].scrollback" title="GateOne.terminals[num].scrollback"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].scrollback</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].scrollbackVisible" title="GateOne.terminals[num].scrollbackVisible"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].scrollbackVisible</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].sshConnectString" title="GateOne.terminals[num].sshConnectString"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].sshConnectString</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Icons" title="GateOne.Icons"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Icons</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.loadedModules" title="GateOne.loadedModules"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.loadedModules</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.ws" title="GateOne.ws"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws</span></tt></a></li>
+</ul>
+</td></tr></table>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">These are ordered by importance/usefulness.</p>
 </div>
+<div class="section" id="prefs">
+<h4>prefs<a class="headerlink" href="#prefs" title="Permalink to this headline">¶</a></h4>
 <dl class="attribute">
 <dt id="GateOne.prefs">
 <tt class="descclassname">GateOne.</tt><tt class="descname">prefs</tt><a class="headerlink" href="#GateOne.prefs" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is where all of Gate One's client-side preferences are kept.  If the client changes them they will be saved in <tt class="docutils literal"><span class="pre">localStorage['prefs']</span></tt>.  Also, these settings can be passed to <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> as an object in the first argument like so:</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Object</td>
+</tr>
+</tbody>
+</table>
+<p>This is where all of Gate One's client-side preferences are kept.  If the client changes them they will be saved in <tt class="docutils literal"><span class="pre">localStorage['prefs']</span></tt>.  Also, these settings can be passed to <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> as an object in the first argument like so:</p>
 <blockquote>
-<div><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">init</span><span class="p">({</span><span class="nx">fillContainer</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="nx">style</span><span class="o">:</span> <span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="o">:</span> <span class="s1">&#39;50em&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="o">:</span> <span class="s1">&#39;32em&#39;</span><span class="p">},</span> <span class="nx">scheme</span><span class="o">:</span> <span class="s1">&#39;white&#39;</span><span class="p">});</span>
+<div><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">init</span><span class="p">({</span><span class="nx">fillContainer</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span> <span class="nx">style</span><span class="o">:</span> <span class="p">{</span><span class="s1">&#39;width&#39;</span><span class="o">:</span> <span class="s1">&#39;50em&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="o">:</span> <span class="s1">&#39;32em&#39;</span><span class="p">},</span> <span class="nx">theme</span><span class="o">:</span> <span class="s1">&#39;white&#39;</span><span class="p">});</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -183,7 +240,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.url">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">url</tt><a class="headerlink" href="#GateOne.prefs.url" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">url</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">href</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">url</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">href</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>URL of the Gate One server.  Gate One will open a WebSocket to this URL, converting '<a class="reference external" href="http://">http://</a>' and '<a class="reference external" href="https://">https://</a>' to 'ws://' and 'wss://'.</p>
@@ -192,7 +257,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.fillContainer">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">fillContainer</tt><a class="headerlink" href="#GateOne.prefs.fillContainer" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">fillContainer</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Boolean</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">fillContainer</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>If set to true, <a class="reference internal" href="#GateOne.prefs.goDiv" title="GateOne.prefs.goDiv"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt></a> (e.g. <tt class="docutils literal"><span class="pre">#gateone</span></tt>) will fill itself out to the full size of its parent element.</p>
@@ -201,7 +274,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.style">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">style</tt><a class="headerlink" href="#GateOne.prefs.style" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">style</span> <span class="o">=</span> <span class="p">{};</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Object</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">style</span> <span class="o">=</span> <span class="p">{};</span>
 </pre></div>
 </div>
 <p>An object that will be used to apply styles to <a class="reference internal" href="#GateOne.prefs.goDiv" title="GateOne.prefs.goDiv"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt></a> element (<tt class="docutils literal"><span class="pre">#gateone</span></tt> by default).  Example:</p>
@@ -217,7 +298,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.goDiv">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">goDiv</tt><a class="headerlink" href="#GateOne.prefs.goDiv" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">goDiv</span> <span class="o">=</span> <span class="s1">&#39;#gateone&#39;</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">goDiv</span> <span class="o">=</span> <span class="s1">&#39;#gateone&#39;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>The element to place Gate One inside of.  It can be any block element (or element set with <tt class="docutils literal"><span class="pre">display:</span> <span class="pre">block</span></tt> or <tt class="docutils literal"><span class="pre">display:</span> <span class="pre">inline-block</span></tt>) on the page embedding Gate One.</p>
@@ -230,7 +319,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.scrollback">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">scrollback</tt><a class="headerlink" href="#GateOne.prefs.scrollback" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">scrollback</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Integer</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">scrollback</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>The default number of lines of scrollback that clients will be instructed to use.  The higher the number the longer it will take for the browser to re-enable the scrollback buffer after the 3.5-second screen update timeout is reached.  500 lines should only take a few milliseconds even on a slow computer (very high resolutions notwithstanding).</p>
@@ -243,7 +340,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.rows">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">rows</tt><a class="headerlink" href="#GateOne.prefs.rows" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">rows</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Integer</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">rows</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>This will force the number of rows in the terminal.  If null, Gate One will automatically figure out how many will fit within <a class="reference internal" href="#GateOne.prefs.goDiv" title="GateOne.prefs.goDiv"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt></a>.</p>
@@ -252,7 +357,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.cols">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">cols</tt><a class="headerlink" href="#GateOne.prefs.cols" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">cols</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Integer</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">cols</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>This will force the number of columns in the terminal.  If null, Gate One will automatically figure out how many will fit within <a class="reference internal" href="#GateOne.prefs.goDiv" title="GateOne.prefs.goDiv"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt></a>.</p>
@@ -261,7 +374,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.prefix">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">prefix</tt><a class="headerlink" href="#GateOne.prefs.prefix" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">prefix</span> <span class="o">=</span> <span class="s1">&#39;go_&#39;</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">prefix</span> <span class="o">=</span> <span class="s1">&#39;go_&#39;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Instructs Gate One to prefix the 'id' of all elements it creates with this string (except <a class="reference internal" href="#GateOne.prefs.goDiv" title="GateOne.prefs.goDiv"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt></a> itself).  You usually won't want to change this unless you're embedding Gate One into a page where a name conflict exists (e.g. you already have an element named <tt class="docutils literal"><span class="pre">#go_notice</span></tt>).  The Gate One server will be made aware of this setting when the client connects so it can apply it to all generated templates where necessary.</p>
@@ -270,7 +391,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.theme">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">theme</tt><a class="headerlink" href="#GateOne.prefs.theme" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">theme</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">theme</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>This sets the default CSS theme.  Clients will still be able to change it in the preferences if they wish.</p>
@@ -279,7 +408,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.colors">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">colors</tt><a class="headerlink" href="#GateOne.prefs.colors" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">colors</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">;</span> <span class="c1">// &#39;gnome-terminal&#39; is another text color scheme that comes with Gate One.</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">colors</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">;</span> <span class="c1">// &#39;gnome-terminal&#39; is another text color scheme that comes with Gate One.</span>
 </pre></div>
 </div>
 <p>This sets the CSS text color scheme.  These are the colors that text <em>renditions</em> will use (i.e. when the terminal text is bold, red, etc).</p>
@@ -288,7 +425,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.fontSize">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">fontSize</tt><a class="headerlink" href="#GateOne.prefs.fontSize" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">fontSize</span> <span class="o">=</span> <span class="s1">&#39;100%&#39;</span><span class="p">;</span> <span class="c1">// Alternatives: &#39;1em&#39;, &#39;12pt&#39;, &#39;15px&#39;, etc.</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">fontSize</span> <span class="o">=</span> <span class="s1">&#39;100%&#39;</span><span class="p">;</span> <span class="c1">// Alternatives: &#39;1em&#39;, &#39;12pt&#39;, &#39;15px&#39;, etc.</span>
 </pre></div>
 </div>
 <p>This sets the base font size for everything in <a class="reference internal" href="#GateOne.prefs.goDiv" title="GateOne.prefs.goDiv"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt></a> (e.g. #gateone).</p>
@@ -301,7 +446,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.autoConnectURL">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">autoConnectURL</tt><a class="headerlink" href="#GateOne.prefs.autoConnectURL" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">autoConnectURL</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">autoConnectURL</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>If the SSH plugin is installed, this setting can be used to ensure that whenever a client connects it will automatically connect to the given SSH URL.  Here's an example where Gate One would auto-connect as a guest user to localhost (hypothetical terminal program demo):</p>
@@ -317,7 +470,15 @@
 <span class="target" id="embedded-mode"></span><dl class="attribute">
 <dt id="GateOne.prefs.embedded">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">embedded</tt><a class="headerlink" href="#GateOne.prefs.embedded" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">embedded</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Boolean</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">embedded</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>This option tells Gate One (at the client) to run in embedded mode.  In embedded mode there will be no toolbar, no side information panel, and new terminals will not be opened automatically.  In essence, it just connects to the Gate One server, downloads additional JavaScript/CSS (plugins/themes), and calls each plugin's init() and postInit() functions (which may also behave differently in embedded mode).  The point is to provide developers with the flexibility to control every aspect of Gate One's look and feel.</p>
@@ -331,7 +492,15 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.showTitle">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">showTitle</tt><a class="headerlink" href="#GateOne.prefs.showTitle" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">showTitle</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Boolean</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">showTitle</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>If this is set to <tt class="docutils literal"><span class="pre">false</span></tt> Gate One will not show the terminal title in the sidebar.</p>
@@ -340,16 +509,32 @@
 <dl class="attribute">
 <dt id="GateOne.prefs.showToolbar">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">showToolbar</tt><a class="headerlink" href="#GateOne.prefs.showToolbar" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">showToolbar</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Boolean</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">showToolbar</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>If this is set to <tt class="docutils literal"><span class="pre">false</span></tt> Gate One will not show the toolbar (no icons on the right).</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.prefs.bellSound">
-<tt class="descclassname">GateOne.prefs.</tt><tt class="descname">bellSound</tt><a class="headerlink" href="#GateOne.prefs.bellSound" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">bellSound</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+<dt id="GateOne.prefs.audibleBell">
+<tt class="descclassname">GateOne.prefs.</tt><tt class="descname">audibleBell</tt><a class="headerlink" href="#GateOne.prefs.audibleBell" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Boolean</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">audibleBell</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>If this is set to <tt class="docutils literal"><span class="pre">false</span></tt> Gate One will not play a sound when a bell is encountered in any given terminal.</p>
@@ -360,18 +545,123 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="GateOne.prefs.bellSound">
+<tt class="descclassname">GateOne.prefs.</tt><tt class="descname">bellSound</tt><a class="headerlink" href="#GateOne.prefs.bellSound" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">bellSound</span> <span class="o">=</span> <span class="s2">&quot;data:audio/ogg;base64,T2dnUwACAAAAAAAAA...&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Stores the user's chosen (or the default) bell sound as a data URI.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is much more efficient than having to download this file from the server every time Gate One is loaded!</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.prefs.bellSoundType">
+<tt class="descclassname">GateOne.prefs.</tt><tt class="descname">bellSoundType</tt><a class="headerlink" href="#GateOne.prefs.bellSoundType" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">bellSound</span> <span class="o">=</span> <span class="s2">&quot;audio/ogg&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Stores the mimetype associated with <a class="reference internal" href="#GateOne.prefs.bellSound" title="GateOne.prefs.bellSound"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.bellSound</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="GateOne.prefs.disableTermTransitions">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">disableTermTransitions</tt><a class="headerlink" href="#GateOne.prefs.disableTermTransitions" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">disableTermTransitions</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Boolean</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">disableTermTransitions</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>With this enabled Gate One won't use fancy CSS3 transitions when switching between open terminals.  Such switching will be instantaneous (i.e. not smooth/pretty).</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="GateOne.prefs.colAdjust">
+<tt class="descclassname">GateOne.prefs.</tt><tt class="descname">colAdjust</tt><a class="headerlink" href="#GateOne.prefs.colAdjust" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Integer</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">colAdjust</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>When the terminal size is calculated the number of columns will be decreased by this amount (e.g. to make room for an extra toolbar).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.prefs.rowAdjust">
+<tt class="descclassname">GateOne.prefs.</tt><tt class="descname">rowAdjust</tt><a class="headerlink" href="#GateOne.prefs.rowAdjust" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Integer</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">rowAdjust</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>When the terminal size is calculated the number of rows will be decreased by this amount (e.g. to make room for the playback controls).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.prefs.webWorker">
+<tt class="descclassname">GateOne.prefs.</tt><tt class="descname">webWorker</tt><a class="headerlink" href="#GateOne.prefs.webWorker" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">webWorker</span> <span class="o">=</span> <span class="s2">&quot;https://gateone.company.com/static/go_process.js&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This is the fallback path to Gate One's Web Worker.  You should only ever have to change this when embedding Gate One into another application <em>and</em> your Gate One server is listening on a different port than your app's web server.  Otherwise Gate One will just use the Web Worker located at <a class="reference internal" href="#GateOne.prefs.url" title="GateOne.prefs.url"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.url</span></tt></a>/static/go_process.js.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="GateOne.prefs.auth">
 <tt class="descclassname">GateOne.prefs.</tt><tt class="descname">auth</tt><a class="headerlink" href="#GateOne.prefs.auth" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">auth</span> <span class="o">=</span> <span class="p">{</span> <span class="c1">// This is just an example--not a default</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Object</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">auth</span> <span class="o">=</span> <span class="p">{</span> <span class="c1">// This is just an example--not a default</span>
     <span class="s1">&#39;api_key&#39;</span><span class="o">:</span> <span class="s1">&#39;MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M&#39;</span><span class="p">,</span>
     <span class="s1">&#39;upn&#39;</span><span class="o">:</span> <span class="s1">&#39;joe@company.com&#39;</span><span class="p">,</span>
     <span class="s1">&#39;timestamp&#39;</span><span class="o">:</span> <span class="mi">1323391717238</span><span class="p">,</span>
@@ -395,7 +685,15 @@
 <dl class="attribute">
 <dt id="GateOne.noSavePrefs">
 <tt class="descclassname">GateOne.</tt><tt class="descname">noSavePrefs</tt><a class="headerlink" href="#GateOne.noSavePrefs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Properties in this object that match the names of objects in <a class="reference internal" href="#GateOne.prefs" title="GateOne.prefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt></a> will get ignored when they are saved to localStorage.</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Object</td>
+</tr>
+</tbody>
+</table>
+<p>Properties in this object that match the names of objects in <a class="reference internal" href="#GateOne.prefs" title="GateOne.prefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt></a> will get ignored when they are saved to localStorage.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><strong>Plugin Authors:</strong> If you want to have your own property in <a class="reference internal" href="#GateOne.prefs" title="GateOne.prefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt></a> but it isn't a per-user setting, add your property here (e.g. <tt class="docutils literal"><span class="pre">GateOne.prefs['myPref']</span> <span class="pre">=</span> <span class="pre">'foo';</span> <span class="pre">GateOne.noSavePrefs['myPref']</span> <span class="pre">=</span> <span class="pre">null;</span></tt>).</p>
@@ -403,6 +701,7 @@
 <p>Here's what this object contains by default:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">noSavePrefs</span> <span class="o">=</span> <span class="p">{</span>
     <span class="nx">url</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span> <span class="c1">// These are all things that shouldn&#39;t be modified by the user.</span>
+    <span class="nx">webWorker</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
     <span class="nx">fillContainer</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
     <span class="nx">style</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
     <span class="nx">goDiv</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
@@ -411,7 +710,9 @@
     <span class="nx">embedded</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
     <span class="nx">auth</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
     <span class="nx">showTitle</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
-    <span class="nx">showToolbar</span><span class="o">:</span> <span class="kc">null</span>
+    <span class="nx">showToolbar</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="nx">rowAdjust</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="nx">colAdjust</span><span class="o">:</span> <span class="kc">null</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -420,20 +721,34 @@
 <dl class="attribute">
 <dt id="GateOne.terminals">
 <tt class="descclassname">GateOne.</tt><tt class="descname">terminals</tt><a class="headerlink" href="#GateOne.terminals" title="Permalink to this definition">¶</a></dt>
-<dd><p>Terminal-specific settings and information are stored within this object like so:</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Object</td>
+</tr>
+</tbody>
+</table>
+<p>Terminal-specific settings and information are stored within this object like so:</p>
 <blockquote>
-<div><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+<div><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">X11Title</span> <span class="o">=</span> <span class="s2">&quot;Gate One&quot;</span><span class="p">,</span>
     <span class="nx">backspace</span><span class="o">:</span> <span class="nb">String</span><span class="p">.</span><span class="nx">fromCharCode</span><span class="p">(</span><span class="mi">127</span><span class="p">),</span>
     <span class="nx">columns</span><span class="o">:</span> <span class="mi">165</span><span class="p">,</span>
     <span class="nx">created</span><span class="o">:</span> <span class="nb">Date</span><span class="p">(),</span>
     <span class="nx">mode</span><span class="o">:</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>
+    <span class="nx">node</span><span class="o">:</span> <span class="o">&lt;</span><span class="nx">pre</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="nx">pasteNode</span><span class="o">:</span> <span class="o">&lt;</span><span class="nx">textarea</span><span class="o">&gt;</span><span class="p">,</span>
     <span class="nx">playbackFrames</span><span class="o">:</span> <span class="nb">Array</span><span class="p">(),</span>
     <span class="nx">prevScreen</span><span class="o">:</span> <span class="nb">Array</span><span class="p">(),</span>
     <span class="nx">rows</span><span class="o">:</span> <span class="mi">45</span><span class="p">,</span>
     <span class="nx">screen</span><span class="o">:</span> <span class="nb">Array</span><span class="p">(),</span>
+    <span class="nx">screenNode</span><span class="o">:</span> <span class="o">&lt;</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">,</span>
     <span class="nx">scrollback</span><span class="o">:</span> <span class="nb">Array</span><span class="p">(),</span>
+    <span class="nx">scrollbackNode</span><span class="o">:</span> <span class="o">&lt;</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">,</span>
     <span class="nx">scrollbackTimer</span><span class="o">:</span> <span class="mi">2311</span><span class="p">,</span>
     <span class="nx">scrollbackVisible</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">scrollbackWriteTimer</span><span class="o">:</span> <span class="mi">2649</span>
     <span class="nx">sshConnectString</span><span class="o">:</span> <span class="s2">&quot;user@localhost:22&quot;</span>
 <span class="p">};</span>
 </pre></div>
@@ -441,9 +756,34 @@
 </div></blockquote>
 <p>Each terminal in Gate One has its own object--referenced by terminal number--attached to <a class="reference internal" href="#GateOne.terminals" title="GateOne.terminals"><tt class="xref js js-attr docutils literal"><span class="pre">terminals</span></tt></a> that gets created when a new terminal is opened (in <a class="reference internal" href="#GateOne.Terminal.newTerminal" title="GateOne.Terminal.newTerminal"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.newTerminal()</span></tt></a>).  Theses values and what they mean are outlined below:</p>
 <dl class="attribute">
-<dt id="GateOne.terminals[num].backspace &lt;character&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">backspace &lt;character&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].backspace <character>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">backspace</span> <span class="o">=</span> <span class="nb">String</span><span class="p">.</span><span class="nx">fromCharCode</span><span class="p">(</span><span class="mi">127</span><span class="p">);</span>
+<dt id="GateOne.terminals[num].X11Title">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">X11Title</tt><a class="headerlink" href="#GateOne.terminals[num].X11Title" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">X11Title</span> <span class="o">=</span> <span class="s2">&quot;New Terminal&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>When the server detects an X11 title escape sequence it sends it to the client and that value gets stored in this variable.  This is separated from the terminal node's <tt class="docutils literal"><span class="pre">title</span></tt> attribute so that the user can restore the X11 title after they have overridden it.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.terminals[num].backspace">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">backspace</tt><a class="headerlink" href="#GateOne.terminals[num].backspace" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">backspace</span> <span class="o">=</span> <span class="nb">String</span><span class="p">.</span><span class="nx">fromCharCode</span><span class="p">(</span><span class="mi">127</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>The backspace key used by this terminal.  One of ^? (String.fromCharCode(127)) or ^H (String.fromCharCode(8)).</p>
@@ -454,36 +794,102 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.terminals[num].columns &lt;number&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">columns &lt;number&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].columns <number>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">columns</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">cols</span><span class="p">;</span>
+<dt id="GateOne.terminals[num].columns">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">columns</tt><a class="headerlink" href="#GateOne.terminals[num].columns" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Integer</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">columns</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">cols</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>The number of columns this terminal is configured to use.  Unless the user changed it, it will match whatever is in <a class="reference internal" href="#GateOne.prefs.cols" title="GateOne.prefs.cols"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.cols</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.terminals[num].created &lt;Date()&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">created &lt;Date()&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].created <Date()>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">created</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">();</span>
+<dt id="GateOne.terminals[num].created">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">created</tt><a class="headerlink" href="#GateOne.terminals[num].created" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Date()</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">created</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">();</span>
 </pre></div>
 </div>
 <p>The date and time a terminal was originally created.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.terminals[num].mode &lt;string&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">mode &lt;string&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].mode <string>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">mode</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">;</span>
+<dt id="GateOne.terminals[num].mode">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">mode</tt><a class="headerlink" href="#GateOne.terminals[num].mode" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">mode</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>The current keyboard input mode of the terminal.  One of &quot;default&quot; or &quot;appmode&quot; representing whether or not the terminal is in standard or &quot;application cursor keys&quot; mode (which changes what certain keystrokes send to the Gate One server).</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.terminals[num].playbackFrames &lt;Array()&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">playbackFrames &lt;Array()&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].playbackFrames <Array()>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">playbackFrames</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">();</span>
+<dt id="GateOne.terminals[num].node">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">node</tt><a class="headerlink" href="#GateOne.terminals[num].node" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">DOM Node</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">node</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nx">pre</span> <span class="nx">node</span> <span class="nx">object</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Used as a quick reference to the terminal's &lt;pre&gt; node so we don't have to call <a class="reference internal" href="#GateOne.Utils.getNode" title="GateOne.Utils.getNode"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.getNode()</span></tt></a> every time we need it.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.terminals[num].pasteNode">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">pasteNode</tt><a class="headerlink" href="#GateOne.terminals[num].pasteNode" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">DOM Node</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">node</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nx">textarea</span> <span class="nx">node</span> <span class="nx">object</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Used as a quick reference to the terminal's pastearea node (which hovers above all terminals so you can paste in a natural fashion).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.terminals[num].playbackFrames">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">playbackFrames</tt><a class="headerlink" href="#GateOne.terminals[num].playbackFrames" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Array</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">playbackFrames</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">();</span>
 </pre></div>
 </div>
 <p>This is where Gate One stores the frames of your session so they can be played back on-the-fly.</p>
@@ -494,54 +900,153 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.terminals[num].prevScreen &lt;Array()&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">prevScreen &lt;Array()&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].prevScreen <Array()>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">prevScreen</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">();</span> <span class="c1">// Whatever was last in GateOne.terminals[num].screen</span>
+<dt id="GateOne.terminals[num].prevScreen">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">prevScreen</tt><a class="headerlink" href="#GateOne.terminals[num].prevScreen" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Array</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">prevScreen</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">();</span> <span class="c1">// Whatever was last in GateOne.terminals[num].screen</span>
 </pre></div>
 </div>
 <p>This stores the previous screen array from the last time the terminal was updated.  Gate One's terminal update protocol only sends lines that changed since the last screen was sent.  This variable allows us to create an updated screen from just the line that changed.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.terminals[num].rows &lt;number&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">rows &lt;number&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].rows <number>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">rows</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">rows</span><span class="p">;</span>
+<dt id="GateOne.terminals[num].rows">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">rows</tt><a class="headerlink" href="#GateOne.terminals[num].rows" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Integer</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">rows</span> <span class="o">=</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">rows</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>The number of rows this terminal is configured to use.  Unless the user changed it, it will match whatever is in <a class="reference internal" href="#GateOne.prefs.rows" title="GateOne.prefs.rows"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.rows</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.terminals[num].screen &lt;Array()&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">screen &lt;Array()&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].screen <Array()>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">screen</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">();</span>
+<dt id="GateOne.terminals[num].screen">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">screen</tt><a class="headerlink" href="#GateOne.terminals[num].screen" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Array</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">screen</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">();</span>
 </pre></div>
 </div>
 <p>This stores the current terminal's screen as an array of lines.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.terminals[num].scrollback &lt;Array()&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">scrollback &lt;Array()&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].scrollback <Array()>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">scrollback</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">();</span>
+<dt id="GateOne.terminals[num].screenNode">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">screenNode</tt><a class="headerlink" href="#GateOne.terminals[num].screenNode" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">DOM Node</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">node</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nx">span</span> <span class="nx">node</span> <span class="nx">object</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Used as a quick reference to the terminal's screen node (which is a span).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.terminals[num].scrollback">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">scrollback</tt><a class="headerlink" href="#GateOne.terminals[num].scrollback" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Array</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">scrollback</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">();</span>
 </pre></div>
 </div>
 <p>Stores the given terminal's scrollback buffer (so we can remove/replace it at-will).</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.terminals[num].scrollbackVisible &lt;boolean&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">scrollbackVisible &lt;boolean&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].scrollbackVisible <boolean>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">scrollbackVisible</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+<dt id="GateOne.terminals[num].scrollbackNode">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">scrollbackNode</tt><a class="headerlink" href="#GateOne.terminals[num].scrollbackNode" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">DOM Node</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">scrollbackNode</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nx">span</span> <span class="nx">node</span> <span class="nx">object</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Used as a quick reference to the terminal's scrollback node (which is a span).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.terminals[num].scrollbackVisible">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">scrollbackVisible</tt><a class="headerlink" href="#GateOne.terminals[num].scrollbackVisible" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Boolean</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">scrollbackVisible</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Kept up to date on the current status of whether or not the scrollback buffer is visible in the terminal (so we don't end up replacing it or removing it when we don't have to).</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="GateOne.terminals[num].sshConnectString &lt;string&gt;">
-<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">sshConnectString &lt;string&gt;</tt><a class="headerlink" href="#GateOne.terminals[num].sshConnectString <string>" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">sshConnectString</span> <span class="o">=</span> <span class="s2">&quot;ssh://user@somehost:22&quot;</span><span class="p">;</span> <span class="c1">// Will actually be whatever the user connected to</span>
+<dt id="GateOne.terminals[num].scrollbackWriteTimer">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">scrollbackWriteTimer</tt><a class="headerlink" href="#GateOne.terminals[num].scrollbackWriteTimer" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">scrollbackWriteTimer</span> <span class="o">=</span> <span class="o">&lt;</span><span class="nx">timeout</span> <span class="nx">object</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Whenever the scrollback buffer is updated a timer is set to write that scrollback to localStorage.  If an update comes in before that timer finishes the existing timer will be cancelled and replaced.  The idea is to prevent queueing up timers for scrollback that will just end up getting overwritten.  The <tt class="docutils literal"><span class="pre">scrollbackWriteTimer</span></tt> attribute holds the reference to this timer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.terminals[num].sshConnectString">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">sshConnectString</tt><a class="headerlink" href="#GateOne.terminals[num].sshConnectString" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">sshConnectString</span> <span class="o">=</span> <span class="s2">&quot;ssh://user@somehost:22&quot;</span><span class="p">;</span> <span class="c1">// Will actually be whatever the user connected to</span>
 </pre></div>
 </div>
 <p>If the SSH plugin is enabled, this variable contains the connection string used by the SSH client to connect to the server.</p>
@@ -556,7 +1061,15 @@
 <dl class="attribute">
 <dt id="GateOne.Icons">
 <tt class="descclassname">GateOne.</tt><tt class="descname">Icons</tt><a class="headerlink" href="#GateOne.Icons" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is where Gate One stores all of its (inline) SVG icons.  If your plugin has its own icons they can be kept in here.  Here's a (severely shortened) example from the Bookmarks plugin:</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Array</td>
+</tr>
+</tbody>
+</table>
+<p>This is where Gate One stores all of its (inline) SVG icons.  If your plugin has its own icons they can be kept in here.  Here's a (severely shortened) example from the Bookmarks plugin:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Icons</span><span class="p">[</span><span class="s1">&#39;bookmark&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&lt;svg xmlns:rdf=&quot;blah blah&quot;&gt;svg stuff here&lt;/svg&gt;&#39;</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -573,7 +1086,15 @@
 <dl class="attribute">
 <dt id="GateOne.loadedModules">
 <tt class="descclassname">GateOne.</tt><tt class="descname">loadedModules</tt><a class="headerlink" href="#GateOne.loadedModules" title="Permalink to this definition">¶</a></dt>
-<dd><p>All modules (aka plugins) loaded via <a class="reference internal" href="#GateOne.Base.module" title="GateOne.Base.module"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Base.module()</span></tt></a> are kept here as a quick reference.  For example:</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Array</td>
+</tr>
+</tbody>
+</table>
+<p>All modules (aka plugins) loaded via <a class="reference internal" href="#GateOne.Base.module" title="GateOne.Base.module"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Base.module()</span></tt></a> are kept here as a quick reference.  For example:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">loadedModules</span><span class="p">;</span>
 <span class="p">[</span>
     <span class="s2">&quot;GateOne.Base&quot;</span><span class="p">,</span>
@@ -582,9 +1103,11 @@
     <span class="s2">&quot;GateOne.Input&quot;</span><span class="p">,</span>
     <span class="s2">&quot;GateOne.Visual&quot;</span><span class="p">,</span>
     <span class="s2">&quot;GateOne.Terminal&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GateOne.User&quot;</span><span class="p">,</span>
     <span class="s2">&quot;GateOne.Bookmarks&quot;</span><span class="p">,</span>
     <span class="s2">&quot;GateOne.Help&quot;</span><span class="p">,</span>
     <span class="s2">&quot;GateOne.Logging&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GateOne.Mobile&quot;</span><span class="p">,</span>
     <span class="s2">&quot;GateOne.Playback&quot;</span><span class="p">,</span>
     <span class="s2">&quot;GateOne.SSH&quot;</span>
 <span class="p">]</span>
@@ -595,34 +1118,49 @@
 <dl class="attribute">
 <dt id="GateOne.ws">
 <tt class="descclassname">GateOne.</tt><tt class="descname">ws</tt><a class="headerlink" href="#GateOne.ws" title="Permalink to this definition">¶</a></dt>
-<dd><p>Holds Gate One's open WebSocket object.  It can be used to send messages to WebSocket hooks like so:</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">WebSocket</td>
+</tr>
+</tbody>
+</table>
+<p>Holds Gate One's open WebSocket object.  It can be used to send messages to WebSocket 'actions' (aka hooks) on the server like so:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="s1">&#39;my_plugin_function&#39;</span><span class="o">:</span> <span class="p">{</span><span class="s1">&#39;someparam&#39;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> <span class="s1">&#39;whatever&#39;</span><span class="o">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]}}));</span>
 </pre></div>
 </div>
 </dd></dl>
 
 </div>
+</div>
 <div class="section" id="functions">
 <span id="gateone-functions"></span><h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<div class="collapseindex container">
+<ul class="simple">
+<li><a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a></li>
+</ul>
+</div>
 <p><a class="reference internal" href="#GateOne" title="GateOne"><tt class="xref js js-data docutils literal"><span class="pre">GateOne</span></tt></a> contains two functions: <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">init()</span></tt></a> and <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">initialize()</span></tt></a>.  These functions are responsible for setting up Gate One's interface, authenticating the user (if necessary), connecting to the server, (re)loading user preferences, and calling the init() function of each module/plugin:</p>
 <blockquote>
 <div><dl class="function">
 <dt id="GateOne.init">
 <tt class="descclassname">GateOne.</tt><tt class="descname">init</tt><big>(</big><em>prefs</em><big>)</big><a class="headerlink" href="#GateOne.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up preferences, loads the CSS theme/colors, loads JavaScript plugins, and calls <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">initialize()</span></tt></a>.  Additionally, it will check if the user is authenticated and will force a re-auth if the credentials stored in the encrypted cookie don't check out.</p>
+<dd><p>Sets up preferences, loads the CSS theme/colors, loads JavaScript plugins, and calls <a class="reference internal" href="#GateOne.Net.connect" title="GateOne.Net.connect"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.connect()</span></tt></a> (which calls <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">initialize()</span></tt></a> after the successfully connecting).  Additionally, it will check if the user is authenticated and will force a re-auth if the credentials stored in the encrypted cookie don't check out.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>prefs</strong> (<em>object</em>) -- An object containing the settings that will be used by Gate One.  See <a class="reference internal" href="#GateOne.prefs" title="GateOne.prefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt></a> under <a class="reference internal" href="#gateone-properties"><em>GateOne JavaScript Properties</em></a> for details on what can be set.</li>
+<li><strong>prefs</strong> (<em>object</em>) -- An object containing the settings that will be used by Gate One.  See <a class="reference internal" href="#GateOne.prefs" title="GateOne.prefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt></a> under <a class="reference internal" href="#gateone-properties"><em>Properties</em></a> for details on what can be set.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">init</span><span class="p">({</span><span class="nx">url</span><span class="o">:</span> <span class="s1">&#39;https://console12.serialconcentrators.mycompany.com/&#39;</span><span class="p">,</span> <span class="nx">scheme</span><span class="o">:</span> <span class="s1">&#39;black&#39;</span><span class="p">});</span>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">init</span><span class="p">({</span><span class="nx">url</span><span class="o">:</span> <span class="s1">&#39;https://console12.serialconcentrators.mycompany.com/&#39;</span><span class="p">,</span> <span class="nx">theme</span><span class="o">:</span> <span class="s1">&#39;black&#39;</span><span class="p">});</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -630,7 +1168,7 @@
 <dl class="function">
 <dt id="GateOne.initialize">
 <tt class="descclassname">GateOne.</tt><tt class="descname">initialize</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.initialize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up Gate One's graphical elements, connects the WebSocket, and starts Gate One capturing keyboard input.</p>
+<dd><p>Sets up Gate One's graphical elements and starts Gate One capturing keyboard input.</p>
 </dd></dl>
 
 </div></blockquote>
@@ -646,10 +1184,77 @@
 <p>This module consists of a collection of utility functions used throughout Gate One.  Think of it like a mini JavaScript library of useful tools.</p>
 <div class="section" id="id2">
 <h3>Functions<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="collapseindex container">
+<table class="hlist"><tr><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.Utils.init" title="GateOne.Utils.init"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.init</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.createBlob" title="GateOne.Utils.createBlob"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.createBlob</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.createElement" title="GateOne.Utils.createElement"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.createElement</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.deleteCookie" title="GateOne.Utils.deleteCookie"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.deleteCookie</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.endsWith" title="GateOne.Utils.endsWith"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.endsWith</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.enumerateThemes" title="GateOne.Utils.enumerateThemes"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.enumerateThemes</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.getEmDimensions" title="GateOne.Utils.getEmDimensions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getEmDimensions</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.getNode" title="GateOne.Utils.getNode"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getNode</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.getNodes" title="GateOne.Utils.getNodes"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getNodes</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.getOffset" title="GateOne.Utils.getOffset"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getOffset</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.getRowsAndColumns" title="GateOne.Utils.getRowsAndColumns"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getRowsAndColumns</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.getSelText" title="GateOne.Utils.getSelText"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getSelText</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.getToken" title="GateOne.Utils.getToken"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getToken</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.hasElementClass" title="GateOne.Utils.hasElementClass"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.hasElementClass</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.hideElement" title="GateOne.Utils.hideElement"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.hideElement</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.hideElements" title="GateOne.Utils.hideElements"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.hideElements</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.init" title="GateOne.Utils.init"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.init</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.isArray" title="GateOne.Utils.isArray"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.isArray</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.isElement" title="GateOne.Utils.isElement"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.isElement</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.isEven" title="GateOne.Utils.isEven"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.isEven</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.isHTMLCollection" title="GateOne.Utils.isHTMLCollection"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.isHTMLCollection</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.isNodeList" title="GateOne.Utils.isNodeList"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.isNodeList</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.isPageHidden" title="GateOne.Utils.isPageHidden"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.isPageHidden</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.isPrime" title="GateOne.Utils.isPrime"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.isPrime</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.isVisible" title="GateOne.Utils.isVisible"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.isVisible</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.itemgetter" title="GateOne.Utils.itemgetter"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.itemgetter</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.items" title="GateOne.Utils.items"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.items</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.loadCSS" title="GateOne.Utils.loadCSS"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadCSS</span></tt></a></li>
+</ul>
+</td><td><ul class="simple">
+<li><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadPluginCSS</span></tt></li>
+<li><a class="reference internal" href="#GateOne.Utils.loadPrefs" title="GateOne.Utils.loadPrefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadPrefs</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.loadScript" title="GateOne.Utils.loadScript"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadScript</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.loadStyle" title="GateOne.Utils.loadStyle"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadStyle</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.loadThemeCSS" title="GateOne.Utils.loadThemeCSS"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadThemeCSS</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.ltrim" title="GateOne.Utils.ltrim"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.ltrim</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.noop" title="GateOne.Utils.noop"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.noop</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.partial" title="GateOne.Utils.partial"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.partial</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.postInit" title="GateOne.Utils.postInit"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.postInit</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.randomPrime" title="GateOne.Utils.randomPrime"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.randomPrime</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.randomString" title="GateOne.Utils.randomString"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.randomString</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.removeElement" title="GateOne.Utils.removeElement"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.removeElement</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.replaceURLWithHTMLLinks" title="GateOne.Utils.replaceURLWithHTMLLinks"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.replaceURLWithHTMLLinks</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.rtrim" title="GateOne.Utils.rtrim"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.rtrim</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.runPostInit" title="GateOne.Utils.runPostInit"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.runPostInit</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.saveAs" title="GateOne.Utils.saveAs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.saveAs</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.saveAsAction" title="GateOne.Utils.saveAsAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.saveAsAction</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.savePrefs" title="GateOne.Utils.savePrefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.savePrefs</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.scrollLines" title="GateOne.Utils.scrollLines"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.scrollLines</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.scrollToBottom" title="GateOne.Utils.scrollToBottom"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.scrollToBottom</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.setActiveStyleSheet" title="GateOne.Utils.setActiveStyleSheet"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.setActiveStyleSheet</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.showElement" title="GateOne.Utils.showElement"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.showElement</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.showElements" title="GateOne.Utils.showElements"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.showElements</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.startsWith" title="GateOne.Utils.startsWith"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.startsWith</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.stripHTML" title="GateOne.Utils.stripHTML"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.stripHTML</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.toArray" title="GateOne.Utils.toArray"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.toArray</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Utils.xhrGet" title="GateOne.Utils.xhrGet"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.xhrGet</span></tt></a></li>
+</ul>
+</td></tr></table>
+</div>
 <dl class="function">
 <dt id="GateOne.Utils.init">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Like all plugin init() functions this gets called from <a class="reference internal" href="#GateOne.Utils.postInit" title="GateOne.Utils.postInit"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.postInit()</span></tt></a> which itself is called at the end of <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a>.  It simply attaches the 'save_file' (WebSocket) action to <a class="reference internal" href="#GateOne.Utils.saveAsAction" title="GateOne.Utils.saveAsAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.saveAsAction()</span></tt></a> (in <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a>).</p>
+<dd><p>Like all plugin init() functions this gets called from <a class="reference internal" href="#GateOne.Utils.runPostInit" title="GateOne.Utils.runPostInit"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.runPostInit()</span></tt></a> which itself is called at the end of <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a>.  It simply attaches a few actions like, 'save_file' to their respective functions in <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a>.  Literally:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;save_file&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">saveAsAction</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;load_style&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">loadStyle</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;themes_list&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">enumerateThemes</span><span class="p">);</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -759,6 +1364,12 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Utils.enumerateThemes">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">enumerateThemes</tt><big>(</big><em>messageObj</em><big>)</big><a class="headerlink" href="#GateOne.Utils.enumerateThemes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attached to the 'themes_list' action, updates the preferences panel with the list of themes stored on the server.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Utils.getEmDimensions">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getEmDimensions</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Utils.getEmDimensions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the height and width of 1em inside the given elem (e.g. '#term1_pre').  The returned object will be in the form of:</p>
@@ -770,7 +1381,7 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>elem</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>elem</strong> -- A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
 </ul>
 </td>
 </tr>
@@ -789,7 +1400,7 @@
 <dl class="function">
 <dt id="GateOne.Utils.getNode">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getNode</tt><big>(</big><em>nodeOrSelector</em><big>)</big><a class="headerlink" href="#GateOne.Utils.getNode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a DOM node if given a querySelector-style string or an existing DOM node (will return the node as-is).</p>
+<dd><p>Returns a DOM node if given a <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a>-style string or an existing DOM node (will return the node as-is).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The benefit of this over just <tt class="docutils literal"><span class="pre">document.querySelector()</span></tt> is that if it is given a node it will return the node as-is (so functions can accept both without having to worry about such things).  See <a class="reference internal" href="#GateOne.Utils.removeElement" title="GateOne.Utils.removeElement"><tt class="xref js js-func docutils literal"><span class="pre">removeElement()</span></tt></a> below for a good example.</p>
@@ -799,7 +1410,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>nodeOrSelector</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>nodeOrSelector</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -820,7 +1432,7 @@
 <dl class="function">
 <dt id="GateOne.Utils.getNodes">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getNodes</tt><big>(</big><em>nodeListOrSelector</em><big>)</big><a class="headerlink" href="#GateOne.Utils.getNodes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a CSS querySelectorAll-like string (e.g. '.some_class') or <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a> (in case we're not sure), lookup the node using <tt class="docutils literal"><span class="pre">document.querySelectorAll()</span></tt> and return the result (which will be a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>).</p>
+<dd><p>Given a CSS <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll">querySelectorAll</a> string (e.g. '.some_class') or <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a> (in case we're not sure), lookup the node using <tt class="docutils literal"><span class="pre">document.querySelectorAll()</span></tt> and return the result (which will be a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The benefit of this over just <tt class="docutils literal"><span class="pre">document.querySelectorAll()</span></tt> is that if it is given a nodeList it will just return the nodeList as-is (so functions can accept both without having to worry about such things).</p>
@@ -830,7 +1442,7 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>nodeListOrSelector</strong> -- <p>A querySelectorAll string like <tt class="docutils literal"><span class="pre">.some_class</span></tt> or a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>.</p>
+<li><strong>nodeListOrSelector</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll">querySelectorAll</a> string like <tt class="docutils literal"><span class="pre">.some_class</span></tt> or a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>.</p>
 </li>
 </ul>
 </td>
@@ -859,7 +1471,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>elem</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -928,13 +1541,14 @@
 <dl class="function">
 <dt id="GateOne.Utils.hasElementClass">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">hasElementClass</tt><big>(</big><em>element</em>, <em>className</em><big>)</big><a class="headerlink" href="#GateOne.Utils.hasElementClass" title="Permalink to this definition">¶</a></dt>
-<dd><p>Almost a direct copy of <a class="reference external" href="http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-haselementclass">MochiKit.DOM.hasElementClass</a>...  Returns true if <em>className</em> is found on <em>element</em>. <em>element</em> is looked up with <a class="reference internal" href="#GateOne.Utils.getNode" title="GateOne.Utils.getNode"><tt class="xref js js-func docutils literal"><span class="pre">getNode()</span></tt></a> so querySelector-style identifiers or DOM nodes are acceptable.</p>
+<dd><p>Almost a direct copy of <a class="reference external" href="http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-haselementclass">MochiKit.DOM.hasElementClass</a>...  Returns true if <em>className</em> is found on <em>element</em>. <em>element</em> is looked up with <a class="reference internal" href="#GateOne.Utils.getNode" title="GateOne.Utils.getNode"><tt class="xref js js-func docutils literal"><span class="pre">getNode()</span></tt></a> so <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a>-style identifiers or DOM nodes are acceptable.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
-<li><strong>element</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>element</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
 <li><strong>className</strong> -- The name of the class you're checking is applied to <em>element</em>.</li>
 </ul>
 </td>
@@ -962,7 +1576,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>elem</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -970,6 +1585,28 @@
 </table>
 <p>Example:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">hideElement</span><span class="p">(</span><span class="s1">&#39;#go_icon_newterm&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.hideElements">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">hideElements</tt><big>(</big><em>elems</em><big>)</big><a class="headerlink" href="#GateOne.Utils.hideElements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hides the given elements by setting <tt class="docutils literal"><span class="pre">elem.style.display</span> <span class="pre">=</span> <span class="pre">'none'</span></tt> on all of them.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>elems</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll">querySelectorAll</a> string like <tt class="docutils literal"><span class="pre">.some_element_class</span></tt>, a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>, or an array.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">hideElements</span><span class="p">(</span><span class="s1">&#39;.pastearea&#39;</span><span class="p">);</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1102,6 +1739,17 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Utils.isPageHidden">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">isPageHidden</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.isPageHidden" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the page (browser tab) is hidden (e.g. inactive).  Returns false otherwise.</p>
+<p>Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isPageHidden</span><span class="p">();</span>
+<span class="kc">false</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Utils.isPrime">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">isPrime</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#GateOne.Utils.isPrime" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns true if <em>n</em> is a prime number.</p>
@@ -1125,6 +1773,21 @@
 <span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isPrime</span><span class="p">(</span><span class="mi">14</span><span class="p">);</span>
 <span class="kc">false</span>
 </pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.isVisible">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">isVisible</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Utils.isVisible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if <em>node</em> is visible (checks parent nodes recursively too).  <em>node</em> may be a DOM node or a selector string.</p>
+<p>Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">isVisible</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="o">+</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">prefix</span><span class="o">+</span><span class="s1">&#39;pastearea1&#39;</span><span class="p">);</span>
+<span class="kc">true</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Relies on checking elem.style.opacity and elem.style.display.  Does <em>not</em> check transforms.</p>
 </div>
 </dd></dl>
 
@@ -1261,9 +1924,15 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Utils.loadStyle">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadStyle</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Utils.loadStyle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the stylesheet sent by the server via the 'load_style' WebSocket action.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Utils.loadThemeCSS">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadThemeCSS</tt><big>(</big><em>schemeObj</em><big>)</big><a class="headerlink" href="#GateOne.Utils.loadThemeCSS" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads the GateOne CSS theme(s) for the given <em>schemeObj</em> which should be in the form of:</p>
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadThemeCSS</tt><big>(</big><em>themeObj</em><big>)</big><a class="headerlink" href="#GateOne.Utils.loadThemeCSS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the GateOne CSS theme(s) for the given <em>themeObj</em> which should be in the form of:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span><span class="s1">&#39;theme&#39;</span><span class="o">:</span> <span class="s1">&#39;black&#39;</span><span class="p">}</span>
 <span class="c1">// or:</span>
 <span class="p">{</span><span class="s1">&#39;colors&#39;</span><span class="o">:</span> <span class="s1">&#39;gnome-terminal&#39;</span><span class="p">}</span>
@@ -1271,7 +1940,13 @@
 <span class="p">{</span><span class="s1">&#39;theme&#39;</span><span class="o">:</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="s1">&#39;colors&#39;</span><span class="o">:</span> <span class="s1">&#39;gnome-terminal&#39;</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>If <em>schemeObj</em> is not provided, will load the defaults.</p>
+<p>If <em>themeObj</em> is not provided, will load the defaults.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.ltrim">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">ltrim</tt><big>(</big><em>string</em><big>)</big><a class="headerlink" href="#GateOne.Utils.ltrim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>string</em> minus left-hand whitespace</p>
 </dd></dl>
 
 <dl class="function">
@@ -1344,7 +2019,7 @@
 <dl class="function">
 <dt id="GateOne.Utils.postInit">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">postInit</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.postInit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called by <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a>, iterates over the list of plugins in <a class="reference internal" href="#GateOne.loadedModules" title="GateOne.loadedModules"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.loadedModules</span></tt></a> calling the <tt class="docutils literal"><span class="pre">init()</span></tt> function of each (if present).  When that's done it does the same thing with each respective plugin's <tt class="docutils literal"><span class="pre">postInit()</span></tt> function.</p>
+<dd><p>Called by <tt class="xref js js-func docutils literal"><span class="pre">GateOne.runPostInit()</span></tt>, iterates over the list of plugins in <a class="reference internal" href="#GateOne.loadedModules" title="GateOne.loadedModules"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.loadedModules</span></tt></a> calling the <tt class="docutils literal"><span class="pre">init()</span></tt> function of each (if present).  When that's done it does the same thing with each respective plugin's <tt class="docutils literal"><span class="pre">postInit()</span></tt> function.</p>
 </dd></dl>
 
 <dl class="function">
@@ -1407,7 +2082,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>elem</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -1447,6 +2123,18 @@
 <span class="s2">&quot;Downloading &lt;a href=&#39;http://foo.bar.com/some/file.zip&#39;&gt;http://foo.bar.com/some/file.zip&lt;/a&gt;&quot;</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.rtrim">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">rtrim</tt><big>(</big><em>string</em><big>)</big><a class="headerlink" href="#GateOne.Utils.rtrim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>string</em> minus right-hand whitespace</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.runPostInit">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">runPostInit</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.runPostInit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls all module/plugin <tt class="docutils literal"><span class="pre">init()</span></tt> functions followed by all <tt class="docutils literal"><span class="pre">postInit()</span></tt> functions after the page is loaded and the WebSocket has been connected.  Specifically it is called right near the end of <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a> just before keyboard input is enabled.</p>
 </dd></dl>
 
 <dl class="function">
@@ -1492,7 +2180,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>elem</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
 <li><strong>lines</strong> (<em>number</em>) -- The number of lines to scroll <em>elem</em> by.  Can be positive or negative.</li>
 </ul>
 </td>
@@ -1518,7 +2207,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>elem</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -1562,7 +2252,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>elem</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -1570,6 +2261,28 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </table>
 <p>Example:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">showElement</span><span class="p">(</span><span class="s1">&#39;#go_icon_newterm&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.showElements">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">showElements</tt><big>(</big><em>elems</em><big>)</big><a class="headerlink" href="#GateOne.Utils.showElements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows the given elements (if previously hidden via <a class="reference internal" href="#GateOne.Utils.hideElement" title="GateOne.Utils.hideElement"><tt class="xref js js-func docutils literal"><span class="pre">hideElement()</span></tt></a> or <a class="reference internal" href="#GateOne.Utils.hideElements" title="GateOne.Utils.hideElements"><tt class="xref js js-func docutils literal"><span class="pre">hideElements()</span></tt></a>) by setting <tt class="docutils literal"><span class="pre">elem.style.display</span> <span class="pre">=</span> <span class="pre">'block'</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>elems</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll">querySelectorAll</a> string like <tt class="docutils literal"><span class="pre">.some_element_class</span></tt>, a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>, or an array.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">showElements</span><span class="p">(</span><span class="s1">&#39;.pastearea&#39;</span><span class="p">);</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1598,6 +2311,31 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <span class="kc">true</span>
 <span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">startsWith</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="s1">&#39;somefile.txt&#39;</span><span class="p">);</span>
 <span class="kc">false</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.stripHTML">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">stripHTML</tt><big>(</big><em>html</em><big>)</big><a class="headerlink" href="#GateOne.Utils.stripHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of <em>html</em> minus the HTML.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>html</strong> (<em>string</em>) -- The string that you wish to strip HTML from.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The string with all HTML formatting removed.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Examples:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">stripHTML</span><span class="p">(</span><span class="s1">&#39;&lt;span&gt;This &lt;b&gt;is&lt;/b&gt; a test&lt;/span&gt;&#39;</span><span class="p">);</span>
+<span class="s2">&quot;This is a test&quot;</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1666,34 +2404,103 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dd></dd></dl>
 
 <p>Just about all of Gate One's communications with the server are handled inside this module.  It contains all the functions and properties to deal with setting up the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a> and issuing/receiving commands over it.  The most important facet of <a class="reference internal" href="#GateOne.Net" title="GateOne.Net"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net</span></tt></a> is <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a> which holds the mapping of what function maps to which command.  More info on <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a> is below.</p>
-<div class="section" id="properties">
-<h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id29">
+<h3>Properties<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
 <dl class="attribute">
 <dt id="GateOne.Net.actions">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">actions</tt><a class="headerlink" href="#GateOne.Net.actions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
-<p>This is where all of Gate One's WebSocket protocol actions are assigned to functions.  This is how they are defined by default:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">actions</span> <span class="o">=</span> <span class="p">{</span>
-<span class="c1">// These are what will get called when the server sends us each respective action</span>
-    <span class="s1">&#39;log&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">log</span><span class="p">,</span>
-    <span class="s1">&#39;ping&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">ping</span><span class="p">,</span>
-    <span class="s1">&#39;pong&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">pong</span><span class="p">,</span>
-    <span class="s1">&#39;reauthenticate&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">reauthenticate</span><span class="p">,</span>
-    <span class="s1">&#39;set_mode&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">setMode</span><span class="p">,</span>
-    <span class="s1">&#39;terminals&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">reattachTerminals</span><span class="p">,</span>
-    <span class="s1">&#39;termupdate&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">updateTerminal</span><span class="p">,</span>
-    <span class="s1">&#39;scroll_up&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">scrollUp</span><span class="p">,</span>
-    <span class="s1">&#39;term_exists&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">reconnectTerminalAction</span><span class="p">,</span>
-    <span class="s1">&#39;set_title&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">setTitle</span><span class="p">,</span> <span class="c1">// NOTE: This actually gets assigned via GateOne.Visual.init()</span>
-    <span class="s1">&#39;bell&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">bellAction</span><span class="p">,</span> <span class="c1">// NOTE: Ditto</span>
-    <span class="s1">&#39;metadata&#39;</span><span class="o">:</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">storeMetadata</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p>This is where all of Gate One's WebSocket protocol actions are assigned to functions.  Here's how they are defined by default:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="24%" />
+<col width="76%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Action</th>
+<th class="head">Function</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>bell</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.User.bellAction()</span></tt></td>
+</tr>
+<tr class="row-odd"><td>gateone_user</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.User.storeSession()</span></tt></td>
+</tr>
+<tr class="row-even"><td>load_bell</td>
+<td><a class="reference internal" href="#GateOne.User.loadBell" title="GateOne.User.loadBell"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.User.loadBell()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td>load_css</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.CSSPluginAction()</span></tt></td>
+</tr>
+<tr class="row-even"><td>load_style</td>
+<td><a class="reference internal" href="#GateOne.Utils.loadStyle" title="GateOne.Utils.loadStyle"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.loadStyle()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td>load_webworker</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.loadWebWorkerAction()</span></tt></td>
+</tr>
+<tr class="row-even"><td>log</td>
+<td><a class="reference internal" href="#GateOne.Net.log" title="GateOne.Net.log"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.log()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td>notice</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.serverMessageAction()</span></tt></td>
+</tr>
+<tr class="row-even"><td>ping</td>
+<td><a class="reference internal" href="#GateOne.Net.ping" title="GateOne.Net.ping"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.ping()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td>pong</td>
+<td><a class="reference internal" href="#GateOne.Net.pong" title="GateOne.Net.pong"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.pong()</span></tt></a></td>
+</tr>
+<tr class="row-even"><td>reauthenticate</td>
+<td><a class="reference internal" href="#GateOne.Net.reauthenticate" title="GateOne.Net.reauthenticate"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.reauthenticate()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td>save_file</td>
+<td><a class="reference internal" href="#GateOne.Utils.saveAsAction" title="GateOne.Utils.saveAsAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.saveAsAction()</span></tt></a></td>
+</tr>
+<tr class="row-even"><td>set_mode</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.setMode()</span></tt></td>
+</tr>
+<tr class="row-odd"><td>set_title</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.setTitleAction()</span></tt></td>
+</tr>
+<tr class="row-even"><td>set_username</td>
+<td><a class="reference internal" href="#GateOne.User.setUsername" title="GateOne.User.setUsername"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.User.setUsername()</span></tt></a></td>
+</tr>
+<tr class="row-odd"><td>term_ended</td>
+<td><a class="reference internal" href="#GateOne.Terminal.closeTerminal" title="GateOne.Terminal.closeTerminal"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.closeTerminal()</span></tt></a></td>
+</tr>
+<tr class="row-even"><td>terminals</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.reattachTerminals()</span></tt></td>
+</tr>
+<tr class="row-odd"><td>termupdate</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.updateTerminal()</span></tt></td>
+</tr>
+<tr class="row-even"><td>scroll_up</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.scrollUp()</span></tt></td>
+</tr>
+<tr class="row-odd"><td>term_exists</td>
+<td><a class="reference internal" href="#GateOne.Terminal.reconnectTerminalAction" title="GateOne.Terminal.reconnectTerminalAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.reconnectTerminalAction()</span></tt></a></td>
+</tr>
+<tr class="row-even"><td>set_title</td>
+<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.setTitle()</span></tt></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Most of the above is added via <a class="reference internal" href="#GateOne.Net.addAction" title="GateOne.Net.addAction"><tt class="xref js js-func docutils literal"><span class="pre">addAction()</span></tt></a> inside of each respective plugin's <tt class="docutils literal"><span class="pre">init()</span></tt> function.</p>
+<p class="last">Most of the above is added via <a class="reference internal" href="#GateOne.Net.addAction" title="GateOne.Net.addAction"><tt class="xref js js-func docutils literal"><span class="pre">addAction()</span></tt></a> inside of each respective module's <tt class="docutils literal"><span class="pre">init()</span></tt> function.</p>
 </div>
 <p>For example, if we execute <a class="reference internal" href="#GateOne.Net.ping" title="GateOne.Net.ping"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.ping()</span></tt></a>, this will send a message over the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a> like so:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="s1">&#39;ping&#39;</span><span class="o">:</span> <span class="nx">timestamp</span><span class="p">}));</span>
@@ -1718,8 +2525,32 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </pre></div>
 </div>
 </div>
-<div class="section" id="id16">
-<h3>Functions<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id32">
+<h3>Functions<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
+<div class="collapseindex container">
+<table class="hlist"><tr><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.Net.addAction" title="GateOne.Net.addAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.addAction</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.connect" title="GateOne.Net.connect"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.connect</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.connectionError" title="GateOne.Net.connectionError"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.connectionError</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.fullRefresh" title="GateOne.Net.fullRefresh"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.fullRefresh</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.killTerminal" title="GateOne.Net.killTerminal"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.killTerminal</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.log" title="GateOne.Net.log"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.log</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.onMessage" title="GateOne.Net.onMessage"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.onMessage</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.onOpen" title="GateOne.Net.onOpen"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.onOpen</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.ping" title="GateOne.Net.ping"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.ping</span></tt></a></li>
+</ul>
+</td><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.Net.pong" title="GateOne.Net.pong"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.pong</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.reauthenticate" title="GateOne.Net.reauthenticate"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.reauthenticate</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.refresh" title="GateOne.Net.refresh"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.refresh</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.sendChars" title="GateOne.Net.sendChars"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.sendChars</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.sendDimensions" title="GateOne.Net.sendDimensions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.sendDimensions</span></tt></a></li>
+<li><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.sendString</span></tt></li>
+<li><a class="reference internal" href="#GateOne.Net.setTerminal" title="GateOne.Net.setTerminal"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.setTerminal</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Net.sslError" title="GateOne.Net.sslError"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.sslError</span></tt></a></li>
+</ul>
+</td></tr></table>
+</div>
 <dl class="function">
 <dt id="GateOne.Net.addAction">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">addAction</tt><big>(</big><em>name</em>, <em>func</em><big>)</big><a class="headerlink" href="#GateOne.Net.addAction" title="Permalink to this definition">¶</a></dt>
@@ -1746,7 +2577,12 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="function">
 <dt id="GateOne.Net.connect">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">connect</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.connect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Opens a connection to the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a> defined in <tt class="docutils literal"><span class="pre">GateOne.prefs.url</span></tt> and stores it as <a class="reference internal" href="#GateOne.ws" title="GateOne.ws"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws</span></tt></a>.  This function gets called by <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> and there's really no reason why it should be called directly by anything else.</p>
+<dd><p>Opens a connection to the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a> defined in <tt class="docutils literal"><span class="pre">GateOne.prefs.url</span></tt> and stores it as <a class="reference internal" href="#GateOne.ws" title="GateOne.ws"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws</span></tt></a>.  Once connected <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a> will be called.</p>
+<p>If an error is encountered while trying to connect to the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>, <a class="reference internal" href="#GateOne.Net.connectionError" title="GateOne.Net.connectionError"><tt class="xref js js-func docutils literal"><span class="pre">connectionError()</span></tt></a> will be called to notify the user as such.  After five seconds, if a connection has yet to be connected successfully it will be assumed that the user needs to accept the Gate One server's SSL certificate.  This will invoke call to <a class="reference internal" href="#GateOne.Net.sslError" title="GateOne.Net.sslError"><tt class="xref js js-func docutils literal"><span class="pre">sslError()</span></tt></a> which will redirect the user to the <tt class="docutils literal"><span class="pre">accept_certificate.html</span></tt> page on the Gate One server.  Once that page has loaded successfully (after the user has clicked through the interstitial page) the user will be redirected back to the page they were viewing that contained Gate One.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function gets called by <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> and there's really no reason why it should be called directly by anything else.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -1759,13 +2595,13 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="function">
 <dt id="GateOne.Net.fullRefresh">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">fullRefresh</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.fullRefresh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends a message to the Gate One server telling it to perform a full screen refresh (i.e. send us the whole thing as opposed to just the difference from the last screen).</p>
+<dd><p>Sends a message to the Gate One server asking it to send a full screen refresh (i.e. send us the whole thing as opposed to just the difference from the last screen).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Net.killTerminal">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">killTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Net.killTerminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Normally called when the user closes a terminal, it sends a message to the GateOne server telling it to end the process associated with <em>term</em>.  Normally this function would not be called directly.  To close a terminal cleanly, plugins should use <tt class="docutils literal"><span class="pre">GateOne.Terminal.closeTerminal(term)</span></tt> (which calls this function).</p>
+<dd><p>Normally called when the user closes a terminal, it sends a message to the server telling it to end the process associated with <em>term</em>.  Normally this function would not be called directly.  To close a terminal cleanly, plugins should use <tt class="docutils literal"><span class="pre">GateOne.Terminal.closeTerminal(term)</span></tt> (which calls this function).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1782,7 +2618,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="function">
 <dt id="GateOne.Net.log">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">log</tt><big>(</big><em>msg</em><big>)</big><a class="headerlink" href="#GateOne.Net.log" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function can be used in debugging <tt class="xref py py-obj docutils literal"><span class="pre">actions</span></tt>; it logs whatever message is received from the Gate One server: <tt class="docutils literal"><span class="pre">GateOne.Logging.logInfo(msg)</span></tt> (which would equate to console.log under most circumstances).</p>
+<dd><p>This function can be used in debugging <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">actions</span></tt></a>; it logs whatever message is received from the Gate One server: <tt class="docutils literal"><span class="pre">GateOne.Logging.logInfo(msg)</span></tt> (which would equate to console.log under most circumstances).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1799,19 +2635,22 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </pre></div>
 </div>
 <p>Then you can view the exact messages received by the client in the JavaScript console in your browser.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="GateOne.Net.onOpen">
-<tt class="descclassname">GateOne.Net.</tt><tt class="descname">onOpen</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.onOpen" title="Permalink to this definition">¶</a></dt>
-<dd><p>This gets attached to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws.onopen</span></tt> inside of <a class="reference internal" href="#GateOne.Net.connect" title="GateOne.Net.connect"><tt class="xref js js-func docutils literal"><span class="pre">connect()</span></tt></a>.  It clears any error message that might be displayed to the user, loads the go_process.js Web Worker, and sends an authentication message to the server along with the dimensions of the terminal(s).</p>
-<p>Also, if <a class="reference internal" href="#GateOne.prefs.autoConnectURL" title="GateOne.prefs.autoConnectURL"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.autoConnectURL</span></tt></a> is set <a class="reference internal" href="#GateOne.Net.onOpen" title="GateOne.Net.onOpen"><tt class="xref js js-func docutils literal"><span class="pre">onOpen()</span></tt></a> will send that value to the server immediately after the connection is established.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Setting <tt class="docutils literal"><span class="pre">GateOne.Logging.level</span> <span class="pre">=</span> <span class="pre">'DEBUG'</span></tt> in your JS console will also log all incoming messages from the server (though it can be a bit noisy).</p>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="GateOne.Net.onMessage">
 <tt class="descclassname">GateOne.Net.</tt><tt class="descname">onMessage</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#GateOne.Net.onMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>This gets attached to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws.onmessage</span></tt> inside of <a class="reference internal" href="#GateOne.Net.connect" title="GateOne.Net.connect"><tt class="xref js js-func docutils literal"><span class="pre">connect()</span></tt></a>.  It takes care of decoding (<a class="reference external" href="https://developer.mozilla.org/en/JSON">JSON</a>) messages sent from the server and calling any matching <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">actions</span></tt></a>.  If no matching action can be found inside <tt class="docutils literal"><span class="pre">event.data</span></tt> it will fall back to passing the message directly to <a class="reference internal" href="#GateOne.Visual.displayMessage" title="GateOne.Visual.displayMessage"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.displayMessage()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Net.onOpen">
+<tt class="descclassname">GateOne.Net.</tt><tt class="descname">onOpen</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Net.onOpen" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets attached to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws.onopen</span></tt> inside of <a class="reference internal" href="#GateOne.Net.connect" title="GateOne.Net.connect"><tt class="xref js js-func docutils literal"><span class="pre">connect()</span></tt></a>.  It clears any error message that might be displayed to the user and asks the server to send us the (currently-selected) theme CSS, all plugin CSS, the bell sound (if not already stored in <a class="reference internal" href="#GateOne.prefs.bellSound" title="GateOne.prefs.bellSound"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.bellSound</span></tt></a>), and the go_process.js Web Worker (<tt class="docutils literal"><span class="pre">go.ws.send(JSON.stringify({'get_webworker':</span> <span class="pre">null}));</span></tt>).  Lastly, it sends an authentication message and calls <a class="reference internal" href="#GateOne.Net.ping" title="GateOne.Net.ping"><tt class="xref js js-func docutils literal"><span class="pre">ping()</span></tt></a> after a short timeout (to let things settle down lest they interfere with the ping time calculation).</p>
 </dd></dl>
 
 <dl class="function">
@@ -1898,6 +2737,23 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </div>
 </dd></dl>
 
+<dl class="function">
+<dt id="GateOne.Net.sslError">
+<tt class="descclassname">GateOne.Net.</tt><tt class="descname">sslError</tt><big>(</big><em>callback</em><big>)</big><a class="headerlink" href="#GateOne.Net.sslError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when we fail to connect due to an SSL error (user must accept the SSL certificate).  It opens a dialog where the user can accept the Gate One server's SSL certificate (via an iframe).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>callback</strong> (<em>function</em>) -- Will be called after the user clicks &quot;OK&quot; to the dialog.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="gateone-input">
@@ -1908,8 +2764,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dd></dd></dl>
 
 <p>This module handles mouse and keyboard input for Gate One.  It consists of a few tables of information that tell Gate One how to act upon a given keystroke as well as functions that make working with keyboard and mouse events a bit easier.</p>
-<div class="section" id="id20">
-<h3>Properties<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id37">
+<h3>Properties<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Properties that have to do with temporary, internal states (e.g. <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.metaHeld</span></tt>) were purposefully left out of this documentation since there's really no reason to ever reference them.</p>
@@ -1959,8 +2815,27 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 </div>
-<div class="section" id="id21">
-<h3>Functions<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id38">
+<h3>Functions<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h3>
+<div class="collapseindex container">
+<table class="hlist"><tr><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.Input.bufferEscSeq" title="GateOne.Input.bufferEscSeq"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.bufferEscSeq</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Input.capture" title="GateOne.Input.capture"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.capture</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Input.disableCapture" title="GateOne.Input.disableCapture"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.disableCapture</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Input.emulateKey" title="GateOne.Input.emulateKey"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.emulateKey</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Input.emulateKeyCombo" title="GateOne.Input.emulateKeyCombo"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.emulateKeyCombo</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Input.key" title="GateOne.Input.key"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.key</span></tt></a></li>
+</ul>
+</td><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.Input.modifiers" title="GateOne.Input.modifiers"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.modifiers</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Input.mouse" title="GateOne.Input.mouse"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.mouse</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Input.onKeyDown" title="GateOne.Input.onKeyDown"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.onKeyDown</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Input.onKeyUp" title="GateOne.Input.onKeyUp"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.onKeyUp</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Input.queue" title="GateOne.Input.queue"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.queue</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Input.registerShortcut" title="GateOne.Input.registerShortcut"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Input.registerShortcut</span></tt></a></li>
+</ul>
+</td></tr></table>
+</div>
 <dl class="function">
 <dt id="GateOne.Input.bufferEscSeq">
 <tt class="descclassname">GateOne.Input.</tt><tt class="descname">bufferEscSeq</tt><big>(</big><em>chars</em><big>)</big><a class="headerlink" href="#GateOne.Input.bufferEscSeq" title="Permalink to this definition">¶</a></dt>
@@ -1974,7 +2849,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dl class="function">
 <dt id="GateOne.Input.capture">
 <tt class="descclassname">GateOne.Input.</tt><tt class="descname">capture</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Input.capture" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the browser's focus to <a class="reference internal" href="#GateOne.prefs.goDiv" title="GateOne.prefs.goDiv"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt></a> and enables the capture of keyboard and mouse events.</p>
+<dd><p>Sets the browser's focus to <a class="reference internal" href="#GateOne.prefs.goDiv" title="GateOne.prefs.goDiv"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.goDiv</span></tt></a> and enables the capture of keyboard and mouse events.  It also a very important part of Gate One's ability to support copy &amp; paste without requiring the use of browser plugins.</p>
 </dd></dl>
 
 <dl class="function">
@@ -2197,8 +3072,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dd></dd></dl>
 
 <p>This module contains all of Gate One's visual effect functions.  It is just like <a class="reference internal" href="#GateOne.Utils" title="GateOne.Utils"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils</span></tt></a> but specific to visual effects and DOM manipulations.</p>
-<div class="section" id="id22">
-<h3>Properties<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id39">
+<h3>Properties<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
 <dl class="attribute">
 <dt id="GateOne.Visual.goDimensions">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">goDimensions</tt><a class="headerlink" href="#GateOne.Visual.goDimensions" title="Permalink to this definition">¶</a></dt>
@@ -2206,8 +3081,36 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </dd></dl>
 
 </div>
-<div class="section" id="id23">
-<h3>Functions<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id40">
+<h3>Functions<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
+<div class="collapseindex container">
+<table class="hlist"><tr><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.Visual.addSquare" title="GateOne.Visual.addSquare"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.addSquare</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.applyStyle" title="GateOne.Visual.applyStyle"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.applyStyle</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.applyTransform" title="GateOne.Visual.applyTransform"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.applyTransform</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.bellAction" title="GateOne.Visual.bellAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.bellAction</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.createGrid" title="GateOne.Visual.createGrid"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.createGrid</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.disableScrollback" title="GateOne.Visual.disableScrollback"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.disableScrollback</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.displayMessage" title="GateOne.Visual.displayMessage"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.displayMessage</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.displayTermInfo" title="GateOne.Visual.displayTermInfo"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.displayTermInfo</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.enableScrollback" title="GateOne.Visual.enableScrollback"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.enableScrollback</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.init" title="GateOne.Visual.init"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.init</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.playBell" title="GateOne.Visual.playBell"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.playBell</span></tt></a></li>
+</ul>
+</td><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.Visual.setTitleAction" title="GateOne.Visual.setTitleAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.setTitleAction</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.slideDown" title="GateOne.Visual.slideDown"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.slideDown</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.slideLeft" title="GateOne.Visual.slideLeft"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.slideLeft</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.slideRight" title="GateOne.Visual.slideRight"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.slideRight</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.slideToTerm" title="GateOne.Visual.slideToTerm"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.slideToTerm</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.slideUp" title="GateOne.Visual.slideUp"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.slideUp</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.toggleGridView" title="GateOne.Visual.toggleGridView"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.toggleGridView</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.togglePanel" title="GateOne.Visual.togglePanel"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.togglePanel</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.toggleScrollback" title="GateOne.Visual.toggleScrollback"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.toggleScrollback</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Visual.updateDimensions" title="GateOne.Visual.updateDimensions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Visual.updateDimensions</span></tt></a></li>
+</ul>
+</td></tr></table>
+</div>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last">In most of Gate One's JavaScript, <em>term</em> refers to the terminal number (e.g. 1).</p>
@@ -2245,7 +3148,8 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>elem</strong> -- A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</li>
+<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
 <li><strong>style</strong> -- A JavaScript object holding the style that will be applied to <em>elem</em>.</li>
 </ul>
 </td>
@@ -2260,7 +3164,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <dd><p>This function is Gate One's bread and butter:  It applies the given CSS3 <em>transform</em> to <em>obj</em>.  <em>obj</em> can be one of the following:</p>
 <blockquote>
 <div><ul class="simple">
-<li>A querySelector-like string (e.g. &quot;#some_element_id&quot;).</li>
+<li>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a>-like string (e.g. &quot;#some_element_id&quot;).</li>
 <li>A DOM node.</li>
 <li>An <a class="reference external" href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array">Array</a> or an Array-like object containing DOM nodes such as <a class="reference external" href="https://developer.mozilla.org/en/DOM/HTMLCollection">HTMLCollection</a> or <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a> (it will apply the transform to all of them).</li>
 </ul>
@@ -2284,7 +3188,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>obj</strong> -- <p>A querySelector string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt>, a DOM node, an <a class="reference external" href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array">Array</a> of DOM nodes, an <a class="reference external" href="https://developer.mozilla.org/en/DOM/HTMLCollection">HTMLCollection</a>, or a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>.</p>
+<li><strong>obj</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt>, a DOM node, an <a class="reference external" href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array">Array</a> of DOM nodes, an <a class="reference external" href="https://developer.mozilla.org/en/DOM/HTMLCollection">HTMLCollection</a>, or a <a class="reference external" href="https://developer.mozilla.org/En/DOM/NodeList">NodeList</a>.</p>
 </li>
 <li><strong>transform</strong> -- A <a class="reference external" href="http://www.w3schools.com/cssref/css3_pr_transform.asp">CSS3 transform</a> function such as <tt class="docutils literal"><span class="pre">scale()</span></tt> or <tt class="docutils literal"><span class="pre">translate()</span></tt>.</li>
 </ul>
@@ -2632,7 +3536,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
-<li><strong>panel</strong> (<em>string</em>) -- A querySelector-like string ID or the DOM node of the panel we're toggling.</li>
+<li><strong>panel</strong> (<em>string</em>) -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a>-like string ID or the DOM node of the panel we're toggling.</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -2668,8 +3573,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dd></dd></dl>
 
 <p>GateOne.Terminal contains terminal-specific properties and functions.  Really, there's not much more to it than that :)</p>
-<div class="section" id="id30">
-<h3>Properties<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id51">
+<h3>Properties<a class="headerlink" href="#id51" title="Permalink to this headline">¶</a></h3>
 <dl class="attribute">
 <dt id="GateOne.Terminal.closeTermCallbacks">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">closeTermCallbacks</tt><a class="headerlink" href="#GateOne.Terminal.closeTermCallbacks" title="Permalink to this definition">¶</a></dt>
@@ -2713,8 +3618,24 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </dd></dl>
 
 </div>
-<div class="section" id="id31">
-<h3>Functions<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id52">
+<h3>Functions<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h3>
+<div class="collapseindex container">
+<table class="hlist"><tr><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.Terminal.closeTerminal" title="GateOne.Terminal.closeTerminal"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.closeTerminal</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Terminal.init" title="GateOne.Terminal.init"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.init</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Terminal.newTerminal" title="GateOne.Terminal.newTerminal"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.newTerminal</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Terminal.notifyActivity" title="GateOne.Terminal.notifyActivity"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.notifyActivity</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Terminal.notifyInactivity" title="GateOne.Terminal.notifyInactivity"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.notifyInactivity</span></tt></a></li>
+</ul>
+</td><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.Terminal.reattachTerminalsAction" title="GateOne.Terminal.reattachTerminalsAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.reattachTerminalsAction</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Terminal.reconnectTerminalAction" title="GateOne.Terminal.reconnectTerminalAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.reconnectTerminalAction</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Terminal.setModeAction" title="GateOne.Terminal.setModeAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.setModeAction</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Terminal.updateTerminalAction" title="GateOne.Terminal.updateTerminalAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.updateTerminalAction</span></tt></a></li>
+</ul>
+</td></tr></table>
+</div>
 <dl class="function">
 <dt id="GateOne.Terminal.closeTerminal">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">closeTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.closeTerminal" title="Permalink to this definition">¶</a></dt>
@@ -2763,7 +3684,7 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dl class="function">
 <dt id="GateOne.Terminal.newTerminal">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">newTerminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.newTerminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a new terminal and gets it updating itself by way of the Gate One server.</p>
+<dd><p>Creates a new terminal and gets it updating itself by way of the Gate One server.  Also, if <a class="reference internal" href="#GateOne.prefs.autoConnectURL" title="GateOne.prefs.autoConnectURL"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.autoConnectURL</span></tt></a> is set <a class="reference internal" href="#GateOne.Net.onOpen" title="GateOne.Net.onOpen"><tt class="xref js js-func docutils literal"><span class="pre">onOpen()</span></tt></a> will send that value to the server 500ms after the terminal is opened.</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">newTerminal</span><span class="p">();</span>
 </pre></div>
 </div>
@@ -2923,8 +3844,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dd></dd></dl>
 
 <p>GateOne.User is for things like logging out, synchronizing preferences with the server (not implemented yet), and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.  It also provides the UI elements necessary for the user to change their bell sound.</p>
-<div class="section" id="id32">
-<h3>Properties<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id53">
+<h3>Properties<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h3>
 <dl class="attribute">
 <dt id="GateOne.User.userLoginCallbacks">
 <tt class="descclassname">GateOne.User.</tt><tt class="descname">userLoginCallbacks</tt><a class="headerlink" href="#GateOne.User.userLoginCallbacks" title="Permalink to this definition">¶</a></dt>
@@ -2946,8 +3867,20 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </dd></dl>
 
 </div>
-<div class="section" id="id33">
-<h3>Functions<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id54">
+<h3>Functions<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h3>
+<div class="collapseindex container">
+<table class="hlist"><tr><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.User.init" title="GateOne.User.init"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User.init</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.User.setUsername" title="GateOne.User.setUsername"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User.setUsername</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.User.logout" title="GateOne.User.logout"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User.logout</span></tt></a></li>
+</ul>
+</td><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.User.loadBell" title="GateOne.User.loadBell"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User.loadBell</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.User.uploadBellDialog" title="GateOne.User.uploadBellDialog"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User.uploadBellDialog</span></tt></a></li>
+</ul>
+</td></tr></table>
+</div>
 <dl class="function">
 <dt id="GateOne.User.init">
 <tt class="descclassname">GateOne.User.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.User.init" title="Permalink to this definition">¶</a></dt>
@@ -3001,7 +3934,10 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <li><a class="reference internal" href="#">gateone.js</a><ul>
 <li><a class="reference internal" href="#gateone-base">GateOne.Base</a></li>
 <li><a class="reference internal" href="#gateone">GateOne</a><ul>
-<li><a class="reference internal" href="#gateone-javascript-properties">GateOne JavaScript Properties</a></li>
+<li><a class="reference internal" href="#properties">Properties</a><ul>
+<li><a class="reference internal" href="#prefs">prefs</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#functions">Functions</a></li>
 </ul>
 </li>
@@ -3010,28 +3946,28 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-net">GateOne.Net</a><ul>
-<li><a class="reference internal" href="#properties">Properties</a></li>
-<li><a class="reference internal" href="#id16">Functions</a></li>
+<li><a class="reference internal" href="#id29">Properties</a></li>
+<li><a class="reference internal" href="#id32">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-input">GateOne.Input</a><ul>
-<li><a class="reference internal" href="#id20">Properties</a></li>
-<li><a class="reference internal" href="#id21">Functions</a></li>
+<li><a class="reference internal" href="#id37">Properties</a></li>
+<li><a class="reference internal" href="#id38">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-visual">GateOne.Visual</a><ul>
-<li><a class="reference internal" href="#id22">Properties</a></li>
-<li><a class="reference internal" href="#id23">Functions</a></li>
+<li><a class="reference internal" href="#id39">Properties</a></li>
+<li><a class="reference internal" href="#id40">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-terminal">GateOne.Terminal</a><ul>
-<li><a class="reference internal" href="#id30">Properties</a></li>
-<li><a class="reference internal" href="#id31">Functions</a></li>
+<li><a class="reference internal" href="#id51">Properties</a></li>
+<li><a class="reference internal" href="#id52">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-user">GateOne.User</a><ul>
-<li><a class="reference internal" href="#id32">Properties</a></li>
-<li><a class="reference internal" href="#id33">Functions</a></li>
+<li><a class="reference internal" href="#id53">Properties</a></li>
+<li><a class="reference internal" href="#id54">Functions</a></li>
 </ul>
 </li>
 </ul>
@@ -3085,9 +4021,32 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
   </body>
 </html>

@@ -171,6 +171,7 @@ These options match up directly with Gate One's command line options which you c
       --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
       --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
       --embedded                       Doesn't do anything (yet).
+      --enable_unix_socket             Enable Unix socket support use_unix_sockets (if --enable_unix_socket=True).
       --https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
       --js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init="{scheme: 'white'}" would result in GateOne.init({scheme: 'white'})
       --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
@@ -189,6 +190,7 @@ These options match up directly with Gate One's command line options which you c
       --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
       --syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
       --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
+      --unix_socket_path               Run on the given socket file.  Default: /var/run/gateone.sock
       --url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
       --user_dir                       Path to the location where user files will be stored.
 
@@ -430,7 +432,7 @@ new_api_key
 -----------
 .. option:: --new_api_key
 
-This command line option will generate a new, random API key and secret for use with applications that will be embedding Gate One.  Instructions on how to use API-based authentication can be found in the :ref:`embedded-docs`.
+This command line option will generate a new, random API key and secret for use with applications that will be embedding Gate One.  Instructions on how to use API-based authentication can be found in the :ref:`gateone-embedding`.
 
 pam_realm
 ---------

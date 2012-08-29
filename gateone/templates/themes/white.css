@@ -389,6 +389,7 @@ hr {
     border-bottom: 0.1em #000 solid;
     position: relative;
     margin-bottom: 0.2em;
+    padding-right: 1em; /* Make room for the X icon */
 }
 #{{container}} .panel h3 {
     font-size: 1.2em;
@@ -586,10 +587,7 @@ hr {
 }
 #{{container}} .black:focus {
     color: #FFF;
-    background: -webkit-gradient(linear, left top, left bottom, from(#000), to(#444));
-    background: -moz-linear-gradient(top,  #000,  #444);
-    background: -o-linear-gradient(top,  #000,  #444);
-    filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#000000', endColorstr='#666666');
+    box-shadow: 0em 0em 1em #000;
 }
 #{{prefix}}user_info {
     font-size: 0.8em;

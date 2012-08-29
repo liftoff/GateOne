@@ -1624,7 +1624,7 @@ def getstatusoutput(cmd, **kwargs):
     Emulates Python's commands.getstatusoutput() function using a Multiplex
     instance.
 
-    Optionally, any additional keyword arguments (**kwargs) provided will be
+    Optionally, any additional keyword arguments (\*\*kwargs) provided will be
     passed to the spawn() command.
     """
     # NOTE: This function is primarily here to provide an example of how to use

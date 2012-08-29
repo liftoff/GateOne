@@ -79,7 +79,8 @@
 <span class="s">experiencing trouble it is recommended that you set debug=True in your</span>
 <span class="s">application settings.  This will enable printing of Kerberos exception messages.</span>
 
-<span class="s">Troubleshooting:</span>
+<span class="s">Troubleshooting</span>
+<span class="s">---------------</span>
 
 <span class="s">If your browser asks you for a password (i.e. SSO failed) there&#39;s probably</span>
 <span class="s">something wrong with your Kerberos configuration on either the client or the</span>
@@ -191,9 +192,9 @@
 <span class="sd">        were provided by the client.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">auth_header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Negotiate&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">auth_header</span> <span class="ow">and</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Negotiate&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">auth_negotiate</span><span class="p">(</span><span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Basic &#39;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">auth_header</span> <span class="ow">and</span> <span class="n">auth_header</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Basic &#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">auth_basic</span><span class="p">(</span><span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="KerberosAuthMixin.auth_negotiate"><a class="viewcode-back" href="../Developer/sso.html#sso.KerberosAuthMixin.auth_negotiate">[docs]</a>    <span class="k">def</span> <span class="nf">auth_negotiate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auth_header</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
@@ -300,9 +301,32 @@
           <li><a href="index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
   </body>
 </html>

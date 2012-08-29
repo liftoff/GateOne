@@ -156,20 +156,20 @@ out precisely what was matched and where.</p>
 
 <dl class="function">
 <dt id="termio.retrieve_first_frame">
-<tt class="descclassname">termio.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="headerlink" href="#termio.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">termio.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/termio.html#retrieve_first_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the first frame from the given <em>golog_path</em>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="termio.retrieve_last_frame">
-<tt class="descclassname">termio.</tt><tt class="descname">retrieve_last_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="headerlink" href="#termio.retrieve_last_frame" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">termio.</tt><tt class="descname">retrieve_last_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/termio.html#retrieve_last_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.retrieve_last_frame" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the last frame from the given <em>golog_path</em>.  It does this by
 iterating over the log in reverse.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="termio.get_or_update_metadata">
-<tt class="descclassname">termio.</tt><tt class="descname">get_or_update_metadata</tt><big>(</big><em>golog_path</em>, <em>user</em>, <em>force_update=False</em><big>)</big><a class="headerlink" href="#termio.get_or_update_metadata" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">termio.</tt><tt class="descname">get_or_update_metadata</tt><big>(</big><em>golog_path</em>, <em>user</em>, <em>force_update=False</em><big>)</big><a class="reference internal" href="../_modules/termio.html#get_or_update_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.get_or_update_metadata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves or creates/updates the metadata inside of <em>golog_path</em>.</p>
 <p>If <em>force_update</em> the metadata inside the golog will be updated even if it
 already exists.</p>
@@ -188,7 +188,7 @@ called when a timeout is reached.</p>
 
 <dl class="exception">
 <dt id="termio.ProgramTerminated">
-<em class="property">exception </em><tt class="descclassname">termio.</tt><tt class="descname">ProgramTerminated</tt><a class="headerlink" href="#termio.ProgramTerminated" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">termio.</tt><tt class="descname">ProgramTerminated</tt><a class="reference internal" href="../_modules/termio.html#ProgramTerminated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.ProgramTerminated" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when we try to write to a process that's no longer running.</p>
 </dd></dl>
 
@@ -830,10 +830,10 @@ exceptions are logged but no action will be taken.</p>
 
 <dl class="function">
 <dt id="termio.getstatusoutput">
-<tt class="descclassname">termio.</tt><tt class="descname">getstatusoutput</tt><big>(</big><em>cmd</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#termio.getstatusoutput" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">termio.</tt><tt class="descname">getstatusoutput</tt><big>(</big><em>cmd</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/termio.html#getstatusoutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.getstatusoutput" title="Permalink to this definition">¶</a></dt>
 <dd><p>Emulates Python's commands.getstatusoutput() function using a Multiplex
 instance.</p>
-<p>Optionally, any additional keyword arguments (<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs) provided will be
+<p>Optionally, any additional keyword arguments (**kwargs) provided will be
 passed to the spawn() command.</p>
 </dd></dl>
 
@@ -866,7 +866,7 @@ passed to the spawn() command.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="terminal.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="utils.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
@@ -911,9 +911,32 @@ passed to the spawn() command.</p>
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
   </body>
 </html>

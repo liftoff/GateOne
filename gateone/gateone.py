@@ -123,6 +123,7 @@ well as descriptions of what each configurable option does:
       --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
       --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
       --embedded                       Doesn't do anything (yet).
+      --enable_unix_socket             Enable Unix socket support use_unix_sockets (if --enable_unix_socket=True).
       --https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
       --js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init="{scheme: 'white'}" would result in GateOne.init({scheme: 'white'})
       --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
@@ -134,8 +135,6 @@ well as descriptions of what each configurable option does:
       --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
       --pid_file                       Path of the pid file.   Default: /var/run/gateone.pid
       --port                           Run on the given port.
-      --enable_unix_socket             Enable Unix socket support use_unix_sockets (if --enable_unix_socket=True).
-      --unix_socket_path               Run on the given socket file.  Default: /var/run/gateone.sock
       --session_dir                    Path to the location where session information will be stored.
       --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/<user>/logs.  Default: Enabled
       --session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts <num>X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is '5d' (5 days).
@@ -144,6 +143,7 @@ well as descriptions of what each configurable option does:
       --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
       --syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
       --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
+      --unix_socket_path               Run on the given socket file.  Default: /var/run/gateone.sock
       --url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
       --user_dir                       Path to the location where user files will be stored.
 
@@ -1061,6 +1061,10 @@ class TerminalWebSocket(WebSocketHandler):
         equivalent properties (self.container and self.prefix).
         """
         logging.debug("authenticate(): %s" % settings)
+        if 'Origin' in self.request.headers:
+            origin_header = self.request.headers['Origin']
+        elif 'Sec-Websocket-Origin' in self.request.headers: # Old version
+            origin_header = self.request.headers['Sec-Websocket-Origin']
         # Make sure the client is authenticated if authentication is enabled
         if self.settings['auth'] and self.settings['auth'] != 'api':
             try:
@@ -1072,7 +1076,7 @@ class TerminalWebSocket(WebSocketHandler):
                     # client to re-auth the problem should correct itself.
                     message = {'reauthenticate': True}
                     self.write_message(json_encode(message))
-                    self.close() # Close the WebSocket
+                    return
                 elif user and user['upn'] == 'ANONYMOUS':
                     logging.error(_("Unauthenticated WebSocket attempt."))
                     # This can happen when a client logs in with no auth type
@@ -1080,7 +1084,7 @@ class TerminalWebSocket(WebSocketHandler):
                     # authentication.  The client must be told to re-auth:
                     message = {'reauthenticate': True}
                     self.write_message(json_encode(message))
-                    self.close() # Close the WebSocket
+                    return
             except KeyError: # 'upn' wasn't in user
                 # Force them to authenticate
                 message = {'reauthenticate': True}
@@ -1126,8 +1130,8 @@ class TerminalWebSocket(WebSocketHandler):
                     if signature_method != 'HMAC-SHA1':
                         message = {
                             'notice': _(
-                                'AUTHENTICATION ERROR: Unsupported signature '
-                                'method: %s' % signature_method)
+                                'AUTHENTICATION ERROR: Unsupported API auth '
+                                'signature method: %s' % signature_method)
                         }
                         self.write_message(json_encode(message))
                     secret = self.settings['api_keys'][api_key]
@@ -1141,7 +1145,9 @@ class TerminalWebSocket(WebSocketHandler):
                         # already used it (to prevent replay attacks).
                         if signature in self.prev_signatures:
                             logging.error(_(
-                            "WebSocket authentication replay attack detected!"))
+                            "API authentication replay attack detected!  User: "
+                            "%s, Remote IP: %s, Origin: %s" % (
+                                upn, self.request.remote_ip, origin_header)))
                             message = {'notice': _(
                                 'AUTH FAILED: Replay attack detected!  This '
                                 'event has been logged.')}
@@ -1153,14 +1159,18 @@ class TerminalWebSocket(WebSocketHandler):
                         time_diff = datetime.now() - then
                         if time_diff > window:
                             logging.error(_(
-                            "WebSocket authentication failed due to timeout."))
+                            "API authentication failed due to timeout.  "
+                            "If you just restarted the server this is normal "
+                            "(users just need to reload the page) but it is "
+                            "still a good idea to double-check for clock drift."
+                            ))
                             message = {'notice': _(
                                 'AUTH FAILED: Authentication object timed out. '
-                                'Please try again (time for an upgrade?).')}
+                                'You probably just have to reload the page.')}
                             self.write_message(json_encode(message))
                             self.close()
                             return
-                        logging.debug(_("WebSocket Authentication Successful"))
+                        logging.debug(_("API Authentication Successful"))
                         self.prev_signatures.append(signature) # Prevent replays
                 # Make a directory to store this user's settings/files/logs/etc
                         user_dir = os.path.join(self.settings['user_dir'], upn)

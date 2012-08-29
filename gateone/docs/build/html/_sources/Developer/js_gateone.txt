@@ -74,21 +74,72 @@ GateOne is the base object for all of GateOne's client-side JavaScript.  Besides
 
 .. _gateone-properties:
 
-GateOne JavaScript Properties
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Properties
+^^^^^^^^^^
+.. container:: collapseindex
+
+    .. hlist::
+
+        * :js:attr:`GateOne.prefs`
+        * :js:attr:`GateOne.prefs.url`
+        * :js:attr:`GateOne.prefs.fillContainer`
+        * :js:attr:`GateOne.prefs.style`
+        * :js:attr:`GateOne.prefs.goDiv`
+        * :js:attr:`GateOne.prefs.scrollback`
+        * :js:attr:`GateOne.prefs.rows`
+        * :js:attr:`GateOne.prefs.cols`
+        * :js:attr:`GateOne.prefs.prefix`
+        * :js:attr:`GateOne.prefs.theme`
+        * :js:attr:`GateOne.prefs.colors`
+        * :js:attr:`GateOne.prefs.fontSize`
+        * :js:attr:`GateOne.prefs.autoConnectURL`
+        * :js:attr:`GateOne.prefs.embedded`
+        * :js:attr:`GateOne.prefs.showTitle`
+        * :js:attr:`GateOne.prefs.showToolbar`
+        * :js:attr:`GateOne.prefs.audibleBell`
+        * :js:attr:`GateOne.prefs.bellSound`
+        * :js:attr:`GateOne.prefs.bellSoundType`
+        * :js:attr:`GateOne.prefs.disableTermTransitions`
+        * :js:attr:`GateOne.prefs.colAdjust`
+        * :js:attr:`GateOne.prefs.rowAdjust`
+        * :js:attr:`GateOne.prefs.webWorker`
+        * :js:attr:`GateOne.prefs.auth`
+        * :js:attr:`GateOne.noSavePrefs`
+        * :js:attr:`GateOne.terminals`
+        * :js:attr:`GateOne.terminals[num].backspace`
+        * :js:attr:`GateOne.terminals[num].columns`
+        * :js:attr:`GateOne.terminals[num].created`
+        * :js:attr:`GateOne.terminals[num].mode`
+        * :js:attr:`GateOne.terminals[num].playbackFrames`
+        * :js:attr:`GateOne.terminals[num].prevScreen`
+        * :js:attr:`GateOne.terminals[num].rows`
+        * :js:attr:`GateOne.terminals[num].screen`
+        * :js:attr:`GateOne.terminals[num].scrollback`
+        * :js:attr:`GateOne.terminals[num].scrollbackVisible`
+        * :js:attr:`GateOne.terminals[num].sshConnectString`
+        * :js:attr:`GateOne.Icons`
+        * :js:attr:`GateOne.loadedModules`
+        * :js:attr:`GateOne.ws`
+
 .. note:: These are ordered by importance/usefulness.
 
+prefs
+"""""
 .. js:attribute:: GateOne.prefs
+
+    :type: Object
 
     This is where all of Gate One's client-side preferences are kept.  If the client changes them they will be saved in ``localStorage['prefs']``.  Also, these settings can be passed to :js:func:`GateOne.init` as an object in the first argument like so:
 
         .. code-block:: javascript
 
-            GateOne.init({fillContainer: false, style: {'width': '50em', 'height': '32em'}, scheme: 'white'});
+            GateOne.init({fillContainer: false, style: {'width': '50em', 'height': '32em'}, theme: 'white'});
 
     Each individual setting is outlined below:
 
     .. js:attribute:: GateOne.prefs.url
+
+        :type: String
 
         .. code-block:: javascript
 
@@ -98,6 +149,8 @@ GateOne JavaScript Properties
 
     .. js:attribute:: GateOne.prefs.fillContainer
 
+        :type: Boolean
+
         .. code-block:: javascript
 
             GateOne.prefs.fillContainer = true;
@@ -105,6 +158,8 @@ GateOne JavaScript Properties
         If set to true, :js:attr:`GateOne.prefs.goDiv` (e.g. ``#gateone``) will fill itself out to the full size of its parent element.
 
     .. js:attribute:: GateOne.prefs.style
+
+        :type: Object
 
         .. code-block:: javascript
 
@@ -120,6 +175,8 @@ GateOne JavaScript Properties
 
     .. js:attribute:: GateOne.prefs.goDiv
 
+        :type: String
+
         .. code-block:: javascript
 
             GateOne.prefs.goDiv = '#gateone';
@@ -129,6 +186,8 @@ GateOne JavaScript Properties
         .. note:: To keep things simple it is recommended that a ``<div>`` be used (hence the name).
 
     .. js:attribute:: GateOne.prefs.scrollback
+
+        :type: Integer
 
         .. code-block:: javascript
 
@@ -140,6 +199,8 @@ GateOne JavaScript Properties
 
     .. js:attribute:: GateOne.prefs.rows
 
+        :type: Integer
+
         .. code-block:: javascript
 
             GateOne.prefs.rows = null;
@@ -147,6 +208,8 @@ GateOne JavaScript Properties
         This will force the number of rows in the terminal.  If null, Gate One will automatically figure out how many will fit within :js:attr:`GateOne.prefs.goDiv`.
 
     .. js:attribute:: GateOne.prefs.cols
+
+        :type: Integer
 
         .. code-block:: javascript
 
@@ -156,6 +219,8 @@ GateOne JavaScript Properties
 
     .. js:attribute:: GateOne.prefs.prefix
 
+        :type: String
+
         .. code-block:: javascript
 
             GateOne.prefs.prefix = 'go_';
@@ -163,6 +228,8 @@ GateOne JavaScript Properties
         Instructs Gate One to prefix the 'id' of all elements it creates with this string (except :js:attr:`GateOne.prefs.goDiv` itself).  You usually won't want to change this unless you're embedding Gate One into a page where a name conflict exists (e.g. you already have an element named ``#go_notice``).  The Gate One server will be made aware of this setting when the client connects so it can apply it to all generated templates where necessary.
 
     .. js:attribute:: GateOne.prefs.theme
+
+        :type: String
 
         .. code-block:: javascript
 
@@ -172,6 +239,8 @@ GateOne JavaScript Properties
 
     .. js:attribute:: GateOne.prefs.colors
 
+        :type: String
+
         .. code-block:: javascript
 
             GateOne.prefs.colors = 'default'; // 'gnome-terminal' is another text color scheme that comes with Gate One.
@@ -179,6 +248,8 @@ GateOne JavaScript Properties
         This sets the CSS text color scheme.  These are the colors that text *renditions* will use (i.e. when the terminal text is bold, red, etc).
 
     .. js:attribute:: GateOne.prefs.fontSize
+
+        :type: String
 
         .. code-block:: javascript
 
@@ -189,6 +260,8 @@ GateOne JavaScript Properties
         .. tip:: If you're embedding Gate One into something else this can be really useful for matching up Gate One's font size with the rest of your app.
 
     .. js:attribute:: GateOne.prefs.autoConnectURL
+
+        :type: String
 
         .. code-block:: javascript
 
@@ -206,6 +279,8 @@ GateOne JavaScript Properties
 
     .. js:attribute:: GateOne.prefs.embedded
 
+        :type: Boolean
+
         .. code-block:: javascript
 
             GateOne.prefs.embedded = false;
@@ -218,6 +293,8 @@ GateOne JavaScript Properties
 
     .. js:attribute:: GateOne.prefs.showTitle
 
+        :type: Boolean
+
         .. code-block:: javascript
 
             GateOne.prefs.showTitle = true;
@@ -226,23 +303,51 @@ GateOne JavaScript Properties
 
     .. js:attribute:: GateOne.prefs.showToolbar
 
+        :type: Boolean
+
         .. code-block:: javascript
 
             GateOne.prefs.showToolbar = true;
 
         If this is set to ``false`` Gate One will not show the toolbar (no icons on the right).
 
-    .. js:attribute:: GateOne.prefs.bellSound
+    .. js:attribute:: GateOne.prefs.audibleBell
+
+        :type: Boolean
 
         .. code-block:: javascript
 
-            GateOne.prefs.bellSound = true;
+            GateOne.prefs.audibleBell = true;
 
         If this is set to ``false`` Gate One will not play a sound when a bell is encountered in any given terminal.
 
         .. note:: A visual bell indiciator will still be displayed even if this is set to ``false``.
 
+    .. js:attribute:: GateOne.prefs.bellSound
+
+        :type: String
+
+        .. code-block:: javascript
+
+            GateOne.prefs.bellSound = "data:audio/ogg;base64,T2dnUwACAAAAAAAAA...";
+
+        Stores the user's chosen (or the default) bell sound as a data URI.
+
+        .. note:: This is much more efficient than having to download this file from the server every time Gate One is loaded!
+
+    .. js:attribute:: GateOne.prefs.bellSoundType
+
+        :type: String
+
+        .. code-block:: javascript
+
+            GateOne.prefs.bellSound = "audio/ogg";
+
+        Stores the mimetype associated with :js:attr:`GateOne.prefs.bellSound`.
+
     .. js:attribute:: GateOne.prefs.disableTermTransitions
+
+        :type: Boolean
 
         .. code-block:: javascript
 
@@ -250,7 +355,39 @@ GateOne JavaScript Properties
 
         With this enabled Gate One won't use fancy CSS3 transitions when switching between open terminals.  Such switching will be instantaneous (i.e. not smooth/pretty).
 
+    .. js:attribute:: GateOne.prefs.colAdjust
+
+        :type: Integer
+
+        .. code-block:: javascript
+
+            GateOne.prefs.colAdjust = 0;
+
+        When the terminal size is calculated the number of columns will be decreased by this amount (e.g. to make room for an extra toolbar).
+
+    .. js:attribute:: GateOne.prefs.rowAdjust
+
+        :type: Integer
+
+        .. code-block:: javascript
+
+            GateOne.prefs.rowAdjust = 0;
+
+        When the terminal size is calculated the number of rows will be decreased by this amount (e.g. to make room for the playback controls).
+
+    .. js:attribute:: GateOne.prefs.webWorker
+
+        :type: String
+
+        .. code-block:: javascript
+
+            GateOne.prefs.webWorker = "https://gateone.company.com/static/go_process.js";
+
+        This is the fallback path to Gate One's Web Worker.  You should only ever have to change this when embedding Gate One into another application *and* your Gate One server is listening on a different port than your app's web server.  Otherwise Gate One will just use the Web Worker located at :js:attr:`GateOne.prefs.url`/static/go_process.js.
+
     .. js:attribute:: GateOne.prefs.auth
+
+        :type: Object
 
         .. code-block:: javascript
 
@@ -273,6 +410,8 @@ GateOne JavaScript Properties
 
 .. js:attribute:: GateOne.noSavePrefs
 
+    :type: Object
+
     Properties in this object that match the names of objects in :js:attr:`GateOne.prefs` will get ignored when they are saved to localStorage.
 
     .. note:: **Plugin Authors:** If you want to have your own property in :js:attr:`GateOne.prefs` but it isn't a per-user setting, add your property here (e.g. ``GateOne.prefs['myPref'] = 'foo'; GateOne.noSavePrefs['myPref'] = null;``).
@@ -283,6 +422,7 @@ GateOne JavaScript Properties
 
         GateOne.noSavePrefs = {
             url: null, // These are all things that shouldn't be modified by the user.
+            webWorker: null,
             fillContainer: null,
             style: null,
             goDiv: null,
@@ -291,33 +431,55 @@ GateOne JavaScript Properties
             embedded: null,
             auth: null,
             showTitle: null,
-            showToolbar: null
+            showToolbar: null,
+            rowAdjust: null,
+            colAdjust: null
         }
 
 .. js:attribute:: GateOne.terminals
+
+    :type: Object
 
     Terminal-specific settings and information are stored within this object like so:
 
         .. code-block:: javascript
 
-            GateOne.terminals['1'] = {
+            GateOne.terminals[1] = {
+                X11Title = "Gate One",
                 backspace: String.fromCharCode(127),
                 columns: 165,
                 created: Date(),
                 mode: "default",
+                node: <pre>,
+                pasteNode: <textarea>,
                 playbackFrames: Array(),
                 prevScreen: Array(),
                 rows: 45,
                 screen: Array(),
+                screenNode: <span>,
                 scrollback: Array(),
+                scrollbackNode: <span>,
                 scrollbackTimer: 2311,
                 scrollbackVisible: true,
+                scrollbackWriteTimer: 2649
                 sshConnectString: "user@localhost:22"
             };
 
     Each terminal in Gate One has its own object--referenced by terminal number--attached to :js:attr:`~GateOne.terminals` that gets created when a new terminal is opened (in :js:func:`GateOne.Terminal.newTerminal`).  Theses values and what they mean are outlined below:
 
-    .. js:attribute:: GateOne.terminals[num].backspace <character>
+    .. js:attribute:: GateOne.terminals[num].X11Title
+
+        :type: String
+
+        .. code-block:: javascript
+
+            GateOne.terminals[num].X11Title = "New Terminal";
+
+        When the server detects an X11 title escape sequence it sends it to the client and that value gets stored in this variable.  This is separated from the terminal node's ``title`` attribute so that the user can restore the X11 title after they have overridden it.
+
+    .. js:attribute:: GateOne.terminals[num].backspace
+
+        :type: String
 
         .. code-block:: javascript
 
@@ -327,7 +489,9 @@ GateOne JavaScript Properties
 
         .. note:: Not configurable yet.  Should be soon.
 
-    .. js:attribute:: GateOne.terminals[num].columns <number>
+    .. js:attribute:: GateOne.terminals[num].columns
+
+        :type: Integer
 
         .. code-block:: javascript
 
@@ -335,7 +499,9 @@ GateOne JavaScript Properties
 
         The number of columns this terminal is configured to use.  Unless the user changed it, it will match whatever is in :js:attr:`GateOne.prefs.cols`.
 
-    .. js:attribute:: GateOne.terminals[num].created <Date()>
+    .. js:attribute:: GateOne.terminals[num].created
+
+        :type: Date()
 
         .. code-block:: javascript
 
@@ -343,7 +509,9 @@ GateOne JavaScript Properties
 
         The date and time a terminal was originally created.
 
-    .. js:attribute:: GateOne.terminals[num].mode <string>
+    .. js:attribute:: GateOne.terminals[num].mode
+
+        :type: String
 
         .. code-block:: javascript
 
@@ -351,7 +519,29 @@ GateOne JavaScript Properties
 
         The current keyboard input mode of the terminal.  One of "default" or "appmode" representing whether or not the terminal is in standard or "application cursor keys" mode (which changes what certain keystrokes send to the Gate One server).
 
-    .. js:attribute:: GateOne.terminals[num].playbackFrames <Array()>
+    .. js:attribute:: GateOne.terminals[num].node
+
+        :type: DOM Node
+
+        .. code-block:: javascript
+
+            GateOne.terminals[num].node = <pre node object>
+
+        Used as a quick reference to the terminal's <pre> node so we don't have to call :js:func:`GateOne.Utils.getNode` every time we need it.
+
+    .. js:attribute:: GateOne.terminals[num].pasteNode
+
+        :type: DOM Node
+
+        .. code-block:: javascript
+
+            GateOne.terminals[num].node = <textarea node object>
+
+        Used as a quick reference to the terminal's pastearea node (which hovers above all terminals so you can paste in a natural fashion).
+
+    .. js:attribute:: GateOne.terminals[num].playbackFrames
+
+        :type: Array
 
         .. code-block:: javascript
 
@@ -361,7 +551,9 @@ GateOne JavaScript Properties
 
         .. note:: playbackFrames only gets used if the playback plugin is available.
 
-    .. js:attribute:: GateOne.terminals[num].prevScreen <Array()>
+    .. js:attribute:: GateOne.terminals[num].prevScreen
+
+        :type: Array
 
         .. code-block:: javascript
 
@@ -369,7 +561,9 @@ GateOne JavaScript Properties
 
         This stores the previous screen array from the last time the terminal was updated.  Gate One's terminal update protocol only sends lines that changed since the last screen was sent.  This variable allows us to create an updated screen from just the line that changed.
 
-    .. js:attribute:: GateOne.terminals[num].rows <number>
+    .. js:attribute:: GateOne.terminals[num].rows
+
+        :type: Integer
 
         .. code-block:: javascript
 
@@ -377,7 +571,9 @@ GateOne JavaScript Properties
 
         The number of rows this terminal is configured to use.  Unless the user changed it, it will match whatever is in :js:attr:`GateOne.prefs.rows`.
 
-    .. js:attribute:: GateOne.terminals[num].screen <Array()>
+    .. js:attribute:: GateOne.terminals[num].screen
+
+        :type: Array
 
         .. code-block:: javascript
 
@@ -385,7 +581,19 @@ GateOne JavaScript Properties
 
         This stores the current terminal's screen as an array of lines.
 
-    .. js:attribute:: GateOne.terminals[num].scrollback <Array()>
+    .. js:attribute:: GateOne.terminals[num].screenNode
+
+        :type: DOM Node
+
+        .. code-block:: javascript
+
+            GateOne.terminals[num].node = <span node object>
+
+        Used as a quick reference to the terminal's screen node (which is a span).
+
+    .. js:attribute:: GateOne.terminals[num].scrollback
+
+        :type: Array
 
         .. code-block:: javascript
 
@@ -393,7 +601,19 @@ GateOne JavaScript Properties
 
         Stores the given terminal's scrollback buffer (so we can remove/replace it at-will).
 
-    .. js:attribute:: GateOne.terminals[num].scrollbackVisible <boolean>
+    .. js:attribute:: GateOne.terminals[num].scrollbackNode
+
+        :type: DOM Node
+
+        .. code-block:: javascript
+
+            GateOne.terminals[num].scrollbackNode = <span node object>
+
+        Used as a quick reference to the terminal's scrollback node (which is a span).
+
+    .. js:attribute:: GateOne.terminals[num].scrollbackVisible
+
+        :type: Boolean
 
         .. code-block:: javascript
 
@@ -401,7 +621,19 @@ GateOne JavaScript Properties
 
         Kept up to date on the current status of whether or not the scrollback buffer is visible in the terminal (so we don't end up replacing it or removing it when we don't have to).
 
-    .. js:attribute:: GateOne.terminals[num].sshConnectString <string>
+    .. js:attribute:: GateOne.terminals[num].scrollbackWriteTimer
+
+        :type: String
+
+        .. code-block:: javascript
+
+            GateOne.terminals[num].scrollbackWriteTimer = <timeout object>;
+
+        Whenever the scrollback buffer is updated a timer is set to write that scrollback to localStorage.  If an update comes in before that timer finishes the existing timer will be cancelled and replaced.  The idea is to prevent queueing up timers for scrollback that will just end up getting overwritten.  The ``scrollbackWriteTimer`` attribute holds the reference to this timer.
+
+    .. js:attribute:: GateOne.terminals[num].sshConnectString
+
+        :type: String
 
         .. code-block:: javascript
 
@@ -412,6 +644,8 @@ GateOne JavaScript Properties
         .. note:: This is a good example of a plugin using :js:attr:`GateOne.terminals` to great effect.
 
 .. js:attribute:: GateOne.Icons
+
+    :type: Array
 
     This is where Gate One stores all of its (inline) SVG icons.  If your plugin has its own icons they can be kept in here.  Here's a (severely shortened) example from the Bookmarks plugin:
 
@@ -429,6 +663,8 @@ GateOne JavaScript Properties
 
 .. js:attribute:: GateOne.loadedModules
 
+    :type: Array
+
     All modules (aka plugins) loaded via :js:func:`GateOne.Base.module` are kept here as a quick reference.  For example:
 
     .. code-block:: javascript
@@ -441,16 +677,20 @@ GateOne JavaScript Properties
             "GateOne.Input",
             "GateOne.Visual",
             "GateOne.Terminal",
+            "GateOne.User",
             "GateOne.Bookmarks",
             "GateOne.Help",
             "GateOne.Logging",
+            "GateOne.Mobile",
             "GateOne.Playback",
             "GateOne.SSH"
         ]
 
 .. js:attribute:: GateOne.ws
 
-    Holds Gate One's open WebSocket object.  It can be used to send messages to WebSocket hooks like so:
+    :type: WebSocket
+
+    Holds Gate One's open WebSocket object.  It can be used to send messages to WebSocket 'actions' (aka hooks) on the server like so:
 
     .. code-block:: javascript
 
@@ -460,11 +700,16 @@ GateOne JavaScript Properties
 
 Functions
 ^^^^^^^^^
+.. container:: collapseindex
+
+    * :js:func:`GateOne.init`
+    * :js:func:`GateOne.initialize`
+
 :js:data:`GateOne` contains two functions: :js:func:`~GateOne.init` and :js:func:`~GateOne.initialize`.  These functions are responsible for setting up Gate One's interface, authenticating the user (if necessary), connecting to the server, (re)loading user preferences, and calling the init() function of each module/plugin:
 
     .. js:function:: GateOne.init(prefs)
 
-        Sets up preferences, loads the CSS theme/colors, loads JavaScript plugins, and calls :js:func:`~GateOne.initialize`.  Additionally, it will check if the user is authenticated and will force a re-auth if the credentials stored in the encrypted cookie don't check out.
+        Sets up preferences, loads the CSS theme/colors, loads JavaScript plugins, and calls :js:func:`GateOne.Net.connect` (which calls :js:func:`~GateOne.initialize` after the successfully connecting).  Additionally, it will check if the user is authenticated and will force a re-auth if the credentials stored in the encrypted cookie don't check out.
 
         :param object prefs: An object containing the settings that will be used by Gate One.  See :js:attr:`GateOne.prefs` under :ref:`gateone-properties` for details on what can be set.
 
@@ -472,11 +717,11 @@ Functions
 
         .. code-block:: javascript
 
-            GateOne.init({url: 'https://console12.serialconcentrators.mycompany.com/', scheme: 'black'});
+            GateOne.init({url: 'https://console12.serialconcentrators.mycompany.com/', theme: 'black'});
 
     .. js:function:: GateOne.initialize
 
-        Sets up Gate One's graphical elements, connects the WebSocket, and starts Gate One capturing keyboard input.
+        Sets up Gate One's graphical elements and starts Gate One capturing keyboard input.
 
 .. _GateOne.Utils:
 
@@ -488,10 +733,76 @@ This module consists of a collection of utility functions used throughout Gate O
 
 Functions
 ^^^^^^^^^
+.. container:: collapseindex
+
+    .. hlist::
+
+        * :js:attr:`GateOne.Utils.init`
+        * :js:attr:`GateOne.Utils.createBlob`
+        * :js:attr:`GateOne.Utils.createElement`
+        * :js:attr:`GateOne.Utils.deleteCookie`
+        * :js:attr:`GateOne.Utils.endsWith`
+        * :js:attr:`GateOne.Utils.enumerateThemes` ###
+        * :js:attr:`GateOne.Utils.getEmDimensions`
+        * :js:attr:`GateOne.Utils.getNode`
+        * :js:attr:`GateOne.Utils.getNodes`
+        * :js:attr:`GateOne.Utils.getOffset`
+        * :js:attr:`GateOne.Utils.getRowsAndColumns`
+        * :js:attr:`GateOne.Utils.getSelText`
+        * :js:attr:`GateOne.Utils.getToken`
+        * :js:attr:`GateOne.Utils.hasElementClass`
+        * :js:attr:`GateOne.Utils.hideElement`
+        * :js:attr:`GateOne.Utils.hideElements` ###
+        * :js:attr:`GateOne.Utils.init` ###
+        * :js:attr:`GateOne.Utils.isArray`
+        * :js:attr:`GateOne.Utils.isElement`
+        * :js:attr:`GateOne.Utils.isEven`
+        * :js:attr:`GateOne.Utils.isHTMLCollection`
+        * :js:attr:`GateOne.Utils.isNodeList`
+        * :js:attr:`GateOne.Utils.isPageHidden` ###
+        * :js:attr:`GateOne.Utils.isPrime`
+        * :js:attr:`GateOne.Utils.isVisible` ###
+        * :js:attr:`GateOne.Utils.itemgetter`
+        * :js:attr:`GateOne.Utils.items`
+        * :js:attr:`GateOne.Utils.loadCSS`
+        * :js:attr:`GateOne.Utils.loadPluginCSS`
+        * :js:attr:`GateOne.Utils.loadPrefs`
+        * :js:attr:`GateOne.Utils.loadScript`
+        * :js:attr:`GateOne.Utils.loadStyle` ###
+        * :js:attr:`GateOne.Utils.loadThemeCSS`
+        * :js:attr:`GateOne.Utils.ltrim` ###
+        * :js:attr:`GateOne.Utils.noop`
+        * :js:attr:`GateOne.Utils.partial`
+        * :js:attr:`GateOne.Utils.postInit` ###
+        * :js:attr:`GateOne.Utils.randomPrime`
+        * :js:attr:`GateOne.Utils.randomString`
+        * :js:attr:`GateOne.Utils.removeElement`
+        * :js:attr:`GateOne.Utils.replaceURLWithHTMLLinks`
+        * :js:attr:`GateOne.Utils.rtrim` ###
+        * :js:attr:`GateOne.Utils.runPostInit` ###
+        * :js:attr:`GateOne.Utils.saveAs`
+        * :js:attr:`GateOne.Utils.saveAsAction`
+        * :js:attr:`GateOne.Utils.savePrefs`
+        * :js:attr:`GateOne.Utils.scrollLines`
+        * :js:attr:`GateOne.Utils.scrollToBottom`
+        * :js:attr:`GateOne.Utils.setActiveStyleSheet`
+        * :js:attr:`GateOne.Utils.showElement`
+        * :js:attr:`GateOne.Utils.showElements` ###
+        * :js:attr:`GateOne.Utils.startsWith`
+        * :js:attr:`GateOne.Utils.stripHTML`
+        * :js:attr:`GateOne.Utils.toArray`
+        * :js:attr:`GateOne.Utils.xhrGet`
 
 .. js:function:: GateOne.Utils.init
 
-    Like all plugin init() functions this gets called from :js:func:`GateOne.Utils.postInit` which itself is called at the end of :js:func:`GateOne.initialize`.  It simply attaches the 'save_file' (WebSocket) action to :js:func:`GateOne.Utils.saveAsAction` (in :js:attr:`GateOne.Net.actions`).
+    Like all plugin init() functions this gets called from :js:func:`GateOne.Utils.runPostInit` which itself is called at the end of :js:func:`GateOne.initialize`.  It simply attaches a few actions like, 'save_file' to their respective functions in :js:attr:`GateOne.Net.actions`.  Literally:
+
+    .. code-block:: javascript
+
+        GateOne.Net.addAction('save_file', GateOne.Utils.saveAsAction);
+        GateOne.Net.addAction('load_style', GateOne.Utils.loadStyle);
+        GateOne.Net.addAction('themes_list', GateOne.Utils.enumerateThemes);
+
 
 .. js:function:: GateOne.Utils.createBlob(array, mimetype)
 
@@ -556,6 +867,10 @@ Functions
         > GateOne.Utils.endsWith('.txt', 'somefile.svg');
         false
 
+.. js:function:: GateOne.Utils.enumerateThemes(messageObj)
+
+    Attached to the 'themes_list' action, updates the preferences panel with the list of themes stored on the server.
+
 .. js:function:: GateOne.Utils.getEmDimensions(elem)
 
     Returns the height and width of 1em inside the given elem (e.g. '#term1_pre').  The returned object will be in the form of:
@@ -564,7 +879,7 @@ Functions
 
         {'w': <width in px>, 'h': <height in px>}
 
-    :param elem: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
     :returns: An object containing the width and height as obj.w and obj.h.
 
     Example:
@@ -576,11 +891,11 @@ Functions
 
 .. js:function:: GateOne.Utils.getNode(nodeOrSelector)
 
-    Returns a DOM node if given a querySelector-style string or an existing DOM node (will return the node as-is).
+    Returns a DOM node if given a `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_-style string or an existing DOM node (will return the node as-is).
 
     .. note:: The benefit of this over just ``document.querySelector()`` is that if it is given a node it will return the node as-is (so functions can accept both without having to worry about such things).  See :js:func:`~GateOne.Utils.removeElement` below for a good example.
 
-    :param nodeOrSelector: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param nodeOrSelector: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
     :returns: A DOM node or ``null`` if not found.
 
     Example:
@@ -594,11 +909,11 @@ Functions
 
 .. js:function:: GateOne.Utils.getNodes(nodeListOrSelector)
 
-    Given a CSS querySelectorAll-like string (e.g. '.some_class') or `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ (in case we're not sure), lookup the node using ``document.querySelectorAll()`` and return the result (which will be a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_).
+    Given a CSS `querySelectorAll <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll>`_ string (e.g. '.some_class') or `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ (in case we're not sure), lookup the node using ``document.querySelectorAll()`` and return the result (which will be a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_).
 
     .. note:: The benefit of this over just ``document.querySelectorAll()`` is that if it is given a nodeList it will just return the nodeList as-is (so functions can accept both without having to worry about such things).
 
-    :param nodeListOrSelector: A querySelectorAll string like ``.some_class`` or a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_.
+    :param nodeListOrSelector: A `querySelectorAll <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll>`_ string like ``.some_class`` or a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_.
     :returns: A `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ or ``[]`` (an empty Array) if not found.
 
     Example:
@@ -615,7 +930,7 @@ Functions
 
         {'cols': 165, 'rows': 45}
 
-    :param elem: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
     :returns: An object with obj.cols and obj.rows representing the maximum number of columns and rows of text that will fit inside *elem*.
 
     .. warning:: *elem* must be a basic block element such as DIV, SPAN, P, PRE, etc.  Elements that require sub-elements such as TABLE (requires TRs and TDs) probably won't work.
@@ -657,9 +972,9 @@ Functions
 
 .. js:function:: GateOne.Utils.hasElementClass(element, className)
 
-    Almost a direct copy of `MochiKit.DOM.hasElementClass <http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-haselementclass>`_...  Returns true if *className* is found on *element*. *element* is looked up with :js:func:`~GateOne.Utils.getNode` so querySelector-style identifiers or DOM nodes are acceptable.
+    Almost a direct copy of `MochiKit.DOM.hasElementClass <http://mochi.github.com/mochikit/doc/html/MochiKit/DOM.html#fn-haselementclass>`_...  Returns true if *className* is found on *element*. *element* is looked up with :js:func:`~GateOne.Utils.getNode` so `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_-style identifiers or DOM nodes are acceptable.
 
-    :param element: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param element: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
     :param className: The name of the class you're checking is applied to *element*.
     :returns: true/false
 
@@ -676,13 +991,25 @@ Functions
 
     Hides the given element by setting ``elem.style.display = 'none'``.
 
-    :param elem: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
 
     Example:
 
     .. code-block:: javascript
 
         > GateOne.Utils.hideElement('#go_icon_newterm');
+
+.. js:function:: GateOne.Utils.hideElements(elems)
+
+    Hides the given elements by setting ``elem.style.display = 'none'`` on all of them.
+
+    :param elems: A `querySelectorAll <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll>`_ string like ``.some_element_class``, a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_, or an array.
+
+    Example:
+
+    .. code-block:: javascript
+
+        > GateOne.Utils.hideElements('.pastearea');
 
 .. js:function:: GateOne.Utils.isArray(obj)
 
@@ -756,6 +1083,17 @@ Functions
         > GateOne.Utils.isHTMLCollection(document.getElementsByTagName('pre'));
         true // Just like isHTMLCollection this will vary
 
+.. js:function:: GateOne.Utils.isPageHidden()
+
+    Returns true if the page (browser tab) is hidden (e.g. inactive).  Returns false otherwise.
+
+    Example:
+
+    .. code-block:: javascript
+
+        > GateOne.Utils.isPageHidden();
+        false
+
 .. js:function:: GateOne.Utils.isPrime(n)
 
     Returns true if *n* is a prime number.
@@ -771,6 +1109,19 @@ Functions
         true
         > GateOne.Utils.isPrime(14);
         false
+
+.. js:function:: GateOne.Utils.isVisible(elem)
+
+    Returns true if *node* is visible (checks parent nodes recursively too).  *node* may be a DOM node or a selector string.
+
+    Example:
+
+    .. code-block:: javascript
+
+        > GateOne.Utils.isVisible('#'+GateOne.prefs.prefix+'pastearea1');
+        true
+
+    .. note:: Relies on checking elem.style.opacity and elem.style.display.  Does *not* check transforms.
 
 .. js:function:: GateOne.Utils.itemgetter(name)
 
@@ -859,9 +1210,13 @@ Functions
         var myfunc = function() { console.log("finished loading whatever.js"); };
         GateOne.Utils.loadScript("/static/someplugin/whatever.js", myfunc);
 
-.. js:function:: GateOne.Utils.loadThemeCSS(schemeObj)
+.. js:function:: GateOne.Utils.loadStyle(message)
 
-    Loads the GateOne CSS theme(s) for the given *schemeObj* which should be in the form of:
+    Loads the stylesheet sent by the server via the 'load_style' WebSocket action.
+
+.. js:function:: GateOne.Utils.loadThemeCSS(themeObj)
+
+    Loads the GateOne CSS theme(s) for the given *themeObj* which should be in the form of:
 
     .. code-block:: javascript
 
@@ -871,7 +1226,11 @@ Functions
         // ...or an object containing both:
         {'theme': 'black', 'colors': 'gnome-terminal'}
 
-    If *schemeObj* is not provided, will load the defaults.
+    If *themeObj* is not provided, will load the defaults.
+
+.. js:function:: GateOne.Utils.ltrim(string)
+
+    Returns *string* minus left-hand whitespace
 
 .. js:function:: GateOne.Utils.noop(a)
 
@@ -912,7 +1271,7 @@ Functions
 
 .. js:function:: GateOne.Utils.postInit
 
-    Called by :js:func:`GateOne.init()`, iterates over the list of plugins in :js:attr:`GateOne.loadedModules` calling the ``init()`` function of each (if present).  When that's done it does the same thing with each respective plugin's ``postInit()`` function.
+    Called by :js:func:`GateOne.runPostInit()`, iterates over the list of plugins in :js:attr:`GateOne.loadedModules` calling the ``init()`` function of each (if present).  When that's done it does the same thing with each respective plugin's ``postInit()`` function.
 
 .. js:function:: GateOne.Utils.randomPrime()
 
@@ -947,7 +1306,7 @@ Functions
 
     Removes the given *elem* from the DOM.
 
-    :param elem: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
 
     Example:
 
@@ -969,6 +1328,14 @@ Functions
 
         > GateOne.Utils.replaceURLWithHTMLLinks('Downloading http://foo.bar.com/some/file.zip');
         "Downloading <a href='http://foo.bar.com/some/file.zip'>http://foo.bar.com/some/file.zip</a>"
+
+.. js:function:: GateOne.Utils.rtrim(string)
+
+    Returns *string* minus right-hand whitespace
+
+.. js:function:: GateOne.Utils.runPostInit()
+
+    Calls all module/plugin ``init()`` functions followed by all ``postInit()`` functions after the page is loaded and the WebSocket has been connected.  Specifically it is called right near the end of :js:func:`GateOne.initialize` just before keyboard input is enabled.
 
 .. js:function:: GateOne.Utils.saveAs(blob, filename)
 
@@ -995,7 +1362,7 @@ Functions
 
     Scrolls the given element (*elem*) by the number given in *lines*.  It will automatically determine the line height using :js:func:`~GateOne.Utils.getEmDimensions`.  *lines* can be a positive or negative integer (to scroll down or up, respectively).
 
-    :param elem: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
     :param number lines: The number of lines to scroll *elem* by.  Can be positive or negative.
 
     Example:
@@ -1010,7 +1377,7 @@ Functions
 
     Scrolls the given element (*elem*) to the very bottom (all the way down).
 
-    :param elem: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
 
     Example:
 
@@ -1037,13 +1404,25 @@ Functions
 
     Shows the given element (if previously hidden via :js:func:`~GateOne.Utils.hideElement`) by setting ``elem.style.display = 'block'``.
 
-    :param elem: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
 
     Example:
 
     .. code-block:: javascript
 
         > GateOne.Utils.showElement('#go_icon_newterm');
+
+.. js:function:: GateOne.Utils.showElements(elems)
+
+    Shows the given elements (if previously hidden via :js:func:`~GateOne.Utils.hideElement` or :js:func:`~GateOne.Utils.hideElements`) by setting ``elem.style.display = 'block'``.
+
+    :param elems: A `querySelectorAll <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelectorAll>`_ string like ``.some_element_class``, a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_, or an array.
+
+    Example:
+
+    .. code-block:: javascript
+
+        > GateOne.Utils.showElements('.pastearea');
 
 .. js:function:: GateOne.Utils.startsWith(substr, str)
 
@@ -1061,6 +1440,20 @@ Functions
         true
         > GateOne.Utils.startsWith('foo', 'somefile.txt');
         false
+
+.. js:function:: GateOne.Utils.stripHTML(html)
+
+    Returns the contents of *html* minus the HTML.
+
+    :param string html: The string that you wish to strip HTML from.
+    :returns: The string with all HTML formatting removed.
+
+    Examples:
+
+    .. code-block:: javascript
+
+        > GateOne.Utils.stripHTML('<span>This <b>is</b> a test</span>');
+        "This is a test"
 
 .. js:function:: GateOne.Utils.toArray(obj)
 
@@ -1106,27 +1499,38 @@ Properties
 ^^^^^^^^^^
 .. js:attribute:: GateOne.Net.actions
 
-This is where all of Gate One's WebSocket protocol actions are assigned to functions.  This is how they are defined by default:
+    :type: Object
 
-.. code-block:: javascript
+This is where all of Gate One's WebSocket protocol actions are assigned to functions.  Here's how they are defined by default:
 
-    GateOne.Net.actions = {
-    // These are what will get called when the server sends us each respective action
-        'log': GateOne.Net.log,
-        'ping': GateOne.Net.ping,
-        'pong': GateOne.Net.pong,
-        'reauthenticate': GateOne.Net.reauthenticate,
-        'set_mode': GateOne.Terminal.setMode,
-        'terminals': GateOne.Terminal.reattachTerminals,
-        'termupdate': GateOne.Terminal.updateTerminal,
-        'scroll_up': GateOne.Terminal.scrollUp,
-        'term_exists': GateOne.Terminal.reconnectTerminalAction,
-        'set_title': GateOne.Visual.setTitle, // NOTE: This actually gets assigned via GateOne.Visual.init()
-        'bell': GateOne.Visual.bellAction, // NOTE: Ditto
-        'metadata': GateOne.Terminal.storeMetadata
-    }
+    ================  ====================================================
+    Action            Function
+    ================  ====================================================
+    bell              :js:func:`GateOne.User.bellAction`
+    gateone_user      :js:func:`GateOne.User.storeSession`
+    load_bell         :js:func:`GateOne.User.loadBell`
+    load_css          :js:func:`GateOne.Visual.CSSPluginAction`
+    load_style        :js:func:`GateOne.Utils.loadStyle`
+    load_webworker    :js:func:`GateOne.Terminal.loadWebWorkerAction`
+    log               :js:func:`GateOne.Net.log`
+    notice            :js:func:`GateOne.Net.serverMessageAction`
+    ping              :js:func:`GateOne.Net.ping`
+    pong              :js:func:`GateOne.Net.pong`
+    reauthenticate    :js:func:`GateOne.Net.reauthenticate`
+    save_file         :js:func:`GateOne.Utils.saveAsAction`
+    set_mode          :js:func:`GateOne.Terminal.setMode`
+    set_title         :js:func:`GateOne.Terminal.setTitleAction`
+    set_username      :js:func:`GateOne.User.setUsername`
+    term_ended        :js:func:`GateOne.Terminal.closeTerminal`
+    terminals         :js:func:`GateOne.Terminal.reattachTerminals`
+    termupdate        :js:func:`GateOne.Terminal.updateTerminal`
+    scroll_up         :js:func:`GateOne.Terminal.scrollUp`
+    term_exists       :js:func:`GateOne.Terminal.reconnectTerminalAction`
+    set_title         :js:func:`GateOne.Visual.setTitle`
+    ================  ====================================================
 
-.. note:: Most of the above is added via :js:func:`~GateOne.Net.addAction` inside of each respective plugin's ``init()`` function.
+
+.. note:: Most of the above is added via :js:func:`~GateOne.Net.addAction` inside of each respective module's ``init()`` function.
 
 For example, if we execute :js:func:`GateOne.Net.ping`, this will send a message over the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ like so:
 
@@ -1162,6 +1566,28 @@ If no action can be found for a message it will be passed to :js:func:`GateOne.V
 
 Functions
 ^^^^^^^^^
+.. container:: collapseindex
+
+    .. hlist::
+
+        * :js:attr:`GateOne.Net.addAction`
+        * :js:attr:`GateOne.Net.connect`
+        * :js:attr:`GateOne.Net.connectionError`
+        * :js:attr:`GateOne.Net.fullRefresh`
+        * :js:attr:`GateOne.Net.killTerminal`
+        * :js:attr:`GateOne.Net.log`
+        * :js:attr:`GateOne.Net.onMessage`
+        * :js:attr:`GateOne.Net.onOpen`
+        * :js:attr:`GateOne.Net.ping`
+        * :js:attr:`GateOne.Net.pong`
+        * :js:attr:`GateOne.Net.reauthenticate`
+        * :js:attr:`GateOne.Net.refresh`
+        * :js:attr:`GateOne.Net.sendChars`
+        * :js:attr:`GateOne.Net.sendDimensions`
+        * :js:attr:`GateOne.Net.sendString`
+        * :js:attr:`GateOne.Net.setTerminal`
+        * :js:attr:`GateOne.Net.sslError`
+
 .. js:function:: GateOne.Net.addAction(name, func)
 
     Adds an action to the :js:attr:`GateOne.Net.actions` object.
@@ -1177,7 +1603,11 @@ Functions
 
 .. js:function:: GateOne.Net.connect()
 
-    Opens a connection to the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ defined in ``GateOne.prefs.url`` and stores it as :js:attr:`GateOne.ws`.  This function gets called by :js:func:`GateOne.init` and there's really no reason why it should be called directly by anything else.
+    Opens a connection to the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ defined in ``GateOne.prefs.url`` and stores it as :js:attr:`GateOne.ws`.  Once connected :js:func:`GateOne.initialize` will be called.
+
+    If an error is encountered while trying to connect to the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_, :js:func:`~GateOne.Net.connectionError` will be called to notify the user as such.  After five seconds, if a connection has yet to be connected successfully it will be assumed that the user needs to accept the Gate One server's SSL certificate.  This will invoke call to :js:func:`~GateOne.Net.sslError` which will redirect the user to the ``accept_certificate.html`` page on the Gate One server.  Once that page has loaded successfully (after the user has clicked through the interstitial page) the user will be redirected back to the page they were viewing that contained Gate One.
+
+    .. note:: This function gets called by :js:func:`GateOne.init` and there's really no reason why it should be called directly by anything else.
 
 .. js:function:: GateOne.Net.connectionError()
 
@@ -1185,19 +1615,19 @@ Functions
 
     This function is attached to the WebSocket's ``onclose`` event and shouldn't be called directly.
 
-.. js:function:: GateOne.Net.fullRefresh
+.. js:function:: GateOne.Net.fullRefresh()
 
-    Sends a message to the Gate One server telling it to perform a full screen refresh (i.e. send us the whole thing as opposed to just the difference from the last screen).
+    Sends a message to the Gate One server asking it to send a full screen refresh (i.e. send us the whole thing as opposed to just the difference from the last screen).
 
 .. js:function:: GateOne.Net.killTerminal(term)
 
-    Normally called when the user closes a terminal, it sends a message to the GateOne server telling it to end the process associated with *term*.  Normally this function would not be called directly.  To close a terminal cleanly, plugins should use ``GateOne.Terminal.closeTerminal(term)`` (which calls this function).
+    Normally called when the user closes a terminal, it sends a message to the server telling it to end the process associated with *term*.  Normally this function would not be called directly.  To close a terminal cleanly, plugins should use ``GateOne.Terminal.closeTerminal(term)`` (which calls this function).
 
     :param number term: The termimal number that should be killed on the server side of things.
 
 .. js:function:: GateOne.Net.log(msg)
 
-    This function can be used in debugging `~GateOne.Net.actions`; it logs whatever message is received from the Gate One server: ``GateOne.Logging.logInfo(msg)`` (which would equate to console.log under most circumstances).
+    This function can be used in debugging :js:attr:`~GateOne.Net.actions`; it logs whatever message is received from the Gate One server: ``GateOne.Logging.logInfo(msg)`` (which would equate to console.log under most circumstances).
 
     :param string msg: The message received from the Gate One server.
 
@@ -1209,15 +1639,15 @@ Functions
 
     Then you can view the exact messages received by the client in the JavaScript console in your browser.
 
-.. js:function:: GateOne.Net.onOpen
-
-    This gets attached to :js:attr:`GateOne.ws.onopen` inside of :js:func:`~GateOne.Net.connect`.  It clears any error message that might be displayed to the user, loads the go_process.js Web Worker, and sends an authentication message to the server along with the dimensions of the terminal(s).
-
-    Also, if :js:attr:`GateOne.prefs.autoConnectURL` is set :js:func:`~GateOne.Net.onOpen` will send that value to the server immediately after the connection is established.
+    .. tip:: Setting ``GateOne.Logging.level = 'DEBUG'`` in your JS console will also log all incoming messages from the server (though it can be a bit noisy).
 
 .. js:function:: GateOne.Net.onMessage(event)
 
     This gets attached to :js:attr:`GateOne.ws.onmessage` inside of :js:func:`~GateOne.Net.connect`.  It takes care of decoding (`JSON <https://developer.mozilla.org/en/JSON>`_) messages sent from the server and calling any matching :js:attr:`~GateOne.Net.actions`.  If no matching action can be found inside ``event.data`` it will fall back to passing the message directly to :js:func:`GateOne.Visual.displayMessage`.
+
+.. js:function:: GateOne.Net.onOpen
+
+    This gets attached to :js:attr:`GateOne.ws.onopen` inside of :js:func:`~GateOne.Net.connect`.  It clears any error message that might be displayed to the user and asks the server to send us the (currently-selected) theme CSS, all plugin CSS, the bell sound (if not already stored in :js:attr:`GateOne.prefs.bellSound`), and the go_process.js Web Worker (``go.ws.send(JSON.stringify({'get_webworker': null}));``).  Lastly, it sends an authentication message and calls :js:func:`~GateOne.Net.ping` after a short timeout (to let things settle down lest they interfere with the ping time calculation).
 
 .. js:function:: GateOne.Net.ping
 
@@ -1281,6 +1711,12 @@ Functions
 
         GateOne.Net.setTerminal(1);
 
+.. js:function:: GateOne.Net.sslError(callback)
+
+    Called when we fail to connect due to an SSL error (user must accept the SSL certificate).  It opens a dialog where the user can accept the Gate One server's SSL certificate (via an iframe).
+
+    :param function callback: Will be called after the user clicks "OK" to the dialog.
+
 GateOne.Input
 -------------
 .. js:attribute:: GateOne.Input
@@ -1329,6 +1765,23 @@ Properties
 
 Functions
 ^^^^^^^^^
+.. container:: collapseindex
+
+    .. hlist::
+
+        * :js:attr:`GateOne.Input.bufferEscSeq`
+        * :js:attr:`GateOne.Input.capture`
+        * :js:attr:`GateOne.Input.disableCapture`
+        * :js:attr:`GateOne.Input.emulateKey`
+        * :js:attr:`GateOne.Input.emulateKeyCombo`
+        * :js:attr:`GateOne.Input.key`
+        * :js:attr:`GateOne.Input.modifiers`
+        * :js:attr:`GateOne.Input.mouse`
+        * :js:attr:`GateOne.Input.onKeyDown`
+        * :js:attr:`GateOne.Input.onKeyUp`
+        * :js:attr:`GateOne.Input.queue`
+        * :js:attr:`GateOne.Input.registerShortcut`
+
 .. js:function:: GateOne.Input.bufferEscSeq(chars)
 
     Prepends an ESC character to *chars* and adds it to the :js:attr:`~GateOne.Input.charBuffer`
@@ -1340,7 +1793,7 @@ Functions
 
 .. js:function:: GateOne.Input.capture()
 
-    Sets the browser's focus to :js:attr:`GateOne.prefs.goDiv` and enables the capture of keyboard and mouse events.
+    Sets the browser's focus to :js:attr:`GateOne.prefs.goDiv` and enables the capture of keyboard and mouse events.  It also a very important part of Gate One's ability to support copy & paste without requiring the use of browser plugins.
 
 .. js:function:: GateOne.Input.disableCapture
 
@@ -1476,6 +1929,32 @@ Properties
 
 Functions
 ^^^^^^^^^
+.. container:: collapseindex
+
+    .. hlist::
+
+        * :js:attr:`GateOne.Visual.addSquare`
+        * :js:attr:`GateOne.Visual.applyStyle`
+        * :js:attr:`GateOne.Visual.applyTransform`
+        * :js:attr:`GateOne.Visual.bellAction`
+        * :js:attr:`GateOne.Visual.createGrid`
+        * :js:attr:`GateOne.Visual.disableScrollback`
+        * :js:attr:`GateOne.Visual.displayMessage`
+        * :js:attr:`GateOne.Visual.displayTermInfo`
+        * :js:attr:`GateOne.Visual.enableScrollback`
+        * :js:attr:`GateOne.Visual.init`
+        * :js:attr:`GateOne.Visual.playBell`
+        * :js:attr:`GateOne.Visual.setTitleAction`
+        * :js:attr:`GateOne.Visual.slideDown`
+        * :js:attr:`GateOne.Visual.slideLeft`
+        * :js:attr:`GateOne.Visual.slideRight`
+        * :js:attr:`GateOne.Visual.slideToTerm`
+        * :js:attr:`GateOne.Visual.slideUp`
+        * :js:attr:`GateOne.Visual.toggleGridView`
+        * :js:attr:`GateOne.Visual.togglePanel`
+        * :js:attr:`GateOne.Visual.toggleScrollback`
+        * :js:attr:`GateOne.Visual.updateDimensions`
+
 .. tip:: In most of Gate One's JavaScript, *term* refers to the terminal number (e.g. 1).
 
 .. js:function:: GateOne.Visual.addSquare(squareName)
@@ -1494,14 +1973,14 @@ Functions
 
         GateOne.Visual.applyStyle('#somediv', {'opacity': 0.5, 'color': 'black'});
 
-    :param elem: A querySelector string like ``#some_element_id`` or a DOM node.
+    :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
     :param style: A JavaScript object holding the style that will be applied to *elem*.
 
 .. js:function:: GateOne.Visual.applyTransform(obj, transform)
 
     This function is Gate One's bread and butter:  It applies the given CSS3 *transform* to *obj*.  *obj* can be one of the following:
 
-        * A querySelector-like string (e.g. "#some_element_id").
+        * A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_-like string (e.g. "#some_element_id").
         * A DOM node.
         * An `Array <https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array>`_ or an Array-like object containing DOM nodes such as `HTMLCollection <https://developer.mozilla.org/en/DOM/HTMLCollection>`_ or `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_ (it will apply the transform to all of them).
 
@@ -1524,7 +2003,7 @@ Functions
             transform: translateX(500%);         /* Some day this will be all that is necessary */
         }
 
-    :param obj: A querySelector string like ``#some_element_id``, a DOM node, an `Array <https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array>`_ of DOM nodes, an `HTMLCollection <https://developer.mozilla.org/en/DOM/HTMLCollection>`_, or a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_.
+    :param obj: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id``, a DOM node, an `Array <https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array>`_ of DOM nodes, an `HTMLCollection <https://developer.mozilla.org/en/DOM/HTMLCollection>`_, or a `NodeList <https://developer.mozilla.org/En/DOM/NodeList>`_.
     :param transform: A `CSS3 transform <http://www.w3schools.com/cssref/css3_pr_transform.asp>`_ function such as ``scale()`` or ``translate()``.
 
 .. js:function:: GateOne.Visual.bellAction(bellObj)
@@ -1724,7 +2203,7 @@ Functions
 
         GateOne.Visual.togglePanel('#'+GateOne.prefs.prefix+'panel_bookmarks');
 
-    :param string panel: A querySelector-like string ID or the DOM node of the panel we're toggling.
+    :param string panel: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_-like string ID or the DOM node of the panel we're toggling.
 
 .. js:function:: GateOne.Visual.toggleScrollback()
 
@@ -1794,6 +2273,20 @@ Properties
 
 Functions
 ^^^^^^^^^
+.. container:: collapseindex
+
+    .. hlist::
+
+        * :js:attr:`GateOne.Terminal.closeTerminal`
+        * :js:attr:`GateOne.Terminal.init`
+        * :js:attr:`GateOne.Terminal.newTerminal`
+        * :js:attr:`GateOne.Terminal.notifyActivity`
+        * :js:attr:`GateOne.Terminal.notifyInactivity`
+        * :js:attr:`GateOne.Terminal.reattachTerminalsAction`
+        * :js:attr:`GateOne.Terminal.reconnectTerminalAction`
+        * :js:attr:`GateOne.Terminal.setModeAction`
+        * :js:attr:`GateOne.Terminal.updateTerminalAction`
+
 .. js:function:: GateOne.Terminal.closeTerminal(term)
 
     Closes the given *term* and tells the Gate One server to end its running process.
@@ -1817,7 +2310,7 @@ Functions
 
 .. js:function:: GateOne.Terminal.newTerminal(term)
 
-    Creates a new terminal and gets it updating itself by way of the Gate One server.
+    Creates a new terminal and gets it updating itself by way of the Gate One server.  Also, if :js:attr:`GateOne.prefs.autoConnectURL` is set :js:func:`~GateOne.Net.onOpen` will send that value to the server 500ms after the terminal is opened.
 
     .. code-block:: javascript
 
@@ -1921,6 +2414,16 @@ Properties
 
 Functions
 ^^^^^^^^^
+.. container:: collapseindex
+
+    .. hlist::
+
+        * :js:attr:`GateOne.User.init`
+        * :js:attr:`GateOne.User.setUsername`
+        * :js:attr:`GateOne.User.logout`
+        * :js:attr:`GateOne.User.loadBell`
+        * :js:attr:`GateOne.User.uploadBellDialog`
+
 .. js:function:: GateOne.User.init
 
     Like all plugin init() functions this gets called from :js:func:`GateOne.Utils.postInit` which itself is called at the end of :js:func:`GateOne.initialize`.  It adds the username to the preferences panel as well as a link that allows the user to logout.  It also attaches the 'set_username' and 'load_bell' actions to :js:attr:`GateOne.Net.actions`.

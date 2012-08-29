@@ -923,6 +923,14 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmElement.appendChild(bmTaglist);
         }
         bmElement.appendChild(bmLinkFloat);
+        bmLinkFloat.oncontextmenu = function(e) {
+            // If the user invokes the context menu we want to make sure they can select the "copy link" option so we hide the linkfloat
+            u.hideElement(bmLinkFloat);
+            setTimeout(function() {
+                // Bring it back after a moment.
+                u.showElement(bmLinkFloat);
+            }, 250);
+        }
         bmLinkFloat.onclick = function(e) {
             b.openBookmark(bmLink.href);
         }
@@ -1016,7 +1024,6 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmHeader = u.createElement('div', {'id': 'bm_header', 'class': 'sectrans'}),
             bmContainer = u.createElement('div', {'id': 'bm_container', 'class': 'sectrans'}),
             bmPagination = u.createElement('div', {'id': 'bm_pagination', 'class': 'sectrans'}),
-//             bmTagCloud = u.createElement('div', {'id': 'bm_tagcloud', 'class': 'sectrans'}),
             bmTags = u.createElement('div', {'id': 'bm_tags', 'class': 'sectrans'}),
             bmNew = u.createElement('a', {'id': 'bm_new', 'class': 'quartersectrans'}),
             bmHRFix = u.createElement('hr', {'style': {'opacity': 0, 'margin-bottom': 0}}),
@@ -1083,20 +1090,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
         bmDisplayOpts.appendChild(bmSortOpts);
         bmHeader.appendChild(bmTags);
         bmHeader.appendChild(bmHRFix); // The HR here fixes an odd rendering bug with Chrome on Mac OS X
-//         bmTagsHeaderAutotagsLink.innerHTML = "Autotags";
-//         pipeSeparator.innerHTML = " | ";
-//         bmTagsHeaderTagsLink.innerHTML = "Tags";
-//         bmTagsHeader.appendChild(bmTagsHeaderTagsLink);
-//         bmTagsHeader.appendChild(pipeSeparator);
-//         bmTagsHeader.appendChild(bmTagsHeaderAutotagsLink);
-//         bmTagsHeader.innerHTML = '<a id="bm_user_tags" href="javascript:void(0)">Tags</a> | <a id="bm_user_tags" class="inactive" href="javascript:void(0)">Autotags</a>';
-//         go.Visual.applyTransform(bmTagsHeader, 'translate(300%, 0)');
         go.Visual.applyTransform(bmPagination, 'translate(300%, 0)');
-//         bmTagCloud.appendChild(bmTagsHeader);
-//         bmTagCloud.appendChild(bmTagCloudUL);
-//         bmTagCloudTip.style.opacity = 0;
-//         bmTagCloudTip.innerHTML = "<br><b>Tip:</b> " + b.generateTip();
-//         bmTagCloud.appendChild(bmTagCloudTip);
         if (existingPanel) {
             // Remove everything first
             while (existingPanel.childNodes.length >= 1 ) {
@@ -1119,6 +1113,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             u.getNode('#'+prefix+'bm_sort_direction').onclick = toggleSort;
         } else {
             bmPanel.appendChild(bmHeader);
+            u.hideElement(bmPanel); // Start out hidden
             u.getNode(go.prefs.goDiv).appendChild(bmPanel);
             if (!embedded) {
                 bmPanel.appendChild(bmNew);
@@ -1131,46 +1126,9 @@ GateOne.Base.update(GateOne.Bookmarks, {
         if (!embedded) {
             b.loadTagCloud('tags');
             setTimeout(function() { // Fade them in and load the bookmarks
-//                 go.Visual.applyTransform(bmTagsHeader, '');
                 go.Visual.applyTransform(bmPagination, '');
                 b.loadBookmarks(1);
             }, 800); // Needs to be just a bit longer than the previous setTimeout
-//             setTimeout(function() { // This one looks nicer if it comes last
-//                 bmTagCloudTip.style.opacity = 1;
-//             }, 3000);
-//             setTimeout(function() { // Make it go away after a while
-//                 bmTagCloudTip.style.opacity = 0;
-//                 setTimeout(function() {
-//                     u.removeElement(bmTagCloudTip);
-//                 }, 1000);
-//             }, 30000);
-//             allTags.forEach(function(tag) {
-//                 var li = u.createElement('li', {'class': 'bm_tag sectrans', 'title': 'Click to filter or drop on a bookmark to tag it.', 'draggable': true});
-//                 li.innerHTML = tag;
-//                 li.addEventListener('dragstart', b.handleDragStart, false);
-//                 go.Visual.applyTransform(li, 'translateX(700px)');
-//                 li.onclick = function(e) {
-//                     b.addFilterTag(b.bookmarks, tag);
-//                 };
-//                 li.oncontextmenu = function(e) {
-//                     // Bring up the context menu
-//                     e.preventDefault(); // Prevent regular context menu
-//                     b.tagContextMenu(li);
-//                 }
-//                 bmTagCloudUL.appendChild(li);
-//                 if (tag == "Untagged") {
-//                     li.className = 'bm_tag sectrans untagged';
-//                 }
-//                 setTimeout(function unTrans() {
-//                     go.Visual.applyTransform(li, '');
-//                 }, delay);
-//                 delay += 50;
-//             });
-//             if (existingPanel) {
-//                 existingPanel.appendChild(bmTagCloud);
-//             } else {
-//                 bmPanel.appendChild(bmTagCloud);
-//             }
         }
     },
     loadTagCloud: function(active) {

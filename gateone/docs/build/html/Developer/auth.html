@@ -161,7 +161,7 @@ sets <em>go_upn</em> to 'ANONYMOUS'.</p>
 
 <dl class="method">
 <dt id="auth.NullAuthHandler.user_login">
-<tt class="descname">user_login</tt><big>(</big><em>user</em><big>)</big><a class="headerlink" href="#auth.NullAuthHandler.user_login" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">user_login</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="../_modules/auth.html#NullAuthHandler.user_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.NullAuthHandler.user_login" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is an override of BaseAuthHandler since anonymous auth is special.
 Generates a unique session ID for this user and saves it in a browser
 cookie.  This is to ensure that anonymous users can't access each
@@ -291,9 +291,32 @@ the browser will be redirected to login.</p>
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
   </body>
 </html>

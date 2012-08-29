@@ -353,6 +353,7 @@ GateOne.Base.update(GateOne.Logging, {
         } else {
             logPanel.appendChild(logHeader);
             logPanel.appendChild(logViewContent);
+            u.hideElement(logPanel);
             u.getNode(go.prefs.goDiv).appendChild(logPanel);
         }
         var logPreviewIframeDoc = logPreviewIframe.contentWindow.document;

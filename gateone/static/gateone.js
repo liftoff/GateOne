@@ -96,7 +96,7 @@ function stopBenchmark(msg) {
 // Define GateOne
 var GateOne = GateOne || {};
 GateOne.NAME = "GateOne";
-GateOne.VERSION = "1.0";
+GateOne.VERSION = "1.1";
 GateOne.__repr__ = function () {
     return "[" + this.NAME + " " + this.VERSION + "]";
 };
@@ -107,10 +107,11 @@ GateOne.toString = function () {
 // Define our internal token seed storage (inaccessible outside this sandbox)
 var seed1 = null, seed2 = null; // NOTE: Not used yet.
 
-// NOTE: This module loading/updating code was copied from the *excellent* MochiKit JS library (http://mochikit.com).
+// NOTE: This module/mehtod loading/updating code was copied from the *excellent* MochiKit JS library (http://mochikit.com).
 //       ...which is MIT licensed: http://www.opensource.org/licenses/mit-license.php
-//      Other functions copied from MochiKit are indicated individually
-GateOne.Base = GateOne.Base || {}; // "Base" just contains things like prefs and essential functions
+//      Other functions copied from MochiKit are indicated individually throughout this file
+GateOne.Base = GateOne.Base || {}; // "Base" contains the basic functions used to create/update Gate One modules/plugins
+GateOne.loadedModules = [];
 /**
  * Creates a new module in a parent namespace. This function will
  * create a new empty module object with "NAME", "VERSION",
@@ -125,7 +126,7 @@ GateOne.Base = GateOne.Base || {}; // "Base" just contains things like prefs and
  * @param {String} version the module version, e.g. "1.0"
  * @param {Array} [deps] the array of module dependencies (as strings)
  */
-GateOne.loadedModules = [];
+
 GateOne.Base.module = function (parent, name, version, deps) {
     var module = parent[name] = parent[name] || {},
         prefix = (parent.NAME ? parent.NAME + "." : "");
@@ -145,8 +146,7 @@ GateOne.Base.module = function (parent, name, version, deps) {
     GateOne.loadedModules.push(module.NAME);
     return module;
 };
-GateOne.Base.module(GateOne, "Base", "1.0", []);
-
+GateOne.Base.module(GateOne, "Base", "1.1", []);
 GateOne.Base.update = function (self, obj/*, ... */) {
     if (self === null || self === undefined) {
         self = {};
@@ -161,6 +161,27 @@ GateOne.Base.update = function (self, obj/*, ... */) {
     }
     return self;
 };
+// NOTE: This (or something like it) will be used in the future to replace the current mess of callbacks (e.g. newTermCallbacks):
+// GateOne.Callbacks.setupCallbacks = function(f) {
+//     var self = this;
+//     var newFunc = function(arg) {
+//         newFunc.callBefore.forEach(function(callback) {
+//             if (typeof(callback) == 'function') {
+//                 callback();
+//             }
+//         });
+//         var result = f.call(self, arg);
+//         newFunc.callAfter.forEach(function(callback) {
+//             if (typeof(callback) == 'function') {
+//                 callback();
+//             }
+//         });
+//         return result;
+//     }
+//     newFunc.callBefore = [];
+//     newFunc.callAfter = [];
+//     return newFunc;
+// }
 
 // GateOne Settings
 GateOne.prefs = { // Tunable prefs (things users can change)
@@ -374,7 +395,8 @@ var go = GateOne.Base.update(GateOne, {
             colorsList = [],
             updateCSSfunc = function() { go.ws.send(JSON.stringify({'enumerate_themes': null})) };
         // Create our prefs panel
-        go.Visual.applyTransform(prefsPanel, 'scale(0)');
+        u.hideElement(prefsPanel); // Start out hidden
+        go.Visual.applyTransform(prefsPanel, 'scale(0)'); // So it scales back in real nice
         toolbarIconPrefs.innerHTML = go.Icons.prefs;
         prefsPanelH2.innerHTML = "Preferences";
         panelClose.innerHTML = go.Icons['panelclose'];
@@ -604,11 +626,17 @@ var go = GateOne.Base.update(GateOne, {
         go.Visual.updateDimensions();
         // This calls plugins init() and postInit() functions:
         u.runPostInit();
+        // Even though panels may start out at 'scale(0)' this makes sure they're all display:none as well to prevent them from messing with people's ability to tab between fields
+        go.Visual.togglePanel(); // Scales them all away
         // Start capturing keyboard input
         go.Input.capture();
         document.addEventListener(visibilityChange, go.Input.handleVisibility, false);
         goDiv.addEventListener('blur', go.Input.disableCapture, false); // So we don't end up stealing input from something else on the page
         GateOne.initialized = true;
+        setTimeout(function() {
+            // Make sure all the panels have their style set to 'display:none' to prevent their form elements from gaining focus when the user presses the tab key (only matters when a dialog or other panel is open)
+            u.hideElements(go.prefs.goDiv+' .panel');
+        },500);
     }
 });
 
@@ -618,7 +646,7 @@ if (!localStorage[GateOne.prefs.prefix+'selectedTerminal']) {
 }
 
 // GateOne.Utils (generic utility functions)
-GateOne.Base.module(GateOne, "Utils", "1.0", ['Base']);
+GateOne.Base.module(GateOne, "Utils", "1.1", ['Base']);
 GateOne.Utils.scriptsLoaded = false; // Used to track whether or not combined_js loaded or not
 GateOne.Base.update(GateOne.Utils, {
     init: function() {
@@ -777,10 +805,11 @@ GateOne.Base.update(GateOne.Utils, {
     },
     hideElement: function(elem) {
         // Sets the 'display' style of the given element to 'none'
-        var u = GateOne.Utils;
-        u.getNode(elem).style.display = 'none';
+        var u = GateOne.Utils,
+            node = u.getNode(elem);
+        node.style.display = 'none';
         if (elem.className.indexOf('go_none') == -1) {
-            u.getNode(elem).className += " go_none";
+            node.className += " go_none";
         }
     },
     showElements: function(elems) {
@@ -789,8 +818,9 @@ GateOne.Base.update(GateOne.Utils, {
         var u = GateOne.Utils,
             elems = u.toArray(u.getNodes(elems));
         elems.forEach(function(elem) {
-            u.getNode(elem).style.display = 'block';
-            u.getNode(elem).className = u.getNode(elem).className.replace(/(?:^|\s)go_none(?!\S)/, '');
+            var node = u.getNode(elem);
+            node.style.display = null; // Reset
+            node.className = node.className.replace(/(?:^|\s)go_none(?!\S)/, '');
         });
     },
     hideElements: function(elems) {
@@ -1105,15 +1135,18 @@ GateOne.Base.update(GateOne.Utils, {
         setTimeout(function() {
             // If combined_js doesn't load within 5 seconds assume it is an SSL certificate issue
             if (!u.scriptsLoaded) {
-                var acceptURL = go.prefs.url + 'static/accept_certificate.html';
+                var acceptURL = go.prefs.url + 'static/accept_certificate.html',
+                    okCallback = function() {
+                        // Called when the user clicks OK
+                        window.location.href = acceptURL + '?url=' + window.location.href.replace(/:\/\/(.*@)?/g, '://'+u.randomString(8)+'@');
+                    }
                 // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
-                alert("You will now be directed to a page where you can accept the Gate One server's SSL certificate.");
-                window.location.href = acceptURL + '?url=' + window.location.href.replace(/:\/\/(.*@)?/g, '://'+u.randomString(8)+'@');
+                GateOne.Visual.alert("SSL Certificate Error", "Click OK to be directed to a page where you can accept the Gate One server's SSL certificate.  If the page doesn't load it means the Gate One server is currently unavailable.", okCallback);
             }
         }, 5000);
     },
     enumerateThemes: function(messageObj) {
-        // Meant to be called from the xhrGet() below
+        // Attached to the 'themes_list' action, updates the preferences panel with the list of themes stored on the server.
         var u = go.Utils,
             prefix = go.prefs.prefix,
             themesList = messageObj['themes'],
@@ -1281,15 +1314,23 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     rtrim: function(string) {
+        // Returns *string* minus right-hand whitespace
         return string.replace(/\s*$/g, "");
     },
     ltrim: function(string) {
+        // Returns *string* minus left-hand whitespace
         return string.replace(/^\s*/g, "");
     },
-    isVisible: function(node) {
-        // Returns true if *node* is visible (checks parent nodes recursively too).  *node* may be a DOM node or a selector string.
-        // NOTE: Relies on checking node.style.opacity and node.style.display.  Does NOT check transforms.
-        var node = GateOne.Utils.getNode(node);
+    stripHTML: function(html) {
+        // Returns the contents of *html* minus the HTML
+        var tmp = document.createElement("DIV");
+        tmp.innerHTML = html;
+        return tmp.textContent||tmp.innerText;
+    },
+    isVisible: function(elem) {
+        // Returns true if *elem* is visible (checks parent nodes recursively too).  *elem* may be a DOM node or a selector string.
+        // NOTE: Relies on checking elem.style.opacity and elem.style.display.  Does NOT check transforms.
+        var node = GateOne.Utils.getNode(elem);
         if (node.style.display == 'none') {
             return false;
         } else if (parseInt(node.style.opacity) == 0) {
@@ -1303,7 +1344,7 @@ GateOne.Base.update(GateOne.Utils, {
     }
 });
 
-GateOne.Base.module(GateOne, 'Net', '1.0', ['Base', 'Utils']);
+GateOne.Base.module(GateOne, 'Net', '1.1', ['Base', 'Utils']);
 GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
 GateOne.Net.connectionSuccess = false; // Gets set after we connect successfully at least once
 GateOne.Net.sendDimensionsCallbacks = []; // A hook plugins can use if they want to call something whenever the terminal dimensions change
@@ -1359,11 +1400,21 @@ GateOne.Base.update(GateOne.Net, {
     },
     reauthenticate: function() {
         // This is a courtesy from the Gate One server telling us to re-auth since it is about to close the WebSocket.
-        // Delete our session ID as it obviously isn't valid
-        // Also delete our 'user' cookie
-        GateOne.Utils.deleteCookie('gateone_user', '/', '');
-        alert('You must re-authenticate with the Gate One server.  The page will now be reloaded.');
-        window.location.reload(); // This *should* force a re-auth if we simply had our session expire (or similar)
+        // Deletes the 'gateone_user' cookie and the equivalent in localStorage
+        var go = GateOne,
+            prefix = go.prefs.prefix,
+            u = go.Utils,
+            v = go.Visual,
+            redirect = function() {
+                window.location.reload(); // This *should* force a re-auth if we simply had our session expire (or similar)
+            }
+        u.deleteCookie('gateone_user', '/', '');
+        delete localStorage[prefix+'gateone_user']; // Also clear this if it is set
+        if (go.prefs.auth) {
+            v.alert('API Authentication Failure', "The API authentication object was denied by the server.  Usually this means that one of the following is true:<ul style='width: 75%; margin-left: auto; margin-right: auto; text-align: left;'><li>The server's cookie_secret has changed and you must reauthenticate.  Simply reloading the page <i>once</i> will correct this.  Note that it is considered best practices to change the server's cookie_secret from time to time.</li><li>The api_keys parameter in Gate One's server.conf is not set correctly.</li><li>The Gate One server isn't configured to use API authentication ('auth = \"api\"' in the server.conf).</li><li>The API authentication object has expired.  This usually means the Gate One server was restarted or the clocks on one (or more) servers are set incorrectly (e.g. due to drift).</li><li>You are the victim of a Man-in-the-Middle attack.  Someone or <i>something</i> may have intercepted your API authentication object and already used it gain access to your session.  If this was the case you would have seen a message like, \"API authentication replay attack detected!\" appear as a notification at least once with similar messages logged on the server.  If you didn't see any such notification then it is highly likely that the problem is due to one of the aforementioned items.</li></ul><br><br>Click OK to reload the page.", redirect);
+        } else {
+            v.alert('Authentication Failure', 'You must re-authenticate with the Gate One server.  The page will now be reloaded.', redirect);
+        }
     },
     sendDimensions: function(term, /*opt*/ctrl_l) {
         logDebug('sendDimensions(' + term + ', ' + ctrl_l + ')');
@@ -1526,7 +1577,7 @@ GateOne.Base.update(GateOne.Net, {
                 go.ws.send(JSON.stringify({'authenticate': settings}));
                 setTimeout(function() {
                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
-                }, 3000);
+                }, 4000);
                 go.initialize();
             }, 100);
         }
@@ -1587,7 +1638,7 @@ GateOne.Base.update(GateOne.Net, {
         GateOne.ws.send(JSON.stringify({'full_refresh': term}));
     }
 });
-GateOne.Base.module(GateOne, "Input", '1.0', ['Base', 'Utils']);
+GateOne.Base.module(GateOne, "Input", '1.1', ['Base', 'Utils']);
 GateOne.Input.charBuffer = []; // Queue for sending characters to the server
 GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since some browsers/platforms don't get it right.
 // F11 toggles fullscreen mode in most browsers.  If F11 is pressed once it will act as a regular F11 keystroke in the terminal.  If it is pressed twice rapidly in succession (within 0.750 seconds) it will execute the regular browser keystroke (enabling or disabling fullscreen mode).
@@ -1595,7 +1646,7 @@ GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since som
 GateOne.Input.F11 = false;
 GateOne.Input.F11timer = null;
 GateOne.Input.handledKeystroke = false;
-GateOne.Input.handledPaste = false;
+GateOne.Input.handlingPaste = false;
 GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.  They will end up looking like this:
 // 'KEY_N': [{'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'}]
 GateOne.Base.update(GateOne.Input, {
@@ -1613,18 +1664,22 @@ GateOne.Base.update(GateOne.Input, {
         if (m.button.middle) {
             u.showElements('.pastearea');
             if (selectedText.length) {
+                go.Input.handlingPaste = true; // We're emulating a paste so we might as well act like one
                 // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
                 e.preventDefault();
                 go.Input.queue(selectedText);
                 go.Net.sendChars();
-                go.Input.handledPaste = true;
+                setTimeout(function() {
+                    go.Input.handlingPaste = false;
+                }, 250);
             }
         } else if (m.button.right) {
             if (!u.getSelText()) {
-                // Rediplay the pastearea so we can get a proper context menu in case the user wants to paste
+                // Redisplay the pastearea so we can get a proper context menu in case the user wants to paste
                 u.showElements('.pastearea');
             }
         }
+        u.getNode(go.prefs.goDiv).focus();
     },
     capture: function() {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
@@ -1632,7 +1687,7 @@ GateOne.Base.update(GateOne.Input, {
         var go = GateOne,
             u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv);
-//         goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
+        goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
         goDiv.onkeydown = go.Input.onKeyDown;
         goDiv.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
         goDiv.onkeypress = go.Input.emulateKeyFallback;
@@ -1642,19 +1697,21 @@ GateOne.Base.update(GateOne.Input, {
             if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
                 return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
             }
-            if (!go.Input.handledPaste) {
+            if (!go.Input.handlingPaste) {
                 // Grab the text being pasted
+                go.Input.handlingPaste = true;
                 var contents = null;
                 if (e.clipboardData) {
                     // Don't actually paste the text where the user clicked
                     e.preventDefault();
                     if (/text\/html/.test(e.clipboardData.types)) {
                         contents = e.clipboardData.getData('text/html');
+                        contents = u.stripHTML(contents); // Convert to plain text to avoid unwanted cruft
                     }
                     else if (/text\/plain/.test(e.clipboardData.types)) {
                         contents = e.clipboardData.getData('text/plain');
                     }
-                    logDebug('contents: ' + contents);
+                    logDebug('paste contents: ' + contents);
                     // Queue it up and send the characters as if we typed them in
                     go.Input.queue(contents);
                     go.Net.sendChars();
@@ -1662,13 +1719,19 @@ GateOne.Base.update(GateOne.Input, {
                     // Change focus to the current pastearea and hope for the best
                     go.Terminal.paste();
                 }
+                // This is wrapped in a timeout so that the paste events that bubble up after the first get ignored
+                setTimeout(function() {
+                    go.Input.handlingPaste = false;
+                }, 250);
+            } else {
+                e.preventDefault(); // Prevent any funny business around queuing up pastes
             }
-            // This is wrapped in a timeout so that the paste events that bubble up after the first get ignored
-            setTimeout(function() {
-                go.Input.handledPaste = false;
-            }, 10);
         }
-        goDiv.addEventListener('paste', onPaste, false);
+        goDiv.onpaste = onPaste;
+        goDiv.oncopy = function(e) {
+            // After the copy we need to bring the pastearea back up so the context menu will work to paste again
+            u.showElements('.pastearea');
+        }
         goDiv.onmousedown = go.Input.goDivMouseDown;
         goDiv.onmouseup = function(e) {
             logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
@@ -1711,6 +1774,10 @@ GateOne.Base.update(GateOne.Input, {
         if (go.Input.mouseDown) {
             return; // Work around Firefox's occasional inability to properly register mouse events (WTF Firefox!)
         }
+        if (go.Input.handlingPaste) {
+            // The 'blur' event can be called when focus shifts around for pasting.
+            return; // Act as if we were never called to avoid flashing the overlay
+        }
         if (e) {
             // This was called from an onblur event
             if (document.activeElement == goDiv || document.activeElement.className == 'pastearea') {
@@ -1720,7 +1787,7 @@ GateOne.Base.update(GateOne.Input, {
             e.preventDefault();
         }
 //         goDiv.contentEditable = false; // This needs to be turned off or it might capture paste events (which is really annoying when you're trying to edit a form)
-//         goDiv.onpaste = null;
+        goDiv.onpaste = null;
         goDiv.tabIndex = null;
         goDiv.onkeydown = null;
         goDiv.onkeyup = null;
@@ -1731,13 +1798,6 @@ GateOne.Base.update(GateOne.Input, {
             // The timer here is to prevent the screen from flashing whenever something is pasted.
             go.Input.overlayTimer = setTimeout(go.Visual.toggleOverlay, 250);
         }
-        // Commented this out since it likely isn't necessary since I moved the pastearea to live inside of each terminal instead of hovering above everything.
-        // After this change has been out in the wild for a while without any problems I'll remove the code below (and these comments).
-//         try {
-//             u.hideElements('.pastearea');
-//         } catch (e) {
-//             u.noop();
-//         }
     },
     queue: function(text) {
         // Adds 'text' to the charBuffer Array
@@ -2396,13 +2456,14 @@ GateOne.Base.update(GateOne.Input, {
     }
 })();
 
-GateOne.Base.module(GateOne, 'Visual', '1.0', ['Base', 'Net', 'Utils']);
+GateOne.Base.module(GateOne, 'Visual', '1.1', ['Base', 'Net', 'Utils']);
 GateOne.Visual.scrollbackToggle = false;
 GateOne.Visual.gridView = false;
 GateOne.Visual.goDimensions = {};
 GateOne.Visual.panelToggleCallbacks = {'in': {}, 'out': {}};
 GateOne.Visual.lastMessage = '';
 GateOne.Visual.sinceLastMessage = new Date();
+GateOne.Visual.hidePanelsTimeout = {}; // Used by togglePanel() to keep track of which panels have timeouts
 GateOne.Base.update(GateOne.Visual, {
     // Functions for manipulating views and displaying things
     init: function() {
@@ -2532,7 +2593,19 @@ GateOne.Base.update(GateOne.Visual, {
             panelID = panel,
             panel = u.getNode(panel),
             origState = null,
-            panels = u.getNodes(go.prefs.goDiv + ' .panel');
+            panels = u.getNodes(go.prefs.goDiv + ' .panel'),
+            setHideTimeout = function(panel) {
+                // Just used to get around the closure issue below
+                if (v.hidePanelsTimeout[panel.id]) {
+                    clearTimeout(v.hidePanelsTimeout[i]);
+                    v.hidePanelsTimeout[panel.id] = null;
+                }
+                v.hidePanelsTimeout[panel.id] = setTimeout(function() {
+                    // Hide the panel completely now that it has been scaled out
+                    u.hideElement(panel);
+                    v.hidePanelsTimeout[panel.id] = null;
+                }, 1250);
+            }
         if (panel) {
             origState = v.getTransform(panel);
         }
@@ -2548,6 +2621,8 @@ GateOne.Base.update(GateOne.Visual, {
                         }
                     }
                 }
+                // Set the panels to display:none after they scale out to make sure they don't mess with user's tabbing (tabIndex)
+                setHideTimeout(panels[i]);
             }
         }
         if (!panel) {
@@ -2555,7 +2630,11 @@ GateOne.Base.update(GateOne.Visual, {
             return;
         }
         if (origState != 'scale(1)') {
-            v.applyTransform(panel, 'scale(1)');
+            u.showElement(panel);
+            setTimeout(function() {
+                // This timeout ensures that the scale-in effect happens after showElement()
+                v.applyTransform(panel, 'scale(1)');
+            }, 1);
             // Call any registered 'in' callbacks for all of these panels
             if (v.panelToggleCallbacks['in']['#'+panel.id]) {
                 for (var ref in v.panelToggleCallbacks['in']['#'+panel.id]) {
@@ -2579,8 +2658,11 @@ GateOne.Base.update(GateOne.Visual, {
                     }
                 }
             }
+            setTimeout(function() {
+                // Hide the panel completely now that it has been scaled out to avoid tabIndex issues
+                u.hideElement(panel);
+            }, 1250);
         }
-
     },
     displayTermInfo: function(term) {
         // Displays the given term's information as a psuedo tooltip that eventually fades away
@@ -2699,9 +2781,9 @@ GateOne.Base.update(GateOne.Visual, {
         var u = go.Utils,
             prefix = go.prefs.prefix,
             enableSB = function(termNum) {
-                var termPreNode = GateOne.terminals[termNum]['node'],
-                    termScreen = GateOne.terminals[termNum]['screenNode'],
-                    termScrollback = GateOne.terminals[termNum]['scrollbackNode'],
+                var termPreNode = go.terminals[termNum]['node'],
+                    termScreen = go.terminals[termNum]['screenNode'],
+                    termScrollback = go.terminals[termNum]['scrollbackNode'],
                     parentHeight = termPreNode.parentElement.clientHeight;
                 if (!go.terminals[termNum]) { // The terminal was just closed
                     return; // We're done here
@@ -2741,7 +2823,16 @@ GateOne.Base.update(GateOne.Visual, {
                 go.terminals[termNum]['scrollbackVisible'] = true;
             };
         if (term && term in GateOne.terminals) {
-            enableSB(term);
+            // If there's already an existing scrollback buffer...
+            if (go.terminals[term]['scrollbackNode']) {
+                // ...and it's *not* visible
+                if (go.terminals[term]['scrollbackNode'].style.display != 'none') {
+                    // Make it visible again
+                    enableSB(term);
+                }
+            } else {
+                enableSB(term); // Have it create/add the scrollback buffer
+            }
         } else {
             var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
             terms.forEach(function(termObj) {
@@ -3112,6 +3203,7 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 // Remove the event that called us so we're not constantly looping over the dialogs array
                 dialogContainer.removeEventListener("mousedown", dialogToForeground, true);
+                go.Input.disableCapture();
             },
             containerMouseUp = function(e) {
                 // Reattach our mousedown function since it auto-removes itself the first time it runs (so we're not wasting cycles constantly looping over the dialogs array)
@@ -3228,6 +3320,31 @@ GateOne.Base.update(GateOne.Visual, {
         v.dialogZIndex = parseInt(getComputedStyle(dialogContainer).zIndex); // Right now this is 750 in the themes but that could change in the future so I didn't want to hard-code that value
         dialogToForeground();
         return closeDialog;
+    },
+    alert: function(title, message, callback) {
+        // Displays a dialog using the given *title* containing the given *message* along with an OK button.  When the OK button is clicked, *callback* will be called.
+        var go = GateOne,
+            u = GateOne.Utils,
+            v = GateOne.Visual,
+            OKButton = u.createElement('button', {'id': 'ok_button', 'type': 'reset', 'value': 'OK', 'class': 'button black', 'style': {'margin-top': '1em', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '4em'}}), // NOTE: Using a width here because I felt the regular button styling didn't make it wide enough when innerHTML is only two characters
+            messageContainer = u.createElement('p', {'id': 'ok_message', 'style': {'text-align': 'center'}});
+        OKButton.innerHTML = "OK";
+        messageContainer.innerHTML = "<p>" + message + "</p>";
+        messageContainer.appendChild(OKButton);
+        var closeDialog = go.Visual.dialog(title, messageContainer);
+        go.Input.disableCapture();
+        OKButton.tabIndex = 1;
+        OKButton.onclick = function(e) {
+            e.preventDefault();
+            closeDialog();
+            if (callback) {
+                callback();
+            }
+            go.Input.capture();
+        }
+        setTimeout(function() {
+            OKButton.focus();
+        }, 250);
     },
     widget: function(title, content, /*opt*/options) {
         // Creates an on-screen widget with the given *title* and *content*.  Returns a function that will remove the widget when called.
@@ -3444,8 +3561,9 @@ GateOne.Base.update(GateOne.Visual, {
         }
         return closeWidget;
     },
-    toggleOverlay: function(element) {
+    toggleOverlay: function() {
         // Toggles the overlay that visually indicates whether or not Gate One is ready for input
+        logDebug('toggleOverlay()');
         var go = GateOne,
             u = go.Utils,
             v = go.Visual,
@@ -3504,7 +3622,7 @@ var logFatal = go.Utils.noop,
     logInfo = go.Utils.noop,
     logDebug = go.Utils.noop;
 
-go.Base.module(GateOne, "Terminal", "1.0", ['Base', 'Utils', 'Visual']);
+go.Base.module(GateOne, "Terminal", "1.1", ['Base', 'Utils', 'Visual']);
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
 go.Terminal.updateTermCallbacks = [];
@@ -3604,6 +3722,7 @@ go.Base.update(GateOne.Terminal, {
         infoPanelRow4.appendChild(infoPanelInactivityInterval);
         infoPanelRow4.appendChild(infoPanelInactivityIntervalLabel);
         tableDiv2.appendChild(infoPanelRow4);
+        u.hideElement(infoPanel); // Start out hidden
         go.Visual.applyTransform(infoPanel, 'scale(0)');
         goDiv.appendChild(infoPanel); // Doesn't really matter where it goes
         infoPanelMonitorInactivity.onclick = function(e) {
@@ -3733,7 +3852,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('timeout', go.Terminal.timeoutAction);
         go.Net.addAction('term_exists', go.Terminal.reconnectTerminalAction);
         go.Net.addAction('set_mode', go.Terminal.setModeAction); // For things like application cursor keys
-        go.Net.addAction('metadata', go.Terminal.storeMetadata);
+//         go.Net.addAction('metadata', go.Terminal.storeMetadata);
         go.Net.addAction('load_webworker', go.Terminal.loadWebWorkerAction);
     },
     paste: function(e) {
@@ -3743,7 +3862,8 @@ go.Base.update(GateOne.Terminal, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
-            tempPaste = u.createElement('textarea', {'style': {'position': 'fixed', 'top': '-100000px', 'left': '-100000px', 'opacity': 0}});
+            tempPaste = u.createElement('textarea', {'class': 'temppaste', 'style': {'position': 'fixed', 'top': '-100000px', 'left': '-100000px', 'opacity': 0}});
+        go.Input.handlingPaste = true;
         tempPaste.oninput = function(e) {
             var pasted = tempPaste.value,
                 lines = pasted.split('\n');
@@ -3759,8 +3879,9 @@ go.Base.update(GateOne.Terminal, {
             go.Net.sendChars();
             u.removeElement(tempPaste); // Don't need this anymore
             setTimeout(function() {
+                go.Input.handlingPaste = false;
                 go.Input.capture();
-            }, 10);
+            }, 250);
         }
         goDiv.appendChild(tempPaste);
         tempPaste.focus();
@@ -4096,6 +4217,7 @@ go.Base.update(GateOne.Terminal, {
             currentTerm = null,
             terminal = null,
             termUndefined = false,
+            goDiv = u.getNode(go.prefs.goDiv),
             termwrapper = u.getNode('#'+prefix+'termwrapper'),
             rowAdjust = go.prefs.rowAdjust + 1, // Always minus 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
             colAdjust = go.prefs.colAdjust + 2, // Always minus 2 for the scrollbar
@@ -4107,7 +4229,6 @@ go.Base.update(GateOne.Terminal, {
         if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
             // Create the grid if it isn't already present
             if (!termwrapper) {
-                var goDiv = u.getNode(go.prefs.goDiv);
                 termwrapper = go.Visual.createGrid('termwrapper');
                 goDiv.appendChild(termwrapper);
                 var style = window.getComputedStyle(goDiv, null),
@@ -4175,7 +4296,7 @@ go.Base.update(GateOne.Terminal, {
             terminal = u.createElement('div', {'id': currentTerm, 'title': 'Gate One', 'class': 'terminal'});
         }
         // This ensures that we re-enable input if the user clicked somewhere else on the page then clicked back on the terminal:
-        terminal.addEventListener('click', go.Input.capture, false);
+//         terminal.addEventListener('click', go.Input.capture, false);
         // Get any previous term's dimensions so we can use them for the new terminal
         var termSettings = {
                 'term': term,
@@ -4207,12 +4328,7 @@ go.Base.update(GateOne.Terminal, {
                 e.preventDefault();
                 var go = GateOne,
                     pasteArea = u.getNode('#'+prefix+'pastearea');
-//                     selectedTerm = localStorage[prefix+'selectedTerminal'];
                 u.hideElement(pastearea);
-//                 if (!go.terminals[selectedTerm]['scrollbackVisible']) {
-//                     // Immediately re-enable the scrollback buffer if it isn't already there
-//                     go.Visual.enableScrollback(selectedTerm);
-//                 }
                 if (go.scrollTimeout) {
                     clearTimeout(go.scrollTimeout);
                     go.scrollTimeout = null;
@@ -4264,20 +4380,15 @@ go.Base.update(GateOne.Terminal, {
                         clearTimeout(go.terminals[selectedTerm]['scrollbackTimer']);
                     }
                 }
-//                 go.Input.capture();
             } else if (m.button.middle) {
                 // This is here to enable middle-click-to-paste in Windows but it only works if the user has launched Gate One in "application mode".
                 // Gate One can be launched in "application mode" if the user selects the "create application shortcut..." option from the tools menu.
                 try {
                     document.execCommand('paste');
-                    // Oddly, this doesn't interfere with anthing or create errors when NOT in application mode.  You'd think it would end up sending two of every paste but it doesn't.
-                    pastearea.focus();
                 } catch (e) {
-                    // Just ignore the error
+                    // Browser won't let us execute a paste event...  Hope for the best with the pastearea!
+                    ;; // Ignore
                 }
-            } else {
-                u.showElement(pastearea);
-//                 pastearea.focus();
             }
         }
         terminal.appendChild(pastearea);
@@ -4466,7 +4577,7 @@ go.Base.update(GateOne.Terminal, {
     }
 });
 
-GateOne.Base.module(GateOne, "User", "1.0", ['Base', 'Utils', 'Visual']);
+GateOne.Base.module(GateOne, "User", "1.1", ['Base', 'Utils', 'Visual']);
 GateOne.User.userLoginCallbacks = []; // Each of these will get called after the server sends us the user's username, providing the username as the only argument.
 GateOne.Base.update(GateOne.User, {
     // The User module is for things like logging out, synchronizing preferences with the server, and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.

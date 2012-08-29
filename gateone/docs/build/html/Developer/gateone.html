@@ -165,6 +165,7 @@ Options:
 &nbsp;&nbsp;--disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
 &nbsp;&nbsp;--dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
 &nbsp;&nbsp;--embedded                       Doesn't do anything (yet).
+&nbsp;&nbsp;--enable_unix_socket             Enable Unix socket support use_unix_sockets (if --enable_unix_socket=True).
 &nbsp;&nbsp;--https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
 &nbsp;&nbsp;--js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init=&quot;{scheme: 'white'}&quot; would result in GateOne.init({scheme: 'white'})
 &nbsp;&nbsp;--keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
@@ -184,6 +185,7 @@ Options:
 &nbsp;&nbsp;--syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
 &nbsp;&nbsp;--syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
 &nbsp;&nbsp;--syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
+&nbsp;&nbsp;--unix_socket_path               Run on the given socket file.  Default: /var/run/gateone.sock
 &nbsp;&nbsp;--url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
 &nbsp;&nbsp;--user_dir                       Path to the location where user files will be stored.
 </pre>
@@ -356,7 +358,7 @@ function in __main__</p>
 
 <dl class="function">
 <dt id="gateone.kill_session">
-<tt class="descclassname">gateone.</tt><tt class="descname">kill_session</tt><big>(</big><em>session</em>, <em>kill_dtach=False</em><big>)</big><a class="headerlink" href="#gateone.kill_session" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gateone.</tt><tt class="descname">kill_session</tt><big>(</big><em>session</em>, <em>kill_dtach=False</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#kill_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.kill_session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminates all the processes associated with <em>session</em> and then removes
 <em>session</em> from the global SESSIONS dict.  If <em>kill_dtach</em> is True, will
 also call kill_dtached_proc() on the terminal processes.</p>
@@ -364,13 +366,13 @@ also call kill_dtached_proc() on the terminal processes.</p>
 
 <dl class="function">
 <dt id="gateone.kill_all_sessions">
-<tt class="descclassname">gateone.</tt><tt class="descname">kill_all_sessions</tt><big>(</big><em>kill_dtach=False</em><big>)</big><a class="headerlink" href="#gateone.kill_all_sessions" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gateone.</tt><tt class="descname">kill_all_sessions</tt><big>(</big><em>kill_dtach=False</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#kill_all_sessions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.kill_all_sessions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls kill_session() on all sessions in the SESSIONS dict.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gateone.timeout_sessions">
-<tt class="descclassname">gateone.</tt><tt class="descname">timeout_sessions</tt><big>(</big><em>kill_dtach=False</em><big>)</big><a class="headerlink" href="#gateone.timeout_sessions" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gateone.</tt><tt class="descname">timeout_sessions</tt><big>(</big><em>kill_dtach=False</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#timeout_sessions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.timeout_sessions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loops over the SESSIONS dict killing any sessions that haven't been used
 for the length of time specified in <em>TIMEOUT</em> (global).  The value of
 <em>TIMEOUT</em> can be set in server.conf or specified on the command line via the
@@ -388,7 +390,7 @@ for the length of time specified in <em>TIMEOUT</em> (global).  The value of
 
 <dl class="function">
 <dt id="gateone.cleanup_session_logs">
-<tt class="descclassname">gateone.</tt><tt class="descname">cleanup_session_logs</tt><big>(</big><em>users_dir</em>, <em>max_age</em><big>)</big><a class="headerlink" href="#gateone.cleanup_session_logs" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gateone.</tt><tt class="descname">cleanup_session_logs</tt><big>(</big><em>users_dir</em>, <em>max_age</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#cleanup_session_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.cleanup_session_logs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cleans up all user's session logs older than <em>max_age</em> (timedelta) given the
 <em>users_dir</em> (string).  The session log directory is assumed to be:</p>
 <blockquote>
@@ -464,7 +466,7 @@ registered this way will be exposed and directly callable over the
 WebSocket.</p>
 <dl class="method">
 <dt id="gateone.TerminalWebSocket.allow_draft76">
-<tt class="descname">allow_draft76</tt><big>(</big><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.allow_draft76" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">allow_draft76</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.allow_draft76"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.allow_draft76" title="Permalink to this definition">¶</a></dt>
 <dd><p>By overriding this function we're allowing the older version of the
 WebSockets protocol.  As long as communications happens over SSL there
 shouldn't be any security concerns with this.  This is mostly to support
@@ -535,7 +537,7 @@ client-specific settings.</p>
 
 <dl class="method">
 <dt id="gateone.TerminalWebSocket.term_ended">
-<tt class="descname">term_ended</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.term_ended" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">term_ended</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.term_ended"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.term_ended" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the 'term_ended' message to the client letting it know that the
 given <em>term</em> is no more.</p>
 </dd></dl>
@@ -593,7 +595,7 @@ it matches the previously-set title.</p>
 
 <dl class="method">
 <dt id="gateone.TerminalWebSocket.manual_title">
-<tt class="descname">manual_title</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.manual_title" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">manual_title</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.manual_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.manual_title" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the title of <em>settings['term']</em> to <em>settings['title']</em>.  Differs
 from <a class="reference internal" href="#gateone.TerminalWebSocket.set_title" title="gateone.TerminalWebSocket.set_title"><tt class="xref py py-func docutils literal"><span class="pre">set_title()</span></tt></a> in that this is an action that gets called by the
 client when the user sets a terminal title manually.</p>
@@ -627,7 +629,7 @@ a message like:</p>
 
 <dl class="method">
 <dt id="gateone.TerminalWebSocket.dsr">
-<tt class="descname">dsr</tt><big>(</big><em>term</em>, <em>response</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.dsr" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dsr</tt><big>(</big><em>term</em>, <em>response</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.dsr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.dsr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles Device Status Report (DSR) calls from the underlying program
 that get caught by the terminal emulator.  <em>response</em> is what the
 terminal emulator returns from the CALLBACK_DSR callback.</p>
@@ -680,7 +682,7 @@ characters will be sent to the currently-selected terminal.</p>
 
 <dl class="method">
 <dt id="gateone.TerminalWebSocket.write_chars">
-<tt class="descname">write_chars</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.write_chars" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">write_chars</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.write_chars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.write_chars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes <em>message['chars']</em> to <em>message['term']</em>.  If <em>message['term']</em>
 is not present, <em>self.current_term</em> will be used.</p>
 </dd></dl>
@@ -694,7 +696,7 @@ process_opt_esc_sequence().</p>
 
 <dl class="method">
 <dt id="gateone.TerminalWebSocket.get_bell">
-<tt class="descname">get_bell</tt><big>(</big><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.get_bell" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_bell</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.get_bell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.get_bell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the bell sound data to the client in in the form of a <a class="reference external" href="data::URI">data::URI</a>.</p>
 </dd></dl>
 
@@ -708,7 +710,7 @@ One into other apps).</p>
 
 <dl class="method">
 <dt id="gateone.TerminalWebSocket.get_style">
-<tt class="descname">get_style</tt><big>(</big><em>settings</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.get_style" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_style</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.get_style"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.get_style" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the CSS stylesheets matching the properties specified in
 <em>settings</em> to the client.  <em>settings</em> must contain the following:</p>
 <blockquote>
@@ -729,7 +731,7 @@ One into other apps).</p>
 
 <dl class="method">
 <dt id="gateone.TerminalWebSocket.enumerate_themes">
-<tt class="descname">enumerate_themes</tt><big>(</big><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.enumerate_themes" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">enumerate_themes</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.enumerate_themes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.enumerate_themes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a JSON-encoded object containing the installed themes and text
 color schemes.</p>
 </dd></dl>
@@ -752,7 +754,7 @@ examined more closely.</p>
 
 <dl class="class">
 <dt id="gateone.ErrorHandler">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">ErrorHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>status_code</em><big>)</big><a class="headerlink" href="#gateone.ErrorHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">ErrorHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>status_code</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ErrorHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ErrorHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates an error response with status_code for all requests.</p>
 </dd></dl>
 
@@ -786,7 +788,7 @@ examined more closely.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="authpam.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="logviewer.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>
@@ -831,9 +833,32 @@ examined more closely.</p>
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
   </body>
 </html>

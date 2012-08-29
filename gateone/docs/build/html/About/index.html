@@ -228,6 +228,7 @@ Options:
 &nbsp;&nbsp;--disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
 &nbsp;&nbsp;--dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
 &nbsp;&nbsp;--embedded                       Doesn't do anything (yet).
+&nbsp;&nbsp;--enable_unix_socket             Enable Unix socket support use_unix_sockets (if --enable_unix_socket=True).
 &nbsp;&nbsp;--https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
 &nbsp;&nbsp;--js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init=&quot;{scheme: 'white'}&quot; would result in GateOne.init({scheme: 'white'})
 &nbsp;&nbsp;--keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
@@ -246,6 +247,7 @@ Options:
 &nbsp;&nbsp;--syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
 &nbsp;&nbsp;--syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
 &nbsp;&nbsp;--syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
+&nbsp;&nbsp;--unix_socket_path               Run on the given socket file.  Default: /var/run/gateone.sock
 &nbsp;&nbsp;--url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
 &nbsp;&nbsp;--user_dir                       Path to the location where user files will be stored.
 </pre>
@@ -504,7 +506,7 @@ Options:
 <div class="highlight-python"><div class="highlight"><pre><span class="n">js_init</span> <span class="o">=</span> <span class="s">&quot;{&#39;theme&#39;: &#39;white&#39;, &#39;fontSize&#39;: &#39;120%&#39;}&quot;</span>
 </pre></div>
 </div>
-<p>For a list of all the possible options see <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.prefs</span></tt> in the <a class="reference internal" href="../Developer/index.html#developer-docs"><em>Developer Documentation</em></a> under <a class="reference internal" href="../Developer/js_gateone.html#gateone-properties"><em>GateOne JavaScript Properties</em></a>.</p>
+<p>For a list of all the possible options see <tt class="xref py py-attr docutils literal"><span class="pre">GateOne.prefs</span></tt> in the <a class="reference internal" href="../Developer/index.html#developer-docs"><em>Developer Documentation</em></a> under <a class="reference internal" href="../Developer/js_gateone.html#gateone-properties"><em>Properties</em></a>.</p>
 </div>
 <div class="section" id="keyfile">
 <h3>keyfile<a class="headerlink" href="#keyfile" title="Permalink to this headline">¶</a></h3>
@@ -553,7 +555,7 @@ Options:
 <tt class="descname">--new_api_key</tt><tt class="descclassname"></tt><a class="headerlink" href="#cmdoption--new_api_key" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>This command line option will generate a new, random API key and secret for use with applications that will be embedding Gate One.  Instructions on how to use API-based authentication can be found in the <em class="xref std std-ref">embedded-docs</em>.</p>
+<p>This command line option will generate a new, random API key and secret for use with applications that will be embedding Gate One.  Instructions on how to use API-based authentication can be found in the <a class="reference internal" href="../Developer/embedding.html#gateone-embedding"><em>Embedding Gate One Into Other Applications</em></a>.</p>
 </div>
 <div class="section" id="pam-realm">
 <h3>pam_realm<a class="headerlink" href="#pam-realm" title="Permalink to this headline">¶</a></h3>
@@ -898,9 +900,32 @@ Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]_;ssh|user@somehost:22#007</p
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
     </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
   </body>
 </html>

@@ -49,4 +49,4 @@ Embeddeding Gate One Into Other Applications
 
 .. toctree::
 
-    embedding_part1.rst
+    embedding.rst

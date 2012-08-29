@@ -14,7 +14,7 @@ var logInfo = noop;
 var logDebug = noop;
 
 // GateOne.Help (functions related to the help menu/panel)
-GateOne.Base.module(GateOne, "Help", "1.0", ['Base']);
+GateOne.Base.module(GateOne, "Help", "1.1", ['Base']);
 GateOne.Base.update(GateOne.Help, {
     init: function() {
         // Setup the help panel
@@ -54,6 +54,7 @@ GateOne.Base.update(GateOne.Help, {
         helpPanelUL.appendChild(helpPanelDocs);
         helpContent.appendChild(helpPanelUL);
         helpPanel.appendChild(helpContent);
+        u.hideElement(helpPanel); // Start out hidden
         go.Visual.applyTransform(helpPanel, 'scale(0)'); // Hidden by default
         goDiv.appendChild(helpPanel); // Doesn't really matter where it goes
         helpPanelAboutAnchor.onclick = function(e) {
@@ -81,13 +82,19 @@ GateOne.Base.update(GateOne.Help, {
         go.Input.registerShortcut('KEY_S', {'modifiers': {'ctrl': true, 'alt': false, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.displayMessage("Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume."); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();'});
 
     },
-    aboutGateOne: function() { // Displays our credits
+    aboutGateOne: function() { // Displays our version/credits
         // First we create our settings object to pass to showHelpSection()
-        var settingsObj = {
-            'helpURL': GateOne.prefs.url+'static/about.html',
+        var go = GateOne,
+            u = go.Utils,
+            settingsObj = {
+            'helpURL': go.prefs.url+'static/about.html',
             'title': 'About Gate One'
         };
-        GateOne.Help.showHelpSection(settingsObj);
+        go.Help.showHelpSection(settingsObj);
+        setTimeout(function() {
+            // Make sure we're displaying the correct version information
+            u.getNode('#gateone_version').innerHTML = "<b>Version:</b> " + go.VERSION;
+        }, 2000);
     },
     showFirstTimeDialog: function() {
         // Pops up a dialog for first-time users that shows them the basics of Gate One
