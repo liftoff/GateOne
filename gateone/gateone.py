@@ -1134,6 +1134,7 @@ class TerminalWebSocket(WebSocketHandler):
                                 'signature method: %s' % signature_method)
                         }
                         self.write_message(json_encode(message))
+                        return
                     secret = self.settings['api_keys'][api_key]
                     # Check the signature against existing API keys
                     sig_check = tornado.web._create_signature(
@@ -1159,14 +1160,21 @@ class TerminalWebSocket(WebSocketHandler):
                         time_diff = datetime.now() - then
                         if time_diff > window:
                             logging.error(_(
-                            "API authentication failed due to timeout.  "
-                            "If you just restarted the server this is normal "
-                            "(users just need to reload the page) but it is "
-                            "still a good idea to double-check for clock drift."
+                            "API authentication failed due to an expired auth "
+                            "object.  If you just restarted the server this is "
+                            "normal (users just need to reload the page).  If "
+                            " this problem persists it could be a problem with "
+                            "the server's clock (either this server or the "
+                            "server(s) embedding Gate One)."
                             ))
                             message = {'notice': _(
                                 'AUTH FAILED: Authentication object timed out. '
-                                'You probably just have to reload the page.')}
+                                'Try reloading this page (F5).')}
+                            self.write_message(json_encode(message))
+                            message = {'notice': _(
+                                'AUTH FAILED: If the problem persists after '
+                                'reloading this page please contact your server'
+                                ' administrator to notify them of the issue.')}
                             self.write_message(json_encode(message))
                             self.close()
                             return
@@ -1214,15 +1222,23 @@ class TerminalWebSocket(WebSocketHandler):
                 session_message = {'gateone_user': encoded_user}
                 self.write_message(json_encode(session_message))
             if self.user['upn'] != 'ANONYMOUS':
+                # Gate One server's auth config probably changed
                 message = {'reauthenticate': True}
                 self.write_message(json_encode(message))
-                self.close() # Close the WebSocket
+                #self.close() # Close the WebSocket
+                return
         try:
-            self.session = self.get_current_user()['session']
+            user = self.get_current_user()
+            if user and 'session' in user:
+                self.session = user['session']
+            else:
+                logging.error(_("Authentication failed for unknown user"))
+                message = {'notice': _('AUTHENTICATION ERROR: User unknown')}
+                self.write_message(json_encode(message))
+                return
         except Exception as e:
-            logging.error("authenticate session exception: %s" % e)
-            message = {'notice': _('AUTHENTICATION ERROR: %s' % e)}
-            self.write_message(json_encode(message))
+            logging.error(_(
+                "Exception encountered trying to authenticate: %s" % e))
             return
         try:
             # Execute any post-authentication hooks that plugins have registered

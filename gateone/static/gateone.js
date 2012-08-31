@@ -81,18 +81,6 @@ var logWarning = noop;
 var logInfo = noop;
 var logDebug = noop;
 
-// These can be used to test the performance of various functions and whatnot.
-var benchmark = null; // Need a global for this to work across the board
-function startBenchmark() {
-    var date1 = new Date();
-    benchmark = date1.getTime();
-}
-function stopBenchmark(msg) {
-    var date2 = new Date(),
-        diff =  date2.getTime() - benchmark;
-    logInfo(msg + ": " + diff + "ms");
-}
-
 // Define GateOne
 var GateOne = GateOne || {};
 GateOne.NAME = "GateOne";
@@ -648,12 +636,37 @@ if (!localStorage[GateOne.prefs.prefix+'selectedTerminal']) {
 // GateOne.Utils (generic utility functions)
 GateOne.Base.module(GateOne, "Utils", "1.1", ['Base']);
 GateOne.Utils.scriptsLoaded = false; // Used to track whether or not combined_js loaded or not
+GateOne.Utils.benchmark = null; // Used in conjunction with the startBenchmark and stopBenchmark functions
+GateOne.Utils.benchmarkCount = 0; // Ditto
+GateOne.Utils.benchmarkTotal = 0; // Ditto
+GateOne.Utils.benchmarkAvg = 0; // Ditto
 GateOne.Base.update(GateOne.Utils, {
     init: function() {
         go.Net.addAction('save_file', go.Utils.saveAsAction);
         go.Net.addAction('load_style', go.Utils.loadStyle);
+        // Commented this out since it wasn't working out but may be useful in the future
 //         go.Net.addAction('load_js', go.Utils.loadJS);
         go.Net.addAction('themes_list', go.Utils.enumerateThemes);
+    },
+    // startBenchmark and stopBenchmark can be used to test the performance of various functions and code...
+    startBenchmark: function() {
+        // Put GateOne.Utils.startBenchmark() at the top of any function you want to benchmark (to see how long it takes)
+        GateOne.Utils.benchmark = new Date().getTime();
+    },
+    stopBenchmark: function(msg) {
+        // Put GateOne.Utils.stopBenchmark('optional descriptive message') at the bottom of any function where you've called startBenchmark()
+        // It will report how long it took to run the code between startBenchmark() and stopBenchmark() along with a running total of all benchmarks.
+        var u = GateOne.Utils,
+            date2 = new Date(),
+            diff =  date2.getTime() - u.benchmark;
+        if (!u.benchmark) {
+            logInfo(msg + ": Nothing to report: startBenchmark() has yet to be run.");
+            return;
+        }
+        u.benchmarkCount += 1;
+        u.benchmarkTotal += diff;
+        u.benchmarkAvg = Math.round(u.benchmarkTotal/u.benchmarkCount);
+        logInfo(msg + ": " + diff + "ms" + ", total: " + u.benchmarkTotal + "ms, Average: " + u.benchmarkAvg);
     },
     getNode: function(nodeOrSelector) {
         // Given a CSS query selector (string, e.g. '#someid') or node (in case we're not sure), lookup the node using document.querySelector() and return it.
@@ -1650,37 +1663,7 @@ GateOne.Input.handlingPaste = false;
 GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.  They will end up looking like this:
 // 'KEY_N': [{'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'}]
 GateOne.Base.update(GateOne.Input, {
-    // This object holds all of the special key handlers and controls the "escape"/"escape escape" sequences
-    goDivMouseDown: function(e) {
-        // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
-        logDebug("goDivMouseDown() button: " + e.button + ", which: " + e.which);
-        var u = go.Utils,
-            m = go.Input.mouse(e),
-            selectedText = u.getSelText();
-        go.Input.mouseDown = true;
-        // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
-        // However, we only want this when the user is actually bringing up the context menu because
-        // having it enabled slows down screen updates by a non-trivial amount.
-        if (m.button.middle) {
-            u.showElements('.pastearea');
-            if (selectedText.length) {
-                go.Input.handlingPaste = true; // We're emulating a paste so we might as well act like one
-                // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
-                e.preventDefault();
-                go.Input.queue(selectedText);
-                go.Net.sendChars();
-                setTimeout(function() {
-                    go.Input.handlingPaste = false;
-                }, 250);
-            }
-        } else if (m.button.right) {
-            if (!u.getSelText()) {
-                // Redisplay the pastearea so we can get a proper context menu in case the user wants to paste
-                u.showElements('.pastearea');
-            }
-        }
-        u.getNode(go.prefs.goDiv).focus();
-    },
+    // GateOne.Input is in charge of all keyboard input as well as copy & paste stuff
     capture: function() {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
         logDebug('capture()');
@@ -1732,7 +1715,35 @@ GateOne.Base.update(GateOne.Input, {
             // After the copy we need to bring the pastearea back up so the context menu will work to paste again
             u.showElements('.pastearea');
         }
-        goDiv.onmousedown = go.Input.goDivMouseDown;
+        goDiv.onmousedown = function(e) {
+            // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
+            logDebug("goDiv.onmousedown() button: " + e.button + ", which: " + e.which);
+            var m = go.Input.mouse(e),
+                selectedText = u.getSelText();
+            go.Input.mouseDown = true;
+            // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
+            // However, we only want this when the user is actually bringing up the context menu because
+            // having it enabled slows down screen updates by a non-trivial amount.
+            if (m.button.middle) {
+                u.showElements('.pastearea');
+                if (selectedText.length) {
+                    go.Input.handlingPaste = true; // We're emulating a paste so we might as well act like one
+                    // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
+                    e.preventDefault();
+                    go.Input.queue(selectedText);
+                    go.Net.sendChars();
+                    setTimeout(function() {
+                        go.Input.handlingPaste = false;
+                    }, 250);
+                }
+            } else if (m.button.right) {
+                if (!u.getSelText()) {
+                    // Redisplay the pastearea so we can get a proper context menu in case the user wants to paste
+                    u.showElements('.pastearea');
+                }
+            }
+            u.getNode(go.prefs.goDiv).focus();
+        }
         goDiv.onmouseup = function(e) {
             logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
             // Once the user is done pasting (or clicking), set it back to false for speed
@@ -1960,11 +1971,13 @@ GateOne.Base.update(GateOne.Input, {
     },
     onKeyDown: function(e) {
         // Handles keystroke events by determining which kind of event occurred and how/whether it should be sent to the server as specific characters or escape sequences.
+        // NOTE: Benchmarking has shown round trip times from here (onkeydown) to the end of termUpdateFromWorker() to average ~53ms using Chrome 22 on my laptop (localhost).  So that's the time to beat.  On the server the bottleneck is the _spanify_screen() function which represents about ~25ms of that 53ms number.
         var goIn = go.Input,
             container = go.Utils.getNode(go.prefs.goDiv),
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
             goDivStyle = document.defaultView.getComputedStyle(container, null);
+        logDebug("onKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
             goIn.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
             return true; // Save some CPU
@@ -2386,6 +2399,7 @@ GateOne.Base.update(GateOne.Input, {
     emulateKeyFallback: function(e) {
         // Meant to be attached to (GateOne.prefs.goDiv).onkeypress, will queue the (character) result of a keypress event if an unknown modifier key is held.
         // Without this, 3rd and 5th level keystroke events (i.e. the stuff you get when you hold down various combinations of AltGr+<key>) would not work.
+        // NOTE:  This gets assigned to goDiv.onkeypress (keypress events get fired *after* keydown and keyup events)
         logDebug("emulateKeyFallback() charCode: " + e.charCode + ", keyCode: " + e.keyCode);
         var goIn = go.Input,
             q = function(c) {
@@ -2567,6 +2581,8 @@ GateOne.Base.update(GateOne.Visual, {
         var node = GateOne.Utils.getNode(elem);
         if (node.style['transform']) {
             return node.style['transform'];
+        } else if (node.style['-webkit-transform']) {
+            return node.style['-webkit-transform'];
         } else if (node.style.MozTransform) {
             return node.style.MozTransform;
         } else if (node.style['-khtml-transform']) {
@@ -4146,7 +4162,8 @@ go.Base.update(GateOne.Terminal, {
         t.termUpdatesWorker.onmessage = t.termUpdateFromWorker;
     },
     updateTerminalAction: function(termUpdateObj) {
-        // Replaces the contents of the terminal div with the lines in *termUpdateObj*.
+        // Takes the updated screen information from *termUpdateObj* and posts it to the go_process.js Web Worker to be processed.
+        // The Web Worker is important because it allows offloading of CPU-intensive tasks like linkification and text transforms so they don't block screen updates
         var go = GateOne,
             u = go.Utils,
             t = go.Terminal,
@@ -4465,7 +4482,7 @@ go.Base.update(GateOne.Terminal, {
         }
     },
     switchTerminal: function(term) {
-        // Calls GateOne.Net.setTerminal(*term*) then calls whatever function is assigned to GateOne.Terminal.termSelectCallback(*term*) (default is GateOne.Terminal.switchTerminal())
+        // Calls GateOne.Net.setTerminal(*term*) then calls whatever function is assigned to GateOne.Terminal.termSelectCallback(*term*) (default is GateOne.Visual.slideToTerm())
         // So if you want to write your own animation/function for switching terminals you can make it happen by simply assigning your function to GateOne.Terminal.termSelectCallback
         go.Net.setTerminal(term);
         if (go.Terminal.termSelectCallback) {

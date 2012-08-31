@@ -754,14 +754,19 @@ GateOne.Base.update(GateOne.Logging, {
         } else {
             var newWindow = window.open('', '_newtab'),
                 goDiv = u.createElement('div', {'id': go.prefs.goDiv.split('#')[1]}, true),
-                cssTheme = u.getNode('#'+prefix+'go_css_theme').cloneNode(true),
-                cssColors = u.getNode('#'+prefix+'go_css_colors').cloneNode(true),
+                css = u.getNodes('style'), // Grab em all
                 newContent = "<html><head><title>Gate One Log (Flat): " + metadata['filename'] + "</title></head><body></body></html>";
             newWindow.focus();
             newWindow.document.write(newContent);
             newWindow.document.close();
-            newWindow.document.head.appendChild(cssTheme);
-            newWindow.document.head.appendChild(cssColors);
+            u.toArray(css).forEach(function(styleTag) {
+                // Only add the styles that start with go.prefs.prefix
+                if (u.startsWith(go.prefs.prefix, styleTag.id)) {
+                    newWindow.document.head.appendChild(styleTag.cloneNode(true));
+                }
+            });
+//             newWindow.document.head.appendChild(cssTheme);
+//             newWindow.document.head.appendChild(cssColors);
             newWindow.document.body.appendChild(goDiv);
             logContainer.innerHTML = '<pre style="height: 100%; overflow: auto; position: static; white-space: pre-line;">' + logLines.join('\n') + '</pre>';
             logViewContent.appendChild(logContainer);

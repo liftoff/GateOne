@@ -311,8 +311,11 @@ window.onload = function() {
     // Add the sidebar text
     sideinfo.id = '{{prefix}}sideinfo';
     sideinfo.className = 'sideinfo';
+    sidetitle.style.right = "0"; // No scrollbar so no need to make room for it
     sidetitle.id = '{{prefix}}sidetitle';
     sidetitle.className = 'sideinfo sidetitle';
+    sidetitle.style.top = "5.5em"; // Slightly different from a standard Gate One theme
+    sidetitle.style.right = "0"; // No scrollbar here either
     if (!preview) {
         sidetitle.innerHTML = "Playback";
         sideinfo.innerHTML = dateTime.toLocaleDateString();

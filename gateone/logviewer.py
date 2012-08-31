@@ -154,20 +154,20 @@ def escape_escape_seq(text, preserve_renditions=True, rstrip=True):
     esc_sequence = re.compile(
         r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=]|[()# %*+].)')
     csi_sequence = re.compile(r'\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])')
-    esc_rstrip = re.compile('[ \t]+\x1b.+$')
+    #esc_rstrip = re.compile('[ \t]+\x1b.+$')
     out = u""
     esc_buffer = u""
     # If this seems confusing it is because text parsing is a black art! ARRR!
     for char in text:
         if not esc_buffer:
-            if char == u'\x1b':
+            if char == u'\x1b': # Start of an ESC sequence
                 esc_buffer = char
             # TODO: Determine if we should bring this back:
             #elif ord(char) in replacement_map:
                 #out += replacement_map[ord(char)]
-            else:
+            else: # Vanilla char.  Booooring.
                 out += raw(char)
-        else:
+        else: # Something interesting is going on
             esc_buffer += char
             if char == u'\x07' or esc_buffer.endswith(u'\x1b\\'): # Likely title
                 esc_buffer = u'' # Nobody wants to see your naked ESC sequence
@@ -191,7 +191,8 @@ def escape_escape_seq(text, preserve_renditions=True, rstrip=True):
                 continue
     if rstrip:
         # Remove trailing whitespace + trailing ESC sequences
-        return esc_rstrip.sub('', out).rstrip()
+        #return esc_rstrip.sub('', out).rstrip()
+        return out.rstrip()
     else: # All these trailers better make for a good movie
         return out
 
@@ -214,50 +215,64 @@ def flatten_log(log_path, preserve_renditions=True, show_esc=False):
     import gzip
     lines = gzip.open(log_path).read()
     out = ""
-    # Skip the first frame (metadata)
+    out_line = ""
+    cr = False
+    # We skip the first frame, [1:] because it holds the recording metadata
     for frame in lines.split(SEPARATOR.encode('UTF-8'))[1:]:
         try:
             frame_time = float(frame[:13]) # First 13 chars is the timestamp
             # Convert to datetime object
             frame_time = datetime.fromtimestamp(frame_time/1000)
-            if u'\n' in frame[14:]: # Skips the colon
-                frame_lines = frame[14:].splitlines()
-                for i, fl in enumerate(frame_lines):
-                    if len(fl):
-                        # NOTE: Have to put a rendition reset (\x1b[m) at the
-                        # start of each line in case the previous line didn't
-                        # reset it on its own.
-                        if show_esc:
-                            out += u"%s %s\n" % ( # Standard Unix log format
-                                frame_time.strftime(u'\x1b[m%b %m %H:%M:%S'),
-                                raw(fl))
-                        else:
-                            out += u"%s %s\n" % ( # Standard Unix log format
-                                frame_time.strftime(u'\x1b[m%b %m %H:%M:%S'),
-                                escape_escape_seq(fl, rstrip=True)
-                            )
-                    elif i:# Don't need this for the first empty line in a frame
-                        out += frame_time.strftime(u'\x1b[m%b %m %H:%M:%S \n')
-                out += frame_time.strftime(u'\x1b[m%b %m %H:%M:%S \n')
-            elif show_esc:
-                if len(out) and out[-1] == u'\n':
-                    out = u"%s%s\n" % (out[:-1], raw(frame[14:]))
-            else:
-                if '\x1b[H\x1b[2J' in frame[14:]: # Clear screen sequence
-                    out += frame_time.strftime(u'\x1b[m%b %m %H:%M:%S ')
-                    out += escape_escape_seq(frame[14:], rstrip=True).rstrip()
-                    out += ' ^L\n'
+            if show_esc:
+                frame_time = frame_time.strftime(u'\x1b[0m%b %m %H:%M:%S')
+            else: # Renditions preserved == I want pretty.  Make the date bold:
+                frame_time = frame_time.strftime(
+                    u'\x1b[0;1m%b %m %H:%M:%S\x1b[m')
+            for char in frame[14:]:
+                if '\x1b[H\x1b[2J' in out_line: # Clear screen sequence
+                    # Handle the clear screen (usually ctrl-l) by outputting
+                    # a new log entry line to avoid confusion regarding what
+                    # happened at this time.
+                    out_line += "^L" # Clear screen is a ctrl-l or equivalent
+                    if show_esc:
+                        adjusted = raw(out_line)
+                    else:
+                        adjusted = escape_escape_seq(out_line, rstrip=True)
+                    out += frame_time + ' %s\n' % adjusted
+                    out_line = ""
                     continue
-                escaped_frame = escape_escape_seq(frame[14:], rstrip=True)
-                if len(out) and out[-1] == u'\n':
-                    # Back up a line and add this character to it
-                    out = u"%s%s\n" % (out[:-1], escaped_frame)
-                elif escaped_frame:
-                    # This is pretty much always going to be the first line
-                    out += u"%s %s\n" % ( # Standard Unix log format
-                        frame_time.strftime(u'\x1b[m%b %m %H:%M:%S'),
-                        escaped_frame.rstrip()
-                    )
+                if char == u'\n':
+                    if show_esc:
+                        adjusted = raw(out_line)
+                    else:
+                        adjusted = escape_escape_seq(out_line, rstrip=True)
+                    out += frame_time + ' %s\n' % adjusted
+                    out_line = ""
+                    cr = False
+                elif char in u'\r':
+                    # Carriage returns need special handling.  Make a note of it
+                    cr = True
+                else:
+                    # \r without \n means that characters were (likely)
+                    # overwritten.  This usually happens when the user gets to
+                    # the end of the line (which would create a newline in the
+                    # terminal but not necessarily the log), erases their
+                    # current line (e.g. ctrl-u), or an escape sequence modified
+                    # the line in-place.  To clearly indicate what happened we
+                    # insert a '^M' and start a new line so as to avoid
+                    # confusion over these events.
+                    if cr:
+                        out_line += "^M"
+                        out += frame_time + ' '
+                        if show_esc:
+                            adjusted = raw(out_line)
+                        else:
+                            adjusted = escape_escape_seq(out_line, rstrip=True)
+                        out += adjusted
+                        out += '\n'
+                        out_line = ""
+                    out_line += char
+                    cr = False
         except ValueError as e:
             pass
             # End of file.  No biggie.

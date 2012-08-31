@@ -17,6 +17,9 @@
 # NOTE:  This is a modified version of the 'chat' demo application included in
 # the Tornado framework tarball.
 
+# TODO: Write a nice long docstring for this and make sure it shows up in the
+#       regular Gate One documentation.
+
 import logging
 import time
 import json
@@ -104,7 +107,6 @@ class MainHandler(BaseHandler):
             messages=MessageMixin.cache,
             auth=auth
         )
-
 
 class MessageMixin(object):
     waiters = set()
@@ -205,6 +207,7 @@ def main():
     })
     print("For this to work you must add the following to Gate One's "
           "server.conf:\n")
+    print('auth = "api"')
     # Using the cookie_secret as the API key here:
     print('api_keys = "MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M:secret"')
     print("\n...and restart Gate One for the change to take effect.")

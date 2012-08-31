@@ -1187,6 +1187,7 @@
                                 <span class="s">&#39;signature method: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">signature_method</span><span class="p">)</span>
                         <span class="p">}</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+                        <span class="k">return</span>
                     <span class="n">secret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;api_keys&#39;</span><span class="p">][</span><span class="n">api_key</span><span class="p">]</span>
                     <span class="c"># Check the signature against existing API keys</span>
                     <span class="n">sig_check</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">_create_signature</span><span class="p">(</span>
@@ -1212,14 +1213,21 @@
                         <span class="n">time_diff</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">then</span>
                         <span class="k">if</span> <span class="n">time_diff</span> <span class="o">&gt;</span> <span class="n">window</span><span class="p">:</span>
                             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                            <span class="s">&quot;API authentication failed due to timeout.  &quot;</span>
-                            <span class="s">&quot;If you just restarted the server this is normal &quot;</span>
-                            <span class="s">&quot;(users just need to reload the page) but it is &quot;</span>
-                            <span class="s">&quot;still a good idea to double-check for clock drift.&quot;</span>
+                            <span class="s">&quot;API authentication failed due to an expired auth &quot;</span>
+                            <span class="s">&quot;object.  If you just restarted the server this is &quot;</span>
+                            <span class="s">&quot;normal (users just need to reload the page).  If &quot;</span>
+                            <span class="s">&quot; this problem persists it could be a problem with &quot;</span>
+                            <span class="s">&quot;the server&#39;s clock (either this server or the &quot;</span>
+                            <span class="s">&quot;server(s) embedding Gate One).&quot;</span>
                             <span class="p">))</span>
                             <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
                                 <span class="s">&#39;AUTH FAILED: Authentication object timed out. &#39;</span>
-                                <span class="s">&#39;You probably just have to reload the page.&#39;</span><span class="p">)}</span>
+                                <span class="s">&#39;Try reloading this page (F5).&#39;</span><span class="p">)}</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+                            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
+                                <span class="s">&#39;AUTH FAILED: If the problem persists after &#39;</span>
+                                <span class="s">&#39;reloading this page please contact your server&#39;</span>
+                                <span class="s">&#39; administrator to notify them of the issue.&#39;</span><span class="p">)}</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
                             <span class="k">return</span>
@@ -1267,15 +1275,23 @@
                 <span class="n">session_message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;gateone_user&#39;</span><span class="p">:</span> <span class="n">encoded_user</span><span class="p">}</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_message</span><span class="p">))</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;ANONYMOUS&#39;</span><span class="p">:</span>
+                <span class="c"># Gate One server&#39;s auth config probably changed</span>
                 <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;reauthenticate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Close the WebSocket</span>
+                <span class="c">#self.close() # Close the WebSocket</span>
+                <span class="k">return</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;session&#39;</span><span class="p">]</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="s">&#39;session&#39;</span> <span class="ow">in</span> <span class="n">user</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Authentication failed for unknown user&quot;</span><span class="p">))</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;AUTHENTICATION ERROR: User unknown&#39;</span><span class="p">)}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+                <span class="k">return</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;authenticate session exception: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
-            <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;AUTHENTICATION ERROR: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)}</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                <span class="s">&quot;Exception encountered trying to authenticate: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
             <span class="k">return</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c"># Execute any post-authentication hooks that plugins have registered</span>
