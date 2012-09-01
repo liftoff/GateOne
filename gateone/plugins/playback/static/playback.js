@@ -252,13 +252,13 @@ GateOne.Base.update(GateOne.Playback, {
             p = go.Playback,
             prefix = go.prefs.prefix,
             playPause = u.getNode('#'+prefix+'playPause');
-        if (playPause.innerHTML == '▶') {
+        if (playPause.innerHTML == '\u25B8') { // Using the \u form since minifiers don't like UTF-8 encoded characters like ▶
             p.startPlayback(localStorage[prefix+'selectedTerminal']);
             playPause.innerHTML = '=';
             // NOTE:  Using a transform here to increase the size and move the element because these changes are *relative* to the current state.
             go.Visual.applyTransform(playPause, 'rotate(90deg) scale(1.5) translate(0%, -20%)');
         } else {
-            playPause.innerHTML = '▶';
+            playPause.innerHTML = '\u25B8';
             clearInterval(p.frameUpdater);
             p.frameUpdater = null;
             go.Visual.applyTransform(playPause, ''); // Set it back to normal
