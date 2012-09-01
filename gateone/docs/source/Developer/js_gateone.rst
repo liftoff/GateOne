@@ -2504,6 +2504,7 @@ Functions
         * :js:attr:`GateOne.Terminal.resetTerminalAction`
         * :js:attr:`GateOne.Terminal.setModeAction`
         * :js:attr:`GateOne.Terminal.switchTerminal`
+        * :js:attr:`GateOne.Terminal.termUpdateFromWorker`
         * :js:attr:`GateOne.Terminal.timeoutAction`
         * :js:attr:`GateOne.Terminal.updateTerminalAction`
         * :js:attr:`GateOne.Terminal.writeScrollback`
@@ -2550,10 +2551,10 @@ Functions
         Action            Function
         ================  ====================================================
         load_webworker    :js:func:`GateOne.Terminal.loadWebWorkerAction`
-        set_mode          :js:func:`GateOne.Terminal.setMode`
+        set_mode          :js:func:`GateOne.Terminal.setModeAction`
         term_ended        :js:func:`GateOne.Terminal.closeTerminal`
-        terminals         :js:func:`GateOne.Terminal.reattachTerminals`
-        termupdate        :js:func:`GateOne.Terminal.updateTerminal`
+        terminals         :js:func:`GateOne.Terminal.reattachTerminalsAction`
+        termupdate        :js:func:`GateOne.Terminal.updateTerminalAction`
         term_exists       :js:func:`GateOne.Terminal.reconnectTerminalAction`
         timeout           :js:func:`GateOne.Terminal.timeoutAction`
         ================  ====================================================
