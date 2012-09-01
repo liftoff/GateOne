@@ -70,7 +70,7 @@ GateOne
 -------
 .. js:data:: GateOne
 
-GateOne is the base object for all of GateOne's client-side JavaScript.  Besides the aforementioned modules (:js:attr:`~GateOne.Utils`, :js:attr:`~GateOne.Net`, :js:attr:`~GateOne.Input`, :js:attr:`~GateOne.Visual`, and :js:attr:`~GateOne.Terminal`), it contains the following properties, objects, and methods:
+GateOne is the base object for all of GateOne's client-side JavaScript.  Besides the aforementioned modules (:js:attr:`~GateOne.Utils`, :js:attr:`~GateOne.Net`, :js:attr:`~GateOne.Input`, :js:attr:`~GateOne.Visual`, :js:attr:`~GateOne.Terminal`, and :js:attr:`~GateOne.User`), it contains the following properties, objects, and methods:
 
 .. _gateone-properties:
 
@@ -80,6 +80,7 @@ Properties
 
     .. hlist::
 
+        * :js:attr:`GateOne.initialized`
         * :js:attr:`GateOne.prefs`
         * :js:attr:`GateOne.prefs.url`
         * :js:attr:`GateOne.prefs.fillContainer`
@@ -105,6 +106,7 @@ Properties
         * :js:attr:`GateOne.prefs.webWorker`
         * :js:attr:`GateOne.prefs.auth`
         * :js:attr:`GateOne.noSavePrefs`
+        * :js:attr:`GateOne.savePrefsCallbacks`
         * :js:attr:`GateOne.terminals`
         * :js:attr:`GateOne.terminals[num].backspace`
         * :js:attr:`GateOne.terminals[num].columns`
@@ -125,6 +127,13 @@ Properties
 
 prefs
 """""
+
+.. js:attribute:: GateOne.initialized
+
+    :type: Boolean
+
+    This gets set to ``true`` after :js:func:`GateOne.initialize` has completed all of its tasks.
+
 .. js:attribute:: GateOne.prefs
 
     :type: Object
@@ -435,6 +444,12 @@ prefs
             rowAdjust: null,
             colAdjust: null
         }
+
+.. js:attribute:: GateOne.savePrefsCallbacks
+
+    :type: Array
+
+    Functions placed in this array will be called immediately after :js:func:`GateOne.Utils.savePrefs` is called.  This gives plugins the ability to save their own preferences (in their own way) when the user clicks the "Save" button in the preferences panel.
 
 .. js:attribute:: GateOne.terminals
 
@@ -1506,25 +1521,25 @@ This is where all of Gate One's `WebSocket <https://developer.mozilla.org/en/Web
     ================  ====================================================
     Action            Function
     ================  ====================================================
-    bell              :js:func:`GateOne.User.bellAction`
+    bell              :js:func:`GateOne.Visual.bellAction`
     gateone_user      :js:func:`GateOne.User.storeSession`
     load_bell         :js:func:`GateOne.User.loadBell`
     load_css          :js:func:`GateOne.Visual.CSSPluginAction`
     load_style        :js:func:`GateOne.Utils.loadStyle`
     load_webworker    :js:func:`GateOne.Terminal.loadWebWorkerAction`
     log               :js:func:`GateOne.Net.log`
-    notice            :js:func:`GateOne.Net.serverMessageAction`
+    notice            :js:func:`GateOne.Visual.serverMessageAction`
     ping              :js:func:`GateOne.Net.ping`
     pong              :js:func:`GateOne.Net.pong`
     reauthenticate    :js:func:`GateOne.Net.reauthenticate`
     save_file         :js:func:`GateOne.Utils.saveAsAction`
-    set_mode          :js:func:`GateOne.Terminal.setMode`
-    set_title         :js:func:`GateOne.Terminal.setTitleAction`
+    set_mode          :js:func:`GateOne.Terminal.setModeAction`
+    set_title         :js:func:`GateOne.Visual.setTitleAction`
     set_username      :js:func:`GateOne.User.setUsername`
     term_ended        :js:func:`GateOne.Terminal.closeTerminal`
     term_exists       :js:func:`GateOne.Terminal.reconnectTerminalAction`
-    terminals         :js:func:`GateOne.Terminal.reattachTerminals`
-    termupdate        :js:func:`GateOne.Terminal.updateTerminal`
+    terminals         :js:func:`GateOne.Terminal.reattachTerminalsAction`
+    termupdate        :js:func:`GateOne.Terminal.updateTerminalAction`
     timeout           :js:func:`GateOne.Terminal.timeoutAction`
     ================  ====================================================
 
@@ -2403,6 +2418,8 @@ Properties
 ^^^^^^^^^^
 .. js:attribute:: GateOne.Terminal.closeTermCallbacks
 
+    :type: Array
+
     If a plugin wants to perform an action whenever a terminal is closed it can register a callback here like so:
 
     .. code-block:: javascript
@@ -2412,6 +2429,8 @@ Properties
     All callbacks in :js:attr:`~GateOne.Terminal.closeTermCallbacks` will be called whenever a terminal is closed with the terminal number as the only argument.
 
 .. js:attribute:: GateOne.Terminal.modes
+
+    :type: Object
 
     An object containing a collection of functions that will be called whenever a matching terminal (expanded) mode is encountered.  For example, terminal mode '1' (which maps to escape sequences '[?1h' and '[?1l') controls "application cursor keys" mode.  In this mode, the cursor keys are meant to send different escape sequences than they normally do.
 
@@ -2431,17 +2450,39 @@ Properties
 
 .. js:attribute:: GateOne.Terminal.newTermCallbacks
 
+    :type: Array
+
     If a plugin wants to perform an action whenever a terminal is opened it can register a callback here like so:
 
     .. code-block:: javascript
 
-        GateOne.Terminal.closeTermCallbacks.push(GateOne.MyPlugin.termOpened);
+        GateOne.Terminal.newTermCallbacks.push(GateOne.MyPlugin.termOpened);
 
     All callbacks in :js:attr:`~GateOne.Terminal.newTermCallbacks` will be called whenever a new terminal is opened with the terminal number as the only argument.
 
+.. js:attribute:: GateOne.Terminal.scrollbackWidth
+
+    :type: Integer
+
+    The first time :js:func:`GateOne.Terminal.termUpdateFromWorker` is executed it calculates the width of the scrollbar inside of the terminal it is updating (in order to make sure the toolbar doesn't overlap).  The result of this calculation is stored in this attribute.
+
 .. js:attribute:: GateOne.Terminal.termUpdatesWorker
 
+    :type: `Web Worker <https://developer.mozilla.org/en-US/docs/DOM/Worker>`_
+
     This is a `Web Worker <https://developer.mozilla.org/en-US/docs/DOM/Worker>`_ (go_process.js) that is used by :js:func:`GateOne.Terminal.updateTerminalAction` to process the text received from the Gate One server.  This allows things like linkifying text to take place asynchronously so it doesn't lock or slow down your browser while the CPU does its work.
+
+.. js:attribute:: GateOne.Terminal.updateTermCallbacks
+
+    :type: Arrray
+
+    If a plugin wants to perform an action whenever a terminal screen is updated it can register a callback here like so:
+
+    .. code-block:: javascript
+
+        GateOne.Terminal.updateTermCallbacks.push(GateOne.MyPlugin.termUpdated);
+
+    All callbacks in :js:attr:`~GateOne.Terminal.updateTermCallbacks` will be called whenever a new terminal is opened with the terminal number as the only argument.
 
 Functions
 ^^^^^^^^^

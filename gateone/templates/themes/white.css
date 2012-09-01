@@ -238,12 +238,13 @@ hr {
     float: right;
     clear: both;
     opacity: .75;
-    margin-top: 0.5em;
+    margin-top: 0.3em;
     -webkit-transition: -webkit-transform 1.0s ease-in-out;
     -moz-transition: -moz-transform 1.0s ease-in-out;
     -ms-transition: -ms-transform 1.0s ease-in-out;
     -o-transition: -o-transform 1.0s ease-in-out;
     transition: transform 1.0s ease-in-out;
+    margin-right: 5px;
 }
 #{{container}} .toolbar:hover {
     opacity: 1;

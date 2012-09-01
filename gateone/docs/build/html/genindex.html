@@ -84,6 +84,26 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="About/index.html#index-0">$GO_SESSION</a>
+  </dt>
+
+      
+  <dt><a href="About/index.html#index-1">$GO_SESSION_DIR</a>
+  </dt>
+
+      
+  <dt><a href="About/index.html#index-2">$GO_TERM</a>
+  </dt>
+
+      
+  <dt><a href="About/index.html#index-3">$GO_USER</a>
+  </dt>
+
+      
+  <dt><a href="About/index.html#index-4">$GO_USER_DIR</a>
+  </dt>
+
+      
   <dt>
     --address=string (IPv4 or IPv6 address)
   </dt>
@@ -96,12 +116,34 @@
       </dl></dd>
       
   <dt>
-    --auth=string (none|google|kerberos)
+    --api_timestamp_window=string (special: [0-9]+[smhd])
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/index.html#cmdoption--api_timestamp_window">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --auth=string (none|pam|google|kerberos|api)
   </dt>
 
       <dd><dl>
         
   <dt><a href="About/index.html#cmdoption--auth">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --ca_certs=string (file path)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/index.html#cmdoption--ca_certs">command line option</a>
   </dt>
 
       </dl></dd>
@@ -162,7 +204,7 @@
       </dl></dd>
       
   <dt>
-    --debug
+    --debug=boolean
   </dt>
 
       <dd><dl>
@@ -173,7 +215,7 @@
       </dl></dd>
       
   <dt>
-    --disable_ssl
+    --disable_ssl=boolean
   </dt>
 
       <dd><dl>
@@ -184,7 +226,7 @@
       </dl></dd>
       
   <dt>
-    --dtach
+    --dtach=boolean
   </dt>
 
       <dd><dl>
@@ -195,12 +237,34 @@
       </dl></dd>
       
   <dt>
-    --embedded
+    --embedded=boolean
   </dt>
 
       <dd><dl>
         
   <dt><a href="About/index.html#cmdoption--embedded">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --enable_unix_socket=boolean
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/index.html#cmdoption--enable_unix_socket">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --gid=string
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/index.html#cmdoption--gid">command line option</a>
   </dt>
 
       </dl></dd>
@@ -248,6 +312,8 @@
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt>
     --locale=string (locale string)
@@ -281,8 +347,6 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt>
     --log_file_prefix=string (file path)
@@ -296,7 +360,7 @@
       </dl></dd>
       
   <dt>
-    --log_to_stderr
+    --log_to_stderr=boolean
   </dt>
 
       <dd><dl>
@@ -307,7 +371,7 @@
       </dl></dd>
       
   <dt>
-    --logging
+    --logging=string (info|warning|error|none)
   </dt>
 
       <dd><dl>
@@ -324,6 +388,17 @@
       <dd><dl>
         
   <dt><a href="About/index.html#cmdoption--new_api_key">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --origins=string (semicolon-separated origins)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/index.html#cmdoption--origins">command line option</a>
   </dt>
 
       </dl></dd>
@@ -346,6 +421,17 @@
       <dd><dl>
         
   <dt><a href="About/index.html#cmdoption--pam_service">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --pid_file=string
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/index.html#cmdoption--pid_file">command line option</a>
   </dt>
 
       </dl></dd>
@@ -390,6 +476,17 @@
       <dd><dl>
         
   <dt><a href="About/index.html#cmdoption--session_timeout">command line option</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt>
+    --ssl_auth=string (None|optional|required)
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="About/index.html#cmdoption--ssl_auth">command line option</a>
   </dt>
 
       </dl></dd>
@@ -803,7 +900,15 @@
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--auth">--auth=string (none|google|kerberos)</a>
+  <dt><a href="About/index.html#cmdoption--api_timestamp_window">--api_timestamp_window=string (special: [0-9]+[smhd])</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#cmdoption--auth">--auth=string (none|pam|google|kerberos|api)</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#cmdoption--ca_certs">--ca_certs=string (file path)</a>
   </dt>
 
         
@@ -827,19 +932,27 @@
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--debug">--debug</a>
+  <dt><a href="About/index.html#cmdoption--debug">--debug=boolean</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--disable_ssl">--disable_ssl</a>
+  <dt><a href="About/index.html#cmdoption--disable_ssl">--disable_ssl=boolean</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--dtach">--dtach</a>
+  <dt><a href="About/index.html#cmdoption--dtach">--dtach=boolean</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--embedded">--embedded</a>
+  <dt><a href="About/index.html#cmdoption--embedded">--embedded=boolean</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#cmdoption--enable_unix_socket">--enable_unix_socket=boolean</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#cmdoption--gid">--gid=string</a>
   </dt>
 
         
@@ -875,15 +988,19 @@
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--log_to_stderr">--log_to_stderr</a>
+  <dt><a href="About/index.html#cmdoption--log_to_stderr">--log_to_stderr=boolean</a>
   </dt>
 
         
-  <dt><a href="About/index.html#cmdoption--logging">--logging</a>
+  <dt><a href="About/index.html#cmdoption--logging">--logging=string (info|warning|error|none)</a>
   </dt>
 
         
   <dt><a href="About/index.html#cmdoption--new_api_key">--new_api_key</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#cmdoption--origins">--origins=string (semicolon-separated origins)</a>
   </dt>
 
         
@@ -892,6 +1009,10 @@
 
         
   <dt><a href="About/index.html#cmdoption--pam_service">--pam_service=string</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#cmdoption--pid_file">--pid_file=string</a>
   </dt>
 
         
@@ -908,6 +1029,10 @@
 
         
   <dt><a href="About/index.html#cmdoption--session_timeout">--session_timeout=string (special: [0-9]+[smhd])</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#cmdoption--ssl_auth">--ssl_auth=string (None|optional|required)</a>
   </dt>
 
         
@@ -1068,15 +1193,42 @@
   </dt>
 
       
-  <dt><a href="Developer/gateone.html#gateone.ErrorHandler">ErrorHandler (class in gateone)</a>
+  <dt>
+    environment variable
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="About/index.html#index-0">$GO_SESSION</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#index-1">$GO_SESSION_DIR</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#index-2">$GO_TERM</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#index-3">$GO_USER</a>
+  </dt>
+
+        
+  <dt><a href="About/index.html#index-4">$GO_USER_DIR</a>
+  </dt>
+
+      </dl></dd>
       
-  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.esc_opt_handler">esc_opt_handler() (gateone.TerminalWebSocket method)</a>
+  <dt><a href="Developer/gateone.html#gateone.ErrorHandler">ErrorHandler (class in gateone)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="Developer/gateone.html#gateone.TerminalWebSocket.esc_opt_handler">esc_opt_handler() (gateone.TerminalWebSocket method)</a>
+  </dt>
+
       
   <dt><a href="Developer/logviewer.html#logviewer.escape_escape_seq">escape_escape_seq() (in module logviewer)</a>
   </dt>
@@ -1141,6 +1293,10 @@
 
       
   <dt><a href="Developer/js_gateone.html#GateOne.initialize">GateOne.initialize() (GateOne method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/js_gateone.html#GateOne.initialized">GateOne.initialized (GateOne attribute)</a>
   </dt>
 
       
@@ -1392,6 +1548,10 @@
   </dt>
 
       
+  <dt><a href="Developer/js_gateone.html#GateOne.savePrefsCallbacks">GateOne.savePrefsCallbacks (GateOne attribute)</a>
+  </dt>
+
+      
   <dt><a href="Developer/js_gateone.html#GateOne.Terminal">GateOne.Terminal (GateOne attribute)</a>
   </dt>
 
@@ -1456,6 +1616,10 @@
   </dt>
 
       
+  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.scrollbackWidth">GateOne.Terminal.scrollbackWidth (GateOne.Terminal attribute)</a>
+  </dt>
+
+      
   <dt><a href="Developer/js_gateone.html#GateOne.Terminal.setModeAction">GateOne.Terminal.setModeAction() (GateOne.Terminal method)</a>
   </dt>
 
@@ -1473,6 +1637,10 @@
 
       
   <dt><a href="Developer/js_gateone.html#GateOne.Terminal.timeoutAction">GateOne.Terminal.timeoutAction() (GateOne.Terminal method)</a>
+  </dt>
+
+      
+  <dt><a href="Developer/js_gateone.html#GateOne.Terminal.updateTermCallbacks">GateOne.Terminal.updateTermCallbacks (GateOne.Terminal attribute)</a>
   </dt>
 
       
@@ -1551,6 +1719,8 @@
   <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].sshConnectString">GateOne.terminals[num].sshConnectString (GateOne.terminals[num] attribute)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Developer/js_gateone.html#GateOne.terminals[num].X11Title">GateOne.terminals[num].X11Title (GateOne.terminals[num] attribute)</a>
   </dt>
@@ -1559,8 +1729,6 @@
   <dt><a href="Developer/js_gateone.html#GateOne.User">GateOne.User (GateOne attribute)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="Developer/js_gateone.html#GateOne.User.init">GateOne.User.init() (GateOne.User method)</a>
   </dt>

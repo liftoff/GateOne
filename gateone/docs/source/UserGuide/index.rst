@@ -70,11 +70,11 @@ Log Viewer
 ^^^^^^^^^^
 Gate One's log viewer provides a mechanism for viewing the logs of terminal sessions stored on the server.  Log metadata as well as a preview can be viewed by simply clicking on any given log.  Playback and flat (traditional) viewing options are also available.  These will open in a new window.
 
-.. figure:: screenshots/log_viewer.png
+.. figure:: screenshots/gateone_log_viewer.png
     :class: screenshot
     :align: center
 
-    Gate One's log viewer
+    Gate One's Log Viewer (unzoomed)
 
 .. tip:: When you open the log viewer it will display a message indicating how many logs there are associated with your user account along with the total amount of space the logs are taking up on the server.
 
@@ -106,21 +106,36 @@ SSH Plugin: Manage Identities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The SSH plugin includes an interface for managing all of your SSH identities (aka SSH keys).  Here, SSH identities (private and public key files) can be generated, downloaded, uploaded, or deleted.  There is also support for uploading (or replacing existing) X.509 certificates that may be associated with a given identity.  X.509 support is important because it provides the ability for keys to be revoked (e.g. in the event that an employee leaves your company).  X.509 certificates can also restrict what privileges a user has when logging into a server via SSH (e.g. disallowing port forwarding).  If any of these restrictions are present in a given Identity's X.509 certificate they will be displayed in place of the randomart field.
 
-.. figure:: screenshots/ssh_identity_manager.png
+.. figure:: screenshots/gateone_ssh_identity_manager.png
     :class: screenshot
     :align: center
 
-    SSH Identity Manager
+    SSH Identity Manager (unzoomed)
 
 .. tip:: If you hover your mouse over the title of each column it will provide detailed description of what it means.
 
-When you click on an identity you'll see a view such as this:
+.. rubric:: The SSH Identity Manager also allows you to generate new identities...
 
-.. figure:: screenshots/ssh_identity_manager_idview.png
-    :class: screenshot
+.. figure:: screenshots/gateone_new_ssh_identity.png
     :align: center
 
-    Identity Information
+    Generate New Identity
+
+.. rubric:: Upload existing identities...
+
+.. tip:: If you upload a private key without a public key Gate One will automatically derive the public key from the private one.  Super handy for Amazon EC2 SSH identities where they don't give you the public key.
+
+.. figure:: screenshots/gateone_upload_ssh_identity.png
+    :align: center
+
+    Upload Identity
+
+.. rubric:: And upload X.509 certificates...
+
+.. figure:: screenshots/gateone_upload_x509.png
+    :align: center
+
+    Upload X.509 Certificate
 
 Edit Known Hosts
 ^^^^^^^^^^^^^^^^
@@ -142,7 +157,13 @@ Theme
 ^^^^^
 This controls the look and feel of Gate One.  When selected, the chosen theme will take effect right away.
 
-.. tip:: The CSS schemes can be edited; css_black.css and css_white.css are in <path to gateone>/templates/themes.
+.. figure:: screenshots/gateone_white_theme.png
+    :class: screenshot
+    :align: center
+
+    White Theme
+
+.. tip:: Themes are just CSS files and are easy to edit.  ``black.css`` and ``white.css`` are in ``<path to gateone>/templates/themes``.  Copy one and start making your own!  If it turns out pretty good send it to us and we'll include it in the code.
 
 .. note:: The black scheme doesn't actually have a black background (it's #222)...  Why?  So the panels can have shadows which provides important contrast.  Essentially, it is easier on the eyes.
 
@@ -150,7 +171,7 @@ Color Scheme
 ^^^^^^^^^^^^
 This is similar to the "Theme" option above but it only controls the colors of terminal text (aka renditions).
 
-.. note:: CSS color schemes can be found in <path to gateone>/templates/term_colors.
+.. note:: CSS color schemes can be found in ``<path to gateone>/templates/term_colors``.
 
 Scrollback Buffer Lines
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -164,7 +185,7 @@ Playback Frames
 ^^^^^^^^^^^^^^^
 This option controls how many frames of real-time session playback will be kept in working memory.  The higher the number, the more memory it will use.  Also, the more terminals you have open the higher the memory use as well.  Having said that, 200-500 frames per terminal shouldn't be of any concern for a modern computer.
 
-.. tip:: If you hold down the Shift key while scrolling with your mouse it will move backwards and forwards in the playback buffer instead of scrolling up and down.  It is a handy way to see the history of full-screen applications such as 'top'.
+.. tip:: If you hold down the Shift key while scrolling with your mouse wheel it will move backwards and forwards in the playback buffer instead of scrolling up and down.  It is a handy way to see the history of full-screen applications such as 'top'.
 
 Terminal Rows and Terminal Columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -189,7 +210,7 @@ The grid view can be invoked by either clicking on the Grid icon (four squares) 
     :class: screenshot
     :align: center
 
-    The Grid View.  The mouse was moved over Terminal 1 in this example, demonstrating the mouseover effect.
+    The Grid View.  The mouse was moved over Terminal 4 in this example, demonstrating the mouseover effect.
 
 The Bookmark Manager
 --------------------

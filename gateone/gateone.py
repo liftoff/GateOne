@@ -2255,7 +2255,7 @@ def main():
     define("port", default=443, help=_("Run on the given port."), type=int)
     define(
         "enable_unix_socket",
-        default=True,
+        default=False,
         help=_("Enable Unix socket support."),
         type=bool)
     define(

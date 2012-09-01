@@ -466,8 +466,23 @@ var go = GateOne.Base.update(GateOne, {
                 go.prefs.colors = colors;
             }
             if (fontSize) {
+                var scale = null;
                 go.prefs.fontSize = fontSize;
                 goDiv.style['fontSize'] = fontSize;
+                // Also adjust the toolbar size to match the font size
+                if (fontSize.indexOf('%') != -1) {
+                    // The given font size is in a percent, convert to em so we can scale properly
+                    scale = parseFloat(fontSize.substring(0, fontSize.length-1)) / 100;
+                } else if (fontSize.indexOf('em') != -1) {
+                    // The given font size is in em.  Strip the 'em' and set it as our scale
+                    scale = parseFloat(fontSize.substring(0, fontSize.length-2))
+                } else {
+                    // px, cm, in, etc etc aren't supported (yet)
+                    ;;
+                }
+                if (scale) {
+                    go.Visual.applyTransform(toolbar, 'translateY('+scale+'em) scale('+scale+')');
+                }
             }
             if (scrollbackValue) {
                 go.prefs.scrollback = parseInt(scrollbackValue);
@@ -530,7 +545,23 @@ var go = GateOne.Base.update(GateOne, {
         }
         // Set the font according to the user's prefs
         if (go.prefs.fontSize) {
+            var scale = null;
             goDiv.style['fontSize'] = go.prefs.fontSize;
+            goDiv.style['fontSize'] = go.prefs.fontSize;
+            // Also adjust the toolbar size to match the font size
+            if (go.prefs.fontSize.indexOf('%') != -1) {
+                // The given font size is in a percent, convert to em so we can scale properly
+                scale = parseFloat(go.prefs.fontSize.substring(0, go.prefs.fontSize.length-1)) / 100;
+            } else if (fontSize.indexOf('em') != -1) {
+                // The given font size is in em.  Strip the 'em' and set it as our scale
+                scale = parseFloat(go.prefs.fontSize.substring(0, go.prefs.fontSize.length-2))
+            } else {
+                // px, cm, in, etc etc aren't supported (yet)
+                ;;
+            }
+            if (scale) {
+                go.Visual.applyTransform(toolbar, 'translateY('+scale+'em) scale('+scale+')');
+            }
         }
         // Disable terminal transitions if the user wants
         if (go.prefs.disableTermTransitions) {
@@ -3604,9 +3635,11 @@ GateOne.Base.update(GateOne.Visual, {
         }
     },
     // NOTE: Below is a work in progress.  Not used by anything yet.
-    fitWindow: function(termPre, screenSpan) {
-        // Scales the terminal <pre> (*termPre*) to fit within the browser window based on the size of the screen <span> (*screenSpan*) if rows/cols has been explicitly set.
+    fitWindow: function(term) {
+        // Scales the terminal <pre> to fit within the browser window based on the size of the screen <span> if rows/cols has been explicitly set.
         // If rows/cols are not set it will simply move all terminals to the top of the view so that the scrollback stays hidden while screen updates are happening.
+        var termPre = GateOne.terminals[term].node,
+            screenSpan = GateOne.terminals[term].screenNode;
         if (GateOne.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
             var nodeHeight = screenSpan.offsetHeight;
             if (nodeHeight < document.documentElement.clientHeight) { // Grow to fit

@@ -163,11 +163,12 @@
 <tt class="descname">GateOne</tt><a class="headerlink" href="#GateOne" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>GateOne is the base object for all of GateOne's client-side JavaScript.  Besides the aforementioned modules (<a class="reference internal" href="#GateOne.Utils" title="GateOne.Utils"><tt class="xref js js-attr docutils literal"><span class="pre">Utils</span></tt></a>, <a class="reference internal" href="#GateOne.Net" title="GateOne.Net"><tt class="xref js js-attr docutils literal"><span class="pre">Net</span></tt></a>, <a class="reference internal" href="#GateOne.Input" title="GateOne.Input"><tt class="xref js js-attr docutils literal"><span class="pre">Input</span></tt></a>, <a class="reference internal" href="#GateOne.Visual" title="GateOne.Visual"><tt class="xref js js-attr docutils literal"><span class="pre">Visual</span></tt></a>, and <a class="reference internal" href="#GateOne.Terminal" title="GateOne.Terminal"><tt class="xref js js-attr docutils literal"><span class="pre">Terminal</span></tt></a>), it contains the following properties, objects, and methods:</p>
+<p>GateOne is the base object for all of GateOne's client-side JavaScript.  Besides the aforementioned modules (<a class="reference internal" href="#GateOne.Utils" title="GateOne.Utils"><tt class="xref js js-attr docutils literal"><span class="pre">Utils</span></tt></a>, <a class="reference internal" href="#GateOne.Net" title="GateOne.Net"><tt class="xref js js-attr docutils literal"><span class="pre">Net</span></tt></a>, <a class="reference internal" href="#GateOne.Input" title="GateOne.Input"><tt class="xref js js-attr docutils literal"><span class="pre">Input</span></tt></a>, <a class="reference internal" href="#GateOne.Visual" title="GateOne.Visual"><tt class="xref js js-attr docutils literal"><span class="pre">Visual</span></tt></a>, <a class="reference internal" href="#GateOne.Terminal" title="GateOne.Terminal"><tt class="xref js js-attr docutils literal"><span class="pre">Terminal</span></tt></a>, and <a class="reference internal" href="#GateOne.User" title="GateOne.User"><tt class="xref js js-attr docutils literal"><span class="pre">User</span></tt></a>), it contains the following properties, objects, and methods:</p>
 <div class="section" id="properties">
 <span id="gateone-properties"></span><h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
 <div class="collapseindex container">
 <table class="hlist"><tr><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.initialized" title="GateOne.initialized"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.initialized</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.prefs" title="GateOne.prefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.prefs.url" title="GateOne.prefs.url"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.url</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.prefs.fillContainer" title="GateOne.prefs.fillContainer"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.fillContainer</span></tt></a></li>
@@ -195,6 +196,7 @@
 <li><a class="reference internal" href="#GateOne.prefs.webWorker" title="GateOne.prefs.webWorker"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.webWorker</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.prefs.auth" title="GateOne.prefs.auth"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.auth</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.noSavePrefs" title="GateOne.noSavePrefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.noSavePrefs</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.savePrefsCallbacks" title="GateOne.savePrefsCallbacks"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.savePrefsCallbacks</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.terminals" title="GateOne.terminals"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.terminals[num].backspace" title="GateOne.terminals[num].backspace"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].backspace</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.terminals[num].columns" title="GateOne.terminals[num].columns"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].columns</span></tt></a></li>
@@ -219,6 +221,20 @@
 </div>
 <div class="section" id="prefs">
 <h4>prefs<a class="headerlink" href="#prefs" title="Permalink to this headline">¶</a></h4>
+<dl class="attribute">
+<dt id="GateOne.initialized">
+<tt class="descclassname">GateOne.</tt><tt class="descname">initialized</tt><a class="headerlink" href="#GateOne.initialized" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Boolean</td>
+</tr>
+</tbody>
+</table>
+<p>This gets set to <tt class="docutils literal"><span class="pre">true</span></tt> after <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a> has completed all of its tasks.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="GateOne.prefs">
 <tt class="descclassname">GateOne.</tt><tt class="descname">prefs</tt><a class="headerlink" href="#GateOne.prefs" title="Permalink to this definition">¶</a></dt>
@@ -716,6 +732,20 @@
 <span class="p">}</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.savePrefsCallbacks">
+<tt class="descclassname">GateOne.</tt><tt class="descname">savePrefsCallbacks</tt><a class="headerlink" href="#GateOne.savePrefsCallbacks" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Array</td>
+</tr>
+</tbody>
+</table>
+<p>Functions placed in this array will be called immediately after <a class="reference internal" href="#GateOne.Utils.savePrefs" title="GateOne.Utils.savePrefs"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.savePrefs()</span></tt></a> is called.  This gives plugins the ability to save their own preferences (in their own way) when the user clicks the &quot;Save&quot; button in the preferences panel.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -2433,7 +2463,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>bell</td>
-<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.User.bellAction()</span></tt></td>
+<td><a class="reference internal" href="#GateOne.Visual.bellAction" title="GateOne.Visual.bellAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.bellAction()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td>gateone_user</td>
 <td><a class="reference internal" href="#GateOne.User.storeSession" title="GateOne.User.storeSession"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.User.storeSession()</span></tt></a></td>
@@ -2454,7 +2484,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <td><a class="reference internal" href="#GateOne.Net.log" title="GateOne.Net.log"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.log()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td>notice</td>
-<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.serverMessageAction()</span></tt></td>
+<td><a class="reference internal" href="#GateOne.Visual.serverMessageAction" title="GateOne.Visual.serverMessageAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.serverMessageAction()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td>ping</td>
 <td><a class="reference internal" href="#GateOne.Net.ping" title="GateOne.Net.ping"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Net.ping()</span></tt></a></td>
@@ -2469,10 +2499,10 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <td><a class="reference internal" href="#GateOne.Utils.saveAsAction" title="GateOne.Utils.saveAsAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.saveAsAction()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td>set_mode</td>
-<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.setMode()</span></tt></td>
+<td><a class="reference internal" href="#GateOne.Terminal.setModeAction" title="GateOne.Terminal.setModeAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.setModeAction()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td>set_title</td>
-<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.setTitleAction()</span></tt></td>
+<td><a class="reference internal" href="#GateOne.Visual.setTitleAction" title="GateOne.Visual.setTitleAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.setTitleAction()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td>set_username</td>
 <td><a class="reference internal" href="#GateOne.User.setUsername" title="GateOne.User.setUsername"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.User.setUsername()</span></tt></a></td>
@@ -2484,10 +2514,10 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <td><a class="reference internal" href="#GateOne.Terminal.reconnectTerminalAction" title="GateOne.Terminal.reconnectTerminalAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.reconnectTerminalAction()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td>terminals</td>
-<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.reattachTerminals()</span></tt></td>
+<td><a class="reference internal" href="#GateOne.Terminal.reattachTerminalsAction" title="GateOne.Terminal.reattachTerminalsAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.reattachTerminalsAction()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td>termupdate</td>
-<td><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.updateTerminal()</span></tt></td>
+<td><a class="reference internal" href="#GateOne.Terminal.updateTerminalAction" title="GateOne.Terminal.updateTerminalAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.updateTerminalAction()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td>timeout</td>
 <td><a class="reference internal" href="#GateOne.Terminal.timeoutAction" title="GateOne.Terminal.timeoutAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.timeoutAction()</span></tt></a></td>
@@ -3887,7 +3917,15 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dl class="attribute">
 <dt id="GateOne.Terminal.closeTermCallbacks">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">closeTermCallbacks</tt><a class="headerlink" href="#GateOne.Terminal.closeTermCallbacks" title="Permalink to this definition">¶</a></dt>
-<dd><p>If a plugin wants to perform an action whenever a terminal is closed it can register a callback here like so:</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Array</td>
+</tr>
+</tbody>
+</table>
+<p>If a plugin wants to perform an action whenever a terminal is closed it can register a callback here like so:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">closeTermCallbacks</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">MyPlugin</span><span class="p">.</span><span class="nx">termClosed</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -3897,7 +3935,15 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dl class="attribute">
 <dt id="GateOne.Terminal.modes">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">modes</tt><a class="headerlink" href="#GateOne.Terminal.modes" title="Permalink to this definition">¶</a></dt>
-<dd><p>An object containing a collection of functions that will be called whenever a matching terminal (expanded) mode is encountered.  For example, terminal mode '1' (which maps to escape sequences '[?1h' and '[?1l') controls &quot;application cursor keys&quot; mode.  In this mode, the cursor keys are meant to send different escape sequences than they normally do.</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Object</td>
+</tr>
+</tbody>
+</table>
+<p>An object containing a collection of functions that will be called whenever a matching terminal (expanded) mode is encountered.  For example, terminal mode '1' (which maps to escape sequences '[?1h' and '[?1l') controls &quot;application cursor keys&quot; mode.  In this mode, the cursor keys are meant to send different escape sequences than they normally do.</p>
 <p>Functions inside <a class="reference internal" href="#GateOne.Terminal.modes" title="GateOne.Terminal.modes"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.modes</span></tt></a> are called with a boolean as their only argument; <tt class="docutils literal"><span class="pre">true</span></tt> meaning 'set this mode' and <tt class="docutils literal"><span class="pre">false</span></tt> meaning 'reset this mode'.  These translate back to <a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-obj docutils literal"><span class="pre">terminal.Terminal</span></tt></a> which calls whatever is assigned to <tt class="docutils literal"><span class="pre">Terminal.callbacks[CALLBACK_MODE]</span></tt> with the mode number and a boolean as the only two arguments.</p>
 <p><tt class="docutils literal"><span class="pre">Terminal.callbacks[CALLBACK_MODE]</span></tt> is assigned inside of <a class="reference external" href="gateone.html">gateone.py</a> to <tt class="docutils literal"><span class="pre">TerminalWebSocket.mode_handler</span></tt> which sends a message to the Gate One client containing a JSON-encoded object like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;set_mode&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -3913,22 +3959,70 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dl class="attribute">
 <dt id="GateOne.Terminal.newTermCallbacks">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">newTermCallbacks</tt><a class="headerlink" href="#GateOne.Terminal.newTermCallbacks" title="Permalink to this definition">¶</a></dt>
-<dd><p>If a plugin wants to perform an action whenever a terminal is opened it can register a callback here like so:</p>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">closeTermCallbacks</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">MyPlugin</span><span class="p">.</span><span class="nx">termOpened</span><span class="p">);</span>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Array</td>
+</tr>
+</tbody>
+</table>
+<p>If a plugin wants to perform an action whenever a terminal is opened it can register a callback here like so:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">newTermCallbacks</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">MyPlugin</span><span class="p">.</span><span class="nx">termOpened</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>All callbacks in <a class="reference internal" href="#GateOne.Terminal.newTermCallbacks" title="GateOne.Terminal.newTermCallbacks"><tt class="xref js js-attr docutils literal"><span class="pre">newTermCallbacks</span></tt></a> will be called whenever a new terminal is opened with the terminal number as the only argument.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="GateOne.Terminal.scrollbackWidth">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">scrollbackWidth</tt><a class="headerlink" href="#GateOne.Terminal.scrollbackWidth" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Integer</td>
+</tr>
+</tbody>
+</table>
+<p>The first time <a class="reference internal" href="#GateOne.Terminal.termUpdateFromWorker" title="GateOne.Terminal.termUpdateFromWorker"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.termUpdateFromWorker()</span></tt></a> is executed it calculates the width of the scrollbar inside of the terminal it is updating (in order to make sure the toolbar doesn't overlap).  The result of this calculation is stored in this attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="GateOne.Terminal.termUpdatesWorker">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">termUpdatesWorker</tt><a class="headerlink" href="#GateOne.Terminal.termUpdatesWorker" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Worker">Web Worker</a> (go_process.js) that is used by <a class="reference internal" href="#GateOne.Terminal.updateTerminalAction" title="GateOne.Terminal.updateTerminalAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.updateTerminalAction()</span></tt></a> to process the text received from the Gate One server.  This allows things like linkifying text to take place asynchronously so it doesn't lock or slow down your browser while the CPU does its work.</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body"><a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Worker">Web Worker</a></td>
+</tr>
+</tbody>
+</table>
+<p>This is a <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Worker">Web Worker</a> (go_process.js) that is used by <a class="reference internal" href="#GateOne.Terminal.updateTerminalAction" title="GateOne.Terminal.updateTerminalAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.updateTerminalAction()</span></tt></a> to process the text received from the Gate One server.  This allows things like linkifying text to take place asynchronously so it doesn't lock or slow down your browser while the CPU does its work.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.Terminal.updateTermCallbacks">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">updateTermCallbacks</tt><a class="headerlink" href="#GateOne.Terminal.updateTermCallbacks" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Arrray</td>
+</tr>
+</tbody>
+</table>
+<p>If a plugin wants to perform an action whenever a terminal screen is updated it can register a callback here like so:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">updateTermCallbacks</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">MyPlugin</span><span class="p">.</span><span class="nx">termUpdated</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>All callbacks in <a class="reference internal" href="#GateOne.Terminal.updateTermCallbacks" title="GateOne.Terminal.updateTermCallbacks"><tt class="xref js js-attr docutils literal"><span class="pre">updateTermCallbacks</span></tt></a> will be called whenever a new terminal is opened with the terminal number as the only argument.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="id67">
-<h3>Functions<a class="headerlink" href="#id67" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id68">
+<h3>Functions<a class="headerlink" href="#id68" title="Permalink to this headline">¶</a></h3>
 <div class="collapseindex container">
 <table class="hlist"><tr><td><ul class="simple">
 <li><a class="reference internal" href="#GateOne.Terminal.applyScreen" title="GateOne.Terminal.applyScreen"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.applyScreen</span></tt></a></li>
@@ -4337,7 +4431,7 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <li>Schedules writing the scrollback buffer to localStorage making sure that there's only ever one such write going on at once.</li>
 <li>Generates log messages sent from the <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Worker">Web Worker</a> (only used when debugging).</li>
 <li>Notifies the user of activity/inactivity in terminals and keeps track of those timers.</li>
-<li>Calls <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.updateTermCallbacks</span></tt> when all of the aformentioned activities are complete.</li>
+<li>Calls <a class="reference internal" href="#GateOne.Terminal.updateTermCallbacks" title="GateOne.Terminal.updateTermCallbacks"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.updateTermCallbacks</span></tt></a> when all of the aformentioned activities are complete.</li>
 </ul>
 </div></blockquote>
 </dd></dl>
@@ -4430,8 +4524,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dd></dd></dl>
 
 <p>GateOne.User is for things like logging out, synchronizing preferences with the server (not implemented yet), and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.  It also provides the UI elements necessary for the user to change their bell sound.</p>
-<div class="section" id="id80">
-<h3>Properties<a class="headerlink" href="#id80" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id81">
+<h3>Properties<a class="headerlink" href="#id81" title="Permalink to this headline">¶</a></h3>
 <dl class="attribute">
 <dt id="GateOne.User.userLoginCallbacks">
 <tt class="descclassname">GateOne.User.</tt><tt class="descname">userLoginCallbacks</tt><a class="headerlink" href="#GateOne.User.userLoginCallbacks" title="Permalink to this definition">¶</a></dt>
@@ -4453,8 +4547,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </dd></dl>
 
 </div>
-<div class="section" id="id81">
-<h3>Functions<a class="headerlink" href="#id81" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id82">
+<h3>Functions<a class="headerlink" href="#id82" title="Permalink to this headline">¶</a></h3>
 <div class="collapseindex container">
 <table class="hlist"><tr><td><ul class="simple">
 <li><a class="reference internal" href="#GateOne.User.init" title="GateOne.User.init"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User.init</span></tt></a></li>
@@ -4559,12 +4653,12 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </li>
 <li><a class="reference internal" href="#gateone-terminal">GateOne.Terminal</a><ul>
 <li><a class="reference internal" href="#id65">Properties</a></li>
-<li><a class="reference internal" href="#id67">Functions</a></li>
+<li><a class="reference internal" href="#id68">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-user">GateOne.User</a><ul>
-<li><a class="reference internal" href="#id80">Properties</a></li>
-<li><a class="reference internal" href="#id81">Functions</a></li>
+<li><a class="reference internal" href="#id81">Properties</a></li>
+<li><a class="reference internal" href="#id82">Functions</a></li>
 </ul>
 </li>
 </ul>

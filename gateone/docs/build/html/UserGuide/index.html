@@ -148,8 +148,8 @@
 <h4>Log Viewer<a class="headerlink" href="#log-viewer" title="Permalink to this headline">¶</a></h4>
 <p>Gate One's log viewer provides a mechanism for viewing the logs of terminal sessions stored on the server.  Log metadata as well as a preview can be viewed by simply clicking on any given log.  Playback and flat (traditional) viewing options are also available.  These will open in a new window.</p>
 <div class="figure align-center">
-<img alt="UserGuide/screenshots/log_viewer.png" class="screenshot" src="UserGuide/screenshots/log_viewer.png" />
-<p class="caption">Gate One's log viewer</p>
+<img alt="../_images/gateone_log_viewer.png" class="screenshot" src="../_images/gateone_log_viewer.png" />
+<p class="caption">Gate One's Log Viewer (unzoomed)</p>
 </div>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
@@ -188,17 +188,31 @@
 <h4>SSH Plugin: Manage Identities<a class="headerlink" href="#ssh-plugin-manage-identities" title="Permalink to this headline">¶</a></h4>
 <p>The SSH plugin includes an interface for managing all of your SSH identities (aka SSH keys).  Here, SSH identities (private and public key files) can be generated, downloaded, uploaded, or deleted.  There is also support for uploading (or replacing existing) X.509 certificates that may be associated with a given identity.  X.509 support is important because it provides the ability for keys to be revoked (e.g. in the event that an employee leaves your company).  X.509 certificates can also restrict what privileges a user has when logging into a server via SSH (e.g. disallowing port forwarding).  If any of these restrictions are present in a given Identity's X.509 certificate they will be displayed in place of the randomart field.</p>
 <div class="figure align-center">
-<img alt="UserGuide/screenshots/ssh_identity_manager.png" class="screenshot" src="UserGuide/screenshots/ssh_identity_manager.png" />
-<p class="caption">SSH Identity Manager</p>
+<img alt="../_images/gateone_ssh_identity_manager.png" class="screenshot" src="../_images/gateone_ssh_identity_manager.png" />
+<p class="caption">SSH Identity Manager (unzoomed)</p>
 </div>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last">If you hover your mouse over the title of each column it will provide detailed description of what it means.</p>
 </div>
-<p>When you click on an identity you'll see a view such as this:</p>
+<p class="rubric">The SSH Identity Manager also allows you to generate new identities...</p>
 <div class="figure align-center">
-<img alt="UserGuide/screenshots/ssh_identity_manager_idview.png" class="screenshot" src="UserGuide/screenshots/ssh_identity_manager_idview.png" />
-<p class="caption">Identity Information</p>
+<img alt="../_images/gateone_new_ssh_identity.png" src="../_images/gateone_new_ssh_identity.png" />
+<p class="caption">Generate New Identity</p>
+</div>
+<p class="rubric">Upload existing identities...</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">If you upload a private key without a public key Gate One will automatically derive the public key from the private one.  Super handy for Amazon EC2 SSH identities where they don't give you the public key.</p>
+</div>
+<div class="figure align-center">
+<img alt="../_images/gateone_upload_ssh_identity.png" src="../_images/gateone_upload_ssh_identity.png" />
+<p class="caption">Upload Identity</p>
+</div>
+<p class="rubric">And upload X.509 certificates...</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_upload_x509.png" src="../_images/gateone_upload_x509.png" />
+<p class="caption">Upload X.509 Certificate</p>
 </div>
 </div>
 <div class="section" id="edit-known-hosts">
@@ -220,9 +234,13 @@
 <div class="section" id="theme">
 <h4>Theme<a class="headerlink" href="#theme" title="Permalink to this headline">¶</a></h4>
 <p>This controls the look and feel of Gate One.  When selected, the chosen theme will take effect right away.</p>
+<div class="figure align-center">
+<img alt="../_images/gateone_white_theme.png" class="screenshot" src="../_images/gateone_white_theme.png" />
+<p class="caption">White Theme</p>
+</div>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p class="last">The CSS schemes can be edited; css_black.css and css_white.css are in &lt;path to gateone&gt;/templates/themes.</p>
+<p class="last">Themes are just CSS files and are easy to edit.  <tt class="docutils literal"><span class="pre">black.css</span></tt> and <tt class="docutils literal"><span class="pre">white.css</span></tt> are in <tt class="docutils literal"><span class="pre">&lt;path</span> <span class="pre">to</span> <span class="pre">gateone&gt;/templates/themes</span></tt>.  Copy one and start making your own!  If it turns out pretty good send it to us and we'll include it in the code.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -234,7 +252,7 @@
 <p>This is similar to the &quot;Theme&quot; option above but it only controls the colors of terminal text (aka renditions).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">CSS color schemes can be found in &lt;path to gateone&gt;/templates/term_colors.</p>
+<p class="last">CSS color schemes can be found in <tt class="docutils literal"><span class="pre">&lt;path</span> <span class="pre">to</span> <span class="pre">gateone&gt;/templates/term_colors</span></tt>.</p>
 </div>
 </div>
 <div class="section" id="scrollback-buffer-lines">
@@ -254,7 +272,7 @@
 <p>This option controls how many frames of real-time session playback will be kept in working memory.  The higher the number, the more memory it will use.  Also, the more terminals you have open the higher the memory use as well.  Having said that, 200-500 frames per terminal shouldn't be of any concern for a modern computer.</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p class="last">If you hold down the Shift key while scrolling with your mouse it will move backwards and forwards in the playback buffer instead of scrolling up and down.  It is a handy way to see the history of full-screen applications such as 'top'.</p>
+<p class="last">If you hold down the Shift key while scrolling with your mouse wheel it will move backwards and forwards in the playback buffer instead of scrolling up and down.  It is a handy way to see the history of full-screen applications such as 'top'.</p>
 </div>
 </div>
 <div class="section" id="terminal-rows-and-terminal-columns">
@@ -292,7 +310,7 @@
 <p>The grid view can be invoked by either clicking on the Grid icon (four squares) in the toolbar or via the Ctrl-Alt-G keyboard shortcut.  Here's what it looks like:</p>
 <div class="figure align-center">
 <img alt="../_images/gateone_grid_view.png" class="screenshot" src="../_images/gateone_grid_view.png" />
-<p class="caption">The Grid View.  The mouse was moved over Terminal 1 in this example, demonstrating the mouseover effect.</p>
+<p class="caption">The Grid View.  The mouse was moved over Terminal 4 in this example, demonstrating the mouseover effect.</p>
 </div>
 </div>
 <div class="section" id="the-bookmark-manager">

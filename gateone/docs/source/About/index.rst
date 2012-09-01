@@ -49,7 +49,7 @@ Before installing Gate One your system must meet the following requirements:
 =================================================   =================================================
 Requirement                                         Version
 =================================================   =================================================
-Python                                              2.6+ (3.x support is forthcoming)
+Python                                              2.6+ or 3.2+
 `Tornado Framework <http://www.tornadoweb.org/>`_   2.2+
 =================================================   =================================================
 
@@ -107,40 +107,53 @@ From Source
 
 This translates to:  Extract; Change into the gateone* directory; Install.
 
+.. tip:: You can make your own RPM from the source tarball by executing ``sudo python setup.py bdist_rpm`` instead of ``sudo python setup.py install``.
+
 Configuration
 =============
 The first time you execute gateone.py it will create a default configuration file as /opt/gateone/server.conf::
 
-    sso_service = "HTTP"
-    locale = "en_US"
-    https_redirect = False
-    pam_service = "login"
-    syslog_facility = "daemon"
-    disable_ssl = False
-    session_logging = True
-    syslog_host = None
-    cookie_secret = "NzZiNzVhYzA4M2JkNDNjNDliOGy0jjlkMGVkYMniZTcwz"
-    syslog_session_logging = False
     address = ""
+    api_timestamp_window = "30s"
     auth = None
-    port = 443
-    user_dir = "/opt/gateone/users"
-    log_file_num_backups = 10
-    logging = "info"
-    dtach = True
+    ca_certs = None
     certificate = "certificate.pem"
     command = "/opt/gateone/plugins/ssh/scripts/ssh_connect.py -S '/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp -a '-oUserKnownHostsFile=%USERDIR%/%USER%/ssh/known_hosts'"
-    log_to_stderr = False
-    session_timeout = "5d"
-    log_file_max_size = 104857600
-    session_dir = "/tmp/gateone"
-    sso_realm = None
-    embedded = False
-    keyfile = "keyfile.pem"
+    cookie_secret = "NjAxMDM0MzJmYTdmNDgzY2FiNGYzZGI0ZDEyYjUyYTI3Y"
     debug = False
+    disable_ssl = False
+    dtach = True
+    embedded = False
+    enable_unix_socket = False
+    gid = "0"
+    https_redirect = False
     js_init = ""
+    keyfile = "keyfile.pem"
+    locale = "en_US"
+    log_file_max_size = 104857600
+    log_file_num_backups = 10
     log_file_prefix = "/opt/gateone/logs/webserver.log"
-    pam_realm = "portarisk"
+    logging = "info"
+    log_to_stderr = False
+    origins = "http://localhost;https://localhost;http://127.0.0.1;https://127.0.0.1;https://yourhostname.example.com;https://yourhostname"
+    pam_realm = "yourhostname"
+    pam_service = "login"
+    pid_file = "/var/run/gateone.pid"
+    port = 443
+    session_dir = "/tmp/gateone"
+    session_logging = True
+    session_logs_max_age = "30d"
+    session_timeout = "5d"
+    ssl_auth = "none"
+    sso_realm = None
+    sso_service = "HTTP"
+    syslog_facility = "daemon"
+    syslog_host = None
+    syslog_session_logging = False
+    uid = "0"
+    unix_socket_path = "/var/run/gateone.sock"
+    url_prefix = "/"
+    user_dir = "/opt/gateone/users"
 
 .. note:: These settings can appear in any order.
 
@@ -198,7 +211,7 @@ These options are detailed below in the format of:
 
     |   Name
 
-    .. option:: --command_line_option
+    .. cmdoption:: --command_line_option
 
     ::
 
@@ -208,7 +221,7 @@ These options are detailed below in the format of:
 
 log_file_max_size
 -----------------
-.. option:: --log_file_max_size=bytes
+.. cmdoption:: --log_file_max_size=bytes
 
 ::
 
@@ -220,7 +233,7 @@ This defines the maximum size of Gate One's web server log file in bytes before 
 
 log_file_num_backups
 --------------------
-.. option:: --log_file_num_backups=integer
+.. cmdoption:: --log_file_num_backups=integer
 
 ::
 
@@ -230,27 +243,35 @@ The maximum number of backups to keep of Gate One's web server logs.
 
 log_file_prefix
 ---------------
-.. option:: --log_file_prefix=string (file path)
+.. cmdoption:: --log_file_prefix=string (file path)
 
 ::
 
-    log_file_prefix = "/var/log/gateone/webserver.log"
+    log_file_prefix = "/opt/gateone/logs/webserver.log"
 
-This is the path where Gate One's web server logs will be kept.  You'll get an error message if Gate One doesn't have permission to create the parent directory (if it doesn't exist) or if it can't write to files there.
+This is the path where Gate One's web server logs will be kept.
+
+.. note:: If you get an error like this:
+
+    .. ansi-block::
+
+        IOError: [Errno 13] Permission denied: '/opt/gateone/logs/webserver.log'
+
+    It means you need to change this setting to somewhere your user has write access such as `/var/tmp/gateone_logs/webserver.log`.
 
 log_to_stderr
 -------------
-.. option:: --log_to_stderr
+.. cmdoption:: --log_to_stderr=boolean
 
 ::
 
-    log_file_prefix = False
+    log_to_stderr = False
 
 This option tells Gate One to send web server logs to stderr (instead of to the log file).
 
 logging
 -------
-.. option:: --logging
+.. cmdoption:: --logging=string (info|warning|error|none)
 
 ::
 
@@ -260,29 +281,62 @@ Specifies the log level of the web server logs.  The default is "info".  Can be 
 
 address
 -------
-.. option:: --address=string (IPv4 or IPv6 address)
+.. cmdoption:: --address=string (IPv4 or IPv6 address)
 
 ::
 
-    address = ""
+    address = "" # Empty string means listen on all addresses
 
-The address that Gate One will listen for connections.  Default is "" (all addresses including IPv6).
+Specifies the IP address or hostname that Gate One will listen for incoming connections.  Multiple addresses may provided using a semicolon as the separator.  For example::
 
-.. note:: Multiple addresses can be specified by giving multiple `--address` arguments to gateone.py or by adding multiple `address = "<address>"` lines to the server.conf.
+    address = "localhost;::1;10.1.1.100" # Listen on localhost, the IPv6 loopback address, and 10.1.1.100
+
+.. seealso:: :option:`--port`
+
+api_timestamp_window
+--------------------
+.. cmdoption:: --api_timestamp_window=string (special: [0-9]+[smhd])
+
+::
+
+    api_timestamp_window = "30s"
+
+This setting controls how long API authentication objects will last before they expire if :option:`--auth` is set to 'api' (default is 30 seconds).  It accepts the following <num><character> types:
+
+    =========   ======= ===================
+    Character   Meaning Example
+    =========   ======= ===================
+    s           Seconds '60s' ➡ 60 Seconds
+    m           Minutes '5m'  ➡ 5 Minutes
+    h           Hours   '24h' ➡ 24 Hours
+    d           Days    '7d'   ➡ 7 Days
+    =========   ======= ===================
+
+.. note:: If the value is too small clock drift between the Gate One server and the web server embedding it can cause API authentication to fail.  If the setting is too high it provides a greater time window in which an attacker can re-use that token in the event the Gate One server is restarted.  **Important:** Gate One keeps track of used authentication objects but only in memory.  If the server is restarted there is a window in which an API authentication object can be re-used (aka an authentication replay attack).  That is why you want the api_timestamp_window to be something short but not too short as to cause problems if a clock gets a little out of sync.
 
 auth
 ----
-.. option:: --auth=string (none|google|kerberos)
+.. cmdoption:: --auth=string (none|pam|google|kerberos|api)
 
 ::
 
     auth = None # NOTE: "none" (in quotes) also works.
 
-Specifies how you want Gate One to authenticate clients.  One of, "none", "google", or "kerberos".
+Specifies how you want Gate One to authenticate clients.  One of, "none", "pam", "google", "kerberos", or "api".
+
+ca_certs
+--------
+.. cmdoption:: --ca_certs=string (file path)
+
+::
+
+    ca_certs = "/opt/gateone/ca_certs.pem" # Default is None
+
+Path to a file containing any number of concatenated CA certificates in PEM format. They will be used to authenticate clients if the :option:`--ssl_auth` option is set to 'optional' or 'required'.
 
 certificate
 -----------
-.. option:: --certificate=string (file path)
+.. cmdoption:: --certificate=string (file path)
 
 ::
 
@@ -294,24 +348,50 @@ The path to the SSL certificate Gate One will use in its web server.
 
 command
 -------
-.. option:: --command=string (program path)
+.. cmdoption:: --command=string (program path)
 
 ::
 
     command = "/opt/gateone/plugins/ssh/scripts/ssh_connect.py -S '/tmp/gateone/%SESSION%/%r@%h:%p' -a '-oUserKnownHostsFile=%USERDIR%/%USER%/known_hosts'"
-     # NOTE: The actual default is "<path to gateone>/plugins/ssh/scripts/ssh_connect.py ..."
+    # NOTE: The actual default is "<path to gateone>/plugins/ssh/scripts/ssh_connect.py ..."
 
-This option specifies the command Gate One will run when a user connects or opens a new terminal.  The default is for Gate One to run the ssh_connect.py script.  Any interactive terminal application should work (e.g. 'nethack').
+This option specifies the command Gate One will run whenever a new terminal is opened.  The default is for Gate One to run the ssh_connect.py script.  Any interactive terminal application should work (e.g. 'nethack').
+
+Optionally, you may provide any mixture of the following %VALUE% variables which will be automatically replaced with their respective values:
+
+    ==============  =====================   =============================================
+    %VALUE%         Replacement             Example Value
+    ==============  =====================   =============================================
+    %SESSION%       *User's session ID*     MDM1NTQyZmFjZGQzNDE5MGEwN2UxMTY4NmUxYzE3YzI0Z
+    %SESSION_HASH%  *short_hash(session)*   ZDmKJQAAAAA
+    %USERDIR%       *user_dir setting*      /opt/gateone/users
+    %USER%          *user*                  `user@company.com`
+    %TIME%          *timestamp (now)*       1346435380577
+    ==============  =====================   =============================================
+
+Additionally,the following environment variables will be set before executing the 'command':
+
+    =========================   =============================================
+    Variable                    Example Value
+    =========================   =============================================
+    :envvar:`$GO_SESSION`       MDM1NTQyZmFjZGQzNDE5MGEwN2UxMTY4NmUxYzE3YzI0Z
+    :envvar:`$GO_SESSION_DIR`   /tmp/gateone
+    :envvar:`$GO_TERM`          1
+    :envvar:`$GO_USER`          `user@company.com`
+    :envvar:`$GO_USER_DIR`      /opt/gateone/users
+    =========================   =============================================
+
+.. tip::  You can write a shell script to wrap whatever program you want to pass it the above variables as command line arguments: ``/path/to/program --user=$GO_USER``
 
 config
 ------
-.. option:: --config=string (file path)
+.. cmdoption:: --config=string (file path)
 
-You may use this option to specify an alternate configuration file (e.g. something other than /opt/gateone/server.conf).
+You may use this option to specify an alternate configuration file (Default: <path to gateone>/server.conf).
 
 cookie_secret
 -------------
-.. option:: --cookie_secret=string ([A-Za-z0-9])
+.. cmdoption:: --cookie_secret=string ([A-Za-z0-9])
 
 ::
 
@@ -321,23 +401,25 @@ This is a 45-character string that Gate One will use to encrypt the cookie store
 
 .. note:: If you change this string in the server.conf you'll need to restart Gate One for the change to take effect.
 
-*What happens if you change it?*  All users existing, unexpired sessions will need to be re-authenticated.  Not really a big deal since Gate One will restore everything the user was doing after the re-auth.  In most cases changing the cookie secret will be completely transparent to the user.
+.. admonition:: What happens if you change it
+
+    All users existing, unexpired sessions will need to be re-authenticated.  When this happens the user will be presented with a dialog box that informs them that the page hosting Gate One will be reloaded automatically when they click "OK".
 
 .. tip:: You may have to change this key at a regular interval throughout the year depending on your compliance needs.  Every few months is probably not a bad idea regardless.
 
 debug
 -----
-.. option:: --debug
+.. cmdoption:: --debug=boolean
 
 ::
 
     debug = False
 
-Turns on debugging:  Runs Gate One in the foreground and logs all sorts of extra messages to stdout.
+Turns on Tornado's debug mode:  If a change is made to any Python code while :program:`gateone.py` is running it will automatically restart itself.  Cached templates will also be regenerated.
 
 disable_ssl
 -----------
-.. option:: --disable_ssl
+.. cmdoption:: --disable_ssl=boolean
 
 ::
 
@@ -350,7 +432,7 @@ Disables SSL support in Gate One.  Generally not a good idea unless you know wha
 
 dtach
 -----
-.. option:: --dtach
+.. cmdoption:: --dtach=boolean
 
 ::
 
@@ -358,11 +440,23 @@ dtach
 
 This feature is special:  It enables Gate One to be restarted (think: upgraded) without losing user's connected sessions.  This option is enabled by default.
 
+If dtach support is enabled but the dtach command cannot be found Gate One will output a warning message in the log.
+
 .. note:: If you ever need to restart Gate One (and dtach support is enabled) users will be shown a message indicating that they have been disconnected and their browsers should automatically reconnect in 5 seconds.  A 5-second maintenance window ain't bad!
+
+enable_unix_socket
+------------------
+.. cmdoption:: --enable_unix_socket=boolean
+
+::
+
+    enable_unix_socket = False
+
+Tells Gate One to listen on a `Unix socket <http://en.wikipedia.org/wiki/Unix_domain_socket>`_.  The path to said socket is defined in :option:`--unix_socket_path`.
 
 embedded
 --------
-.. option:: --embedded
+.. cmdoption:: --embedded=boolean
 
 ::
 
@@ -372,9 +466,19 @@ This option doesn't do anything at the moment.  In the future it may be used to 
 
 .. note:: This isn't the same thing as "embedded mode" in the JavaScript code.  See :ref:`GateOne.prefs.embedded <embedded-mode>` in :ref:`gateone-javascript`.
 
+gid
+---
+.. cmdoption:: --gid=string
+
+::
+
+    gid = "0" # You could also put "root"
+
+If run as root, Gate One will drop privileges to this group/gid after starting up.  Default: 0 (aka root)
+
 https_redirect
 --------------
-.. option:: --https_redirect
+.. cmdoption:: --https_redirect
 
 ::
 
@@ -384,21 +488,23 @@ If https_redirect is enabled, Gate One will listen on port 80 and redirect incom
 
 js_init
 -------
-.. option:: --js_init=string (JavaScript Object)
+.. cmdoption:: --js_init=string (JavaScript Object)
 
 ::
 
     js_init = ""
 
-This option can be used to provide options to pass to the GateOne.init() function inside gateone.js whenever Gate One is opened in a browser.  For example::
+This option can be used to pass parameters to the GateOne.init() function whenever Gate One is opened in a browser.  For example::
 
     js_init = "{'theme': 'white', 'fontSize': '120%'}"
 
 For a list of all the possible options see :attr:`GateOne.prefs` in the :ref:`developer-docs` under :ref:`gateone-properties`.
 
+.. note::  This setting will only apply if you're *not* using embedded mode.
+
 keyfile
 -------
-.. option:: --keyfile=string (file path)
+.. cmdoption:: --keyfile=string (file path)
 
 ::
 
@@ -410,7 +516,7 @@ The path to the SSL key file Gate One will use in its web server.
 
 kill
 ----
-.. option:: --kill
+.. cmdoption:: --kill
 
 ::
 
@@ -420,7 +526,7 @@ If running with dtach support, this will kill all user's running terminal applic
 
 locale
 ------
-.. option:: --locale=string (locale string)
+.. cmdoption:: --locale=string (locale string)
 
 ::
 
@@ -428,35 +534,77 @@ locale
 
 This option tells Gate One which local translation (native language) to use when rendering strings.  The first time you run Gate One it will attempt to automatically detect your locale using the `$LANG` environment variable.  If this variable is not set it will fall back to using `en_US`.
 
+.. note:: If no translation exists for your local the English strings will be used.
+
+origins
+-------
+.. cmdoption:: --origins=string (semicolon-separated origins)
+
+::
+
+    origins = "http://localhost;https://localhost;http://127.0.0.1;https://127.0.0.1;https://yourhostname;https://yourhostname:8080"
+
+By default Gate One will only allow connections from web pages that match the configured origins.  If a user is denied access based on a failed origin check a message will be logged like so:
+
+.. ansi-block::
+    :string_escape:
+
+    \x1b[1;32m[I 120831 15:32:12 gateone:1043]\x1b[0m WebSocket closed (ANONYMOUS).
+    \x1b[1;31m[E 120831 15:32:17 gateone:943]\x1b[0m Access denied for origin: https://somehost.company.com
+
+.. note:: Origins do not contain paths or trailing slashes!
+
+.. warning:: If you see unknown origins the logs it could be an attacker trying to steal your user's sessions!  The origin that appears in the log will be the base URL that was used to connect to the Gate One server.  This information can be used to hunt down the attacker.  Of course, it could just be that a new IP address or hostname has been pointed to your Gate One server and you have yet to add it to the :option:`--origins` setting ☺.
+
 new_api_key
 -----------
-.. option:: --new_api_key
+.. cmdoption:: --new_api_key
 
 This command line option will generate a new, random API key and secret for use with applications that will be embedding Gate One.  Instructions on how to use API-based authentication can be found in the :ref:`gateone-embedding`.
 
 pam_realm
 ---------
-.. option:: --pam_realm=string (hostname)
+.. cmdoption:: --pam_realm=string (hostname)
 
 ::
 
     sso_realm = "somehost"
 
-If `auth = "pam"`, tells Gate One which how to present BASIC auth to the user (essentially, the login dialog will say, "REALM: <pam_realm>").  Also, the user's directory will be created in `user_dir` as user@<pam_realm>.
+If :option:`--auth` is set to "pam" Gate One will present this string in the BASIC auth dialog (essentially, the login dialog will say, "REALM: <pam_realm>").  Also, the user's directory will be created in :option:`--user_dir` as `user@<pam_realm>`.
 
 pam_service
 -----------
-.. option:: --pam_service=string
+.. cmdoption:: --pam_service=string
 
 ::
 
     pam_service = "login"
 
-If `auth = "pam"`, tells Gate One which PAM service to use when authenticating clients.  Defaults to 'login' which is typically controlled by `/etc/pam.d/login`.
+If :option:`--auth` is set to "pam", tells Gate One which PAM service to use when authenticating clients.  Defaults to 'login' which is typically controlled by `/etc/pam.d/login`.
+
+.. tip:: You can change this to "gateone" and create a custom PAM config using whatever authentication back-end you want.  Just set it as such and create `/etc/pam.d/gateone` with whatever PAM settings you like.
+
+pid_file
+--------
+.. cmdoption:: --pid_file=string
+
+::
+
+    pid_file = "/var/run/gateone.pid"
+
+The path to Gate One's `PID <http://en.wikipedia.org/wiki/Process_identifier>`_ file.
+
+.. note:: If you're not running Gate One as root you'll likely get an error like this:
+
+    .. ansi-block::
+
+        IOError: [Errno 13] Permission denied: '/var/run/gateone.pid'
+
+    This just means you need to change this setting to point somewhere your user has write access such as `/tmp/gateone.pid`.
 
 port
 ----
-.. option:: --port=integer (1-65535)
+.. cmdoption:: --port=integer (1-65535)
 
 ::
 
@@ -466,9 +614,11 @@ The port Gate One should listen for connections.
 
 .. note:: Gate One must run as root to utilize ports 1-1024.
 
+.. tip:: If you set :option:`--uid` and/or :option:`--gid` to something other than "0" (aka root) Gate One will drop privileges to that user/group after it starts up.  This will allow the use of ports under 1024 while still maintaining reasonable security by running as a user/group with lesser privileges.
+
 session_dir
 -----------
-.. option:: --session_dir=string (file path)
+.. cmdoption:: --session_dir=string (file path)
 
 ::
 
@@ -478,19 +628,19 @@ The path where Gate One should keep temporary user session information.  Default
 
 session_logging
 ---------------
-.. option:: --session_logging
+.. cmdoption:: --session_logging
 
 ::
 
     session_logging = True
 
-This tells Gate One to enable server-side logging of user sessions.  These logs can be viewed or played back (like a video) using the :ref:`log_viewer` application.
+This tells Gate One to enable server-side logging of user terminal sessions.  These logs can be viewed or played back (like a video) using the :ref:`log_viewer` application.
 
-.. note:: Gate One stores logs of user sessions in the location specified in the :ref:`user_dir` option.
+.. note:: Gate One stores logs of user sessions in the location specified in the :option:`--user_dir` option.
 
 session_timeout
 ---------------
-.. option:: --session_timeout=string (special: [0-9]+[smhd])
+.. cmdoption:: --session_timeout=string (special: [0-9]+[smhd])
 
 ::
 
@@ -509,41 +659,53 @@ This setting controls how long Gate One will wait before force-killing a user's 
 
 .. note:: Even if you're using --dtach all programs associated with the user's session will be terminated when it times out.
 
+ssl_auth
+---------
+.. cmdoption:: --ssl_auth=string (None|optional|required)
+
+::
+
+    ssl_auth = None
+
+If set to 'required' or 'optional' this setting will instruct Gate One to authenticate client-side SSL certificates.  This can be an excellent added layer of security on top of Gate One's other authentication options.  Obviously, only the 'required' setting adds this protection.  If set to 'optional' it merely adds information to the logs.
+
 sso_realm
 ---------
-.. option:: --sso_realm=string (Kerberos realm or Active Directory domain)
+.. cmdoption:: --sso_realm=string (Kerberos realm or Active Directory domain)
 
 ::
 
     sso_realm = "EXAMPLE.COM"
 
-If `auth = "kerberos"`, tells Gate One which Kerberos realm or Active Directory domain to use when authenticating users.  Otherwise this setting will be ignored.
+If :option:`--auth` is set to "kerberos", tells Gate One which Kerberos realm or Active Directory domain to use when authenticating users.  Otherwise this setting will be ignored.
+
+.. note:: SSO stands for Single Sign-On.
 
 sso_service
 -----------
-.. option:: --sso_service=string (kerberos service name)
+.. cmdoption:: --sso_service=string (kerberos service name)
 
 ::
 
-    sso_realm = "HTTP"
+    sso_service = "HTTP"
 
-If `auth = "kerberos"`, tells Gate One which Kerberos service to use when authenticating clients.  This is the 'service/' part of a servicePrincipalName (e.g. **HTTP**/somehost.example.com).
+If :option:`--auth` is set to "kerberos", tells Gate One which Kerberos service to use when authenticating clients.  This is the 'service/' part of a servicePrincipalName (e.g. **HTTP**/somehost.example.com).
 
 .. note:: Unless you *really* know what you're doing do not use anything other than HTTP (in all caps).
 
 syslog_facility
 ---------------
-.. option:: --syslog_facility=string (auth|cron|daemon|kern|local0|local1|local2|local3|local4|local5|local6|local7|lpr|mail|news|syslog|user|uucp)
+.. cmdoption:: --syslog_facility=string (auth|cron|daemon|kern|local0|local1|local2|local3|local4|local5|local6|local7|lpr|mail|news|syslog|user|uucp)
 
 ::
 
     syslog_facility = "daemon"
 
-if `syslog_session_logging = True`, specifies the syslog facility that user session logs will use when syslog_session_logging is enabled.
+if :option:`--syslog_session_logging` is set to `True`, specifies the syslog facility that user session logs will use in outgoing syslog messages.
 
 syslog_host
 -----------
-.. option:: --syslog_host=string (IP or FQDN)
+.. cmdoption:: --syslog_host=string (IP or FQDN)
 
 ::
 
@@ -555,17 +717,19 @@ This option will instruct Gate One to send log messages to the specified syslog 
 
 syslog_session_logging
 ----------------------
-.. option:: --syslog_session_logging
+.. cmdoption:: --syslog_session_logging
 
 ::
 
     syslog_session_logging = False
 
-This option tells Gate One to send logs of user sessions to the host's syslog daemon.  Special characters and escape sequences will be sent as-is so it is up to the syslog daemon as to how to handle them.  In most cases you'll wind up with log lines that look like this::
+This option tells Gate One to send logs of user sessions to the host's syslog daemon.  Special characters and escape sequences will be sent as-is so it is up to the syslog daemon as to how to handle them.  In most cases you'll wind up with log lines that look like this:
 
-    Oct  1 19:18:22 gohost gateone: %anonymous 1: Connecting to: ssh://user@somehost:22
-    Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]0;user@somehost#007
-    Oct  1 19:18:22 gohost gateone: %anonymous 1: #033]_;ssh|user@somehost:22#007
+.. ansi-block::
+
+    Oct  1 19:18:22 gohost gateone: ANONYMOUS 1: Connecting to: ssh://user@somehost:22
+    Oct  1 19:18:22 gohost gateone: ANONYMOUS 1: #033]0;user@somehost#007
+    Oct  1 19:18:22 gohost gateone: ANONYMOUS 1: #033]_;ssh|user@somehost:22#007
 
 .. note:: This option enables centralized logging if your syslog daemon is configurd to use a remote log host.
 
@@ -573,7 +737,7 @@ This option tells Gate One to send logs of user sessions to the host's syslog da
 
 url_prefix
 ----------------------
-.. option:: --url_prefix
+.. cmdoption:: --url_prefix
 
 ::
 
@@ -581,15 +745,17 @@ url_prefix
 
 This specifies the URL path Gate One will live when it is accessed from a browser.  By default Gate One will use "/" as its base URL; this means that you can connect to it using a URL like so:  https://mygateone.company.com/
 
-That "/" at the end of the above URL is what the ``url_prefix`` is specifying.  If you wanted your Gate One server to live at https://mygateone.company.com/gateone/ you could set ``url_prefix="/gateone/"``.
+That "/" at the end of the above URL is what the ``url_prefix`` is specifying.  If you wanted your Gate One server to live at https://gateone.company.com/gateone/ you could set ``url_prefix="/gateone/"``.
 
 .. note:: This feature was added for users running Gate One behind a reverse proxy so that many apps (like Gate One) can all live behind a single base URL.
+
+.. tip:: If you want to place your Gate One server on the Internet but don't want it to be easily discovered/enumerated you can specify a random string as the gateone prefix like ``url_prefix="/fe34b0e0c074f486c353602/"``.  Then only those who have been made aware of your obfuscated URL will be able to access your Gate One server (at https://gateone.company.com/fe34b0e0c074f486c353602/ ☺)
 
 .. _user_dir:
 
 user_dir
 --------
-.. option:: --user_dir=string (file path)
+.. cmdoption:: --user_dir=string (file path)
 
 ::
 
