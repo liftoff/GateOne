@@ -4062,13 +4062,16 @@ go.Base.update(GateOne.Terminal, {
                                 GateOne.Visual.applyTransform(termPre, transform);
                             }
                         } else {
-                            var distance = goDiv.clientHeight - termPre.offsetHeight;
-                            GateOne.terminals[term]['heightAdjust'] = 0;
-                            if (!GateOne.prefs.embedded) { // When embedding the code below can end up hiding terminals.
-                                // Feel free to put something like this in updateTermCallbacks if you want.
-                                if (GateOne.Utils.isVisible(termPre)) {
-                                    transform = "translateY(-" + distance + "px)";
-                                    GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                            if (!go.prefs.embedded) {
+                                // In embedded mode this kind of adjustment can be unreliable
+                                var distance = goDiv.clientHeight - termPre.offsetHeight;
+                                GateOne.terminals[term]['heightAdjust'] = 0;
+                                if (!GateOne.prefs.embedded) { // When embedding the code below can end up hiding terminals.
+                                    // Feel free to put something like this in updateTermCallbacks if you want.
+                                    if (GateOne.Utils.isVisible(termPre)) {
+                                        transform = "translateY(-" + distance + "px)";
+                                        GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                                    }
                                 }
                             }
                         }
