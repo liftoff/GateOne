@@ -95,6 +95,7 @@ Properties
         * :js:attr:`GateOne.prefs.fontSize`
         * :js:attr:`GateOne.prefs.autoConnectURL`
         * :js:attr:`GateOne.prefs.embedded`
+        * :js:attr:`GateOne.prefs.skipChecks`
         * :js:attr:`GateOne.prefs.showTitle`
         * :js:attr:`GateOne.prefs.showToolbar`
         * :js:attr:`GateOne.prefs.audibleBell`
@@ -299,6 +300,16 @@ prefs
         In GateOne's 'tests' directory there is a walkthrough/tutorial of embedded mode called "hello_embedded".  To run it simply execute ./hello_embedded.py and connect to https://localhost/ in your browser.
 
         .. note:: Why is the hello_embedded tutorial separate from this documentation?  It needs to be run on a different address/port than the Gate One server itself in order to properly demonstrate how Gate One would be embedded "in the wild."  Also note that the documentation you're reading is meant to be viewable offline (e.g. file:///path/to/the/docs in your browser) but web browsers don't allow `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ connections from documents loaded via file:// URLs.
+
+    .. js:attribute:: GateOne.prefs.skipChecks
+
+        :type: Boolean
+
+        .. code-block:: javascript
+
+            GateOne.prefs.skipChecks = false;
+
+        If this is set to ``true`` Gate One will skip performing browser capabilities checks/alerts when :js:func:`GateOne.init` is called.
 
     .. js:attribute:: GateOne.prefs.showTitle
 

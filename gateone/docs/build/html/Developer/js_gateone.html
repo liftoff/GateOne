@@ -183,6 +183,7 @@
 <li><a class="reference internal" href="#GateOne.prefs.fontSize" title="GateOne.prefs.fontSize"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.fontSize</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.prefs.autoConnectURL" title="GateOne.prefs.autoConnectURL"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.autoConnectURL</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.prefs.embedded" title="GateOne.prefs.embedded"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.embedded</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.prefs.skipChecks" title="GateOne.prefs.skipChecks"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.skipChecks</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.prefs.showTitle" title="GateOne.prefs.showTitle"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.showTitle</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.prefs.showToolbar" title="GateOne.prefs.showToolbar"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.showToolbar</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.prefs.audibleBell" title="GateOne.prefs.audibleBell"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.audibleBell</span></tt></a></li>
@@ -503,6 +504,23 @@
 <p class="first admonition-title">Note</p>
 <p class="last">Why is the hello_embedded tutorial separate from this documentation?  It needs to be run on a different address/port than the Gate One server itself in order to properly demonstrate how Gate One would be embedded &quot;in the wild.&quot;  Also note that the documentation you're reading is meant to be viewable offline (e.g. <a class="reference external" href="file:///path/to/the/docs">file:///path/to/the/docs</a> in your browser) but web browsers don't allow <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a> connections from documents loaded via <a class="reference external" href="file://">file://</a> URLs.</p>
 </div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.prefs.skipChecks">
+<tt class="descclassname">GateOne.prefs.</tt><tt class="descname">skipChecks</tt><a class="headerlink" href="#GateOne.prefs.skipChecks" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">Boolean</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">skipChecks</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>If this is set to <tt class="docutils literal"><span class="pre">true</span></tt> Gate One will skip performing browser capabilities checks/alerts when <a class="reference internal" href="#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a> is called.</p>
 </dd></dl>
 
 <dl class="attribute">
