@@ -2,7 +2,7 @@
 
 gateone.js
 ==========
-Gate One's JavaScript is made up of several modules (aka plugins), each pertaining to a specific type of activity.  These modules are laid out like so:
+Gate One's JavaScript (`source <https://github.com/liftoff/GateOne/blob/master/gateone/static/gateone.js>`_) is made up of several modules (aka plugins), each pertaining to a specific type of activity.  These modules are laid out like so:
 
 * `GateOne.Base`_
 * `GateOne`_
