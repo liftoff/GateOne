@@ -870,7 +870,7 @@ def convert_to_bytes(size_val):
 
 def process_opt_esc_sequence(chars):
     """
-    Parse the *chars* passed from `terminal.Terminal` by way of the special,
+    Parse the *chars* passed from :class:`terminal.Terminal` by way of the special,
     optional escape sequence handler (e.g. '<plugin>|<text>') into a tuple of
     (<plugin name>, <text>).  Here's an example::
 

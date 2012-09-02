@@ -60,6 +60,206 @@
             
   <div class="section" id="the-bookmarks-plugin">
 <h1>The Bookmarks Plugin<a class="headerlink" href="#the-bookmarks-plugin" title="Permalink to this headline">¶</a></h1>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Write documentation on bookmarks.js.</p>
+</div>
+<span class="target" id="module-bookmarks"></span><p>bookmarks.py - A plugin for Gate One that adds fancy bookmarking capabilities.</p>
+<div class="section" id="hooks">
+<h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
+<p>This Python plugin file implements the following hooks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;Web&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">r&quot;/bookmarks/fetchicon&quot;</span><span class="p">,</span> <span class="n">FaviconHandler</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">r&quot;/bookmarks/export&quot;</span><span class="p">,</span> <span class="n">ExportHandler</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">r&quot;/bookmarks/import&quot;</span><span class="p">,</span> <span class="n">ImportHandler</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;bookmarks_sync&#39;</span><span class="p">:</span> <span class="n">save_bookmarks</span><span class="p">,</span>
+        <span class="s">&#39;bookmarks_get&#39;</span><span class="p">:</span> <span class="n">get_bookmarks</span><span class="p">,</span>
+        <span class="s">&#39;bookmarks_deleted&#39;</span><span class="p">:</span> <span class="n">delete_bookmarks</span><span class="p">,</span>
+        <span class="s">&#39;bookmarks_rename_tags&#39;</span><span class="p">:</span> <span class="n">rename_tags</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="docstrings">
+<h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="bookmarks.unescape">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">unescape</tt><big>(</big><em>s</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#unescape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.unescape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unescape HTML code refs; c.f. <a class="reference external" href="http://wiki.python.org/moin/EscapingHtml">http://wiki.python.org/moin/EscapingHtml</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.parse_bookmarks_html">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">parse_bookmarks_html</tt><big>(</big><em>html</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#parse_bookmarks_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.parse_bookmarks_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the Netscape-style bookmarks.html in string, <em>html</em> and returns a
+list of Bookmark objects.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.get_json_tags">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">get_json_tags</tt><big>(</big><em>json_dict</em>, <em>url</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#get_json_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.get_json_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively looks inside <em>json_dict</em> trying to find tags associated with the
+given <em>url</em>.  Returns the tags found as a list.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.get_ns_json_bookmarks">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">get_ns_json_bookmarks</tt><big>(</big><em>json_dict</em>, <em>bookmarks</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#get_ns_json_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.get_ns_json_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <em>json_dict</em>, updates <em>urls_list</em> with each URL as it is found
+within.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only works with Netscape-style bookmarks.json files.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.parse_bookmarks_json">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">parse_bookmarks_json</tt><big>(</big><em>json_str</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#parse_bookmarks_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.parse_bookmarks_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given <em>json_str</em>, returns a list of bookmark objects representing the data
+contained therein.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="bookmarks.BookmarksDB">
+<em class="property">class </em><tt class="descclassname">bookmarks.</tt><tt class="descname">BookmarksDB</tt><big>(</big><em>user_dir</em>, <em>user</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#BookmarksDB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to read and write bookmarks to a file on disk.  Can also synchronize
+a given list of bookmarks with what's on disk.  Uses a given bookmark's
+<tt class="docutils literal"><span class="pre">updateSequenceNum</span></tt> to track what wins the &quot;who is newer?&quot; comparison.</p>
+<p>Sets up our bookmarks database object and reads everything in.</p>
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.open_bookmarks">
+<tt class="descname">open_bookmarks</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#BookmarksDB.open_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.open_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens the bookmarks stored in self.user_dir.  If not present, an
+empty file will be created.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.save_bookmarks">
+<tt class="descname">save_bookmarks</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#BookmarksDB.save_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.save_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves self.bookmarks to self.bookmarks_path as a JSON-encoded list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.sync_bookmarks">
+<tt class="descname">sync_bookmarks</tt><big>(</big><em>bookmarks</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#BookmarksDB.sync_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.sync_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given <em>bookmarks</em>, synchronize with self.bookmarks doing conflict
+resolution and whatnot.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.delete_bookmark">
+<tt class="descname">delete_bookmark</tt><big>(</big><em>bookmark</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#BookmarksDB.delete_bookmark"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.delete_bookmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given <em>bookmark</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.get_bookmarks">
+<tt class="descname">get_bookmarks</tt><big>(</big><em>updateSequenceNum=0</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#BookmarksDB.get_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.get_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of bookmarks newer than <em>updateSequenceNum</em>.
+If <em>updateSequenceNum</em> is 0 or undefined, all bookmarks will be
+returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.get_highest_USN">
+<tt class="descname">get_highest_USN</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#BookmarksDB.get_highest_USN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.get_highest_USN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the highest updateSequenceNum in self.bookmarks</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.BookmarksDB.rename_tag">
+<tt class="descname">rename_tag</tt><big>(</big><em>old_tag</em>, <em>new_tag</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#BookmarksDB.rename_tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.BookmarksDB.rename_tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Goes through all bookmarks and renames all tags named <em>old_tag</em> to be
+<em>new_tag</em>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="bookmarks.FaviconHandler">
+<em class="property">class </em><tt class="descclassname">bookmarks.</tt><tt class="descname">FaviconHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#FaviconHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.FaviconHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrives the biggest favicon-like icon at the given URL.  It will try to
+fetch apple-touch-icons (which can be nice and big) before it falls back
+to grabbing the favicon.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Works with GET and POST requests but POST is preferred since it keeps the URL from winding up in the server logs.</p>
+</div>
+<dl class="method">
+<dt id="bookmarks.FaviconHandler.get_favicon_url">
+<tt class="descname">get_favicon_url</tt><big>(</big><em>html</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#FaviconHandler.get_favicon_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.FaviconHandler.get_favicon_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses <em>html</em> looking for a favicon URL.  Returns a tuple of:</p>
+<div class="highlight-python"><pre>(&lt;url&gt;, &lt;mimetime&gt;)</pre>
+</div>
+<p>If no favicon can be found, returns:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.FaviconHandler.icon_multifetch">
+<tt class="descname">icon_multifetch</tt><big>(</big><em>urls</em>, <em>response</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#FaviconHandler.icon_multifetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.FaviconHandler.icon_multifetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches the icon at the given URLs, stopping when it finds the biggest.
+If an icon is not found, calls itself again with the next icon URL.
+If the icon is found, writes it to the client and finishes the request.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bookmarks.FaviconHandler.icon_fetch">
+<tt class="descname">icon_fetch</tt><big>(</big><em>url</em>, <em>mimetype</em>, <em>response</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#FaviconHandler.icon_fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.FaviconHandler.icon_fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the fetched icon to the client.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="bookmarks.ImportHandler">
+<em class="property">class </em><tt class="descclassname">bookmarks.</tt><tt class="descname">ImportHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#ImportHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.ImportHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a bookmarks.html in a POST and returns a list of bookmarks in JSON
+format</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="bookmarks.ExportHandler">
+<em class="property">class </em><tt class="descclassname">bookmarks.</tt><tt class="descname">ExportHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#ExportHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.ExportHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a JSON-encoded list of bookmarks and returns a Netscape-style HTML
+file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.save_bookmarks">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">save_bookmarks</tt><big>(</big><em>bookmarks</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#save_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.save_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles saving <em>bookmarks</em> for clients.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.get_bookmarks">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">get_bookmarks</tt><big>(</big><em>updateSequenceNum</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#get_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.get_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a JSON-encoded list of bookmarks updated since the last
+<em>updateSequenceNum</em>.</p>
+<p>If <em>updateSequenceNum</em> resolves to False, all bookmarks will be sent to
+the client.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.delete_bookmarks">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">delete_bookmarks</tt><big>(</big><em>deleted_bookmarks</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#delete_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.delete_bookmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles deleting bookmars given a <em>deleted_bookmarks</em> list.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bookmarks.rename_tags">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">rename_tags</tt><big>(</big><em>renamed_tags</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#rename_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.rename_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles renaming tags.</p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -71,6 +271,15 @@
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Bookmarks Plugin</a><ul>
+<li><a class="reference internal" href="#hooks">Hooks</a></li>
+<li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="js_go_process.html"
                         title="previous chapter">go_process.js</a></p>

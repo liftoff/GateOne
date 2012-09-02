@@ -5,6 +5,27 @@
 
 __doc__ = """\
 bookmarks.py - A plugin for Gate One that adds fancy bookmarking capabilities.
+
+Hooks
+-----
+This Python plugin file implements the following hooks::
+
+    hooks = {
+        'Web': [
+            (r"/bookmarks/fetchicon", FaviconHandler),
+            (r"/bookmarks/export", ExportHandler),
+            (r"/bookmarks/import", ImportHandler),
+        ],
+        'WebSocket': {
+            'bookmarks_sync': save_bookmarks,
+            'bookmarks_get': get_bookmarks,
+            'bookmarks_deleted': delete_bookmarks,
+            'bookmarks_rename_tags': rename_tags,
+        }
+    }
+
+Docstrings
+----------
 """
 
 # Meta
@@ -192,7 +213,7 @@ def get_ns_json_bookmarks(json_dict, bookmarks):
     Given a *json_dict*, updates *urls_list* with each URL as it is found
     within.
 
-    NOTE: Only works with Netscape-style bookmarks.json files.
+    .. note:: Only works with Netscape-style bookmarks.json files.
     """
     children = []
     if json_dict.has_key('children'):
@@ -253,7 +274,7 @@ class BookmarksDB(object):
     """
     Used to read and write bookmarks to a file on disk.  Can also synchronize
     a given list of bookmarks with what's on disk.  Uses a given bookmark's
-    updateSequenceNum to track what wins the "who is newer?" comparison.
+    ``updateSequenceNum`` to track what wins the "who is newer?" comparison.
     """
     def __init__(self, user_dir, user):
         """
@@ -420,8 +441,7 @@ class FaviconHandler(BaseHandler):
     fetch apple-touch-icons (which can be nice and big) before it falls back
     to grabbing the favicon.
 
-    NOTE: Works with GET and POST requests but POST is preferred since it keeps
-    the URL from winding up in the server logs.
+    .. note:: Works with GET and POST requests but POST is preferred since it keeps the URL from winding up in the server logs.
     """
     # Valid favicon mime types
     favicon_mimetypes = [
@@ -448,10 +468,12 @@ class FaviconHandler(BaseHandler):
 
     def get_favicon_url(self, html):
         """
-        Parses *html* looking for a favicon URL.  Returns a tuple of:
+        Parses *html* looking for a favicon URL.  Returns a tuple of::
+
             (<url>, <mimetime>)
 
-        If no favicon can be found, returns:
+        If no favicon can be found, returns::
+
             (None, None)
         """
         import html5lib
@@ -639,7 +661,7 @@ def get_bookmarks(updateSequenceNum, tws):
     Returns a JSON-encoded list of bookmarks updated since the last
     *updateSequenceNum*.
 
-    If "updateSequenceNum" resolves to False, all bookmarks will be sent to
+    If *updateSequenceNum* resolves to False, all bookmarks will be sent to
     the client.
     """
     user = tws.get_current_user()['upn']

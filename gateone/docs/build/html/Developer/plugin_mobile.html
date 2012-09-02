@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Overview: module code &mdash; Gate One 1.1 documentation</title>
+    <title>The Mobile Plugin &mdash; Gate One 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -27,7 +27,10 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1 documentation" href="../index.html" /> 
+    <link rel="top" title="Gate One 1.1 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="The Playback Plugin" href="plugin_playback.html" />
+    <link rel="prev" title="The Notice Plugin" href="plugin_notice.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,7 +42,14 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="plugin_playback.html" title="The Playback Plugin"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="plugin_notice.html" title="The Notice Plugin"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -48,23 +58,33 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <h1>All modules for which code is available</h1>
-<ul><li><a href="auth.html">auth</a></li>
-<li><a href="authpam.html">authpam</a></li>
-<li><a href="bookmarks.html">bookmarks</a></li>
-<li><a href="example.html">example</a></li>
-<li><a href="gateone.html">gateone</a></li>
-<li><a href="logging_plugin.html">logging_plugin</a></li>
-<li><a href="logviewer.html">logviewer</a></li>
-<li><a href="notice.html">notice</a></li>
-<li><a href="playback.html">playback</a></li>
-<li><a href="remote_syslog.html">remote_syslog</a></li>
-<li><a href="ssh.html">ssh</a></li>
-<li><a href="sso.html">sso</a></li>
-<li><a href="terminal.html">terminal</a></li>
-<li><a href="termio.html">termio</a></li>
-<li><a href="utils.html">utils</a></li>
-</ul>
+  <div class="section" id="module-mobile">
+<span id="the-mobile-plugin"></span><h1>The Mobile Plugin<a class="headerlink" href="#module-mobile" title="Permalink to this headline">¶</a></h1>
+<p>mobile.py - A plugin to enable the use of Gate One on mobile devices.</p>
+<p>The Python code of this plugin only does one thing:  It adds a single line to
+the <tt class="xref py py-obj docutils literal"><span class="pre">&lt;head&gt;</span></tt> of Gate One's index.html page by way of the 'head' hook.  Quite
+literally, this is everything:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">header_hooks</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s">&#39;&lt;meta name=&quot;viewport&quot; content=&quot;target-densitydpi=device-dpi, width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=0&quot;&gt;&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;HTML&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;head&#39;</span><span class="p">:</span> <span class="n">header_hooks</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference external" href="https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag">https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag</a></p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">'head' hooks don't work in embedded mode.</p>
+</div>
+</div>
+
 
           </div>
         </div>
@@ -74,6 +94,17 @@
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plugin_notice.html"
+                        title="previous chapter">The Notice Plugin</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plugin_playback.html"
+                        title="next chapter">The Playback Plugin</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/plugin_mobile.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
@@ -100,7 +131,14 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="plugin_playback.html" title="The Playback Plugin"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="plugin_notice.html" title="The Notice Plugin"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
       </ul>
     </div>
 

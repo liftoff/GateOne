@@ -37,12 +37,15 @@ Gate One comes bundled with a number of plugins which can include any number of 
     plugin_bookmarks.rst
     plugin_help.rst
     plugin_logging.rst
+    plugin_notice.rst
+    plugin_mobile.rst
     plugin_playback.rst
     plugin_ssh.rst
+    plugin_example.rst
 
 Developing Plugins
 ------------------
-.. todo:: Write documentation on how to write plugins.
+Developing plugins for Gate One is easy and fun.  See :ref:`example-plugin` for how it's done.
 
 Embeddeding Gate One Into Other Applications
 --------------------------------------------

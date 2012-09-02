@@ -22,6 +22,8 @@ This module contains Gate One's authentication classes.  They map to Gate One's
 --auth=pam      PAMAuthHandler
 =============== ===================
 
+.. note:: API authentication is handled inside of :ref:`gateone.py`
+
 None or Anonymous
 -----------------
 By default Gate One will not authenticate users.  This means that user sessions

@@ -1,10 +1,12 @@
-The Logging Plugin
+.. _example-plugin:
+
+The Example Plugin
 ==================
 
-.. todo:: Write documentation on logging.js.
+.. todo:: Write documentation on example.js.
 
 .. moduleauthor:: Dan McDougall <daniel.mcdougall@liftoffsoftware.com>
 
-.. automodule:: logging_plugin
+.. automodule:: example
     :members:
     :private-members:

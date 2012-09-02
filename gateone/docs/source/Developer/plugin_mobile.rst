@@ -1,10 +1,8 @@
-The SSH Plugin
-==============
-
-.. todo:: Write documentation on ssh.js
+The Mobile Plugin
+=================
 
 .. moduleauthor:: Dan McDougall <daniel.mcdougall@liftoffsoftware.com>
 
-.. automodule:: ssh
+.. automodule:: mobile
     :members:
     :private-members:

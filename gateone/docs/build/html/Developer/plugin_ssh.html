@@ -60,6 +60,348 @@
             
   <div class="section" id="the-ssh-plugin">
 <h1>The SSH Plugin<a class="headerlink" href="#the-ssh-plugin" title="Permalink to this headline">¶</a></h1>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Write documentation on ssh.js</p>
+</div>
+<span class="target" id="module-ssh"></span><p>ssh.py - A plugin for Gate One that adds additional SSH-specific features.</p>
+<div class="section" id="hooks">
+<h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
+<p>This Python plugin file implements the following hooks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;Web&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s">r&quot;/ssh&quot;</span><span class="p">,</span> <span class="n">KnownHostsHandler</span><span class="p">)],</span>
+    <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;ssh_get_connect_string&#39;</span><span class="p">:</span> <span class="n">get_connect_string</span><span class="p">,</span>
+        <span class="s">&#39;ssh_execute_command&#39;</span><span class="p">:</span> <span class="n">ws_exec_command</span><span class="p">,</span>
+        <span class="s">&#39;ssh_get_identities&#39;</span><span class="p">:</span> <span class="n">get_identities</span><span class="p">,</span>
+        <span class="s">&#39;ssh_get_public_key&#39;</span><span class="p">:</span> <span class="n">get_public_key</span><span class="p">,</span>
+        <span class="s">&#39;ssh_get_private_key&#39;</span><span class="p">:</span> <span class="n">get_private_key</span><span class="p">,</span>
+        <span class="s">&#39;ssh_get_host_fingerprint&#39;</span><span class="p">:</span> <span class="n">get_host_fingerprint</span><span class="p">,</span>
+        <span class="s">&#39;ssh_gen_new_keypair&#39;</span><span class="p">:</span> <span class="n">generate_new_keypair</span><span class="p">,</span>
+        <span class="s">&#39;ssh_store_id_file&#39;</span><span class="p">:</span> <span class="n">store_id_file</span><span class="p">,</span>
+        <span class="s">&#39;ssh_delete_identity&#39;</span><span class="p">:</span> <span class="n">delete_identity</span><span class="p">,</span>
+        <span class="s">&#39;ssh_set_default_identities&#39;</span><span class="p">:</span> <span class="n">set_default_identities</span>
+    <span class="p">},</span>
+    <span class="s">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">opt_esc_handler</span><span class="p">,</span>
+    <span class="s">&#39;Auth&#39;</span><span class="p">:</span> <span class="n">create_user_ssh_dir</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="docstrings">
+<h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="ssh.SSHMultiplexingException">
+<em class="property">exception </em><tt class="descclassname">ssh.</tt><tt class="descname">SSHMultiplexingException</tt><a class="reference internal" href="../_modules/ssh.html#SSHMultiplexingException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.SSHMultiplexingException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when there's a failure trying to open a sub-shell via OpenSSH's
+<a class="reference external" href="http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing">Master mode</a>
+multiplexing capability.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ssh.SSHExecutionException">
+<em class="property">exception </em><tt class="descclassname">ssh.</tt><tt class="descname">SSHExecutionException</tt><a class="reference internal" href="../_modules/ssh.html#SSHExecutionException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.SSHExecutionException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when there's an error trying to execute a command in the slave.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ssh.SSHKeygenException">
+<em class="property">exception </em><tt class="descclassname">ssh.</tt><tt class="descname">SSHKeygenException</tt><a class="reference internal" href="../_modules/ssh.html#SSHKeygenException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.SSHKeygenException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when there's an error trying to generate a public/private keypair.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ssh.SSHKeypairException">
+<em class="property">exception </em><tt class="descclassname">ssh.</tt><tt class="descname">SSHKeypairException</tt><a class="reference internal" href="../_modules/ssh.html#SSHKeypairException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.SSHKeypairException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when there's an error trying to save public/private keypair or
+certificate.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="ssh.SSHPassphraseException">
+<em class="property">exception </em><tt class="descclassname">ssh.</tt><tt class="descname">SSHPassphraseException</tt><a class="reference internal" href="../_modules/ssh.html#SSHPassphraseException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.SSHPassphraseException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when we try to generate/decode something that requires a passphrase
+but no passphrase was given.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.get_ssh_dir">
+<tt class="descclassname">ssh.</tt><tt class="descname">get_ssh_dir</tt><big>(</big><em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#get_ssh_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_ssh_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <a class="reference internal" href="gateone.html#gateone.TerminalWebSocket" title="gateone.TerminalWebSocket"><tt class="xref py py-class docutils literal"><span class="pre">gateone.TerminalWebSocket</span></tt></a> (<em>tws</em>) instance, return the
+current user's ssh directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.open_sub_channel">
+<tt class="descclassname">ssh.</tt><tt class="descname">open_sub_channel</tt><big>(</big><em>term</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#open_sub_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.open_sub_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a sub-channel of communication by executing a new shell on the SSH
+server using OpenSSH's <a class="reference external" href="http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing">Master mode</a>
+capability (it spawns a new slave) and returns the resulting
+<a class="reference internal" href="termio.html#termio.Multiplex" title="termio.Multiplex"><tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt></a> instance.  If a slave has already been opened for
+this purpose it will re-use the existing channel.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.wait_for_prompt">
+<tt class="descclassname">ssh.</tt><tt class="descname">wait_for_prompt</tt><big>(</big><em>term</em>, <em>cmd</em>, <em>errorback</em>, <em>callback</em>, <em>m_instance</em>, <em>matched</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#wait_for_prompt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.wait_for_prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <tt class="xref py py-func docutils literal"><span class="pre">termio.Multiplex.expect()</span></tt> inside of <a class="reference internal" href="#ssh.execute_command" title="ssh.execute_command"><tt class="xref py py-func docutils literal"><span class="pre">execute_command()</span></tt></a>,
+clears the screen and executes <em>cmd</em>.  Also, sets an
+<tt class="xref py py-func docutils literal"><span class="pre">expect()</span></tt> to call <a class="reference internal" href="#ssh.get_cmd_output" title="ssh.get_cmd_output"><tt class="xref py py-func docutils literal"><span class="pre">get_cmd_output()</span></tt></a> when the
+end of the command output is detected.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.get_cmd_output">
+<tt class="descclassname">ssh.</tt><tt class="descname">get_cmd_output</tt><big>(</big><em>term</em>, <em>errorback</em>, <em>callback</em>, <em>m_instance</em>, <em>matched</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#get_cmd_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_cmd_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Captures the output of the command executed inside of
+<a class="reference internal" href="#ssh.wait_for_prompt" title="ssh.wait_for_prompt"><tt class="xref py py-func docutils literal"><span class="pre">wait_for_prompt()</span></tt></a> and calls <em>callback</em> if it isn't <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#None" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">None</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.terminate_sub_channel">
+<tt class="descclassname">ssh.</tt><tt class="descname">terminate_sub_channel</tt><big>(</big><em>m_instance</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#terminate_sub_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.terminate_sub_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">m_instance.terminate()</span></tt> and deletes it from the OPEN_SUBCHANNELS dict.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.timeout_sub_channel">
+<tt class="descclassname">ssh.</tt><tt class="descname">timeout_sub_channel</tt><big>(</big><em>m_instance</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#timeout_sub_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.timeout_sub_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the sub-channel times out by way of an
+<tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex.expect</span></tt> pattern that should never match anything.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.got_error">
+<tt class="descclassname">ssh.</tt><tt class="descname">got_error</tt><big>(</big><em>m_instance</em>, <em>match=None</em>, <em>term=None</em>, <em>cmd=None</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#got_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.got_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called if <a class="reference internal" href="#ssh.execute_command" title="ssh.execute_command"><tt class="xref py py-func docutils literal"><span class="pre">execute_command()</span></tt></a> encounters a problem/timeout.</p>
+<p><em>match</em> is here in case we want to use it for a positive match of an error.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.execute_command">
+<tt class="descclassname">ssh.</tt><tt class="descname">execute_command</tt><big>(</big><em>term</em>, <em>cmd</em>, <em>callback=None</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#execute_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.execute_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the given command (<em>cmd</em>) on the given <em>term</em> using the existing
+SSH tunnel (taking advantage of <a class="reference external" href="http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing">Master mode</a>)
+and call <em>callback</em> with the output of said command and the current
+<a class="reference internal" href="termio.html#termio.Multiplex" title="termio.Multiplex"><tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt></a> instance as arguments like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">callback</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If <em>callback</em> is not provided then the command will be executed and any
+output will be ignored.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This will not result in a new terminal being opened on the client--it simply executes a command and returns the result using the existing SSH tunnel.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.send_result">
+<tt class="descclassname">ssh.</tt><tt class="descname">send_result</tt><big>(</big><em>tws</em>, <em>term</em>, <em>cmd</em>, <em>output</em>, <em>m_instance</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#send_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.send_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#ssh.ws_exec_command" title="ssh.ws_exec_command"><tt class="xref py py-func docutils literal"><span class="pre">ws_exec_command()</span></tt></a> when the output of the executed command
+has been captured successfully.  Writes a message to the client with the
+command's output and some relevant metadata.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.ws_exec_command">
+<tt class="descclassname">ssh.</tt><tt class="descname">ws_exec_command</tt><big>(</big><em>settings</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#ws_exec_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.ws_exec_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the necessary variables from <em>settings</em> and calls <a class="reference internal" href="#ssh.execute_command" title="ssh.execute_command"><tt class="xref py py-func docutils literal"><span class="pre">execute_command()</span></tt></a>.</p>
+<p><em>settings</em> should be a dict that contains a 'term' and a 'cmd' to execute.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">This function can be used to quickly execute a command and return its result from the client over an existing SSH connection without requiring the user to enter their password!  See execRemoteCmd() in ssh.js.</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="ssh.KnownHostsHandler">
+<em class="property">class </em><tt class="descclassname">ssh.</tt><tt class="descname">KnownHostsHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#KnownHostsHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.KnownHostsHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>This handler allows the client to view, edit, and upload the known_hosts
+file associated with their user account.</p>
+<dl class="method">
+<dt id="ssh.KnownHostsHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#KnownHostsHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.KnownHostsHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine what the user is asking for and call the appropriate method.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ssh.KnownHostsHandler.post">
+<tt class="descname">post</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#KnownHostsHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.KnownHostsHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine what the user is updating by checking the given arguments and
+proceed with the update.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ssh.KnownHostsHandler._return_known_hosts">
+<tt class="descname">_return_known_hosts</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/ssh.html#KnownHostsHandler._return_known_hosts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.KnownHostsHandler._return_known_hosts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the user's known_hosts file in text/plain format.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ssh.KnownHostsHandler._save_known_hosts">
+<tt class="descname">_save_known_hosts</tt><big>(</big><em>known_hosts</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#KnownHostsHandler._save_known_hosts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.KnownHostsHandler._save_known_hosts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the given <em>known_hosts</em> file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.get_connect_string">
+<tt class="descclassname">ssh.</tt><tt class="descname">get_connect_string</tt><big>(</big><em>term</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#get_connect_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_connect_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the connection string associated with <em>term</em> to the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>
+like so:</p>
+<div class="highlight-python"><pre>{'sshjs_reconnect': {*term*: &lt;connection string&gt;}}</pre>
+</div>
+<p>In ssh.js we attach an action (aka handler) to <a class="reference internal" href="js_gateone.html#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a>
+for 'sshjs_reconnect' messages that attaches the connection string to
+<tt class="xref py py-obj docutils literal"><span class="pre">GateOne.terminals[*term*]['sshConnectString']</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.get_key">
+<tt class="descclassname">ssh.</tt><tt class="descname">get_key</tt><big>(</big><em>name</em>, <em>public</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#get_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the private SSH key associated with <em>name</em> to the client.  If
+<em>public</em> is <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#True" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt></a>, returns the public key to the client.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.get_public_key">
+<tt class="descclassname">ssh.</tt><tt class="descname">get_public_key</tt><big>(</big><em>name</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#get_public_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_public_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the user's public key file named <em>name</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.get_private_key">
+<tt class="descclassname">ssh.</tt><tt class="descname">get_private_key</tt><big>(</big><em>name</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#get_private_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_private_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the user's private key file named <em>name</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.get_host_fingerprint">
+<tt class="descclassname">ssh.</tt><tt class="descname">get_host_fingerprint</tt><big>(</big><em>settings</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#get_host_fingerprint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_host_fingerprint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a the hash of the given host's public key by making a remote
+connection to the server (not just by looking at known_hosts).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.generate_new_keypair">
+<tt class="descclassname">ssh.</tt><tt class="descname">generate_new_keypair</tt><big>(</big><em>settings</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#generate_new_keypair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.generate_new_keypair" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <a class="reference internal" href="#ssh.openssh_generate_new_keypair" title="ssh.openssh_generate_new_keypair"><tt class="xref py py-func docutils literal"><span class="pre">openssh_generate_new_keypair()</span></tt></a> or
+<a class="reference internal" href="#ssh.dropbear_generate_new_keypair" title="ssh.dropbear_generate_new_keypair"><tt class="xref py py-func docutils literal"><span class="pre">dropbear_generate_new_keypair()</span></tt></a> depending on what's available on the
+system.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.overwrite">
+<tt class="descclassname">ssh.</tt><tt class="descname">overwrite</tt><big>(</big><em>m_instance</em>, <em>match</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#overwrite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.overwrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called if we get asked to overwrite an existing keypair.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.openssh_generate_new_keypair">
+<tt class="descclassname">ssh.</tt><tt class="descname">openssh_generate_new_keypair</tt><big>(</big><em>name</em>, <em>path</em>, <em>keytype=None</em>, <em>passphrase=''</em>, <em>bits=None</em>, <em>comment=''</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#openssh_generate_new_keypair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.openssh_generate_new_keypair" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a new private and public key pair--stored in the user's directory
+using the given <em>name</em> and other optional parameters (using OpenSSH).</p>
+<p>If <em>keytype</em> is given, it must be one of &quot;ecdsa&quot;, &quot;rsa&quot; or &quot;dsa&quot; (case
+insensitive).  If <em>keytype</em> is &quot;rsa&quot; or &quot;ecdsa&quot;, <em>bits</em> may be specified to
+specify the size of the key.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Defaults to generating a 521-byte ecdsa key if OpenSSH is version 5.7+. Otherwise a 2048-bit rsa key will be used.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.dropbear_generate_new_keypair">
+<tt class="descclassname">ssh.</tt><tt class="descname">dropbear_generate_new_keypair</tt><big>(</big><em>name</em>, <em>path</em>, <em>keytype=None</em>, <em>passphrase=''</em>, <em>bits=None</em>, <em>comment=''</em>, <em>tws=None</em><big>)</big><a class="headerlink" href="#ssh.dropbear_generate_new_keypair" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Not implemented yet</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.openssh_generate_public_key">
+<tt class="descclassname">ssh.</tt><tt class="descname">openssh_generate_public_key</tt><big>(</big><em>path</em>, <em>passphrase=None</em>, <em>settings=None</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#openssh_generate_public_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.openssh_generate_public_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a public key from the given private key at <em>path</em>.  If a
+<em>passphrase</em> is provided, it will be used to generate the public key (if
+necessary).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.store_id_file">
+<tt class="descclassname">ssh.</tt><tt class="descname">store_id_file</tt><big>(</big><em>settings</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#store_id_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.store_id_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the given <em>settings['private']</em> and/or <em>settings['public']</em> keypair
+in the user's ssh directory as <em>settings['name']</em> and/or
+<em>settings['name']</em>.pub, respectively.  Either file can be saved independent
+of each other (in case this function needs to be called multiple times to
+save each respective file).</p>
+<p>Also, a <em>settings['certificate']</em> may be provided to be saved along
+with the private and public keys.  It will be saved as
+<em>settings['name']</em>-cert.pub.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">I've found the following website helpful in understanding how to use OpenSSH with SSL certificates: <a class="reference external" href="http://blog.habets.pp.se/2011/07/OpenSSH-certificates">http://blog.habets.pp.se/2011/07/OpenSSH-certificates</a></p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Using signed-by-a-CA certificates is very handy because allows you to revoke the user's SSH key(s).  e.g. If they left the company.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.delete_identity">
+<tt class="descclassname">ssh.</tt><tt class="descname">delete_identity</tt><big>(</big><em>name</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#delete_identity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.delete_identity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the identity associated with <em>name</em>.  For example if <em>name</em> is
+'testkey', 'testkey' and 'testkey.pub' would be removed from the user's
+ssh directory (and 'testkey-cert.pub' if present).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.get_identities">
+<tt class="descclassname">ssh.</tt><tt class="descname">get_identities</tt><big>(</big><em>anything</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#get_identities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.get_identities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a message to the client with a list of the identities stored on the
+server for the current user.</p>
+<p><em>anything</em> is just there because the client needs to send <em>something</em> along
+with the 'action'.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.set_default_identities">
+<tt class="descclassname">ssh.</tt><tt class="descname">set_default_identities</tt><big>(</big><em>identities</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#set_default_identities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.set_default_identities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of <em>identities</em>, mark them as defaults to use in all outbound
+SSH connections by writing them to <tt class="xref py py-obj docutils literal"><span class="pre">&lt;user's</span> <span class="pre">ssh</span> <span class="pre">dir&gt;/.default_ids</span></tt>.  If
+<em>identities</em> is empty, no identities will be used in outbound connections.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Whenever this function is called it will overwrite whatever is in <tt class="xref py py-obj docutils literal"><span class="pre">default_ids</span></tt>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.opt_esc_handler">
+<tt class="descclassname">ssh.</tt><tt class="descname">opt_esc_handler</tt><big>(</big><em>text</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.opt_esc_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles text passed from the special optional escape sequance handler.  We
+use it to tell ssh.js what the SSH connection string is so it can use that
+information to duplicate sessions (if the user so desires).  For reference,
+the specific string which will call this function from a terminal app is:</p>
+<div class="highlight-python"><pre>]_;ssh|&lt;whatever&gt;</pre>
+</div>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="gateone.html#gateone.TerminalWebSocket.esc_opt_handler" title="gateone.TerminalWebSocket.esc_opt_handler"><tt class="xref py py-class docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler</span></tt></a> and <a class="reference internal" href="terminal.html#terminal.Terminal._opt_handler" title="terminal.Terminal._opt_handler"><tt class="xref py py-func docutils literal"><span class="pre">terminal.Terminal._opt_handler()</span></tt></a></p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ssh.create_user_ssh_dir">
+<tt class="descclassname">ssh.</tt><tt class="descname">create_user_ssh_dir</tt><big>(</big><em>current_user</em>, <em>settings</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#create_user_ssh_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.create_user_ssh_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>To be called by the 'Auth' hook that gets called after the user is done
+authenticating, ensures that the <tt class="xref py py-obj docutils literal"><span class="pre">&lt;user's</span> <span class="pre">dir&gt;/ssh</span></tt> directory exists.</p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -71,6 +413,15 @@
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The SSH Plugin</a><ul>
+<li><a class="reference internal" href="#hooks">Hooks</a></li>
+<li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="plugin_playback.html"
                         title="previous chapter">The Playback Plugin</a></p>

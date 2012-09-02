@@ -6,6 +6,31 @@
 # TODO: Complete this docstring...
 __doc__ = """\
 ssh.py - A plugin for Gate One that adds additional SSH-specific features.
+
+Hooks
+-----
+This Python plugin file implements the following hooks::
+
+    hooks = {
+        'Web': [(r"/ssh", KnownHostsHandler)],
+        'WebSocket': {
+            'ssh_get_connect_string': get_connect_string,
+            'ssh_execute_command': ws_exec_command,
+            'ssh_get_identities': get_identities,
+            'ssh_get_public_key': get_public_key,
+            'ssh_get_private_key': get_private_key,
+            'ssh_get_host_fingerprint': get_host_fingerprint,
+            'ssh_gen_new_keypair': generate_new_keypair,
+            'ssh_store_id_file': store_id_file,
+            'ssh_delete_identity': delete_identity,
+            'ssh_set_default_identities': set_default_identities
+        },
+        'Escape': opt_esc_handler,
+        'Auth': create_user_ssh_dir
+    }
+
+Docstrings
+----------
 """
 
 # Meta
@@ -48,7 +73,8 @@ TIMER = None # Used to store temporary, cancellable timeouts
 class SSHMultiplexingException(Exception):
     """
     Called when there's a failure trying to open a sub-shell via OpenSSH's
-    Master mode multiplexing capability.
+    `Master mode <http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing>`_
+    multiplexing capability.
     """
     pass
 
@@ -80,8 +106,8 @@ class SSHPassphraseException(Exception):
 
 def get_ssh_dir(tws):
     """
-    Given a TerminalWebSocket (*tws*) instance, return the current user's ssh
-    directory
+    Given a :class:`gateone.TerminalWebSocket` (*tws*) instance, return the
+    current user's ssh directory
     """
     user = tws.get_current_user()['upn']
     users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
@@ -91,9 +117,10 @@ def get_ssh_dir(tws):
 def open_sub_channel(term, tws):
     """
     Opens a sub-channel of communication by executing a new shell on the SSH
-    server using OpenSSH's Master mode capability (it spawns a new slave) and
-    returns the resulting Multiplex instance.  If a slave has already been
-    opened for this purpose it will re-use the existing channel.
+    server using OpenSSH's `Master mode <http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing>`_
+    capability (it spawns a new slave) and returns the resulting
+    :class:`termio.Multiplex` instance.  If a slave has already been opened for
+    this purpose it will re-use the existing channel.
     """
     logging.debug("open_sub_channel() term: %s" % term)
     global OPEN_SUBCHANNELS
@@ -146,9 +173,10 @@ def open_sub_channel(term, tws):
 
 def wait_for_prompt(term, cmd, errorback, callback, m_instance, matched):
     """
-    Called by Multiplex.expect() inside of execute_command(), clears the screen
-    and executes *cmd*.  Also, sets an expect() to call get_cmd_output() when
-    the end of the command output is detected.
+    Called by :func:`termio.Multiplex.expect` inside of :func:`execute_command`,
+    clears the screen and executes *cmd*.  Also, sets an
+    :func:`~termio.Multiplex.expect` to call :func:`get_cmd_output` when the
+    end of the command output is detected.
     """
     logging.debug('wait_for_prompt()')
     m_instance.term.clear_screen() # Makes capturing just what we need easier
@@ -159,8 +187,8 @@ def wait_for_prompt(term, cmd, errorback, callback, m_instance, matched):
 
 def get_cmd_output(term, errorback, callback, m_instance, matched):
     """
-    Captures the output of the command executed inside of wait_for_prompt() and
-    calls *callback* if it isn't None.
+    Captures the output of the command executed inside of
+    :func:`wait_for_prompt` and calls *callback* if it isn't `None`.
     """
     logging.debug('get_cmd_output()')
     cmd_out = [a.rstrip() for a in m_instance.dump() if a.rstrip()]
@@ -191,7 +219,7 @@ def get_cmd_output(term, errorback, callback, m_instance, matched):
 
 def terminate_sub_channel(m_instance):
     """
-    Calls m_instance.terminate() and deletes it from the OPEN_SUBCHANNELS dict.
+    Calls `m_instance.terminate()` and deletes it from the OPEN_SUBCHANNELS dict.
     """
     logging.debug("terminate_sub_channel()")
     global OPEN_SUBCHANNELS
@@ -205,8 +233,8 @@ def terminate_sub_channel(m_instance):
 
 def timeout_sub_channel(m_instance):
     """
-    Called when the sub-channel times out by way of an expect() pattern that
-    should never match anything.
+    Called when the sub-channel times out by way of an
+    :class:`termio.Multiplex.expect` pattern that should never match anything.
     """
     logging.debug(_(
         "Sub-channel on term %s closed due to inactivity."
@@ -215,7 +243,7 @@ def timeout_sub_channel(m_instance):
 
 def got_error(m_instance, match=None, term=None, cmd=None, tws=None):
     """
-    Called if execute_command() encounters a problem/timeout.
+    Called if :func:`execute_command` encounters a problem/timeout.
 
     *match* is here in case we want to use it for a positive match of an error.
     """
@@ -238,9 +266,9 @@ def got_error(m_instance, match=None, term=None, cmd=None, tws=None):
 def execute_command(term, cmd, callback=None, tws=None):
     """
     Execute the given command (*cmd*) on the given *term* using the existing
-    SSH tunnel (taking advantage of Master mode) and call *callback* with the
-    output of said command and the current Multiplex instance as arguments like
-    so::
+    SSH tunnel (taking advantage of `Master mode <http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing>`_)
+    and call *callback* with the output of said command and the current
+    :class:`termio.Multiplex` instance as arguments like so::
 
         callback(output, m_instance)
 
@@ -274,9 +302,9 @@ def execute_command(term, cmd, callback=None, tws=None):
 
 def send_result(tws, term, cmd, output, m_instance):
     """
-    Called by ws_exec_command() when the output of the executed command has been
-    captured successfully.  Writes a message to the client with the command's
-    output and some relevant metadata.
+    Called by :func:`ws_exec_command` when the output of the executed command
+    has been captured successfully.  Writes a message to the client with the
+    command's output and some relevant metadata.
     """
     message = {
         'sshjs_cmd_output': {
@@ -290,9 +318,11 @@ def send_result(tws, term, cmd, output, m_instance):
 
 def ws_exec_command(settings, tws):
     """
-    Takes the necessary variables from *settings* and calls execute_command().
+    Takes the necessary variables from *settings* and calls :func:`execute_command`.
 
     *settings* should be a dict that contains a 'term' and a 'cmd' to execute.
+
+    .. tip:: This function can be used to quickly execute a command and return its result from the client over an existing SSH connection without requiring the user to enter their password!  See execRemoteCmd() in ssh.js.
     """
     term = settings['term']
     cmd = settings['cmd']
@@ -361,16 +391,21 @@ class KnownHostsHandler(BaseHandler):
         f.close()
         self.write("success")
 
+"""
+WebSocket Commands
+------------------
+"""
 # WebSocket commands (not the same as handlers)
 def get_connect_string(term, tws):
     """
-    Writes the connection string associated with *term* to the websocket like
-    so:
+    Writes the connection string associated with *term* to the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_
+    like so::
+
         {'sshjs_reconnect': {*term*: <connection string>}}
 
-    In ssh.js we attach an action (aka handler) to GateOne.Net.actions for
-    'sshjs_reconnect' messages that attaches the connection string to
-    GateOne.terminals[*term*]['sshConnectString']
+    In ssh.js we attach an action (aka handler) to :js:attr:`GateOne.Net.actions`
+    for 'sshjs_reconnect' messages that attaches the connection string to
+    `GateOne.terminals[*term*]['sshConnectString']`
     """
     logging.debug("get_connect_string() term: %s" % term)
     session = tws.session
@@ -390,7 +425,7 @@ def get_connect_string(term, tws):
 def get_key(name, public, tws):
     """
     Returns the private SSH key associated with *name* to the client.  If
-    *public* is True, returns the public key to the client.
+    *public* is `True`, returns the public key to the client.
     """
     if not isinstance(name, (str, unicode)):
         error_msg = _(
@@ -481,8 +516,9 @@ def get_host_fingerprint(settings, tws):
 
 def generate_new_keypair(settings, tws):
     """
-    Calls openssh_generate_new_keypair() or dropbear_generate_new_keypair()
-    depending on what's available on the system.
+    Calls :func:`openssh_generate_new_keypair` or
+    :func:`dropbear_generate_new_keypair` depending on what's available on the
+    system.
     """
     logging.debug('generate_new_keypair()')
     out_dict = {}
@@ -561,8 +597,7 @@ def openssh_generate_new_keypair(name, path,
     insensitive).  If *keytype* is "rsa" or "ecdsa", *bits* may be specified to
     specify the size of the key.
 
-    NOTE: Defaults to generating a 521-byte ecdsa key if OpenSSH is version 5.7+.
-    Otherwise a 2048-bit rsa key will be used.
+    .. note:: Defaults to generating a 521-byte ecdsa key if OpenSSH is version 5.7+. Otherwise a 2048-bit rsa key will be used.
     """
     logging.debug('openssh_generate_new_keypair()')
     openssh_version = shell_command('ssh -V')[1]
@@ -617,6 +652,13 @@ def openssh_generate_new_keypair(name, path,
         timeout=15 # Key generation can take a little while
     )
     m.spawn()
+
+def dropbear_generate_new_keypair(name, path,
+        keytype=None, passphrase="", bits=None, comment="", tws=None):
+    """
+    .. note:: Not implemented yet
+    """
+    pass
 
 def openssh_generate_public_key(path, passphrase=None, settings=None, tws=None):
     """
@@ -906,10 +948,10 @@ def get_identities(anything, tws):
 def set_default_identities(identities, tws):
     """
     Given a list of *identities*, mark them as defaults to use in all outbound
-    SSH connections by writing them to <user's ssh dir>/.default_ids.  If
+    SSH connections by writing them to `<user's ssh dir>/.default_ids`.  If
     *identities* is empty, no identities will be used in outbound connections.
 
-    .. note:: Whenever this function is called it will overwrite whatever is in .default_ids.
+    .. note:: Whenever this function is called it will overwrite whatever is in `.default_ids`.
     """
     if isinstance(identities, list): # Ignore anything else
         users_ssh_dir = get_ssh_dir(tws)
@@ -923,8 +965,11 @@ def opt_esc_handler(text, tws):
     Handles text passed from the special optional escape sequance handler.  We
     use it to tell ssh.js what the SSH connection string is so it can use that
     information to duplicate sessions (if the user so desires).  For reference,
-    the specific string which will call this function from a terminal app is:
+    the specific string which will call this function from a terminal app is::
+
         \x1b]_;ssh|<whatever>\x07
+
+    .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`
     """
     message = {'sshjs_connect': text}
     tws.write_message(message)
@@ -932,7 +977,7 @@ def opt_esc_handler(text, tws):
 def create_user_ssh_dir(current_user, settings):
     """
     To be called by the 'Auth' hook that gets called after the user is done
-    authenticating, ensures that the <user's dir>/ssh directory exists.
+    authenticating, ensures that the `<user's dir>/ssh` directory exists.
     """
     user = current_user['upn']
     users_dir = os.path.join(settings['user_dir'], user) # "User's dir"

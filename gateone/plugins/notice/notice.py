@@ -10,9 +10,22 @@ tell the client browser to display a message whenever said escape sequence is
 encountered.  Any terminal program can emit the following escape sequence to
 display a message in the browser::
 
-    \x1b]_;notice|<the message>\x07
+    \\x1b]_;notice|<the message>\\x07
+
+.. note that the above example has double slashes...  Don't do that in your actual code.  They're just there to make sure it shows up properly in the HTML documentation.
 
 Very straightforward and also very powerful.
+
+Hooks
+-----
+This Python plugin file implements the following hooks::
+
+    hooks = {
+        'Escape': notice_esc_seq_handler,
+    }
+
+Docstrings
+----------
 """
 
 # Meta
@@ -26,6 +39,8 @@ def notice_esc_seq_handler(message, tws):
     """
     Handles text passed from the special optional escape sequance handler to
     display a *message* to the connected client (browser).
+
+    .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`
     """
     message = {'notice': message}
     tws.write_message(message)

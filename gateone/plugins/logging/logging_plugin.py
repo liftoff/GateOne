@@ -12,6 +12,22 @@
 
 __doc__ = """\
 logging.py - A plugin for Gate One that provides logging-related functionality.
+
+Hooks
+-----
+This Python plugin file implements the following hooks::
+
+    hooks = {
+        'WebSocket': {
+            'logging_get_logs': enumerate_logs,
+            'logging_get_log_flat': retrieve_log_flat,
+            'logging_get_log_playback': retrieve_log_playback,
+            'logging_get_log_file': save_log_playback,
+        }
+    }
+
+Docstrings
+----------
 """
 
 # Meta
@@ -123,7 +139,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     If *force_update* the metadata inside the golog will be updated even if it
     already exists.
 
-    .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.
+    .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per .golog.
     """
     #logging.debug('get_or_update_metadata()')
     if not os.path.getsize(golog_path): # 0 bytes
@@ -218,8 +234,8 @@ def get_or_update_metadata(golog_path, user, force_update=False):
 # WebSocket commands (not the same as handlers)
 def enumerate_logs(limit=None, tws=None):
     """
-    Calls _enumerate_logs() via a multiprocessing Process() so it doesn't cause
-    the IOLoop to block.
+    Calls _enumerate_logs() via a :py:class:`multiprocessing.Process` so it
+    doesn't cause the :py:class:`~tornado.ioloop.IOLoop` to block.
 
     Log objects will be returned to the client one at a time by sending
     'logging_log' actions to the client over the WebSocket (*tws*).
@@ -295,8 +311,9 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
     Enumerates all of the user's logs and sends the client a "logging_logs"
     message with the result.
 
-    If *limit* is given, only return the specified logs.  Works just like MySQL:
-        limit="5,10" will retrieve logs 5-10.
+    If *limit* is given, only return the specified logs.  Works just like
+    `MySQL <http://en.wikipedia.org/wiki/MySQL>`_: limit="5,10" will retrieve
+    logs 5-10.
     """
     logs_dir = os.path.join(users_dir, "logs")
     log_files = os.listdir(logs_dir)
@@ -322,19 +339,18 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
 
 def retrieve_log_flat(settings, tws=None):
     """
-    Calls _retrieve_log_flat() via a multiprocessing Process() so it doesn't
-    cause the IOLoop to block.
+    Calls :func:`_retrieve_log_flat` via a :py:class:`multiprocessing.Process`
+    so it doesn't cause the :py:class:`~tornado.ioloop.IOLoop` to block.
 
-    *settings* - A dict containing the *log_filename*, *colors*, and *theme* to
-    use when generating the HTML output.
-    *tws* - TerminalWebSocket instance.
+    :arg dict settings: A dict containing the *log_filename*, *colors*, and *theme* to use when generating the HTML output.
+    :arg instance tws: The current :class:`gateone.TerminalWebSocket` instance (connected).
 
-    Here's a the details on *settings*:
+    Here's the details on *settings*:
 
-        *settings['log_filename']* - The name of the log to display.
-        *settings['colors']* - The CSS color scheme to use when generating output.
-        *settings['theme']* - The CSS theme to use when generating output.
-        *settings['where']* - Whether or not the result should go into a new window or an iframe.
+    :arg settings['log_filename']: The name of the log to display.
+    :arg settings['colors']: The CSS color scheme to use when generating output.
+    :arg settings['theme']: The CSS theme to use when generating output.
+    :arg settings['where']: Whether or not the result should go into a new window or an iframe.
     """
     settings['container'] = tws.container
     settings['prefix'] = tws.prefix
@@ -420,8 +436,9 @@ def _retrieve_log_flat(queue, settings):
 
 def retrieve_log_playback(settings, tws=None):
     """
-    Calls _retrieve_log_playback() via a multiprocessing Process() so it doesn't
-    cause the IOLoop to block.
+    Calls :func:`_retrieve_log_playback` via a
+    :py:class:`multiprocessing.Process` so it doesn't cause the
+    :py:class:`~tornado.ioloop.IOLoop` to block.
     """
     settings['container'] = tws.container
     settings['prefix'] = tws.prefix
@@ -470,10 +487,11 @@ def _retrieve_log_playback(queue, settings):
 
     *settings* - A dict containing the *log_filename*, *colors*, and *theme* to
     use when generating the HTML output.
-    *settings['log_filename']* - The name of the log to display.
-    *settings['colors']* - The CSS color scheme to use when generating output.
-    *settings['theme']* - The CSS theme to use when generating output.
-    *settings['where']* - Whether or not the result should go into a new window or an iframe.
+
+    :arg settings['log_filename']: The name of the log to display.
+    :arg settings['colors']: The CSS color scheme to use when generating output.
+    :arg settings['theme']: The CSS theme to use when generating output.
+    :arg settings['where']: Whether or not the result should go into a new window or an iframe.
 
     The output will look like this::
 
@@ -482,6 +500,7 @@ def _retrieve_log_playback(queue, settings):
             'log': <HTML rendered output>,
             'metadata': {<metadata of the log>}
         }
+
     It is expected that the client will create a new window with the result of
     this method.
     """
@@ -594,8 +613,8 @@ def _retrieve_log_playback(queue, settings):
 
 def save_log_playback(settings, tws=None):
     """
-    Calls _save_log_playback() via a multiprocessing Process() so it doesn't
-    cause the IOLoop to block.
+    Calls :func:`_save_log_playback` via a :py:class:`multiprocessing.Process`
+    so it doesn't cause the :py:class:`~tornado.ioloop.IOLoop` to block.
     """
     settings['container'] = tws.container
     settings['prefix'] = tws.prefix
@@ -634,11 +653,10 @@ def _save_log_playback(queue, settings):
     is that this one instructs the client to save the file to disk instead of
     opening it in a new window.
 
-    *settings* - A dict containing the *log_filename*, *colors*, and *theme* to
-    use when generating the HTML output.
-    *settings['log_filename']* - The name of the log to display.
-    *settings['colors']* - The CSS color scheme to use when generating output.
-    *settings['theme']* - The CSS theme to use when generating output.
+    :arg settings['log_filename']: The name of the log to display.
+    :arg settings['colors']: The CSS color scheme to use when generating output.
+    :arg settings['theme']: The CSS theme to use when generating output.
+    :arg settings['where']: Whether or not the result should go into a new window or an iframe.
 
     The output will look like this::
 
@@ -648,6 +666,7 @@ def _save_log_playback(queue, settings):
             'mimetype': 'text/html'
             'filename': <filename of the log recording>
         }
+
     It is expected that the client will create a new window with the result of
     this method.
     """

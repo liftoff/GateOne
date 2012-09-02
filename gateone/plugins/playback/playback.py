@@ -6,6 +6,21 @@
 __doc__ = """\
 playback.py - A plugin for Gate One that adds support for saving and playing
 back session recordings.
+
+.. note:: Yes this only contains one function and it is exposed to clients through a WebSocket hook.
+
+Hooks
+-----
+This Python plugin file implements the following hooks::
+
+    hooks = {
+        'WebSocket': {
+            'playback_save_recording': save_recording,
+        }
+    }
+
+Docstrings
+----------
 """
 
 # Meta

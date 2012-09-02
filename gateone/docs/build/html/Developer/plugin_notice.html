@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The Playback Plugin &mdash; Gate One 1.1 documentation</title>
+    <title>The Notice Plugin &mdash; Gate One 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -29,7 +29,7 @@
     <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 1.1 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
-    <link rel="next" title="The SSH Plugin" href="plugin_ssh.html" />
+    <link rel="next" title="The Mobile Plugin" href="plugin_mobile.html" />
     <link rel="prev" title="The Logging Plugin" href="plugin_logging.html" /> 
   </head>
   <body>
@@ -43,7 +43,7 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="plugin_ssh.html" title="The SSH Plugin"
+          <a href="plugin_mobile.html" title="The Mobile Plugin"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="plugin_logging.html" title="The Logging Plugin"
@@ -58,25 +58,20 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="the-playback-plugin">
-<h1>The Playback Plugin<a class="headerlink" href="#the-playback-plugin" title="Permalink to this headline">¶</a></h1>
-<div class="admonition-todo admonition" id="index-0">
-<p class="first admonition-title">Todo</p>
-<p class="last">Write documentation on playback.js.</p>
+  <div class="section" id="module-notice">
+<span id="the-notice-plugin"></span><h1>The Notice Plugin<a class="headerlink" href="#module-notice" title="Permalink to this headline">¶</a></h1>
+<p>notice.py - A plugin for Gate One that adds an escape sequence handler that will
+tell the client browser to display a message whenever said escape sequence is
+encountered.  Any terminal program can emit the following escape sequence to
+display a message in the browser:</p>
+<div class="highlight-python"><pre>\x1b]_;notice|&lt;the message&gt;\x07</pre>
 </div>
-<span class="target" id="module-playback"></span><p>playback.py - A plugin for Gate One that adds support for saving and playing
-back session recordings.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Yes this only contains one function and it is exposed to clients through a WebSocket hook.</p>
-</div>
+<p>Very straightforward and also very powerful.</p>
 <div class="section" id="hooks">
 <h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
 <p>This Python plugin file implements the following hooks:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;playback_save_recording&#39;</span><span class="p">:</span> <span class="n">save_recording</span><span class="p">,</span>
-    <span class="p">}</span>
+    <span class="s">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">notice_esc_seq_handler</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -84,11 +79,14 @@ back session recordings.</p>
 <div class="section" id="docstrings">
 <h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="playback.save_recording">
-<tt class="descclassname">playback.</tt><tt class="descname">save_recording</tt><big>(</big><em>settings</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/playback.html#save_recording"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#playback.save_recording" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles uploads of session recordings and returns them to the client in a
-self-contained HTML file that will auto-start playback.</p>
-<p>NOTE: The real crux of the code that handles this is in the template.</p>
+<dt id="notice.notice_esc_seq_handler">
+<tt class="descclassname">notice.</tt><tt class="descname">notice_esc_seq_handler</tt><big>(</big><em>message</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/notice.html#notice_esc_seq_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#notice.notice_esc_seq_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles text passed from the special optional escape sequance handler to
+display a <em>message</em> to the connected client (browser).</p>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="gateone.html#gateone.TerminalWebSocket.esc_opt_handler" title="gateone.TerminalWebSocket.esc_opt_handler"><tt class="xref py py-class docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler</span></tt></a> and <a class="reference internal" href="terminal.html#terminal.Terminal._opt_handler" title="terminal.Terminal._opt_handler"><tt class="xref py py-func docutils literal"><span class="pre">terminal.Terminal._opt_handler()</span></tt></a></p>
+</div>
 </dd></dl>
 
 </div>
@@ -105,7 +103,7 @@ self-contained HTML file that will auto-start playback.</p>
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">The Playback Plugin</a><ul>
+<li><a class="reference internal" href="#">The Notice Plugin</a><ul>
 <li><a class="reference internal" href="#hooks">Hooks</a></li>
 <li><a class="reference internal" href="#docstrings">Docstrings</a></li>
 </ul>
@@ -116,11 +114,11 @@ self-contained HTML file that will auto-start playback.</p>
   <p class="topless"><a href="plugin_logging.html"
                         title="previous chapter">The Logging Plugin</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="plugin_ssh.html"
-                        title="next chapter">The SSH Plugin</a></p>
+  <p class="topless"><a href="plugin_mobile.html"
+                        title="next chapter">The Mobile Plugin</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="../_sources/Developer/plugin_playback.txt"
+    <li><a href="../_sources/Developer/plugin_notice.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
@@ -150,7 +148,7 @@ self-contained HTML file that will auto-start playback.</p>
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="plugin_ssh.html" title="The SSH Plugin"
+          <a href="plugin_mobile.html" title="The Mobile Plugin"
              >next</a> |</li>
         <li class="right" >
           <a href="plugin_logging.html" title="The Logging Plugin"

@@ -1,10 +1,8 @@
-The SSH Plugin
-==============
-
-.. todo:: Write documentation on ssh.js
+The Notice Plugin
+=================
 
 .. moduleauthor:: Dan McDougall <daniel.mcdougall@liftoffsoftware.com>
 
-.. automodule:: ssh
+.. automodule:: notice
     :members:
     :private-members:

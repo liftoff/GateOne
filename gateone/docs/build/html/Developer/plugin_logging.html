@@ -60,6 +60,209 @@
             
   <div class="section" id="the-logging-plugin">
 <h1>The Logging Plugin<a class="headerlink" href="#the-logging-plugin" title="Permalink to this headline">¶</a></h1>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Write documentation on logging.js.</p>
+</div>
+<span class="target" id="module-logging_plugin"></span><p>logging.py - A plugin for Gate One that provides logging-related functionality.</p>
+<div class="section" id="hooks">
+<h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
+<p>This Python plugin file implements the following hooks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;logging_get_logs&#39;</span><span class="p">:</span> <span class="n">enumerate_logs</span><span class="p">,</span>
+        <span class="s">&#39;logging_get_log_flat&#39;</span><span class="p">:</span> <span class="n">retrieve_log_flat</span><span class="p">,</span>
+        <span class="s">&#39;logging_get_log_playback&#39;</span><span class="p">:</span> <span class="n">retrieve_log_playback</span><span class="p">,</span>
+        <span class="s">&#39;logging_get_log_file&#39;</span><span class="p">:</span> <span class="n">save_log_playback</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="docstrings">
+<h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="logging_plugin.retrieve_log_frames">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">retrieve_log_frames</tt><big>(</big><em>golog_path</em>, <em>rows</em>, <em>cols</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#retrieve_log_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.retrieve_log_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the frames of <em>golog_path</em> as a list that can be used with the
+playback_log.html template.</p>
+<p>If <em>limit</em> is given, only return that number of frames (e.g. for preview)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin.retrieve_first_frame">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">retrieve_first_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#retrieve_first_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.retrieve_first_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the first frame from the given <em>golog_path</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin.retrieve_last_frame">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">retrieve_last_frame</tt><big>(</big><em>golog_path</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#retrieve_last_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.retrieve_last_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the last frame from the given <em>golog_path</em>.  It does this by
+iterating over the log in reverse.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin.get_or_update_metadata">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">get_or_update_metadata</tt><big>(</big><em>golog_path</em>, <em>user</em>, <em>force_update=False</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#get_or_update_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.get_or_update_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves or creates/updates the metadata inside of <em>golog_path</em>.</p>
+<p>If <em>force_update</em> the metadata inside the golog will be updated even if it
+already exists.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All logs will need &quot;fixing&quot; the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per .golog.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin.enumerate_logs">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">enumerate_logs</tt><big>(</big><em>limit=None</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#enumerate_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.enumerate_logs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls _enumerate_logs() via a <a class="reference external" href="http://docs.python.org/2.7/library/multiprocessing.html#multiprocessing.Process" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">multiprocessing.Process</span></tt></a> so it
+doesn't cause the <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
+<p>Log objects will be returned to the client one at a time by sending
+'logging_log' actions to the client over the WebSocket (<em>tws</em>).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin._enumerate_logs">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">_enumerate_logs</tt><big>(</big><em>queue</em>, <em>user</em>, <em>users_dir</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#_enumerate_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin._enumerate_logs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enumerates all of the user's logs and sends the client a &quot;logging_logs&quot;
+message with the result.</p>
+<p>If <em>limit</em> is given, only return the specified logs.  Works just like
+<a class="reference external" href="http://en.wikipedia.org/wiki/MySQL">MySQL</a>: limit=&quot;5,10&quot; will retrieve
+logs 5-10.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin.retrieve_log_flat">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">retrieve_log_flat</tt><big>(</big><em>settings</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#retrieve_log_flat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.retrieve_log_flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <a class="reference internal" href="#logging_plugin._retrieve_log_flat" title="logging_plugin._retrieve_log_flat"><tt class="xref py py-func docutils literal"><span class="pre">_retrieve_log_flat()</span></tt></a> via a <a class="reference external" href="http://docs.python.org/2.7/library/multiprocessing.html#multiprocessing.Process" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">multiprocessing.Process</span></tt></a>
+so it doesn't cause the <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>settings</strong> (<a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) -- A dict containing the <em>log_filename</em>, <em>colors</em>, and <em>theme</em> to use when generating the HTML output.</li>
+<li><strong>tws</strong> (<em>instance</em>) -- The current <a class="reference internal" href="gateone.html#gateone.TerminalWebSocket" title="gateone.TerminalWebSocket"><tt class="xref py py-class docutils literal"><span class="pre">gateone.TerminalWebSocket</span></tt></a> instance (connected).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Here's the details on <em>settings</em>:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>settings['log_filename']</strong> -- The name of the log to display.</li>
+<li><strong>settings['colors']</strong> -- The CSS color scheme to use when generating output.</li>
+<li><strong>settings['theme']</strong> -- The CSS theme to use when generating output.</li>
+<li><strong>settings['where']</strong> -- Whether or not the result should go into a new window or an iframe.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin._retrieve_log_flat">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">_retrieve_log_flat</tt><big>(</big><em>queue</em>, <em>settings</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#_retrieve_log_flat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin._retrieve_log_flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the given <em>log_filename</em> to <em>queue</em> in a flat format equivalent to:</p>
+<div class="highlight-python"><pre>./logviewer.py --flat log_filename</pre>
+</div>
+<p><em>settings</em> - A dict containing the <em>log_filename</em>, <em>colors</em>, and <em>theme</em> to
+use when generating the HTML output.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin.retrieve_log_playback">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">retrieve_log_playback</tt><big>(</big><em>settings</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#retrieve_log_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.retrieve_log_playback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <a class="reference internal" href="#logging_plugin._retrieve_log_playback" title="logging_plugin._retrieve_log_playback"><tt class="xref py py-func docutils literal"><span class="pre">_retrieve_log_playback()</span></tt></a> via a
+<a class="reference external" href="http://docs.python.org/2.7/library/multiprocessing.html#multiprocessing.Process" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">multiprocessing.Process</span></tt></a> so it doesn't cause the
+<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin._retrieve_log_playback">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">_retrieve_log_playback</tt><big>(</big><em>queue</em>, <em>settings</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#_retrieve_log_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin._retrieve_log_playback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a JSON-encoded message to the client containing the log in a
+self-contained HTML format similar to:</p>
+<div class="highlight-python"><pre>./logviewer.py log_filename</pre>
+</div>
+<p><em>settings</em> - A dict containing the <em>log_filename</em>, <em>colors</em>, and <em>theme</em> to
+use when generating the HTML output.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>settings['log_filename']</strong> -- The name of the log to display.</li>
+<li><strong>settings['colors']</strong> -- The CSS color scheme to use when generating output.</li>
+<li><strong>settings['theme']</strong> -- The CSS theme to use when generating output.</li>
+<li><strong>settings['where']</strong> -- Whether or not the result should go into a new window or an iframe.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The output will look like this:</p>
+<div class="highlight-python"><pre>{
+    'result': "Success",
+    'log': &lt;HTML rendered output&gt;,
+    'metadata': {&lt;metadata of the log&gt;}
+}</pre>
+</div>
+<p>It is expected that the client will create a new window with the result of
+this method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin.save_log_playback">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">save_log_playback</tt><big>(</big><em>settings</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#save_log_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.save_log_playback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <a class="reference internal" href="#logging_plugin._save_log_playback" title="logging_plugin._save_log_playback"><tt class="xref py py-func docutils literal"><span class="pre">_save_log_playback()</span></tt></a> via a <a class="reference external" href="http://docs.python.org/2.7/library/multiprocessing.html#multiprocessing.Process" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">multiprocessing.Process</span></tt></a>
+so it doesn't cause the <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logging_plugin._save_log_playback">
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">_save_log_playback</tt><big>(</big><em>queue</em>, <em>settings</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#_save_log_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin._save_log_playback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a JSON-encoded message to the client containing the log in a
+self-contained HTML format similar to:</p>
+<div class="highlight-python"><pre>./logviewer.py log_filename</pre>
+</div>
+<p>The difference between this function and <a class="reference internal" href="#logging_plugin._retrieve_log_playback" title="logging_plugin._retrieve_log_playback"><tt class="xref py py-meth docutils literal"><span class="pre">_retrieve_log_playback()</span></tt></a>
+is that this one instructs the client to save the file to disk instead of
+opening it in a new window.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>settings['log_filename']</strong> -- The name of the log to display.</li>
+<li><strong>settings['colors']</strong> -- The CSS color scheme to use when generating output.</li>
+<li><strong>settings['theme']</strong> -- The CSS theme to use when generating output.</li>
+<li><strong>settings['where']</strong> -- Whether or not the result should go into a new window or an iframe.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The output will look like this:</p>
+<div class="highlight-python"><pre>{
+    'result': "Success",
+    'data': &lt;HTML rendered output&gt;,
+    'mimetype': 'text/html'
+    'filename': &lt;filename of the log recording&gt;
+}</pre>
+</div>
+<p>It is expected that the client will create a new window with the result of
+this method.</p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -71,6 +274,15 @@
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Logging Plugin</a><ul>
+<li><a class="reference internal" href="#hooks">Hooks</a></li>
+<li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="plugin_help.html"
                         title="previous chapter">The Help Plugin</a></p>

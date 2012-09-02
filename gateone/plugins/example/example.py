@@ -7,6 +7,24 @@ __doc__ = """\
 example.py - A plugin to demonstrate how to write a Python plugin for Gate One.
 Specifically, how to write your own web handlers, WebSocket actions, and take
 advantage of all the available hooks and built-in functions.
+
+.. tip:: This plugin is heavily commented with useful information.  Click on the `[source]` links to the right of any given class or function to see the actual code.
+
+Hooks
+-----
+This Python plugin file implements the following hooks::
+
+    hooks = {
+        'Web': [(r"/example", ExampleHandler)],
+        'WebSocket': {
+            'example_action': example_websocket_action
+        },
+        'Escape': example_opt_esc_handler,
+        #'Auth': create_user_ssh_dir
+    }
+
+Docstrings
+----------
 """
 
 # Meta information about the plugin.  Your plugin doesn't *have* to have this
@@ -36,19 +54,21 @@ class ExampleHandler(BaseHandler):
     """
     This is how you add a URL handler to Gate One...  This example attaches
     itslef to https://<your Gate One server>/example in the 'Web' hook at the
-    bottom of this file.  It works just like any Tornado RequestHandler.  See:
+    bottom of this file.  It works just like any Tornado
+    :class:`~tornado.web.RequestHandler`.  See:
 
     http://www.tornadoweb.org/documentation/web.html
 
-    ...for documentation on how to write a RequestHandler for the Tornado
-    framework.  Fairly boilerplate stuff.
+    ...for documentation on how to write a :class:`tornado.web.RequestHandler` for
+    the Tornado framework.  Fairly boilerplate stuff.
 
-    .. note:: The only reason we use BaseHandler instead of a vanilla tornado.web.RequestHandler is so we have access to Gate One's get_current_user() function.
+    .. note:: The only reason we use :class:`gateone.BaseHandler` instead of a vanilla :class:`tornado.web.RequestHandler` is so we have access to Gate One's :func:`gateone.BaseHandler.get_current_user` function.
     """
     @tornado.web.authenticated # Require the user be authenticated
     def get(self):
         """
-        Handle an HTTP GET request to this RequestHandler.  Connect to:
+        Handle an HTTP GET request to this :class:`~tornado.web.RequestHandler`.
+        Connect to:
 
         https://<your Gate One server>/example
 
@@ -87,7 +107,8 @@ class ExampleHandler(BaseHandler):
 
     def post(self):
         """
-        Example Handler for an HTTP PUT request.  Doesn't actually do anything.
+        Example Handler for an `HTTP POST <http://en.wikipedia.org/wiki/POST_(HTTP)>`_
+        request.  Doesn't actually do anything.
         """
         # If data is POSTed to this handler via an XMLHTTPRequest send() it
         # will show up like this:
@@ -108,31 +129,37 @@ class ExampleHandler(BaseHandler):
 # WebSocket actions (aka commands or "functions that are exposed")
 def example_websocket_action(message, tws=None):
     """
-    This WebSocket action gets exposed to the client automatically by way of the
-    'WebSocket' hook at the bottom of this file.  The way it works is like this:
+    This `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_
+    action gets exposed to the client automatically by way of the 'WebSocket'
+    hook at the bottom of this file.  The way it works is like this:
 
-    Whenever a message is received via the WebSocket Gate One will automatically
-    decode it into a Python dict (only JSON-encoded messages are accepted).
-    Any and all keys in that dict will be assumed to be 'actions' such as this
-    one.  If the incoming key matches a registered action that action will be
-    called like so::
+    .. rubric:: How The WebSocket Hook Works
+
+    Whenever a message is received via the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_
+    Gate One will automatically
+    decode it into a Python :class:`dict` (only JSON-encoded messages are accepted).
+    Any and all keys in that :class:`dict` will be assumed to be 'actions' (just
+    like :js:attr:`GateOne.Net.actions` but on the server) such as this one.  If
+    the incoming key matches a registered action that action will be called
+    like so::
 
         key(value)
         # ...or just:
         key() # If the value is None ('null' in JavaScript)
 
-    ...where 'key' is the action and 'value' is what will be passed to said
+    ...where *key* is the action and *value* is what will be passed to said
     action as an argument.  Since Gate One will automatically decode the message
-    as JSON the 'value' will typically be passed to actions as a single dict.
-    You can provide different kinds of arguments, of course, but be aware that
+    as JSON the *value* will typically be passed to actions as a single :class:`dict`.
+    You can provide different kinds of arguments of course but be aware that
     their ordering is unpredictable so always be sure to either pass *one*
-    argument to your function (assuming it is a dict) or 100% keyword arguments.
+    argument to your function (assuming it is a :class:`dict`) or 100% keyword
+    arguments.
 
     The *tws* keyword argument must always be present in WebSocket actions.  It
-    represents the user's current instance of Gate One's TerminalWebSocket class.
-    Think of it as the equivalent of, "self" inside of any given
-    TerminalWebSocket function.  For example, the following function inside of
-    TerminalWebSocket (inside of gateone.py)::
+    represents the user's current instance of Gate One's :class:`~gateone.TerminalWebSocket`
+    class. Think of it as the equivalent of, "self" inside of any given
+    :class:`~gateone.TerminalWebSocket` function.  For example, the following
+    function inside of :class:`~gateone.TerminalWebSocket` (inside of gateone.py)::
 
         def pong(self, timestamp): # Docstring removed to save space
             message = {'pong': timestamp}
@@ -144,17 +171,18 @@ def example_websocket_action(message, tws=None):
             message = {'pong': timestamp}
             tws.write_message(json_encode(message))
 
-    .. note:: Notice that the ussage of 'self' has become 'tws'.
+    .. note:: Notice that the ussage of *self* has become *tws*.
 
-    The typical naming convention for WebSocket actions is:
-    **plugin name**_*action*.  Whether or not your action names match your
-    function names is up to you.  All that matters is that you line up an
-    *action* (string) with a *function* in hooks['WebSocket'] (see below).
+    The typical naming convention for `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_
+    actions is: `<plugin name>_<action>`.  Whether or not your action names
+    match your function names is up to you.  All that matters is that you line
+    up an *action* (string) with a *function* in `hooks['WebSocket']` (see below).
 
-    This WebSocket action duplicates the functionality of Gate One's built-in
-    TerminalWebSocket.pong() function.  You can see how it is called by the
-    client (browser) inside of example.js (which is in this plugin's 'static'
-    dir).
+    This `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_
+    *action* duplicates the functionality of Gate One's built-in
+    :func:`gateone.TerminalWebSocket.pong` function.  You can see how it is
+    called by the client (browser) inside of example.js (which is in this
+    plugin's 'static' dir).
     """
     message = {'example_pong': timestamp}
     tws.write_message(json_encode(message))
@@ -175,9 +203,9 @@ def example_opt_esc_handler(message):
     programs directly to plugins written in Python.  It's called the "Special
     Optional Escape Sequence Handler" or SOESH for short.  Here's how it works:
     Whenever a terminal program emits, "\\x1b]_;" it gets detected by Gate One's
-    Terminal() class (which lives in terminal.py) and it will execute whatever
+    :class:`~terminal.Terminal` class (which lives in `terminal.py`) and it will execute whatever
     callback is registered for SOESH.  Inside of Gate One this callback will
-    always be TerminalWebSocket.esc_opt_handler().
+    always be :func:`gateone.TerminalWebSocket.esc_opt_handler`.
     """
 # SOESH allows plugins to attach actions that will be called whenever a terminal
 # encounters the

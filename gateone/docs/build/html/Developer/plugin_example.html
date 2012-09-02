@@ -1,0 +1,287 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The Example Plugin &mdash; Gate One 1.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ansi.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+    <link rel="top" title="Gate One 1.1 documentation" href="../index.html" />
+    <link rel="up" title="Developer Documentation" href="index.html" />
+    <link rel="next" title="Embedding Gate One Into Other Applications" href="embedding.html" />
+    <link rel="prev" title="The SSH Plugin" href="plugin_ssh.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="embedding.html" title="Embedding Gate One Into Other Applications"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="plugin_ssh.html" title="The SSH Plugin"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-example-plugin">
+<span id="example-plugin"></span><h1>The Example Plugin<a class="headerlink" href="#the-example-plugin" title="Permalink to this headline">¶</a></h1>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Write documentation on example.js.</p>
+</div>
+<span class="target" id="module-example"></span><p>example.py - A plugin to demonstrate how to write a Python plugin for Gate One.
+Specifically, how to write your own web handlers, WebSocket actions, and take
+advantage of all the available hooks and built-in functions.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">This plugin is heavily commented with useful information.  Click on the <tt class="xref py py-obj docutils literal"><span class="pre">[source]</span></tt> links to the right of any given class or function to see the actual code.</p>
+</div>
+<div class="section" id="hooks">
+<h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
+<p>This Python plugin file implements the following hooks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;Web&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s">r&quot;/example&quot;</span><span class="p">,</span> <span class="n">ExampleHandler</span><span class="p">)],</span>
+    <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;example_action&#39;</span><span class="p">:</span> <span class="n">example_websocket_action</span>
+    <span class="p">},</span>
+    <span class="s">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">example_opt_esc_handler</span><span class="p">,</span>
+    <span class="c">#&#39;Auth&#39;: create_user_ssh_dir</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="docstrings">
+<h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="example.ExampleHandler">
+<em class="property">class </em><tt class="descclassname">example.</tt><tt class="descname">ExampleHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/example.html#ExampleHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.ExampleHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is how you add a URL handler to Gate One...  This example attaches
+itslef to <a class="reference external" href="https:/">https:/</a>/&lt;your Gate One server&gt;/example in the 'Web' hook at the
+bottom of this file.  It works just like any Tornado
+<a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">RequestHandler</span></tt></a>.  See:</p>
+<p><a class="reference external" href="http://www.tornadoweb.org/documentation/web.html">http://www.tornadoweb.org/documentation/web.html</a></p>
+<p>...for documentation on how to write a <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a> for
+the Tornado framework.  Fairly boilerplate stuff.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The only reason we use <a class="reference internal" href="gateone.html#gateone.BaseHandler" title="gateone.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">gateone.BaseHandler</span></tt></a> instead of a vanilla <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a> is so we have access to Gate One's <a class="reference internal" href="gateone.html#gateone.BaseHandler.get_current_user" title="gateone.BaseHandler.get_current_user"><tt class="xref py py-func docutils literal"><span class="pre">gateone.BaseHandler.get_current_user()</span></tt></a> function.</p>
+</div>
+<dl class="method">
+<dt id="example.ExampleHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/example.html#ExampleHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.ExampleHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle an HTTP GET request to this <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.3)"><tt class="xref py py-class docutils literal"><span class="pre">RequestHandler</span></tt></a>.
+Connect to:</p>
+<p><a class="reference external" href="https:/">https:/</a>/&lt;your Gate One server&gt;/example</p>
+<p>...to try it out.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="example.ExampleHandler.post">
+<tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/example.html#ExampleHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.ExampleHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example Handler for an <a class="reference external" href="http://en.wikipedia.org/wiki/POST_(HTTP)">HTTP POST</a>
+request.  Doesn't actually do anything.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="example.example_websocket_action">
+<tt class="descclassname">example.</tt><tt class="descname">example_websocket_action</tt><big>(</big><em>message</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/example.html#example_websocket_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.example_websocket_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>This <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>
+action gets exposed to the client automatically by way of the 'WebSocket'
+hook at the bottom of this file.  The way it works is like this:</p>
+<p class="rubric">How The WebSocket Hook Works</p>
+<p>Whenever a message is received via the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>
+Gate One will automatically
+decode it into a Python <a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a> (only JSON-encoded messages are accepted).
+Any and all keys in that <a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a> will be assumed to be 'actions' (just
+like <a class="reference internal" href="js_gateone.html#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a> but on the server) such as this one.  If
+the incoming key matches a registered action that action will be called
+like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">key</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="c"># ...or just:</span>
+<span class="n">key</span><span class="p">()</span> <span class="c"># If the value is None (&#39;null&#39; in JavaScript)</span>
+</pre></div>
+</div>
+<p>...where <em>key</em> is the action and <em>value</em> is what will be passed to said
+action as an argument.  Since Gate One will automatically decode the message
+as JSON the <em>value</em> will typically be passed to actions as a single <a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a>.
+You can provide different kinds of arguments of course but be aware that
+their ordering is unpredictable so always be sure to either pass <em>one</em>
+argument to your function (assuming it is a <a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a>) or 100% keyword
+arguments.</p>
+<p>The <em>tws</em> keyword argument must always be present in WebSocket actions.  It
+represents the user's current instance of Gate One's <a class="reference internal" href="gateone.html#gateone.TerminalWebSocket" title="gateone.TerminalWebSocket"><tt class="xref py py-class docutils literal"><span class="pre">TerminalWebSocket</span></tt></a>
+class. Think of it as the equivalent of, &quot;self&quot; inside of any given
+<a class="reference internal" href="gateone.html#gateone.TerminalWebSocket" title="gateone.TerminalWebSocket"><tt class="xref py py-class docutils literal"><span class="pre">TerminalWebSocket</span></tt></a> function.  For example, the following
+function inside of <a class="reference internal" href="gateone.html#gateone.TerminalWebSocket" title="gateone.TerminalWebSocket"><tt class="xref py py-class docutils literal"><span class="pre">TerminalWebSocket</span></tt></a> (inside of gateone.py):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">pong</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span> <span class="c"># Docstring removed to save space</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>...could be written inside of a plugin like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">pong</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
+    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Notice that the ussage of <em>self</em> has become <em>tws</em>.</p>
+</div>
+<p>The typical naming convention for <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>
+actions is: <tt class="xref py py-obj docutils literal"><span class="pre">&lt;plugin</span> <span class="pre">name&gt;_</span></tt>.  Whether or not your action names
+match your function names is up to you.  All that matters is that you line
+up an <em>action</em> (string) with a <em>function</em> in <tt class="xref py py-obj docutils literal"><span class="pre">hooks['WebSocket']</span></tt> (see below).</p>
+<p>This <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>
+<em>action</em> duplicates the functionality of Gate One's built-in
+<a class="reference internal" href="gateone.html#gateone.TerminalWebSocket.pong" title="gateone.TerminalWebSocket.pong"><tt class="xref py py-func docutils literal"><span class="pre">gateone.TerminalWebSocket.pong()</span></tt></a> function.  You can see how it is
+called by the client (browser) inside of example.js (which is in this
+plugin's 'static' dir).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="example.example_opt_esc_handler">
+<tt class="descclassname">example.</tt><tt class="descname">example_opt_esc_handler</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../_modules/example.html#example_opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.example_opt_esc_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gate One includes a mechanism for plugins to send messages from terminal
+programs directly to plugins written in Python.  It's called the &quot;Special
+Optional Escape Sequence Handler&quot; or SOESH for short.  Here's how it works:
+Whenever a terminal program emits, &quot;x1b]_;&quot; it gets detected by Gate One's
+<a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-class docutils literal"><span class="pre">Terminal</span></tt></a> class (which lives in <tt class="xref py py-obj docutils literal"><span class="pre">terminal.py</span></tt>) and it will execute whatever
+callback is registered for SOESH.  Inside of Gate One this callback will
+always be <a class="reference internal" href="gateone.html#gateone.TerminalWebSocket.esc_opt_handler" title="gateone.TerminalWebSocket.esc_opt_handler"><tt class="xref py py-func docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler()</span></tt></a>.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Example Plugin</a><ul>
+<li><a class="reference internal" href="#hooks">Hooks</a></li>
+<li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plugin_ssh.html"
+                        title="previous chapter">The SSH Plugin</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="embedding.html"
+                        title="next chapter">Embedding Gate One Into Other Applications</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/Developer/plugin_example.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="embedding.html" title="Embedding Gate One Into Other Applications"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="plugin_ssh.html" title="The SSH Plugin"
+             >previous</a> |</li>
+        <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
+          <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Liftoff Software Corporation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+<script type="text/javascript">
+window.onload = function(e) {
+    // Make our collapseindex elements actually collapsible
+    $('<span class="collapsindextitle">Index</span> <a class="showhide">[show]</a>').insertBefore('.collapseindex');
+    $('.showhide').each(function(index, value){
+        var showHide = $(this);
+        showHide.click(function() {
+            if (this.innerHTML == "[hide]") {
+                this.innerHTML = "[show]";
+            } else {
+                this.innerHTML = "[hide]";
+            }
+            $(this).next('.collapseindex').toggle(1); // This should always be the next .collapseindex element
+        });
+    });
+    $('.collapseindex').each(function(index, value){
+        // Start them out hidden
+        $(this).hide();
+    });
+}
+</script>
+
+  </body>
+</html>

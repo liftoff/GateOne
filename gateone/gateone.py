@@ -1818,7 +1818,7 @@ class TerminalWebSocket(WebSocketHandler):
     def esc_opt_handler(self, chars):
         """
         Executes whatever function is registered matching the tuple returned by
-        process_opt_esc_sequence().
+        :func:`utils.process_opt_esc_sequence`.
         """
         logging.debug("esc_opt_handler(%s)" % repr(chars))
         plugin_name, text = process_opt_esc_sequence(chars)
