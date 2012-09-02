@@ -20,9 +20,15 @@ Function.prototype.clone = function() {
 if (!GateOne.prefs.playbackFrames) {
     GateOne.prefs.playbackFrames = 75; // Maximum number of session recording frames to store (in memory--for now)
 }
+// Let folks embedding Gate One skip loading the playback controls
+if (!GateOne.prefs.showPlaybackControls) {
+    GateOne.prefs.showPlaybackControls = true;
+}
+// Don't want the client saving this
+GateOne.noSavePrefs['showPlaybackControls'] = null;
 
 // GateOne.Playback
-GateOne.Base.module(GateOne, 'Playback', '1.0', ['Base', 'Net', 'Logging']);
+GateOne.Base.module(GateOne, 'Playback', '1.1', ['Base', 'Net', 'Logging']);
 GateOne.Playback.clockElement = null; // Set with a global scope so we don't have to keep looking it up every time the clock is updated
 GateOne.Playback.progressBarElement = null; // Set with a global scope so we don't have to keep looking it up every time we update a terminal
 GateOne.Playback.progressBarMouseDown = false;
@@ -115,7 +121,10 @@ GateOne.Base.update(GateOne.Playback, {
                 p.newTerminalCallback(term);
             }, 100);
         }
-        p.addPlaybackControls();
+        if (go.prefs.showPlaybackControls) {
+            // By putting this here instead of inside addPlaybackControls() an application embedding Gate One can still use the playback controls if they want by calling addPlaybackControls() when apropriate.
+            p.addPlaybackControls();
+        }
     },
     pushPlaybackFrame: function(term) {
         // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']

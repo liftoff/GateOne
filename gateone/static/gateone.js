@@ -180,7 +180,8 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     bellSoundType: '', // Stores the mimetype of the bell sound.
     rowAdjust: 0, // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
                   // rowAdjust is necessary so that plugins can increment it if they're adding things to the top or bottom of GateOne.
-    colAdjust: 0  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
+    colAdjust: 0,  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
+    skipChecks: false // Tells GateOne.init() to skip capabilities checks (in case you have your own or are happy with silent failures)
 }
 // Properties in this object will get ignored when GateOne.prefs is saved to localStorage
 GateOne.noSavePrefs = {
@@ -197,7 +198,8 @@ GateOne.noSavePrefs = {
     showTitle: null,
     showToolbar: null,
     rowAdjust: null,
-    colAdjust: null
+    colAdjust: null,
+    skipChecks: null
 }
 // Example 'auth' object:
 // {
@@ -272,23 +274,25 @@ var go = GateOne.Base.update(GateOne, {
             go.prefs[setting] = prefs[setting];
         }
         // Capabilities Notifications
-        if (!WebSocket) {
-            missingCapabilities.push("Sorry but your web browser does not appear to support WebSockets.  Gate One requires WebSockets in order to (efficiently) communicate with the server.");
-        }
-        //  Need either BlobBuilder (deprecated) or Blob support
-        if (!BlobBuilder) {
-            if (!Blob) {
-                missingCapabilities.push("Sorry but your browser does not appear to support the HTML5 File API (Blob objects, specifically).  Gate One requires this in order to download its Web Worker over the WebSocket.");
+        if (!go.prefs.skipChecks) {
+            if (!WebSocket) {
+                missingCapabilities.push("Sorry but your web browser does not appear to support WebSockets.  Gate One requires WebSockets in order to (efficiently) communicate with the server.");
             }
-        }
-        // Need window.URL or window.webkitURL
-        if (!urlObj) {
-            missingCapabilities.push("Sorry but your browser does not appear to support the window.URL object.  Gate One requires this in order to download its Web Worker over the WebSocket.");
-        }
-        if (missingCapabilities.length) {
-            // Notify the user of the problems and cancel the init() process
-            alert("Sorry but your browser is missing the following capabilities which are required to run Gate One: \n" + missingCapabilities.join('\n') + "\n\nGate One will not be loaded.");
-            return;
+            //  Need either BlobBuilder (deprecated) or Blob support
+            if (!BlobBuilder) {
+                if (!Blob) {
+                    missingCapabilities.push("Sorry but your browser does not appear to support the HTML5 File API (Blob objects, specifically).  Gate One requires this in order to download its Web Worker over the WebSocket.");
+                }
+            }
+            // Need window.URL or window.webkitURL
+            if (!urlObj) {
+                missingCapabilities.push("Sorry but your browser does not appear to support the window.URL object.  Gate One requires this in order to download its Web Worker over the WebSocket.");
+            }
+            if (missingCapabilities.length) {
+                // Notify the user of the problems and cancel the init() process
+                alert("Sorry but your browser is missing the following capabilities which are required to run Gate One: \n" + missingCapabilities.join('\n') + "\n\nGate One will not be loaded.");
+                return;
+            }
         }
         // Now override them with the user's settings (if present)
         if (localStorage[go.prefs.prefix+'prefs']) {
