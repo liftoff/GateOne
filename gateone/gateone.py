@@ -719,6 +719,23 @@ class HTTPSRedirectHandler(tornado.web.RequestHandler):
         self.redirect(
             'https://%s:%s%s' % (host, port, url_prefix))
 
+class StaticHandler(tornado.web.StaticFileHandler):
+    """
+    An override of :class:`tornado.web.StaticFileHandler` to ensure that the
+    Access-Control-Allow-Origin header gets set correctly.
+    """
+    # This is the only function we need to override thanks to the thoughtfulness
+    # of the Tornado devs.
+    def set_extra_headers(self, path):
+        """
+        Adds the Access-Control-Allow-Origin header to allow cross-origin
+        access to static content for applications embedding Gate One.
+        Specifically, this is necessary in order to support loading fonts
+        from different origins.
+        """
+        print("Setting extra headers")
+        self.set_header('Access-Control-Allow-Origin', '*')
+
 class BaseHandler(tornado.web.RequestHandler):
     """
     A base handler that all Gate One RequestHandlers will inherit methods from.
@@ -806,7 +823,7 @@ class PluginCSSTemplateHandler(BaseHandler):
         templates_path = os.path.join(GATEONE_DIR, 'templates')
         plugin_templates_path = os.path.join(templates_path, plugin)
         plugin_template = os.path.join(plugin_templates_path, "%s.css" % plugin)
-        self.set_header ('Content-Type', 'text/css')
+        self.set_header('Content-Type', 'text/css')
         try:
             self.render(
                 plugin_template,
@@ -1858,8 +1875,8 @@ class TerminalWebSocket(WebSocketHandler):
         the limitations of loading remote Web Worker URLs (for embedding Gate
         One into other apps).
         """
-        static_path = os.path.join(GATEONE_DIR, "static")
-        webworker_path = os.path.join(static_path, 'go_process.js')
+        static_url = os.path.join(GATEONE_DIR, "static")
+        webworker_path = os.path.join(static_url, 'go_process.js')
         with open(webworker_path) as f:
             go_process = f.read()
         message = {'load_webworker': go_process}
@@ -2049,9 +2066,9 @@ class ErrorHandler(tornado.web.RequestHandler):
         self.set_status(status_code)
 
     def get_error_html(self, status_code, **kwargs):
-        self.require_setting("static_path")
+        self.require_setting("static_url")
         if status_code in [404, 500, 503, 403]:
-            filename = os.path.join(self.settings['static_path'], '%d.html' % status_code)
+            filename = os.path.join(self.settings['static_url'], '%d.html' % status_code)
             if os.path.exists(filename):
                 f = open(filename, 'r')
                 data = f.read()
@@ -2079,9 +2096,10 @@ class Application(tornado.web.Application):
         global PLUGIN_AUTH_HOOKS
         global PLUGIN_TERM_HOOKS
         # Base settings for our Tornado app
+        static_url = os.path.join(GATEONE_DIR, "static")
         tornado_settings = dict(
             cookie_secret=settings['cookie_secret'],
-            static_path=os.path.join(GATEONE_DIR, "static"),
+            static_url=static_url,
             static_url_prefix="%sstatic/" % settings['url_prefix'],
             gzip=True,
             login_url="%sauth" % settings['url_prefix']
@@ -2115,6 +2133,11 @@ class Application(tornado.web.Application):
         # Setup our URL handlers
         handlers = [
             (index_regex, MainHandler),
+            # Override the default static handler to ensure the headers are set
+            # to allow cross-origin requests.
+            (r"%sstatic/(.*)" % url_prefix, StaticHandler, {
+                "path": static_url,
+            }),
             (r"%sws" % url_prefix, TerminalWebSocket),
             (r"%sauth" % url_prefix, AuthHandler),
             (r"%scssrender" % url_prefix, PluginCSSTemplateHandler),
