@@ -733,7 +733,6 @@ class StaticHandler(tornado.web.StaticFileHandler):
         Specifically, this is necessary in order to support loading fonts
         from different origins.
         """
-        print("Setting extra headers")
         self.set_header('Access-Control-Allow-Origin', '*')
 
 class BaseHandler(tornado.web.RequestHandler):

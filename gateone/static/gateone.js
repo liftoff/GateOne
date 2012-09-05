@@ -1458,7 +1458,12 @@ GateOne.Base.update(GateOne.Net, {
             u = go.Utils,
             v = go.Visual,
             redirect = function() {
-                window.location.reload(); // This *should* force a re-auth if we simply had our session expire (or similar)
+                if (window.location.href.indexOf('@') != -1) {
+                    // If the URL has an @ sign assume it is PAM or Kerberos auth and replace it with something random to force re-auth
+                    window.location.href = window.location.href.replace(/:\/\/(.*@)?/g, '://'+u.randomString(8)+'@');
+                } else {
+                    window.location.reload(); // A simple reload *should* force a re-auth if all we're dealing with is a cookie/localStorage secret problem
+                }
             }
         u.deleteCookie('gateone_user', '/', '');
         delete localStorage[prefix+'gateone_user']; // Also clear this if it is set

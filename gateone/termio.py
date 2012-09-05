@@ -148,7 +148,7 @@ def retrieve_first_frame(golog_path):
     Retrieves the first frame from the given *golog_path*.
     """
     found_first_frame = None
-    frame = ""
+    frame = b""
     f = gzip.open(golog_path)
     while not found_first_frame:
         frame += f.read(1) # One byte at a time
@@ -178,9 +178,11 @@ def retrieve_last_frame(golog_path):
     golog.seek(golog.tell() - chunk_size)
     end_frames = golog.read().split(encoded_separator)
     if len(end_frames) > 1:
-        return end_frames[-2] # Very last item will be empty
-    else: # Just a single frame here, return it as-is
-        return end_frames[0]
+        # Very last item will be empty
+        return end_frames[-2].decode('UTF-8')
+    else:
+        # Just a single frame here, return it as-is
+        return end_frames[0].decode('UTF-8')
 
 def get_or_update_metadata(golog_path, user, force_update=False):
     """
@@ -191,8 +193,14 @@ def get_or_update_metadata(golog_path, user, force_update=False):
 
     .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per golog.
     """
-    #logging.debug('get_or_update_metadata()')
-    first_frame, distance = retrieve_first_frame(golog_path)
+    logging.debug('get_or_update_metadata(%s, %s, %s)' % (golog_path, user, force_update))
+    if not os.path.getsize(golog_path): # 0 bytes
+        return # Nothing to do
+    try:
+        first_frame, distance = retrieve_first_frame(golog_path)
+    except IOError:
+        # Something wrong with the log...  Probably still being written to
+        return
     metadata = {}
     if first_frame[14:].startswith('{'):
         # This is JSON, capture existing metadata
@@ -212,7 +220,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     # On the plus side re-compressing the log can save a _lot_ of disk space
     # Why?  Because termio.py writes the frames using gzip.open() in append mode
     # which is a lot less efficient than compressing all the data in one go.
-    log_data = ''
+    log_data = b''
     total_frames = 0
     while True:
         chunk = golog.read(chunk_size)
@@ -220,8 +228,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
         log_data += chunk
         if len(chunk) < chunk_size:
             break
-    # NOTE: -1 below because split() leaves us with an empty string at the end
-    #golog_frames = log_data.split(encoded_separator)[:-1]
+    log_data = log_data.decode('UTF-8')
     start_date = first_frame[:13] # Getting the start date is easy
     last_frame = retrieve_last_frame(golog_path) # This takes some work
     end_date = last_frame[:13]
@@ -253,13 +260,11 @@ def get_or_update_metadata(golog_path, user, force_update=False):
         u'filename': os.path.split(golog_path)[1]
     })
     # Make a *new* first_frame
-    first_frame = u"%s:%s" % (start_date, json_encode(metadata))
+    first_frame = u"%s:" % start_date
+    first_frame += json_encode(metadata)
     # Replace the first frame and re-save the log
-    log_data = (
-        first_frame.encode('UTF-8') +
-        encoded_separator +
-        log_data[distance:]
-    )
+    log_data = log_data.encode('UTF-8') # Encode this first to ensure 'distance'
+    log_data = (first_frame + SEPARATOR).encode('UTF-8') + log_data[distance:]
     gzip.open(golog_path, 'w').write(log_data)
     return metadata
 
@@ -539,7 +544,11 @@ class BaseMultiplex(object):
                 # The hope is that we can use the first-frame-metadata paradigm
                 # to store all sorts of useful information about a log.
                 metadata_frame = str(json_encode(metadata))
-                metadata_frame = "%s:%s\xf3\xb0\xbc\x8f" % (now, metadata_frame)
+                metadata_frame = u"%s:%s\U000f0f0f" % (now, metadata_frame)
+                if bytes != str: # Python 3
+                    metadata_frame = bytes(metadata_frame, 'UTF-8')
+                else:
+                    metadata_frame = metadata_frame.encode('UTF-8')
                 self.log = gzip.open(self.log_path, mode='a')
                 self.log.write(metadata_frame)
             if not self.log: # Only comes into play if the file already exists
@@ -552,12 +561,12 @@ class BaseMultiplex(object):
             # actual terminal unless they were using Gate One to view a
             # Gate One log file in vim or something =)
             # \U000f0f0f == U+F0F0F (Private Use Symbol)
-            #output = unicode(stream.decode('utf-8', "ignore"))
-            #output = u"%s:%s\U000f0f0f" % (now, output)
-            output = "%s:%s\xf3\xb0\xbc\x8f" % (now, stream)
-            #log = gzip.open(self.log_path, mode='a')
+            output = u"%s:%s\U000f0f0f" % (now, stream.decode('UTF-8'))
+            if bytes != str: # Python 3
+                output = bytes(output, 'UTF-8')
+            else:
+                output = output.encode('UTF-8')
             self.log.write(output)
-            #log.close()
         # NOTE: Gate One's log format is special in that it can be used for both
         # playing back recorded sessions *or* generating syslog-like output.
         if self.syslog:

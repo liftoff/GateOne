@@ -47,6 +47,8 @@ from multiprocessing import Process, Queue
 # Our stuff
 from gateone import BaseHandler, PLUGINS
 from logviewer import flatten_log
+from termio import retrieve_first_frame, retrieve_last_frame
+from termio import get_or_update_metadata
 from utils import get_translation, json_encode
 
 _ = get_translation()
@@ -92,142 +94,6 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
             scrollback, screen = term.dump_html()
             out_frames.append({'screen': screen, 'time': frame_time})
     return out_frames # Skip the first frame which is the metadata
-
-def retrieve_first_frame(golog_path):
-    """
-    Retrieves the first frame from the given *golog_path*.
-    """
-    found_first_frame = None
-    frame = ""
-    f = gzip.open(golog_path)
-    while not found_first_frame:
-        frame += f.read(1) # One byte at a time
-        if frame.decode('UTF-8', "ignore").endswith(SEPARATOR):
-            # That's it; wrap this up
-            found_first_frame = True
-    distance = f.tell()
-    f.close()
-    return (frame.decode('UTF-8', "ignore").rstrip(SEPARATOR), distance)
-
-def retrieve_last_frame(golog_path):
-    """
-    Retrieves the last frame from the given *golog_path*.  It does this by
-    iterating over the log in reverse.
-    """
-    encoded_separator = SEPARATOR.encode('UTF-8')
-    golog = gzip.open(golog_path)
-    chunk_size = 1024*128
-    # Seek to the end of the file (gzip objects don't support negative seeking)
-    distance = chunk_size
-    prev_tell = None
-    while golog.tell() != prev_tell:
-        prev_tell = golog.tell()
-        golog.seek(distance)
-        distance += distance
-    # Now that we're at the end, go back a bit and split from there
-    golog.seek(golog.tell() - chunk_size)
-    end_frames = golog.read().split(encoded_separator)
-    if len(end_frames) > 1:
-        return end_frames[-2] # Very last item will be empty
-    else: # Just a single frame here, return it as-is
-        return end_frames[0]
-
-def get_or_update_metadata(golog_path, user, force_update=False):
-    """
-    Retrieves or creates/updates the metadata inside of *golog_path*.
-
-    If *force_update* the metadata inside the golog will be updated even if it
-    already exists.
-
-    .. note::  All logs will need "fixing" the first time they're enumerated like this since they won't have an end_date.  Fortunately we only need to do this once per .golog.
-    """
-    #logging.debug('get_or_update_metadata()')
-    if not os.path.getsize(golog_path): # 0 bytes
-        return # Nothing to do
-    try:
-        first_frame, distance = retrieve_first_frame(golog_path)
-    except IOError:
-        # Something wrong with the log...  Probably still being written to
-        return
-    metadata = {}
-    if first_frame[14:].startswith('{'):
-        # This is JSON, capture existing metadata
-        metadata = json_decode(first_frame[14:])
-        # end_date gets added by this function
-        if not force_update and 'end_date' in metadata:
-            return metadata # All done
-    # '\xf3\xb0\xbc\x8f' <--UTF-8 encoded SEPARATOR (for reference)
-    encoded_separator = SEPARATOR.encode('UTF-8')
-    golog = gzip.open(golog_path)
-    # Loop over the file in big chunks (which is faster than read() by an order
-    # of magnitude)
-    chunk_size = 1024*128 # 128k should be enough for a 100x300 terminal full
-    # of 4-byte unicode characters. That would be one BIG frame (i.e. unlikely).
-    # Sadly, we have to read the whole thing into memory (log_data) in order to
-    # perform this important work (creating proper metadata).
-    # On the plus side re-compressing the log can save a _lot_ of disk space
-    # Why?  Because termio.py writes the frames using gzip.open() in append mode
-    # which is a lot less efficient than compressing all the data in one go.
-    log_data = ''
-    total_frames = 0
-    while True:
-        try:
-            chunk = golog.read(chunk_size)
-        except IOError:
-            # Log is incomplete/broken; just skip it
-            return
-        total_frames += chunk.count(encoded_separator)
-        log_data += chunk
-        if len(chunk) < chunk_size:
-            break
-    # NOTE: -1 below because split() leaves us with an empty string at the end
-    #golog_frames = log_data.split(encoded_separator)[:-1]
-    start_date = first_frame[:13] # Getting the start date is easy
-    last_frame = retrieve_last_frame(golog_path) # This takes some work
-    end_date = last_frame[:13]
-    version = u"1.0"
-    connect_string = None
-    from gateone import PLUGINS
-    if 'ssh' in PLUGINS['py']:
-        # Try to find the host that was connected to by looking for the SSH
-        # plugin's special optional escape sequence.  It looks like this:
-        #   "\x1b]_;ssh|%s@%s:%s\007"
-        match_obj = RE_OPT_SSH_SEQ.match(log_data[:(chunk_size*10)])
-        if match_obj:
-            connect_string = match_obj.group(1).split('|')[1]
-    if not connect_string:
-        # Try guessing it by looking for a title escape sequence
-        match_obj = RE_TITLE_SEQ.match(log_data[:(chunk_size*10)])
-        if match_obj:
-            # The split() here is an attempt to remove the tail end of
-            # titles like this:  'someuser@somehost: ~'
-            connect_string = match_obj.group(1)
-    # TODO: Add some hooks here for plugins to add their own metadata
-    metadata.update({
-        u'user': user,
-        u'start_date': start_date,
-        u'end_date': end_date,
-        u'frames': total_frames,
-        u'version': version,
-        u'connect_string': connect_string,
-        u'filename': os.path.split(golog_path)[1]
-    })
-    # Make a *new* first_frame
-    first_frame = u"%s:%s" % (start_date, json_encode(metadata))
-    #golog_frames[0] = first_frame.encode('UTF-8') # Replace existing metadata
-    # Re-save the log with the metadata included.
-    #log_data = ''
-    #for frame in golog_frames:
-        #log_data += frame + encoded_separator
-    #log_data = encoded_separator.join(golog_frames)
-    # Replace the first frame and re-save the log
-    log_data = (
-        first_frame.encode('UTF-8') +
-        encoded_separator +
-        log_data[distance:]
-    )
-    gzip.open(golog_path, 'w').write(log_data)
-    return metadata
 
 # Handlers
 

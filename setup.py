@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# TODO: Get this to be more intelligent about dependencies...
+#       * It should try to automatically install things like html5lib
+#       * We should also add a mechansim for plugins to mark things as dependencies.
+
 from distutils.core import setup
 import sys, os
 
@@ -135,23 +139,38 @@ setup(
 def fix_shebang(filepath):
     """
     Swaps 'python' for 'python3' in the shebang (if present) in the given
-    *filepath*.
+    *filepath*.  Returns True if a change was made.  False if no changes.
     """
     contents = []
     with open(filepath, 'r') as f:
         contents = f.readlines()
     if contents and contents[0].startswith('#!'): # Shebang
+        if 'python3' in contents[0]:
+            return False # Nothing to do
         with open(filepath, 'w') as f:
             contents[0] = contents[0].replace('python', 'python3')
             f.write("".join(contents))
+            return True
 
 if major == 3:
     from subprocess import getstatusoutput
+    try:
+        import html5lib
+    except ImportError:
+        # We'll need to use the one bundled with the bookmarks plugin which
+        # means we need to convert it
+        html5lib = None
     command = "2to3 -w -n -x print -x dict -x input %s"
     for (dirpath, dirs, filenames) in os.walk(os.path.join(prefix, 'gateone')):
         for f in filenames:
             if f.endswith('.py'):
                 filepath = os.path.join(dirpath, f)
+                if html5lib: # html5lib is installed
+                # TODO: Add logic to double-check html5lib version
+                    if "bookmarks/dependencies/html5lib" in filepath:
+                        # Remove it to ensure the installed version gets used
+                        os.remove(filepath)
+                        continue # Don't bother with the conversion
                 print("Converting to python3: %s" % filepath)
                 # Fix the shebang if present
                 fix_shebang(filepath)
