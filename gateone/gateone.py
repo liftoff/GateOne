@@ -1151,6 +1151,7 @@ class TerminalWebSocket(WebSocketHandler):
                         }
                         self.write_message(json_encode(message))
                         return
+                    print("api_keys: %s" % self.settings['api_keys'])
                     secret = self.settings['api_keys'][api_key]
                     # Check the signature against existing API keys
                     sig_check = tornado.web._create_signature(
@@ -1801,8 +1802,10 @@ class TerminalWebSocket(WebSocketHandler):
         Writes *chars* (string) to *term*.  If *term* is not provided the
         characters will be sent to the currently-selected terminal.
         """
+        #logging.debug("char_handler(%s, %s)" % (repr(chars), repr(term)))
         if not term:
             term = self.current_term
+        term = int(term) # Just in case it was sent as a string
         session = self.session
         if session in SESSIONS and term in SESSIONS[session]:
             if SESSIONS[session][term]['multiplex'].isalive():
@@ -1811,12 +1814,13 @@ class TerminalWebSocket(WebSocketHandler):
                         session][term]['multiplex'].ratelimit = time.time()
                     SESSIONS[session][term]['multiplex'].write(chars)
 
-    #require_auth
+    @require_auth
     def write_chars(self, message):
         """
         Writes *message['chars']* to *message['term']*.  If *message['term']*
         is not present, *self.current_term* will be used.
         """
+        #logging.debug('write_chars(%s)' % message)
         if 'chars' not in message:
             return # Invalid message
         if 'term' not in message:
@@ -2570,6 +2574,7 @@ def main():
         if not os.path.exists(config_defaults['log_file_prefix']):
             open(config_defaults['log_file_prefix'], 'w').write('')
         config = open(options.config, "w")
+        config.write('# -*- coding: utf-8 -*-\n') # Start with the encoding line
         for key, value in config_defaults.items():
             if isinstance(value, basestring):
                 config.write('%s = "%s"\n' % (key, value))
@@ -2694,6 +2699,8 @@ def main():
                 pairs = values.split(',')
                 for pair in pairs:
                     api_key, secret = pair.split(':')
+                    api_key = api_key.decode('UTF-8')
+                    secret = secret.decode('UTF-8')
                     api_keys.update({api_key: secret})
     # Fix the url_prefix if the user forgot the trailing slash
     if not options.url_prefix.endswith('/'):

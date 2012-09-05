@@ -65,6 +65,22 @@
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s">logging.py - A plugin for Gate One that provides logging-related functionality.</span>
+
+<span class="s">Hooks</span>
+<span class="s">-----</span>
+<span class="s">This Python plugin file implements the following hooks::</span>
+
+<span class="s">    hooks = {</span>
+<span class="s">        &#39;WebSocket&#39;: {</span>
+<span class="s">            &#39;logging_get_logs&#39;: enumerate_logs,</span>
+<span class="s">            &#39;logging_get_log_flat&#39;: retrieve_log_flat,</span>
+<span class="s">            &#39;logging_get_log_playback&#39;: retrieve_log_playback,</span>
+<span class="s">            &#39;logging_get_log_file&#39;: save_log_playback,</span>
+<span class="s">        }</span>
+<span class="s">    }</span>
+
+<span class="s">Docstrings</span>
+<span class="s">----------</span>
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Meta</span>
@@ -84,6 +100,8 @@
 <span class="c"># Our stuff</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">BaseHandler</span><span class="p">,</span> <span class="n">PLUGINS</span>
 <span class="kn">from</span> <span class="nn">logviewer</span> <span class="kn">import</span> <span class="n">flatten_log</span>
+<span class="kn">from</span> <span class="nn">termio</span> <span class="kn">import</span> <span class="n">retrieve_first_frame</span><span class="p">,</span> <span class="n">retrieve_last_frame</span>
+<span class="kn">from</span> <span class="nn">termio</span> <span class="kn">import</span> <span class="n">get_or_update_metadata</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">json_encode</span>
 
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
@@ -129,150 +147,14 @@
             <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
             <span class="n">out_frames</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s">&#39;screen&#39;</span><span class="p">:</span> <span class="n">screen</span><span class="p">,</span> <span class="s">&#39;time&#39;</span><span class="p">:</span> <span class="n">frame_time</span><span class="p">})</span>
     <span class="k">return</span> <span class="n">out_frames</span> <span class="c"># Skip the first frame which is the metadata</span>
-</div>
-<div class="viewcode-block" id="retrieve_first_frame"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_first_frame">[docs]</a><span class="k">def</span> <span class="nf">retrieve_first_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Retrieves the first frame from the given *golog_path*.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">found_first_frame</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">frame</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
-    <span class="k">while</span> <span class="ow">not</span> <span class="n">found_first_frame</span><span class="p">:</span>
-        <span class="n">frame</span> <span class="o">+=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c"># One byte at a time</span>
-        <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&quot;ignore&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">):</span>
-            <span class="c"># That&#39;s it; wrap this up</span>
-            <span class="n">found_first_frame</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="n">distance</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&quot;ignore&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="p">),</span> <span class="n">distance</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="retrieve_last_frame"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_last_frame">[docs]</a><span class="k">def</span> <span class="nf">retrieve_last_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Retrieves the last frame from the given *golog_path*.  It does this by</span>
-<span class="sd">    iterating over the log in reverse.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">encoded_separator</span> <span class="o">=</span> <span class="n">SEPARATOR</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
-    <span class="n">golog</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
-    <span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">1024</span><span class="o">*</span><span class="mi">128</span>
-    <span class="c"># Seek to the end of the file (gzip objects don&#39;t support negative seeking)</span>
-    <span class="n">distance</span> <span class="o">=</span> <span class="n">chunk_size</span>
-    <span class="n">prev_tell</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">while</span> <span class="n">golog</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">!=</span> <span class="n">prev_tell</span><span class="p">:</span>
-        <span class="n">prev_tell</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
-        <span class="n">golog</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
-        <span class="n">distance</span> <span class="o">+=</span> <span class="n">distance</span>
-    <span class="c"># Now that we&#39;re at the end, go back a bit and split from there</span>
-    <span class="n">golog</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">golog</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">-</span> <span class="n">chunk_size</span><span class="p">)</span>
-    <span class="n">end_frames</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">encoded_separator</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">end_frames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">end_frames</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="c"># Very last item will be empty</span>
-    <span class="k">else</span><span class="p">:</span> <span class="c"># Just a single frame here, return it as-is</span>
-        <span class="k">return</span> <span class="n">end_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</div>
-<div class="viewcode-block" id="get_or_update_metadata"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.get_or_update_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_or_update_metadata</span><span class="p">(</span><span class="n">golog_path</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">force_update</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Retrieves or creates/updates the metadata inside of *golog_path*.</span>
-
-<span class="sd">    If *force_update* the metadata inside the golog will be updated even if it</span>
-<span class="sd">    already exists.</span>
-
-<span class="sd">    .. note::  All logs will need &quot;fixing&quot; the first time they&#39;re enumerated like this since they won&#39;t have an end_date.  Fortunately we only need to do this once per golog.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#logging.debug(&#39;get_or_update_metadata()&#39;)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">golog_path</span><span class="p">):</span> <span class="c"># 0 bytes</span>
-        <span class="k">return</span> <span class="c"># Nothing to do</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">first_frame</span><span class="p">,</span> <span class="n">distance</span> <span class="o">=</span> <span class="n">retrieve_first_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-        <span class="c"># Something wrong with the log...  Probably still being written to</span>
-        <span class="k">return</span>
-    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="n">first_frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;{&#39;</span><span class="p">):</span>
-        <span class="c"># This is JSON, capture existing metadata</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">first_frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:])</span>
-        <span class="c"># end_date gets added by this function</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">force_update</span> <span class="ow">and</span> <span class="s">&#39;end_date&#39;</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">metadata</span> <span class="c"># All done</span>
-    <span class="c"># &#39;\xf3\xb0\xbc\x8f&#39; &lt;--UTF-8 encoded SEPARATOR (for reference)</span>
-    <span class="n">encoded_separator</span> <span class="o">=</span> <span class="n">SEPARATOR</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
-    <span class="n">golog</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
-    <span class="c"># Loop over the file in big chunks (which is faster than read() by an order</span>
-    <span class="c"># of magnitude)</span>
-    <span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">1024</span><span class="o">*</span><span class="mi">128</span> <span class="c"># 128k should be enough for a 100x300 terminal full</span>
-    <span class="c"># of 4-byte unicode characters. That would be one BIG frame (i.e. unlikely).</span>
-    <span class="c"># Sadly, we have to read the whole thing into memory (log_data) in order to</span>
-    <span class="c"># perform this important work (creating proper metadata).</span>
-    <span class="c"># On the plus side re-compressing the log can save a _lot_ of disk space</span>
-    <span class="c"># Why?  Because termio.py writes the frames using gzip.open() in append mode</span>
-    <span class="c"># which is a lot less efficient than compressing all the data in one go.</span>
-    <span class="n">log_data</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-    <span class="n">total_frames</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">chunk</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-            <span class="c"># Log is incomplete/broken; just skip it</span>
-            <span class="k">return</span>
-        <span class="n">total_frames</span> <span class="o">+=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">encoded_separator</span><span class="p">)</span>
-        <span class="n">log_data</span> <span class="o">+=</span> <span class="n">chunk</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">chunk_size</span><span class="p">:</span>
-            <span class="k">break</span>
-    <span class="c"># NOTE: -1 below because split() leaves us with an empty string at the end</span>
-    <span class="c">#golog_frames = log_data.split(encoded_separator)[:-1]</span>
-    <span class="n">start_date</span> <span class="o">=</span> <span class="n">first_frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">]</span> <span class="c"># Getting the start date is easy</span>
-    <span class="n">last_frame</span> <span class="o">=</span> <span class="n">retrieve_last_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span> <span class="c"># This takes some work</span>
-    <span class="n">end_date</span> <span class="o">=</span> <span class="n">last_frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">]</span>
-    <span class="n">version</span> <span class="o">=</span> <span class="s">u&quot;1.0&quot;</span>
-    <span class="n">connect_string</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">PLUGINS</span>
-    <span class="k">if</span> <span class="s">&#39;ssh&#39;</span> <span class="ow">in</span> <span class="n">PLUGINS</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]:</span>
-        <span class="c"># Try to find the host that was connected to by looking for the SSH</span>
-        <span class="c"># plugin&#39;s special optional escape sequence.  It looks like this:</span>
-        <span class="c">#   &quot;\x1b]_;ssh|%s@%s:%s\007&quot;</span>
-        <span class="n">match_obj</span> <span class="o">=</span> <span class="n">RE_OPT_SSH_SEQ</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">log_data</span><span class="p">[:(</span><span class="n">chunk_size</span><span class="o">*</span><span class="mi">10</span><span class="p">)])</span>
-        <span class="k">if</span> <span class="n">match_obj</span><span class="p">:</span>
-            <span class="n">connect_string</span> <span class="o">=</span> <span class="n">match_obj</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">connect_string</span><span class="p">:</span>
-        <span class="c"># Try guessing it by looking for a title escape sequence</span>
-        <span class="n">match_obj</span> <span class="o">=</span> <span class="n">RE_TITLE_SEQ</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">log_data</span><span class="p">[:(</span><span class="n">chunk_size</span><span class="o">*</span><span class="mi">10</span><span class="p">)])</span>
-        <span class="k">if</span> <span class="n">match_obj</span><span class="p">:</span>
-            <span class="c"># The split() here is an attempt to remove the tail end of</span>
-            <span class="c"># titles like this:  &#39;someuser@somehost: ~&#39;</span>
-            <span class="n">connect_string</span> <span class="o">=</span> <span class="n">match_obj</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-    <span class="c"># TODO: Add some hooks here for plugins to add their own metadata</span>
-    <span class="n">metadata</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-        <span class="s">u&#39;user&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span>
-        <span class="s">u&#39;start_date&#39;</span><span class="p">:</span> <span class="n">start_date</span><span class="p">,</span>
-        <span class="s">u&#39;end_date&#39;</span><span class="p">:</span> <span class="n">end_date</span><span class="p">,</span>
-        <span class="s">u&#39;frames&#39;</span><span class="p">:</span> <span class="n">total_frames</span><span class="p">,</span>
-        <span class="s">u&#39;version&#39;</span><span class="p">:</span> <span class="n">version</span><span class="p">,</span>
-        <span class="s">u&#39;connect_string&#39;</span><span class="p">:</span> <span class="n">connect_string</span><span class="p">,</span>
-        <span class="s">u&#39;filename&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="p">})</span>
-    <span class="c"># Make a *new* first_frame</span>
-    <span class="n">first_frame</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">start_date</span><span class="p">,</span> <span class="n">json_encode</span><span class="p">(</span><span class="n">metadata</span><span class="p">))</span>
-    <span class="c">#golog_frames[0] = first_frame.encode(&#39;UTF-8&#39;) # Replace existing metadata</span>
-    <span class="c"># Re-save the log with the metadata included.</span>
-    <span class="c">#log_data = &#39;&#39;</span>
-    <span class="c">#for frame in golog_frames:</span>
-        <span class="c">#log_data += frame + encoded_separator</span>
-    <span class="c">#log_data = encoded_separator.join(golog_frames)</span>
-    <span class="c"># Replace the first frame and re-save the log</span>
-    <span class="n">log_data</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">first_frame</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span> <span class="o">+</span>
-        <span class="n">encoded_separator</span> <span class="o">+</span>
-        <span class="n">log_data</span><span class="p">[</span><span class="n">distance</span><span class="p">:]</span>
-    <span class="p">)</span>
-    <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">log_data</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">metadata</span>
 
 <span class="c"># Handlers</span>
 
 <span class="c"># WebSocket commands (not the same as handlers)</span></div>
 <div class="viewcode-block" id="enumerate_logs"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.enumerate_logs">[docs]</a><span class="k">def</span> <span class="nf">enumerate_logs</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calls _enumerate_logs() via a multiprocessing Process() so it doesn&#39;t cause</span>
-<span class="sd">    the IOLoop to block.</span>
+<span class="sd">    Calls _enumerate_logs() via a :py:class:`multiprocessing.Process` so it</span>
+<span class="sd">    doesn&#39;t cause the :py:class:`~tornado.ioloop.IOLoop` to block.</span>
 
 <span class="sd">    Log objects will be returned to the client one at a time by sending</span>
 <span class="sd">    &#39;logging_log&#39; actions to the client over the WebSocket (*tws*).</span>
@@ -348,8 +230,9 @@
 <span class="sd">    Enumerates all of the user&#39;s logs and sends the client a &quot;logging_logs&quot;</span>
 <span class="sd">    message with the result.</span>
 
-<span class="sd">    If *limit* is given, only return the specified logs.  Works just like MySQL:</span>
-<span class="sd">        limit=&quot;5,10&quot; will retrieve logs 5-10.</span>
+<span class="sd">    If *limit* is given, only return the specified logs.  Works just like</span>
+<span class="sd">    `MySQL &lt;http://en.wikipedia.org/wiki/MySQL&gt;`_: limit=&quot;5,10&quot; will retrieve</span>
+<span class="sd">    logs 5-10.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&quot;logs&quot;</span><span class="p">)</span>
     <span class="n">log_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">)</span>
@@ -375,19 +258,18 @@
 </div>
 <div class="viewcode-block" id="retrieve_log_flat"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_log_flat">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_flat</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calls _retrieve_log_flat() via a multiprocessing Process() so it doesn&#39;t</span>
-<span class="sd">    cause the IOLoop to block.</span>
+<span class="sd">    Calls :func:`_retrieve_log_flat` via a :py:class:`multiprocessing.Process`</span>
+<span class="sd">    so it doesn&#39;t cause the :py:class:`~tornado.ioloop.IOLoop` to block.</span>
 
-<span class="sd">    *settings* - A dict containing the *log_filename*, *colors*, and *theme* to</span>
-<span class="sd">    use when generating the HTML output.</span>
-<span class="sd">    *tws* - TerminalWebSocket instance.</span>
+<span class="sd">    :arg dict settings: A dict containing the *log_filename*, *colors*, and *theme* to use when generating the HTML output.</span>
+<span class="sd">    :arg instance tws: The current :class:`gateone.TerminalWebSocket` instance (connected).</span>
 
-<span class="sd">    Here&#39;s a the details on *settings*:</span>
+<span class="sd">    Here&#39;s the details on *settings*:</span>
 
-<span class="sd">        *settings[&#39;log_filename&#39;]* - The name of the log to display.</span>
-<span class="sd">        *settings[&#39;colors&#39;]* - The CSS color scheme to use when generating output.</span>
-<span class="sd">        *settings[&#39;theme&#39;]* - The CSS theme to use when generating output.</span>
-<span class="sd">        *settings[&#39;where&#39;]* - Whether or not the result should go into a new window or an iframe.</span>
+<span class="sd">    :arg settings[&#39;log_filename&#39;]: The name of the log to display.</span>
+<span class="sd">    :arg settings[&#39;colors&#39;]: The CSS color scheme to use when generating output.</span>
+<span class="sd">    :arg settings[&#39;theme&#39;]: The CSS theme to use when generating output.</span>
+<span class="sd">    :arg settings[&#39;where&#39;]: Whether or not the result should go into a new window or an iframe.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">container</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">prefix</span>
@@ -473,8 +355,9 @@
 </div>
 <div class="viewcode-block" id="retrieve_log_playback"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_log_playback">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_playback</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calls _retrieve_log_playback() via a multiprocessing Process() so it doesn&#39;t</span>
-<span class="sd">    cause the IOLoop to block.</span>
+<span class="sd">    Calls :func:`_retrieve_log_playback` via a</span>
+<span class="sd">    :py:class:`multiprocessing.Process` so it doesn&#39;t cause the</span>
+<span class="sd">    :py:class:`~tornado.ioloop.IOLoop` to block.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">container</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">prefix</span>
@@ -523,10 +406,11 @@
 
 <span class="sd">    *settings* - A dict containing the *log_filename*, *colors*, and *theme* to</span>
 <span class="sd">    use when generating the HTML output.</span>
-<span class="sd">    *settings[&#39;log_filename&#39;]* - The name of the log to display.</span>
-<span class="sd">    *settings[&#39;colors&#39;]* - The CSS color scheme to use when generating output.</span>
-<span class="sd">    *settings[&#39;theme&#39;]* - The CSS theme to use when generating output.</span>
-<span class="sd">    *settings[&#39;where&#39;]* - Whether or not the result should go into a new window or an iframe.</span>
+
+<span class="sd">    :arg settings[&#39;log_filename&#39;]: The name of the log to display.</span>
+<span class="sd">    :arg settings[&#39;colors&#39;]: The CSS color scheme to use when generating output.</span>
+<span class="sd">    :arg settings[&#39;theme&#39;]: The CSS theme to use when generating output.</span>
+<span class="sd">    :arg settings[&#39;where&#39;]: Whether or not the result should go into a new window or an iframe.</span>
 
 <span class="sd">    The output will look like this::</span>
 
@@ -535,6 +419,7 @@
 <span class="sd">            &#39;log&#39;: &lt;HTML rendered output&gt;,</span>
 <span class="sd">            &#39;metadata&#39;: {&lt;metadata of the log&gt;}</span>
 <span class="sd">        }</span>
+
 <span class="sd">    It is expected that the client will create a new window with the result of</span>
 <span class="sd">    this method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -647,8 +532,8 @@
 </div>
 <div class="viewcode-block" id="save_log_playback"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.save_log_playback">[docs]</a><span class="k">def</span> <span class="nf">save_log_playback</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calls _save_log_playback() via a multiprocessing Process() so it doesn&#39;t</span>
-<span class="sd">    cause the IOLoop to block.</span>
+<span class="sd">    Calls :func:`_save_log_playback` via a :py:class:`multiprocessing.Process`</span>
+<span class="sd">    so it doesn&#39;t cause the :py:class:`~tornado.ioloop.IOLoop` to block.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">container</span>
     <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">prefix</span>
@@ -687,11 +572,10 @@
 <span class="sd">    is that this one instructs the client to save the file to disk instead of</span>
 <span class="sd">    opening it in a new window.</span>
 
-<span class="sd">    *settings* - A dict containing the *log_filename*, *colors*, and *theme* to</span>
-<span class="sd">    use when generating the HTML output.</span>
-<span class="sd">    *settings[&#39;log_filename&#39;]* - The name of the log to display.</span>
-<span class="sd">    *settings[&#39;colors&#39;]* - The CSS color scheme to use when generating output.</span>
-<span class="sd">    *settings[&#39;theme&#39;]* - The CSS theme to use when generating output.</span>
+<span class="sd">    :arg settings[&#39;log_filename&#39;]: The name of the log to display.</span>
+<span class="sd">    :arg settings[&#39;colors&#39;]: The CSS color scheme to use when generating output.</span>
+<span class="sd">    :arg settings[&#39;theme&#39;]: The CSS theme to use when generating output.</span>
+<span class="sd">    :arg settings[&#39;where&#39;]: Whether or not the result should go into a new window or an iframe.</span>
 
 <span class="sd">    The output will look like this::</span>
 
@@ -701,6 +585,7 @@
 <span class="sd">            &#39;mimetype&#39;: &#39;text/html&#39;</span>
 <span class="sd">            &#39;filename&#39;: &lt;filename of the log recording&gt;</span>
 <span class="sd">        }</span>
+
 <span class="sd">    It is expected that the client will create a new window with the result of</span>
 <span class="sd">    this method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -872,7 +757,7 @@
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

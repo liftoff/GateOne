@@ -22,6 +22,7 @@ this file.
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
 // TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated with the base themes.
 // TODO: Make it so that variables like GateOne.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
+// TODO: Make it so that you can press the ESC key to close panels and dialog boxes even if GateOne.Input.disableCapture() has been called.
 
 // Everything goes in GateOne
 (function(window, undefined) {
@@ -34,7 +35,7 @@ var document = window.document; // Have to do this because we're sandboxed
 var WebSocket =  (window.MozWebSocket || window.WebSocket || window.WebSocketDraft);
 
 // Blob and window.URL checks
-var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder), // Deprecated but still supported by Gate One.  Will be removed at some later date
+var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder), // Deprecated but still supported by Gate One.  Will be removed at some later date
     Blob = window.Blob, // This will be favored (used by GateOne.Utils.createBlob())
     urlObj = (window.URL || window.webkitURL);
 
@@ -959,11 +960,10 @@ GateOne.Base.update(GateOne.Utils, {
             sizingPre = document.createElement("pre"),
             fillerX = '', fillerY = [],
             lineCounter = 0;
-//         sizingDiv.innerHTML = "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  Using the \u syntax because minifiers don't seem to like unicode characters to be in the source as-is.
         // We need two lines so we can factor in the line height and character spacing (if it has been messed with).
         sizingDiv.className = "terminal";
         for (var i=0; i <= 63; i++) {
-            fillerX += "\u2588";
+            fillerX += "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  Using the \u syntax because minifiers don't seem to like unicode characters to be in the source as-is.
         }
         for (var i=0; i <= 63; i++) {
             fillerY.push(fillerX);
@@ -1484,7 +1484,7 @@ GateOne.Base.update(GateOne.Net, {
         var go = GateOne,
             u = go.Utils,
             rowAdjust = go.prefs.rowAdjust + 1, // Always 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
-            colAdjust = go.prefs.colAdjust + 2, // Always 2 for the scrollbar
+            colAdjust = go.prefs.colAdjust + 3, // Always 3 for the scrollbar
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             prefs = {
@@ -2705,6 +2705,15 @@ GateOne.Base.update(GateOne.Visual, {
             }
             // Disable input into the terminal so we can type into forms and whatnot
             go.Input.disableCapture();
+            // Make it so the user can press the ESC key to close the panel
+            panel.onkeyup = function(e) {
+                if (e.keyCode == 27) { // ESC key
+                    e.preventDefault(); // Makes sure we don't send an ESC key to the terminal
+                    GateOne.Visual.togglePanel(panel);
+                    panel.onkeyup = null; // Reset
+                    return false;
+                }
+            }
         } else {
             // Send it away
             v.applyTransform(panel, 'scale(0)');
@@ -3237,6 +3246,7 @@ GateOne.Base.update(GateOne.Visual, {
             u = go.Utils,
             v = go.Visual,
             goDiv = u.getNode(go.prefs.goDiv),
+            prevActiveElement = document.activeElement,
             unique = u.randomPrime(), // Need something unique to enable having more than one dialog on the same page.
             dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': 'halfsectrans dialogcontainer', 'title': title}),
             // dialogContent is wrapped by dialogDiv with "float: left; position: relative; left: 50%" and "float: left; position: relative; left: -50%" to ensure the content stays centered (see the theme CSS).
@@ -3251,6 +3261,15 @@ GateOne.Base.update(GateOne.Visual, {
                         v.dialogs.splice(i, 1); // Remove it
                         v.dialogs.unshift(dialogContainer); // Add it to the front
                         dialogContainer.style.opacity = 1; // Make sure it is visible
+                        // Make it so the user can press the ESC key to close the dialog
+                        dialogContainer.onkeyup = function(e) {
+                            if (e.keyCode == 27) { // ESC key
+                                e.preventDefault(); // Makes sure we don't send an ESC key to the terminal (or anything else like a panel)
+                                closeDialog();
+                                dialogContainer.onkeyup = null; // Reset
+                                return false;
+                            }
+                        }
                     }
                 }
                 // Set the z-index of each dialog to be its original z-index - its position in the array (should ensure the first item in the array has the highest z-index and so on)
@@ -3342,6 +3361,8 @@ GateOne.Base.update(GateOne.Visual, {
                 if (v.dialogs.length) {
                     v.dialogs[0].style.opacity = 1; // Set the new-first dialog back to fully visible
                 }
+                // Return focus to the previously-active element
+                prevActiveElement.focus();
             };
         // Keep track of all open dialogs so we can determine the foreground order
         if (!v.dialogs) {
@@ -3905,7 +3926,7 @@ go.Base.update(GateOne.Terminal, {
             // Ctrl-Alt-W to close the current terminal
             go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
         }
-        // Get shift-Insert working in a natural way
+        // Get shift-Insert working in a natural way (NOTE: Will only work when Gate One is the active element on the page)
         go.Input.registerShortcut('KEY_INSERT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': go.Terminal.paste, 'preventDefault': false});
         // Register our actions
         go.Net.addAction('terminals', go.Terminal.reattachTerminalsAction);
@@ -4285,8 +4306,8 @@ go.Base.update(GateOne.Terminal, {
             termUndefined = false,
             goDiv = u.getNode(go.prefs.goDiv),
             termwrapper = u.getNode('#'+prefix+'termwrapper'),
-            rowAdjust = go.prefs.rowAdjust + 1, // Always minus 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
-            colAdjust = go.prefs.colAdjust + 2, // Always minus 2 for the scrollbar
+            rowAdjust = go.prefs.rowAdjust + 1, // Always plus 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
+            colAdjust = go.prefs.colAdjust + 3, // Always plus 3 for the scrollbar
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             rows = Math.ceil(dimensions.rows - rowAdjust),

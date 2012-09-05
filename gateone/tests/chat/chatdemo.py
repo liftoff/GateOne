@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright 2009 Facebook
 #
@@ -46,7 +47,7 @@ class Application(tornado.web.Application):
             (r"/a/message/updates", MessageUpdatesHandler),
         ]
         settings = dict(
-            cookie_secret="MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M",
+            cookie_secret=u"♡☺☻♡(◕‿◕)",
             login_url="/auth/login",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),

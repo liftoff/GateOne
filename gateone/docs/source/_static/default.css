@@ -255,6 +255,7 @@ th.field-name {
 
 dt {
 /*     font-size: 1.1em; */
+    font-weight: bold;
 }
 
 .warning tt {

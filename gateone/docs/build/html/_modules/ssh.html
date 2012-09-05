@@ -59,6 +59,31 @@
 <span class="c"># TODO: Complete this docstring...</span>
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s">ssh.py - A plugin for Gate One that adds additional SSH-specific features.</span>
+
+<span class="s">Hooks</span>
+<span class="s">-----</span>
+<span class="s">This Python plugin file implements the following hooks::</span>
+
+<span class="s">    hooks = {</span>
+<span class="s">        &#39;Web&#39;: [(r&quot;/ssh&quot;, KnownHostsHandler)],</span>
+<span class="s">        &#39;WebSocket&#39;: {</span>
+<span class="s">            &#39;ssh_get_connect_string&#39;: get_connect_string,</span>
+<span class="s">            &#39;ssh_execute_command&#39;: ws_exec_command,</span>
+<span class="s">            &#39;ssh_get_identities&#39;: get_identities,</span>
+<span class="s">            &#39;ssh_get_public_key&#39;: get_public_key,</span>
+<span class="s">            &#39;ssh_get_private_key&#39;: get_private_key,</span>
+<span class="s">            &#39;ssh_get_host_fingerprint&#39;: get_host_fingerprint,</span>
+<span class="s">            &#39;ssh_gen_new_keypair&#39;: generate_new_keypair,</span>
+<span class="s">            &#39;ssh_store_id_file&#39;: store_id_file,</span>
+<span class="s">            &#39;ssh_delete_identity&#39;: delete_identity,</span>
+<span class="s">            &#39;ssh_set_default_identities&#39;: set_default_identities</span>
+<span class="s">        },</span>
+<span class="s">        &#39;Escape&#39;: opt_esc_handler,</span>
+<span class="s">        &#39;Auth&#39;: create_user_ssh_dir</span>
+<span class="s">    }</span>
+
+<span class="s">Docstrings</span>
+<span class="s">----------</span>
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Meta</span>
@@ -101,7 +126,8 @@
 <div class="viewcode-block" id="SSHMultiplexingException"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.SSHMultiplexingException">[docs]</a><span class="k">class</span> <span class="nc">SSHMultiplexingException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called when there&#39;s a failure trying to open a sub-shell via OpenSSH&#39;s</span>
-<span class="sd">    Master mode multiplexing capability.</span>
+<span class="sd">    `Master mode &lt;http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing&gt;`_</span>
+<span class="sd">    multiplexing capability.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
@@ -133,8 +159,8 @@
 </div>
 <div class="viewcode-block" id="get_ssh_dir"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">get_ssh_dir</span><span class="p">(</span><span class="n">tws</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a TerminalWebSocket (*tws*) instance, return the current user&#39;s ssh</span>
-<span class="sd">    directory</span>
+<span class="sd">    Given a :class:`gateone.TerminalWebSocket` (*tws*) instance, return the</span>
+<span class="sd">    current user&#39;s ssh directory</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">user</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
     <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
@@ -144,9 +170,10 @@
 <div class="viewcode-block" id="open_sub_channel"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.open_sub_channel">[docs]</a><span class="k">def</span> <span class="nf">open_sub_channel</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Opens a sub-channel of communication by executing a new shell on the SSH</span>
-<span class="sd">    server using OpenSSH&#39;s Master mode capability (it spawns a new slave) and</span>
-<span class="sd">    returns the resulting Multiplex instance.  If a slave has already been</span>
-<span class="sd">    opened for this purpose it will re-use the existing channel.</span>
+<span class="sd">    server using OpenSSH&#39;s `Master mode &lt;http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing&gt;`_</span>
+<span class="sd">    capability (it spawns a new slave) and returns the resulting</span>
+<span class="sd">    :class:`termio.Multiplex` instance.  If a slave has already been opened for</span>
+<span class="sd">    this purpose it will re-use the existing channel.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;open_sub_channel() term: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
     <span class="k">global</span> <span class="n">OPEN_SUBCHANNELS</span>
@@ -199,9 +226,10 @@
 </div>
 <div class="viewcode-block" id="wait_for_prompt"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.wait_for_prompt">[docs]</a><span class="k">def</span> <span class="nf">wait_for_prompt</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Called by Multiplex.expect() inside of execute_command(), clears the screen</span>
-<span class="sd">    and executes *cmd*.  Also, sets an expect() to call get_cmd_output() when</span>
-<span class="sd">    the end of the command output is detected.</span>
+<span class="sd">    Called by :func:`termio.Multiplex.expect` inside of :func:`execute_command`,</span>
+<span class="sd">    clears the screen and executes *cmd*.  Also, sets an</span>
+<span class="sd">    :func:`~termio.Multiplex.expect` to call :func:`get_cmd_output` when the</span>
+<span class="sd">    end of the command output is detected.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;wait_for_prompt()&#39;</span><span class="p">)</span>
     <span class="n">m_instance</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">clear_screen</span><span class="p">()</span> <span class="c"># Makes capturing just what we need easier</span>
@@ -212,8 +240,8 @@
 </div>
 <div class="viewcode-block" id="get_cmd_output"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_cmd_output">[docs]</a><span class="k">def</span> <span class="nf">get_cmd_output</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Captures the output of the command executed inside of wait_for_prompt() and</span>
-<span class="sd">    calls *callback* if it isn&#39;t None.</span>
+<span class="sd">    Captures the output of the command executed inside of</span>
+<span class="sd">    :func:`wait_for_prompt` and calls *callback* if it isn&#39;t `None`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_cmd_output()&#39;</span><span class="p">)</span>
     <span class="n">cmd_out</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">m_instance</span><span class="o">.</span><span class="n">dump</span><span class="p">()</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()]</span>
@@ -244,7 +272,7 @@
 </div>
 <div class="viewcode-block" id="terminate_sub_channel"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.terminate_sub_channel">[docs]</a><span class="k">def</span> <span class="nf">terminate_sub_channel</span><span class="p">(</span><span class="n">m_instance</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calls m_instance.terminate() and deletes it from the OPEN_SUBCHANNELS dict.</span>
+<span class="sd">    Calls `m_instance.terminate()` and deletes it from the OPEN_SUBCHANNELS dict.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;terminate_sub_channel()&quot;</span><span class="p">)</span>
     <span class="k">global</span> <span class="n">OPEN_SUBCHANNELS</span>
@@ -258,8 +286,8 @@
 </div>
 <div class="viewcode-block" id="timeout_sub_channel"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.timeout_sub_channel">[docs]</a><span class="k">def</span> <span class="nf">timeout_sub_channel</span><span class="p">(</span><span class="n">m_instance</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Called when the sub-channel times out by way of an expect() pattern that</span>
-<span class="sd">    should never match anything.</span>
+<span class="sd">    Called when the sub-channel times out by way of an</span>
+<span class="sd">    :class:`termio.Multiplex.expect` pattern that should never match anything.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
         <span class="s">&quot;Sub-channel on term </span><span class="si">%s</span><span class="s"> closed due to inactivity.&quot;</span>
@@ -268,7 +296,7 @@
 </div>
 <div class="viewcode-block" id="got_error"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.got_error">[docs]</a><span class="k">def</span> <span class="nf">got_error</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Called if execute_command() encounters a problem/timeout.</span>
+<span class="sd">    Called if :func:`execute_command` encounters a problem/timeout.</span>
 
 <span class="sd">    *match* is here in case we want to use it for a positive match of an error.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -291,9 +319,9 @@
 <div class="viewcode-block" id="execute_command"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.execute_command">[docs]</a><span class="k">def</span> <span class="nf">execute_command</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Execute the given command (*cmd*) on the given *term* using the existing</span>
-<span class="sd">    SSH tunnel (taking advantage of Master mode) and call *callback* with the</span>
-<span class="sd">    output of said command and the current Multiplex instance as arguments like</span>
-<span class="sd">    so::</span>
+<span class="sd">    SSH tunnel (taking advantage of `Master mode &lt;http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing&gt;`_)</span>
+<span class="sd">    and call *callback* with the output of said command and the current</span>
+<span class="sd">    :class:`termio.Multiplex` instance as arguments like so::</span>
 
 <span class="sd">        callback(output, m_instance)</span>
 
@@ -327,9 +355,9 @@
 </div>
 <div class="viewcode-block" id="send_result"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.send_result">[docs]</a><span class="k">def</span> <span class="nf">send_result</span><span class="p">(</span><span class="n">tws</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Called by ws_exec_command() when the output of the executed command has been</span>
-<span class="sd">    captured successfully.  Writes a message to the client with the command&#39;s</span>
-<span class="sd">    output and some relevant metadata.</span>
+<span class="sd">    Called by :func:`ws_exec_command` when the output of the executed command</span>
+<span class="sd">    has been captured successfully.  Writes a message to the client with the</span>
+<span class="sd">    command&#39;s output and some relevant metadata.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;sshjs_cmd_output&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -343,9 +371,11 @@
 </div>
 <div class="viewcode-block" id="ws_exec_command"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.ws_exec_command">[docs]</a><span class="k">def</span> <span class="nf">ws_exec_command</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Takes the necessary variables from *settings* and calls execute_command().</span>
+<span class="sd">    Takes the necessary variables from *settings* and calls :func:`execute_command`.</span>
 
 <span class="sd">    *settings* should be a dict that contains a &#39;term&#39; and a &#39;cmd&#39; to execute.</span>
+
+<span class="sd">    .. tip:: This function can be used to quickly execute a command and return its result from the client over an existing SSH connection without requiring the user to enter their password!  See execRemoteCmd() in ssh.js.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">term</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;term&#39;</span><span class="p">]</span>
     <span class="n">cmd</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;cmd&#39;</span><span class="p">]</span>
@@ -413,17 +443,22 @@
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">known_hosts</span><span class="p">)</span>
         <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;success&quot;</span><span class="p">)</span>
-
-<span class="c"># WebSocket commands (not the same as handlers)</span></div></div>
+</div></div>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">WebSocket Commands</span>
+<span class="sd">------------------</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c"># WebSocket commands (not the same as handlers)</span>
 <div class="viewcode-block" id="get_connect_string"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_connect_string">[docs]</a><span class="k">def</span> <span class="nf">get_connect_string</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Writes the connection string associated with *term* to the websocket like</span>
-<span class="sd">    so:</span>
+<span class="sd">    Writes the connection string associated with *term* to the `WebSocket &lt;https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket&gt;`_</span>
+<span class="sd">    like so::</span>
+
 <span class="sd">        {&#39;sshjs_reconnect&#39;: {*term*: &lt;connection string&gt;}}</span>
 
-<span class="sd">    In ssh.js we attach an action (aka handler) to GateOne.Net.actions for</span>
-<span class="sd">    &#39;sshjs_reconnect&#39; messages that attaches the connection string to</span>
-<span class="sd">    GateOne.terminals[*term*][&#39;sshConnectString&#39;]</span>
+<span class="sd">    In ssh.js we attach an action (aka handler) to :js:attr:`GateOne.Net.actions`</span>
+<span class="sd">    for &#39;sshjs_reconnect&#39; messages that attaches the connection string to</span>
+<span class="sd">    `GateOne.terminals[*term*][&#39;sshConnectString&#39;]`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;get_connect_string() term: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
     <span class="n">session</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">session</span>
@@ -443,7 +478,7 @@
 <div class="viewcode-block" id="get_key"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_key">[docs]</a><span class="k">def</span> <span class="nf">get_key</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">public</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the private SSH key associated with *name* to the client.  If</span>
-<span class="sd">    *public* is True, returns the public key to the client.</span>
+<span class="sd">    *public* is `True`, returns the public key to the client.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">)):</span>
         <span class="n">error_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span>
@@ -534,8 +569,9 @@
 </div>
 <div class="viewcode-block" id="generate_new_keypair"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">generate_new_keypair</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calls openssh_generate_new_keypair() or dropbear_generate_new_keypair()</span>
-<span class="sd">    depending on what&#39;s available on the system.</span>
+<span class="sd">    Calls :func:`openssh_generate_new_keypair` or</span>
+<span class="sd">    :func:`dropbear_generate_new_keypair` depending on what&#39;s available on the</span>
+<span class="sd">    system.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;generate_new_keypair()&#39;</span><span class="p">)</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -614,8 +650,7 @@
 <span class="sd">    insensitive).  If *keytype* is &quot;rsa&quot; or &quot;ecdsa&quot;, *bits* may be specified to</span>
 <span class="sd">    specify the size of the key.</span>
 
-<span class="sd">    NOTE: Defaults to generating a 521-byte ecdsa key if OpenSSH is version 5.7+.</span>
-<span class="sd">    Otherwise a 2048-bit rsa key will be used.</span>
+<span class="sd">    .. note:: Defaults to generating a 521-byte ecdsa key if OpenSSH is version 5.7+. Otherwise a 2048-bit rsa key will be used.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;openssh_generate_new_keypair()&#39;</span><span class="p">)</span>
     <span class="n">openssh_version</span> <span class="o">=</span> <span class="n">shell_command</span><span class="p">(</span><span class="s">&#39;ssh -V&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
@@ -670,6 +705,13 @@
         <span class="n">timeout</span><span class="o">=</span><span class="mi">15</span> <span class="c"># Key generation can take a little while</span>
     <span class="p">)</span>
     <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="dropbear_generate_new_keypair"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.dropbear_generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">dropbear_generate_new_keypair</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
+        <span class="n">keytype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. note:: Not implemented yet</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="openssh_generate_public_key"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.openssh_generate_public_key">[docs]</a><span class="k">def</span> <span class="nf">openssh_generate_public_key</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -959,10 +1001,10 @@
 <div class="viewcode-block" id="set_default_identities"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.set_default_identities">[docs]</a><span class="k">def</span> <span class="nf">set_default_identities</span><span class="p">(</span><span class="n">identities</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a list of *identities*, mark them as defaults to use in all outbound</span>
-<span class="sd">    SSH connections by writing them to &lt;user&#39;s ssh dir&gt;/.default_ids.  If</span>
+<span class="sd">    SSH connections by writing them to `&lt;user&#39;s ssh dir&gt;/.default_ids`.  If</span>
 <span class="sd">    *identities* is empty, no identities will be used in outbound connections.</span>
 
-<span class="sd">    .. note:: Whenever this function is called it will overwrite whatever is in .default_ids.</span>
+<span class="sd">    .. note:: Whenever this function is called it will overwrite whatever is in `.default_ids`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">identities</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span> <span class="c"># Ignore anything else</span>
         <span class="n">users_ssh_dir</span> <span class="o">=</span> <span class="n">get_ssh_dir</span><span class="p">(</span><span class="n">tws</span><span class="p">)</span>
@@ -976,8 +1018,11 @@
 <span class="sd">    Handles text passed from the special optional escape sequance handler.  We</span>
 <span class="sd">    use it to tell ssh.js what the SSH connection string is so it can use that</span>
 <span class="sd">    information to duplicate sessions (if the user so desires).  For reference,</span>
-<span class="sd">    the specific string which will call this function from a terminal app is:</span>
+<span class="sd">    the specific string which will call this function from a terminal app is::</span>
+
 <span class="sd">        \x1b]_;ssh|&lt;whatever&gt;\x07</span>
+
+<span class="sd">    .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;sshjs_connect&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span>
     <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
@@ -985,7 +1030,7 @@
 <div class="viewcode-block" id="create_user_ssh_dir"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.create_user_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">create_user_ssh_dir</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    To be called by the &#39;Auth&#39; hook that gets called after the user is done</span>
-<span class="sd">    authenticating, ensures that the &lt;user&#39;s dir&gt;/ssh directory exists.</span>
+<span class="sd">    authenticating, ensures that the `&lt;user&#39;s dir&gt;/ssh` directory exists.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
     <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
@@ -1090,7 +1135,7 @@
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

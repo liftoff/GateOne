@@ -21,7 +21,7 @@ if (!GateOne.prefs.playbackFrames) {
     GateOne.prefs.playbackFrames = 75; // Maximum number of session recording frames to store (in memory--for now)
 }
 // Let folks embedding Gate One skip loading the playback controls
-if (!GateOne.prefs.showPlaybackControls) {
+if (typeof(GateOne.prefs.showPlaybackControls) == "undefined") {
     GateOne.prefs.showPlaybackControls = true;
 }
 // Don't want the client saving this
@@ -63,15 +63,17 @@ GateOne.Base.update(GateOne.Playback, {
             }
             pTag.appendChild(infoPanelSaveRecording);
         }
-        // Make room for the playback controls by increasing rowAdjust (the number of rows in the terminal will be reduced by this amount)
-        go.prefs.rowAdjust += 1;
+        if (go.prefs.showPlaybackControls) {
+            // Make room for the playback controls by increasing rowAdjust (the number of rows in the terminal will be reduced by this amount)
+            go.prefs.rowAdjust += 1;
+            go.Net.sendDimensionsCallbacks.push(p.termAdjust);
+        }
         // Add our callback that adds an extra newline to all terminals
         go.Terminal.newTermCallbacks.push(p.newTerminalCallback);
         // This makes sure our playback frames get added to the terminal object whenever the screen is updated
         go.Terminal.updateTermCallbacks.push(p.pushPlaybackFrame);
         // This makes sure our prefs get saved along with everything else
         go.savePrefsCallbacks.push(p.savePrefsCallback);
-        go.Net.sendDimensionsCallbacks.push(p.termAdjust);
     },
     termAdjust: function(term) {
         // Moves the terminal screen up a little bit using CSS transforms to ensure that the scrollback buffer is only visible if you scroll
@@ -105,24 +107,23 @@ GateOne.Base.update(GateOne.Playback, {
             goDiv = u.getNode(go.prefs.goDiv),
             termPre = u.getNode('#'+prefix+'term'+term+'_pre'),
             extraSpace = u.createElement('span'); // This goes at the bottom of terminals to fill the space where the playback controls go
-        extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
-        if (termPre) {
-            termPre.appendChild(extraSpace);
-            if (u.isVisible(termPre)) {
-                var distance = goDiv.clientHeight - termPre.offsetHeight;
-                transform = "translateY(-" + distance + "px)";
-                go.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
-            }
-            // This is necessary because we add the extraSpace:
-            u.scrollToBottom(termPre);
-        } else {
-            // Try again...  It can take a moment for the server to respond and the terminal PRE to be created the first time
-            setTimeout(function() {
-                p.newTerminalCallback(term);
-            }, 100);
-        }
         if (go.prefs.showPlaybackControls) {
-            // By putting this here instead of inside addPlaybackControls() an application embedding Gate One can still use the playback controls if they want by calling addPlaybackControls() when apropriate.
+            extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
+            if (termPre) {
+                termPre.appendChild(extraSpace);
+                if (u.isVisible(termPre)) {
+                    var distance = goDiv.clientHeight - termPre.offsetHeight;
+                    transform = "translateY(-" + distance + "px)";
+                    go.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                }
+                // This is necessary because we add the extraSpace:
+                u.scrollToBottom(termPre);
+            } else {
+                // Try again...  It can take a moment for the server to respond and the terminal PRE to be created the first time
+                setTimeout(function() {
+                    p.newTerminalCallback(term);
+                }, 100);
+            }
             p.addPlaybackControls();
         }
     },
@@ -321,7 +322,6 @@ GateOne.Base.update(GateOne.Playback, {
                 }
                 pB.style.width = (percent*100) + '%'; // Update the progress bar to reflect the user's click
                 // Now update the terminal window to reflect the (approximate) selected frame
-//                 u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
                 go.Terminal.applyScreen(selectedFrame['screen'], term);
                 p.clockElement.innerHTML = dateTime.toLocaleTimeString();
             }
@@ -384,7 +384,6 @@ GateOne.Base.update(GateOne.Playback, {
                         if (p.currentFrame >= terminalObj['playbackFrames'].length) {
                             p.currentFrame = terminalObj['playbackFrames'].length - 1; // Reset
                             p.progressBarElement.style.width = '100%';
-//                             u.getNode('#'+prefix+'term'+term+'_pre').innerHTML = terminalObj['screen'].join('\n') + '\n\n';
                             go.Terminal.applyScreen(terminalObj['screen'], term);
                             if (!p.clockUpdater) { // Get the clock updating again
                                 p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1);
@@ -396,7 +395,6 @@ GateOne.Base.update(GateOne.Playback, {
                             percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
                             p.progressBarElement.style.width = percent + '%';
                             if (selectedFrame) {
-//                                 u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
                                 go.Terminal.applyScreen(selectedFrame['screen'], term);
                                 u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
                             }
@@ -406,7 +404,6 @@ GateOne.Base.update(GateOne.Playback, {
                         percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;
                         p.progressBarElement.style.width = percent + '%';
                         if (selectedFrame) {
-//                             u.getNode('#'+prefix+'term' + term + '_pre').innerHTML = selectedFrame['screen'].join('\n');
                             go.Terminal.applyScreen(selectedFrame['screen'], term);
                             u.getNode('#'+prefix+'clock').innerHTML = selectedFrame['time'].toLocaleTimeString();
                         } else {

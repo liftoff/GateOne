@@ -772,6 +772,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span>
             <span class="s">&#39;https://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">url_prefix</span><span class="p">))</span>
 </div></div>
+<div class="viewcode-block" id="StaticHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.StaticHandler">[docs]</a><span class="k">class</span> <span class="nc">StaticHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">StaticFileHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An override of :class:`tornado.web.StaticFileHandler` to ensure that the</span>
+<span class="sd">    Access-Control-Allow-Origin header gets set correctly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># This is the only function we need to override thanks to the thoughtfulness</span>
+    <span class="c"># of the Tornado devs.</span>
+<div class="viewcode-block" id="StaticHandler.set_extra_headers"><a class="viewcode-back" href="../Developer/gateone.html#gateone.StaticHandler.set_extra_headers">[docs]</a>    <span class="k">def</span> <span class="nf">set_extra_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds the Access-Control-Allow-Origin header to allow cross-origin</span>
+<span class="sd">        access to static content for applications embedding Gate One.</span>
+<span class="sd">        Specifically, this is necessary in order to support loading fonts</span>
+<span class="sd">        from different origins.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+</div></div>
 <div class="viewcode-block" id="BaseHandler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.BaseHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A base handler that all Gate One RequestHandlers will inherit methods from.</span>
@@ -859,7 +875,7 @@
         <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
         <span class="n">plugin_templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="n">plugin</span><span class="p">)</span>
         <span class="n">plugin_template</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_templates_path</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.css&quot;</span> <span class="o">%</span> <span class="n">plugin</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s">&#39;text/css&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Content-Type&#39;</span><span class="p">,</span> <span class="s">&#39;text/css&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
                 <span class="n">plugin_template</span><span class="p">,</span>
@@ -1838,8 +1854,10 @@
 <span class="sd">        Writes *chars* (string) to *term*.  If *term* is not provided the</span>
 <span class="sd">        characters will be sent to the currently-selected terminal.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#logging.debug(&quot;char_handler(%s, %s)&quot; % (repr(chars), repr(term)))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span><span class="p">:</span>
             <span class="n">term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span>
+        <span class="n">term</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="p">)</span> <span class="c"># Just in case it was sent as a string</span>
         <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
         <span class="k">if</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">SESSIONS</span> <span class="ow">and</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isalive</span><span class="p">():</span>
@@ -1847,13 +1865,14 @@
                     <span class="n">SESSIONS</span><span class="p">[</span> <span class="c"># Force an update</span>
                         <span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ratelimit</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
                     <span class="n">SESSIONS</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
-
-    <span class="c">#require_auth</span></div>
+</div>
+    <span class="nd">@require_auth</span>
 <div class="viewcode-block" id="TerminalWebSocket.write_chars"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.write_chars">[docs]</a>    <span class="k">def</span> <span class="nf">write_chars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Writes *message[&#39;chars&#39;]* to *message[&#39;term&#39;]*.  If *message[&#39;term&#39;]*</span>
 <span class="sd">        is not present, *self.current_term* will be used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#logging.debug(&#39;write_chars(%s)&#39; % message)</span>
         <span class="k">if</span> <span class="s">&#39;chars&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
             <span class="k">return</span> <span class="c"># Invalid message</span>
         <span class="k">if</span> <span class="s">&#39;term&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">message</span><span class="p">:</span>
@@ -1871,7 +1890,7 @@
 <div class="viewcode-block" id="TerminalWebSocket.esc_opt_handler"><a class="viewcode-back" href="../Developer/gateone.html#gateone.TerminalWebSocket.esc_opt_handler">[docs]</a>    <span class="k">def</span> <span class="nf">esc_opt_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes whatever function is registered matching the tuple returned by</span>
-<span class="sd">        process_opt_esc_sequence().</span>
+<span class="sd">        :func:`utils.process_opt_esc_sequence`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;esc_opt_handler(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">chars</span><span class="p">))</span>
         <span class="n">plugin_name</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="n">process_opt_esc_sequence</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
@@ -1911,8 +1930,8 @@
 <span class="sd">        the limitations of loading remote Web Worker URLs (for embedding Gate</span>
 <span class="sd">        One into other apps).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">static_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">)</span>
-        <span class="n">webworker_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">static_path</span><span class="p">,</span> <span class="s">&#39;go_process.js&#39;</span><span class="p">)</span>
+        <span class="n">static_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">)</span>
+        <span class="n">webworker_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">static_url</span><span class="p">,</span> <span class="s">&#39;go_process.js&#39;</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">webworker_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">go_process</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;load_webworker&#39;</span><span class="p">:</span> <span class="n">go_process</span><span class="p">}</span>
@@ -2102,9 +2121,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">status_code</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_error_html</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;static_path&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;static_url&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">status_code</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">404</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">403</span><span class="p">]:</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static_path&#39;</span><span class="p">],</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">.html&#39;</span> <span class="o">%</span> <span class="n">status_code</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static_url&#39;</span><span class="p">],</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">.html&#39;</span> <span class="o">%</span> <span class="n">status_code</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
                 <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
@@ -2132,9 +2151,10 @@
         <span class="k">global</span> <span class="n">PLUGIN_AUTH_HOOKS</span>
         <span class="k">global</span> <span class="n">PLUGIN_TERM_HOOKS</span>
         <span class="c"># Base settings for our Tornado app</span>
+        <span class="n">static_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">)</span>
         <span class="n">tornado_settings</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">cookie_secret</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cookie_secret&#39;</span><span class="p">],</span>
-            <span class="n">static_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">),</span>
+            <span class="n">static_url</span><span class="o">=</span><span class="n">static_url</span><span class="p">,</span>
             <span class="n">static_url_prefix</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">static/&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">],</span>
             <span class="n">gzip</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
             <span class="n">login_url</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">auth&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
@@ -2168,6 +2188,11 @@
         <span class="c"># Setup our URL handlers</span>
         <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">(</span><span class="n">index_regex</span><span class="p">,</span> <span class="n">MainHandler</span><span class="p">),</span>
+            <span class="c"># Override the default static handler to ensure the headers are set</span>
+            <span class="c"># to allow cross-origin requests.</span>
+            <span class="p">(</span><span class="s">r&quot;</span><span class="si">%s</span><span class="s">static/(.*)&quot;</span> <span class="o">%</span> <span class="n">url_prefix</span><span class="p">,</span> <span class="n">StaticHandler</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s">&quot;path&quot;</span><span class="p">:</span> <span class="n">static_url</span><span class="p">,</span>
+            <span class="p">}),</span>
             <span class="p">(</span><span class="s">r&quot;</span><span class="si">%s</span><span class="s">ws&quot;</span> <span class="o">%</span> <span class="n">url_prefix</span><span class="p">,</span> <span class="n">TerminalWebSocket</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;</span><span class="si">%s</span><span class="s">auth&quot;</span> <span class="o">%</span> <span class="n">url_prefix</span><span class="p">,</span> <span class="n">AuthHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;</span><span class="si">%s</span><span class="s">cssrender&quot;</span> <span class="o">%</span> <span class="n">url_prefix</span><span class="p">,</span> <span class="n">PluginCSSTemplateHandler</span><span class="p">),</span>
@@ -2938,7 +2963,7 @@
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

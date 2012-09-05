@@ -58,6 +58,27 @@
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s">bookmarks.py - A plugin for Gate One that adds fancy bookmarking capabilities.</span>
+
+<span class="s">Hooks</span>
+<span class="s">-----</span>
+<span class="s">This Python plugin file implements the following hooks::</span>
+
+<span class="s">    hooks = {</span>
+<span class="s">        &#39;Web&#39;: [</span>
+<span class="s">            (r&quot;/bookmarks/fetchicon&quot;, FaviconHandler),</span>
+<span class="s">            (r&quot;/bookmarks/export&quot;, ExportHandler),</span>
+<span class="s">            (r&quot;/bookmarks/import&quot;, ImportHandler),</span>
+<span class="s">        ],</span>
+<span class="s">        &#39;WebSocket&#39;: {</span>
+<span class="s">            &#39;bookmarks_sync&#39;: save_bookmarks,</span>
+<span class="s">            &#39;bookmarks_get&#39;: get_bookmarks,</span>
+<span class="s">            &#39;bookmarks_deleted&#39;: delete_bookmarks,</span>
+<span class="s">            &#39;bookmarks_rename_tags&#39;: rename_tags,</span>
+<span class="s">        }</span>
+<span class="s">    }</span>
+
+<span class="s">Docstrings</span>
+<span class="s">----------</span>
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Meta</span>
@@ -245,7 +266,7 @@
 <span class="sd">    Given a *json_dict*, updates *urls_list* with each URL as it is found</span>
 <span class="sd">    within.</span>
 
-<span class="sd">    NOTE: Only works with Netscape-style bookmarks.json files.</span>
+<span class="sd">    .. note:: Only works with Netscape-style bookmarks.json files.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">children</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">json_dict</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;children&#39;</span><span class="p">):</span>
@@ -306,7 +327,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Used to read and write bookmarks to a file on disk.  Can also synchronize</span>
 <span class="sd">    a given list of bookmarks with what&#39;s on disk.  Uses a given bookmark&#39;s</span>
-<span class="sd">    updateSequenceNum to track what wins the &quot;who is newer?&quot; comparison.</span>
+<span class="sd">    ``updateSequenceNum`` to track what wins the &quot;who is newer?&quot; comparison.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_dir</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -473,8 +494,7 @@
 <span class="sd">    fetch apple-touch-icons (which can be nice and big) before it falls back</span>
 <span class="sd">    to grabbing the favicon.</span>
 
-<span class="sd">    NOTE: Works with GET and POST requests but POST is preferred since it keeps</span>
-<span class="sd">    the URL from winding up in the server logs.</span>
+<span class="sd">    .. note:: Works with GET and POST requests but POST is preferred since it keeps the URL from winding up in the server logs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Valid favicon mime types</span>
     <span class="n">favicon_mimetypes</span> <span class="o">=</span> <span class="p">[</span>
@@ -501,10 +521,12 @@
 
 <div class="viewcode-block" id="FaviconHandler.get_favicon_url"><a class="viewcode-back" href="../Developer/plugin_bookmarks.html#bookmarks.FaviconHandler.get_favicon_url">[docs]</a>    <span class="k">def</span> <span class="nf">get_favicon_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses *html* looking for a favicon URL.  Returns a tuple of:</span>
+<span class="sd">        Parses *html* looking for a favicon URL.  Returns a tuple of::</span>
+
 <span class="sd">            (&lt;url&gt;, &lt;mimetime&gt;)</span>
 
-<span class="sd">        If no favicon can be found, returns:</span>
+<span class="sd">        If no favicon can be found, returns::</span>
+
 <span class="sd">            (None, None)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">html5lib</span>
@@ -692,7 +714,7 @@
 <span class="sd">    Returns a JSON-encoded list of bookmarks updated since the last</span>
 <span class="sd">    *updateSequenceNum*.</span>
 
-<span class="sd">    If &quot;updateSequenceNum&quot; resolves to False, all bookmarks will be sent to</span>
+<span class="sd">    If *updateSequenceNum* resolves to False, all bookmarks will be sent to</span>
 <span class="sd">    the client.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">user</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
@@ -805,7 +827,7 @@
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

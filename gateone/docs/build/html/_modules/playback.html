@@ -59,6 +59,21 @@
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s">playback.py - A plugin for Gate One that adds support for saving and playing</span>
 <span class="s">back session recordings.</span>
+
+<span class="s">.. note:: Yes this only contains one function and it is exposed to clients through a WebSocket hook.</span>
+
+<span class="s">Hooks</span>
+<span class="s">-----</span>
+<span class="s">This Python plugin file implements the following hooks::</span>
+
+<span class="s">    hooks = {</span>
+<span class="s">        &#39;WebSocket&#39;: {</span>
+<span class="s">            &#39;playback_save_recording&#39;: save_recording,</span>
+<span class="s">        }</span>
+<span class="s">    }</span>
+
+<span class="s">Docstrings</span>
+<span class="s">----------</span>
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Meta</span>
@@ -193,7 +208,7 @@
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

@@ -713,4 +713,29 @@
     transform-origin: top left;
     transition: all 0.05s ease-in-out;
 }
-
+#{{container}} div.bmfocus {
+/*    color: white;
+    background-color: rgba(0, 0, 0, 0.2);*/
+    text-decoration: underline;
+    cursor: pointer;
+    -webkit-transform-origin: center center;
+    -webkit-transition: all 0.05s ease-in-out;
+    -moz-transition: all 0.05s ease-in-out;
+    -moz-transform-origin: center center;
+    -o-transition-property: all;
+    -o-transition-duration: 0.05s;
+    -o-transition-timing-function: ease-in-out;
+    -o-transform-origin: center center;
+    -khtml-transform-origin: center center;
+    -khtml-transition: all 0.05s ease-in-out;
+    -ms-transform-origin: center center;
+    -ms-transition: all 0.05s ease-in-out;
+    transform-origin: top left;
+    transition: all 0.05s ease-in-out;
+    -webkit-transform: translateX(2%);
+    -khtml-transform: translateX(2%);
+    -moz-transform: translateX(2%);
+    -ms-transform: translateX(2%);
+    -o-transform: translateX(2%);
+    transform: translateX(2%);
+}

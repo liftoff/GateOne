@@ -45,7 +45,9 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
             GateOne.Visual.togglePanel(); // Hide the panel while we're at so the widget isn't hidden underneath
         }
         // Let's attach the load graph toggle to a keyboard shortcut too:
-        GateOne.Input.registerShortcut('KEY_L', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Example.toggleLoadGraph()'}); // L for 'load'
+        if (!go.prefs.embedded) { // Only enable if not in embedded mode (best practices)
+            GateOne.Input.registerShortcut('KEY_L', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Example.toggleLoadGraph()'}); // L for 'load'
+        }
         // Add the 'top top' button (not going to bother with a keyboard shortcut on this one)
         infoPanelTopButton.innerHTML = "Top Widget";
         infoPanelTopButton.onclick = function(e) {

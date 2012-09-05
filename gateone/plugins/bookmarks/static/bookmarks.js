@@ -27,7 +27,10 @@ var logWarning = noop;
 var logInfo = noop;
 var logDebug = noop;
 
-// TODO:  Add the ability to have Search bookmarks for query types that use POST instead of GET
+// TODO: Add the ability to have Search bookmarks for query types that use POST instead of GET
+// TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
+// TODO: Move the JSON.stringify() stuff into a Web Worker so the browser doesn't stop responding when a huge amount of bookmarks are being saved.
+// TODO: Add hooks that allow other plugins to attach actions to be called before and after bookmarks are executed.
 
 // GateOne.Bookmarks (bookmark management functions)
 GateOne.Base.module(GateOne, "Bookmarks", "1.0", ['Base']);
@@ -42,8 +45,6 @@ GateOne.Bookmarks.toUpload = []; // Used for tracking what needs to be uploaded 
 GateOne.Bookmarks.loginSync = true; // Makes sure we don't display "Synchronization Complete" if the user just logged in (unless it is the first time).
 GateOne.Bookmarks.temp = ""; // Just a temporary holding space for things like drag & drop
 GateOne.Base.update(GateOne.Bookmarks, {
-    // TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
-    // TODO: Move the JSON.stringify() stuff into a Web Worker so the browser doesn't stop responding when a huge amount of bookmarks are being saved.
     init: function() {
         var go = GateOne,
             u = go.Utils,
@@ -79,10 +80,10 @@ GateOne.Base.update(GateOne.Bookmarks, {
         toolbarBookmarks.innerHTML = go.Icons['bookmark'];
         // This is the favicon that gets used for SSH URLs (used by updateIcon())
         go.Icons['ssh'] = 'data:image/x-icon;base64,AAABAAIABQkAAAEAIAAAAQAAJgAAABAQAAABAAgAaAUAACYBAAAoAAAABQAAABIAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////SP///0j///9I////SP///w////8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A+AAAAPgAAAD4AAAA+AAAAPgAAAD4AAAA+AAAAPgAAAD4AAAAKAAAABAAAAAgAAAAAQAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACcnJwAoKSkAKikpACorKgArKysAKywrACwtLAAtLi0ALi4tAC0uLgAuLy4ALi8vAC8wLwAwMC8AMDAwADAxMAAxMjAAMTIxADIzMQAyMzIAMjMzADI0MgAyNDMAMzQ0ADQ0NAAzNTQANDU0ADQ2NAA0NjUANTY1ADU2NgA1NzUANjc2ADY3NwA3ODcANjg4ADc5NwA3OTgAODk4ADg5OQA4OjkAOTo5ADk6OgA5OzoAOjs6ADo7OwA6PDsAOzw7ADw9PAA8PjwAPD49ADw+PgA9Pz4APT8/AD1APgA/QD8AP0E/AEBBQQBAQkAAQEJBAEFCQQBBQ0IAQkRCAEJEQwBDRUMAREZFAEZIRwBGSUYAR0lHAEdKSABHSkkASEtJAElMSgBKTUsAS05MAE5QTwBnaGcAkXBUAG1wbgB+f34AgoOCAMOLWgDQlmMAj5CQAJCRkQChoqEAsrOyALO0swC3t7cAvL29AL29vQC+v74AxcXFAMbGxgDHx8cAyMjIAMrKygDLy8sAzMzMAM3NzQDOzs4Az8/PANHR0QDS0tIA1NTUANbW1gDb29sA39/fAOTk5ADo6OgA6enpAO3t7QDv7+8A8fHxAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABzc3Nzc3Nzc3Nzc3Nzc3Nzc1xoaGhoaGhoaGhoaGhac3NlNjEtJiEYEQ0IBQIAXXNzZDk0MC4kHxcRDAcEAV1zc2M9ODRPKSQdFBALBgNdc3NiQExVW1AoIhsVDwoGXnNzYUE/O1NXLighGRMOCV9zc2FDS1ZYNDAsJh0aEgxgc3NhRk5XNDQ0LyojHBYRYnNzYUhFVFlUODMvKCEcFGVzc2FKR0RUQDw3MiwnIBpmc3NhSklHQkE+OjUyKyUeZ3NzaGZpamtsbW9wbmxramhzc2hNcnJycnJycnJycmhNc3NRYWFhYXFRUVFRUVFRUXNzUVFRUVFRUVFRUVFRUlJz//8AAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAA==';
-        var showBookmarks = function() {
+        var toggleBookmarks = function() {
             go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
         }
-        toolbarBookmarks.onclick = showBookmarks;
+        toolbarBookmarks.onclick = toggleBookmarks;
         // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
         toolbar.appendChild(toolbarBookmarks);
         // Initialize the localStorage['bookmarks'] if it doesn't exist
@@ -119,6 +120,10 @@ GateOne.Base.update(GateOne.Bookmarks, {
         go.Net.addAction('bookmarks_save_result', b.syncComplete);
         go.Net.addAction('bookmarks_delete_result', b.deletedBookmarksSyncComplete);
         go.Net.addAction('bookmarks_renamed_tags', b.tagRenameComplete);
+        // Setup a keyboard shortcut so bookmarks can be keyboard-navigable
+        if (!go.prefs.embedded) {
+            go.Input.registerShortcut('KEY_B', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': toggleBookmarks});
+        }
         // Setup a callback that synchronizes the user's bookmarks after they login
         go.User.userLoginCallbacks.push(function(username) {
             var USN = localStorage[prefix+'USN'] || 0;
@@ -876,6 +881,12 @@ GateOne.Base.update(GateOne.Bookmarks, {
             e.preventDefault();
             b.openBookmark(this.href);
         };
+        bmLink.onfocus = function(e) {
+            bmElement.className = "bookmark halfsectrans bmfocus";
+        }
+        bmLink.onblur = function(e) {
+            bmElement.className = "bookmark halfsectrans";
+        }
         if (ad) {
             bmLink.innerHTML = "AD: " + bmLink.innerHTML;
             bmDesc.innerHTML = bookmark.notes;
@@ -1025,7 +1036,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             bmContainer = u.createElement('div', {'id': 'bm_container', 'class': 'sectrans'}),
             bmPagination = u.createElement('div', {'id': 'bm_pagination', 'class': 'sectrans'}),
             bmTags = u.createElement('div', {'id': 'bm_tags', 'class': 'sectrans'}),
-            bmNew = u.createElement('a', {'id': 'bm_new', 'class': 'quartersectrans'}),
+            bmNew = u.createElement('a', {'id': 'bm_new', 'class': 'quartersectrans', 'tabindex': 3}),
             bmHRFix = u.createElement('hr', {'style': {'opacity': 0, 'margin-bottom': 0}}),
             bmDisplayOpts = u.createElement('div', {'id': 'bm_display_opts', 'class': 'sectransform'}),
             bmSortOpts = b.createSortOpts(),
@@ -1087,6 +1098,11 @@ GateOne.Base.update(GateOne.Bookmarks, {
         bmTags.appendChild(bmOptions);
         bmNew.innerHTML = '+ New Bookmark';
         bmNew.onclick = b.openNewBookmarkForm;
+        bmNew.onkeyup = function(e) {
+            if (e.keyCode == 13) { // Enter key
+                bmNew.click(); // Simulate clicking on it
+            }
+        }
         bmDisplayOpts.appendChild(bmSortOpts);
         bmHeader.appendChild(bmTags);
         bmHeader.appendChild(bmHRFix); // The HR here fixes an odd rendering bug with Chrome on Mac OS X
@@ -1130,6 +1146,10 @@ GateOne.Base.update(GateOne.Bookmarks, {
                 b.loadBookmarks(1);
             }, 800); // Needs to be just a bit longer than the previous setTimeout
         }
+        // Autofocus the search box after everything is drawn
+        setTimeout(function() {
+            bmSearch.focus();
+        }, 1000);
     },
     loadTagCloud: function(active) {
         // Loads the tag cloud.  If *active* is given it must be one of 'tags' or 'autotags'.  It will mark the appropriate header as inactive and load the respective tags.
@@ -1770,6 +1790,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             }
         }
         bmCancel.onclick = closeDialog;
+        return true;
     },
     incrementVisits: function(url) {
         // Increments the given bookmark by 1

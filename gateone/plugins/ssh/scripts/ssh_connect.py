@@ -340,7 +340,7 @@ def openssh_connect(
                 " utilizing existing tunnel.\007" % (user, host, port)
             ))
         socket = socket.replace(r'%SHORT_SOCKET%', hashed)
-        socket_arg = "-S%s" % socket
+        socket_arg = "-S'%s'" % socket
         # Also make sure the base directory exists
         basedir = os.path.split(socket)[0]
         mkdir_p(basedir)

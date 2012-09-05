@@ -20,7 +20,7 @@ GateOne.Logging.levels = {
     'DEBUG': 10
 };
 // Tunable logging prefs
-if (!GateOne.prefs.logLevel) {
+if (typeof(GateOne.prefs.logLevel) == "undefined") {
     GateOne.prefs.logLevel = 'INFO';
 }
 GateOne.noSavePrefs['logLevel'] = null; // This ensures that the logging level isn't saved along with everything else if the user clicks "Save" in the settings panel

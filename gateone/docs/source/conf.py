@@ -282,3 +282,8 @@ intersphinx_mapping = {
     'python': ('http://docs.python.org/2.7', None),
     'tornado': ('http://www.tornadoweb.org/documentation/', None)
 }
+
+# Make PHP syntax highlighting work
+from sphinx.highlighting import lexers
+from pygments.lexers.web import PhpLexer
+lexers['php'] = PhpLexer(startinline=True)
