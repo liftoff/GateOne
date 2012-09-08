@@ -2791,7 +2791,10 @@ def main():
         "cert_reqs": cert_reqs
     }
     if options.disable_ssl:
+        proto = "http://"
         ssl_options = None
+    else:
+        proto = "https://"
     https_server = tornado.httpserver.HTTPServer(
         Application(settings=app_settings), ssl_options=ssl_options)
     https_redirect = tornado.web.Application(
@@ -2811,23 +2814,34 @@ def main():
             for addr in address.split(';'):
                 if addr: # Listen on all given addresses
                     if options.https_redirect:
+                        if options.disable_ssl:
+                            logging.error(_(
+                            "You have https_redirect *and* disable_ssl enabled."
+                            "  Please pick one or the other."))
+                            sys.exit(1)
                         logging.info(_(
                             "http://{addr}:80/ will be redirected to...".format(
                                 addr=addr)
                         ))
                         https_redirect.listen(port=80, address=addr)
                     logging.info(_(
-                        "Listening on https://{address}:{port}/".format(
-                            address=addr, port=options.port)
+                        "Listening on {proto}{address}:{port}/".format(
+                            proto=proto, address=addr, port=options.port)
                     ))
                     https_server.listen(port=options.port, address=addr)
         elif address == '':
             # Listen on all addresses (including IPv6)
             if options.https_redirect:
+                if options.disable_ssl:
+                    logging.error(_(
+                        "You have https_redirect *and* disable_ssl enabled."
+                        "  Please pick one or the other."))
+                    sys.exit(1)
                 logging.info(_("http://*:80/ will be redirected to..."))
                 https_redirect.listen(port=80, address="")
             logging.info(_(
-                "Listening on https://*:{port}/".format(port=options.port)))
+                "Listening on {proto}*:{port}/".format(
+                    proto=proto, port=options.port)))
             https_server.listen(port=options.port, address="")
         # NOTE:  To have Gate One *not* listen on a TCP/IP address you may set
         #        address=None
