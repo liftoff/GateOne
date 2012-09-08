@@ -2699,8 +2699,9 @@ def main():
                 pairs = values.split(',')
                 for pair in pairs:
                     api_key, secret = pair.split(':')
-                    api_key = api_key.decode('UTF-8')
-                    secret = secret.decode('UTF-8')
+                    if bytes == str:
+                        api_key = api_key.decode('UTF-8')
+                        secret = secret.decode('UTF-8')
                     api_keys.update({api_key: secret})
     # Fix the url_prefix if the user forgot the trailing slash
     if not options.url_prefix.endswith('/'):
