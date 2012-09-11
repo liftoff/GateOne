@@ -2501,10 +2501,11 @@ class Terminal(object):
         if len(self.html_cache) != len(screen):
             self.html_cache = [u'' for a in screen] # Essentially a reset
         spancount = 0
-        current_classes = []
+        current_classes = set()
         prev_rendition = None
         foregrounds = ('f0','f1','f2','f3','f4','f5','f6','f7')
         backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
+        html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
         for linecount, line_rendition in enumerate(izip(screen, renditions)):
             line = line_rendition[0]
             rendition = line_rendition[1]
@@ -2516,6 +2517,7 @@ class Terminal(object):
                         continue # Nothing changed so move on to the next line
             outline = ""
             charcount = 0
+            # TODO: Figure out if there's a faster way to process each character
             for char, rend in izip(line, rendition):
                 rend = renditions_store[rend] # Get actual rendition
                 if ord(char) >= special: # Special stuff =)
@@ -2540,7 +2542,6 @@ class Terminal(object):
                         if im: # Resize it...
                             # 640x480 should come in <32k for most stuff
                             try:
-                                #image_file.seek(0)
                                 im.thumbnail((640, 480), Image.ANTIALIAS)
                                 im.save(image_file, im.format)
                                 # Re-read it in
@@ -2564,9 +2565,7 @@ class Terminal(object):
                 changed = True
                 if char in "&<>":
                     # Have to convert ampersands and lt/gt to HTML entities
-                    char = char.replace('&', '&amp;')
-                    char = char.replace('<', '&lt;')
-                    char = char.replace('>', '&gt;')
+                    char = html_entities[char]
                 if rend == prev_rendition:
                     # Shortcut...  So we can skip all the logic below
                     changed = False
@@ -2582,7 +2581,7 @@ class Terminal(object):
                                 spancount -= 1
                             if 'reset' in _class:
                                 if _class == 'reset':
-                                    current_classes = []
+                                    current_classes = set()
                                     if spancount:
                                         for i in xrange(spancount):
                                             outline += "</span>"
@@ -2618,7 +2617,7 @@ class Terminal(object):
                                     enumerate(current_classes) if a in
                                     backgrounds
                                     ]
-                                current_classes.append(_class)
+                                current_classes.add(_class)
                     if current_classes:
                         outline += '<span class="%s">' % " ".join(current_classes)
                         spancount += 1

@@ -1457,7 +1457,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         .. note:: Non-blocking.
         """
         #logging.debug("MultiplexPOSIXIOLoop._read()")
-        result = ""
+        result = b""
         try:
             with io.open(self.fd, 'rb', closefd=False, buffering=0) as reader:
                 if bytes == -1:
