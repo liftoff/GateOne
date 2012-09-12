@@ -172,7 +172,10 @@ def retrieve_last_frame(golog_path):
     prev_tell = None
     while golog.tell() != prev_tell:
         prev_tell = golog.tell()
-        golog.seek(distance)
+        try:
+            golog.seek(distance)
+        except IOError:
+            return # Something wrong with the file
         distance += distance
     # Now that we're at the end, go back a bit and split from there
     golog.seek(golog.tell() - chunk_size)
@@ -223,7 +226,10 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     log_data = b''
     total_frames = 0
     while True:
-        chunk = golog.read(chunk_size)
+        try:
+            chunk = golog.read(chunk_size)
+        except IOError:
+            return # Something wrong with the file
         total_frames += chunk.count(encoded_separator)
         log_data += chunk
         if len(chunk) < chunk_size:

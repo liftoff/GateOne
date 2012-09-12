@@ -2657,10 +2657,11 @@ class Terminal(object):
         rendition_classes = RENDITION_CLASSES
         renditions_store = self.renditions_store
         spancount = 0
-        current_classes = []
+        current_classes = set()
         prev_rendition = None
         foregrounds = ('f0','f1','f2','f3','f4','f5','f6','f7')
         backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
+        html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
         for line, rendition in izip(screen, renditions):
             outline = ""
             for char, rend in izip(line, rendition):
@@ -2711,9 +2712,7 @@ class Terminal(object):
                 changed = True
                 if char in "&<>":
                     # Have to convert ampersands and lt/gt to HTML entities
-                    char = char.replace('&', '&amp;')
-                    char = char.replace('<', '&lt;')
-                    char = char.replace('>', '&gt;')
+                    char = html_entities[char]
                 if rend == prev_rendition:
                     changed = False
                 else:
@@ -2727,7 +2726,7 @@ class Terminal(object):
                                 spancount -= 1
                             if 'reset' in _class:
                                 if _class == 'reset':
-                                    current_classes = []
+                                    current_classes = set()
                                 else:
                                     reset_class = _class.split('reset')[0]
                                     if reset_class == 'foreground':
@@ -2756,7 +2755,7 @@ class Terminal(object):
                                     enumerate(current_classes) if a in
                                     backgrounds
                                     ]
-                                current_classes.append(_class)
+                                current_classes.add(_class)
                     if current_classes:
                         outline += '<span class="%s">' % " ".join(current_classes)
                         spancount += 1

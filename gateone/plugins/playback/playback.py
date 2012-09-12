@@ -31,9 +31,9 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
 import os
+from utils import get_translation, json_encode
 
-# Tornado stuff
-
+_ = get_translation()
 
 # Globals
 plugin_path = os.path.split(__file__)[0]
@@ -97,7 +97,7 @@ def save_recording(settings, tws):
         recording_template_data = f.read()
     recording_template = tornado.template.Template(recording_template_data)
     rendered_recording = recording_template.generate(
-        recording=recording,
+        recording=json_encode(recording),
         container=container,
         prefix=prefix,
         theme=rendered_theme,

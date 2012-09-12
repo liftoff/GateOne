@@ -572,12 +572,12 @@ GateOne.Base.update(GateOne.Logging, {
             u.removeElement(existingButtonRow);
         }
         buttonRowTitle.innerHTML = "Actions";
-        viewFlatButton.innerHTML = "View Log (Flat)";
-        viewFlatButton.title = "Opens a new window with a traditional flat view of the log.";
+        viewFlatButton.innerHTML = "Printable Log";
+        viewFlatButton.title = "Opens a new window with a traditional flat view of the log that can be printed.";
         viewFlatButton.onclick = function(e) {
             l.openLogFlat(logFile);
         }
-        viewPlaybackButton.innerHTML = "View Log (Playback)";
+        viewPlaybackButton.innerHTML = "View Playback";
         viewPlaybackButton.title = "Opens a new window with a realtime playback of the log.";
         viewPlaybackButton.onclick = function(e) {
             l.openLogPlayback(logFile);
@@ -744,10 +744,11 @@ GateOne.Base.update(GateOne.Logging, {
             v = go.Visual,
             l = go.Logging,
             prefix = go.prefs.prefix,
+            out = "",
             result = message['result'],
             logLines = message['log'],
             metadata = message['metadata'],
-            logViewContent = u.createElement('div', {'id': 'logview_container'}),
+            logViewContent = u.createElement('div', {'id': 'logview_content'}),
             logContainer = u.createElement('div', {'id': 'logview', 'class': 'terminal', 'style': {'width': '100%', 'height': '100%'}});
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
@@ -765,10 +766,8 @@ GateOne.Base.update(GateOne.Logging, {
                     newWindow.document.head.appendChild(styleTag.cloneNode(true));
                 }
             });
-//             newWindow.document.head.appendChild(cssTheme);
-//             newWindow.document.head.appendChild(cssColors);
             newWindow.document.body.appendChild(goDiv);
-            logContainer.innerHTML = '<pre style="height: 100%; overflow: auto; position: static; white-space: pre-line;">' + logLines.join('\n') + '</pre>';
+            logContainer.innerHTML = '<pre style="height: 100%; overflow: auto; position: static;">' + logLines.join('\n') + '</pre>';
             logViewContent.appendChild(logContainer);
             goDiv.appendChild(logViewContent);
         }

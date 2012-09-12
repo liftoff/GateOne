@@ -253,6 +253,7 @@ var go = GateOne.Base.update(GateOne, {
         // Before we do anything else, load our prefs
         var go = GateOne,
             u = go.Utils,
+            criticalFailure = false,
             missingCapabilities = [],
             parseResponse = function(response) {
                 if (response == 'authenticated') {
@@ -278,21 +279,67 @@ var go = GateOne.Base.update(GateOne, {
         if (!go.prefs.skipChecks) {
             if (!WebSocket) {
                 missingCapabilities.push("Sorry but your web browser does not appear to support WebSockets.  Gate One requires WebSockets in order to (efficiently) communicate with the server.");
+                criticalFailure = true;
             }
-            //  Need either BlobBuilder (deprecated) or Blob support
-            if (!BlobBuilder) {
-                if (!Blob) {
-                    missingCapabilities.push("Sorry but your browser does not appear to support the HTML5 File API (Blob objects, specifically).  Gate One requires this in order to download its Web Worker over the WebSocket.");
+            if (Blob) {
+                // Older versions of Chrome/Chromium had window.Blob() but it didn't work (would always throw "illegal constructor" exceptions).
+                // So to truly test it we need to make a test Blob():
+                try {
+                    var test = new Blob(["test"], {"type": "text\/xml"});
+                } catch (e) {
+                    // Set Blob to null so there's no confusion (fallback to BlobBuilder should work)
+                    Blob = false;
+                    window.Blob = false;
                 }
             }
-            // Need window.URL or window.webkitURL
+            //  Need either BlobBuilder (deprecated) or Blob support to save files
+            if (!BlobBuilder) {
+                if (!Blob) {
+                    missingCapabilities.push("Your browser does not appear to support the HTML5 File API (<a href='https://developer.mozilla.org/en-US/docs/DOM/Blob'>Blob objects</a>, specifically).  Some features related to saving files will not work.");
+                }
+            }
+            // Warn about window.URL or window.webkitURL
             if (!urlObj) {
-                missingCapabilities.push("Sorry but your browser does not appear to support the window.URL object.  Gate One requires this in order to download its Web Worker over the WebSocket.");
+                missingCapabilities.push("Your browser does not appear to support the <a href='https://developer.mozilla.org/en-US/docs/DOM/window.URL.createObjectURL'>window.URL</a> object.  Some features related to saving files will not work.");
             }
             if (missingCapabilities.length) {
                 // Notify the user of the problems and cancel the init() process
-                alert("Sorry but your browser is missing the following capabilities which are required to run Gate One: \n" + missingCapabilities.join('\n') + "\n\nGate One will not be loaded.");
-                return;
+                if (criticalFailure) {
+                    alert("Sorry but your browser is missing the following capabilities which are required to run Gate One: \n" + missingCapabilities.join('\n') + "\n\nGate One will not be loaded.");
+                    return;
+                } else {
+                    if (!localStorage[go.prefs.prefix+'disableWarning']) {
+                        // Warn the user about their browser's missing capabilities if they haven't checked off "Don't display this warning again"
+                        var container = u.createElement('div', {'style': {'text-align': 'left', 'margin-left': '1.5em', 'margin-right': '1.5em'}}),
+                            done = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+                            disableWarning = u.createElement('input', {'type': 'checkbox', 'id': 'disableWarning', 'style': {'margin-top': '1em', 'display': 'inline', 'width': 'auto'}}),
+                            disableWarningLabel = u.createElement('label', {'style': {'font-size': '1em', 'font-weight': 'normal', 'display': 'inline', 'width': 'auto'}}),
+                            missingList = u.createElement('ul');
+                        missingCapabilities.forEach(function(msg) {
+                            var li = u.createElement('li');
+                            li.innerHTML = msg;
+                            missingList.appendChild(li);
+                        });
+                        disableWarningLabel.innerHTML = "Don't display this warning again";
+                        disableWarningLabel.htmlFor = go.prefs.prefix+'disableWarning';
+                        container.appendChild(missingList);
+                        container.appendChild(disableWarning);
+                        container.appendChild(disableWarningLabel);
+                        // NOTE: I'm using a separate 'disableWarning' item in localStorage below so it doesn't get confused with GateOne.prefs.skipChecks (which is not supposed to be saveable in localStorage via noSavePrefs).
+                        disableWarning.onclick = function(e) {
+                            if (disableWarning.checked) {
+                                // Set it in localStorage so we know now to run this check again
+                                localStorage[go.prefs.prefix+'disableWarning'] = true;
+                            } else {
+                                delete localStorage[go.prefs.prefix+'disableWarning'];
+                            }
+                        }
+                        setTimeout(function() {
+                            // Have to wrap this in a timeout or it won't show up.
+                            go.Visual.alert('Warning', container);
+                        }, 2000);
+                    }
+                }
             }
         }
         // Now override them with the user's settings (if present)
@@ -1367,11 +1414,11 @@ GateOne.Base.update(GateOne.Utils, {
     },
     rtrim: function(string) {
         // Returns *string* minus right-hand whitespace
-        return string.replace(/\s*$/g, "");
+        return string.replace(/\s+$/,"");
     },
     ltrim: function(string) {
         // Returns *string* minus left-hand whitespace
-        return string.replace(/^\s*/g, "");
+        return string.replace(/^\s+/,"");
     },
     stripHTML: function(html) {
         // Returns the contents of *html* minus the HTML
@@ -3404,13 +3451,18 @@ GateOne.Base.update(GateOne.Visual, {
     },
     alert: function(title, message, callback) {
         // Displays a dialog using the given *title* containing the given *message* along with an OK button.  When the OK button is clicked, *callback* will be called.
+        // *message* may be a string or a DOM node.
         var go = GateOne,
             u = GateOne.Utils,
             v = GateOne.Visual,
             OKButton = u.createElement('button', {'id': 'ok_button', 'type': 'reset', 'value': 'OK', 'class': 'button black', 'style': {'margin-top': '1em', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '4em'}}), // NOTE: Using a width here because I felt the regular button styling didn't make it wide enough when innerHTML is only two characters
             messageContainer = u.createElement('p', {'id': 'ok_message', 'style': {'text-align': 'center'}});
         OKButton.innerHTML = "OK";
-        messageContainer.innerHTML = "<p>" + message + "</p>";
+        if (message instanceof HTMLElement) {
+            messageContainer.appendChild(message);
+        } else {
+            messageContainer.innerHTML = "<p>" + message + "</p>";
+        }
         messageContainer.appendChild(OKButton);
         var closeDialog = go.Visual.dialog(title, messageContainer);
         go.Input.disableCapture();
@@ -4210,9 +4262,15 @@ go.Base.update(GateOne.Terminal, {
         var u = go.Utils,
             t = go.Terminal,
             prefix = go.prefs.prefix,
+            blob = null;
+        try {
             blob = u.createBlob(source, 'application/javascript');
+        } catch (e) {
+            // No blob
+            ;;
+        }
         // Obtain a blob URL reference to our worker 'file'.
-        if (urlObj.createObjectURL) {
+        if (blob && urlObj.createObjectURL) {
             try {
                 var blobURL = urlObj.createObjectURL(blob);
                 t.termUpdatesWorker = new Worker(blobURL);

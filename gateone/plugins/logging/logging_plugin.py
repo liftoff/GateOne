@@ -270,6 +270,8 @@ def _retrieve_log_flat(queue, settings):
         'metadata': {},
     }
     # Local variables
+    out = []
+    spanstrip = re.compile(r'\s+\<\/span\>$')
     gateone_dir = settings['gateone_dir']
     user = settings['user']
     users_dir = settings['users_dir']
@@ -284,17 +286,21 @@ def _retrieve_log_flat(queue, settings):
         out_dict['metadata'] = get_or_update_metadata(log_path, user)
         out_dict['metadata']['filename'] = log_filename
         out_dict['result'] = "Success"
+        flattened_log = flatten_log(log_path)
+        flattened_log = flattened_log.replace('\n', '\r\n') # Needed to emulate an actual term
         # Use the terminal emulator to create nice HTML-formatted output
         from terminal import Terminal
-        terminal_emulator = Terminal
-        term = terminal_emulator(rows=100, cols=300)
-        flattened_log = flatten_log(log_path)
-        flattened_log.replace('\n', '\r\n') # Needed to emulate an actual term
+        term = Terminal(rows=100, cols=300)
         term.write(flattened_log)
         scrollback, screen = term.dump_html()
         # Join them together
         log_lines = scrollback + screen
-        out_dict['log'] = log_lines
+        # rstrip the lines
+        log_lines = [a.rstrip() for a in log_lines]
+        # Fix things like "<span>whatever [lots of whitespace]    </span>"
+        for i, line in enumerate(log_lines):
+            out.append(spanstrip.sub("</span>", line))
+        out_dict['log'] = out
     else:
         out_dict['result'] = _("ERROR: Log not found")
     message = {'logging_log_flat': out_dict}
