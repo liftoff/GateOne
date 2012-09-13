@@ -120,8 +120,6 @@ GateOne.Base.update(GateOne.Playback, {
                         var screenSpan = go.terminals[term]['screenNode'],
                             nodeHeight = screenSpan.getClientRects()[0].top,
                             transform = null;
-                        console.log('nodeHeight: ' +nodeHeight);
-                        console.log('goDiv.clientHeight: ' + goDiv.clientHeight);
                         if (nodeHeight < goDiv.clientHeight) { // Resize to fit
                             var scale = goDiv.clientHeight / (goDiv.clientHeight - nodeHeight);
                             transform = "scale(" + scale + ", " + scale + ")";

@@ -566,6 +566,7 @@ var go = GateOne.Base.update(GateOne, {
                 if (existing) {
                     u.removeElement(existing);
                 }
+                go.prefs.disableTermTransitions = false;
             }
             if (disableAudibleBell) {
                 go.prefs.audibleBell = false;
