@@ -461,6 +461,7 @@ var go = GateOne.Base.update(GateOne, {
         prefsPanelBell.innerHTML = "Configure";
         prefsPanelBellLabel.innerHTML = "<b>Bell Sound:</b> ";
         prefsPanelFontSize.value = go.prefs.fontSize;
+        prefsPanelDisableTermTransitions.checked = go.prefs.disableTermTransitions;
         prefsPanelStyleRow1.appendChild(prefsPanelThemeLabel);
         prefsPanelStyleRow1.appendChild(prefsPanelTheme);
         prefsPanelStyleRow2.appendChild(prefsPanelColorsLabel);
