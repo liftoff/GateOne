@@ -522,7 +522,8 @@ var go = GateOne.Base.update(GateOne, {
                 go.prefs.colors = colors;
             }
             if (fontSize) {
-                var scale = null;
+                var scale = null,
+                    translateY = null;
                 go.prefs.fontSize = fontSize;
                 goDiv.style['fontSize'] = fontSize;
                 // Also adjust the toolbar size to match the font size
@@ -537,7 +538,8 @@ var go = GateOne.Base.update(GateOne, {
                     ;;
                 }
                 if (scale) {
-                    go.Visual.applyTransform(toolbar, 'translateY('+scale+'em) scale('+scale+')');
+                    translateY = ((100 * scale) - 100) / 2; // translateY needs to be in % (one half of scale)
+                    go.Visual.applyTransform(toolbar, 'translateY('+translateY+'%) scale('+scale+')');
                 }
             }
             if (scrollbackValue) {
@@ -601,7 +603,8 @@ var go = GateOne.Base.update(GateOne, {
         }
         // Set the font according to the user's prefs
         if (go.prefs.fontSize) {
-            var scale = null;
+            var scale = null,
+                translateY = null;
             goDiv.style['fontSize'] = go.prefs.fontSize;
             goDiv.style['fontSize'] = go.prefs.fontSize;
             // Also adjust the toolbar size to match the font size
@@ -616,7 +619,8 @@ var go = GateOne.Base.update(GateOne, {
                 ;;
             }
             if (scale) {
-                go.Visual.applyTransform(toolbar, 'translateY('+scale+'em) scale('+scale+')');
+                translateY = ((100 * scale) - 100) / 2; // translateY needs to be in % (one half of scale)
+                go.Visual.applyTransform(toolbar, 'translateY('+translateY+'%) scale('+scale+')');
             }
         }
         // Disable terminal transitions if the user wants
