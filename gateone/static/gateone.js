@@ -3058,7 +3058,6 @@ GateOne.Base.update(GateOne.Visual, {
                 v.applyTransform(termObj, 'translate(-' + wPX + 'px, -' + hPX + 'px) scale(0.5)');
             }
         });
-//         v.applyTransform(terms, 'translate(-' + wPX + 'px, -' + hPX + 'px)');
         v.displayTermInfo(term);
         if (!v.scrollbackToggle) {
             // Cancel any pending scrollback timers to keep the user experience smooth

@@ -106,15 +106,32 @@ GateOne.Base.update(GateOne.Playback, {
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
             termPre = u.getNode('#'+prefix+'term'+term+'_pre'),
+            emDimensions = u.getEmDimensions(go.prefs.goDiv),
             extraSpace = u.createElement('span'); // This goes at the bottom of terminals to fill the space where the playback controls go
         if (go.prefs.showPlaybackControls) {
             extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
             if (termPre) {
                 termPre.appendChild(extraSpace);
                 if (u.isVisible(termPre)) {
-                    var distance = goDiv.clientHeight - termPre.offsetHeight;
-                    transform = "translateY(-" + distance + "px)";
-                    go.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                    if (go.prefs.rows) {
+                        // Have to reset the current transform in order to take an accurate measurement:
+                        go.Visual.applyTransform(termPre, '');
+                        // Now we can proceed to measure and adjust the size of the terminal accordingly
+                        var screenSpan = go.terminals[term]['screenNode'],
+                            nodeHeight = screenSpan.getClientRects()[0].top,
+                            transform = null;
+                        console.log('nodeHeight: ' +nodeHeight);
+                        console.log('goDiv.clientHeight: ' + goDiv.clientHeight);
+                        if (nodeHeight < goDiv.clientHeight) { // Resize to fit
+                            var scale = goDiv.clientHeight / (goDiv.clientHeight - nodeHeight);
+                            transform = "scale(" + scale + ", " + scale + ")";
+                            go.Visual.applyTransform(termPre, transform);
+                        }
+                    } else {
+                        var distance = goDiv.clientHeight - termPre.offsetHeight;
+                        transform = "translateY(-" + distance + "px)";
+                        go.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                    }
                 }
                 // This is necessary because we add the extraSpace:
                 u.scrollToBottom(termPre);
