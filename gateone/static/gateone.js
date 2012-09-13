@@ -557,8 +557,9 @@ var go = GateOne.Base.update(GateOne, {
             }
             if (disableTermTransitions) {
                 var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
-                newStyle.innerHTML = ".terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+                newStyle.innerHTML = go.prefs.goDiv + " .terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
                 u.getNode(goDiv).appendChild(newStyle);
+                go.prefs.disableTermTransitions = true;
             } else {
                 var existing = u.getNode('#'+prefix+'disable_term_transitions');
                 if (existing) {
@@ -626,7 +627,7 @@ var go = GateOne.Base.update(GateOne, {
         // Disable terminal transitions if the user wants
         if (go.prefs.disableTermTransitions) {
             var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
-            newStyle.innerHTML = ".terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+            newStyle.innerHTML = go.prefs.goDiv + " .terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
             u.getNode(goDiv).appendChild(newStyle);
         }
         // Create the (empty) toolbar
