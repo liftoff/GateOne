@@ -2883,6 +2883,9 @@ def main():
             # when Gate One is closed.  This is primarily to handle that
             # specific situation.
             killall(options.session_dir)
+            # Cleanup the session_dir (it is supposed to only contain temp stuff)
+            import shutil
+            shutil.rmtree(options.session_dir, ignore_errors=True)
 
 if __name__ == "__main__":
     main()
