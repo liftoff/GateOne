@@ -97,7 +97,7 @@ def save_recording(settings, tws):
         recording_template_data = f.read()
     recording_template = tornado.template.Template(recording_template_data)
     rendered_recording = recording_template.generate(
-        recording=json_encode(recording),
+        recording=recording,
         container=container,
         prefix=prefix,
         theme=rendered_theme,
