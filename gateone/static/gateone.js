@@ -1130,7 +1130,7 @@ GateOne.Base.update(GateOne.Utils, {
         if (message['result'] == 'Success') {
             if (message['theme']) {
                 var existing = u.getNode('#'+prefix+'theme'),
-                    stylesheet = u.createElement('style', {'id': 'theme'});
+                    stylesheet = u.createElement('style', {'id': 'theme', 'rel': 'stylesheet', 'type': 'text/css', 'media': 'screen'});
                 stylesheet.textContent = message['theme'];
                 if (existing) {
                     existing.textContent = message['theme'];
@@ -1140,7 +1140,7 @@ GateOne.Base.update(GateOne.Utils, {
             }
             if (message['colors']) {
                 var existing = u.getNode('#'+prefix+'colors'),
-                    stylesheet = u.createElement('style', {'id': 'colors'}),
+                    stylesheet = u.createElement('style', {'id': 'colors', 'rel': 'stylesheet', 'type': 'text/css', 'media': 'screen'}),
                     themeStyle = u.getNode('#'+prefix+'theme'); // Theme should always be last so it can override defaults and plugins
                 stylesheet.textContent = message['colors'];
                 if (existing) {
@@ -1156,7 +1156,7 @@ GateOne.Base.update(GateOne.Utils, {
                         continue; // Nothing to load
                     }
                     var existing = u.getNode('#'+prefix+plugin+"_css"),
-                        stylesheet = u.createElement('style', {'id': plugin+"_css"}),
+                        stylesheet = u.createElement('style', {'id': plugin+"_css", 'rel': 'stylesheet', 'type': 'text/css', 'media': 'screen'}),
                         themeStyle = u.getNode('#'+prefix+'theme'); // Theme should always be last so it can override defaults and plugins
                     stylesheet.textContent = message['plugins'][plugin];
                     if (existing) {
@@ -1166,16 +1166,19 @@ GateOne.Base.update(GateOne.Utils, {
                     }
                 }
             }
-            // Force the terminals to be re-drawn by the browser to ensure the text stays visible
-//             setTimeout(function() {
-//                 var terminals = u.toArray(u.getNodes(go.prefs.goDiv+' .terminal pre'));
-//                 terminals.forEach(function(termPre) {
-//                     var term = termPre.id.split('_')[1].split('term')[1]; // go_term1_pre
-//                     termPre.innerHTML = GateOne.terminals[term]['screen'].join('\n') + '\n\n';
-//                 });
-//             }, 500);
+            if (message['print']) {
+                var colors = u.getNode('#'+prefix+'colors'),
+                    existing = u.getNode('#'+prefix+'print'),
+                    stylesheet = u.createElement('style', {'id': 'print', 'rel': 'stylesheet', 'type': 'text/css', 'media': 'print'});
+                stylesheet.textContent = message['print'];
+                if (existing) {
+                    existing.textContent = message['print'];
+                } else { // Print stylesheet needs to come before everything else which means above 'colors'
+                    u.getNode("head").insertBefore(stylesheet, colors);
+                }
+            }
         }
-        go.Visual.updateDimensions(); // In case the styles changed things
+        go.Visual.updateDimensions(); // In case the styles changed the size of text
     },
     loadCSS: function(url, id){
         // Imports the given CSS *URL* and applies the stylesheet to the current document.
@@ -1215,7 +1218,7 @@ GateOne.Base.update(GateOne.Utils, {
             container = go.prefs.goDiv.split('#')[1],
             theme = schemeObj['theme'],
             colors = schemeObj['colors'];
-        go.ws.send(JSON.stringify({'get_style': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'theme': schemeObj['theme'], 'colors': schemeObj['colors']}}));
+        go.ws.send(JSON.stringify({'get_style': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'theme': schemeObj['theme'], 'colors': schemeObj['colors'], 'print': true}}));
     },
     loadPluginCSS: function() {
         // Tells the Gate One server to send all the plugin CSS files to the client.
@@ -4888,7 +4891,7 @@ GateOne.Net.actions = {
     'log': GateOne.Net.log,
     'ping': GateOne.Net.ping,
     'pong': GateOne.Net.pong,
-    'reauthenticate': GateOne.Net.reauthenticate,
+    'reauthenticate': GateOne.Net.reauthenticate
 }
 
 GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15560" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#linearGradient15560)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';

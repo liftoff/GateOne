@@ -749,7 +749,7 @@ GateOne.Base.update(GateOne.Logging, {
             logLines = message['log'],
             metadata = message['metadata'],
             logViewContent = u.createElement('div', {'id': 'logview_content'}),
-            logContainer = u.createElement('div', {'id': 'logview', 'class': 'terminal', 'style': {'width': '100%', 'height': '100%'}});
+            logContainer = u.createElement('div', {'id': 'logview', 'class': 'terminal'});
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
         } else {
@@ -767,8 +767,9 @@ GateOne.Base.update(GateOne.Logging, {
                 }
             });
             newWindow.document.body.appendChild(goDiv);
-            logContainer.innerHTML = '<pre style="height: 100%; overflow: auto; position: static;">' + logLines.join('\n') + '</pre>';
+            logContainer.innerHTML = '<pre style="overflow: visible; position: static; white-space: pre-wrap;">' + logLines.join('\n') + '</pre>';
             logViewContent.appendChild(logContainer);
+            goDiv.style['overflow'] = 'visible';
             goDiv.appendChild(logViewContent);
         }
     },

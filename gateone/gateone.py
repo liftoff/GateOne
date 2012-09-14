@@ -1898,12 +1898,14 @@ class TerminalWebSocket(WebSocketHandler):
             * **theme** - The name of the CSS theme to be retrieved.
             * **colors** - The name of the text color CSS scheme to be retrieved.
             * **plugins** - If true, will send all plugin .css files to the client.
+            * **print** - If true, will send the print stylesheet.
         """
         logging.debug('get_style(%s)' % settings)
         out_dict = {'result': 'Success'}
         templates_path = os.path.join(GATEONE_DIR, 'templates')
         themes_path = os.path.join(templates_path, 'themes')
         colors_path = os.path.join(templates_path, 'term_colors')
+        printing_path = os.path.join(templates_path, 'printing')
         go_url = settings['go_url'] # Used to prefix the url_prefix
         if not go_url.endswith('/'):
             go_url += '/'
@@ -1918,20 +1920,23 @@ class TerminalWebSocket(WebSocketHandler):
         plugins = None
         if 'plugins' in settings:
             plugins = settings["plugins"]
+        _print = None
+        if 'print' in settings:
+            _print = settings["print"]
+        # Setup our 256-color support CSS:
+        colors_256 = ""
+        for i in xrange(256):
+            fg = "#%s span.fx%s {color: #%s;}" % (
+                container, i, COLORS_256[i])
+            bg = "#%s span.bx%s {background-color: #%s;} " % (
+                container, i, COLORS_256[i])
+            fg_rev = "#%s span.reverse.fx%s {background-color: #%s; color: inherit;}" % (
+                container, i, COLORS_256[i])
+            bg_rev = "#%s span.reverse.bx%s {color: #%s; background-color: inherit;} " % (
+                container, i, COLORS_256[i])
+            colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
+        colors_256 += "\n"
         if theme:
-            # Setup our 256-color support CSS:
-            colors_256 = ""
-            for i in xrange(256):
-                fg = "#%s span.fx%s {color: #%s;}" % (
-                    container, i, COLORS_256[i])
-                bg = "#%s span.bx%s {background-color: #%s;} " % (
-                    container, i, COLORS_256[i])
-                fg_rev = "#%s span.reverse.fx%s {background-color: #%s; color: inherit;}" % (
-                    container, i, COLORS_256[i])
-                bg_rev = "#%s span.reverse.bx%s {color: #%s; background-color: inherit;} " % (
-                    container, i, COLORS_256[i])
-                colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
-            colors_256 += "\n"
             theme_path = os.path.join(themes_path, "%s.css" % theme)
             theme_css = self.render_string(
                 theme_path,
@@ -1975,6 +1980,16 @@ class TerminalWebSocket(WebSocketHandler):
                             if bytes != str: # Python 3
                                 plugin_css = str(plugin_css, 'UTF-8')
                             out_dict['plugins'][plugin] += plugin_css
+        if _print:
+            print_css_path = os.path.join(printing_path, "default.css")
+            print_css = self.render_string(
+                print_css_path,
+                container=container,
+                prefix=prefix,
+                colors_256=colors_256,
+                url_prefix=go_url
+            )
+            out_dict['print'] = print_css
         self.write_message(json_encode({'load_style': out_dict}))
 
     # NOTE: This has been disabled for now.  It works OK but the problem is that
