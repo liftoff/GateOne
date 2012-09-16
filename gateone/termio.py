@@ -182,10 +182,10 @@ def retrieve_last_frame(golog_path):
     end_frames = golog.read().split(encoded_separator)
     if len(end_frames) > 1:
         # Very last item will be empty
-        return end_frames[-2].decode('UTF-8')
+        return end_frames[-2].decode('UTF-8', 'ignore')
     else:
         # Just a single frame here, return it as-is
-        return end_frames[0].decode('UTF-8')
+        return end_frames[0].decode('UTF-8', 'ignore')
 
 def get_or_update_metadata(golog_path, user, force_update=False):
     """
@@ -234,7 +234,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
         log_data += chunk
         if len(chunk) < chunk_size:
             break
-    log_data = log_data.decode('UTF-8')
+    log_data = log_data.decode('UTF-8', 'ignore')
     start_date = first_frame[:13] # Getting the start date is easy
     last_frame = retrieve_last_frame(golog_path) # This takes some work
     end_date = last_frame[:13]
@@ -533,45 +533,43 @@ class BaseMultiplex(object):
 
         .. note:: This kind of logging doesn't capture user keystrokes.  This is intentional as we don't want passwords winding up in the logs.
         """
+        #logging.debug('term_write() stream: %s' % repr(stream))
         # Write to the log (if configured)
+        separator = b"\xf3\xb0\xbc\x8f"
         if self.log_path:
-            now = int(round(time.time() * 1000))
+            # Using .encode() below ensures the result will be bytes
+            now = str(int(round(time.time() * 1000))).encode('UTF-8')
             if not os.path.exists(self.log_path):
                 # Write the first frame as metadata
                 metadata = {
                     'version': '1.0', # Log format version
                     'rows': self.rows,
                     'cols': self.cols,
-                    'start_date': now
+                    'start_date': now.decode('UTF-8') # JSON needs strings
                     # NOTE: end_date should be added later when the is read for
                     # the first time by either the logviewer or the logging
                     # plugin.
                 }
                 # The hope is that we can use the first-frame-metadata paradigm
                 # to store all sorts of useful information about a log.
-                metadata_frame = str(json_encode(metadata))
-                metadata_frame = u"%s:%s\U000f0f0f" % (now, metadata_frame)
-                if bytes != str: # Python 3
-                    metadata_frame = bytes(metadata_frame, 'UTF-8')
-                else:
-                    metadata_frame = metadata_frame.encode('UTF-8')
+                # NOTE: Using .encode() below to ensure it is bytes in Python 3
+                metadata_frame = json_encode(metadata).encode('UTF-8')
+                # Using concatenation of bytes below to ensure compatibility
+                # with both Python 2 and Python 3.
+                metadata_frame = now + b":" + metadata_frame + separator
                 self.log = gzip.open(self.log_path, mode='a')
                 self.log.write(metadata_frame)
             if not self.log: # Only comes into play if the file already exists
                 self.log = gzip.open(self.log_path, mode='a')
             # NOTE: I'm using an obscure unicode symbol in order to avoid
-            # conflicts.  We need to dpo our best to ensure that we can
+            # conflicts.  We need to do our best to ensure that we can
             # differentiate between terminal output and our log format...
             # This should do the trick because it is highly unlikely that
             # someone would be displaying this obscure unicode symbol on an
             # actual terminal unless they were using Gate One to view a
             # Gate One log file in vim or something =)
-            # \U000f0f0f == U+F0F0F (Private Use Symbol)
-            output = u"%s:%s\U000f0f0f" % (now, stream.decode('UTF-8'))
-            if bytes != str: # Python 3
-                output = bytes(output, 'UTF-8')
-            else:
-                output = output.encode('UTF-8')
+            # "\xf3\xb0\xbc\x8f" == \U000f0f0f == U+F0F0F (Private Use Symbol)
+            output = now + b":" + stream + separator
             self.log.write(output)
         # NOTE: Gate One's log format is special in that it can be used for both
         # playing back recorded sessions *or* generating syslog-like output.
@@ -1472,9 +1470,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                     # feeding us too much data (so we can engage the rate
                     # limiter).
                     bytes = 8192 # Should be plenty
-                    # If we need to block/read for longer than two seconds
+                    # If we need to block/read for longer than five seconds
                     # the fd is outputting too much data.
-                    two_seconds = timedelta(seconds=2)
+                    five_seconds = timedelta(seconds=5)
                     loop_start = datetime.now()
                     while True:
                         updated = reader.read(bytes)
@@ -1488,9 +1486,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                             # eventually have to process it all which would
                             # take forever.
                             break
-                        elif datetime.now() - loop_start > two_seconds:
+                        elif datetime.now() - loop_start > five_seconds:
                             self._blocked_io_handler()
-                        result += str(updated)
+                        result += updated
                         self.term_write(updated)
                 elif bytes:
                     result = reader.read(bytes)

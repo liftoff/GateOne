@@ -123,7 +123,7 @@ def playback_log(log_path, file_like, show_esc=False):
             frame = frame[14:] # Skips the colon
             if i == 0:
                 # Write it out immediately
-                file_like.write(frame)
+                file_like.write(frame.decode('UTF-8'))
                 prev_frame_time = frame_time
             else:
             # Wait until the time between the previous frame and now has passed
@@ -132,7 +132,7 @@ def playback_log(log_path, file_like, show_esc=False):
                 prev_frame_time = frame_time
                 if show_esc:
                     frame = raw(frame)
-                file_like.write(frame)
+                file_like.write(frame.decode('UTF-8'))
                 file_like.flush()
         except ValueError:
             # End of file.  No biggie.
@@ -219,6 +219,7 @@ def flatten_log(log_path, preserve_renditions=True, show_esc=False):
     cr = False
     # We skip the first frame, [1:] because it holds the recording metadata
     for frame in lines.split(SEPARATOR.encode('UTF-8'))[1:]:
+        frame = frame.decode('UTF-8', 'ignore')
         try:
             frame_time = float(frame[:13]) # First 13 chars is the timestamp
             # Convert to datetime object

@@ -278,9 +278,9 @@ except:
 
 def handle_special(e):
     """
-    Used in conjunction with codecs.register_error, will replace special ascii
-    characters such as 0xDA and 0xc4 (which are used by ncurses) with their
-    Unicode equivalents.
+    Used in conjunction with :py:func:`codecs.register_error`, will replace
+    special ascii characters such as 0xDA and 0xc4 (which are used by ncurses)
+    with their Unicode equivalents.
     """
     # TODO: Get this using curses special characters when appropriate
     curses_specials = {
@@ -447,11 +447,18 @@ def handle_special(e):
     }
     # I left this in its odd state so I could differentiate between the two
     # in the future.
+    chars = e.object
+    if bytes == str: # Python 2
+        # Convert e.object to a bytearray for an easy switch to integers.
+        # It is quicker than calling ord(char) on each char in e.object
+        chars = bytearray(e.object)
+        # NOTE: In Python 3 when you iterate over bytes they appear as integers.
+        #       So we don't need to convert to a bytearray in Python 3.
     if isinstance(e, (UnicodeEncodeError, UnicodeTranslateError)):
-        s = [u'%s' % specials[ord(c)] for c in e.object[e.start:e.end]]
+        s = [u'%s' % specials[c] for c in chars[e.start:e.end]]
         return ''.join(s), e.end
     else:
-        s = [u'%s' % specials[ord(c)] for c in e.object[e.start:e.end]]
+        s = [u'%s' % specials[c] for c in chars[e.start:e.end]]
         return ''.join(s), e.end
 codecs.register_error('handle_special', handle_special)
 
@@ -1284,14 +1291,17 @@ class Terminal(object):
         # Have to convert to unicode
         try:
             chars = chars.decode('utf-8', "handle_special")
-        except UnicodeEncodeError:
+        except UnicodeDecodeError:
             # Just in case
             try:
                 chars = chars.decode('utf-8', "ignore")
-            except UnicodeEncodeError:
+            except UnicodeDecodeError:
                 logging.error(
-                    _("Double UnicodeEncodeError in Terminal.terminal."))
+                    _("Double UnicodeDecodeError in terminal.Terminal."))
                 return
+        except AttributeError:
+            # In Python 3 strings don't have .decode()
+            pass # Already Unicode
         for char in chars:
             charnum = ord(char)
             if charnum in specials:
@@ -1375,7 +1385,17 @@ class Terminal(object):
                             current = self.screen[self.cursorY][self.cursorX]
                             combined = unicodedata.normalize(
                                 'NFC', u'%s%s' % (current, char))
-                            self.screen[self.cursorY][self.cursorX] = combined
+                            # Sometimes a joined combining char can still result
+                            # a string of length > 1.  So we need to handle that
+                            if len(combined) > 1:
+                                for i, c in enumerate(combined):
+                                    self.screen[self.cursorY][
+                                        self.cursorX] = c
+                                    if i < len(combined) - 1:
+                                        cursor_right()
+                            else:
+                                self.screen[self.cursorY][
+                                    self.cursorX] = combined
                         else:
                             # Normal character
                             self.screen[self.cursorY][self.cursorX] = char
