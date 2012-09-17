@@ -187,10 +187,10 @@ hr {
     outline: none;
     resize: none;
     font-family: 'Ubuntu Mono', monospace; /* For consistency */
-    line-height: 1;
+    line-height: 1.2;
 }
 #{{container}} .terminal {
-    line-height: 1;
+    line-height: 1.2;
     background-color: #000; /* Black - dark black! */
     color: #fff;
     position: static;
