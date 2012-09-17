@@ -1376,19 +1376,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             pass # Can happen if this instance winds up in a thread
         for callback in self.callbacks[self.CALLBACK_EXIT].values():
             self._call_callback(callback)
-        # Call the exitfunc (if set)
-        if self.exitfunc:
-            self.exitfunc(self, self.exitstatus)
-            self.exitfunc = None
-        if self._patterns:
-            self.timeout_check(timeout_now=True)
-            self.unexpect()
-        self.scheduler.stop()
-        # NOTE: Without this 'del' we end up with a memory leak every time
-        # a new instance of Multiplex is created.  Apparently the references
-        # inside of PeriodicCallback pointing to self prevent proper garbage
-        # collection.
-        del self.scheduler
+        # This try/except block *must* come before the exitfunc logic.
+        # Otherwise, if the registered exitfunc raises an exception the IOLoop
+        # will never stop watching self.fd; resulting in an infinite loop of
+        # exitfunc.
         try:
             self.io_loop.remove_handler(self.fd)
             os.close(self.fd)
@@ -1396,6 +1387,12 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             # This can happen when the fd is removed by the underlying process
             # before the next cycle of the IOLoop.  Not really a problem.
             pass
+        self.scheduler.stop()
+        # NOTE: Without this 'del' we end up with a memory leak every time
+        # a new instance of Multiplex is created.  Apparently the references
+        # inside of PeriodicCallback pointing to self prevent proper garbage
+        # collection.
+        del self.scheduler
         try:
             # TODO: Make this walk the series from SIGINT to SIGKILL
             import signal
@@ -1409,6 +1406,13 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             pid, status = os.waitpid(-1, os.WNOHANG)
             if pid:
                 self.exitstatus = os.WEXITSTATUS(status)
+        if self._patterns:
+            self.timeout_check(timeout_now=True)
+            self.unexpect()
+        # Call the exitfunc (if set)
+        if self.exitfunc:
+            self.exitfunc(self, self.exitstatus)
+            self.exitfunc = None
         # Reset all callbacks so there's nothing to prevent GC
         self.callbacks = {
             self.CALLBACK_UPDATE: {},

@@ -666,6 +666,7 @@ def openssh_generate_public_key(path, passphrase=None, settings=None, tws=None):
     *passphrase* is provided, it will be used to generate the public key (if
     necessary).
     """
+    logging.debug('openssh_generate_public_key()')
     ssh_keygen_path = which('ssh-keygen')
     pubkey_path = "%s.pub" % path
     command = (
