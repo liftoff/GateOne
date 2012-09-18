@@ -2057,7 +2057,7 @@ class Terminal(object):
         #logging.debug("insert_characters(%s)" % n)
         n = int(n)
         for i in xrange(n):
-            self.screen[self.cursorY][self.cursorX + i].pop()
+            self.screen[self.cursorY].pop(self.cursorX + i)
             self.screen[self.cursorY].insert(self.cursorX + i, u' ')
 
     def delete_characters(self, n=1):
