@@ -766,10 +766,10 @@ GateOne.Base.update(GateOne.SSH, {
                 sendPublicKey = function(evt) {
                     var data = evt.target.result,
                         fileName = null;
-                    if (privFile.fileName) {
-                        fileName = privFile.fileName;
+                    if (pubFile.fileName) {
+                        fileName = pubFile.fileName;
                     } else {
-                        fileName = privFile.name;
+                        fileName = pubFile.name;
                     }
                     var settings = {
                         'name': fileName,
@@ -781,10 +781,10 @@ GateOne.Base.update(GateOne.SSH, {
                 sendCertificate = function(evt) {
                     var data = evt.target.result,
                         fileName = null;
-                    if (privFile.fileName) {
-                        fileName = privFile.fileName;
+                    if (certFile.fileName) {
+                        fileName = certFile.fileName;
                     } else {
-                        fileName = privFile.name;
+                        fileName = certFile.name;
                     }
                     var settings = {
                         'name': fileName,
