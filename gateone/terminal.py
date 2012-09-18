@@ -519,6 +519,50 @@ def _reduce_renditions(renditions):
         out_renditions.append(background)
     return out_renditions
 
+def unicode_counter():
+    """
+    A generator that returns incrementing Unicode characters that can be used as
+    references inside a Unicode array.  For example::
+
+        >>> counter = unicode_counter()
+        >>> mapping_dict = {}
+        >>> some_array = array('u')
+        >>> # Pretend 'marked ...' below is a reference to something impotant :)
+        >>> for i, c in enumerate(u'some string'):
+                if c == u' ': # Mark the location of spaces
+                    # Perform some operation where we need to save a value
+                    result = some_evaluation(i, c)
+                    # Save some memory by storing a reference to result instead
+                    # of the same result over and over again
+                    if result not in mapping_dict.values():
+                        marker = counter.next()
+                        some_array.append(marker)
+                        mapping_dict[marker] = result
+                    else: # Find the existing reference so we can use it again
+                        for k, v in mapping_dict.items():
+                            if v == result: # Use the existing value
+                                some_array.append(k)
+                else:
+                    some_array.append(\x00) # \x00 == "not interesting" placeholder
+        >>>
+
+    Now we could iterate over 'some string' and some_array simultaneously using
+    zip(u'some string', some_array) to access those reference markers when we
+    encountered the correct position.  This can save a lot of memory if you need
+    to store objects in memory that have a tendancy to repeat (e.g. text
+    rendition lists in a terminal).
+
+    .. note:: Meant to be used inside the renditions array to reference text rendition lists such as `[0, 1, 34]`.
+    """
+    n = 1000 # Start at 1000 so we can use lower characters for other things
+    while True:
+        yield unichr(n)
+        if n == 65535: # The end of unicode in narrow builds of Python
+            n = 0 # Reset
+        else:
+            n += 1
+
+# NOTE:  Why use a unicode array() to store references instead of just a regular array()?  Two reasons:  1) Large namespace.  2) Only need to use one kind of array for everything (convenience).  It is also a large memory savings over "just using a list with references to items in a dict."
 def pua_counter():
     """
     A generator that returns a Unicode Private Use Area (PUA) character starting
@@ -526,7 +570,7 @@ def pua_counter():
     successive call.  If this is a narrow Python build the tail end of Plane 15
     will be used as a fallback (with a lot less characters).
 
-    .. note:: Meant to be used as references to image objects in the screen array()
+    .. note:: Meant to be used as references to non-text objects in the screen array() (since it can only contain unicode characters)
     """
     if SPECIAL == 1048576: # Not a narrow build of Python
         n = SPECIAL # U+100000 or unichr(SPECIAL) (start of Plane 16)
@@ -648,7 +692,7 @@ class Terminal(object):
         self.esc_buffer = '' # For holding escape sequences as they're typed.
         self.show_cursor = True
         self.cursor_home = 0
-        self.cur_rendition = unichr(SPECIAL) # Should always be reset ([0])
+        self.cur_rendition = unichr(1000) # Should always be reset ([0])
         self.init_screen()
         self.init_renditions()
         self.G0_charset = self.charsets['B']
@@ -838,7 +882,7 @@ class Terminal(object):
         self.image_counter = pua_counter()
         # This is for creating a new point of reference every time there's a new
         # unique rendition at a given coordinate
-        self.rend_counter = pua_counter()
+        self.rend_counter = unicode_counter()
         # Used for mapping unicode chars to acutal renditions (to save memory):
         self.renditions_store = {
             u' ': [0], # Nada, nothing, no rendition.  Not the same as below
@@ -870,7 +914,7 @@ class Terminal(object):
         self.prev_dump_rend = []
         self.html_cache = [] # Force this to be reset as well
 
-    def init_renditions(self, rendition=unichr(SPECIAL)):
+    def init_renditions(self, rendition=unichr(1000)): # Match unicode_counter
         """
         Replaces :attr:`self.renditions` with arrays of *rendition* (characters)
         using :attr:`self.cols` and :attr:`self.rows` for the dimenions.
@@ -1000,7 +1044,7 @@ class Terminal(object):
         elif rows > self.rows: # Add rows at the bottom
             for i in xrange(rows - self.rows):
                 line = array('u', u' ' * self.cols)
-                renditions = array('u', unichr(SPECIAL) * self.cols)
+                renditions = array('u', unichr(1000) * self.cols)
                 self.screen.append(line)
                 self.renditions.append(renditions)
         self.rows = rows
@@ -1019,7 +1063,7 @@ class Terminal(object):
             for i in xrange(self.rows):
                 for j in xrange(cols - self.cols):
                     self.screen[i].append(u' ')
-                    self.renditions[i].append(unichr(SPECIAL))
+                    self.renditions[i].append(unichr(1000))
         self.cols = cols
 
         # Fix the cursor location:
@@ -1034,7 +1078,7 @@ class Terminal(object):
 
         .. note:: This also handles restore/set "DEC Private Mode Values".
         """
-        logging.debug("_set_top_bottom(%s)" % settings)
+        #logging.debug("_set_top_bottom(%s)" % settings)
         # NOTE: Used by screen and vi so this needs to work and work well!
         if len(settings):
             if settings.startswith('?'):
@@ -1450,7 +1494,7 @@ class Terminal(object):
             style = self.renditions.pop(self.top_margin)
             self.scrollback_renditions.append(style)
             # Insert a new empty rendition as well:
-            empty_line = array('u', unichr(SPECIAL) * self.cols)
+            empty_line = array('u', unichr(1000) * self.cols)
             self.renditions.insert(self.bottom_margin, empty_line)
         # Execute our callback indicating lines have been updated
         try:
@@ -1479,7 +1523,7 @@ class Terminal(object):
             # Remove bottom line's style information:
             self.renditions.pop(self.bottom_margin)
             # Insert a new empty one:
-            empty_line = array('u', unichr(SPECIAL) * self.cols)
+            empty_line = array('u', unichr(1000) * self.cols)
             self.renditions.insert(self.top_margin, empty_line)
         # Execute our callback indicating lines have been updated
         try:
@@ -1510,8 +1554,8 @@ class Terminal(object):
             empty_line = array('u', u' ' * self.cols) # Line full of spaces
             self.screen.insert(self.cursorY, empty_line) # Insert at cursor
             # Insert a new empty rendition as well:
-            empty_line = array('u', unichr(SPECIAL) * self.cols)
-            self.renditions.insert(self.cursorY, empty_line) # Insert at cursor
+            empty_rend = array('u', unichr(1000) * self.cols)
+            self.renditions.insert(self.cursorY, empty_rend) # Insert at cursor
 
     def delete_line(self, n=1):
         """
@@ -1531,8 +1575,8 @@ class Terminal(object):
             # Add it to the bottom of the view:
             self.screen.insert(self.bottom_margin, empty_line) # Insert at bottom
             # Insert a new empty rendition as well:
-            empty_line = array('u', unichr(SPECIAL) * self.cols)
-            self.renditions.insert(self.bottom_margin, empty_line)
+            empty_rend = array('u', unichr(1000) * self.cols)
+            self.renditions.insert(self.bottom_margin, empty_rend)
 
     def backspace(self):
         """Execute a backspace (\\x08)"""
@@ -1960,7 +2004,7 @@ class Terminal(object):
             self.alt_screen = None
             self.alt_renditions = None
         # These all need to be reset no matter what
-        self.cur_rendition = unichr(SPECIAL)
+        self.cur_rendition = unichr(1000)
         self.prev_dump = []
         self.prev_dump_rend = []
         self.html_cache = []
@@ -2006,12 +2050,15 @@ class Terminal(object):
             #self.local_echo = True
 
     def insert_characters(self, n=1):
-        """Inserts the specified number of characters at the cursor position."""
+        """
+        Inserts the specified number of characters at the cursor position.
+        Overwriting whatever is already present.
+        """
         #logging.debug("insert_characters(%s)" % n)
         n = int(n)
         for i in xrange(n):
-            self.screen[self.cursorY].pop() # Take one down, pass it around
-            self.screen[self.cursorY].insert(self.cursorX, unichr(SPECIAL))
+            self.screen[self.cursorY][self.cursorX + i].pop()
+            self.screen[self.cursorY].insert(self.cursorX + i, u' ')
 
     def delete_characters(self, n=1):
         """
@@ -2034,7 +2081,7 @@ class Terminal(object):
                 self.screen[self.cursorY].pop(self.cursorX)
                 self.screen[self.cursorY].append(u' ')
                 self.renditions[self.cursorY].pop(self.cursorX)
-                self.renditions[self.cursorY].append(unichr(SPECIAL))
+                self.renditions[self.cursorY].append(unichr(1000))
             except IndexError:
                 # At edge of screen, ignore
                 #print('IndexError in delete_characters(): %s' % e)
@@ -2056,7 +2103,7 @@ class Terminal(object):
         n = min(n, distance)
         for i in xrange(n):
             self.screen[self.cursorY][self.cursorX+i] = u' '
-            self.renditions[self.cursorY][self.cursorX+i] = unichr(SPECIAL)
+            self.renditions[self.cursorY][self.cursorX+i] = unichr(1000)
 
     def cursor_left(self, n=1):
         """ESCnD CUB (Cursor Back)"""
@@ -2291,7 +2338,7 @@ class Terminal(object):
         saved_renditions = self.renditions[self.cursorY][self.cursorX:]
         spaces = array('u', u' '*len(self.screen[self.cursorY][:self.cursorX]))
         renditions = array('u',
-            self.cur_rendition * len(self.screen[self.cursorY][self.cursorX:]))
+            self.cur_rendition * len(self.screen[self.cursorY][:self.cursorX]))
         self.screen[self.cursorY] = spaces + saved
         self.renditions[self.cursorY] = renditions + saved_renditions
 
@@ -2412,7 +2459,7 @@ class Terminal(object):
             return # Don't bother setting renditions past the bottom
         if not n: # or \x1b[m (reset)
             # First char in PUA Plane 16 is always the default:
-            self.cur_rendition = unichr(SPECIAL) # Should be reset (e.g. [0])
+            self.cur_rendition = unichr(1000) # Should be reset (e.g. [0])
             return # No need for further processing; save some CPU
         # Convert the string (e.g. '0;1;32') to a list (e.g. [0,1,32]
         new_renditions = [int(a) for a in n.split(';') if a != '']
@@ -2536,6 +2583,8 @@ class Terminal(object):
                         results.append(self.html_cache[linecount])
                         continue # Nothing changed so move on to the next line
             outline = ""
+            if current_classes:
+                outline += '<span class="%s">' % " ".join(current_classes)
             charcount = 0
             # TODO: Figure out if there's a faster way to process each character
             for char, rend in izip(line, rendition):
@@ -2652,6 +2701,9 @@ class Terminal(object):
             self.prev_dump[linecount] = line[:]
             self.prev_dump_rend[linecount] = rendition[:]
             if outline:
+                # Make sure all renditions terminate at the end of the line
+                for whatever in xrange(spancount):
+                    outline += "</span>"
                 results.append(outline)
                 self.html_cache[linecount] = outline
             else:
@@ -2684,6 +2736,8 @@ class Terminal(object):
         html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
         for line, rendition in izip(screen, renditions):
             outline = ""
+            if current_classes:
+                outline += '<span class="%s">' % " ".join(current_classes)
             for char, rend in izip(line, rendition):
                 rend = renditions_store[rend] # Get actual rendition
                 if ord(char) >= special: # Special stuff =)
@@ -2781,6 +2835,9 @@ class Terminal(object):
                         spancount += 1
                 outline += char
             if outline:
+                # Make sure all renditions terminate at the end of the line
+                for whatever in xrange(spancount):
+                    outline += "</span>"
                 results.append(outline)
             else:
                 results.append(None)

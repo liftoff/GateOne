@@ -1,6 +1,6 @@
 /* NOTE: I've only done the black-on-whatever permutation because it seems to be the only special permutation that makes a difference.  If anyone feels we need such fine-tuning of *all* foreground/background combinations please submit a ticket to the issue tracker (and be prepared to hear complaints about repetitive stress injuries!) */
 /* 8-color Foregrounds */
-#{{container}} span.f0 { color: #5C5C5C; } /* Black */
+#{{container}} span.f0 { color: #444; } /* Black */
 #{{container}} span.f1 { color: #D6292C; } /* Red */
 #{{container}} span.f2 { color: #13A110; } /* Green */
 #{{container}} span.f3 { color: #E9E900; } /* Yellow */
@@ -8,7 +8,7 @@
 #{{container}} span.f5 { color: #E01DC6; } /* Magenta */
 #{{container}} span.f6 { color: #28AAA8; } /* Cyan */
 #{{container}} span.f7 { color: #eee; } /* White */
-/* 8-color Foregrounds on 8-color Backgrounds */
+/* 8-color Foregrounds on 8-color Backgrounds (need special handling to make the black text more readable) */
 #{{container}} span.f0.b0 { color: #444; background-color: #000; } /* Black on Black */
 #{{container}} span.f0.b1 { color: #000; background-color: #B21818; } /* Black on Red */
 #{{container}} span.f0.b2 { color: #000; background-color: green; } /* Black on Green */
@@ -19,13 +19,6 @@
 #{{container}} span.f0.b7 { color: #000; background-color: #B2B2B2; } /* Black on White */
 /* 8-color Foregrounds with 'bright' (16-color) Backgrounds */
 #{{container}} span.f0.bb0 { color: #444; background-color: #000; } /* Black on Black */
-#{{container}} span.f0.bb1 { color: #000; background-color: #B21818; } /* Black on Bright Red */
-#{{container}} span.f0.bb2 { color: #000; background-color: #00E40C; } /* Black on Bright Green */
-#{{container}} span.f0.bb3 { color: #000; background-color: #FFFF00; } /* Black on Bright Yellow */
-#{{container}} span.f0.bb4 { color: #000; background-color: #1818B2; } /* Black on Bright Blue */
-#{{container}} span.f0.bb5 { color: #000; background-color: #B218B2; } /* Black on Bright Magenta */
-#{{container}} span.f0.bb6 { color: #000; background-color: #18B2B2; } /* Black on Bright Cyan */
-#{{container}} span.f0.bb7 { color: #000; background-color: #B2B2B2; } /* Black on Bright White */
 /* 8-color Backgrounds */
 #{{container}} span.b0  { background-color: #000; } /* Black (used when the rendition is set to 49) */
 #{{container}} span.b1  { background-color: #B21818; } /* Red */
@@ -36,15 +29,24 @@
 #{{container}} span.b6  { background-color: #18B2B2; } /* Cyan */
 #{{container}} span.b7  { background-color: #B2B2B2; } /* White */
 /* Reversed Foregrounds */
-#{{container}} span.reverse { color: #000; background-color: #ccc; } /* Black on White (since this is the "Black" CSS) */
-#{{container}} span.reverse.f0 { color: #444; background-color: #000; } /* Black on Black (#444 so you can still read it)*/
-#{{container}} span.reverse.f1 { color: #000; background-color: #D6292C; } /* Red on Black */
-#{{container}} span.reverse.f2 { color: #000; background-color: green; } /* Green on Black */
-#{{container}} span.reverse.f3 { color: #000; background-color: #BDC000; } /* Yellow on Black */
-#{{container}} span.reverse.f4 { color: #000; background-color: #1B4CFF; } /* Blue on Black */
-#{{container}} span.reverse.f5 { color: #000; background-color: #E01DC6; } /* Magenta on Black */
-#{{container}} span.reverse.f6 { color: #000; background-color: #28AAA8; } /* Cyan on Black */
-#{{container}} span.reverse.f7 { color: #000; background-color: #eee; } /* White on Black */
+/* NOTE: The default span.reverse {} must go in the theme to be background and foreground aware */
+#{{container}} span.reverse.f0 { background-color: #000; } /* Black on Black (#444 so you can still read it) */
+#{{container}} span.reverse.f1 { background-color: #D6292C; } /* Red on Black */
+#{{container}} span.reverse.f2 { background-color: green; } /* Green on Black */
+#{{container}} span.reverse.f3 { background-color: #BDC000; } /* Yellow on Black */
+#{{container}} span.reverse.f4 { background-color: #1B4CFF; } /* Blue on Black */
+#{{container}} span.reverse.f5 { background-color: #E01DC6; } /* Magenta on Black */
+#{{container}} span.reverse.f6 { background-color: #28AAA8; } /* Cyan on Black */
+#{{container}} span.reverse.f7 { background-color: #eee; } /* White on Black */
+/* Reversed Backgrounds */
+#{{container}} span.reverse.b0 { color: #000; }
+#{{container}} span.reverse.b1 { color: #B21818; }
+#{{container}} span.reverse.b2 { color: green; }
+#{{container}} span.reverse.b3 { color: #FFFF00; }
+#{{container}} span.reverse.b4 { color: #1818B2; }
+#{{container}} span.reverse.b5 { color: #B218B2; }
+#{{container}} span.reverse.b6 { color: #18B2B2; }
+#{{container}} span.reverse.b7 { color: #fff; }
 /* 16-color ('Bright') Foregrounds */
 #{{container}} span.bf0 { color: #5C5C5C; } /* Bright Black!  I never knew thee existed! */
 #{{container}} span.bf1 { color: #D6292C; } /* Bright Red */
@@ -71,7 +73,6 @@
 #{{container}} span.bb6  { background-color: #18B2B2; } /* Bright Cyan */
 #{{container}} span.bb7  { background-color: #B2B2B2; } /* Bright White */
 /* Reversed Foregrounds */
-#{{container}} span.reverse { color: #000; background-color: #ccc; } /* Black on White */
 #{{container}} span.reverse.bf0 { color: #000; background-color: #ccc; } /* Black */
 #{{container}} span.reverse.bf1 { color: #000; background-color: #D6292C; } /* Red */
 #{{container}} span.reverse.bf2 { color: #000; background-color: #13A110; } /* Green */

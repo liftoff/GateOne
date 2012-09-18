@@ -589,12 +589,12 @@ def killall(session_dir):
                 continue # Not a PID
             cmdline_path = os.path.join(pid_dir, 'cmdline')
             if os.path.exists(cmdline_path):
-                with open(cmdline_path) as f:
-                    try:
+                try:
+                    with open(cmdline_path) as f:
                         cmdline = f.read()
-                    except IOError:
-                        # Can happen if a process ended as we were looking at it
-                        continue
+                except IOError:
+                    # Can happen if a process ended as we were looking at it
+                    continue
             for session in sessions:
                 if session in cmdline:
                     try:
