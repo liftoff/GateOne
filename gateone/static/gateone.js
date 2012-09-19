@@ -277,7 +277,8 @@ var go = GateOne.Base.update(GateOne, {
         }
         // Capabilities Notifications
         if (!go.prefs.skipChecks) {
-            if (!WebSocket) {
+            if (typeof(WebSocket) != "function") {
+                logError('Browser failed WebSocket support check.');
                 missingCapabilities.push("Sorry but your web browser does not appear to support WebSockets.  Gate One requires WebSockets in order to (efficiently) communicate with the server.");
                 criticalFailure = true;
             }
@@ -295,11 +296,13 @@ var go = GateOne.Base.update(GateOne, {
             //  Need either BlobBuilder (deprecated) or Blob support to save files
             if (!BlobBuilder) {
                 if (!Blob) {
+                    logError('Browser failed Blob support check.');
                     missingCapabilities.push("Your browser does not appear to support the HTML5 File API (<a href='https://developer.mozilla.org/en-US/docs/DOM/Blob'>Blob objects</a>, specifically).  Some features related to saving files will not work.");
                 }
             }
             // Warn about window.URL or window.webkitURL
             if (!urlObj) {
+                logError('Browser failed window.URL object support check.');
                 missingCapabilities.push("Your browser does not appear to support the <a href='https://developer.mozilla.org/en-US/docs/DOM/window.URL.createObjectURL'>window.URL</a> object.  Some features related to saving files will not work.");
             }
             if (missingCapabilities.length) {
@@ -693,12 +696,6 @@ var go = GateOne.Base.update(GateOne, {
             }, 500);
         }
         window.onresize = onResizeEvent;
-        // Check for support for WebSockets. NOTE: (IE with the Websocket add-on calls it "WebSocketDraft")
-        if(typeof(WebSocket) != "function") {
-            // TODO:  Make this display a helpful message showing users how they can get a browser with WebSocket support.
-            logError("No WebSocket support!");
-            return;
-        }
         // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
         if (!go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']) {
             go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs'] = {};

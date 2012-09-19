@@ -2033,8 +2033,8 @@ Functions
 .. js:function:: GateOne.Visual.alert(title, message, callback)
 
     :param string title: Title of the dialog that will be displayed.
-    :param string message: Main content of the alert dialog.
-    :param string callback: A function that will be called after the user clicks "OK".
+    :param message: An HTML-formatted string or a DOM node; Main content of the alert dialog.
+    :param function callback: A function that will be called after the user clicks "OK".
 
     .. figure:: screenshots/gateone_alert.png
         :class: portional-screenshot

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>terminal.py - A Pure Python Terminal Emulator &mdash; Gate One 1.1 documentation</title>
+    <title>terminal.py - A Pure Python Terminal Emulator &mdash; Gate One 1.1.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1',
+        VERSION:     '1.1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="termio.py - Terminal Input/Output Module" href="termio.html" />
     <link rel="prev" title="sso.py - A Tornado Kerberos Single Sign-On Module" href="sso.html" /> 
@@ -218,9 +218,9 @@ past the screen without some fancy tracking logic surrounding
 <dl class="function">
 <dt id="terminal.handle_special">
 <tt class="descclassname">terminal.</tt><tt class="descname">handle_special</tt><big>(</big><em>e</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#handle_special"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.handle_special" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used in conjunction with codecs.register_error, will replace special ascii
-characters such as 0xDA and 0xc4 (which are used by ncurses) with their
-Unicode equivalents.</p>
+<dd><p>Used in conjunction with <a class="reference external" href="http://docs.python.org/2.7/library/codecs.html#codecs.register_error" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">codecs.register_error()</span></tt></a>, will replace
+special ascii characters such as 0xDA and 0xc4 (which are used by ncurses)
+with their Unicode equivalents.</p>
 </dd></dl>
 
 <dl class="function">
@@ -244,6 +244,45 @@ far as renditions go).  Example:</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="terminal.unicode_counter">
+<tt class="descclassname">terminal.</tt><tt class="descname">unicode_counter</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.unicode_counter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A generator that returns incrementing Unicode characters that can be used as
+references inside a Unicode array.  For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">counter</span> <span class="o">=</span> <span class="n">unicode_counter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mapping_dict</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">some_array</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Pretend &#39;marked ...&#39; below is a reference to something impotant :)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="s">u&#39;some string&#39;</span><span class="p">):</span>
+<span class="go">        if c == u&#39; &#39;: # Mark the location of spaces</span>
+<span class="go">            # Perform some operation where we need to save a value</span>
+<span class="go">            result = some_evaluation(i, c)</span>
+<span class="go">            # Save some memory by storing a reference to result instead</span>
+<span class="go">            # of the same result over and over again</span>
+<span class="go">            if result not in mapping_dict.values():</span>
+<span class="go">                marker = counter.next()</span>
+<span class="go">                some_array.append(marker)</span>
+<span class="go">                mapping_dict[marker] = result</span>
+<span class="go">            else: # Find the existing reference so we can use it again</span>
+<span class="go">                for k, v in mapping_dict.items():</span>
+<span class="go">                    if v == result: # Use the existing value</span>
+<span class="go">                        some_array.append(k)</span>
+<span class="go">        else:</span>
+<span class="go">            some_array.append( ) #   == &quot;not interesting&quot; placeholder</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Now we could iterate over 'some string' and some_array simultaneously using
+zip(u'some string', some_array) to access those reference markers when we
+encountered the correct position.  This can save a lot of memory if you need
+to store objects in memory that have a tendancy to repeat (e.g. text
+rendition lists in a terminal).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Meant to be used inside the renditions array to reference text rendition lists such as <tt class="xref py py-obj docutils literal"><span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">34]</span></tt>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="terminal.pua_counter">
 <tt class="descclassname">terminal.</tt><tt class="descname">pua_counter</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#pua_counter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.pua_counter" title="Permalink to this definition">¶</a></dt>
 <dd><p>A generator that returns a Unicode Private Use Area (PUA) character starting
@@ -252,7 +291,7 @@ successive call.  If this is a narrow Python build the tail end of Plane 15
 will be used as a fallback (with a lot less characters).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Meant to be used as references to image objects in the screen array()</p>
+<p class="last">Meant to be used as references to non-text objects in the screen array() (since it can only contain unicode characters)</p>
 </div>
 </dd></dl>
 
@@ -288,7 +327,7 @@ their tops cut off.  <em>em_dimensions</em> should be a dict in the form of:</p>
 
 <dl class="method">
 <dt id="terminal.Terminal.init_renditions">
-<tt class="descname">init_renditions</tt><big>(</big><em>rendition=u'U00100000'</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.init_renditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.init_renditions" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">init_renditions</tt><big>(</big><em>rendition=u'u03e8'</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.init_renditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.init_renditions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replaces <tt class="xref py py-attr docutils literal"><span class="pre">self.renditions</span></tt> with arrays of <em>rendition</em> (characters)
 using <tt class="xref py py-attr docutils literal"><span class="pre">self.cols</span></tt> and <tt class="xref py py-attr docutils literal"><span class="pre">self.rows</span></tt> for the dimenions.</p>
 </dd></dl>
@@ -838,7 +877,8 @@ saves/restores the cursor location.</p>
 <dl class="method">
 <dt id="terminal.Terminal.insert_characters">
 <tt class="descname">insert_characters</tt><big>(</big><em>n=1</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.insert_characters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.insert_characters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Inserts the specified number of characters at the cursor position.</p>
+<dd><p>Inserts the specified number of characters at the cursor position.
+Overwriting whatever is already present.</p>
 </dd></dl>
 
 <dl class="method">

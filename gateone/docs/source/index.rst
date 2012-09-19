@@ -13,3 +13,4 @@ Contents
     About/index.rst
     UserGuide/index.rst
     Developer/index.rst
+    ReleaseNotes/index.rst
