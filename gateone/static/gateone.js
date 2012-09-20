@@ -277,7 +277,7 @@ var go = GateOne.Base.update(GateOne, {
         }
         // Capabilities Notifications
         if (!go.prefs.skipChecks) {
-            if (typeof(WebSocket) != "function") {
+            if (!WebSocket) {
                 logError('Browser failed WebSocket support check.');
                 missingCapabilities.push("Sorry but your web browser does not appear to support WebSockets.  Gate One requires WebSockets in order to (efficiently) communicate with the server.");
                 criticalFailure = true;

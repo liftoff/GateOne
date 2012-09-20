@@ -1874,6 +1874,7 @@ class Terminal(object):
         #       sequence (string starting with \x1b]0;) this indicates an xterm
         #       title (everything between \x1b]0;...\x07).
         if not self.esc_buffer: # We're not in the middle of an esc sequence
+            logging.debug('Regular bell')
             try:
                 for callback in self.callbacks[CALLBACK_BELL].values():
                     callback()
