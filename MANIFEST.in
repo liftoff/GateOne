@@ -1,0 +1,5 @@
+include *.txt
+include *.cfg
+include *.rst
+recursive-include scripts
+recursive-exclude *.kate-swp

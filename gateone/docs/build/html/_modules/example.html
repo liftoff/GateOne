@@ -151,7 +151,7 @@
         <span class="c"># or &#39;upn&#39; for short.  Why?  Because it might actually be a username</span>
         <span class="c"># plus a realm or domain name.  e.g. user@REALM or user@company.com</span>
         <span class="n">username</span> <span class="o">=</span> <span class="n">user_dict</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-        <span class="n">session</span> <span class="o">=</span> <span class="n">user_dict</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">:]</span> <span class="c"># Just the last three (for security)</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">user_dict</span><span class="p">[</span><span class="s">&#39;session&#39;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="c"># Just the last three (for security)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span>
             <span class="n">example_template</span><span class="p">,</span> <span class="c"># The path to a template file</span>
             <span class="n">bygolly</span><span class="o">=</span><span class="n">bygolly</span><span class="p">,</span> <span class="c"># Just match up your template&#39;s {{whatever}} with</span>

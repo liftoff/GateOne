@@ -296,7 +296,7 @@
     <span class="n">user_locale</span> <span class="o">=</span> <span class="n">locale</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">locale_str</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">user_locale</span><span class="o">.</span><span class="n">translate</span>
 </div>
-<div class="viewcode-block" id="gen_self_signed_ssl"><a class="viewcode-back" href="../Developer/utils.html#utils.gen_self_signed_ssl">[docs]</a><span class="k">def</span> <span class="nf">gen_self_signed_ssl</span><span class="p">():</span>
+<div class="viewcode-block" id="gen_self_signed_ssl"><a class="viewcode-back" href="../Developer/utils.html#utils.gen_self_signed_ssl">[docs]</a><span class="k">def</span> <span class="nf">gen_self_signed_ssl</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates a self-signed SSL certificate using pyOpenSSL or the openssl</span>
 <span class="sd">    command depending on what&#39;s available,  The resulting key/certificate will</span>
@@ -309,58 +309,66 @@
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="n">gen_self_signed_func</span> <span class="o">=</span> <span class="n">gen_self_signed_openssl</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">gen_self_signed_func</span><span class="p">()</span>
+        <span class="n">gen_self_signed_func</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">SSLGenerationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;Error generating self-signed SSL key/certificate: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
 </div>
-<div class="viewcode-block" id="gen_self_signed_openssl"><a class="viewcode-back" href="../Developer/utils.html#utils.gen_self_signed_openssl">[docs]</a><span class="k">def</span> <span class="nf">gen_self_signed_openssl</span><span class="p">():</span>
+<div class="viewcode-block" id="gen_self_signed_openssl"><a class="viewcode-back" href="../Developer/utils.html#utils.gen_self_signed_openssl">[docs]</a><span class="k">def</span> <span class="nf">gen_self_signed_openssl</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method will generate a secure self-signed SSL key/certificate pair</span>
 <span class="sd">    (using the `openssl &lt;http://www.openssl.org/docs/apps/openssl.html&gt;`_</span>
-<span class="sd">    command) saving the result as &#39;certificate.pem&#39; and &#39;keyfile.pem&#39; in the</span>
-<span class="sd">    current working directory.  The certificate will be valid for 10 years.</span>
+<span class="sd">    command) saving the result as &#39;certificate.pem&#39; and &#39;keyfile.pem&#39; to *path*.</span>
+<span class="sd">    If *path* is not given the result will be saved in the current working</span>
+<span class="sd">    directory.  The certificate will be valid for 10 years.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">)</span>
+    <span class="n">keyfile_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/keyfile.pem&quot;</span> <span class="o">%</span> <span class="n">path</span>
+    <span class="n">certfile_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/certificate.pem&quot;</span> <span class="o">%</span> <span class="n">path</span>
     <span class="n">subject</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s">&#39;-subj &quot;/OU=</span><span class="si">%s</span><span class="s"> (Self-Signed)/CN=Gate One/O=Liftoff Software&quot;&#39;</span> <span class="o">%</span>
         <span class="n">os</span><span class="o">.</span><span class="n">uname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c"># Hostname</span>
     <span class="p">)</span>
     <span class="n">gen_command</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s">&quot;openssl genrsa -aes256 -out keyfile.pem.tmp -passout pass:password 4096&quot;</span>
+        <span class="s">&quot;openssl genrsa -aes256 -out </span><span class="si">%s</span><span class="s">.tmp -passout pass:password 4096&quot;</span> <span class="o">%</span>
+        <span class="n">keyfile_path</span>
     <span class="p">)</span>
     <span class="n">decrypt_key_command</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s">&quot;openssl rsa -in keyfile.pem.tmp -passin pass:password -out keyfile.pem&quot;</span>
+        <span class="s">&quot;openssl rsa -in </span><span class="si">%s</span><span class="s">.tmp -passin pass:password -out keyfile.pem&quot;</span> <span class="o">%</span>
+        <span class="n">keyfile_path</span>
     <span class="p">)</span>
     <span class="n">csr_command</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s">&quot;openssl req -new -key keyfile.pem -out temp.csr </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">subject</span>
+        <span class="s">&quot;openssl req -new -key </span><span class="si">%s</span><span class="s"> -out temp.csr </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">keyfile_path</span><span class="p">,</span> <span class="n">subject</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">cert_command</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s">&quot;openssl x509 -req &quot;</span>    <span class="c"># Create a new x509 certificate</span>
         <span class="s">&quot;-days 3650 &quot;</span>           <span class="c"># That lasts 10 years</span>
         <span class="s">&quot;-in temp.csr &quot;</span>         <span class="c"># Using the CSR we just generated</span>
-        <span class="s">&quot;-signkey keyfile.pem &quot;</span> <span class="c"># Sign it with keyfile.pem that we just created</span>
-        <span class="s">&quot;-out certificate.pem&quot;</span>  <span class="c"># Save it as certificate.pem</span>
+        <span class="s">&quot;-signkey </span><span class="si">%s</span><span class="s"> &quot;</span>          <span class="c"># Sign it with keyfile.pem that we just created</span>
+        <span class="s">&quot;-out </span><span class="si">%s</span><span class="s">&quot;</span>               <span class="c"># Save it as certificate.pem</span>
     <span class="p">)</span>
+    <span class="n">cert_command</span> <span class="o">=</span> <span class="n">cert_command</span> <span class="o">%</span> <span class="p">(</span><span class="n">keyfile_path</span><span class="p">,</span> <span class="n">certfile_path</span><span class="p">)</span>
     <span class="n">exitstatus</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">shell_command</span><span class="p">(</span><span class="n">gen_command</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">exitstatus</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">error_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;An error occurred trying to create private SSL key:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">output</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;keyfile.pem.tmp&#39;</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;keyfile.pem.tmp&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.tmp&#39;</span> <span class="o">%</span> <span class="n">keyfile_path</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.tmp&#39;</span> <span class="o">%</span> <span class="n">keyfile_path</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">SSLGenerationError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
     <span class="n">exitstatus</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">shell_command</span><span class="p">(</span><span class="n">decrypt_key_command</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">exitstatus</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">error_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;An error occurred trying to decrypt private SSL key:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">output</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;keyfile.pem.tmp&#39;</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;keyfile.pem.tmp&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.tmp&#39;</span> <span class="o">%</span> <span class="n">keyfile_path</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.tmp&#39;</span> <span class="o">%</span> <span class="n">keyfile_path</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">SSLGenerationError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
     <span class="n">exitstatus</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">shell_command</span><span class="p">(</span><span class="n">csr_command</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">exitstatus</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">error_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;An error occurred trying to create CSR:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">output</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;keyfile.pem.tmp&#39;</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;keyfile.pem.tmp&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.tmp&#39;</span> <span class="o">%</span> <span class="n">keyfile_path</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.tmp&#39;</span> <span class="o">%</span> <span class="n">keyfile_path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;temp.csr&#39;</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;temp.csr&#39;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">SSLGenerationError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
@@ -368,24 +376,25 @@
     <span class="k">if</span> <span class="n">exitstatus</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">error_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;An error occurred trying to create certificate:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">output</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;keyfile.pem.tmp&#39;</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;keyfile.pem.tmp&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.tmp&#39;</span> <span class="o">%</span> <span class="n">keyfile_path</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.tmp&#39;</span> <span class="o">%</span> <span class="n">keyfile_path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;temp.csr&#39;</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;temp.csr&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;certificate.pem&#39;</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;certificate.pem&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">certfile_path</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">certfile_path</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">SSLGenerationError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
     <span class="c"># Clean up unnecessary leftovers</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;keyfile.pem.tmp&#39;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.tmp&#39;</span> <span class="o">%</span> <span class="n">keyfile_path</span><span class="p">)</span>
     <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;temp.csr&#39;</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="gen_self_signed_pyopenssl"><a class="viewcode-back" href="../Developer/utils.html#utils.gen_self_signed_pyopenssl">[docs]</a><span class="k">def</span> <span class="nf">gen_self_signed_pyopenssl</span><span class="p">(</span><span class="n">notAfter</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="gen_self_signed_pyopenssl"><a class="viewcode-back" href="../Developer/utils.html#utils.gen_self_signed_pyopenssl">[docs]</a><span class="k">def</span> <span class="nf">gen_self_signed_pyopenssl</span><span class="p">(</span><span class="n">notAfter</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method will generate a secure self-signed SSL key/certificate pair</span>
 <span class="sd">    (using pyOpenSSL) saving the result as &#39;certificate.pem&#39; and &#39;keyfile.pem&#39;</span>
-<span class="sd">    in the current working directory.  By default the certificate will be valid</span>
-<span class="sd">    for 10 years but this can be overridden by passing a valid timestamp via the</span>
+<span class="sd">    in *path*.  If *path* is not given the result will be saved in the current</span>
+<span class="sd">    working directory.  By default the certificate will be valid for 10 years</span>
+<span class="sd">    but this can be overridden by passing a valid timestamp via the</span>
 <span class="sd">    *notAfter* argument.</span>
 
 <span class="sd">    Examples::</span>
@@ -400,10 +409,14 @@
             <span class="s">&quot;Error: You do not have pyOpenSSL installed.  Please install &quot;</span>
             <span class="s">&quot;it (sudo pip install pyopenssl.&quot;</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">SSLGenerationError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">)</span>
+    <span class="n">keyfile_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/keyfile.pem&quot;</span> <span class="o">%</span> <span class="n">path</span>
+    <span class="n">certfile_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/certificate.pem&quot;</span> <span class="o">%</span> <span class="n">path</span>
     <span class="n">pkey</span> <span class="o">=</span> <span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">PKey</span><span class="p">()</span>
     <span class="n">pkey</span><span class="o">.</span><span class="n">generate_key</span><span class="p">(</span><span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">TYPE_RSA</span><span class="p">,</span> <span class="mi">4096</span><span class="p">)</span>
     <span class="c"># Save the key as &#39;keyfile.pem&#39;:</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;keyfile.pem&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">keyfile_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">dump_privatekey</span><span class="p">(</span>
             <span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">FILETYPE_PEM</span><span class="p">,</span> <span class="n">pkey</span><span class="p">))</span>
     <span class="n">cert</span> <span class="o">=</span> <span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">X509</span><span class="p">()</span>
@@ -419,7 +432,7 @@
     <span class="n">cert</span><span class="o">.</span><span class="n">get_issuer</span><span class="p">()</span><span class="o">.</span><span class="n">O</span> <span class="o">=</span> <span class="s">&#39;Self-Signed&#39;</span>
     <span class="n">cert</span><span class="o">.</span><span class="n">set_pubkey</span><span class="p">(</span><span class="n">pkey</span><span class="p">)</span>
     <span class="n">cert</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">pkey</span><span class="p">,</span> <span class="s">&#39;md5&#39;</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;certificate.pem&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">certfile_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">dump_certificate</span><span class="p">(</span>
             <span class="n">OpenSSL</span><span class="o">.</span><span class="n">crypto</span><span class="o">.</span><span class="n">FILETYPE_PEM</span><span class="p">,</span> <span class="n">cert</span><span class="p">))</span>
 </div>
@@ -640,8 +653,14 @@
                     <span class="k">continue</span> <span class="c"># It would be suicide!</span>
             <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                 <span class="k">continue</span> <span class="c"># Not a PID</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pid_dir</span><span class="p">,</span> <span class="s">&#39;cmdline&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">cmdline</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">cmdline_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pid_dir</span><span class="p">,</span> <span class="s">&#39;cmdline&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cmdline_path</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cmdline_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">cmdline</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                    <span class="c"># Can happen if a process ended as we were looking at it</span>
+                    <span class="k">continue</span>
             <span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">sessions</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">cmdline</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
@@ -749,7 +768,20 @@
 <span class="sd">    \*.css files will get imported automatically by GateOne.init()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;js&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;css&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="n">plugins_conf_path</span> <span class="o">=</span> <span class="n">plugin_dir</span> <span class="o">+</span> <span class="s">&#39;.conf&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">plugins_conf_path</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">enabled_plugins</span> <span class="ow">or</span> <span class="s">&quot;*&quot;</span> <span class="ow">in</span> <span class="n">enabled_plugins</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Loading all plugins&#39;</span><span class="p">))</span>
+            <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Plugins conf file not found, loading all plugins&#39;</span><span class="p">))</span>
+        <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="bp">None</span>
+
     <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">enabled_plugins</span> <span class="ow">and</span> <span class="n">directory</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">enabled_plugins</span><span class="p">:</span>
+            <span class="k">continue</span>
+
         <span class="n">plugin</span> <span class="o">=</span> <span class="n">directory</span>
         <span class="n">http_static_path</span> <span class="o">=</span> <span class="s">&#39;/static/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">plugin</span>
         <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> <span class="c"># Make absolute</span>

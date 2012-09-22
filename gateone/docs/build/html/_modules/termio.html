@@ -225,17 +225,20 @@
     <span class="n">prev_tell</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">while</span> <span class="n">golog</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">!=</span> <span class="n">prev_tell</span><span class="p">:</span>
         <span class="n">prev_tell</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
-        <span class="n">golog</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">golog</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c"># Something wrong with the file</span>
         <span class="n">distance</span> <span class="o">+=</span> <span class="n">distance</span>
     <span class="c"># Now that we&#39;re at the end, go back a bit and split from there</span>
     <span class="n">golog</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">golog</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">-</span> <span class="n">chunk_size</span><span class="p">)</span>
     <span class="n">end_frames</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">encoded_separator</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">end_frames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="c"># Very last item will be empty</span>
-        <span class="k">return</span> <span class="n">end_frames</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">end_frames</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&#39;ignore&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># Just a single frame here, return it as-is</span>
-        <span class="k">return</span> <span class="n">end_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">end_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&#39;ignore&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="get_or_update_metadata"><a class="viewcode-back" href="../Developer/termio.html#termio.get_or_update_metadata">[docs]</a><span class="k">def</span> <span class="nf">get_or_update_metadata</span><span class="p">(</span><span class="n">golog_path</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">force_update</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -276,12 +279,15 @@
     <span class="n">log_data</span> <span class="o">=</span> <span class="n">b</span><span class="s">&#39;&#39;</span>
     <span class="n">total_frames</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
-        <span class="n">chunk</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c"># Something wrong with the file</span>
         <span class="n">total_frames</span> <span class="o">+=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">encoded_separator</span><span class="p">)</span>
         <span class="n">log_data</span> <span class="o">+=</span> <span class="n">chunk</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">chunk_size</span><span class="p">:</span>
             <span class="k">break</span>
-    <span class="n">log_data</span> <span class="o">=</span> <span class="n">log_data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+    <span class="n">log_data</span> <span class="o">=</span> <span class="n">log_data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&#39;ignore&#39;</span><span class="p">)</span>
     <span class="n">start_date</span> <span class="o">=</span> <span class="n">first_frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">]</span> <span class="c"># Getting the start date is easy</span>
     <span class="n">last_frame</span> <span class="o">=</span> <span class="n">retrieve_last_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span> <span class="c"># This takes some work</span>
     <span class="n">end_date</span> <span class="o">=</span> <span class="n">last_frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">]</span>
@@ -580,45 +586,43 @@
 
 <span class="sd">        .. note:: This kind of logging doesn&#39;t capture user keystrokes.  This is intentional as we don&#39;t want passwords winding up in the logs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#logging.debug(&#39;term_write() stream: %s&#39; % repr(stream))</span>
         <span class="c"># Write to the log (if configured)</span>
+        <span class="n">separator</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;</span><span class="se">\xf3\xb0\xbc\x8f</span><span class="s">&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_path</span><span class="p">:</span>
-            <span class="n">now</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+            <span class="c"># Using .encode() below ensures the result will be bytes</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)))</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_path</span><span class="p">):</span>
                 <span class="c"># Write the first frame as metadata</span>
                 <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s">&#39;version&#39;</span><span class="p">:</span> <span class="s">&#39;1.0&#39;</span><span class="p">,</span> <span class="c"># Log format version</span>
                     <span class="s">&#39;rows&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span>
                     <span class="s">&#39;cols&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span>
-                    <span class="s">&#39;start_date&#39;</span><span class="p">:</span> <span class="n">now</span>
+                    <span class="s">&#39;start_date&#39;</span><span class="p">:</span> <span class="n">now</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span> <span class="c"># JSON needs strings</span>
                     <span class="c"># NOTE: end_date should be added later when the is read for</span>
                     <span class="c"># the first time by either the logviewer or the logging</span>
                     <span class="c"># plugin.</span>
                 <span class="p">}</span>
                 <span class="c"># The hope is that we can use the first-frame-metadata paradigm</span>
                 <span class="c"># to store all sorts of useful information about a log.</span>
-                <span class="n">metadata_frame</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">metadata</span><span class="p">))</span>
-                <span class="n">metadata_frame</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="p">,</span> <span class="n">metadata_frame</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">bytes</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span> <span class="c"># Python 3</span>
-                    <span class="n">metadata_frame</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">metadata_frame</span><span class="p">,</span> <span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">metadata_frame</span> <span class="o">=</span> <span class="n">metadata_frame</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+                <span class="c"># NOTE: Using .encode() below to ensure it is bytes in Python 3</span>
+                <span class="n">metadata_frame</span> <span class="o">=</span> <span class="n">json_encode</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+                <span class="c"># Using concatenation of bytes below to ensure compatibility</span>
+                <span class="c"># with both Python 2 and Python 3.</span>
+                <span class="n">metadata_frame</span> <span class="o">=</span> <span class="n">now</span> <span class="o">+</span> <span class="n">b</span><span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="n">metadata_frame</span> <span class="o">+</span> <span class="n">separator</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">metadata_frame</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span> <span class="c"># Only comes into play if the file already exists</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">)</span>
             <span class="c"># NOTE: I&#39;m using an obscure unicode symbol in order to avoid</span>
-            <span class="c"># conflicts.  We need to dpo our best to ensure that we can</span>
+            <span class="c"># conflicts.  We need to do our best to ensure that we can</span>
             <span class="c"># differentiate between terminal output and our log format...</span>
             <span class="c"># This should do the trick because it is highly unlikely that</span>
             <span class="c"># someone would be displaying this obscure unicode symbol on an</span>
             <span class="c"># actual terminal unless they were using Gate One to view a</span>
             <span class="c"># Gate One log file in vim or something =)</span>
-            <span class="c"># \U000f0f0f == U+F0F0F (Private Use Symbol)</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">now</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">bytes</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span> <span class="c"># Python 3</span>
-                <span class="n">output</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+            <span class="c"># &quot;\xf3\xb0\xbc\x8f&quot; == \U000f0f0f == U+F0F0F (Private Use Symbol)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">now</span> <span class="o">+</span> <span class="n">b</span><span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="n">stream</span> <span class="o">+</span> <span class="n">separator</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
         <span class="c"># NOTE: Gate One&#39;s log format is special in that it can be used for both</span>
         <span class="c"># playing back recorded sessions *or* generating syslog-like output.</span>
@@ -1330,7 +1334,8 @@
             <span class="n">fl</span> <span class="o">=</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">fcntl</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">F_GETFL</span><span class="p">)</span>
             <span class="n">fcntl</span><span class="o">.</span><span class="n">fcntl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">F_SETFL</span><span class="p">,</span> <span class="n">fl</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">O_NONBLOCK</span><span class="p">)</span>
             <span class="c"># Set the size of the terminal</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">ctrl_l</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">resize</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resize</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">ctrl_l</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">resize</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">fd</span>
 </div>
 <div class="viewcode-block" id="MultiplexPOSIXIOLoop.isalive"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop.isalive">[docs]</a>    <span class="k">def</span> <span class="nf">isalive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1398,7 +1403,11 @@
         <span class="c"># be an effective workaround.</span>
         <span class="kn">import</span> <span class="nn">fcntl</span><span class="o">,</span> <span class="nn">termios</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;HHHH&quot;</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">fcntl</span><span class="o">.</span><span class="n">ioctl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TIOCSWINSZ</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fcntl</span><span class="o">.</span><span class="n">ioctl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="n">termios</span><span class="o">.</span><span class="n">TIOCSWINSZ</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="c"># Process already ended--no big deal</span>
+            <span class="k">return</span>
         <span class="k">if</span> <span class="n">ctrl_l</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x0c</span><span class="s">&#39;</span><span class="p">)</span> <span class="c"># ctrl-l</span>
         <span class="c"># SIGWINCH has been disabled since it can screw things up</span>
@@ -1425,19 +1434,10 @@
             <span class="k">pass</span> <span class="c"># Can happen if this instance winds up in a thread</span>
         <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_EXIT</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_call_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-        <span class="c"># Call the exitfunc (if set)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitfunc</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">exitfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">exitfunc</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patterns</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">timeout_check</span><span class="p">(</span><span class="n">timeout_now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">unexpect</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
-        <span class="c"># NOTE: Without this &#39;del&#39; we end up with a memory leak every time</span>
-        <span class="c"># a new instance of Multiplex is created.  Apparently the references</span>
-        <span class="c"># inside of PeriodicCallback pointing to self prevent proper garbage</span>
-        <span class="c"># collection.</span>
-        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span>
+        <span class="c"># This try/except block *must* come before the exitfunc logic.</span>
+        <span class="c"># Otherwise, if the registered exitfunc raises an exception the IOLoop</span>
+        <span class="c"># will never stop watching self.fd; resulting in an infinite loop of</span>
+        <span class="c"># exitfunc.</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">)</span>
             <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">)</span>
@@ -1445,6 +1445,12 @@
             <span class="c"># This can happen when the fd is removed by the underlying process</span>
             <span class="c"># before the next cycle of the IOLoop.  Not really a problem.</span>
             <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="c"># NOTE: Without this &#39;del&#39; we end up with a memory leak every time</span>
+        <span class="c"># a new instance of Multiplex is created.  Apparently the references</span>
+        <span class="c"># inside of PeriodicCallback pointing to self prevent proper garbage</span>
+        <span class="c"># collection.</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c"># TODO: Make this walk the series from SIGINT to SIGKILL</span>
             <span class="kn">import</span> <span class="nn">signal</span>
@@ -1458,6 +1464,13 @@
             <span class="n">pid</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">waitpid</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">WNOHANG</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">pid</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patterns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timeout_check</span><span class="p">(</span><span class="n">timeout_now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unexpect</span><span class="p">()</span>
+        <span class="c"># Call the exitfunc (if set)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitfunc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exitfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exitfunc</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="c"># Reset all callbacks so there&#39;s nothing to prevent GC</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span> <span class="o">=</span> <span class="p">{</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">:</span> <span class="p">{},</span>
@@ -1510,7 +1523,7 @@
 <span class="sd">        .. note:: Non-blocking.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c">#logging.debug(&quot;MultiplexPOSIXIOLoop._read()&quot;)</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">bytes</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
@@ -1519,9 +1532,9 @@
                     <span class="c"># feeding us too much data (so we can engage the rate</span>
                     <span class="c"># limiter).</span>
                     <span class="nb">bytes</span> <span class="o">=</span> <span class="mi">8192</span> <span class="c"># Should be plenty</span>
-                    <span class="c"># If we need to block/read for longer than two seconds</span>
+                    <span class="c"># If we need to block/read for longer than five seconds</span>
                     <span class="c"># the fd is outputting too much data.</span>
-                    <span class="n">two_seconds</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="n">five_seconds</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
                     <span class="n">loop_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
                     <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
                         <span class="n">updated</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">bytes</span><span class="p">)</span>
@@ -1535,9 +1548,9 @@
                             <span class="c"># eventually have to process it all which would</span>
                             <span class="c"># take forever.</span>
                             <span class="k">break</span>
-                        <span class="k">elif</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">loop_start</span> <span class="o">&gt;</span> <span class="n">two_seconds</span><span class="p">:</span>
+                        <span class="k">elif</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">loop_start</span> <span class="o">&gt;</span> <span class="n">five_seconds</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_blocked_io_handler</span><span class="p">()</span>
-                        <span class="n">result</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
+                        <span class="n">result</span> <span class="o">+=</span> <span class="n">updated</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">term_write</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="nb">bytes</span><span class="p">:</span>
                     <span class="n">result</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">bytes</span><span class="p">)</span>

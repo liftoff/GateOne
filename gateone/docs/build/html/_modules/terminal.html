@@ -331,9 +331,9 @@
 
 <div class="viewcode-block" id="handle_special"><a class="viewcode-back" href="../Developer/terminal.html#terminal.handle_special">[docs]</a><span class="k">def</span> <span class="nf">handle_special</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Used in conjunction with codecs.register_error, will replace special ascii</span>
-<span class="sd">    characters such as 0xDA and 0xc4 (which are used by ncurses) with their</span>
-<span class="sd">    Unicode equivalents.</span>
+<span class="sd">    Used in conjunction with :py:func:`codecs.register_error`, will replace</span>
+<span class="sd">    special ascii characters such as 0xDA and 0xc4 (which are used by ncurses)</span>
+<span class="sd">    with their Unicode equivalents.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: Get this using curses special characters when appropriate</span>
     <span class="n">curses_specials</span> <span class="o">=</span> <span class="p">{</span>
@@ -500,11 +500,18 @@
     <span class="p">}</span>
     <span class="c"># I left this in its odd state so I could differentiate between the two</span>
     <span class="c"># in the future.</span>
+    <span class="n">chars</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">object</span>
+    <span class="k">if</span> <span class="nb">bytes</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span> <span class="c"># Python 2</span>
+        <span class="c"># Convert e.object to a bytearray for an easy switch to integers.</span>
+        <span class="c"># It is quicker than calling ord(char) on each char in e.object</span>
+        <span class="n">chars</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">object</span><span class="p">)</span>
+        <span class="c"># NOTE: In Python 3 when you iterate over bytes they appear as integers.</span>
+        <span class="c">#       So we don&#39;t need to convert to a bytearray in Python 3.</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="p">(</span><span class="ne">UnicodeEncodeError</span><span class="p">,</span> <span class="ne">UnicodeTranslateError</span><span class="p">)):</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">specials</span><span class="p">[</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">object</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="n">e</span><span class="o">.</span><span class="n">end</span><span class="p">]]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">specials</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="n">e</span><span class="o">.</span><span class="n">end</span><span class="p">]]</span>
         <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">e</span><span class="o">.</span><span class="n">end</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">specials</span><span class="p">[</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">object</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="n">e</span><span class="o">.</span><span class="n">end</span><span class="p">]]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">specials</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="n">e</span><span class="o">.</span><span class="n">end</span><span class="p">]]</span>
         <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">e</span><span class="o">.</span><span class="n">end</span></div>
 <span class="n">codecs</span><span class="o">.</span><span class="n">register_error</span><span class="p">(</span><span class="s">&#39;handle_special&#39;</span><span class="p">,</span> <span class="n">handle_special</span><span class="p">)</span>
 
@@ -565,6 +572,50 @@
         <span class="n">out_renditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">background</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out_renditions</span>
 </div>
+<div class="viewcode-block" id="unicode_counter"><a class="viewcode-back" href="../Developer/terminal.html#terminal.unicode_counter">[docs]</a><span class="k">def</span> <span class="nf">unicode_counter</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A generator that returns incrementing Unicode characters that can be used as</span>
+<span class="sd">    references inside a Unicode array.  For example::</span>
+
+<span class="sd">        &gt;&gt;&gt; counter = unicode_counter()</span>
+<span class="sd">        &gt;&gt;&gt; mapping_dict = {}</span>
+<span class="sd">        &gt;&gt;&gt; some_array = array(&#39;u&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # Pretend &#39;marked ...&#39; below is a reference to something impotant :)</span>
+<span class="sd">        &gt;&gt;&gt; for i, c in enumerate(u&#39;some string&#39;):</span>
+<span class="sd">                if c == u&#39; &#39;: # Mark the location of spaces</span>
+<span class="sd">                    # Perform some operation where we need to save a value</span>
+<span class="sd">                    result = some_evaluation(i, c)</span>
+<span class="sd">                    # Save some memory by storing a reference to result instead</span>
+<span class="sd">                    # of the same result over and over again</span>
+<span class="sd">                    if result not in mapping_dict.values():</span>
+<span class="sd">                        marker = counter.next()</span>
+<span class="sd">                        some_array.append(marker)</span>
+<span class="sd">                        mapping_dict[marker] = result</span>
+<span class="sd">                    else: # Find the existing reference so we can use it again</span>
+<span class="sd">                        for k, v in mapping_dict.items():</span>
+<span class="sd">                            if v == result: # Use the existing value</span>
+<span class="sd">                                some_array.append(k)</span>
+<span class="sd">                else:</span>
+<span class="sd">                    some_array.append(\x00) # \x00 == &quot;not interesting&quot; placeholder</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+
+<span class="sd">    Now we could iterate over &#39;some string&#39; and some_array simultaneously using</span>
+<span class="sd">    zip(u&#39;some string&#39;, some_array) to access those reference markers when we</span>
+<span class="sd">    encountered the correct position.  This can save a lot of memory if you need</span>
+<span class="sd">    to store objects in memory that have a tendancy to repeat (e.g. text</span>
+<span class="sd">    rendition lists in a terminal).</span>
+
+<span class="sd">    .. note:: Meant to be used inside the renditions array to reference text rendition lists such as `[0, 1, 34]`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c"># Start at 1000 so we can use lower characters for other things</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">65535</span><span class="p">:</span> <span class="c"># The end of unicode in narrow builds of Python</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span> <span class="c"># Reset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="c"># NOTE:  Why use a unicode array() to store references instead of just a regular array()?  Two reasons:  1) Large namespace.  2) Only need to use one kind of array for everything (convenience).  It is also a large memory savings over &quot;just using a list with references to items in a dict.&quot;</span></div>
 <div class="viewcode-block" id="pua_counter"><a class="viewcode-back" href="../Developer/terminal.html#terminal.pua_counter">[docs]</a><span class="k">def</span> <span class="nf">pua_counter</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A generator that returns a Unicode Private Use Area (PUA) character starting</span>
@@ -572,7 +623,7 @@
 <span class="sd">    successive call.  If this is a narrow Python build the tail end of Plane 15</span>
 <span class="sd">    will be used as a fallback (with a lot less characters).</span>
 
-<span class="sd">    .. note:: Meant to be used as references to image objects in the screen array()</span>
+<span class="sd">    .. note:: Meant to be used as references to non-text objects in the screen array() (since it can only contain unicode characters)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">SPECIAL</span> <span class="o">==</span> <span class="mi">1048576</span><span class="p">:</span> <span class="c"># Not a narrow build of Python</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">SPECIAL</span> <span class="c"># U+100000 or unichr(SPECIAL) (start of Plane 16)</span>
@@ -694,7 +745,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">esc_buffer</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="c"># For holding escape sequences as they&#39;re typed.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_cursor</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cursor_home</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cur_rendition</span> <span class="o">=</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">)</span> <span class="c"># Should always be reset ([0])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_rendition</span> <span class="o">=</span> <span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="c"># Should always be reset ([0])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_screen</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_renditions</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">G0_charset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">charsets</span><span class="p">[</span><span class="s">&#39;B&#39;</span><span class="p">]</span>
@@ -884,7 +935,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">image_counter</span> <span class="o">=</span> <span class="n">pua_counter</span><span class="p">()</span>
         <span class="c"># This is for creating a new point of reference every time there&#39;s a new</span>
         <span class="c"># unique rendition at a given coordinate</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rend_counter</span> <span class="o">=</span> <span class="n">pua_counter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rend_counter</span> <span class="o">=</span> <span class="n">unicode_counter</span><span class="p">()</span>
         <span class="c"># Used for mapping unicode chars to acutal renditions (to save memory):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">renditions_store</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">u&#39; &#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="c"># Nada, nothing, no rendition.  Not the same as below</span>
@@ -916,7 +967,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">prev_dump_rend</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">html_cache</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># Force this to be reset as well</span>
 </div>
-<div class="viewcode-block" id="Terminal.init_renditions"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.init_renditions">[docs]</a>    <span class="k">def</span> <span class="nf">init_renditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rendition</span><span class="o">=</span><span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">)):</span>
+<div class="viewcode-block" id="Terminal.init_renditions"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.init_renditions">[docs]</a>    <span class="k">def</span> <span class="nf">init_renditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rendition</span><span class="o">=</span><span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">)):</span> <span class="c"># Match unicode_counter</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Replaces :attr:`self.renditions` with arrays of *rendition* (characters)</span>
 <span class="sd">        using :attr:`self.cols` and :attr:`self.rows` for the dimenions.</span>
@@ -1046,7 +1097,7 @@
         <span class="k">elif</span> <span class="n">rows</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">:</span> <span class="c"># Add rows at the bottom</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">rows</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">):</span>
                 <span class="n">line</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="s">u&#39; &#39;</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-                <span class="n">renditions</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+                <span class="n">renditions</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">renditions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="n">rows</span>
@@ -1065,7 +1116,7 @@
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">cols</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">u&#39; &#39;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span>
 
         <span class="c"># Fix the cursor location:</span>
@@ -1080,7 +1131,7 @@
 
 <span class="sd">        .. note:: This also handles restore/set &quot;DEC Private Mode Values&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;_set_top_bottom(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
+        <span class="c">#logging.debug(&quot;_set_top_bottom(%s)&quot; % settings)</span>
         <span class="c"># NOTE: Used by screen and vi so this needs to work and work well!</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;?&#39;</span><span class="p">):</span>
@@ -1337,14 +1388,17 @@
         <span class="c"># Have to convert to unicode</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">chars</span> <span class="o">=</span> <span class="n">chars</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span> <span class="s">&quot;handle_special&quot;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
             <span class="c"># Just in case</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">chars</span> <span class="o">=</span> <span class="n">chars</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span> <span class="s">&quot;ignore&quot;</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                    <span class="n">_</span><span class="p">(</span><span class="s">&quot;Double UnicodeEncodeError in Terminal.terminal.&quot;</span><span class="p">))</span>
+                    <span class="n">_</span><span class="p">(</span><span class="s">&quot;Double UnicodeDecodeError in terminal.Terminal.&quot;</span><span class="p">))</span>
                 <span class="k">return</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c"># In Python 3 strings don&#39;t have .decode()</span>
+            <span class="k">pass</span> <span class="c"># Already Unicode</span>
         <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">:</span>
             <span class="n">charnum</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">charnum</span> <span class="ow">in</span> <span class="n">specials</span><span class="p">:</span>
@@ -1428,7 +1482,17 @@
                             <span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]</span>
                             <span class="n">combined</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span>
                                 <span class="s">&#39;NFC&#39;</span><span class="p">,</span> <span class="s">u&#39;</span><span class="si">%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">char</span><span class="p">))</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]</span> <span class="o">=</span> <span class="n">combined</span>
+                            <span class="c"># Sometimes a joined combining char can still result</span>
+                            <span class="c"># a string of length &gt; 1.  So we need to handle that</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">combined</span><span class="p">):</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+                                    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                                        <span class="n">cursor_right</span><span class="p">()</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]</span> <span class="o">=</span> <span class="n">combined</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="c"># Normal character</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]</span> <span class="o">=</span> <span class="n">char</span>
@@ -1483,7 +1547,7 @@
             <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top_margin</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">scrollback_renditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
             <span class="c"># Insert a new empty rendition as well:</span>
-            <span class="n">empty_line</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+            <span class="n">empty_line</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bottom_margin</span><span class="p">,</span> <span class="n">empty_line</span><span class="p">)</span>
         <span class="c"># Execute our callback indicating lines have been updated</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1512,7 +1576,7 @@
             <span class="c"># Remove bottom line&#39;s style information:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bottom_margin</span><span class="p">)</span>
             <span class="c"># Insert a new empty one:</span>
-            <span class="n">empty_line</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+            <span class="n">empty_line</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top_margin</span><span class="p">,</span> <span class="n">empty_line</span><span class="p">)</span>
         <span class="c"># Execute our callback indicating lines have been updated</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1543,8 +1607,8 @@
             <span class="n">empty_line</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="s">u&#39; &#39;</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span> <span class="c"># Line full of spaces</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">,</span> <span class="n">empty_line</span><span class="p">)</span> <span class="c"># Insert at cursor</span>
             <span class="c"># Insert a new empty rendition as well:</span>
-            <span class="n">empty_line</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">,</span> <span class="n">empty_line</span><span class="p">)</span> <span class="c"># Insert at cursor</span>
+            <span class="n">empty_rend</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">,</span> <span class="n">empty_rend</span><span class="p">)</span> <span class="c"># Insert at cursor</span>
 </div>
 <div class="viewcode-block" id="Terminal.delete_line"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.delete_line">[docs]</a>    <span class="k">def</span> <span class="nf">delete_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1564,8 +1628,8 @@
             <span class="c"># Add it to the bottom of the view:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bottom_margin</span><span class="p">,</span> <span class="n">empty_line</span><span class="p">)</span> <span class="c"># Insert at bottom</span>
             <span class="c"># Insert a new empty rendition as well:</span>
-            <span class="n">empty_line</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bottom_margin</span><span class="p">,</span> <span class="n">empty_line</span><span class="p">)</span>
+            <span class="n">empty_rend</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bottom_margin</span><span class="p">,</span> <span class="n">empty_rend</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="Terminal.backspace"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.backspace">[docs]</a>    <span class="k">def</span> <span class="nf">backspace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Execute a backspace (\\x08)&quot;&quot;&quot;</span>
@@ -1863,6 +1927,7 @@
         <span class="c">#       sequence (string starting with \x1b]0;) this indicates an xterm</span>
         <span class="c">#       title (everything between \x1b]0;...\x07).</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">esc_buffer</span><span class="p">:</span> <span class="c"># We&#39;re not in the middle of an esc sequence</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Regular bell&#39;</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">CALLBACK_BELL</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                     <span class="n">callback</span><span class="p">()</span>
@@ -1993,7 +2058,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">alt_screen</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">alt_renditions</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="c"># These all need to be reset no matter what</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cur_rendition</span> <span class="o">=</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_rendition</span> <span class="o">=</span> <span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prev_dump</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prev_dump_rend</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">html_cache</span> <span class="o">=</span> <span class="p">[]</span>
@@ -2039,12 +2104,15 @@
             <span class="c">#self.local_echo = True</span>
 </div>
 <div class="viewcode-block" id="Terminal.insert_characters"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.insert_characters">[docs]</a>    <span class="k">def</span> <span class="nf">insert_characters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Inserts the specified number of characters at the cursor position.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Inserts the specified number of characters at the cursor position.</span>
+<span class="sd">        Overwriting whatever is already present.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c">#logging.debug(&quot;insert_characters(%s)&quot; % n)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="c"># Take one down, pass it around</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">,</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">,</span> <span class="s">u&#39; &#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="Terminal.delete_characters"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.delete_characters">[docs]</a>    <span class="k">def</span> <span class="nf">delete_characters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2067,7 +2135,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">u&#39; &#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">))</span>
             <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
                 <span class="c"># At edge of screen, ignore</span>
                 <span class="c">#print(&#39;IndexError in delete_characters(): %s&#39; % e)</span>
@@ -2089,7 +2157,7 @@
         <span class="n">n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">distance</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s">u&#39; &#39;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="Terminal.cursor_left"><a class="viewcode-back" href="../Developer/terminal.html#terminal.Terminal.cursor_left">[docs]</a>    <span class="k">def</span> <span class="nf">cursor_left</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;ESCnD CUB (Cursor Back)&quot;&quot;&quot;</span>
@@ -2324,7 +2392,7 @@
         <span class="n">saved_renditions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">:]</span>
         <span class="n">spaces</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="s">u&#39; &#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][:</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]))</span>
         <span class="n">renditions</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cur_rendition</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">:]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cur_rendition</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">][:</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorX</span><span class="p">]))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">screen</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">]</span> <span class="o">=</span> <span class="n">spaces</span> <span class="o">+</span> <span class="n">saved</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">renditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursorY</span><span class="p">]</span> <span class="o">=</span> <span class="n">renditions</span> <span class="o">+</span> <span class="n">saved_renditions</span>
 </div>
@@ -2445,7 +2513,7 @@
             <span class="k">return</span> <span class="c"># Don&#39;t bother setting renditions past the bottom</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">n</span><span class="p">:</span> <span class="c"># or \x1b[m (reset)</span>
             <span class="c"># First char in PUA Plane 16 is always the default:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cur_rendition</span> <span class="o">=</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">SPECIAL</span><span class="p">)</span> <span class="c"># Should be reset (e.g. [0])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cur_rendition</span> <span class="o">=</span> <span class="nb">unichr</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="c"># Should be reset (e.g. [0])</span>
             <span class="k">return</span> <span class="c"># No need for further processing; save some CPU</span>
         <span class="c"># Convert the string (e.g. &#39;0;1;32&#39;) to a list (e.g. [0,1,32]</span>
         <span class="n">new_renditions</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">]</span>
@@ -2554,10 +2622,11 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_cache</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">screen</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">html_cache</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;&#39;</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">screen</span><span class="p">]</span> <span class="c"># Essentially a reset</span>
         <span class="n">spancount</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">current_classes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current_classes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">prev_rendition</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">foregrounds</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;f0&#39;</span><span class="p">,</span><span class="s">&#39;f1&#39;</span><span class="p">,</span><span class="s">&#39;f2&#39;</span><span class="p">,</span><span class="s">&#39;f3&#39;</span><span class="p">,</span><span class="s">&#39;f4&#39;</span><span class="p">,</span><span class="s">&#39;f5&#39;</span><span class="p">,</span><span class="s">&#39;f6&#39;</span><span class="p">,</span><span class="s">&#39;f7&#39;</span><span class="p">)</span>
         <span class="n">backgrounds</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;b0&#39;</span><span class="p">,</span><span class="s">&#39;b1&#39;</span><span class="p">,</span><span class="s">&#39;b2&#39;</span><span class="p">,</span><span class="s">&#39;b3&#39;</span><span class="p">,</span><span class="s">&#39;b4&#39;</span><span class="p">,</span><span class="s">&#39;b5&#39;</span><span class="p">,</span><span class="s">&#39;b6&#39;</span><span class="p">,</span><span class="s">&#39;b7&#39;</span><span class="p">)</span>
+        <span class="n">html_entities</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;&amp;&quot;</span><span class="p">:</span> <span class="s">&quot;&amp;amp;&quot;</span><span class="p">,</span> <span class="s">&#39;&lt;&#39;</span><span class="p">:</span> <span class="s">&#39;&amp;lt;&#39;</span><span class="p">,</span> <span class="s">&#39;&gt;&#39;</span><span class="p">:</span> <span class="s">&#39;&amp;gt;&#39;</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">linecount</span><span class="p">,</span> <span class="n">line_rendition</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">izip</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span> <span class="n">renditions</span><span class="p">)):</span>
             <span class="n">line</span> <span class="o">=</span> <span class="n">line_rendition</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">rendition</span> <span class="o">=</span> <span class="n">line_rendition</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -2568,7 +2637,10 @@
                         <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_cache</span><span class="p">[</span><span class="n">linecount</span><span class="p">])</span>
                         <span class="k">continue</span> <span class="c"># Nothing changed so move on to the next line</span>
             <span class="n">outline</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">current_classes</span><span class="p">:</span>
+                <span class="n">outline</span> <span class="o">+=</span> <span class="s">&#39;&lt;span class=&quot;</span><span class="si">%s</span><span class="s">&quot;&gt;&#39;</span> <span class="o">%</span> <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_classes</span><span class="p">)</span>
             <span class="n">charcount</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c"># TODO: Figure out if there&#39;s a faster way to process each character</span>
             <span class="k">for</span> <span class="n">char</span><span class="p">,</span> <span class="n">rend</span> <span class="ow">in</span> <span class="n">izip</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">rendition</span><span class="p">):</span>
                 <span class="n">rend</span> <span class="o">=</span> <span class="n">renditions_store</span><span class="p">[</span><span class="n">rend</span><span class="p">]</span> <span class="c"># Get actual rendition</span>
                 <span class="k">if</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">special</span><span class="p">:</span> <span class="c"># Special stuff =)</span>
@@ -2593,7 +2665,6 @@
                         <span class="k">if</span> <span class="n">im</span><span class="p">:</span> <span class="c"># Resize it...</span>
                             <span class="c"># 640x480 should come in &lt;32k for most stuff</span>
                             <span class="k">try</span><span class="p">:</span>
-                                <span class="c">#image_file.seek(0)</span>
                                 <span class="n">im</span><span class="o">.</span><span class="n">thumbnail</span><span class="p">((</span><span class="mi">640</span><span class="p">,</span> <span class="mi">480</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>
                                 <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">image_file</span><span class="p">,</span> <span class="n">im</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
                                 <span class="c"># Re-read it in</span>
@@ -2617,9 +2688,7 @@
                 <span class="n">changed</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="k">if</span> <span class="n">char</span> <span class="ow">in</span> <span class="s">&quot;&amp;&lt;&gt;&quot;</span><span class="p">:</span>
                     <span class="c"># Have to convert ampersands and lt/gt to HTML entities</span>
-                    <span class="n">char</span> <span class="o">=</span> <span class="n">char</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&amp;&#39;</span><span class="p">,</span> <span class="s">&#39;&amp;amp;&#39;</span><span class="p">)</span>
-                    <span class="n">char</span> <span class="o">=</span> <span class="n">char</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s">&#39;&amp;lt;&#39;</span><span class="p">)</span>
-                    <span class="n">char</span> <span class="o">=</span> <span class="n">char</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&amp;gt;&#39;</span><span class="p">)</span>
+                    <span class="n">char</span> <span class="o">=</span> <span class="n">html_entities</span><span class="p">[</span><span class="n">char</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">rend</span> <span class="o">==</span> <span class="n">prev_rendition</span><span class="p">:</span>
                     <span class="c"># Shortcut...  So we can skip all the logic below</span>
                     <span class="n">changed</span> <span class="o">=</span> <span class="bp">False</span>
@@ -2635,7 +2704,7 @@
                                 <span class="n">spancount</span> <span class="o">-=</span> <span class="mi">1</span>
                             <span class="k">if</span> <span class="s">&#39;reset&#39;</span> <span class="ow">in</span> <span class="n">_class</span><span class="p">:</span>
                                 <span class="k">if</span> <span class="n">_class</span> <span class="o">==</span> <span class="s">&#39;reset&#39;</span><span class="p">:</span>
-                                    <span class="n">current_classes</span> <span class="o">=</span> <span class="p">[]</span>
+                                    <span class="n">current_classes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
                                     <span class="k">if</span> <span class="n">spancount</span><span class="p">:</span>
                                         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">spancount</span><span class="p">):</span>
                                             <span class="n">outline</span> <span class="o">+=</span> <span class="s">&quot;&lt;/span&gt;&quot;</span>
@@ -2671,7 +2740,7 @@
                                     <span class="nb">enumerate</span><span class="p">(</span><span class="n">current_classes</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span>
                                     <span class="n">backgrounds</span>
                                     <span class="p">]</span>
-                                <span class="n">current_classes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_class</span><span class="p">)</span>
+                                <span class="n">current_classes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">_class</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">current_classes</span><span class="p">:</span>
                         <span class="n">outline</span> <span class="o">+=</span> <span class="s">&#39;&lt;span class=&quot;</span><span class="si">%s</span><span class="s">&quot;&gt;&#39;</span> <span class="o">%</span> <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_classes</span><span class="p">)</span>
                         <span class="n">spancount</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -2686,6 +2755,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">prev_dump</span><span class="p">[</span><span class="n">linecount</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[:]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">prev_dump_rend</span><span class="p">[</span><span class="n">linecount</span><span class="p">]</span> <span class="o">=</span> <span class="n">rendition</span><span class="p">[:]</span>
             <span class="k">if</span> <span class="n">outline</span><span class="p">:</span>
+                <span class="c"># Make sure all renditions terminate at the end of the line</span>
+                <span class="k">for</span> <span class="n">whatever</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">spancount</span><span class="p">):</span>
+                    <span class="n">outline</span> <span class="o">+=</span> <span class="s">&quot;&lt;/span&gt;&quot;</span>
                 <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outline</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">html_cache</span><span class="p">[</span><span class="n">linecount</span><span class="p">]</span> <span class="o">=</span> <span class="n">outline</span>
             <span class="k">else</span><span class="p">:</span>
@@ -2711,12 +2783,15 @@
         <span class="n">rendition_classes</span> <span class="o">=</span> <span class="n">RENDITION_CLASSES</span>
         <span class="n">renditions_store</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">renditions_store</span>
         <span class="n">spancount</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">current_classes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current_classes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">prev_rendition</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">foregrounds</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;f0&#39;</span><span class="p">,</span><span class="s">&#39;f1&#39;</span><span class="p">,</span><span class="s">&#39;f2&#39;</span><span class="p">,</span><span class="s">&#39;f3&#39;</span><span class="p">,</span><span class="s">&#39;f4&#39;</span><span class="p">,</span><span class="s">&#39;f5&#39;</span><span class="p">,</span><span class="s">&#39;f6&#39;</span><span class="p">,</span><span class="s">&#39;f7&#39;</span><span class="p">)</span>
         <span class="n">backgrounds</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;b0&#39;</span><span class="p">,</span><span class="s">&#39;b1&#39;</span><span class="p">,</span><span class="s">&#39;b2&#39;</span><span class="p">,</span><span class="s">&#39;b3&#39;</span><span class="p">,</span><span class="s">&#39;b4&#39;</span><span class="p">,</span><span class="s">&#39;b5&#39;</span><span class="p">,</span><span class="s">&#39;b6&#39;</span><span class="p">,</span><span class="s">&#39;b7&#39;</span><span class="p">)</span>
+        <span class="n">html_entities</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;&amp;&quot;</span><span class="p">:</span> <span class="s">&quot;&amp;amp;&quot;</span><span class="p">,</span> <span class="s">&#39;&lt;&#39;</span><span class="p">:</span> <span class="s">&#39;&amp;lt;&#39;</span><span class="p">,</span> <span class="s">&#39;&gt;&#39;</span><span class="p">:</span> <span class="s">&#39;&amp;gt;&#39;</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">rendition</span> <span class="ow">in</span> <span class="n">izip</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span> <span class="n">renditions</span><span class="p">):</span>
             <span class="n">outline</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">current_classes</span><span class="p">:</span>
+                <span class="n">outline</span> <span class="o">+=</span> <span class="s">&#39;&lt;span class=&quot;</span><span class="si">%s</span><span class="s">&quot;&gt;&#39;</span> <span class="o">%</span> <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_classes</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">char</span><span class="p">,</span> <span class="n">rend</span> <span class="ow">in</span> <span class="n">izip</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">rendition</span><span class="p">):</span>
                 <span class="n">rend</span> <span class="o">=</span> <span class="n">renditions_store</span><span class="p">[</span><span class="n">rend</span><span class="p">]</span> <span class="c"># Get actual rendition</span>
                 <span class="k">if</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">special</span><span class="p">:</span> <span class="c"># Special stuff =)</span>
@@ -2765,9 +2840,7 @@
                 <span class="n">changed</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="k">if</span> <span class="n">char</span> <span class="ow">in</span> <span class="s">&quot;&amp;&lt;&gt;&quot;</span><span class="p">:</span>
                     <span class="c"># Have to convert ampersands and lt/gt to HTML entities</span>
-                    <span class="n">char</span> <span class="o">=</span> <span class="n">char</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&amp;&#39;</span><span class="p">,</span> <span class="s">&#39;&amp;amp;&#39;</span><span class="p">)</span>
-                    <span class="n">char</span> <span class="o">=</span> <span class="n">char</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s">&#39;&amp;lt;&#39;</span><span class="p">)</span>
-                    <span class="n">char</span> <span class="o">=</span> <span class="n">char</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&amp;gt;&#39;</span><span class="p">)</span>
+                    <span class="n">char</span> <span class="o">=</span> <span class="n">html_entities</span><span class="p">[</span><span class="n">char</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">rend</span> <span class="o">==</span> <span class="n">prev_rendition</span><span class="p">:</span>
                     <span class="n">changed</span> <span class="o">=</span> <span class="bp">False</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -2781,7 +2854,7 @@
                                 <span class="n">spancount</span> <span class="o">-=</span> <span class="mi">1</span>
                             <span class="k">if</span> <span class="s">&#39;reset&#39;</span> <span class="ow">in</span> <span class="n">_class</span><span class="p">:</span>
                                 <span class="k">if</span> <span class="n">_class</span> <span class="o">==</span> <span class="s">&#39;reset&#39;</span><span class="p">:</span>
-                                    <span class="n">current_classes</span> <span class="o">=</span> <span class="p">[]</span>
+                                    <span class="n">current_classes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
                                 <span class="k">else</span><span class="p">:</span>
                                     <span class="n">reset_class</span> <span class="o">=</span> <span class="n">_class</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;reset&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                                     <span class="k">if</span> <span class="n">reset_class</span> <span class="o">==</span> <span class="s">&#39;foreground&#39;</span><span class="p">:</span>
@@ -2810,12 +2883,15 @@
                                     <span class="nb">enumerate</span><span class="p">(</span><span class="n">current_classes</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span>
                                     <span class="n">backgrounds</span>
                                     <span class="p">]</span>
-                                <span class="n">current_classes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_class</span><span class="p">)</span>
+                                <span class="n">current_classes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">_class</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">current_classes</span><span class="p">:</span>
                         <span class="n">outline</span> <span class="o">+=</span> <span class="s">&#39;&lt;span class=&quot;</span><span class="si">%s</span><span class="s">&quot;&gt;&#39;</span> <span class="o">%</span> <span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_classes</span><span class="p">)</span>
                         <span class="n">spancount</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">outline</span> <span class="o">+=</span> <span class="n">char</span>
             <span class="k">if</span> <span class="n">outline</span><span class="p">:</span>
+                <span class="c"># Make sure all renditions terminate at the end of the line</span>
+                <span class="k">for</span> <span class="n">whatever</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">spancount</span><span class="p">):</span>
+                    <span class="n">outline</span> <span class="o">+=</span> <span class="s">&quot;&lt;/span&gt;&quot;</span>
                 <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outline</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>

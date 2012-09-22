@@ -71,6 +71,7 @@ Summary of Changes
     * **New Plugin:**  Example.  It is heavily commented and provides examples of how to write your own Gate One plugin.  Included are examples of how to use the new widget() function and how to track the deployment of your plugin.  Try out the real-time load graph!
     * **New Feature:**  Added support for Python 3.  NOTE:  Gate One also runs on `pypy <http://pypy.org/>`_ and it's very speedy!
     * **New Feature:**  Gate One now works in Internet Explorer!  Well, IE 10 anyway.
+    * **New Feature:**  Gate One now includes init scripts for Debian/Ubuntu, Red Hat/CentOS, and Gentoo.  These will be automatically installed via setup.py, the deb, or the rpm.
     * **New Feature:**  Gate One now keeps track of its own pid with the new `pid_file` option.
     * **New Feature:**  CSS/Styles are now downloaded over the WebSocket directly instead of merely being placed in the <head> of the current HTML page.  This simplifies embedding.
     * **New Feature:**  Two new functions have been added to the SSH plugin that make it much easier to call and report on commands executed in a background session:  execRemoteCmd() and commandCompleted().  See the documentation and the Example plugin for details.

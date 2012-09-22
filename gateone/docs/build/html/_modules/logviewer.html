@@ -176,7 +176,7 @@
             <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span> <span class="c"># Skips the colon</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c"># Write it out immediately</span>
-                <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">))</span>
                 <span class="n">prev_frame_time</span> <span class="o">=</span> <span class="n">frame_time</span>
             <span class="k">else</span><span class="p">:</span>
             <span class="c"># Wait until the time between the previous frame and now has passed</span>
@@ -185,7 +185,7 @@
                 <span class="n">prev_frame_time</span> <span class="o">=</span> <span class="n">frame_time</span>
                 <span class="k">if</span> <span class="n">show_esc</span><span class="p">:</span>
                     <span class="n">frame</span> <span class="o">=</span> <span class="n">raw</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-                <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">))</span>
                 <span class="n">file_like</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="c"># End of file.  No biggie.</span>
@@ -272,6 +272,7 @@
     <span class="n">cr</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="c"># We skip the first frame, [1:] because it holds the recording metadata</span>
     <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">lines</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">))[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&#39;ignore&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">])</span> <span class="c"># First 13 chars is the timestamp</span>
             <span class="c"># Convert to datetime object</span>

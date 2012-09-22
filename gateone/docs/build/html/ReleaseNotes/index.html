@@ -129,6 +129,7 @@
 <li><strong>New Plugin:</strong>  Example.  It is heavily commented and provides examples of how to write your own Gate One plugin.  Included are examples of how to use the new widget() function and how to track the deployment of your plugin.  Try out the real-time load graph!</li>
 <li><strong>New Feature:</strong>  Added support for Python 3.  NOTE:  Gate One also runs on <a class="reference external" href="http://pypy.org/">pypy</a> and it's very speedy!</li>
 <li><strong>New Feature:</strong>  Gate One now works in Internet Explorer!  Well, IE 10 anyway.</li>
+<li><strong>New Feature:</strong>  Gate One now includes init scripts for Debian/Ubuntu, Red Hat/CentOS, and Gentoo.  These will be automatically installed via setup.py, the deb, or the rpm.</li>
 <li><strong>New Feature:</strong>  Gate One now keeps track of its own pid with the new <tt class="xref py py-obj docutils literal"><span class="pre">pid_file</span></tt> option.</li>
 <li><strong>New Feature:</strong>  CSS/Styles are now downloaded over the WebSocket directly instead of merely being placed in the &lt;head&gt; of the current HTML page.  This simplifies embedding.</li>
 <li><strong>New Feature:</strong>  Two new functions have been added to the SSH plugin that make it much easier to call and report on commands executed in a background session:  execRemoteCmd() and commandCompleted().  See the documentation and the Example plugin for details.</li>
@@ -161,6 +162,8 @@
 <li><strong>gateone.js:</strong>  Fixed the issue where you had to click twice on a terminal to move to it when in Grid view (only need to click once now).</li>
 <li><strong>gateone.js:</strong>  Fixed the bug where you could wind up with all sorts of HTML formatting when pasting in Mac OS X (and a few other paste methods).  Pastes will now automatically be converted to plaintext if they're registered by the browser as containing formatting.</li>
 <li><strong>gateone.py:</strong>  Terminal titles will now be set correctly when resuming a session.</li>
+<li><strong>gateone.py:</strong>  Generated self-signed SSL keys and certificates will now be stored in GATEONE_DIR instead of the current working directory unless absolute paths are provided via the --keyfile and --certificate options.</li>
+<li><strong>gateone.py:</strong>  When dtach=True and Gate One is stopped &amp; started, resumed terminals will no longer be blank with incorrect values in $ROWS and $COLUMNS until you type ctr=l.  They should now appear properly and have the correct size set without having to do anything at all.</li>
 <li><strong>terminal.py:</strong>  Corrected the handling of unicode diacritics (accent marks that modify the proceding character) inside of escape sequences.</li>
 <li><strong>termio.py:</strong>  Fixed a bug where multi-regex patterns weren't working with preprocess().</li>
 <li><strong>Logging Plugin:</strong>  The &quot;View Log (Flat)&quot; option (now renamed to &quot;Printable Log&quot;) works reliably and looks nicer.</li>
@@ -181,6 +184,7 @@
 <li><strong>gateone.py:</strong>  The dict that tracks things unique to individual browser sessions (i.e. where the 'refresh_timeout' gets stored) now gets cleaned up automatically when the user disconnects.</li>
 <li><strong>gateone.py:</strong>  You can now provide a <em>partial</em> server.conf before running Gate One for the first time (e.g. in packaging) and it will be used to set the provided values as defaults.  After which it will overwrite your server.conf with the existing settings in addition to what was missing.</li>
 <li><strong>gateone.py:</strong>  If dtach support isn't enabled Gate One will now empty out the <tt class="xref py py-obj docutils literal"><span class="pre">session_dir</span></tt> at exit.</li>
+<li><strong>gateone.py:</strong>  You may now designate which plugins are enabled by creating a plugins.conf file in GATEONE_DIR.  The format of the file is, &quot;one plugin name per line.&quot;  Previously, to disable plugins you had to remove them from GATEONE_DIR/plugins/.</li>
 <li><strong>gateone.js:</strong>  From now on, when Gate One doesn't have focus (and isn't accepting keyboard input) a graphical overlay will &quot;grey out&quot; the terminal slightly indicating that it is no longer active.  This should make it so that you always know when Gate One is ready to accept your keyboard input.</li>
 <li><strong>gateone.js:</strong>  From now on when you paste multiple lines into Gate One trailing whitespace will be removed from those lines.  In 99% of cases this is what you want.</li>
 <li><strong>gateone.js:</strong>  Removed the Web Worker bug workaround specific to Firefox 8.  Firefox has moved on.</li>

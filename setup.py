@@ -6,12 +6,11 @@
 #       * We should also add a mechansim for plugins to mark things as dependencies.
 
 from distutils.core import setup
-import sys, os
+import sys, os, shutil
 
 # Globals
 POSIX = 'posix' in sys.builtin_module_names
 version = '1.1'
-setup_dir = os.path.dirname(os.path.abspath(__file__))
 major, minor = sys.version_info[:2] # Python version
 if major == 2 and minor <=5:
     print("Gate One requires Python 2.6+.  You are running %s" % sys.version)
@@ -24,6 +23,12 @@ if major == 3:
         sys.exit(1)
 
 # Some paths we can reference
+setup_dir = os.path.dirname(os.path.abspath(__file__))
+build_dir = os.path.join(setup_dir, 'build')
+if not os.path.exists(build_dir):
+    # Make the build dir a little early so we can use it as a temporary place
+    # to store build files
+    os.mkdir(build_dir)
 static_dir = os.path.join(setup_dir, 'gateone', 'static')
 plugins_dir = os.path.join(setup_dir, 'gateone', 'plugins')
 templates_dir = os.path.join(setup_dir, 'gateone', 'templates')
@@ -36,7 +41,7 @@ with open(combined_js, 'w') as f:
 
 if POSIX:
     prefix = '/opt'
-else:
+else: # FUTURE
     prefix = os.environ['PROGRAMFILES']
 print("Gate One will be installed in %s" % prefix)
 
@@ -90,6 +95,30 @@ docs_files = walk_data_files(docs_dir)
 plugin_files = walk_data_files(plugins_dir)
 test_files = walk_data_files(tests_dir)
 i18n_files = walk_data_files(i18n_dir)
+
+# Detect appropriate init script and make sure it is put in the right place
+init_script = []
+conf_file = [] # Only used on Gentoo
+debian_script = os.path.join(setup_dir, 'scripts/init/gateone-debian.sh')
+redhat_script = os.path.join(setup_dir, 'scripts/init/gateone-redhat.sh')
+gentoo_script = os.path.join(setup_dir, 'scripts/init/gateone-gentoo.sh')
+temp_script_path = os.path.join(setup_dir, 'build/gateone')
+temp_confd_path = os.path.join(setup_dir, 'build/gateone')
+if os.path.exists('/etc/debian_version'):
+    shutil.copy(debian_script, temp_script_path)
+elif os.path.exists('/etc/redhat-release'):
+    shutil.copy(debian_script, temp_script_path)
+elif os.path.exists('/etc/gentoo-release'):
+    shutil.copy(debian_script, temp_script_path)
+    conf_file = [('/etc/conf.d', [
+        os.path.join(setup_dir, 'scripts/conf/gateone')
+    ])]
+
+if os.path.exists(temp_script_path):
+    init_script = [('/etc/init.d', [
+        temp_script_path
+    ])]
+
 # Put it all together
 data_files = (
     gateone_files +
@@ -98,7 +127,9 @@ data_files = (
     docs_files +
     plugin_files +
     test_files +
-    i18n_files
+    i18n_files +
+    init_script +
+    conf_file
 )
 
 setup(

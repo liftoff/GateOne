@@ -71,6 +71,7 @@ Summary of Changes
     * **New Plugin:**  Example.  It is heavily commented and provides examples of how to write your own Gate One plugin.  Included are examples of how to use the new widget() function and how to track the deployment of your plugin.  Try out the real-time load graph!
     * **New Feature:**  Added support for Python 3.  NOTE:  Gate One also runs on `pypy <http://pypy.org/>`_ and it's very speedy!
     * **New Feature:**  Gate One now works in Internet Explorer!  Well, IE 10 anyway.
+    * **New Feature:**  Gate One now includes init scripts for Debian/Ubuntu, Red Hat/CentOS, and Gentoo.  These will be automatically installed via setup.py, the deb, or the rpm.
     * **New Feature:**  Gate One now keeps track of its own pid with the new `pid_file` option.
     * **New Feature:**  CSS/Styles are now downloaded over the WebSocket directly instead of merely being placed in the <head> of the current HTML page.  This simplifies embedding.
     * **New Feature:**  Two new functions have been added to the SSH plugin that make it much easier to call and report on commands executed in a background session:  execRemoteCmd() and commandCompleted().  See the documentation and the Example plugin for details.
@@ -99,6 +100,8 @@ Notable Bugs Fixes
     * **gateone.js:**  Fixed the issue where you had to click twice on a terminal to move to it when in Grid view (only need to click once now).
     * **gateone.js:**  Fixed the bug where you could wind up with all sorts of HTML formatting when pasting in Mac OS X (and a few other paste methods).  Pastes will now automatically be converted to plaintext if they're registered by the browser as containing formatting.
     * **gateone.py:**  Terminal titles will now be set correctly when resuming a session.
+    * **gateone.py:**  Generated self-signed SSL keys and certificates will now be stored in GATEONE_DIR instead of the current working directory unless absolute paths are provided via the --keyfile and --certificate options.
+    * **gateone.py:**  When dtach=True and Gate One is stopped & started, resumed terminals will no longer be blank with incorrect values in $ROWS and $COLUMNS until you type ctr=l.  They should now appear properly and have the correct size set without having to do anything at all.
     * **terminal.py:**  Corrected the handling of unicode diacritics (accent marks that modify the proceding character) inside of escape sequences.
     * **termio.py:**  Fixed a bug where multi-regex patterns weren't working with preprocess().
     * **Logging Plugin:**  The "View Log (Flat)" option (now renamed to "Printable Log") works reliably and looks nicer.
@@ -116,6 +119,7 @@ Other Notable Changes
     * **gateone.py:**  The dict that tracks things unique to individual browser sessions (i.e. where the 'refresh_timeout' gets stored) now gets cleaned up automatically when the user disconnects.
     * **gateone.py:**  You can now provide a *partial* server.conf before running Gate One for the first time (e.g. in packaging) and it will be used to set the provided values as defaults.  After which it will overwrite your server.conf with the existing settings in addition to what was missing.
     * **gateone.py:**  If dtach support isn't enabled Gate One will now empty out the `session_dir` at exit.
+    * **gateone.py:**  You may now designate which plugins are enabled by creating a plugins.conf file in GATEONE_DIR.  The format of the file is, "one plugin name per line."  Previously, to disable plugins you had to remove them from GATEONE_DIR/plugins/.
     * **gateone.js:**  From now on, when Gate One doesn't have focus (and isn't accepting keyboard input) a graphical overlay will "grey out" the terminal slightly indicating that it is no longer active.  This should make it so that you always know when Gate One is ready to accept your keyboard input.
     * **gateone.js:**  From now on when you paste multiple lines into Gate One trailing whitespace will be removed from those lines.  In 99% of cases this is what you want.
     * **gateone.js:**  Removed the Web Worker bug workaround specific to Firefox 8.  Firefox has moved on.

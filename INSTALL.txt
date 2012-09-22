@@ -1,0 +1,25 @@
+To install Gate One from source execute the following from this directory:
+
+    python setup.py install
+
+By default it will be installed in /opt (/opt/gateone).  If you want to install
+it somewhere else just pass --prefix:
+
+    python setup.py --prefix=/usr/local install
+
+To build an RPM package:
+
+    python setup.py bdist_rpm
+    # The .rpm will end up in the 'dist' directory
+
+To build a Debian package (.deb):
+
+    python setup.py --command-packages=stdeb.command bdist_deb
+    # The .deb will end up in the 'deb_dist' directory
+
+NOTE: The above command requires stdeb (http://pypi.python.org/pypi/stdeb).  You
+can usually install it with one of the following commands on most distros:
+
+    sudo pip install stdeb
+    ...or:
+    sudo easy_install stdeb

@@ -64,9 +64,9 @@
 <span class="c"># * Make it so that the session_dir gets cleaned up.  Will require some logic in regards dtach detection.</span>
 
 <span class="c"># Meta</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.1&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.1.0&#39;</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
-<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="c"># NOTE: Docstring includes reStructuredText markup for use with Sphinx.</span>
@@ -1204,6 +1204,7 @@
                         <span class="p">}</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
                         <span class="k">return</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;api_keys: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;api_keys&#39;</span><span class="p">])</span>
                     <span class="n">secret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;api_keys&#39;</span><span class="p">][</span><span class="n">api_key</span><span class="p">]</span>
                     <span class="c"># Check the signature against existing API keys</span>
                     <span class="n">sig_check</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">_create_signature</span><span class="p">(</span>
@@ -1280,9 +1281,11 @@
             <span class="c"># back to ANONYMOUS.</span>
             <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]:</span> <span class="c"># Authentication from localStorage data</span>
                 <span class="c"># Authenticate/decode the encoded auth info</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span>
-                    <span class="s">&#39;gateone_user&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]))</span>
-            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cookie_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span>
+                    <span class="s">&#39;gateone_user&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">cookie_data</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">json_decode</span><span class="p">(</span><span class="n">cookie_data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
                 <span class="c"># Generate a new session/anon user</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
                 <span class="c"># Also store/update their session info in localStorage</span>
@@ -1485,7 +1488,7 @@
                     <span class="n">resumed_dtach</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="k">else</span><span class="p">:</span> <span class="c"># No existing dtach session...  Make a new one</span>
                     <span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;dtach -c </span><span class="si">%s</span><span class="s"> -E -z -r none </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dtach_path</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
-            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_multiplex</span><span class="p">(</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_multiplex</span><span class="p">(</span>
                 <span class="n">cmd</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
             <span class="c"># Set some environment variables so the programs we execute can use</span>
             <span class="c"># them (very handy).  Allows for &quot;tight integration&quot; and &quot;synergy&quot;!</span>
@@ -1496,8 +1499,14 @@
                 <span class="s">&#39;GO_SESSION&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
                 <span class="s">&#39;GO_SESSION_DIR&#39;</span><span class="p">:</span> <span class="n">session_dir</span>
             <span class="p">}</span>
-            <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span>
-                <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">em_dimensions</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">em_dimensions</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">resumed_dtach</span><span class="p">:</span>
+                <span class="c"># Send an extra Ctrl-L to refresh the screen and fix the sizing</span>
+                <span class="c"># after it has been reattached.</span>
+                <span class="n">resize</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">resize</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">ctrl_l</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                    <span class="n">em_dimensions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">em_dimensions</span><span class="p">)</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span>
+                    <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">resize</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c"># Terminal already exists</span>
             <span class="k">if</span> <span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isalive</span><span class="p">():</span>
@@ -1950,12 +1959,14 @@
 <span class="sd">            * **theme** - The name of the CSS theme to be retrieved.</span>
 <span class="sd">            * **colors** - The name of the text color CSS scheme to be retrieved.</span>
 <span class="sd">            * **plugins** - If true, will send all plugin .css files to the client.</span>
+<span class="sd">            * **print** - If true, will send the print stylesheet.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_style(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">settings</span><span class="p">)</span>
         <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&#39;Success&#39;</span><span class="p">}</span>
         <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
         <span class="n">themes_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s">&#39;themes&#39;</span><span class="p">)</span>
         <span class="n">colors_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s">&#39;term_colors&#39;</span><span class="p">)</span>
+        <span class="n">printing_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s">&#39;printing&#39;</span><span class="p">)</span>
         <span class="n">go_url</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;go_url&#39;</span><span class="p">]</span> <span class="c"># Used to prefix the url_prefix</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">go_url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span>
             <span class="n">go_url</span> <span class="o">+=</span> <span class="s">&#39;/&#39;</span>
@@ -1970,20 +1981,23 @@
         <span class="n">plugins</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="s">&#39;plugins&#39;</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
             <span class="n">plugins</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;plugins&quot;</span><span class="p">]</span>
+        <span class="n">_print</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="s">&#39;print&#39;</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
+            <span class="n">_print</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;print&quot;</span><span class="p">]</span>
+        <span class="c"># Setup our 256-color support CSS:</span>
+        <span class="n">colors_256</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">256</span><span class="p">):</span>
+            <span class="n">fg</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.fx</span><span class="si">%s</span><span class="s"> {color: #</span><span class="si">%s</span><span class="s">;}&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">COLORS_256</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">bg</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.bx</span><span class="si">%s</span><span class="s"> {background-color: #</span><span class="si">%s</span><span class="s">;} &quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">COLORS_256</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">fg_rev</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.reverse.fx</span><span class="si">%s</span><span class="s"> {background-color: #</span><span class="si">%s</span><span class="s">; color: inherit;}&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">COLORS_256</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">bg_rev</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.reverse.bx</span><span class="si">%s</span><span class="s"> {color: #</span><span class="si">%s</span><span class="s">; background-color: inherit;} &quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">COLORS_256</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">colors_256</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fg</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">fg_rev</span><span class="p">,</span> <span class="n">bg_rev</span><span class="p">)</span>
+        <span class="n">colors_256</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
         <span class="k">if</span> <span class="n">theme</span><span class="p">:</span>
-            <span class="c"># Setup our 256-color support CSS:</span>
-            <span class="n">colors_256</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">256</span><span class="p">):</span>
-                <span class="n">fg</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.fx</span><span class="si">%s</span><span class="s"> {color: #</span><span class="si">%s</span><span class="s">;}&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">COLORS_256</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">bg</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.bx</span><span class="si">%s</span><span class="s"> {background-color: #</span><span class="si">%s</span><span class="s">;} &quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">COLORS_256</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">fg_rev</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.reverse.fx</span><span class="si">%s</span><span class="s"> {background-color: #</span><span class="si">%s</span><span class="s">; color: inherit;}&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">COLORS_256</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">bg_rev</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.reverse.bx</span><span class="si">%s</span><span class="s"> {color: #</span><span class="si">%s</span><span class="s">; background-color: inherit;} &quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">COLORS_256</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">colors_256</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fg</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">fg_rev</span><span class="p">,</span> <span class="n">bg_rev</span><span class="p">)</span>
-            <span class="n">colors_256</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
             <span class="n">theme_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">themes_path</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.css&quot;</span> <span class="o">%</span> <span class="n">theme</span><span class="p">)</span>
             <span class="n">theme_css</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
                 <span class="n">theme_path</span><span class="p">,</span>
@@ -2027,6 +2041,16 @@
                             <span class="k">if</span> <span class="nb">bytes</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span> <span class="c"># Python 3</span>
                                 <span class="n">plugin_css</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">plugin_css</span><span class="p">,</span> <span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
                             <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;plugins&#39;</span><span class="p">][</span><span class="n">plugin</span><span class="p">]</span> <span class="o">+=</span> <span class="n">plugin_css</span>
+        <span class="k">if</span> <span class="n">_print</span><span class="p">:</span>
+            <span class="n">print_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">printing_path</span><span class="p">,</span> <span class="s">&quot;default.css&quot;</span><span class="p">)</span>
+            <span class="n">print_css</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
+                <span class="n">print_css_path</span><span class="p">,</span>
+                <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
+                <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+                <span class="n">colors_256</span><span class="o">=</span><span class="n">colors_256</span><span class="p">,</span>
+                <span class="n">url_prefix</span><span class="o">=</span><span class="n">go_url</span>
+            <span class="p">)</span>
+            <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;print&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">print_css</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">({</span><span class="s">&#39;load_style&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}))</span>
 
     <span class="c"># NOTE: This has been disabled for now.  It works OK but the problem is that</span>
@@ -2437,7 +2461,7 @@
     <span class="p">)</span>
     <span class="n">define</span><span class="p">(</span>
         <span class="s">&quot;auth&quot;</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s">&quot;none&quot;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Authentication method to use.  Valid options are: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">auths</span><span class="p">),</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span>
     <span class="p">)</span>
@@ -2626,6 +2650,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_defaults</span><span class="p">[</span><span class="s">&#39;log_file_prefix&#39;</span><span class="p">]):</span>
             <span class="nb">open</span><span class="p">(</span><span class="n">config_defaults</span><span class="p">[</span><span class="s">&#39;log_file_prefix&#39;</span><span class="p">],</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
         <span class="n">config</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;# -*- coding: utf-8 -*-</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="c"># Start with the encoding line</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config_defaults</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
                 <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> = &quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
@@ -2750,6 +2775,9 @@
                 <span class="n">pairs</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">:</span>
                     <span class="n">api_key</span><span class="p">,</span> <span class="n">secret</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">bytes</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+                        <span class="n">api_key</span> <span class="o">=</span> <span class="n">api_key</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+                        <span class="n">secret</span> <span class="o">=</span> <span class="n">secret</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
                     <span class="n">api_keys</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">api_key</span><span class="p">:</span> <span class="n">secret</span><span class="p">})</span>
     <span class="c"># Fix the url_prefix if the user forgot the trailing slash</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">url_prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span>
@@ -2791,12 +2819,20 @@
     <span class="p">}</span>
     <span class="c"># Check to make sure we have a certificate and keyfile and generate fresh</span>
     <span class="c"># ones if not.</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">keyfile</span> <span class="o">==</span> <span class="s">&quot;keyfile.pem&quot;</span><span class="p">:</span>
+        <span class="c"># If set to the default we&#39;ll assume they want to use the one in the</span>
+        <span class="c"># gateone_dir</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">keyfile</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/keyfile.pem&quot;</span> <span class="o">%</span> <span class="n">GATEONE_DIR</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">certificate</span> <span class="o">==</span> <span class="s">&quot;certificate.pem&quot;</span><span class="p">:</span>
+        <span class="c"># Just like the keyfile, assume they want to use the one in the</span>
+        <span class="c"># gateone_dir</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">certificate</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/certificate.pem&quot;</span> <span class="o">%</span> <span class="n">GATEONE_DIR</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">keyfile</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;No SSL private key found.  One will be generated.&quot;</span><span class="p">))</span>
-        <span class="n">gen_self_signed_ssl</span><span class="p">()</span>
+        <span class="n">gen_self_signed_ssl</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">GATEONE_DIR</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">certificate</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;No SSL certificate found.  One will be generated.&quot;</span><span class="p">))</span>
-        <span class="n">gen_self_signed_ssl</span><span class="p">()</span>
+        <span class="n">gen_self_signed_ssl</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">GATEONE_DIR</span><span class="p">)</span>
     <span class="c"># Setup static file links for plugins (if any)</span>
     <span class="n">static_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&quot;static&quot;</span><span class="p">)</span>
     <span class="c"># Verify static_dir&#39;s permissions</span>
@@ -2839,7 +2875,10 @@
         <span class="s">&quot;cert_reqs&quot;</span><span class="p">:</span> <span class="n">cert_reqs</span>
     <span class="p">}</span>
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">disable_ssl</span><span class="p">:</span>
+        <span class="n">proto</span> <span class="o">=</span> <span class="s">&quot;http://&quot;</span>
         <span class="n">ssl_options</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">proto</span> <span class="o">=</span> <span class="s">&quot;https://&quot;</span>
     <span class="n">https_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span>
         <span class="n">Application</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">app_settings</span><span class="p">),</span> <span class="n">ssl_options</span><span class="o">=</span><span class="n">ssl_options</span><span class="p">)</span>
     <span class="n">https_redirect</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">Application</span><span class="p">(</span>
@@ -2859,23 +2898,34 @@
             <span class="k">for</span> <span class="n">addr</span> <span class="ow">in</span> <span class="n">address</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">addr</span><span class="p">:</span> <span class="c"># Listen on all given addresses</span>
                     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">https_redirect</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">disable_ssl</span><span class="p">:</span>
+                            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                            <span class="s">&quot;You have https_redirect *and* disable_ssl enabled.&quot;</span>
+                            <span class="s">&quot;  Please pick one or the other.&quot;</span><span class="p">))</span>
+                            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
                         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                             <span class="s">&quot;http://{addr}:80/ will be redirected to...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                                 <span class="n">addr</span><span class="o">=</span><span class="n">addr</span><span class="p">)</span>
                         <span class="p">))</span>
                         <span class="n">https_redirect</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">addr</span><span class="p">)</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                        <span class="s">&quot;Listening on https://{address}:{port}/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">address</span><span class="o">=</span><span class="n">addr</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+                        <span class="s">&quot;Listening on {proto}{address}:{port}/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">proto</span><span class="o">=</span><span class="n">proto</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">addr</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
                     <span class="p">))</span>
                     <span class="n">https_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">addr</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">address</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
             <span class="c"># Listen on all addresses (including IPv6)</span>
             <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">https_redirect</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">disable_ssl</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                        <span class="s">&quot;You have https_redirect *and* disable_ssl enabled.&quot;</span>
+                        <span class="s">&quot;  Please pick one or the other.&quot;</span><span class="p">))</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;http://*:80/ will be redirected to...&quot;</span><span class="p">))</span>
                 <span class="n">https_redirect</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                <span class="s">&quot;Listening on https://*:{port}/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">)))</span>
+                <span class="s">&quot;Listening on {proto}*:{port}/&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">proto</span><span class="o">=</span><span class="n">proto</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">)))</span>
             <span class="n">https_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">)</span>
         <span class="c"># NOTE:  To have Gate One *not* listen on a TCP/IP address you may set</span>
         <span class="c">#        address=None</span>
@@ -2917,6 +2967,9 @@
             <span class="c"># when Gate One is closed.  This is primarily to handle that</span>
             <span class="c"># specific situation.</span>
             <span class="n">killall</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">session_dir</span><span class="p">)</span>
+            <span class="c"># Cleanup the session_dir (it is supposed to only contain temp stuff)</span>
+            <span class="kn">import</span> <span class="nn">shutil</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">session_dir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>

@@ -719,6 +719,7 @@
 <span class="sd">    *passphrase* is provided, it will be used to generate the public key (if</span>
 <span class="sd">    necessary).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;openssh_generate_public_key()&#39;</span><span class="p">)</span>
     <span class="n">ssh_keygen_path</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s">&#39;ssh-keygen&#39;</span><span class="p">)</span>
     <span class="n">pubkey_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.pub&quot;</span> <span class="o">%</span> <span class="n">path</span>
     <span class="n">command</span> <span class="o">=</span> <span class="p">(</span>
