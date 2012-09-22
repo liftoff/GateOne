@@ -1,5 +1,8 @@
-include *.txt
-include *.cfg
+include LICENSE.txt
+include AGPLv3.txt
+include babel_gateone.cfg
 include *.rst
-recursive-include scripts
-recursive-exclude *.kate-swp
+graft scripts
+graft gateone
+global-exclude *.kate-swp
+global-exclude *.pyc
