@@ -1228,9 +1228,11 @@ class TerminalWebSocket(WebSocketHandler):
             # back to ANONYMOUS.
             if settings['auth']: # Authentication from localStorage data
                 # Authenticate/decode the encoded auth info
-                self.user = json_decode(self.get_secure_cookie(
-                    'gateone_user', value=settings['auth']))
-            else:
+                cookie_data = self.get_secure_cookie(
+                    'gateone_user', value=settings['auth'])
+                if cookie_data:
+                    self.user = json_decode(cookie_data)
+            if not self.user:
                 # Generate a new session/anon user
                 self.user = self.get_current_user()
                 # Also store/update their session info in localStorage
@@ -1433,7 +1435,7 @@ class TerminalWebSocket(WebSocketHandler):
                     resumed_dtach = True
                 else: # No existing dtach session...  Make a new one
                     cmd = "dtach -c %s -E -z -r none %s" % (dtach_path, cmd)
-            SESSIONS[self.session][term]['multiplex'] = self.new_multiplex(
+            m = SESSIONS[self.session][term]['multiplex'] = self.new_multiplex(
                 cmd, term)
             # Set some environment variables so the programs we execute can use
             # them (very handy).  Allows for "tight integration" and "synergy"!
@@ -1444,8 +1446,14 @@ class TerminalWebSocket(WebSocketHandler):
                 'GO_SESSION': self.session,
                 'GO_SESSION_DIR': session_dir
             }
-            SESSIONS[self.session][term]['multiplex'].spawn(
-                rows, cols, env=env, em_dimensions=self.em_dimensions)
+            m.spawn(rows, cols, env=env, em_dimensions=self.em_dimensions)
+            if resumed_dtach:
+                # Send an extra Ctrl-L to refresh the screen and fix the sizing
+                # after it has been reattached.
+                resize = partial(m.resize, rows, cols, ctrl_l=True,
+                                    em_dimensions=self.em_dimensions)
+                m.io_loop.add_timeout(
+                    timedelta(seconds=2), resize)
         else:
             # Terminal already exists
             if SESSIONS[self.session][term]['multiplex'].isalive():
@@ -2400,7 +2408,7 @@ def main():
     )
     define(
         "auth",
-        default=None,
+        default="none",
         help=_("Authentication method to use.  Valid options are: %s" % auths),
         type=str
     )
@@ -2758,12 +2766,20 @@ def main():
     }
     # Check to make sure we have a certificate and keyfile and generate fresh
     # ones if not.
+    if options.keyfile == "keyfile.pem":
+        # If set to the default we'll assume they want to use the one in the
+        # gateone_dir
+        options.keyfile = "%s/keyfile.pem" % GATEONE_DIR
+    if options.certificate == "certificate.pem":
+        # Just like the keyfile, assume they want to use the one in the
+        # gateone_dir
+        options.certificate = "%s/certificate.pem" % GATEONE_DIR
     if not os.path.exists(options.keyfile):
         logging.info(_("No SSL private key found.  One will be generated."))
-        gen_self_signed_ssl()
+        gen_self_signed_ssl(path=GATEONE_DIR)
     if not os.path.exists(options.certificate):
         logging.info(_("No SSL certificate found.  One will be generated."))
-        gen_self_signed_ssl()
+        gen_self_signed_ssl(path=GATEONE_DIR)
     # Setup static file links for plugins (if any)
     static_dir = os.path.join(GATEONE_DIR, "static")
     # Verify static_dir's permissions

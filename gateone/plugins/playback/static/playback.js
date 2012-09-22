@@ -97,7 +97,7 @@ GateOne.Base.update(GateOne.Playback, {
             });
         }, 2000);
     },
-    newTerminalCallback: function(term) {
+    newTerminalCallback: function(term, calledTwice) {
         // This gets added to GateOne.Terminal.newTermCallbacks to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls
         // It also calls addPlaybackControls() to make sure they're present only after a new terminal is open
         var go = GateOne,
@@ -134,10 +134,12 @@ GateOne.Base.update(GateOne.Playback, {
                 // This is necessary because we add the extraSpace:
                 u.scrollToBottom(termPre);
             } else {
-                // Try again...  It can take a moment for the server to respond and the terminal PRE to be created the first time
-                setTimeout(function() {
-                    p.newTerminalCallback(term);
-                }, 100);
+                if (!calledTwice) {
+                    // Try again...  It can take a moment for the server to respond and the terminal PRE to be created the first time
+                    setTimeout(function() {
+                        p.newTerminalCallback(term, true);
+                    }, 1000);
+                }
             }
             p.addPlaybackControls();
         }

@@ -243,7 +243,7 @@ def get_translation():
     user_locale = locale.get(locale_str)
     return user_locale.translate
 
-def gen_self_signed_ssl():
+def gen_self_signed_ssl(path=None):
     """
     Generates a self-signed SSL certificate using pyOpenSSL or the openssl
     command depending on what's available,  The resulting key/certificate will
@@ -256,58 +256,66 @@ def gen_self_signed_ssl():
     except ImportError:
         gen_self_signed_func = gen_self_signed_openssl
     try:
-        gen_self_signed_func()
+        gen_self_signed_func(path=path)
     except SSLGenerationError as e:
         logging.error(_(
             "Error generating self-signed SSL key/certificate: %s" % e))
 
-def gen_self_signed_openssl():
+def gen_self_signed_openssl(path=None):
     """
     This method will generate a secure self-signed SSL key/certificate pair
     (using the `openssl <http://www.openssl.org/docs/apps/openssl.html>`_
-    command) saving the result as 'certificate.pem' and 'keyfile.pem' in the
-    current working directory.  The certificate will be valid for 10 years.
+    command) saving the result as 'certificate.pem' and 'keyfile.pem' to *path*.
+    If *path* is not given the result will be saved in the current working
+    directory.  The certificate will be valid for 10 years.
     """
+    if not path:
+        path = os.path.abspath(os.curdir)
+    keyfile_path = "%s/keyfile.pem" % path
+    certfile_path = "%s/certificate.pem" % path
     subject = (
         '-subj "/OU=%s (Self-Signed)/CN=Gate One/O=Liftoff Software"' %
         os.uname()[1] # Hostname
     )
     gen_command = (
-        "openssl genrsa -aes256 -out keyfile.pem.tmp -passout pass:password 4096"
+        "openssl genrsa -aes256 -out %s.tmp -passout pass:password 4096" %
+        keyfile_path
     )
     decrypt_key_command = (
-        "openssl rsa -in keyfile.pem.tmp -passin pass:password -out keyfile.pem"
+        "openssl rsa -in %s.tmp -passin pass:password -out keyfile.pem" %
+        keyfile_path
     )
     csr_command = (
-        "openssl req -new -key keyfile.pem -out temp.csr %s" % subject
+        "openssl req -new -key %s -out temp.csr %s" % (keyfile_path, subject)
     )
     cert_command = (
         "openssl x509 -req "    # Create a new x509 certificate
         "-days 3650 "           # That lasts 10 years
         "-in temp.csr "         # Using the CSR we just generated
-        "-signkey keyfile.pem " # Sign it with keyfile.pem that we just created
-        "-out certificate.pem"  # Save it as certificate.pem
+        "-signkey %s "          # Sign it with keyfile.pem that we just created
+        "-out %s"               # Save it as certificate.pem
     )
+    cert_command = cert_command % (keyfile_path, certfile_path)
     exitstatus, output = shell_command(gen_command, 30)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to create private SSL key:\n%s" % output)
-        if os.path.exists('keyfile.pem.tmp'):
-            os.remove('keyfile.pem.tmp')
+        if os.path.exists('%s.tmp' % keyfile_path):
+            os.remove('%s.tmp' % keyfile_path)
         raise SSLGenerationError(error_msg)
     exitstatus, output = shell_command(decrypt_key_command, 30)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to decrypt private SSL key:\n%s" % output)
-        if os.path.exists('keyfile.pem.tmp'):
-            os.remove('keyfile.pem.tmp')
+        if os.path.exists('%s.tmp' % keyfile_path):
+            os.remove('%s.tmp' % keyfile_path)
         raise SSLGenerationError(error_msg)
     exitstatus, output = shell_command(csr_command, 30)
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to create CSR:\n%s" % output)
-        if os.path.exists('keyfile.pem.tmp'):
-            os.remove('keyfile.pem.tmp')
+        if os.path.exists('%s.tmp' % keyfile_path):
+            os.remove('%s.tmp' % keyfile_path)
         if os.path.exists('temp.csr'):
             os.remove('temp.csr')
         raise SSLGenerationError(error_msg)
@@ -315,24 +323,25 @@ def gen_self_signed_openssl():
     if exitstatus != 0:
         error_msg = _(
             "An error occurred trying to create certificate:\n%s" % output)
-        if os.path.exists('keyfile.pem.tmp'):
-            os.remove('keyfile.pem.tmp')
+        if os.path.exists('%s.tmp' % keyfile_path):
+            os.remove('%s.tmp' % keyfile_path)
         if os.path.exists('temp.csr'):
             os.remove('temp.csr')
-        if os.path.exists('certificate.pem'):
-            os.remove('certificate.pem')
+        if os.path.exists(certfile_path):
+            os.remove(certfile_path)
         raise SSLGenerationError(error_msg)
     # Clean up unnecessary leftovers
-    os.remove('keyfile.pem.tmp')
+    os.remove('%s.tmp' % keyfile_path)
     os.remove('temp.csr')
 
 
-def gen_self_signed_pyopenssl(notAfter=None):
+def gen_self_signed_pyopenssl(notAfter=None, path=None):
     """
     This method will generate a secure self-signed SSL key/certificate pair
     (using pyOpenSSL) saving the result as 'certificate.pem' and 'keyfile.pem'
-    in the current working directory.  By default the certificate will be valid
-    for 10 years but this can be overridden by passing a valid timestamp via the
+    in *path*.  If *path* is not given the result will be saved in the current
+    working directory.  By default the certificate will be valid for 10 years
+    but this can be overridden by passing a valid timestamp via the
     *notAfter* argument.
 
     Examples::
@@ -347,10 +356,14 @@ def gen_self_signed_pyopenssl(notAfter=None):
             "Error: You do not have pyOpenSSL installed.  Please install "
             "it (sudo pip install pyopenssl.")
         raise SSLGenerationError(error_msg)
+    if not path:
+        path = os.path.abspath(os.curdir)
+    keyfile_path = "%s/keyfile.pem" % path
+    certfile_path = "%s/certificate.pem" % path
     pkey = OpenSSL.crypto.PKey()
     pkey.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
     # Save the key as 'keyfile.pem':
-    with open('keyfile.pem', 'w') as f:
+    with open(keyfile_path, 'w') as f:
         f.write(OpenSSL.crypto.dump_privatekey(
             OpenSSL.crypto.FILETYPE_PEM, pkey))
     cert = OpenSSL.crypto.X509()
@@ -366,7 +379,7 @@ def gen_self_signed_pyopenssl(notAfter=None):
     cert.get_issuer().O = 'Self-Signed'
     cert.set_pubkey(pkey)
     cert.sign(pkey, 'md5')
-    with open('certificate.pem', 'w') as f:
+    with open(certfile_path, 'w') as f:
         f.write(OpenSSL.crypto.dump_certificate(
             OpenSSL.crypto.FILETYPE_PEM, cert))
 

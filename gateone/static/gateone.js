@@ -2900,7 +2900,7 @@ GateOne.Base.update(GateOne.Visual, {
     enableScrollback: function(/*Optional*/term) {
         // Replaces the contents of the selected terminal with the complete screen + scrollback buffer
         // If *term* is given, only disable scrollback for that terminal
-        logDebug('enableScrollback(' + term + ')');
+        logInfo('enableScrollback(' + term + ')');
         var u = go.Utils,
             prefix = go.prefs.prefix,
             enableSB = function(termNum) {
@@ -2932,6 +2932,7 @@ GateOne.Base.update(GateOne.Visual, {
                         termScrollback.innerHTML = scrollbackHTML;
                     }
                     termScrollback.style.display = null; // Reset
+                    u.scrollToBottom(termPreNode);
                 } else {
                     // Create the span that holds the scrollback buffer
                     termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback'});
@@ -3041,7 +3042,6 @@ GateOne.Base.update(GateOne.Visual, {
         terms.forEach(function(termObj) {
             // Loop through once to get the correct wPX and hPX values
             count = count + 1;
-//             termObj.style.opacity = 1;
             if (termObj.id == go.prefs.prefix+'term' + term) {
                 if (u.isEven(count)) {
                     wPX = ((v.goDimensions.w+rightAdjust) * 2) - (v.goDimensions.w+rightAdjust);
@@ -3065,7 +3065,7 @@ GateOne.Base.update(GateOne.Visual, {
             if (go.terminals[term]['scrollbackTimer']) {
                 clearTimeout(go.terminals[term]['scrollbackTimer']);
             }
-            go.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 3500);
+            go.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 1000);
         }
     },
     slideLeft: function() {
@@ -4185,22 +4185,22 @@ go.Base.update(GateOne.Terminal, {
                         }
                     }
                 }, 5000);
-//             } catch (e) { // Likely the terminal just closed
+            } catch (e) { // Likely the terminal just closed
 //                 logDebug('Caught exception in termUpdateFromWorker: ' + e);
-//                 u.noop(); // Just ignore it.
+                u.noop(); // Just ignore it.
             } finally { // Instant GC
                 termContainer = null;
                 screen = null;
             }
         }
-        if (scrollback) {
+        if (scrollback.length) {
             GateOne.terminals[term]['scrollback'] = scrollback;
             // We wrap the logic that stores the scrollback buffer in a timer so we're not writing to localStorage (aka "to disk") every nth of a second for fast screen refreshes (e.g. fast typers).  Writing to localStorage is a blocking operation so this could speed things up considerable for larger terminal sizes.
             clearTimeout(GateOne.terminals[term]['scrollbackWriteTimer']);
             GateOne.terminals[term]['scrollbackWriteTimer'] = null;
             // This will save the scrollback buffer after 2 seconds of terminal inactivity (idle)
             try {
-                GateOne.terminals[term]['scrollbackWriteTimer'] = setTimeout(writeScrollback, 2000); // 3.5 seconds is just past the default 'top' refresh rate
+                GateOne.terminals[term]['scrollbackWriteTimer'] = setTimeout(writeScrollback, 2000);
             } finally {
                 writeScrollback = null;
                 scrollback = null;
@@ -4305,7 +4305,6 @@ go.Base.update(GateOne.Terminal, {
             prefix = go.prefs.prefix,
             term = termUpdateObj['term'],
             ratelimiter = termUpdateObj['ratelimiter'],
-            prevScrollback = localStorage[prefix+"scrollback" + term],
             scrollback = go.terminals[term]['scrollback'],
             textTransforms = go.Terminal.textTransforms,
             message = null;
@@ -4324,7 +4323,6 @@ go.Base.update(GateOne.Terminal, {
                     'cmds': ['processScreen'],
                     'scrollback': scrollback,
                     'termUpdateObj': termUpdateObj,
-                    'prevScrollback': prevScrollback,
                     'prefs': go.prefs,
                     'textTransforms': textTransforms
                 };
@@ -4335,7 +4333,6 @@ go.Base.update(GateOne.Terminal, {
             // Force GC
             message = null;
             textTransforms = null;
-            prevScrollback = null;
             v = null;
             t = null;
             u = null;
@@ -4376,7 +4373,7 @@ go.Base.update(GateOne.Terminal, {
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             rows = Math.ceil(dimensions.rows - rowAdjust),
             cols = Math.ceil(dimensions.cols - colAdjust),
-            prevScrollback = localStorage.getItem(prefix+"scrollback" + term);
+            prevScrollback = localStorage.getItem(prefix + "scrollback" + term);
         if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
             // Create the grid if it isn't already present
             if (!termwrapper) {

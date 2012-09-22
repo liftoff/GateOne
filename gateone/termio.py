@@ -1281,7 +1281,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
             fcntl.fcntl(self.fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
             # Set the size of the terminal
-            self.resize(rows, cols, ctrl_l=False)
+            resize = partial(self.resize, rows, cols, ctrl_l=False)
+            self.io_loop.add_timeout(timedelta(seconds=2), resize)
             return fd
 
     def isalive(self):
@@ -1349,7 +1350,11 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         # be an effective workaround.
         import fcntl, termios
         s = struct.pack("HHHH", rows, cols, 0, 0)
-        fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
+        try:
+            fcntl.ioctl(self.fd, termios.TIOCSWINSZ, s)
+        except IOError:
+            # Process already ended--no big deal
+            return
         if ctrl_l:
             self.write(u'\x0c') # ctrl-l
         # SIGWINCH has been disabled since it can screw things up

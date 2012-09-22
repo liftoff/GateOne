@@ -18,11 +18,10 @@ var linkify = function(text, pattern, newString) {
     }
     return text.replace(pattern, newString);
 };
-var processScreen = function(scrollback, termUpdateObj, prevScrollback, prefs, textTransforms) {
+var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms) {
     // Do all the necessary client-side processing of the terminal screen and scrollback buffer.  The idea being that a web worker doing this stuff should make Gate One more responsive (at the client).
     // scrollback: go.terminals[term]['scrollback']
     // termUpdateObj: The object containing the terminal screen/scrollback provided by the server
-    // prevScrollback: localStorage['scrollback' + term]
     // termTitle: u.getNode('#' + go.prefs.prefix + 'term' + term).title (since we can't query the DOM from within a Worker)
     // prefs: GateOne.prefs
     // textTransforms: Textual transformations that will be passed to linkify()
@@ -37,7 +36,7 @@ var processScreen = function(scrollback, termUpdateObj, prevScrollback, prefs, t
     // If there's no scrollback buffer, try filling it with what was preserved in localStorage
     if (!scrollback.length) {
         if (prevScrollback) {
-            scrollback = prevScrollback.split('\n');
+            scrollback = prevScrollback;
         } else {
             scrollback = [];
         }
@@ -107,7 +106,6 @@ self.addEventListener('message', function(e) {
         text = data.text,
         scrollback = data.scrollback,
         termUpdateObj = data.termUpdateObj,
-        prevScrollback = data.prevScrollback,
         prefs= data.prefs,
         textTransforms = data.textTransforms,
         result = null;
@@ -127,7 +125,7 @@ self.addEventListener('message', function(e) {
                     }
                     break;
                 case 'processScreen':
-                    result = processScreen(scrollback, termUpdateObj, prevScrollback, prefs, textTransforms);
+                    result = processScreen(scrollback, termUpdateObj, prefs, textTransforms);
                     break;
                 default:
                     self.postMessage('Unknown command: ' + cmds);
