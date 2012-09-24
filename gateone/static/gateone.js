@@ -4215,15 +4215,10 @@ go.Base.update(GateOne.Terminal, {
                 scrollback = null;
             }
             // This updates the scrollback buffer in the DOM
-            try {
-                clearTimeout(GateOne.terminals[term]['scrollbackTimer']);
-                GateOne.terminals[term]['scrollbackTimer'] = null;
-                // This timeout re-adds the scrollback buffer after .5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
-                GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
-            } finally {
-                reScrollback = null; // Prevent memory leak
-                screenUpdate = null;
-            }
+            clearTimeout(GateOne.terminals[term]['scrollbackTimer']);
+            GateOne.terminals[term]['scrollbackTimer'] = null;
+            // This timeout re-adds the scrollback buffer after .5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
+            GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
         }
         if (consoleLog) {
             // This is only used when debugging the Web Worker
