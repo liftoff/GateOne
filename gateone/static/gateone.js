@@ -4198,12 +4198,22 @@ go.Base.update(GateOne.Terminal, {
             // We wrap the logic that stores the scrollback buffer in a timer so we're not writing to localStorage (aka "to disk") every nth of a second for fast screen refreshes (e.g. fast typers).  Writing to localStorage is a blocking operation so this could speed things up considerable for larger terminal sizes.
             clearTimeout(GateOne.terminals[term]['scrollbackWriteTimer']);
             GateOne.terminals[term]['scrollbackWriteTimer'] = null;
-            // This will save the scrollback buffer after 2 seconds of terminal inactivity (idle)
+            // This will save the scrollback buffer after 3.5 seconds of terminal inactivity (idle)
             try {
-                GateOne.terminals[term]['scrollbackWriteTimer'] = setTimeout(writeScrollback, 2000);
+                GateOne.terminals[term]['scrollbackWriteTimer'] = setTimeout(writeScrollback, 3500);
             } finally {
                 writeScrollback = null;
                 scrollback = null;
+            }
+            // This updates the scrollback buffer in the DOM
+            try {
+                clearTimeout(GateOne.terminals[term]['scrollbackTimer']);
+                GateOne.terminals[term]['scrollbackTimer'] = null;
+                // This timeout re-adds the scrollback buffer after .5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
+                GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
+            } finally {
+                reScrollback = null; // Prevent memory leak
+                screenUpdate = null;
             }
         }
         if (consoleLog) {
@@ -4244,15 +4254,6 @@ go.Base.update(GateOne.Terminal, {
                         now = null;
                     }
                 }
-            }
-            try {
-                clearTimeout(GateOne.terminals[term]['scrollbackTimer']);
-                GateOne.terminals[term]['scrollbackTimer'] = null;
-                // This timeout re-adds the scrollback buffer after .5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
-                GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
-            } finally {
-                reScrollback = null; // Prevent memory leak
-                screenUpdate = null;
             }
             // Excute any registered callbacks
             if (GateOne.Terminal.updateTermCallbacks.length) {

@@ -2672,7 +2672,7 @@ class Terminal(object):
                                     else:
                                         try:
                                             current_classes.remove(reset_class)
-                                        except ValueError:
+                                        except KeyError:
                                             # Trying to reset something that was
                                             # never set.  Ignore
                                             pass
@@ -2817,7 +2817,7 @@ class Terminal(object):
                                     else:
                                         try:
                                             current_classes.remove(reset_class)
-                                        except ValueError:
+                                        except KeyError:
                                             pass
                             else:
                                 if _class in foregrounds:
