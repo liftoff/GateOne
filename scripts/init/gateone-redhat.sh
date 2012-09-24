@@ -2,7 +2,7 @@
 #
 # gateone      Start/Stop Gate One.
 #
-# chkconfig: - 2345 55 25
+# chkconfig: 2345 55 25
 # description: Gate One is a web-based terminal emulator and SSH client.
 #
 # processname: gateone.py

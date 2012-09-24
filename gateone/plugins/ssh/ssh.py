@@ -133,6 +133,9 @@ def open_sub_channel(term, tws):
     session = tws.session
     session_dir = tws.settings['session_dir']
     session_path = os.path.join(session_dir, session)
+    if not session_path:
+        raise SSHMultiplexingException(_(
+            "SSH Plugin: Unable to open slave sub-channel."))
     socket_path = None
     # Find the SSH socket path...
     for f in os.listdir(session_path):
@@ -285,6 +288,19 @@ def execute_command(term, cmd, callback=None, tws=None):
         logging.error(_(
             "%s: Got an error trying to open sub-channel on term %s..." %
             (tws.get_current_user()['upn'], term)))
+        # Try to send an error response to the client
+        message = {
+            'sshjs_cmd_output': {
+                'term': term,
+                'cmd': cmd,
+                'output': None,
+                'result': str(e)
+            }
+        }
+        try:
+            tws.write_message(message)
+        except: # This is really just a last-ditch thing
+            pass
         return
     # NOTE: We can assume the IOLoop is started and automatically calling read()
     m.unexpect() # Clear out any existing patterns (if existing sub-channel)

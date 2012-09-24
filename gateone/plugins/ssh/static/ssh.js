@@ -1083,7 +1083,7 @@ GateOne.Base.update(GateOne.SSH, {
             output = message['output'],
             result = message['result'];
         if (result != 'Success') {
-            go.Visual.displayMessage("Error executing background command on terminal " + term + ": " + result);
+            go.Visual.displayMessage("Error executing background command, '" + cmd + "' on terminal " + term + ": " + result);
             if (go.SSH.remoteCmdErrorbacks[term][cmd]) {
                 go.SSH.remoteCmdErrorbacks[term][cmd](result);
                 delete go.SSH.remoteCmdErrorbacks[term][cmd];
@@ -1093,7 +1093,7 @@ GateOne.Base.update(GateOne.SSH, {
         if (go.SSH.remoteCmdCallbacks[term][cmd]) {
             go.SSH.remoteCmdCallbacks[term][cmd](output);
             delete go.SSH.remoteCmdCallbacks[term][cmd];
-        } else {
+        } else { // If you don't have an associated callback it will display and log the output:  VERY useful in debugging!
             go.Visual.displayMessage("Remote command output from terminal " + term + ": " + output);
         }
     },
@@ -1113,7 +1113,11 @@ GateOne.Base.update(GateOne.SSH, {
         ssh.remoteCmdCallbacks[term][command] = callback;
         // Set the errorback for *term*
         ssh.remoteCmdErrorbacks[term][command] = errorback;
-        go.ws.send(JSON.stringify({'ssh_execute_command': {'term': term, 'cmd': command}}));
+        if (go.ws.readyState != 1) {
+            ssh.commandCompleted({'term': term, 'cmd': command, 'result': 'WebSocket is disconnected.'});
+        } else {
+            go.ws.send(JSON.stringify({'ssh_execute_command': {'term': term, 'cmd': command}}));
+        }
     }
 });
 

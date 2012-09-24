@@ -2576,6 +2576,7 @@ GateOne.Visual.panelToggleCallbacks = {'in': {}, 'out': {}};
 GateOne.Visual.lastMessage = '';
 GateOne.Visual.sinceLastMessage = new Date();
 GateOne.Visual.hidePanelsTimeout = {}; // Used by togglePanel() to keep track of which panels have timeouts
+GateOne.Visual.togglingPanel = false;
 GateOne.Base.update(GateOne.Visual, {
     // Functions for manipulating views and displaying things
     init: function() {
@@ -2720,6 +2721,11 @@ GateOne.Base.update(GateOne.Visual, {
                     v.hidePanelsTimeout[panel.id] = null;
                 }, 1250);
             }
+        if (v.togglingPanel) {
+            return; // Don't let the user muck with the toggle until everything has run its course
+        } else {
+            v.togglingPanel = true;
+        }
         if (panel) {
             origState = v.getTransform(panel);
         }
@@ -2741,6 +2747,7 @@ GateOne.Base.update(GateOne.Visual, {
         }
         if (!panel) {
             // All done
+            v.togglingPanel = false;
             return;
         }
         if (origState != 'scale(1)') {
@@ -2768,6 +2775,7 @@ GateOne.Base.update(GateOne.Visual, {
                     return false;
                 }
             }
+            v.togglingPanel = false;
         } else {
             // Send it away
             v.applyTransform(panel, 'scale(0)');
@@ -2784,7 +2792,8 @@ GateOne.Base.update(GateOne.Visual, {
             setTimeout(function() {
                 // Hide the panel completely now that it has been scaled out to avoid tabIndex issues
                 u.hideElement(panel);
-            }, 1250);
+                v.togglingPanel = false;
+            }, 1100);
         }
     },
     displayTermInfo: function(term) {

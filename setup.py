@@ -107,9 +107,9 @@ temp_confd_path = os.path.join(setup_dir, 'build/gateone')
 if os.path.exists('/etc/debian_version'):
     shutil.copy(debian_script, temp_script_path)
 elif os.path.exists('/etc/redhat-release'):
-    shutil.copy(debian_script, temp_script_path)
+    shutil.copy(redhat_script, temp_script_path)
 elif os.path.exists('/etc/gentoo-release'):
-    shutil.copy(debian_script, temp_script_path)
+    shutil.copy(gentoo_script, temp_script_path)
     conf_file = [('/etc/conf.d', [
         os.path.join(setup_dir, 'scripts/conf/gateone')
     ])]

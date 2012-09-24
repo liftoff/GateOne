@@ -23,3 +23,9 @@ can usually install it with one of the following commands on most distros:
     sudo pip install stdeb
     ...or:
     sudo easy_install stdeb
+
+To make Gate One start on boot:
+
+    Ubuntu/Debian:   update-rc.d gateone defaults
+    Red Hat/CentOS:  chkconfig --add gateone
+    Gentoo:          rc-update add gateone default
