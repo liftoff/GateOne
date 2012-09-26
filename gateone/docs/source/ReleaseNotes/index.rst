@@ -84,6 +84,7 @@ Summary of Changes
     * **New Feature:**  If you've set the number of rows/columns Gate One will now scale the size of each terminal in an attempt to fit it within the window.  Looks much nicer than having a tiny-sized terminal in the upper left corner of the browser window.
     * **New Feature:**  Bookmarks can now be navigated via the keyboard.  Ctrl-Alt-B will bring up the Bookmarks panel and you can then tab around to choose a bookmark.
     * **New Feature:**  Gate One now includes a ``print`` stylesheet so if you print out a terminal it will actually look nice and readable.  This wonderfully in conjunction with the "Printable" log view.
+    * **New Feature:**  When copying text from a terminal it will now automatically be converted to plaintext (HTML formatting will be removed).  It will also have trailing whitespace removed.
     * **New Feature:**  Added a new theme/text color scheme:  Solarized.  Thanks to Jakub Woyke for this contribution.
     * **Themes:**  Loads and loads of tweaks to improve Gate One's overall appearance in varying situations.
     * **Documentation:**  Many pages of documentation have been added and its overall usefulness has been improved.  For example, this changelog (╴‿╶).

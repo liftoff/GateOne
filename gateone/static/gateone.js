@@ -2612,9 +2612,11 @@ GateOne.Base.update(GateOne.Visual, {
     },
     updateDimensions: function() { // Sets GateOne.Visual.goDimensions to the current width/height of prefs.goDiv
         var u = go.Utils,
+            prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
+            currentTerm = localStorage[prefix+'selectedTerminal'],
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
-            wrapperDiv = u.getNode('#'+go.prefs.prefix+'termwrapper'),
+            wrapperDiv = u.getNode('#'+prefix+'termwrapper'),
             style = window.getComputedStyle(goDiv, null),
             rightAdjust = 0,
             paddingRight = (style['padding-right'] || style['paddingRight']);
@@ -2633,6 +2635,8 @@ GateOne.Base.update(GateOne.Visual, {
                 });
             }
         }
+        // This ensures that whatever effects are applied to a terminal when switching to it get applied when resized too:
+        go.Terminal.switchTerminal(currentTerm);
     },
     applyTransform: function (obj, transform) {
         // Applys the given CSS3 *transform* to *obj* for all known vendor prefixes (e.g. -<whatever>-transform)
@@ -4126,6 +4130,16 @@ go.Base.update(GateOne.Terminal, {
                         // Update the existing screen array in-place to cut down on GC
                         GateOne.terminals[term]['screen'][i] = screen[i];
                     }
+                    if (!go.prefs.embedded) {
+                        // In embedded mode this kind of adjustment can be unreliable
+                        var distance = goDiv.clientHeight - termPre.offsetHeight;
+                        GateOne.terminals[term]['heightAdjust'] = 0;
+                        // Feel free to put something like this in updateTermCallbacks if you want.
+                        if (GateOne.Utils.isVisible(termPre)) {
+                            transform = "translateY(-" + distance + "px)";
+                            GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                        }
+                    }
                 }
                 if (existingScreen) { // Update the terminal display
                     GateOne.Terminal.applyScreen(screen, term);
@@ -4159,14 +4173,25 @@ go.Base.update(GateOne.Terminal, {
                                 // In embedded mode this kind of adjustment can be unreliable
                                 var distance = goDiv.clientHeight - termPre.offsetHeight;
                                 GateOne.terminals[term]['heightAdjust'] = 0;
-                                if (!GateOne.prefs.embedded) { // When embedding the code below can end up hiding terminals.
-                                    // Feel free to put something like this in updateTermCallbacks if you want.
-                                    if (GateOne.Utils.isVisible(termPre)) {
-                                        transform = "translateY(-" + distance + "px)";
-                                        GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
-                                    }
+                                // Feel free to put something like this in updateTermCallbacks if you want.
+                                if (GateOne.Utils.isVisible(termPre)) {
+                                    transform = "translateY(-" + distance + "px)";
+                                    GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
                                 }
                             }
+                        }
+                        termPre.oncopy = function(e) {
+                            // Convert to plaintext before copying
+                            var text = u.rtrim(u.getSelText()),
+                                tempTextArea = u.createElement('textarea', {'style': {'left': '-999999px', 'top': '-999999px'}});
+                            tempTextArea.value = text;
+                            document.body.appendChild(tempTextArea);
+                            tempTextArea.select();
+                            setTimeout(function() {
+                                // Get rid of it once the copy operation is complete
+                                u.removeElement(tempTextArea);
+                                GateOne.Input.capture(); // Re-focus on the terminal and start accepting keyboard input again
+                            }, 100);
                         }
                         GateOne.terminals[term]['node'] = termPre; // For faster access
                     }
