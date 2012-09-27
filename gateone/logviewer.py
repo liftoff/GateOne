@@ -11,7 +11,7 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import stdlib stuff
-import os, sys, re, gzip
+import os, sys, re, gzip, fcntl, termios, struct
 from time import sleep
 from datetime import datetime
 from optparse import OptionParser
@@ -104,6 +104,28 @@ RE_TITLE_SEQ = re.compile(
     r'.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)', re.DOTALL|re.MULTILINE)
 
 # TODO: Support Fast forward/rewind/pause like Gate One itself.
+def get_frames(golog_path, chunk_size=131072):
+    """
+    A generator that iterates over the frames in a .golog file, returning them
+    as strings.
+    """
+    encoded_separator = SEPARATOR.encode('UTF-8')
+    golog = gzip.open(golog_path)
+    frame = ""
+    while True:
+        chunk = golog.read(chunk_size)
+        frame += chunk
+        if encoded_separator in chunk:
+            split_frames = frame.split(encoded_separator)
+            next_frame = split_frames[-1]
+            for fr in split_frames[:-1]:
+                yield fr
+            frame = next_frame
+        if len(chunk) < chunk_size:
+            # Write last frame
+            if frame:
+                yield frame
+            break
 
 def playback_log(log_path, file_like, show_esc=False):
     """
@@ -112,31 +134,35 @@ def playback_log(log_path, file_like, show_esc=False):
     methods.
 
     If *show_esc* is True, escape sequences and control characters will be
-    escaped so they can be seen in the output.
+    escaped so they can be seen in the output.  There will also be no delay
+    between the output of frames (under the assumption that if you want to see
+    the raw log you want it to output all at once so you can pipe it into
+    some other app).
     """
-    log = gzip.open(log_path).read()
     prev_frame_time = None
-    # Skip first frame
-    for i, frame in enumerate(log.split(SEPARATOR.encode('UTF-8'))[1:]):
-        try:
+    try:
+        for count, frame in enumerate(get_frames(log_path)):
             frame_time = float(frame[:13]) # First 13 chars is the timestamp
-            frame = frame[14:] # Skips the colon
-            if i == 0:
+            frame = frame[14:] # [14:] Skips the timestamp and the colon
+            if count == 0:
                 # Write it out immediately
-                file_like.write(frame.decode('UTF-8'))
-                prev_frame_time = frame_time
-            else:
-            # Wait until the time between the previous frame and now has passed
-                wait_time = (frame_time - prev_frame_time)/1000.0
-                sleep(wait_time) # frame times are in milliseconds
-                prev_frame_time = frame_time
                 if show_esc:
                     frame = raw(frame)
-                file_like.write(frame.decode('UTF-8'))
-                file_like.flush()
-        except ValueError:
-            # End of file.  No biggie.
-            return
+                file_like.write(frame)
+                prev_frame_time = frame_time
+            else:
+                if show_esc:
+                    frame = raw(frame)
+                else:
+                    # Wait until the time between the previous frame and now
+                    # has passed
+                    wait_time = (frame_time - prev_frame_time)/1000.0
+                    sleep(wait_time) # frame times are in milliseconds
+                file_like.write(frame)
+                prev_frame_time = frame_time
+            file_like.flush()
+    except IOError: # Something wrong with the file
+        return
 
 def escape_escape_seq(text, preserve_renditions=True, rstrip=True):
     """
@@ -191,14 +217,15 @@ def escape_escape_seq(text, preserve_renditions=True, rstrip=True):
                 continue
     if rstrip:
         # Remove trailing whitespace + trailing ESC sequences
-        #return esc_rstrip.sub('', out).rstrip()
         return out.rstrip()
     else: # All these trailers better make for a good movie
         return out
 
-def flatten_log(log_path, preserve_renditions=True, show_esc=False):
+def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
     """
-    Given a log file at *log_path*, return a str of log lines contained within.
+    Given a log file at *log_path*, write a string of log lines contained
+    within to *file_like*.  Where *file_like* is expected to be any file-like
+    object with write() and flush() methods.
 
     If *preserve_renditions* is True, CSI escape sequences for renditions will
     be preserved as-is (e.g. font color, background, etc).  This is to make the
@@ -213,71 +240,95 @@ def flatten_log(log_path, preserve_renditions=True, show_esc=False):
     can be used with grep and similar search/filter tools.
     """
     import gzip
-    lines = gzip.open(log_path).read()
-    out = ""
+    encoded_separator = SEPARATOR.encode('UTF-8')
     out_line = ""
     cr = False
     # We skip the first frame, [1:] because it holds the recording metadata
-    for frame in lines.split(SEPARATOR.encode('UTF-8'))[1:]:
+    for count, frame in enumerate(get_frames(log_path)):
+        if count == 0:
+            # Skip the first frame (it's just JSON-encoded metadata)
+            continue
         frame = frame.decode('UTF-8', 'ignore')
-        try:
-            frame_time = float(frame[:13]) # First 13 chars is the timestamp
-            # Convert to datetime object
-            frame_time = datetime.fromtimestamp(frame_time/1000)
-            if show_esc:
-                frame_time = frame_time.strftime(u'\x1b[0m%b %m %H:%M:%S')
-            else: # Renditions preserved == I want pretty.  Make the date bold:
-                frame_time = frame_time.strftime(
-                    u'\x1b[0;1m%b %m %H:%M:%S\x1b[m')
-            for char in frame[14:]:
-                if '\x1b[H\x1b[2J' in out_line: # Clear screen sequence
-                    # Handle the clear screen (usually ctrl-l) by outputting
-                    # a new log entry line to avoid confusion regarding what
-                    # happened at this time.
-                    out_line += "^L" # Clear screen is a ctrl-l or equivalent
-                    if show_esc:
-                        adjusted = raw(out_line)
-                    else:
-                        adjusted = escape_escape_seq(out_line, rstrip=True)
-                    out += frame_time + ' %s\n' % adjusted
-                    out_line = ""
-                    continue
-                if char == u'\n':
-                    if show_esc:
-                        adjusted = raw(out_line)
-                    else:
-                        adjusted = escape_escape_seq(out_line, rstrip=True)
-                    out += frame_time + ' %s\n' % adjusted
-                    out_line = ""
-                    cr = False
-                elif char in u'\r':
-                    # Carriage returns need special handling.  Make a note of it
-                    cr = True
+        frame_time = float(frame[:13]) # First 13 chars is the timestamp
+        # Convert to datetime object
+        frame_time = datetime.fromtimestamp(frame_time/1000)
+        if show_esc:
+            frame_time = frame_time.strftime(u'\x1b[0m%b %m %H:%M:%S')
+        else: # Renditions preserved == I want pretty.  Make the date bold:
+            frame_time = frame_time.strftime(
+                u'\x1b[0;1m%b %m %H:%M:%S\x1b[m')
+        for char in frame[14:]:
+            if '\x1b[H\x1b[2J' in out_line: # Clear screen sequence
+                # Handle the clear screen (usually ctrl-l) by outputting
+                # a new log entry line to avoid confusion regarding what
+                # happened at this time.
+                out_line += "^L" # Clear screen is a ctrl-l or equivalent
+                if show_esc:
+                    adjusted = raw(out_line)
                 else:
-                    # \r without \n means that characters were (likely)
-                    # overwritten.  This usually happens when the user gets to
-                    # the end of the line (which would create a newline in the
-                    # terminal but not necessarily the log), erases their
-                    # current line (e.g. ctrl-u), or an escape sequence modified
-                    # the line in-place.  To clearly indicate what happened we
-                    # insert a '^M' and start a new line so as to avoid
-                    # confusion over these events.
-                    if cr:
-                        out_line += "^M"
-                        out += frame_time + ' '
-                        if show_esc:
-                            adjusted = raw(out_line)
-                        else:
-                            adjusted = escape_escape_seq(out_line, rstrip=True)
-                        out += adjusted
-                        out += '\n'
-                        out_line = ""
-                    out_line += char
-                    cr = False
-        except ValueError as e:
+                    adjusted = escape_escape_seq(out_line, rstrip=True)
+                file_like.write(frame_time + ' %s\n' % adjusted)
+                out_line = ""
+                continue
+            if char == u'\n':
+                if show_esc:
+                    adjusted = raw(out_line)
+                else:
+                    adjusted = escape_escape_seq(out_line, rstrip=True)
+                file_like.write(frame_time + ' %s\n' % adjusted)
+                out_line = ""
+                cr = False
+            elif char == u'\r':
+                # Carriage returns need special handling.  Make a note of it
+                cr = True
+            else:
+                # \r without \n means that characters were (likely)
+                # overwritten.  This usually happens when the user gets to
+                # the end of the line (which would create a newline in the
+                # terminal but not necessarily the log), erases their
+                # current line (e.g. ctrl-u), or an escape sequence modified
+                # the line in-place.  To clearly indicate what happened we
+                # insert a '^M' and start a new line so as to avoid
+                # confusion over these events.
+                if cr:
+                    out_line += "^M"
+                    file_like.write(frame_time + ' ')
+                    if show_esc:
+                        adjusted = raw(out_line)
+                    else:
+                        adjusted = escape_escape_seq(out_line, rstrip=True)
+                    file_like.write(adjusted + '\n')
+                    out_line = ""
+                out_line += char
+                cr = False
+        file_like.flush()
+
+def get_terminal_size():
+    """
+    Returns the size of the current terminal in the form of (rows, cols).
+    """
+    env = os.environ
+    def ioctl_GWINSZ(fd):
+        try:
+            cr = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ,
+        '1234'))
+        except:
+            return None
+        return cr
+    cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
+    if not cr:
+        try:
+            fd = os.open(os.ctermid(), os.O_RDONLY)
+            cr = ioctl_GWINSZ(fd)
+            os.close(fd)
+        except:
             pass
-            # End of file.  No biggie.
-    return out
+    if not cr:
+        try:
+            cr = (env['LINES'], env['COLUMNS'])
+        except:
+            cr = (25, 80)
+    return int(cr[0]), int(cr[1])
 
 if __name__ == "__main__":
     """Parse command line arguments and view the log in the specified format."""
@@ -316,9 +367,20 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(1)
     log_path = args[0]
-    if options.flat:
-        result = flatten_log(
-            log_path, preserve_renditions=options.pretty, show_esc=options.raw)
-        print(result)
-    else:
-        playback_log(log_path, sys.stdout)
+    if not os.path.exists(log_path):
+        print("ERROR: %s does not exist" % log_path)
+        sys.exit(1)
+    try:
+        if options.flat:
+            result = flatten_log(
+                log_path,
+                sys.stdout,
+                preserve_renditions=options.pretty, show_esc=options.raw)
+            print(result)
+        else:
+            playback_log(log_path, sys.stdout, show_esc=options.raw)
+    except KeyboardInterrupt:
+        # Move the cursor to the bottom of the screen to ensure it isn't in the
+        # middle of the log playback output
+        rows, cols = get_terminal_size()
+        print("\x1b[%s;0H\n" % rows)

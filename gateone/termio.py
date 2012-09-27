@@ -178,7 +178,7 @@ def retrieve_last_frame(golog_path):
             return # Something wrong with the file
         distance += distance
     # Now that we're at the end, go back a bit and split from there
-    golog.seek(golog.tell() - chunk_size)
+    golog.seek(golog.tell() - chunk_size*2)
     end_frames = golog.read().split(encoded_separator)
     if len(end_frames) > 1:
         # Very last item will be empty
@@ -218,14 +218,10 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     # of magnitude)
     chunk_size = 1024*128 # 128k should be enough for a 100x300 terminal full
     # of 4-byte unicode characters. That would be one BIG frame (i.e. unlikely).
-    # Sadly, we have to read the whole thing into memory (log_data) in order to
-    # perform this important work (creating proper metadata).
-    # On the plus side re-compressing the log can save a _lot_ of disk space
-    # Why?  Because termio.py writes the frames using gzip.open() in append mode
-    # which is a lot less efficient than compressing all the data in one go.
     log_data = b''
     total_frames = 0
-    while True:
+    max_data = chunk_size * 10 # Hopefully this is enough to capture a title
+    while len(log_data) < max_data:
         try:
             chunk = golog.read(chunk_size)
         except IOError:
@@ -234,9 +230,13 @@ def get_or_update_metadata(golog_path, user, force_update=False):
         log_data += chunk
         if len(chunk) < chunk_size:
             break
+    # Remove the trailing incomplete frame
+    log_data = encoded_separator.join(log_data.split(encoded_separator)[:-1])
     log_data = log_data.decode('UTF-8', 'ignore')
     start_date = first_frame[:13] # Getting the start date is easy
     last_frame = retrieve_last_frame(golog_path) # This takes some work
+    if not last_frame:
+        return # Something wrong with log
     end_date = last_frame[:13]
     version = u"1.0"
     connect_string = None
@@ -267,11 +267,40 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     })
     # Make a *new* first_frame
     first_frame = u"%s:" % start_date
-    first_frame += json_encode(metadata)
+    first_frame += json_encode(metadata) + SEPARATOR
+    first_frame = first_frame.encode('UTF-8')
     # Replace the first frame and re-save the log
-    log_data = log_data.encode('UTF-8') # Encode this first to ensure 'distance'
-    log_data = (first_frame + SEPARATOR).encode('UTF-8') + log_data[distance:]
-    gzip.open(golog_path, 'w').write(log_data)
+    temp_path = "%s.tmp" % golog_path
+    golog = gzip.open(golog_path) # Re-open
+    new_golog = gzip.open(temp_path, 'w')
+    new_golog.write(first_frame)
+    # Now write out the rest of it
+    count = 0
+    while True:
+        try:
+            chunk = golog.read(chunk_size)
+        except IOError:
+            return # Something wrong with the file
+        if count == 0:
+            if chunk[14:].startswith('{'): # Old/incomplete metadata
+                # Need to keep reading until the next frame
+                while True:
+                    try:
+                        chunk += golog.read(chunk_size)
+                    except IOError:
+                        return # Something wrong with the file
+                    if encoded_separator in chunk:
+                        # This removes the first frame:
+                        chunk = encoded_separator.join(
+                            chunk.split(encoded_separator)[1:])
+                        break
+        new_golog.write(chunk)
+        if len(chunk) < chunk_size:
+            break # Everything must come to an end
+        count += 1
+    # Overwrite the old log
+    import shutil
+    shutil.move(temp_path, golog_path)
     return metadata
 
 # Exceptions
@@ -1202,6 +1231,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 rows, cols, repr(env), repr(em_dimensions)))
         rows = min(200, rows) # Max 200 to limit memory utilization
         cols = min(500, cols) # Max 500 for the same reason
+        self.rows = rows
+        self.cols = cols
         import pty
         pid, fd = pty.fork()
         if pid == 0: # We're inside the child process

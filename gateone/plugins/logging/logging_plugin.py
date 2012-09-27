@@ -46,7 +46,7 @@ from multiprocessing import Process, Queue
 
 # Our stuff
 from gateone import BaseHandler, PLUGINS
-from logviewer import flatten_log
+from logviewer import flatten_log, get_frames
 from termio import retrieve_first_frame, retrieve_last_frame
 from termio import get_or_update_metadata
 from utils import get_translation, json_encode
@@ -57,6 +57,8 @@ _ = get_translation()
 import tornado.template
 import tornado.ioloop
 from tornado.escape import json_decode
+
+# TODO: Make the log retrieval functions work incrementally as logs are read so they don't have to be stored entirely in memory before being sent to the client.
 
 # Globals
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
@@ -83,15 +85,17 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
         # 14/7 for the em_height should be OK for most browsers to ensure that
         # images don't always wind up at the bottom of the screen.
         rows=rows, cols=cols, em_dimensions={'height':14, 'width':7})
-    frames = gzip.open(golog_path).read().split(SEPARATOR.encode('UTF-8'))[1:]
-    if not limit:
-        limit = len(frames)
-    for frame in frames[:limit]:
+    for i, frame in enumerate(get_frames(golog_path)):
+        if limit and i == limit:
+            break
         if len(frame) > 14:
             frame_time = int(float(frame[:13]))
             frame_screen = frame[14:] # Skips the colon
             term.write(frame_screen)
-            scrollback, screen = term.dump_html()
+            # Ensure we're not in the middle of capturing an image.  Otherwise
+            # it might get cut off and result in no image being shown.
+            if not term.image:
+                scrollback, screen = term.dump_html()
             out_frames.append({'screen': screen, 'time': frame_time})
     return out_frames # Skip the first frame which is the metadata
 
@@ -286,11 +290,15 @@ def _retrieve_log_flat(queue, settings):
         out_dict['metadata'] = get_or_update_metadata(log_path, user)
         out_dict['metadata']['filename'] = log_filename
         out_dict['result'] = "Success"
-        flattened_log = flatten_log(log_path)
-        flattened_log = flattened_log.replace('\n', '\r\n') # Needed to emulate an actual term
+        import StringIO
         # Use the terminal emulator to create nice HTML-formatted output
         from terminal import Terminal
         term = Terminal(rows=100, cols=300)
+        io_obj = StringIO.StringIO()
+        flatten_log(log_path, io_obj)
+        io_obj.seek(0)
+        # Needed to emulate an actual term
+        flattened_log = io_obj.read().replace('\n', '\r\n')
         term.write(flattened_log)
         scrollback, screen = term.dump_html()
         # Join them together

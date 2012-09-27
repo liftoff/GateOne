@@ -857,7 +857,7 @@ class Terminal(object):
         # ambiguous.
         jpeg_header = re.compile('.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
         jpeg_whole = re.compile(
-            '\xff\xd8\xff.+JFIF\x00.+\xff\xd9(?!\xff)|\xff\xd8\xff.+Exif\x00.+\xff\xd9(?!\xff)', re.DOTALL)
+            '\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9', re.DOTALL)
         self.magic = {
             # Dict for magic "numbers" so we can tell when a particular type of
             # file begins and ends (so we can capture it in binary form and
@@ -1304,9 +1304,15 @@ class Terminal(object):
             before_chars = ""
             after_chars = ""
             for magic_header in magic.keys():
-                if magic_header.match(str(chars)):
-                    self.matched_header = magic_header
-                    self.timeout_image = datetime.now()
+                try:
+                    if magic_header.match(str(chars)):
+                        self.matched_header = magic_header
+                        self.timeout_image = datetime.now()
+                except UnicodeEncodeError:
+                    # Gibberish; drop it and pretend it never happened
+                    self.esc_buffer = ""
+                    # Make it so it won't barf
+                    chars = chars.encode('UTF-8', 'ignore')
             if self.image or self.matched_header:
                 self.image += chars
                 match = magic[self.matched_header].search(self.image)
@@ -1731,6 +1737,8 @@ class Terminal(object):
         """
         # Remove the extra \r's that the terminal adds:
         self.image = str(self.image).replace('\r\n', '\n')
+        # Need it twice since you get \r\r\n in some situations
+        self.image = self.image.replace('\r\n', '\n')
         logging.debug("_capture_image() len(self.image): %s" % len(self.image))
         if Image: # PIL is loaded--try to guess how many lines the image takes
             i = StringIO.StringIO(self.image)

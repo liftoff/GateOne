@@ -268,6 +268,8 @@ def openssh_connect(
         "-oNoHostAuthenticationForLocalhost=yes",
         # This ensure's that the executing user's identity won't be used:
         "-oIdentityFile=%s" % ssh_default_identity_path,
+        # This ensures the other end can tell we're a Gate One terminal
+        "-oSendEnv=GO_TERM",
         "-p", str(port),
         "-l", user,
     ]
