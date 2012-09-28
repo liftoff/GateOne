@@ -200,6 +200,13 @@ hr {
     -o-transition: -o-transform 1s ease-in-out;
     transition: transform 1s ease-in-out;
 }
+#{{container}} .noanimate {
+    -webkit-transition: all 0s ease-in-out;
+    -moz-transition: all 0s ease-in-out;
+    -ms-transition: all 0s ease-in-out;
+    -o-transition: all 0s ease-in-out;
+    transition: all 0s ease-in-out;
+}
 #{{container}} .terminal a {
     color: #90A3C5;
 }

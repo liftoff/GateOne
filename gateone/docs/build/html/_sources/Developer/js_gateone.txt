@@ -2148,6 +2148,16 @@ Functions
 
         var closeDialog = GateOne.Visual.dialog("Test Dialog", "Dialog content goes here.");
 
+.. js:function:: GateOne.Visual.disableTransitions(elem)
+
+    :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+
+    Disables CSS3 transform transitions on the given element.
+
+    .. code-block:: javascript
+
+        GateOne.Visual.disableTransitions(someNode);
+
 .. js:function:: GateOne.Visual.disableScrollback([term])
 
     :param number term: The terminal number to disable scrollback.
@@ -2211,6 +2221,16 @@ Functions
 
     .. note:: A convenience function for enabling/disabling the scrollback buffer is available: :js:func:`GateOne.Visual.toggleScrollback()` (detailed below).
 
+.. js:function:: GateOne.Visual.enableTransitions(elem)
+
+    :param elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string like ``#some_element_id`` or a DOM node.
+
+    Enables CSS3 transform transitions on the given element.
+
+    .. code-block:: javascript
+
+        GateOne.Visual.enableTransitions(someNode);
+
 .. js:function:: GateOne.Visual.getTransform(elem)
 
     :param number elem: A `querySelector <https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector>`_ string ID or a DOM node.
@@ -2248,6 +2268,16 @@ Functions
     .. code-block:: javascript
 
         GateOne.Visual.playBell();
+
+.. js:function:: GateOne.Visual.resetGrid
+
+    Resets the grid to its default state where all terminals are visible but have CSS3 transforms applied that make the currently-selected terminal visible on the page.
+
+    .. note:: This turns off all terminal transitions so they will need to be reset after running this function if you want to move terminals around with a fancy animation.
+
+    .. code-block:: javascript
+
+        GateOne.Visual.resetGrid();
 
 .. js:function:: GateOne.Visual.serverMessageAction(message)
 

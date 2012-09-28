@@ -51,7 +51,7 @@ See the git commit log for full details on all changes.
 ---
 Release Date
 ^^^^^^^^^^^^
-September Nth, 2012
+October Nth, 2012
 
 Summary of Changes
 ^^^^^^^^^^^^^^^^^^
@@ -84,6 +84,7 @@ Summary of Changes
     * **New Feature:**  If you've set the number of rows/columns Gate One will now scale the size of each terminal in an attempt to fit it within the window.  Looks much nicer than having a tiny-sized terminal in the upper left corner of the browser window.
     * **New Feature:**  Bookmarks can now be navigated via the keyboard.  Ctrl-Alt-B will bring up the Bookmarks panel and you can then tab around to choose a bookmark.
     * **New Feature:**  Gate One now includes a ``print`` stylesheet so if you print out a terminal it will actually look nice and readable.  This wonderfully in conjunction with the "Printable" log view.
+    * **New Feature:**  When copying text from a terminal it will now automatically be converted to plaintext (HTML formatting will be removed).  It will also have trailing whitespace removed.
     * **New Feature:**  Added a new theme/text color scheme:  Solarized.  Thanks to Jakub Woyke for this contribution.
     * **Themes:**  Loads and loads of tweaks to improve Gate One's overall appearance in varying situations.
     * **Documentation:**  Many pages of documentation have been added and its overall usefulness has been improved.  For example, this changelog (╴‿╶).
@@ -91,6 +92,7 @@ Summary of Changes
 Notable Bugs Fixes
 ^^^^^^^^^^^^^^^^^^
     * **gateone.js:**  You can now double-click to highlight a word in terminals in a very natural fashion.  This is filed under bugs instead of new features because it was something that should've been working from the get-go but browsers are finicky beasts.
+    * **gateone.js:**  No more crazy scrolling:  The browser bug that would scroll text uncontrollably in terminals that had been moved down the page via a CSS3 transform has been worked around.
     * **gateone.js:**  Loads of bug fixes regarding embedding Gate One and the possibilities thereof.  The hello_embedded tutorial is more than just a HOWTO; it's a test case.
     * **gateone.js:**  The logic that detects the number of rows/columns that can fit within the browser window has been enhanced to be more accurate.  This should fix the issue where the tops of terminals could get cut off under just the right circumstances.
     * **gateone.js:**  Fixed a bug where if you tried to drag a dialog in Firefox it would mysteriously get moved to the far left of the window (after which it would drag just fine).  Now dialogs drag in a natural fashion.

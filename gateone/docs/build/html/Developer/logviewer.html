@@ -129,13 +129,23 @@ when a U+F0F0F0 character is encountered.</p>
 <div class="section" id="class-docstrings">
 <h2>Class Docstrings<a class="headerlink" href="#class-docstrings" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
+<dt id="logviewer.get_frames">
+<tt class="descclassname">logviewer.</tt><tt class="descname">get_frames</tt><big>(</big><em>golog_path</em>, <em>chunk_size=131072</em><big>)</big><a class="headerlink" href="#logviewer.get_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>A generator that iterates over the frames in a .golog file, returning them
+as strings.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="logviewer.playback_log">
 <tt class="descclassname">logviewer.</tt><tt class="descname">playback_log</tt><big>(</big><em>log_path</em>, <em>file_like</em>, <em>show_esc=False</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#playback_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.playback_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plays back the log file at <em>log_path</em> by way of timely output to <em>file_like</em>
 which is expected to be any file-like object with write() and flush()
 methods.</p>
 <p>If <em>show_esc</em> is True, escape sequences and control characters will be
-escaped so they can be seen in the output.</p>
+escaped so they can be seen in the output.  There will also be no delay
+between the output of frames (under the assumption that if you want to see
+the raw log you want it to output all at once so you can pipe it into
+some other app).</p>
 </dd></dl>
 
 <dl class="function">
@@ -153,8 +163,10 @@ removed.</p>
 
 <dl class="function">
 <dt id="logviewer.flatten_log">
-<tt class="descclassname">logviewer.</tt><tt class="descname">flatten_log</tt><big>(</big><em>log_path</em>, <em>preserve_renditions=True</em>, <em>show_esc=False</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#flatten_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.flatten_log" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a log file at <em>log_path</em>, return a str of log lines contained within.</p>
+<tt class="descclassname">logviewer.</tt><tt class="descname">flatten_log</tt><big>(</big><em>log_path</em>, <em>file_like</em>, <em>preserve_renditions=True</em>, <em>show_esc=False</em><big>)</big><a class="reference internal" href="../_modules/logviewer.html#flatten_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logviewer.flatten_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a log file at <em>log_path</em>, write a string of log lines contained
+within to <em>file_like</em>.  Where <em>file_like</em> is expected to be any file-like
+object with write() and flush() methods.</p>
 <p>If <em>preserve_renditions</em> is True, CSI escape sequences for renditions will
 be preserved as-is (e.g. font color, background, etc).  This is to make the
 output appear as close to how it was originally displayed as possible.
@@ -164,6 +176,12 @@ visible in the output.  Trailing whitespace and escape sequences will not be
 removed.</p>
 <p>NOTE: Converts our standard recording-based log format into something that
 can be used with grep and similar search/filter tools.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="logviewer.get_terminal_size">
+<tt class="descclassname">logviewer.</tt><tt class="descname">get_terminal_size</tt><big>(</big><big>)</big><a class="headerlink" href="#logviewer.get_terminal_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the size of the current terminal in the form of (rows, cols).</p>
 </dd></dl>
 
 </div>
@@ -190,7 +208,7 @@ can be used with grep and similar search/filter tools.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="gateone.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">gateone.py</span></tt> - Gate One's Main Script</a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">gateone.py</span></tt> - Gate One's Main Script</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="remote_syslog.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">remote_syslog.py</span></tt> - A module to send syslog messaged directly over UDP</a></p>

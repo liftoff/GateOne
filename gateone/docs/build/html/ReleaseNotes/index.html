@@ -108,7 +108,7 @@
 <h2>1.1<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id7">
 <h3>Release Date<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
-<p>September Nth, 2012</p>
+<p>October Nth, 2012</p>
 </div>
 <div class="section" id="id8">
 <h3>Summary of Changes<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
@@ -142,6 +142,7 @@
 <li><strong>New Feature:</strong>  If you've set the number of rows/columns Gate One will now scale the size of each terminal in an attempt to fit it within the window.  Looks much nicer than having a tiny-sized terminal in the upper left corner of the browser window.</li>
 <li><strong>New Feature:</strong>  Bookmarks can now be navigated via the keyboard.  Ctrl-Alt-B will bring up the Bookmarks panel and you can then tab around to choose a bookmark.</li>
 <li><strong>New Feature:</strong>  Gate One now includes a <tt class="docutils literal"><span class="pre">print</span></tt> stylesheet so if you print out a terminal it will actually look nice and readable.  This wonderfully in conjunction with the &quot;Printable&quot; log view.</li>
+<li><strong>New Feature:</strong>  When copying text from a terminal it will now automatically be converted to plaintext (HTML formatting will be removed).  It will also have trailing whitespace removed.</li>
 <li><strong>New Feature:</strong>  Added a new theme/text color scheme:  Solarized.  Thanks to Jakub Woyke for this contribution.</li>
 <li><strong>Themes:</strong>  Loads and loads of tweaks to improve Gate One's overall appearance in varying situations.</li>
 <li><strong>Documentation:</strong>  Many pages of documentation have been added and its overall usefulness has been improved.  For example, this changelog (╴‿╶).</li>
@@ -153,6 +154,7 @@
 <blockquote>
 <div><ul class="simple">
 <li><strong>gateone.js:</strong>  You can now double-click to highlight a word in terminals in a very natural fashion.  This is filed under bugs instead of new features because it was something that should've been working from the get-go but browsers are finicky beasts.</li>
+<li><strong>gateone.js:</strong>  No more crazy scrolling:  The browser bug that would scroll text uncontrollably in terminals that had been moved down the page via a CSS3 transform has been worked around.</li>
 <li><strong>gateone.js:</strong>  Loads of bug fixes regarding embedding Gate One and the possibilities thereof.  The hello_embedded tutorial is more than just a HOWTO; it's a test case.</li>
 <li><strong>gateone.js:</strong>  The logic that detects the number of rows/columns that can fit within the browser window has been enhanced to be more accurate.  This should fix the issue where the tops of terminals could get cut off under just the right circumstances.</li>
 <li><strong>gateone.js:</strong>  Fixed a bug where if you tried to drag a dialog in Firefox it would mysteriously get moved to the far left of the window (after which it would drag just fine).  Now dialogs drag in a natural fashion.</li>

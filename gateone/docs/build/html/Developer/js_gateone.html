@@ -3476,6 +3476,27 @@ The bell sound will be whatever <tt class="docutils literal"><span class="pre">&
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Visual.disableTransitions">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">disableTransitions</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Visual.disableTransitions" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Disables CSS3 transform transitions on the given element.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">disableTransitions</span><span class="p">(</span><span class="nx">someNode</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Visual.disableScrollback">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">disableScrollback</tt><big>(</big><span class="optional">[</span><em>term</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Visual.disableScrollback" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
@@ -3583,6 +3604,27 @@ The bell sound will be whatever <tt class="docutils literal"><span class="pre">&
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Visual.enableTransitions">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">enableTransitions</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Visual.enableTransitions" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>elem</strong> -- <p>A <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Document.querySelector">querySelector</a> string like <tt class="docutils literal"><span class="pre">#some_element_id</span></tt> or a DOM node.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Enables CSS3 transform transitions on the given element.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">enableTransitions</span><span class="p">(</span><span class="nx">someNode</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Visual.getTransform">
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">getTransform</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Visual.getTransform" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
@@ -3669,6 +3711,19 @@ The bell sound will be whatever <tt class="docutils literal"><span class="pre">&
 <tt class="descclassname">GateOne.Visual.</tt><tt class="descname">playBell</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.playBell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plays the bell sound attached to the <tt class="docutils literal"><span class="pre">&lt;audio&gt;</span></tt> tag with ID <tt class="docutils literal"><span class="pre">#bell</span></tt> <em>without</em> any visual notification.</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">playBell</span><span class="p">();</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Visual.resetGrid">
+<tt class="descclassname">GateOne.Visual.</tt><tt class="descname">resetGrid</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Visual.resetGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the grid to its default state where all terminals are visible but have CSS3 transforms applied that make the currently-selected terminal visible on the page.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This turns off all terminal transitions so they will need to be reset after running this function if you want to move terminals around with a fancy animation.</p>
+</div>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">resetGrid</span><span class="p">();</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3930,8 +3985,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dd></dd></dl>
 
 <p>GateOne.Terminal contains terminal-specific properties and functions.  Really, there's not much more to it than that :)</p>
-<div class="section" id="id65">
-<h3>Properties<a class="headerlink" href="#id65" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id67">
+<h3>Properties<a class="headerlink" href="#id67" title="Permalink to this headline">¶</a></h3>
 <dl class="attribute">
 <dt id="GateOne.Terminal.closeTermCallbacks">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">closeTermCallbacks</tt><a class="headerlink" href="#GateOne.Terminal.closeTermCallbacks" title="Permalink to this definition">¶</a></dt>
@@ -4039,8 +4094,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </dd></dl>
 
 </div>
-<div class="section" id="id68">
-<h3>Functions<a class="headerlink" href="#id68" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id70">
+<h3>Functions<a class="headerlink" href="#id70" title="Permalink to this headline">¶</a></h3>
 <div class="collapseindex container">
 <table class="hlist"><tr><td><ul class="simple">
 <li><a class="reference internal" href="#GateOne.Terminal.applyScreen" title="GateOne.Terminal.applyScreen"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.applyScreen</span></tt></a></li>
@@ -4543,8 +4598,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dd></dd></dl>
 
 <p>GateOne.User is for things like logging out, synchronizing preferences with the server (not implemented yet), and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.  It also provides the UI elements necessary for the user to change their bell sound.</p>
-<div class="section" id="id81">
-<h3>Properties<a class="headerlink" href="#id81" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id83">
+<h3>Properties<a class="headerlink" href="#id83" title="Permalink to this headline">¶</a></h3>
 <dl class="attribute">
 <dt id="GateOne.User.userLoginCallbacks">
 <tt class="descclassname">GateOne.User.</tt><tt class="descname">userLoginCallbacks</tt><a class="headerlink" href="#GateOne.User.userLoginCallbacks" title="Permalink to this definition">¶</a></dt>
@@ -4566,8 +4621,8 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </dd></dl>
 
 </div>
-<div class="section" id="id82">
-<h3>Functions<a class="headerlink" href="#id82" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id84">
+<h3>Functions<a class="headerlink" href="#id84" title="Permalink to this headline">¶</a></h3>
 <div class="collapseindex container">
 <table class="hlist"><tr><td><ul class="simple">
 <li><a class="reference internal" href="#GateOne.User.init" title="GateOne.User.init"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.User.init</span></tt></a></li>
@@ -4671,13 +4726,13 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-terminal">GateOne.Terminal</a><ul>
-<li><a class="reference internal" href="#id65">Properties</a></li>
-<li><a class="reference internal" href="#id68">Functions</a></li>
+<li><a class="reference internal" href="#id67">Properties</a></li>
+<li><a class="reference internal" href="#id70">Functions</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#gateone-user">GateOne.User</a><ul>
-<li><a class="reference internal" href="#id81">Properties</a></li>
-<li><a class="reference internal" href="#id82">Functions</a></li>
+<li><a class="reference internal" href="#id83">Properties</a></li>
+<li><a class="reference internal" href="#id84">Functions</a></li>
 </ul>
 </li>
 </ul>
