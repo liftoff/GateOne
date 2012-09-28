@@ -717,7 +717,7 @@ def get_plugins(plugin_dir):
     out_dict = {'js': [], 'css': [], 'py': []}
     plugins_conf_path = plugin_dir + '.conf'
     try:
-        enabled_plugins = open(plugins_conf_path).readlines()
+        enabled_plugins = open(plugins_conf_path).read().split()
         if not enabled_plugins or "*" in enabled_plugins:
             logging.debug(_('Loading all plugins'))
             enabled_plugins = None
