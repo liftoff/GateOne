@@ -1,7 +1,7 @@
 .. _release-notes:
 
-Release Notes
-=============
+Release Notes / Changelog
+=========================
 
 0.9
 ---
@@ -83,7 +83,7 @@ Summary of Changes
     * **New Feature:**  Old user session logs are now automatically removed after a configurable time period.  See the `session_logs_max_age` option.
     * **New Feature:**  If you've set the number of rows/columns Gate One will now scale the size of each terminal in an attempt to fit it within the window.  Looks much nicer than having a tiny-sized terminal in the upper left corner of the browser window.
     * **New Feature:**  Bookmarks can now be navigated via the keyboard.  Ctrl-Alt-B will bring up the Bookmarks panel and you can then tab around to choose a bookmark.
-    * **New Feature:**  Gate One now includes a ``print`` stylesheet so if you print out a terminal it will actually look nice and readable.  This wonderfully in conjunction with the "Printable" log view.
+    * **New Feature:**  Gate One now includes a ``print`` stylesheet so if you print out a terminal it will actually look nice and readable.  This works wonderfully in conjunction with the "Printable" log view.
     * **New Feature:**  When copying text from a terminal it will now automatically be converted to plaintext (HTML formatting will be removed).  It will also have trailing whitespace removed.
     * **New Feature:**  Added a new theme/text color scheme:  Solarized.  Thanks to Jakub Woyke for this contribution.
     * **Themes:**  Loads and loads of tweaks to improve Gate One's overall appearance in varying situations.
@@ -139,6 +139,7 @@ Other Notable Changes
     * **gateone.js:**  Lots of minor API additions and changes.  Too many to list; you'll just have to look at the docs.  See: :ref:`gateone-javascript`.
     * **go_process.js:**  Before loading lines on the screen the Web Worker will now strip trailing whitespace.  This should make copying & pasting easier when dealing with multiple lines.
     * **index.html:**  Changed {{js_init}} to be {% raw js_init %} so people don't have to worry about Tornado's template engine turning things like quotes into HTML entities.
+    * **logviewer.py:**  The functions that play back and display .golog files have been modified to read log data in chunks to save huge amounts of memory.  Playing back or displaying a gigantic log should now use as much memory as a small one (i.e. very little).
     * **terminal.py:**  Improved the ability of :py:meth:`Terminal.write` to detect and capture images by switching from using :py:func:`re.match` to using :py:func:`re.search`.
     * **terminal.py:**  Added a new global function:  css_colors().  It just dumps the CSS style information for all the text colors that Terminal.dump_html() supports.  The point is to make it easier for 3rd party apps to use dump_html().
     * **terminal.py:**  Added a new global at the bottom of the file:  CSS_COLORS.  It holds all the CSS classes used by the new css_colors() function.
@@ -147,6 +148,7 @@ Other Notable Changes
     * **termio.py:**  Instances of `Multiplex()` may now attach an `exitfunc` that does exactly what you'd expect:  It gets called when the spawned program is terminated.
     * **termio.py:**  You can now pass a string as the 'callback' argument to Multiplex.expect() and it will automatically be converted into a function that writes said string to the child process.
     * **termio.py:**  Changed `Multiplex.writeline()` and `Multiplex.writelines()` so they write `\\r\\n` instead of just `\\n`.  This should fix an issue with terminal programs that expect keystrokes instead of just newlines.
+    * **termio.py:**  The functions that handle how logs are finalized have been modified to reduce memory consumption by orders of magnitude.  For example, when finalizing a humongous .golog, the `get_or_update_metadata()` function will now read the file in chunks and be very conservative about the whole process instead of reading the entire log into memory before performing operations.
     * **utils.py:**  Increased the timeout value on the openssl commands since the default 5-second timeout wasn't long enough on slower systems.
     * **Playback Plugin:**  The logic that adds the playback controls has been modified to use the new :js:attr:`GateOne.prefs.rowAdjust` property (JavaScript).
     * **Playback plugin:**  Whether or not the playback controls will appear can now be configured via the `GateOne.prefs.showPlaybackControls` option.  So if you're embedding Gate One and don't want the playback controls just pass `showPlaybackControls: false` to :js:func:`GateOne.init`.

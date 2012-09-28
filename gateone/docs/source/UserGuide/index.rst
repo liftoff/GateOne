@@ -163,7 +163,7 @@ This controls the look and feel of Gate One.  When selected, the chosen theme wi
 
     White Theme
 
-.. tip:: Themes are just CSS files and are easy to edit.  ``black.css`` and ``white.css`` are in ``<path to gateone>/templates/themes``.  Copy one and start making your own!  If it turns out pretty good send it to us and we'll include it in the code.
+.. tip:: Themes are just CSS files and are easy to edit.  ``black.css`` and ``white.css`` are in ``<path to gateone>/templates/themes``.  Copy one and start making your own!  If it turns out pretty good send it to us and we'll include it with Gate One.
 
 .. note:: The black scheme doesn't actually have a black background (it's #222)...  Why?  So the panels can have shadows which provides important contrast.  Essentially, it is easier on the eyes.
 

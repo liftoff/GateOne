@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Release Notes &mdash; Gate One 1.1.0 documentation</title>
+    <title>Release Notes / Changelog &mdash; Gate One 1.1.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -52,10 +52,10 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="release-notes">
-<span id="id1"></span><h1>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id2">
-<h2>0.9<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="release-notes-changelog">
+<span id="release-notes"></span><h1>Release Notes / Changelog<a class="headerlink" href="#release-notes-changelog" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2>0.9<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="release-date">
 <h3>Release Date<a class="headerlink" href="#release-date" title="Permalink to this headline">¶</a></h3>
 <p>October 13th, 2011</p>
@@ -69,14 +69,14 @@
 </div>
 </div>
 </div>
+<div class="section" id="id2">
+<h2>1.0<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id3">
-<h2>1.0<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id4">
-<h3>Release Date<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>Release Date<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>March 6th, 2012</p>
 </div>
-<div class="section" id="id5">
-<h3>Summary of Changes<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>Summary of Changes<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>This was the first packaged release of Gate One with commercial support available from <a class="reference external" href="http://liftoffsoftware.com/">Liftoff Software</a>.  Highlights of changes since the beta:</p>
 <blockquote>
 <div><ul class="simple">
@@ -104,14 +104,14 @@
 <p>See the git commit log for full details on all changes.</p>
 </div>
 </div>
+<div class="section" id="id5">
+<h2>1.1<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id6">
-<h2>1.1<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id7">
-<h3>Release Date<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>Release Date<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>October Nth, 2012</p>
 </div>
-<div class="section" id="id8">
-<h3>Summary of Changes<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>Summary of Changes<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
 <li>Now tracking changes in more detail.</li>
@@ -141,7 +141,7 @@
 <li><strong>New Feature:</strong>  Old user session logs are now automatically removed after a configurable time period.  See the <tt class="xref py py-obj docutils literal"><span class="pre">session_logs_max_age</span></tt> option.</li>
 <li><strong>New Feature:</strong>  If you've set the number of rows/columns Gate One will now scale the size of each terminal in an attempt to fit it within the window.  Looks much nicer than having a tiny-sized terminal in the upper left corner of the browser window.</li>
 <li><strong>New Feature:</strong>  Bookmarks can now be navigated via the keyboard.  Ctrl-Alt-B will bring up the Bookmarks panel and you can then tab around to choose a bookmark.</li>
-<li><strong>New Feature:</strong>  Gate One now includes a <tt class="docutils literal"><span class="pre">print</span></tt> stylesheet so if you print out a terminal it will actually look nice and readable.  This wonderfully in conjunction with the &quot;Printable&quot; log view.</li>
+<li><strong>New Feature:</strong>  Gate One now includes a <tt class="docutils literal"><span class="pre">print</span></tt> stylesheet so if you print out a terminal it will actually look nice and readable.  This works wonderfully in conjunction with the &quot;Printable&quot; log view.</li>
 <li><strong>New Feature:</strong>  When copying text from a terminal it will now automatically be converted to plaintext (HTML formatting will be removed).  It will also have trailing whitespace removed.</li>
 <li><strong>New Feature:</strong>  Added a new theme/text color scheme:  Solarized.  Thanks to Jakub Woyke for this contribution.</li>
 <li><strong>Themes:</strong>  Loads and loads of tweaks to improve Gate One's overall appearance in varying situations.</li>
@@ -204,6 +204,7 @@
 <li><strong>gateone.js:</strong>  Lots of minor API additions and changes.  Too many to list; you'll just have to look at the docs.  See: <a class="reference internal" href="../Developer/js_gateone.html#gateone-javascript"><em>gateone.js</em></a>.</li>
 <li><strong>go_process.js:</strong>  Before loading lines on the screen the Web Worker will now strip trailing whitespace.  This should make copying &amp; pasting easier when dealing with multiple lines.</li>
 <li><strong>index.html:</strong>  Changed {{js_init}} to be {% raw js_init %} so people don't have to worry about Tornado's template engine turning things like quotes into HTML entities.</li>
+<li><strong>logviewer.py:</strong>  The functions that play back and display .golog files have been modified to read log data in chunks to save huge amounts of memory.  Playing back or displaying a gigantic log should now use as much memory as a small one (i.e. very little).</li>
 <li><strong>terminal.py:</strong>  Improved the ability of <tt class="xref py py-meth docutils literal"><span class="pre">Terminal.write()</span></tt> to detect and capture images by switching from using <a class="reference external" href="http://docs.python.org/2.7/library/re.html#re.match" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">re.match()</span></tt></a> to using <a class="reference external" href="http://docs.python.org/2.7/library/re.html#re.search" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">re.search()</span></tt></a>.</li>
 <li><strong>terminal.py:</strong>  Added a new global function:  css_colors().  It just dumps the CSS style information for all the text colors that Terminal.dump_html() supports.  The point is to make it easier for 3rd party apps to use dump_html().</li>
 <li><strong>terminal.py:</strong>  Added a new global at the bottom of the file:  CSS_COLORS.  It holds all the CSS classes used by the new css_colors() function.</li>
@@ -212,6 +213,7 @@
 <li><strong>termio.py:</strong>  Instances of <tt class="xref py py-obj docutils literal"><span class="pre">Multiplex()</span></tt> may now attach an <tt class="xref py py-obj docutils literal"><span class="pre">exitfunc</span></tt> that does exactly what you'd expect:  It gets called when the spawned program is terminated.</li>
 <li><strong>termio.py:</strong>  You can now pass a string as the 'callback' argument to Multiplex.expect() and it will automatically be converted into a function that writes said string to the child process.</li>
 <li><strong>termio.py:</strong>  Changed <tt class="xref py py-obj docutils literal"><span class="pre">Multiplex.writeline()</span></tt> and <tt class="xref py py-obj docutils literal"><span class="pre">Multiplex.writelines()</span></tt> so they write <tt class="xref py py-obj docutils literal"><span class="pre">\r\n</span></tt> instead of just <tt class="xref py py-obj docutils literal"><span class="pre">\n</span></tt>.  This should fix an issue with terminal programs that expect keystrokes instead of just newlines.</li>
+<li><strong>termio.py:</strong>  The functions that handle how logs are finalized have been modified to reduce memory consumption by orders of magnitude.  For example, when finalizing a humongous .golog, the <tt class="xref py py-obj docutils literal"><span class="pre">get_or_update_metadata()</span></tt> function will now read the file in chunks and be very conservative about the whole process instead of reading the entire log into memory before performing operations.</li>
 <li><strong>utils.py:</strong>  Increased the timeout value on the openssl commands since the default 5-second timeout wasn't long enough on slower systems.</li>
 <li><strong>Playback Plugin:</strong>  The logic that adds the playback controls has been modified to use the new <a class="reference internal" href="../Developer/js_gateone.html#GateOne.prefs.rowAdjust" title="GateOne.prefs.rowAdjust"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.prefs.rowAdjust</span></tt></a> property (JavaScript).</li>
 <li><strong>Playback plugin:</strong>  Whether or not the playback controls will appear can now be configured via the <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.prefs.showPlaybackControls</span></tt> option.  So if you're embedding Gate One and don't want the playback controls just pass <tt class="xref py py-obj docutils literal"><span class="pre">showPlaybackControls:</span> <span class="pre">false</span></tt> to <a class="reference internal" href="../Developer/js_gateone.html#GateOne.init" title="GateOne.init"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.init()</span></tt></a>.</li>
@@ -239,20 +241,20 @@
             </a></p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Release Notes</a><ul>
-<li><a class="reference internal" href="#id2">0.9</a><ul>
+<li><a class="reference internal" href="#">Release Notes / Changelog</a><ul>
+<li><a class="reference internal" href="#id1">0.9</a><ul>
 <li><a class="reference internal" href="#release-date">Release Date</a></li>
 <li><a class="reference internal" href="#summary-of-changes">Summary of Changes</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id3">1.0</a><ul>
-<li><a class="reference internal" href="#id4">Release Date</a></li>
-<li><a class="reference internal" href="#id5">Summary of Changes</a></li>
+<li><a class="reference internal" href="#id2">1.0</a><ul>
+<li><a class="reference internal" href="#id3">Release Date</a></li>
+<li><a class="reference internal" href="#id4">Summary of Changes</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id6">1.1</a><ul>
-<li><a class="reference internal" href="#id7">Release Date</a></li>
-<li><a class="reference internal" href="#id8">Summary of Changes</a></li>
+<li><a class="reference internal" href="#id5">1.1</a><ul>
+<li><a class="reference internal" href="#id6">Release Date</a></li>
+<li><a class="reference internal" href="#id7">Summary of Changes</a></li>
 <li><a class="reference internal" href="#notable-bugs-fixes">Notable Bugs Fixes</a></li>
 <li><a class="reference internal" href="#other-notable-changes">Other Notable Changes</a></li>
 </ul>
