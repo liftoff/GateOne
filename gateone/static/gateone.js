@@ -1767,6 +1767,7 @@ GateOne.Base.update(GateOne.Input, {
         logDebug('capture()');
         var go = GateOne,
             u = go.Utils,
+            prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv);
         goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
         goDiv.onkeydown = go.Input.onKeyDown;
@@ -1817,13 +1818,16 @@ GateOne.Base.update(GateOne.Input, {
             // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
             logDebug("goDiv.onmousedown() button: " + e.button + ", which: " + e.which);
             var m = go.Input.mouse(e),
+                selectedTerm = localStorage[prefix+'selectedTerminal'],
+                selectedPastearea = go.terminals[selectedTerm]['pasteNode'],
                 selectedText = u.getSelText();
             go.Input.mouseDown = true;
             // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
             // However, we only want this when the user is actually bringing up the context menu because
             // having it enabled slows down screen updates by a non-trivial amount.
             if (m.button.middle) {
-                u.showElements('.pastearea');
+                u.showElements(selectedPastearea);
+                selectedPastearea.focus();
                 if (selectedText.length) {
                     go.Input.handlingPaste = true; // We're emulating a paste so we might as well act like one
                     // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
@@ -1835,12 +1839,31 @@ GateOne.Base.update(GateOne.Input, {
                     }, 250);
                 }
             } else if (m.button.right) {
-                if (!u.getSelText()) {
+                if (!selectedText.length) {
                     // Redisplay the pastearea so we can get a proper context menu in case the user wants to paste
-                    u.showElements('.pastearea');
+                    // NOTE: On Firefox this behavior is broken.  See: https://bugzilla.mozilla.org/show_bug.cgi?id=785773
+                    u.showElements(selectedPastearea);
+                    selectedPastearea.focus();
+                } else {
+                    goDiv.focus();
                 }
+            } else {
+                if (go.Input.firefoxBugTimer) {
+                    clearTimeout(go.Input.firefoxBugTimer);
+                    go.Input.firefoxBugTimer = null;
+                }
+                go.Input.firefoxBugTimer = setTimeout(function() {
+                    if (!u.getSelText().length) {
+                        if (navigator.userAgent.indexOf('Firefox') != -1) {
+                            go.Visual.displayMessage("NOTE: Having trouble selecting text in Firefox?  It's a browser bug!  <br>WORKAROUND: Double-click something <i>then</i> you should be able to highlight whatever you want.", 5000, 10000);
+                            go.Visual.displayMessage("Please click <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=785773'>here</a> to vote and comment on the problem so we can get it fixed.", 5000, 10000);
+                            logInfo("If the Firefox devs fixed the following bug you wouldn't see this message!");
+                            logInfo("https://bugzilla.mozilla.org/show_bug.cgi?id=785773 <--Vote for it.  The squeaky wheel gets the oil.")
+                        }
+                    }
+                }, 500);
+                goDiv.focus();
             }
-            u.getNode(go.prefs.goDiv).focus();
         }
         goDiv.onmouseup = function(e) {
             logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
@@ -1861,6 +1884,11 @@ GateOne.Base.update(GateOne.Input, {
                         u.showElements('.pastearea');
                     }
                 }, 100);
+            }
+            // If the Firefox bug timer hasn't fired by now it wasn't a click-and-drag event
+            if (go.Input.firefoxBugTimer) {
+                clearTimeout(go.Input.firefoxBugTimer);
+                go.Input.firefoxBugTimer = null;
             }
             goDiv.focus();
         }
@@ -4154,6 +4182,9 @@ go.Base.update(GateOne.Terminal, {
         goDiv.appendChild(tempPaste);
         tempPaste.focus();
         // Since we're not calling preventDefault() on this event, by shifting focus to the pastearea (which is a textarea) the browser will execute the regular shift-Inert event (which is pasting =)
+//         setTimeout(function() {
+//             u.getNode(go.prefs.goDiv).contentEditable = false;
+//         }, 100);
     },
     timeoutAction: function() {
         // Write a message to the screen indicating a timeout has occurred and close the WebSocket
@@ -4296,7 +4327,12 @@ go.Base.update(GateOne.Terminal, {
                         }
                         termPre.oncopy = function(e) {
                             // Convert to plaintext before copying
+                            // NOTE: This doesn't work in Firefox.  In fact, in Firefox it makes it impossible to copy anything!
+                            if (navigator.userAgent.indexOf('Firefox') != -1) {
+                                return true; // Firefox doesn't appear to copy formatting anyway so right now this isn't necessary
+                            }
                             var text = u.rtrim(u.getSelText()),
+                                selection = window.getSelection(),
                                 tempTextArea = u.createElement('textarea', {'style': {'left': '-999999px', 'top': '-999999px'}});
                             tempTextArea.value = text;
                             document.body.appendChild(tempTextArea);
@@ -4306,6 +4342,7 @@ go.Base.update(GateOne.Terminal, {
                                 u.removeElement(tempTextArea);
                                 GateOne.Input.capture(); // Re-focus on the terminal and start accepting keyboard input again
                             }, 100);
+                            return true;
                         }
                         GateOne.terminals[term]['node'] = termPre; // For faster access
                     }

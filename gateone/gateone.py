@@ -1017,7 +1017,8 @@ class TerminalWebSocket(WebSocketHandler):
                             # Try, try again
                             self.commands[key]()
                     except (KeyError, TypeError, AttributeError) as e:
-                        logging.debug(e)
+                        logging.debug("Error with WebSocket action: %s" % e)
+                        logging.debug("Printing traceback...")
                         if self.settings['logging'] == "debug":
                             import traceback
                             traceback.print_exc(file=sys.stdout)
