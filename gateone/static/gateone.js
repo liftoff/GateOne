@@ -1826,7 +1826,7 @@ GateOne.Base.update(GateOne.Input, {
             // However, we only want this when the user is actually bringing up the context menu because
             // having it enabled slows down screen updates by a non-trivial amount.
             if (m.button.middle) {
-                u.showElements(selectedPastearea);
+                u.showElement(selectedPastearea);
                 selectedPastearea.focus();
                 if (selectedText.length) {
                     go.Input.handlingPaste = true; // We're emulating a paste so we might as well act like one
@@ -1842,26 +1842,26 @@ GateOne.Base.update(GateOne.Input, {
                 if (!selectedText.length) {
                     // Redisplay the pastearea so we can get a proper context menu in case the user wants to paste
                     // NOTE: On Firefox this behavior is broken.  See: https://bugzilla.mozilla.org/show_bug.cgi?id=785773
-                    u.showElements(selectedPastearea);
+                    u.showElement(selectedPastearea);
                     selectedPastearea.focus();
                 } else {
                     goDiv.focus();
                 }
             } else {
-                if (go.Input.firefoxBugTimer) {
-                    clearTimeout(go.Input.firefoxBugTimer);
-                    go.Input.firefoxBugTimer = null;
-                }
-                go.Input.firefoxBugTimer = setTimeout(function() {
-                    if (!u.getSelText().length) {
-                        if (navigator.userAgent.indexOf('Firefox') != -1) {
+                if (navigator.userAgent.indexOf('Firefox') != -1) {
+                    if (go.Input.firefoxBugTimer) {
+                        clearTimeout(go.Input.firefoxBugTimer);
+                        go.Input.firefoxBugTimer = null;
+                    }
+                    go.Input.firefoxBugTimer = setTimeout(function() {
+                        if (!u.getSelText().length) {
                             go.Visual.displayMessage("NOTE: Having trouble selecting text in Firefox?  It's a browser bug!  <br>WORKAROUND: Double-click something <i>then</i> you should be able to highlight whatever you want.", 5000, 10000);
                             go.Visual.displayMessage("Please click <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=785773'>here</a> to vote and comment on the problem so we can get it fixed.", 5000, 10000);
                             logInfo("If the Firefox devs fixed the following bug you wouldn't see this message!");
-                            logInfo("https://bugzilla.mozilla.org/show_bug.cgi?id=785773 <--Vote for it.  The squeaky wheel gets the oil.")
+                            logInfo("https://bugzilla.mozilla.org/show_bug.cgi?id=785773 <--Vote for it.  The squeaky wheel gets the oil.");
                         }
-                    }
-                }, 500);
+                    }, 500);
+                }
                 goDiv.focus();
             }
         }
@@ -1883,7 +1883,7 @@ GateOne.Base.update(GateOne.Input, {
                     if (!u.getSelText()) {
                         u.showElements('.pastearea');
                     }
-                }, 100);
+                }, 750); // NOTE: For this to work (to allow users to double-click-to-highlight a word) they must double-click before this timer fires.
             }
             // If the Firefox bug timer hasn't fired by now it wasn't a click-and-drag event
             if (go.Input.firefoxBugTimer) {

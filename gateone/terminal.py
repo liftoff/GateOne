@@ -1737,8 +1737,6 @@ class Terminal(object):
         """
         # Remove the extra \r's that the terminal adds:
         self.image = str(self.image).replace('\r\n', '\n')
-        # Need it twice since you get \r\r\n in some situations
-        self.image = self.image.replace('\r\n', '\n')
         logging.debug("_capture_image() len(self.image): %s" % len(self.image))
         if Image: # PIL is loaded--try to guess how many lines the image takes
             i = StringIO.StringIO(self.image)
