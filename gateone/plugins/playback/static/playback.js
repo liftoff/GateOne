@@ -66,7 +66,6 @@ GateOne.Base.update(GateOne.Playback, {
         if (go.prefs.showPlaybackControls) {
             // Make room for the playback controls by increasing rowAdjust (the number of rows in the terminal will be reduced by this amount)
             go.prefs.rowAdjust += 1;
-            go.Net.sendDimensionsCallbacks.push(p.termAdjust);
         }
         // Add our callback that adds an extra newline to all terminals
         go.Terminal.newTermCallbacks.push(p.newTerminalCallback);
@@ -74,28 +73,6 @@ GateOne.Base.update(GateOne.Playback, {
         go.Terminal.updateTermCallbacks.push(p.pushPlaybackFrame);
         // This makes sure our prefs get saved along with everything else
         go.savePrefsCallbacks.push(p.savePrefsCallback);
-    },
-    termAdjust: function(term) {
-        // Moves the terminal screen up a little bit using CSS transforms to ensure that the scrollback buffer is only visible if you scroll
-        // This function gets added to GateOne.Net.sendDimensionsCallbacks
-        var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            goDiv = u.getNode(go.prefs.goDiv),
-            terminals = u.getNodes(go.prefs.goDiv + ' .terminal');
-        // Wrapped in a timeout since it can take a moment for all the dimensions to settle down
-        setTimeout(function() {
-            u.toArray(terminals).forEach(function(termNode) {
-                var term = termNode.id.split('term')[1],
-                    termPre = u.getNode('#'+prefix+'term'+term+'_pre'),
-                    distance = goDiv.clientHeight - termPre.offsetHeight;
-                transform = "translateY(-" + distance + "px)";
-                if (u.isVisible(termPre)) {
-                    go.Visual.applyTransform(termPre, transform);
-                }
-                u.scrollToBottom(termPre);
-            });
-        }, 2000);
     },
     newTerminalCallback: function(term, calledTwice) {
         // This gets added to GateOne.Terminal.newTermCallbacks to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls

@@ -768,6 +768,7 @@ class Terminal(object):
             'c': self._csi_device_status_report, # Device status report (DSR)
             'g': self.__ignore, # TODO: Tab clear
             'h': self.set_expanded_mode,
+            'i': self.__ignore, # ESC[5i is "redirect to printer", ESC[4i ends it
             'l': self.reset_expanded_mode,
             'f': self.cursor_position,
             'd': self.cursor_position_vertical, # Vertical Line Position Absolute (VPA)
@@ -795,7 +796,7 @@ class Terminal(object):
         self.expanded_modes = {
             # Expanded modes take a True/False argument for set/reset
             '1': self.set_application_mode,
-            '2': self.__ignore, # DECANM and set VT100 mode
+            '2': self.__ignore, # DECANM and set VT100 mode (also: lock keyboard)
             '3': self.__ignore, # 132 Column Mode (DECCOLM)
             '4': self.__ignore, # Smooth (Slow) Scroll (DECSCLM)
             '5': self.__ignore, # Reverse video (might support in future)

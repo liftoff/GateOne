@@ -689,11 +689,29 @@ var go = GateOne.Base.update(GateOne, {
             }
             go.resizeEventTimer = setTimeout(function() {
                 // Wrapped in a timeout to de-bounce
-                if (u.getNode(go.prefs.goDiv).style.display != "none") {
+                var term = localStorage[prefix+'selectedTerminal'],
+                    terminalObj = go.terminals[term],
+                    termPre = terminalObj['node'],
+                    screenNode = terminalObj['screenNode'],
+                    emHeight = u.getEmDimensions(goDiv).h;
+                if (goDiv.style.display != "none") {
                     go.Visual.updateDimensions();
                     go.Net.sendDimensions();
                 }
-            }, 500);
+                // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
+                if (!go.prefs.embedded) {
+                    // In embedded mode this kind of adjustment can be unreliable
+                    GateOne.Visual.applyTransform(termPre, ''); // Need to reset before we do calculations
+                    go.resizeAdjustTimer = setTimeout(function() {
+                        var distance = goDiv.clientHeight - screenNode.offsetHeight;
+                        distance -= (emHeight * go.prefs.rowAdjust); // Have to adjust for the extra row we add for the playback controls
+                        if (GateOne.Utils.isVisible(termPre)) {
+                            var transform = "translateY(-" + distance + "px)";
+                            GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                        }
+                    }, 500);
+                }
+            }, 750);
         }
         window.onresize = onResizeEvent;
         // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
@@ -4267,22 +4285,14 @@ go.Base.update(GateOne.Terminal, {
                 if (existingScreen && GateOne.terminals[term]['screen'].length != screen.length) {
                     // Resized
                     GateOne.terminals[term]['screen'].length = screen.length; // Resize the array to match
-                    existingScreen.innerHTML = "";
                     for (var i=0; i < screen.length; i++) {
-                        var lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
-                        lineSpan.innerHTML = screen[i] + '\n';
-                        existingScreen.appendChild(lineSpan);
-                        // Update the existing screen array in-place to cut down on GC
-                        GateOne.terminals[term]['screen'][i] = screen[i];
-                    }
-                    if (!go.prefs.embedded) {
-                        // In embedded mode this kind of adjustment can be unreliable
-                        var distance = goDiv.clientHeight - termPre.offsetHeight;
-                        GateOne.terminals[term]['heightAdjust'] = 0;
-                        // Feel free to put something like this in updateTermCallbacks if you want.
-                        if (GateOne.Utils.isVisible(termPre)) {
-                            transform = "translateY(-" + distance + "px)";
-                            GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                        var existingLine = existingPre.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i),
+                            lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
+                        if (!existingLine) {
+                            lineSpan.innerHTML = screen[i] + '\n';
+                            existingScreen.appendChild(lineSpan);
+                            // Update the existing screen array in-place to cut down on GC
+                            GateOne.terminals[term]['screen'][i] = screen[i];
                         }
                     }
                 }
@@ -4316,11 +4326,12 @@ go.Base.update(GateOne.Terminal, {
                         } else {
                             if (!go.prefs.embedded) {
                                 // In embedded mode this kind of adjustment can be unreliable
-                                var distance = goDiv.clientHeight - termPre.offsetHeight;
-                                GateOne.terminals[term]['heightAdjust'] = 0;
+                                GateOne.Visual.applyTransform(termPre, ''); // Need to reset before we do the calculation
+                                var distance = goDiv.clientHeight - screenSpan.offsetHeight;
+                                GateOne.terminals[term]['heightAdjust'] = 0; // Have to set this as a default value for new terminals
                                 // Feel free to put something like this in updateTermCallbacks if you want.
                                 if (GateOne.Utils.isVisible(termPre)) {
-                                    transform = "translateY(-" + distance + "px)";
+                                    var transform = "translateY(-" + distance + "px)";
                                     GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
                                 }
                             }
