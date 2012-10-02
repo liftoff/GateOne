@@ -78,7 +78,7 @@ Summary of Changes
     * **New Feature:**  A widget() function has been added to :ref:`gateone-javascript` that allows plugins to create elements that float above terminals.  See the the documentation and the Example plugin (example.js) itself for details.
     * **New Feature:**  The bell sound is now downloaded over the WebSocket and cached locally in the user's browser so it won't need to be downloaded every time the user connects.
     * **New Feature:**  Users can now set a custom bell sound.
-    * **New Feature:**  All use of the threading module in Gate One has been replaced with Tornado's PeriodicCallback feature and multiprocessing (where appropriate).  This is both more performant and reduces memory utilization considerably.  Especially when there are a large number of open terminals.
+    * **New Feature:**  Most useage of the threading module in Gate One has been replaced with Tornado's PeriodicCallback feature and multiprocessing (where appropriate).  This is both more performant and reduces memory utilization considerably.  Especially when there are a large number of open terminals.
     * **New Feature:**  Gate One can now be configured to listen on a Unix socket (as opposed to just TCP/IP addresses).  Thanks to Tamer Mohammed Abdul-Radi of `Cloud9ers <http://cloud9ers.com/>`_ for this contribution.
     * **New Feature:**  Old user session logs are now automatically removed after a configurable time period.  See the `session_logs_max_age` option.
     * **New Feature:**  If you've set the number of rows/columns Gate One will now scale the size of each terminal in an attempt to fit it within the window.  Looks much nicer than having a tiny-sized terminal in the upper left corner of the browser window.

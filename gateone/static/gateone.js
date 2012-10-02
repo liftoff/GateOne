@@ -589,8 +589,6 @@ var go = GateOne.Base.update(GateOne, {
                 go.Net.sendDimensions();
             }, 3000);
         }
-        // Connect to the server
-//         go.Net.connect();
         // Apply user-specified dimension styles and settings
         go.Visual.applyStyle(goDiv, go.prefs.style);
         if (go.prefs.fillContainer) {
@@ -2846,6 +2844,7 @@ GateOne.Base.update(GateOne.Visual, {
             }, 1100);
         }
     },
+    // TODO: Get this *actually* centering the terminal title info
     displayTermInfo: function(term) {
         // Displays the given term's information as a psuedo tooltip that eventually fades away
         var u = go.Utils,
@@ -3087,8 +3086,9 @@ GateOne.Base.update(GateOne.Visual, {
             node = u.getNode(elem);
         node.className = node.className.replace(/(?:^|\s)noanimate(?!\S)/, '');
     },
+    // TODO: Change this so it doesn't hard-code things like setting the terminal title or fixing the activity checkboxes (use a callback array like everything else)
     slideToTerm: function(term) {
-        // Slides the view to the given *term*.  If *noReset* is true, don't reset the grid before switching
+        // Slides the view to the given *term*.  If *GateOne.Visual.noReset* is true, don't reset the grid before switching
         var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
@@ -3106,10 +3106,17 @@ GateOne.Base.update(GateOne.Visual, {
             bottomAdjust = 0,
             reScrollback = u.partial(v.enableScrollback, term),
             paddingRight = (style['padding-right'] || style['paddingRight']),
-            paddingBottom = (style['padding-bottom'] || style['paddingBottom']);
+            paddingBottom = (style['padding-bottom'] || style['paddingBottom']),
+            setActivityCheckboxes = function(term) {
+                var monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
+                    monitorActivity = u.getNode('#'+prefix+'monitor_activity');
+                monitorInactivity.checked = go.terminals[term]['inactivityTimer']
+                monitorActivity.checked = go.terminals[term]['activityNotify'];
+            };
         if (termObj) {
             displayText = termObj.id.split(prefix+'term')[1] + ": " + termObj.title;
             termTitleH2.innerHTML = displayText;
+            setActivityCheckboxes(term);
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
