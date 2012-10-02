@@ -593,6 +593,103 @@ def pua_counter():
             else:
                 n += 1
 
+# Classes
+class FileType(object):
+    """
+    An object to hold the attributes of a supported file capture/output type.
+    """
+    def __init__(self, name, re_header, re_capture, path=""):
+        """
+        **name:** Name of the file type.
+        **re_header:** The regex to match the start of the file.
+        **re_capture:** The regex to carve the file out of the stream.
+        **path:** The path to the file.
+        """
+        self.name = name
+        self.re_header = re_header
+        self.re_capture = re_capture
+        self.path = path
+        self.file_obj = open(path)
+
+    def __repr__(self):
+        return "<%s>" % self.name
+
+    def __str__(self):
+        "Override if the defined file type warrants a text-based output"
+        return self.__repr__()
+
+    def raw(self):
+        return open(self.path).read()
+
+    def html(self):
+        """
+        Returns the object as an HTML-formatted string.  Must be overridden.
+        """
+        raise NotImplementedError
+
+class ImageFile(FileType):
+    """
+    A subclass of :class:`FileType` for images (specifically to override
+    :meth:`self.html`)
+    """
+    def html(self):
+        try:
+            im = Image.open(self.path)
+        except IOError:
+            # i.e. PIL couldn't identify the file
+            return "<i>Image file couldn't be opened</i>"
+        # TODO: Make these sizes adjustable:
+        if im.size[0] > 640 or im.size[1] > 480:
+            # Probably too big to send to browser as a data URI.
+            if im: # Resize it...
+                # 640x480 should come in <32k for most stuff
+                try:
+                    # Save it so we don't have to do this again
+                    im.thumbnail((640, 480), Image.ANTIALIAS)
+                    im.save(self.file_obj, im.format)
+                except IOError:
+                    # Sometimes PIL will throw this if it can't read
+                    # the image.
+                    return "<i>Problem displaying this image</i>"
+            else: # Generic error
+                return "<i>Problem displaying this image</i>"
+        # Need to encode base64 to create a data URI
+        encoded = base64.b64encode(im.tostring()).replace('\n', '')
+        data_uri = "data:image/%s;base64,%s" % (
+            im.format.lower(), encoded)
+        return '<img src="%s" width="%s" height="%s">' % (
+            data_uri, im.size[0], im.size[1])
+
+class PNGFile(ImageFile):
+    "An override of ImageFile for PNGs to hard-code the regular expressions."
+    def __init__(self, path=""):
+        """
+        **name:** Name of the file type.
+        **path:** The path to the file.
+        """
+        self.name = "PNG Image"
+        self.re_header = re.compile('.*\x89PNG\r', re.DOTALL)
+        self.re_capture = re.compile('\x89PNG\r.+IEND\xaeB`\x82', re.DOTALL)
+        self.path = path
+        self.file_obj = open(path)
+
+class JPEGFile(ImageFile):
+    "An override of ImageFile for JPEGs to hard-code the regular expressions."
+    def __init__(self, path=""):
+        """
+        **name:** Name of the file type.
+        **path:** The path to the file.
+        """
+        self.name = "JPEG Image"
+        self.re_header = re.compile(
+            '.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
+        self.re_capture = re.compile(
+            '\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9',
+            re.DOTALL
+        )
+        self.path = path
+        self.file_obj = open(path)
+
 class Terminal(object):
     """
     Terminal controller class.
@@ -689,6 +786,7 @@ class Terminal(object):
         # determine if anything has changed since the last dump*()
         self.modified = False
         self.local_echo = True
+        self.insert_mode = False
         self.esc_buffer = '' # For holding escape sequences as they're typed.
         self.show_cursor = True
         self.cursor_home = 0
@@ -705,7 +803,7 @@ class Terminal(object):
         # Set the default window margins
         self.top_margin = 0
         self.bottom_margin = self.rows - 1
-        self.timeout_image = None
+        self.timeout_capture = None
         self.specials = {
             self.ASCII_NUL: self.__ignore,
             self.ASCII_BEL: self.bell,
@@ -859,6 +957,8 @@ class Terminal(object):
         jpeg_header = re.compile('.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
         jpeg_whole = re.compile(
             '\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9', re.DOTALL)
+        pdf_header = re.compile('.*%PDF-[0-9]+\.[0-9]+', re.DOTALL)
+        pdf_whole = re.compile('%PDF-[0-9]+\.[0-9]+.+%%EOF\r?', re.DOTALL)
         self.magic = {
             # Dict for magic "numbers" so we can tell when a particular type of
             # file begins and ends (so we can capture it in binary form and
@@ -866,6 +966,13 @@ class Terminal(object):
             # The format is 'beginning': 'whole'
             png_header: png_whole,
             jpeg_header: jpeg_whole,
+        }
+        self.magic_functions = {
+            # These determine what to do with the data we captured using
+            # self.magic
+            pdf_header: self.__ignore,
+            png_header: self._capture_image,
+            jpeg_header: self._capture_image,
         }
         self.matched_header = None
         # These are for saving self.screen and self.renditions so we can support
@@ -878,9 +985,9 @@ class Terminal(object):
         self.saved_cursorY = 0
         self.saved_rendition = [None]
         self.application_keys = False
-        self.image = ""
-        self.images = {}
-        self.image_counter = pua_counter()
+        self.capture = ""
+        self.captured_files = {}
+        self.file_counter = pua_counter()
         # This is for creating a new point of reference every time there's a new
         # unique rendition at a given coordinate
         self.rend_counter = unicode_counter()
@@ -892,7 +999,7 @@ class Terminal(object):
         self.prev_dump = [] # A cache to speed things up
         self.prev_dump_rend = [] # Ditto
         self.html_cache = [] # Ditto
-        self.watcher = None # Placeholder for the image watcher thread (if used)
+        self.watcher = None # Placeholder for the file watcher thread (if used)
 
     def init_screen(self):
         """
@@ -929,7 +1036,6 @@ class Terminal(object):
         Empties the scrollback buffers (:attr:`self.scrollback_buf` and
         :attr:`self.scrollback_renditions`).
         """
-        # Close any image files that might be associated with characters
         self.scrollback_buf = []
         self.scrollback_renditions = []
 
@@ -996,6 +1102,7 @@ class Terminal(object):
         self.title = "Gate One"
         self.esc_buffer = ''
         self.show_cursor = True
+        self.insert_mode = False
         self.rendition_set = False
         self.G0_charset = 'B'
         self.current_charset = self.charsets['B']
@@ -1301,42 +1408,41 @@ class Terminal(object):
         changed = False
         #logging.debug('handling chars: %s' % repr(chars))
         if special_checks:
-            # NOTE: Special checks are limited to PNGs and JPEGs right now
             before_chars = ""
             after_chars = ""
             for magic_header in magic.keys():
                 try:
                     if magic_header.match(str(chars)):
                         self.matched_header = magic_header
-                        self.timeout_image = datetime.now()
+                        self.timeout_capture = datetime.now()
                 except UnicodeEncodeError:
                     # Gibberish; drop it and pretend it never happened
                     self.esc_buffer = ""
-                    # Make it so it won't barf
+                    # Make it so it won't barf below
                     chars = chars.encode('UTF-8', 'ignore')
-            if self.image or self.matched_header:
-                self.image += chars
-                match = magic[self.matched_header].search(self.image)
+            if self.capture or self.matched_header:
+                self.capture += chars
+                match = magic[self.matched_header].search(self.capture)
                 if match:
-                    #logging.debug("Matched image format.  Capturing...")
+                    #logging.debug("Matched file format.  Capturing...")
                     before_chars, after_chars = magic[
-                            self.matched_header].split(self.image)
+                            self.matched_header].split(self.capture)
                     # Eliminate anything before the match
-                    self.image = match.group()
-                    self._capture_image()
-                    self.image = "" # Empty it now that is is captured
+                    self.capture = match.group()
+                    self._capture_file()
+                    self.capture = "" # Empty it now that is is captured
                     self.matched_header = None # Ditto
                 if before_chars:
                     self.write(before_chars, special_checks=False)
                 if after_chars:
                     self.write(after_chars, special_checks=False)
-                # If we haven't got a complete image after one second something
+                # If we haven't got a complete file after one second something
                 # went wrong.  Discard what we've got and restart.
                 one_second = timedelta(seconds=1)
-                if datetime.now() - self.timeout_image > one_second:
-                    self.image = "" # Empty it
+                if datetime.now() - self.timeout_capture > one_second:
+                    self.capture = "" # Empty it
                     self.matched_header = None
-                    chars = _("Failed to decode image.  Buffer discarded.")
+                    chars = _("Failed to decode file.  Buffer discarded.")
                 else:
                     return
         # Have to convert to unicode
@@ -1425,6 +1531,14 @@ class Terminal(object):
                 try:
                     self.renditions[self.cursorY][
                         self.cursorX] = self.cur_rendition
+                    if self.insert_mode:
+                        # Insert mode dictates that we move everything to the
+                        # right for every character we insert.  Normally the
+                        # program itself will take care of this but older
+                        # programs and shells will simply set call ESC[4h,
+                        # insert the character, then call ESC[4i to return the
+                        # terminal to its regular state.
+                        self.insert_characters(1)
                     if charnum in self.charset:
                         char = self.charset[charnum]
                         self.screen[self.cursorY][self.cursorX] = char
@@ -1713,18 +1827,31 @@ class Terminal(object):
     def _csi(self):
         """
         Marks the start of a CSI escape sequence (which is itself a character)
-        by setting :attr:`self.esc_buffer` to '\\\\x1b[' (which is the CSI escape
-        sequence).
+        by setting :attr:`self.esc_buffer` to '\\\\x1b[' (which is the CSI
+        escape sequence).
         """
         self.esc_buffer = '\x1b['
+
+    def _capture_file(self):
+        """
+        This function gets called by :meth:`Terminal.write` when the incoming
+        character stream matches a value in :attr:`self.magic`.  It will call
+        whatever function is associated with the matching regex in
+        :attr:`self.magic_functions`.
+        """
+        logging.debug("_capture_file()")
+        for magic_header in self.magic.keys():
+            if magic_header.match(self.capture):
+                self.magic_functions[magic_header]()
+                break
 
     def _capture_image(self):
         """
         This gets called when an image (PNG or JPEG) was detected by
-        :meth:`Terminal.write` and captured in :attr:`self.image`.  It cleans up
-        the data inside :attr:`self.image` (getting rid of carriage returns) and
-        stores a reference to self.image as a single character (using
-        :attr:`self.image_counter`) in :attr:`self.screen` at the current cursor
+        :meth:`Terminal._capture_file` and captured in :attr:`self.capture`.  It cleans up
+        the data inside :attr:`self.capture` (getting rid of carriage returns) and
+        stores a reference to self.capture as a single character (using
+        :attr:`self.file_counter`) in :attr:`self.screen` at the current cursor
         position.  The actual image will be written to disk and read on-demand
         by :meth:`self__spanify_screen` when it needs to be displayed.  The
         image on disk will be automatically removed  when it is no longer
@@ -1737,10 +1864,10 @@ class Terminal(object):
         .. note:: The :meth:`Terminal._spanify_screen` function is aware of this logic and knows that a 'character' in Plane 16 of the Unicode PUA indicates the presence of something like an image that needs special processing.
         """
         # Remove the extra \r's that the terminal adds:
-        self.image = str(self.image).replace('\r\n', '\n')
-        logging.debug("_capture_image() len(self.image): %s" % len(self.image))
+        self.capture = str(self.capture).replace('\r\n', '\n')
+        logging.debug("_capture_image() len(self.capture): %s" % len(self.capture))
         if Image: # PIL is loaded--try to guess how many lines the image takes
-            i = StringIO.StringIO(self.image)
+            i = StringIO.StringIO(self.capture)
             try:
                 im = Image.open(i)
             except IOError:
@@ -1748,7 +1875,7 @@ class Terminal(object):
                 return # Don't do anything--bad image
         else: # No PIL means no images.  Don't bother wasting memory.
             return
-        ref = self.image_counter.next()
+        ref = self.file_counter.next()
         if self.em_dimensions:
             # Make sure the image will fit properly in the screen
             width = im.size[0]
@@ -1779,42 +1906,42 @@ class Terminal(object):
             self.newline() # Make some space at the bottom too just in case
             self.newline()
         # Write the image to disk in a temporary location
-        self.images[ref] = tempfile.TemporaryFile()
-        im.save(self.images[ref], im.format)
-        self.images[ref].flush()
+        self.captured_files[ref] = tempfile.TemporaryFile()
+        im.save(self.captured_files[ref], im.format)
+        self.captured_files[ref].flush()
         # Start up the image watcher thread so leftover FDs get closed when
         # they're no longer being used
         if not self.watcher or not self.watcher.isAlive():
             import threading
             self.watcher = threading.Thread(
-                name='watcher', target=self._image_fd_watcher)
+                name='watcher', target=self._captured_fd_watcher)
             self.watcher.setDaemon(True)
             self.watcher.start()
 
-    def _image_fd_watcher(self):
+    def _captured_fd_watcher(self):
         """
-        Meant to be run inside of a thread, calls close_image_fds() until there
+        Meant to be run inside of a thread, calls close_captured_fds() until there
         are no more open image file descriptors.
         """
         logging.debug("starting image_fd_watcher()")
         import time
         quitting = False
         while not quitting:
-            if self.images:
-                self.close_image_fds()
+            if self.captured_files:
+                self.close_captured_fds()
                 time.sleep(5)
             else:
                 quitting = True
         logging.debug('image_fd_watcher() quitting: No more images.')
 
-    def close_image_fds(self):
+    def close_captured_fds(self):
         """
-        Closes the file descriptors of any images that are no longer on the
-        screen.
+        Closes the file descriptors of any captured files that are no longer on
+        the screen.
         """
-        #logging.debug('close_image_fds()') # Commented because it's kinda noisy
-        if self.images:
-            for ref in self.images.keys():
+        #logging.debug('close_captured_fds()') # Commented because it's kinda noisy
+        if self.captured_files:
+            for ref in self.captured_files.keys():
                 found = False
                 for line in self.screen:
                     if ref in line:
@@ -1826,8 +1953,8 @@ class Terminal(object):
                             found = True
                             break
                 if not found:
-                    self.images[ref].close()
-                    del self.images[ref]
+                    self.captured_files[ref].close()
+                    del self.captured_files[ref]
 
     def _string_terminator(self):
         """
@@ -1945,18 +2072,28 @@ class Terminal(object):
         # * 6: Origin mode
         # * 7: Wraparound mode
         logging.debug("set_expanded_mode(%s)" % setting)
-        setting = setting[1:] # Don't need the ?
-        settings = setting.split(';')
-        for setting in settings:
+        if setting.startswith('?'):
+            # DEC Private Mode Set
+            setting = setting[1:] # Don't need the ?
+            settings = setting.split(';')
+            for setting in settings:
+                try:
+                    self.expanded_modes[setting](True)
+                except (KeyError, TypeError):
+                    pass # Unsupported expanded mode
             try:
-                self.expanded_modes[setting](True)
-            except (KeyError, TypeError):
-                pass # Unsupported expanded mode
-        try:
-            for callback in self.callbacks[CALLBACK_MODE].values():
-                callback(setting, True)
-        except TypeError:
-            pass
+                for callback in self.callbacks[CALLBACK_MODE].values():
+                    callback(setting, True)
+            except TypeError:
+                pass
+        else:
+            # There's a couple mode settings that are just "[Nh" where N==number
+            # [2h Keyboard Action Mode (AM)
+            # [4h Insert Mode
+            # [12h Send/Receive Mode (SRM)
+            # [24h Automatic Newline (LNM)
+            if setting == '4':
+                self.insert_mode = True
 
     def reset_expanded_mode(self, setting):
         """
@@ -1964,18 +2101,27 @@ class Terminal(object):
         cursor.
         """
         logging.debug("reset_expanded_mode(%s)" % setting)
-        setting = setting[1:] # Don't need the ?
-        settings = setting.split(';')
-        for setting in settings:
+        if setting.startswith('?'):
+            setting = setting[1:] # Don't need the ?
+            settings = setting.split(';')
+            for setting in settings:
+                try:
+                    self.expanded_modes[setting](False)
+                except (KeyError, TypeError):
+                    pass # Unsupported expanded mode
             try:
-                self.expanded_modes[setting](False)
-            except (KeyError, TypeError):
-                pass # Unsupported expanded mode
-        try:
-            for callback in self.callbacks[CALLBACK_MODE].values():
-                callback(setting, False)
-        except TypeError:
-            pass
+                for callback in self.callbacks[CALLBACK_MODE].values():
+                    callback(setting, False)
+            except TypeError:
+                pass
+        else:
+            # There's a couple mode settings that are just "[Nh" where N==number
+            # [2h Keyboard Action Mode (AM)
+            # [4h Insert Mode
+            # [12h Send/Receive Mode (SRM)
+            # [24h Automatic Newline (LNM)
+            if setting == '4':
+                self.insert_mode = False
 
     def set_application_mode(self, boolean):
         """
@@ -2549,6 +2695,19 @@ class Terminal(object):
             # High likelyhood that nothing is defined.  No biggie.
             pass
 
+    def _captured_file_output(self, captured_file):
+        """
+        Called by :meth:`self._spanify_screen` and
+        :meth:`self._spanify_scrollback`, returns an HTML-formatted string
+        containing the data stored in *captured_file* in a way that's suitable
+        for display in a terminal.
+
+        Raises a HTMLEncodeError exception if a problem is encountered while
+        converting the file data.
+
+        Example: It will convert PNG and JPEG images into data::URI <IMG> tags.
+        """
+
     def _spanify_screen(self):
         """
         Iterates over the lines in *screen* and *renditions*, applying HTML
@@ -2602,7 +2761,7 @@ class Terminal(object):
                     if not Image: # Can't use images in the terminal
                         outline += "<i>Image file</i>"
                         continue # Can't do anything else
-                    image_file = self.images[char]
+                    image_file = self.captured_files[char]
                     image_file.seek(0) # Back to the start
                     image_data = image_file.read()
                     # PIL likes StringIO objects for some reason
@@ -2753,7 +2912,7 @@ class Terminal(object):
                     if not Image: # Can't use images in the terminal
                         outline += "<i>Image file</i>"
                         continue # Can't do anything else
-                    image_file = self.images[char]
+                    image_file = self.captured_files[char]
                     image_file.seek(0) # Back to the start
                     image_data = image_file.read()
                     # PIL likes StringIO objects for some reason
