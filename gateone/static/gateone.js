@@ -1810,43 +1810,7 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onkeydown = go.Input.onKeyDown;
         goDiv.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
         goDiv.onkeypress = go.Input.emulateKeyFallback;
-        // NOTE: This might not be necessary anymore with the pastearea:
-        var onPaste = function(e) {
-            logDebug("goDiv registered paste event.");
-            if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
-                return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
-            }
-            if (!go.Input.handlingPaste) {
-                // Grab the text being pasted
-                go.Input.handlingPaste = true;
-                var contents = null;
-                if (e.clipboardData) {
-                    // Don't actually paste the text where the user clicked
-                    e.preventDefault();
-                    if (/text\/html/.test(e.clipboardData.types)) {
-                        contents = e.clipboardData.getData('text/html');
-                        contents = u.stripHTML(contents); // Convert to plain text to avoid unwanted cruft
-                    }
-                    else if (/text\/plain/.test(e.clipboardData.types)) {
-                        contents = e.clipboardData.getData('text/plain');
-                    }
-                    logDebug('paste contents: ' + contents);
-                    // Queue it up and send the characters as if we typed them in
-                    go.Input.queue(contents);
-                    go.Net.sendChars();
-                } else {
-                    // Change focus to the current pastearea and hope for the best
-                    go.Terminal.paste();
-                }
-                // This is wrapped in a timeout so that the paste events that bubble up after the first get ignored
-                setTimeout(function() {
-                    go.Input.handlingPaste = false;
-                }, 250);
-            } else {
-                e.preventDefault(); // Prevent any funny business around queuing up pastes
-            }
-        }
-        goDiv.onpaste = onPaste;
+        goDiv.onpaste = go.Input.onPaste;
         goDiv.oncopy = function(e) {
             // After the copy we need to bring the pastearea back up so the context menu will work to paste again
             u.showElements('.pastearea');
@@ -1957,6 +1921,44 @@ GateOne.Base.update(GateOne.Input, {
         if (!go.Visual.overlay) {
             // The timer here is to prevent the screen from flashing whenever something is pasted.
             go.Input.overlayTimer = setTimeout(go.Visual.toggleOverlay, 250);
+        }
+    },
+    onPaste: function(e) {
+        var go = GateOne,
+            u = go.Utils,
+            goDiv = u.getNode(go.prefs.goDiv);
+        logDebug("goDiv registered paste event.");
+        if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
+            return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
+        }
+        if (!go.Input.handlingPaste) {
+            // Grab the text being pasted
+            go.Input.handlingPaste = true;
+            var contents = null;
+            if (e.clipboardData) {
+                // Don't actually paste the text where the user clicked
+                e.preventDefault();
+                if (/text\/html/.test(e.clipboardData.types)) {
+                    contents = e.clipboardData.getData('text/html');
+                    contents = u.stripHTML(contents); // Convert to plain text to avoid unwanted cruft
+                }
+                else if (/text\/plain/.test(e.clipboardData.types)) {
+                    contents = e.clipboardData.getData('text/plain');
+                }
+                logDebug('paste contents: ' + contents);
+                // Queue it up and send the characters as if we typed them in
+                go.Input.queue(contents);
+                go.Net.sendChars();
+            } else {
+                // Change focus to the current pastearea and hope for the best
+                go.Terminal.paste();
+            }
+            // This is wrapped in a timeout so that the paste events that bubble up after the first get ignored
+            setTimeout(function() {
+                go.Input.handlingPaste = false;
+            }, 250);
+        } else {
+            e.preventDefault(); // Prevent any funny business around queuing up pastes
         }
     },
     queue: function(text) {
@@ -2502,6 +2504,11 @@ GateOne.Base.update(GateOne.Input, {
                         }
                     }
                 }
+            } else if (key.string == 'KEY_V') {
+                // Macs need this to support pasting with ⌘-v (⌘-c doesn't need anything special)
+                var term = localStorage[go.prefs.prefix+'selectedTerminal'],
+                    pastearea = go.terminals[term]['pasteNode'];
+                pastearea.focus(); // So the browser will know to issue a paste event
             }
         }
         // Handle ctrl-alt-<key> and ctrl-alt-shift-<key> combos
@@ -4238,7 +4245,6 @@ go.Base.update(GateOne.Terminal, {
         }
         goDiv.appendChild(tempPaste);
         tempPaste.focus();
-        // Since we're not calling preventDefault() on this event, by shifting focus to the pastearea (which is a textarea) the browser will execute the regular shift-Inert event (which is pasting =)
 //         setTimeout(function() {
 //             u.getNode(go.prefs.goDiv).contentEditable = false;
 //         }, 100);
@@ -4692,6 +4698,9 @@ go.Base.update(GateOne.Terminal, {
                 var go = GateOne,
                     pasted = pastearea.value,
                     lines = pasted.split('\n');
+                if (go.Input.handlingPaste) {
+                    return;
+                }
                 if (lines.length > 1) {
                     // If we're pasting stuff with newlines we should strip trailing whitespace so the lines show up correctly.  In all but a few cases this is what the user expects.
                     for (var i=0; i < lines.length; i++) {
@@ -4702,6 +4711,7 @@ go.Base.update(GateOne.Terminal, {
                 go.Input.queue(pasted);
                 pastearea.value = "";
                 go.Net.sendChars();
+                go.Input.capture();
             },
             pasteareaScroll = function(e) {
                 // We have to hide the pastearea so we can scroll the terminal underneath
@@ -4720,8 +4730,9 @@ go.Base.update(GateOne.Terminal, {
         pastearea.oninput = pasteareaOnInput;
         pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
         pastearea.onpaste = function(e) {
+            go.Input.onPaste(e);
             // Start capturing input again
-            pastearea.value = '';
+//             pastearea.value = '';
             setTimeout(function() {
                 // For some reason when you paste the onmouseup event doesn't fire on goDiv; goFigure
                 go.Input.mouseDown = false;
@@ -4744,7 +4755,7 @@ go.Base.update(GateOne.Terminal, {
             }
             GateOne.Terminal.pasteAreaTimer = setTimeout(function() {
                 u.showElement(pastearea);
-            }, 100);
+            }, 250);
             var elementUnder = document.elementFromPoint(X, Y);
             if (elementUnder.tagName == "span") {
                 // Fire the mouseover events as if there was no pastearea
