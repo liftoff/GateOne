@@ -254,3 +254,9 @@
     animation-timing-function: cubic-bezier(1.0,0,0,1.0);
     animation-duration: 0.5s;
 }
+#{{container}} span.clickable { /* Give emphasis to things we've added onclick events to */
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+#{{container}} span.clickable:hover {
+    cursor: pointer;
+}

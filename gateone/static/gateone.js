@@ -1463,6 +1463,27 @@ GateOne.Base.update(GateOne.Utils, {
         } else {
             return true;
         }
+    },
+    humanReadableBytes: function(bytes, /*opt*/precision) {
+        // Returns *bytes* as a human-readable string in a similar fashion to how it would be displayed by 'ls -lh' or 'df -h'.
+        // If *precision* (integer) is given, it will be used to determine the number of decimal points to use when rounding.  Otherwise it will default to 0
+        var sizes = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'],
+            postfix = 0;
+        bytes = parseInt(bytes); // Just in case we get passed *bytes* as a string
+        if (!precision) {
+            precision = 0;
+        }
+        if (bytes == 0) return 'n/a';
+        if (bytes > 1024) {
+            while( bytes >= 1024 ) {
+                postfix++;
+                bytes = bytes / 1024;
+            }
+            return bytes.toFixed(precision) + sizes[postfix];
+        } else {
+            // Just return the bytes as-is (as a string)
+            return bytes + "";
+        }
     }
 });
 
@@ -1864,20 +1885,6 @@ GateOne.Base.update(GateOne.Input, {
                     goDiv.focus();
                 }
             } else {
-                if (navigator.userAgent.indexOf('Firefox') != -1) {
-                    if (go.Input.firefoxBugTimer) {
-                        clearTimeout(go.Input.firefoxBugTimer);
-                        go.Input.firefoxBugTimer = null;
-                    }
-                    go.Input.firefoxBugTimer = setTimeout(function() {
-                        if (!u.getSelText().length) {
-                            go.Visual.displayMessage("NOTE: Having trouble selecting text in Firefox?  It's a browser bug!  <br>WORKAROUND: Double-click something <i>then</i> you should be able to highlight whatever you want.", 5000, 10000);
-                            go.Visual.displayMessage("Please click <a href='https://bugzilla.mozilla.org/show_bug.cgi?id=785773'>here</a> to vote and comment on the problem so we can get it fixed.", 5000, 10000);
-                            logInfo("If the Firefox devs fixed the following bug you wouldn't see this message!");
-                            logInfo("https://bugzilla.mozilla.org/show_bug.cgi?id=785773 <--Vote for it.  The squeaky wheel gets the oil.");
-                        }
-                    }, 500);
-                }
                 goDiv.focus();
             }
         }
@@ -2384,6 +2391,8 @@ GateOne.Base.update(GateOne.Input, {
         if (key.string == "KEY_UNKNOWN") {
             return; // Without this, unknown keys end up sending a null character which isn't a good idea =)
         }
+        // Scroll to bottom (seems like a normal convention for when a key is pressed in a terminal)
+        u.scrollToBottom(go.terminals[term]['node']);
         // Try using the keyTable first (so everything can be overridden)
         if (key.string in goIn.keyTable) {
             if (goIn.keyTable[key.string]) { // Not null
@@ -2844,16 +2853,16 @@ GateOne.Base.update(GateOne.Visual, {
             }, 1100);
         }
     },
-    // TODO: Get this *actually* centering the terminal title info
+    // TODO: Get this *actually* centering the terminal info
     displayTermInfo: function(term) {
         // Displays the given term's information as a psuedo tooltip that eventually fades away
         var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
             termObj = u.getNode('#'+prefix+'term' + term),
-            displayText = termObj.id.split('term')[1] + ": " + termObj.title,
+            displayText = termObj.id.split('term')[1] + ": " + go.terminals[term]['title'],
             termInfoDiv = u.createElement('div', {'id': 'terminfo'}),
-            marginFix = Math.round(termObj.title.length/2),
+            marginFix = Math.round(go.terminals[term]['title'].length/2),
             infoContainer = u.createElement('div', {'id': 'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
         termInfoDiv.innerHTML = displayText;
         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer') }
@@ -2880,11 +2889,22 @@ GateOne.Base.update(GateOne.Visual, {
             id = 'notice';
         }
         var u = go.Utils,
+            v = go.Visual,
             prefix = go.prefs.prefix,
             now = new Date(),
             timeDiff = now - go.Visual.sinceLastMessage,
             noticeContainer = u.getNode('#'+prefix+'noticecontainer'),
-            notice = u.createElement('div', {'id': prefix+id});
+            notice = u.createElement('div', {'id': prefix+id}),
+            unique = u.randomPrime(),
+            removeFunc = function() {
+                v.noticeTimers[unique] = setTimeout(function() {
+                    go.Visual.applyStyle(notice, {'opacity': 0});
+                    v.noticeTimers[unique] = setTimeout(function() {
+                        u.removeElement(notice);
+                        delete v.noticeTimers[unique];
+                    }, timeout+removeTimeout);
+                }, timeout);
+            }
         if (message == go.Visual.lastMessage) {
             // Only display messages every two seconds if they repeat so we don't spam the user.
             if (timeDiff < 2000) {
@@ -2899,14 +2919,21 @@ GateOne.Base.update(GateOne.Visual, {
         }
         notice.innerHTML = message;
         noticeContainer.appendChild(notice);
-        setTimeout(function() {
-            go.Visual.applyStyle(notice, {'opacity': 0});
-            setTimeout(function() {
-                u.removeElement(notice);
-            }, timeout+removeTimeout);
-        }, timeout);
-        go.Visual.lastMessage = message;
-        go.Visual.sinceLastMessage = new Date();
+        if (!v.noticeTimers) {
+            v.noticeTimers = {}
+        }
+        removeFunc();
+        notice.onmouseover = function(e) {
+            clearTimeout(v.noticeTimers[unique]);
+            v.disableTransitions(notice);
+            v.applyStyle(notice, {'opacity': 1});
+        }
+        notice.onmouseout = function(e) {
+            v.enableTransitions(notice);
+            removeFunc();
+        }
+        v.lastMessage = message;
+        v.sinceLastMessage = new Date();
     },
     setTitleAction: function(titleObj) {
         // Sets the title of titleObj['term'] to titleObj['title']
@@ -2926,7 +2953,8 @@ GateOne.Base.update(GateOne.Visual, {
         go.terminals[term]['X11Title'] = title;
         // Only set the title of the terminal if it hasn't been overridden
         if (!go.Terminal.manualTitle) {
-            termNode.title = title;
+//             termNode.title = title;
+            go.terminals[term]['title'] = title;
             sideinfo.innerHTML = term + ": " + title;
             sideinfo.style.right = scrollbarAdjust + 'px';
             // Also update the info panel
@@ -2944,7 +2972,7 @@ GateOne.Base.update(GateOne.Visual, {
         // Plays a bell sound and pops up a message indiciating which terminal issued a bell
         var term = bellObj['term'];
         go.Visual.playBell();
-        go.Visual.displayMessage("Bell in " + term + ": " + go.Utils.getNode('#'+go.prefs.prefix+'term' + term).title);
+        go.Visual.displayMessage("Bell in " + term + ": " + go.terminals[term]['title']);
     },
     playBell: function() {
         // Plays the bell sound without any visual notification.
@@ -3030,8 +3058,7 @@ GateOne.Base.update(GateOne.Visual, {
         // Replaces the contents of the selected terminal with just the screen (i.e. no scrollback)
         // If *term* is given, only disable scrollback for that terminal
         var u = go.Utils,
-            prefix = go.prefs.prefix,
-            textTransforms = go.Terminal.textTransforms;
+            prefix = go.prefs.prefix;
         if (term) {
             var termPreNode = GateOne.terminals[term]['node'],
                 termScrollback = go.terminals[term]['scrollbackNode'];
@@ -3114,7 +3141,7 @@ GateOne.Base.update(GateOne.Visual, {
                 monitorActivity.checked = go.terminals[term]['activityNotify'];
             };
         if (termObj) {
-            displayText = termObj.id.split(prefix+'term')[1] + ": " + termObj.title;
+            displayText = termObj.id.split(prefix+'term')[1] + ": " + go.terminals[term]['title'];
             termTitleH2.innerHTML = displayText;
             setActivityCheckboxes(term);
         } else {
@@ -3183,6 +3210,7 @@ GateOne.Base.update(GateOne.Visual, {
             // Cancel any pending scrollback timers to keep the user experience smooth
             if (go.terminals[term]['scrollbackTimer']) {
                 clearTimeout(go.terminals[term]['scrollbackTimer']);
+                go.terminals[term]['scrollbackTimer'] = null;
             }
             go.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 1000);
         }
@@ -3406,9 +3434,9 @@ GateOne.Base.update(GateOne.Visual, {
                     count += 1;
                     termObj.onclick = selectTermFunc;
                     termObj.onmouseover = function(e) {
-                        var displayText = termObj.id.split(prefix+'term')[1] + ": " + termObj.title,
+                        var displayText = termObj.id.split(prefix+'term')[1] + ": " + go.terminals[termID]['title'],
                             termInfoDiv = u.createElement('div', {'id': 'terminfo'}),
-                            marginFix = Math.round(termObj.title.length/2),
+                            marginFix = Math.round(go.terminals[termID]['title'].length/2),
                             infoContainer = u.createElement('div', {'id': 'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
                         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer') }
                         termInfoDiv.innerHTML = displayText;
@@ -3595,7 +3623,11 @@ GateOne.Base.update(GateOne.Visual, {
                     v.dialogs[0].style.opacity = 1; // Set the new-first dialog back to fully visible
                 }
                 // Return focus to the previously-active element
-                prevActiveElement.focus();
+                if (prevActiveElement == goDiv) {
+                    go.Input.capture();
+                } else {
+                    prevActiveElement.focus();
+                }
             };
         // Keep track of all open dialogs so we can determine the foreground order
         if (!v.dialogs) {
@@ -4051,7 +4083,7 @@ go.Base.update(GateOne.Terminal, {
             var term = localStorage[prefix+'selectedTerminal'],
                 monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                 monitorActivity = u.getNode('#'+prefix+'monitor_activity'),
-                termTitle = u.getNode('#'+prefix+'term'+term).title;
+                termTitle = go.terminals[term]['title'];
             if (monitorInactivity.checked) {
                 var inactivity = function() {
                     go.Terminal.notifyInactivity(termTitle);
@@ -4076,7 +4108,7 @@ go.Base.update(GateOne.Terminal, {
             var term = localStorage[prefix+'selectedTerminal'],
                 monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                 monitorActivity = u.getNode('#'+prefix+'monitor_activity'),
-                termTitle = u.getNode('#'+prefix+'term'+term).title;
+                termTitle = go.terminals[term]['title'];
             if (monitorActivity.checked) {
                 go.terminals[term]['activityNotify'] = true;
                 if (go.terminals[term]['inactivityTimer']) {
@@ -4097,7 +4129,7 @@ go.Base.update(GateOne.Terminal, {
         }
         var editTitle =  function(e) {
             var term = localStorage[prefix+'selectedTerminal'],
-                title = u.getNode('#'+prefix+'term'+term).title,
+                title = go.terminals[term]['title'],
                 titleEdit = u.createElement('input', {'type': 'text', 'name': 'title', 'value': title, 'id': go.prefs.prefix + 'title_edit'}),
                 finishEditing = function(e) {
                     var newTitle = titleEdit.value,
@@ -4241,7 +4273,8 @@ go.Base.update(GateOne.Terminal, {
         // NOTE:  Lines in *screen* that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line)
         var u = GateOne.Utils,
             prefix = GateOne.prefs.prefix,
-            existingPre = GateOne.terminals[term]['node'];
+            existingPre = GateOne.terminals[term]['node'],
+            existingScreen = GateOne.terminals[term]['screenNode'];
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
         }
@@ -4249,20 +4282,20 @@ go.Base.update(GateOne.Terminal, {
             if (screen[i].length) {
                 // TODO: Get this using pre-cached line nodes
                 if (GateOne.terminals[term]['screen'][i] != screen[i]) {
-                    var existingLine = existingPre.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
+                    var existingLine = existingScreen.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
                     if (existingLine) {
                         existingLine.innerHTML = screen[i] + '\n';
                     } else { // Size of the terminal increased
                         var lineSpan = u.createElement('span', {'class': 'line_' + i});
                         lineSpan.innerHTML = screen[i] + '\n';
-                        existingPre.appendChild(lineSpan);
+                        existingScreen.appendChild(lineSpan);
                     }
                     // Update the existing screen array in-place to cut down on GC
                     GateOne.terminals[term]['screen'][i] = screen[i];
                 }
             }
         }
-        u.scrollToBottom(existingPre);
+//         u.scrollToBottom(existingPre);
     },
     termUpdateFromWorker: function(e) {
         var u = GateOne.Utils,
@@ -4282,7 +4315,7 @@ go.Base.update(GateOne.Terminal, {
             reScrollback = u.partial(GateOne.Visual.enableScrollback, term),
             writeScrollback = u.partial(GateOne.Terminal.writeScrollback, term, scrollback);
         if (term && GateOne.terminals[term]) {
-            termTitle = u.getNode('#'+prefix+'term'+term).title;
+            termTitle = go.terminals[term]['title'];
         } else {
             // Terminal was likely just closed.
             return;
@@ -4410,9 +4443,8 @@ go.Base.update(GateOne.Terminal, {
             }
             // This updates the scrollback buffer in the DOM
             clearTimeout(GateOne.terminals[term]['scrollbackTimer']);
-            GateOne.terminals[term]['scrollbackTimer'] = null;
             // This timeout re-adds the scrollback buffer after .5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
-            GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
+            GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 3500); // Just enough to de-bounce (to keep things smooth)
         }
         if (consoleLog) {
             // This is only used when debugging the Web Worker
@@ -4619,6 +4651,7 @@ go.Base.update(GateOne.Terminal, {
             backspace: String.fromCharCode(127), // ^?
             screen: [],
             prevScreen: [],
+            title: 'Gate One',
             scrollback: [],
             scrollbackTimer: null // Controls re-adding scrollback buffer
         };
@@ -4638,9 +4671,9 @@ go.Base.update(GateOne.Terminal, {
         }
         if (!go.prefs.embedded) {
             // Prepare the terminal div for the grid
-            terminal = u.createElement('div', {'id': currentTerm, 'title': 'Gate One', 'class': 'terminal', 'style': {'width': go.Visual.goDimensions.w + 'px', 'height': go.Visual.goDimensions.h + 'px'}});
+            terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal', 'style': {'width': go.Visual.goDimensions.w + 'px', 'height': go.Visual.goDimensions.h + 'px'}});
         } else {
-            terminal = u.createElement('div', {'id': currentTerm, 'title': 'Gate One', 'class': 'terminal'});
+            terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal'});
         }
         // This ensures that we re-enable input if the user clicked somewhere else on the page then clicked back on the terminal:
 //         terminal.addEventListener('click', go.Input.capture, false);
@@ -4698,6 +4731,34 @@ go.Base.update(GateOne.Terminal, {
         pastearea.oncontextmenu = function(e) {
             pastearea.focus();
         }
+        pastearea.onmouseover = function(e) {
+            var go = GateOne,
+                u = go.Utils,
+                prefix = go.prefs.prefix,
+                X = e.clientX,
+                Y = e.clientY;
+            u.hideElement(pastearea);
+            if (GateOne.Terminal.pasteAreaTimer) {
+                clearTimeout(GateOne.Terminal.pasteAreaTimer);
+                GateOne.Terminal.pasteAreaTimer = null;
+            }
+            GateOne.Terminal.pasteAreaTimer = setTimeout(function() {
+                u.showElement(pastearea);
+            }, 100);
+            var elementUnder = document.elementFromPoint(X, Y);
+            if (elementUnder.tagName == "span") {
+                // Fire the mouseover events as if there was no pastearea
+                if (typeof(elementUnder.onclick) == "function") {
+                    pastearea.style.cursor = 'pointer';
+                } else {
+                    pastearea.style.cursor = 'default';
+                }
+            } else if (elementUnder.tagName == "A") {
+                pastearea.style.cursor = 'pointer';
+            } else {
+                pastearea.style.cursor = 'default';
+            }
+        }
         pastearea.onmousedown = function(e) {
             // When the user left-clicks assume they're trying to highlight text
             // so bring the terminal to the front and try to emulate normal
@@ -4717,8 +4778,13 @@ go.Base.update(GateOne.Terminal, {
                 selectedTerm = localStorage[prefix+'selectedTerminal'];
             if (m.button.left) { // Left button depressed
                 u.hideElement(pastearea);
+                var elementUnder = document.elementFromPoint(X, Y);
+                if (typeof(elementUnder.onclick) == "function") {
+                    // Fire the onclick event
+                    elementUnder.onclick(e); // Pass through the event
+                }
                 // This lets users click on links underneath the pastearea
-                if (document.elementFromPoint(X, Y).tagName == "A") {
+                if (elementUnder.tagName == "A") {
                     window.open(document.elementFromPoint(X, Y).href);
                 }
                 // Don't add the scrollback if the user is highlighting text--it will mess it up
@@ -4774,7 +4840,7 @@ go.Base.update(GateOne.Terminal, {
         // If noCleanup resolves to true, stored data will be left hanging around for this terminal (e.g. the scrollback buffer in localStorage).  Otherwise it will be deleted.
         var u = GateOne.Utils,
             prefix = go.prefs.prefix,
-            message = "Closed term " + term + ": " + u.getNode('#'+prefix+'term' + term).title,
+            message = "Closed term " + term + ": " + go.terminals[term]['title'],
             lastTerm = null;
         // Tell the server to kill the terminal
         go.Net.killTerminal(term);
@@ -4905,14 +4971,26 @@ go.Base.update(GateOne.Terminal, {
         // For example, if you typed "Ticket number: IM123456789" into a terminal it would be transformed thusly:
         //      "Ticket number: <a href='https://support.company.com/tracker?ticket=IM123456789' target='new'>IM123456789</a>"
         //
+        // Alternatively, a function may be provided instead of *pattern*.  In this case, each line will be transformed like so:
+        //      line = pattern(line);
+        //
         // NOTE: *name* is only used for reference purposes in the textTransforms object.
-        var go = GateOne;
-        if (typeof(pattern) == "object") {
+        var go = GateOne,
+            t = go.Terminal;
+        if (typeof(pattern) == "object" || typeof(pattern) == "function") {
             pattern = pattern.toString(); // Have to convert it to a string so we can pass it to the Web Worker so Firefox won't freak out
         }
-        go.Terminal.textTransforms[name] = {};
-        go.Terminal.textTransforms[name]['pattern'] = pattern;
-        go.Terminal.textTransforms[name]['newString'] = newString;
+        t.textTransforms[name] = {};
+        t.textTransforms[name]['name'] = name;
+        t.textTransforms[name]['pattern'] = pattern;
+        t.textTransforms[name]['newString'] = newString;
+    },
+    unregisterTextTransform: function(name) {
+        /**:GateOne.Terminal.unregisterTextTransform(name)
+
+            Removes the given text transform from GateOne.Terminal.textTransforms
+        */
+        delete GateOne.Terminal.textTransforms[name];
     },
     resetTerminalAction: function(term) {
         // Clears the screen and the scrollback buffer (in memory and in localStorage)
@@ -5089,6 +5167,6 @@ GateOne.Net.actions = {
 
 GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15560" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#linearGradient15560)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
 GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient12573" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#linearGradient12573)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
-GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient3011" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#linearGradient3011)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
+GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" class="svgplain"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
 
 })(window);

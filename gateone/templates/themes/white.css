@@ -350,6 +350,15 @@ hr {
     border: 1px #000 solid;
     padding: 0.5em;
     margin: 1em;
+    float: right;
+    clear: both;
+}
+#{{prefix}}notice.noanimate {
+    -webkit-transition: all .1s ease-in-out;
+    -moz-transition: all 0.1s ease-in-out;
+    -ms-transition: all 0.1s ease-in-out;
+    -o-transition: all 0.1s ease-in-out;
+    transition: all 0.1s ease-in-out;
 }
 #{{container}} .sidepanel {
     -webkit-transition: -webkit-transform 1.0s ease-in-out;
@@ -888,6 +897,7 @@ hr {
 /* SVG Styling */
 .svgtext { letter-spacing:0px; text-anchor:middle; word-spacing:0px; text-align:center; color: #000; fill: #000; }
 .svgplugin { fill: #000; }
+.svgplain { fill: #2A5BA6; }
 .stop1 { stop-color: #636466; }
 .stop2 { stop-color: #464648; }
 .stop3 { stop-color: #5D5E60; }
@@ -897,15 +907,9 @@ hr {
 .panelstop3 { stop-color: #2E63B9; }
 .panelstop4 { stop-color: #1F5470; }
 /* Change the styling of the SVG close icon so it is white when inside dialogs */
-#{{prefix}}dialogtitle .panelstop1 { stop-color: #FFF; }
-#{{prefix}}dialogtitle .panelstop2 { stop-color: #CCC; }
-#{{prefix}}dialogtitle .panelstop3 { stop-color: #DDD; }
-#{{prefix}}dialogtitle .panelstop4 { stop-color: #FFF; }
+#{{prefix}}dialogtitle .svgplain { fill: #FFFFFF; }
 /* Ditto for widgets */
-#{{prefix}}widgettitle .panelstop1 { stop-color: #636466; }
-#{{prefix}}widgettitle .panelstop2 { stop-color: #464648; }
-#{{prefix}}widgettitle .panelstop3 { stop-color: #5D5E60; }
-#{{prefix}}widgettitle .panelstop4 { stop-color: #535355; }
+#{{prefix}}widgettitle .svgplain { fill: #FFFFFF; }
 
 /* Plugin-specific CSS (will get ignored if plugin is missing) */
 #{{prefix}}playbackControls {
@@ -957,7 +961,7 @@ hr {
     opacity: 0.7;
     font-size: 0.7em;
     position: absolute;
-    right: 1.3em;
+    right: 1.1em;
     bottom: 0.1em;
 }
 #{{prefix}}overlay {

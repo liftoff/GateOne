@@ -1310,7 +1310,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             bookmark = b.getBookmarkObj(URL),
             term = localStorage[prefix+'selectedTerminal'],
-            termTitle = u.getNode('#'+prefix+'term'+term).title;
+            termTitle = go.terminals[term]['title'];
         if (URL.indexOf('%s') != -1) { // This is a keyword search bookmark
             b.openSearchDialog(URL, bookmark.name);
             return;

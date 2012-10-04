@@ -210,6 +210,7 @@
 <li><a class="reference internal" href="#GateOne.terminals[num].scrollback" title="GateOne.terminals[num].scrollback"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].scrollback</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.terminals[num].scrollbackVisible" title="GateOne.terminals[num].scrollbackVisible"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].scrollbackVisible</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.terminals[num].sshConnectString" title="GateOne.terminals[num].sshConnectString"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].sshConnectString</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.terminals[num].title" title="GateOne.terminals[num].title"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].title</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Icons" title="GateOne.Icons"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Icons</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.loadedModules" title="GateOne.loadedModules"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.loadedModules</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.ws" title="GateOne.ws"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.ws</span></tt></a></li>
@@ -1102,6 +1103,23 @@
 <p class="first admonition-title">Note</p>
 <p class="last">This is a good example of a plugin using <a class="reference internal" href="#GateOne.terminals" title="GateOne.terminals"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals</span></tt></a> to great effect.</p>
 </div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GateOne.terminals[num].title">
+<tt class="descclassname">GateOne.terminals[num].</tt><tt class="descname">title</tt><a class="headerlink" href="#GateOne.terminals[num].title" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type :</th><td class="field-body">String</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">terminals</span><span class="p">[</span><span class="nx">num</span><span class="p">].</span><span class="nx">title</span> <span class="o">=</span> <span class="s2">&quot;user@somehost:~&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Stores the title of the terminal.  Unless the user has set it manually this will be the same value as <a class="reference internal" href="#GateOne.terminals[num].X11Title" title="GateOne.terminals[num].X11Title"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.terminals[num].X11Title</span></tt></a>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -4107,15 +4125,16 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <li><a class="reference internal" href="#GateOne.Terminal.notifyInactivity" title="GateOne.Terminal.notifyInactivity"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.notifyInactivity</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Terminal.paste" title="GateOne.Terminal.paste"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.paste</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Terminal.reattachTerminalsAction" title="GateOne.Terminal.reattachTerminalsAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.reattachTerminalsAction</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Terminal.reconnectTerminalAction" title="GateOne.Terminal.reconnectTerminalAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.reconnectTerminalAction</span></tt></a></li>
 </ul>
 </td><td><ul class="simple">
-<li><a class="reference internal" href="#GateOne.Terminal.reconnectTerminalAction" title="GateOne.Terminal.reconnectTerminalAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.reconnectTerminalAction</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Terminal.registerTextTransform" title="GateOne.Terminal.registerTextTransform"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.registerTextTransform</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Terminal.resetTerminalAction" title="GateOne.Terminal.resetTerminalAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.resetTerminalAction</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Terminal.setModeAction" title="GateOne.Terminal.setModeAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.setModeAction</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Terminal.switchTerminal" title="GateOne.Terminal.switchTerminal"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.switchTerminal</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Terminal.termUpdateFromWorker" title="GateOne.Terminal.termUpdateFromWorker"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.termUpdateFromWorker</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Terminal.timeoutAction" title="GateOne.Terminal.timeoutAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.timeoutAction</span></tt></a></li>
+<li><a class="reference internal" href="#GateOne.Terminal.unregisterTextTransform" title="GateOne.Terminal.unregisterTextTransform"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.unregisterTextTransform</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Terminal.updateTerminalAction" title="GateOne.Terminal.updateTerminalAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.updateTerminalAction</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Terminal.writeScrollback" title="GateOne.Terminal.writeScrollback"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.writeScrollback</span></tt></a></li>
 </ul>
@@ -4391,14 +4410,14 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> (<em>string</em>) -- The name of this pattern (so we can reference it later).</li>
-<li><strong>pattern</strong> (<em>regex</em>) -- A regular expression that will be used to process incoming terminal screen updates.</li>
-<li><strong>newString</strong> (<em>string</em>) -- An HTML string with regular expression placement indicators (e.g. $1) that will replace what was matched in <em>pattern</em>.</li>
+<li><strong>pattern</strong> -- A regular expression or function that will be used to process incoming terminal screen updates.</li>
+<li><strong>newString</strong> (<em>string</em>) -- An HTML string with regular expression placement indicators (e.g. $1) that will replace what was matched in <em>pattern</em> (if <em>pattern</em> is a regular expression).</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Adds a new or replaces an existing text transformation to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.textTransforms</span></tt> using <em>pattern</em> and <em>newString</em> with the given <em>name</em>.  Example:</p>
+<p>Adds to or replaces existing text transformations in <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.textTransforms</span></tt> using <em>pattern</em> and <em>newString</em> with the given <em>name</em>.  Example:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="c1">// If your company&#39;s ticket system uses the following format: IM123456789 the code</span>
 <span class="c1">// below will turn it into a clickable link in the user&#39;s terminal!</span>
 <span class="kd">var</span> <span class="nx">pattern</span> <span class="o">=</span> <span class="sr">/(\bIM\d{9,10}\b)/g</span><span class="p">,</span>
@@ -4409,7 +4428,7 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </pre></div>
 </div>
 <p class="rubric">What is a text transformation?  Why should I care?</p>
-<p>Text transformations allow one to arbitrarily replace any string in the incoming terminal screen with one of your choosing.  In the example code above it turns ticket numbers like IM0123456789 into clickable links but you can also match things like credit card numbers, man page commands, etc and do what you want with them.</p>
+<p>Text transformations allow one to arbitrarily replace any single-line strings in the incoming terminal screen with one of your choosing.  In the example code above it turns ticket numbers like IM0123456789 into clickable links but you can also match things like credit card numbers, man page commands, etc and do what you want with them.</p>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
 <p class="last">A single .js file in <tt class="docutils literal"><span class="pre">gateone/plugins/yourplugin/static/</span></tt> is all it takes to use your own text transformations on a Gate One server!</p>
@@ -4417,6 +4436,25 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">To keep things smooth and prevent blocking the interactivity of the browser all text transformations are processed within Gate One's <a class="reference external" href="https://developer.mozilla.org/en-US/docs/DOM/Worker">Web Worker</a> (go_process.js).  In fact, this is exactly how Gate One transforms URLs into clickable links.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Text transformations only apply to the terminal's screen; not the scrollback buffer.</p>
+</div>
+<p>Instead of providing a regular expression and replacement string, a function may be given as the second parameter.  Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">replaceFoo</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">line</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">line</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="s1">&#39;bar&#39;</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Terminal</span><span class="p">.</span><span class="nx">registerTextTransform</span><span class="p">(</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="nx">replaceFoo</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This would result in the <tt class="xref py py-obj docutils literal"><span class="pre">replacefoo()</span></tt> function being called for each line of the incoming screen like so:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">line</span> <span class="o">=</span> <span class="nx">replaceFoo</span><span class="p">(</span><span class="nx">line</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Why is it called on each line individually and not on the text as a whole?  Because Gate One uses a line-based difference protocol to communicate between the client and server.  So when the only thing that changes is a single line, only a single line will be sent to the client.</p>
 </div>
 </dd></dl>
 
@@ -4514,6 +4552,23 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 <dt id="GateOne.Terminal.timeoutAction">
 <tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">timeoutAction</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Terminal.timeoutAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function gets attached to the 'timeout' action in <a class="reference internal" href="#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a> and gets called when the user's session has timed out on the Gate One server.  It writes a message to the screen indicating a timeout has occurred and closes the <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Terminal.unregisterTextTransform">
+<tt class="descclassname">GateOne.Terminal.</tt><tt class="descname">unregisterTextTransform</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#GateOne.Terminal.unregisterTextTransform" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) -- The name of the text transform to remove.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Removes the text transform of the given name from <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.textTransforms</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">

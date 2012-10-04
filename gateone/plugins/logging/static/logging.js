@@ -643,7 +643,7 @@ GateOne.Base.update(GateOne.Logging, {
             dateString = l.dateFormatter(dateObj);
         titleSpan.innerHTML = "<b>" + logObj['connect_string'] + "</b>";
         dateSpan.innerHTML = dateString;
-        sizeSpan.innerHTML = l.humanReadableBytes(logObj['size'], 1);
+        sizeSpan.innerHTML = u.humanReadableBytes(logObj['size'], 1);
         logElem.appendChild(titleSpan);
         logElem.appendChild(sizeSpan);
         logElem.appendChild(dateSpan);
@@ -732,9 +732,7 @@ GateOne.Base.update(GateOne.Logging, {
             l = go.Logging,
             prefix = go.prefs.prefix,
             logViewHeader = u.getNode('#'+prefix+'logging_title');
-        // Switched to using serverLogs.length below since bad logs won't get sent, throwing off 'total_logs' number.
-//         go.Visual.displayMessage('<b>Log listing complete:</b> ' + message['total_logs'] + ' logs representing ' + l.humanReadableBytes(message['total_bytes'], 1) + ' of disk space.');
-        go.Visual.displayMessage('<b>Log listing complete:</b> ' + l.serverLogs.length + ' logs representing ' + l.humanReadableBytes(message['total_bytes'], 1) + ' of disk space.');
+        go.Visual.displayMessage('<b>Log listing complete:</b> ' + l.serverLogs.length + ' logs representing ' + u.humanReadableBytes(message['total_bytes'], 1) + ' of disk space.');
         logViewHeader.innerHTML = 'Log Viewer';
     },
     displayFlatLogAction: function(message) {
@@ -886,27 +884,6 @@ GateOne.Base.update(GateOne.Logging, {
         } else {
             l.sortToggle = true;
             l.loadLogs();
-        }
-    },
-    humanReadableBytes: function(bytes, /*opt*/precision) {
-        // Returns *bytes* as a human-readable string in a similar fashion to how it would be displayed by 'ls -lh' or 'df -h'.
-        // If *precision* (integer) is given, it will be used to determine the number of decimal points to use when rounding.  Otherwise it will default to 0
-        var sizes = ['', 'K', 'M', 'G', 'T'],
-            postfix = 0;
-        bytes = parseInt(bytes); // Just in case we get passed *bytes* as a string
-        if (!precision) {
-            precision = 0;
-        }
-        if (bytes == 0) return 'n/a';
-        if (bytes > 1024) {
-            while( bytes >= 1024 ) {
-                postfix++;
-                bytes = bytes / 1024;
-            }
-            return bytes.toFixed(precision) + sizes[postfix];
-        } else {
-            // Just return the bytes as-is (as a string)
-            return bytes + "";
         }
     }
 });
