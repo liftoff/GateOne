@@ -263,6 +263,6 @@
 /* Syntax highlighting classes below */
 #{{container}} span.date { font-weight: bold; }
 #{{container}} span.time { color: #C14855; }
-#{{container}} span.user { color: #4199C1; }
+#{{container}} span.hostname { color: #4199C1; }
 #{{container}} span.service { color: #C56300; font-weight: bold; }
 #{{container}} span.string { color: #0AAC0A; }

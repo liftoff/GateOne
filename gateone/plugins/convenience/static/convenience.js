@@ -14,6 +14,7 @@ GateOne.Base.update(GateOne.Convenience, {
     init: function() {
         go.Convenience.registerLSConvenience();
         go.Convenience.registerIPConvenience();
+        go.Convenience.registerSyslogConvenience();
     },
     registerLSConvenience: function() {
         /**:GateOne.Convenience.registerLSConvenience()
@@ -260,6 +261,15 @@ GateOne.Base.update(GateOne.Convenience, {
         container.appendChild(titleDiv);
         container.appendChild(table);
         v.displayMessage(container.innerHTML, 3000); // Give it a little extra time than a normal message
+    },
+    registerSyslogConvenience: function() {
+        /**:GateOne.Convenience.registerSyslogConvenience()
+
+        Registers a text transform that makes standard syslog output easier on the eyes.
+        */
+        var timeRegex = /(^|\n)((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+[0-9]+(st|th|nd)?)\s+([0-9][0-9]\:[0-9][0-9]\:[0-9][0-9])\s+(\w+)\s+(.+?\:)?/g,
+            timeReplacementString = "$1<span class='date'>$2</span> <span class='time'>$5</span> <span class='hostname'>$6</span> <span class='service'>$7</span>";
+        t.registerTextTransform("syslogtime", timeRegex, timeReplacementString);
     }
 });
 
