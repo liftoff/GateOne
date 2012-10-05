@@ -20,16 +20,16 @@ GateOne.Base.update(GateOne.Convenience, {
 
         Registers a number of text transforms to add conveniences to the output of 'ls -l'.
         */
-        var bytesPattern = /^([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+[A-Za-z0-9\-._@]+\s+)([0-9]+(?![0-9,.KMGTP]))/g,
+        var bytesPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+[A-Za-z0-9\-._@]+\s+)([0-9]+(?![0-9,.KMGTP]))/g,
             bytesReplacementString = "$1<span class='clickable' onclick='GateOne.Visual.displayMessage(this.innerHTML + \" bytes is \" + GateOne.Utils.humanReadableBytes(parseInt(this.innerHTML), 2))'>$2</span>";
         t.registerTextTransform("ls-lbytes", bytesPattern, bytesReplacementString);
-        var groupPattern = /^([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+)([A-Za-z0-9\-._@]+)/g,
+        var groupPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+)([A-Za-z0-9\-._@]+)/g,
             groupReplacementString = "$1<span class='clickable' onclick='GateOne.Convenience.groupInfo(this)'>$2</span>";
         t.registerTextTransform("ls-lgroup", groupPattern, groupReplacementString);
-        var userPattern = /^([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+)([A-Za-z0-9\-._@]+)/g,
+        var userPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+)([A-Za-z0-9\-._@]+)/g,
             userReplacementString = "$1<span class='clickable' onclick='GateOne.Convenience.userInfo(this)'>$2</span>";
         t.registerTextTransform("ls-luser", userPattern, userReplacementString);
-        var permissionsPattern = /^([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?)/g,
+        var permissionsPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?)/g,
             permissionsReplacementString = "<span class='clickable' onclick='GateOne.Convenience.permissionsInfo(this)'>$1</span>";
         t.registerTextTransform("ls-lperms", permissionsPattern, permissionsReplacementString);
     },
@@ -252,6 +252,10 @@ GateOne.Base.update(GateOne.Convenience, {
             container = u.createElement('p');
         gidUsersRow.innerHTML = '<td nowrap="nowrap">Users via GID&nbsp;&nbsp;&nbsp;</td><td style="max-width: 20em;">' + usersViaGID + '</td>';
         titleDiv.innerHTML = "Group Info";
+        if (!table) {
+            // Something went wrong trying to split() the output
+            go.Convenience.groupInfoError("Likely too much output so it got truncated... " + output);
+        }
         table.appendChild(gidUsersRow);
         container.appendChild(titleDiv);
         container.appendChild(table);

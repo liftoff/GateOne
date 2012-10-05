@@ -25,31 +25,6 @@ var processLines = function(lines, textTransforms) {
         if (line == null) {
             output[i] = ""; // An empty string will do (emulates unchanged)
         } else if (line.length) {
-            // Linkify and transform the text inside the screen before we push it
-            line = transformText(line); // Convert links to anchor tags
-            for (var trans in textTransforms) {
-                // Have to convert the regex to a string and use eval since Firefox can't seem to pass regexp objects to Web Workers.
-                var name = textTransforms[trans]['name']
-                    pattern = textTransforms[trans]['pattern'],
-                    newString = textTransforms[trans]['newString'];
-                try {
-                    pattern = eval(pattern);
-                } catch(e) {
-                    // A SyntaxError likely means this is a function
-                    if (e instanceof SyntaxError) {
-                        try {
-                            pattern = Function("return " + pattern)();
-                        } catch(e) {
-                            log("Error transforming text inside of the go_process.js Worker: " + e + ", name: " + name + ", pattern: '" + pattern + "'");
-                        }
-                    }
-                }
-                if (typeof(pattern) == "function") {
-                    line = pattern(line);
-                } else {
-                    line = transformText(line, pattern, newString);
-                }
-            }
             // Trim trailing whitespace only if the line isn't just full of whitespace
             var trimmedLine = line.replace(/\s*$/g, "");
             if (trimmedLine) {
@@ -61,6 +36,32 @@ var processLines = function(lines, textTransforms) {
             output[i] = '';
         }
     }
+    outText = output.join('\n')
+    // Linkify and transform the text inside the screen before we push it
+    for (var trans in textTransforms) {
+        // Have to convert the regex to a string and use eval since Firefox can't seem to pass regexp objects to Web Workers.
+        var name = textTransforms[trans]['name'],
+            pattern = textTransforms[trans]['pattern'],
+            newString = textTransforms[trans]['newString'];
+        try {
+            pattern = eval(pattern);
+        } catch(e) {
+            // A SyntaxError likely means this is a function
+            if (e instanceof SyntaxError) {
+                try {
+                    pattern = Function("return " + pattern)();
+                } catch(e) {
+                    log("Error transforming text inside of the go_process.js Worker: " + e + ", name: " + name + ", pattern: '" + pattern + "'");
+                }
+            }
+        }
+        if (typeof(pattern) == "function") {
+            outText = pattern(outText);
+        } else {
+            outText = transformText(outText, pattern, newString);
+        }
+    }
+    output = transformText(outText).split('\n'); // Convert links to anchor tags and convert back to an array
     return output;
 }
 var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms) {

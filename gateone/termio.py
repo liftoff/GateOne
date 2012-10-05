@@ -1598,7 +1598,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         OSError exceptions are encountered, will run `terminate`.  All other
         exceptions are logged but no action will be taken.
         """
-        #logging.debug("MultiplexPOSIXIOLoop._write()")
+        #logging.debug("MultiplexPOSIXIOLoop._write(%s)" % repr(chars))
         try:
             if self.ratelimiter_engaged:
                 # This empties the fd buffer so the user gets immediate

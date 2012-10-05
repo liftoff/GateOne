@@ -254,6 +254,7 @@ RENDITION_CLASSES = defaultdict(lambda: None, {
     95: 'bf5', # Bright magenta
     96: 'bf6', # Bright cyan
     97: 'bf7', # Bright white
+# TODO:  Handle the ESC sequence that sets the colors from 90-87 (e.g. ESC]91;orange/brown^G)
     # 'Bright' Backgrounds
     100: 'bb0', # Bright black
     101: 'bb1', # Bright red
@@ -653,14 +654,14 @@ class Terminal(object):
         }
     }
 
-    RE_CSI_ESC_SEQ = re.compile(r'\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])')
+    RE_CSI_ESC_SEQ = re.compile(r'\x1B\[([?A-Za-z0-9>;@:\!]*)([A-Za-z@_])')
     RE_ESC_SEQ = re.compile(r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=<>]|[()# %*+].)')
     RE_TITLE_SEQ = re.compile(r'\x1b\][0-2]\;(.*?)(\x07|\x1b\\)')
     # The below regex is used to match our optional (non-standard) handler
     RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)')
     RE_NUMBERS = re.compile('\d*') # Matches any number
 
-    def __init__(self, rows=24, cols=80, em_dimensions=None):
+    def __init__(self, rows=24, cols=80, em_dimensions=None, debug=False):
         """
         Initializes the terminal by calling *self.initialize(rows, cols)*.  This
         is so we can have an equivalent function in situations where __init__()
@@ -672,7 +673,12 @@ class Terminal(object):
         their tops cut off.  *em_dimensions* should be a dict in the form of::
 
             {'height': <px>, 'width': <px>}
+
+        If *debug* is True, the root logger will have its level set to DEBUG.
         """
+        if debug:
+            logger = logging.getLogger()
+            logger.level = logging.DEBUG
         self.initialize(rows, cols, em_dimensions)
 
     def initialize(self, rows=24, cols=80, em_dimensions=None):
@@ -695,10 +701,7 @@ class Terminal(object):
         self.cur_rendition = unichr(1000) # Should always be reset ([0])
         self.init_screen()
         self.init_renditions()
-        self.G0_charset = self.charsets['B']
-        self.G1_charset = self.charsets['B']
         self.current_charset = 0
-        self.charset = self.G0_charset
         self.set_G0_charset('B')
         self.set_G1_charset('B')
         self.use_g0_charset()
@@ -752,6 +755,7 @@ class Terminal(object):
             '=': self.__ignore, # Application Keypad  DECPAM
             '>': self.__ignore, # Exit alternate keypad mode
             '<': self.__ignore, # Exit VT-52 mode
+            'Z': self._csi_device_identification,
         }
         self.csi_handlers = {
             'A': self.cursor_up,
@@ -765,7 +769,7 @@ class Terminal(object):
             'L': self.insert_line,
             'M': self.delete_line,
             #'b': self.repeat_last_char, # TODO
-            'c': self._csi_device_status_report, # Device status report (DSR)
+            'c': self._csi_device_identification, # Device status report (DSR)
             'g': self.__ignore, # TODO: Tab clear
             'h': self.set_expanded_mode,
             'i': self.__ignore, # ESC[5i is "redirect to printer", ESC[4i ends it
@@ -780,8 +784,7 @@ class Terminal(object):
             's': self.save_cursor_position,
             'u': self.restore_cursor_position,
             'm': self._set_rendition,
-            'n': self.__ignore, # <ESC>[6n is the only one I know of (request cursor position)
-            #'m': self.__ignore, # For testing how much CPU we save when not processing CSI
+            'n': self._csi_device_status_report, # <ESC>[6n is the only one I know of (request cursor position)
             'p': self.reset, # TODO: "!p" is "Soft terminal reset".  Also, "Set conformance level" (VT100, VT200, or VT300)
             'r': self._set_top_bottom, # DECSTBM (used by many apps)
             'q': self.set_led_state, # Seems a bit silly but you never know
@@ -986,6 +989,7 @@ class Terminal(object):
 
         .. note:: If terminal output has been suspended (e.g. via ctrl-s) this will not un-suspend it (you need to issue ctrl-q to the underlying program to do that).
         """
+        logging.debug('reset()')
         self.leds = {
             1: False,
             2: False,
@@ -997,8 +1001,10 @@ class Terminal(object):
         self.esc_buffer = ''
         self.show_cursor = True
         self.rendition_set = False
-        self.G0_charset = 'B'
-        self.current_charset = self.charsets['B']
+        self.current_charset = 0
+        self.set_G0_charset('B')
+        self.set_G1_charset('B')
+        self.use_g0_charset()
         self.top_margin = 0
         self.bottom_margin = self.rows - 1
         self.alt_screen = None
@@ -1221,7 +1227,7 @@ class Terminal(object):
             7    Swedish
             =    Swiss
         """
-        #logging.debug("Setting G0 charset to %s" % repr(char))
+        logging.debug("Setting G0 charset to %s" % repr(char))
         try:
             self.G0_charset = self.charsets[char]
         except KeyError:
@@ -1252,7 +1258,7 @@ class Terminal(object):
             7    Swedish
             =    Swiss
         """
-        #logging.debug("Setting G1 charset to %s" % repr(char))
+        logging.debug("Setting G1 charset to %s" % repr(char))
         try:
             self.G1_charset = self.charsets[char]
         except KeyError:
@@ -1265,18 +1271,20 @@ class Terminal(object):
         Sets the current charset to G0.  This should get called when ASCII_SO
         is encountered.
         """
-        #logging.debug(
-            #"Switching to G0 charset (which is %s)" % repr(self.G0_charset))
+        logging.debug(
+            "Switching to G0 charset (which is %s)" % repr(self.G0_charset))
         self.current_charset = 0
+        self.charset = self.G0_charset
 
     def use_g1_charset(self):
         """
         Sets the current charset to G1.  This should get called when ASCII_SI
         is encountered.
         """
-        #logging.debug(
-            #"Switching to G1 charset (which is %s)" % repr(self.G1_charset))
+        logging.debug(
+            "Switching to G1 charset (which is %s)" % repr(self.G1_charset))
         self.current_charset = 1
+        self.charset = self.G1_charset
 
     def write(self, chars, special_checks=True):
         """
@@ -1891,9 +1899,9 @@ class Terminal(object):
             self.esc_buffer += '\x07' # Add the bell char so we don't lose it
             self._osc_handler()
 
-    def _device_status_report(self):
+    def _device_status_report(self, n=None):
         """
-        Returns '\x1b[0n' (terminal OK) and executes:
+        Returns '\\\\x1b[0n' (terminal OK) and executes:
 
         .. code-block:: python
 
@@ -1908,17 +1916,74 @@ class Terminal(object):
             pass
         return response
 
-    def _csi_device_status_report(self, request):
+    def _csi_device_identification(self, request=None):
         """
-        Returns '\\\\x1b[1;2c' (Meaning: I'm a vt220 terminal, version 1.0) and
+        If we're responding to ^[Z, ^[c, or ^[0c, returns '\\\\x1b[1;2c'
+        (Meaning: I'm a vt220 terminal, version 1.0) and
         executes:
 
         .. code-block:: python
 
             self.callbacks[self.CALLBACK_DSR]("\\x1b[1;2c")
+
+        If we're responding to ^[>c or ^[>0c, executes:
+
+        .. code-block:: python
+
+            self.callbacks[self.CALLBACK_DSR]("\\x1b[>0;271;0c")
         """
-        logging.debug("_csi_device_status_report()")
-        response = u"\x1b[1;2c"
+        logging.debug("_csi_device_identification(%s)" % request)
+        if request and u">" in request:
+            response = u"\x1b[>0;271;0c"
+        else:
+            response = u"\x1b[?1;2c"
+        try:
+            for callback in self.callbacks[CALLBACK_DSR].values():
+                callback(response)
+        except TypeError:
+            pass
+        return response
+
+    def _csi_device_status_report(self, request=None):
+        """
+        Calls :meth:`self.callbacks[self.CALLBACK_DSR]` with an appropriate
+        response to the given *request*.
+
+        .. code-block:: python
+
+            self.callbacks[self.CALLBACK_DSR](response)
+
+        Supported requests and their responses:
+
+            =============================    ==================
+            Request                          Response
+            =============================    ==================
+            ^[5n (Status Report)             ^[[0n
+            ^[6n (Report Cursor Position)    ^[[<row>;<column>R
+            ^[15n (Printer Ready?)           ^[[10n (Ready)
+            =============================    ==================
+        """
+        logging.debug("_csi_device_status_report(%s)" % request)
+        supported_requests = [
+            u"5",
+            u"6",
+            u"15",
+        ]
+        if not request:
+            return # Nothing to do
+        response = u""
+        if request.startswith('?'):
+            # Get rid of it
+            request = request[1:]
+        if request in supported_requests:
+            if request == u"5":
+                response = u"\x1b[0n"
+            elif request == u"6":
+                rows = self.cursorY + 1
+                cols = self.cursorX + 1
+                response = u"\x1b[%s;%sR" % (rows, cols)
+            elif request == u"15":
+                response = u"\x1b[10n"
         try:
             for callback in self.callbacks[CALLBACK_DSR].values():
                 callback(response)

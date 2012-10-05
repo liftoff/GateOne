@@ -197,13 +197,14 @@ def get_cmd_output(term, errorback, callback, m_instance, matched):
     cmd_out = [a.rstrip() for a in m_instance.dump() if a.rstrip()]
     capture = False
     out = []
+    # cmd_out: [u'getent passwd riskable; echo "GATEONE_SSH_EXEC_CMD_CHANNEL_READY"', u'riskable:x:1000:1000:Riskable,,,:/home/riskable:/bin/bash', u'GATEONE_SSH_EXEC_CMD_CHANNEL_READY', u'riskable@portarisk:~ $', u'riskable@portarisk:~ $']
     for line in cmd_out:
-        if capture:
+        if not capture and READY_STRING in line:
+            capture = True
+        elif capture:
             if READY_STRING in line:
                 break
             out.append(line)
-        elif READY_STRING in line:
-            capture = True
     # This is just a silly trick to get the shell timing out/terminating itself
     # after a timout (so we don't keep the sub-channel open forever).  It is
     # easier than starting a timeout thread, timer, IOLoop.add_timeout(), etc
