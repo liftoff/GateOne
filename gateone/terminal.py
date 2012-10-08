@@ -717,7 +717,7 @@ class Terminal(object):
             self.ASCII_LF: self.linefeed,
             self.ASCII_VT: self.linefeed,
             self.ASCII_FF: self.linefeed,
-            self.ASCII_CR: self._carriage_return,
+            self.ASCII_CR: self.carriage_return,
             self.ASCII_SO: self.use_g1_charset,
             self.ASCII_SI: self.use_g0_charset,
             self.ASCII_XON: self._xon,
@@ -804,7 +804,7 @@ class Terminal(object):
             '4': self.__ignore, # Smooth (Slow) Scroll (DECSCLM)
             '5': self.__ignore, # Reverse video (might support in future)
             '6': self.__ignore, # Origin Mode (DECOM)
-            '7': self.__ignore, # Wraparound Mode (DECAWM)
+            '7': self.toggle_autowrap, # Wraparound Mode (DECAWM)
             '8': self.__ignore, # Auto-repeat Keys (DECARM)
             '9': self.__ignore, # Send Mouse X & Y on button press (maybe)
             '12': self.send_receive_mode, # SRM
@@ -875,6 +875,7 @@ class Terminal(object):
         # an "alternate buffer"
         self.alt_screen = None
         self.alt_renditions = None
+        self.autowrap = False
         self.alt_cursorX = 0
         self.alt_cursorY = 0
         self.saved_cursorX = 0
@@ -1009,6 +1010,7 @@ class Terminal(object):
         self.bottom_margin = self.rows - 1
         self.alt_screen = None
         self.alt_renditions = None
+        self.autowrap = False
         self.alt_cursorX = 0
         self.alt_cursorY = 0
         self.saved_cursorX = 0
@@ -1227,7 +1229,7 @@ class Terminal(object):
             7    Swedish
             =    Swiss
         """
-        logging.debug("Setting G0 charset to %s" % repr(char))
+        #logging.debug("Setting G0 charset to %s" % repr(char))
         try:
             self.G0_charset = self.charsets[char]
         except KeyError:
@@ -1258,7 +1260,7 @@ class Terminal(object):
             7    Swedish
             =    Swiss
         """
-        logging.debug("Setting G1 charset to %s" % repr(char))
+        #logging.debug("Setting G1 charset to %s" % repr(char))
         try:
             self.G1_charset = self.charsets[char]
         except KeyError:
@@ -1271,8 +1273,8 @@ class Terminal(object):
         Sets the current charset to G0.  This should get called when ASCII_SO
         is encountered.
         """
-        logging.debug(
-            "Switching to G0 charset (which is %s)" % repr(self.G0_charset))
+        #logging.debug(
+            #"Switching to G0 charset (which is %s)" % repr(self.G0_charset))
         self.current_charset = 0
         self.charset = self.G0_charset
 
@@ -1281,8 +1283,8 @@ class Terminal(object):
         Sets the current charset to G1.  This should get called when ASCII_SI
         is encountered.
         """
-        logging.debug(
-            "Switching to G1 charset (which is %s)" % repr(self.G1_charset))
+        #logging.debug(
+            #"Switching to G1 charset (which is %s)" % repr(self.G1_charset))
         self.current_charset = 1
         self.charset = self.G1_charset
 
@@ -1307,7 +1309,7 @@ class Terminal(object):
         cursor_right = self.cursor_right
         magic = self.magic
         changed = False
-        #logging.debug('handling chars: %s' % repr(chars))
+        logging.debug('handling chars: %s' % repr(chars))
         if special_checks:
             # NOTE: Special checks are limited to PNGs and JPEGs right now
             before_chars = ""
@@ -1413,23 +1415,14 @@ class Terminal(object):
                             ))
                             self.esc_buffer = ''
                     continue # We're done here
-# TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
                 changed = True
                 if self.cursorX >= self.cols:
-                    # Start a newline but NOTE: Not really the best way to
-                    # handle this because it means copying and pasting lines
-                    # will end up broken into pieces of size=self.cols
-                    self.newline()
-                    self.cursorX = 0
-                    # This actually works but until I figure out a way to
-                    # get the browser to properly wrap the line without
-                    # freaking out whenever someone clicks on the page it
-                    # will have to stay commented.  NOTE: This might be a
-                    # browser bug.
-                    #self.screen[self.cursorY].append(unicode(char))
-                    #self.renditions[self.cursorY].append([])
-                    # To try it just uncomment the above two lines and
-                    # comment out the self.newline() and self.cusorX lines
+                    if self.autowrap:
+                        self.cursorX = 0
+                        self.newline()
+                    else:
+                        self.screen[self.cursorY].append(u' ') # Make room
+                        self.renditions[self.cursorY].append(u' ')
                 try:
                     self.renditions[self.cursorY][
                         self.cursorX] = self.cur_rendition
@@ -1462,7 +1455,6 @@ class Terminal(object):
                     # This can happen when escape sequences go haywire
                     logging.error(_(
                         "IndexError in write() (rate limiter?): %s" % e))
-                    pass
                 cursor_right()
         if changed:
             self.modified = True
@@ -1657,17 +1649,26 @@ class Terminal(object):
         (usually the bottom of the screen).
         """
         self.cursorY += 1
+        # Do CR with every NL because that's how every other terminal emulator
+        # seems to do it
+        self.cursorX = 0
         if self.cursorY > self.bottom_margin:
             self.scroll_up()
             self.cursorY = self.bottom_margin
             self.clear_line()
 
-    def _carriage_return(self):
+    def carriage_return(self):
         """
         Executes a carriage return (sets :attr:`self.cursorX` to 0).  In other
         words it moves the cursor back to position 0 on the line.
         """
-        self.cursorX = 0
+        if self.cursorX >= self.cols:
+            if self.screen[self.cursorY][self.cursorX-1] == u' ':
+                # This is just the underlying program telling us to wrap
+                # Let the browser do it for us.
+                # NOTE: I know this assumes HTML output.  Deal with it :P
+                return
+        self.cursorX = 0 # Yeah this is redundant if newline() is called.
 
     def _xon(self):
         """
@@ -1999,6 +2000,7 @@ class Terminal(object):
 
             '?1h' - Application Cursor Keys
             '?5h' - DECSCNM (default off): Set reverse-video mode.
+            '?7h' - DECAWM: Autowrap mode
             '?12h' - Local echo (SRM or Send Receive Mode)
             '?25h' - Hide cursor
             '?1049h' - Save cursor and screen
@@ -2095,6 +2097,17 @@ class Terminal(object):
             self.cursorX = self.alt_cursorX
             self.cursorY = self.alt_cursorY
         self.toggle_alternate_screen_buffer(alt)
+
+    def toggle_autowrap(self, boolean):
+        """
+        Sets :attr:`self.autowrap equal to *boolean*.  Literally:
+
+        .. code-block:: python
+
+            self.autowrap = boolean
+        """
+        logging.debug('setting autowrap: %s' % boolean)
+        self.autowrap = boolean
 
     def show_hide_cursor(self, boolean):
         """

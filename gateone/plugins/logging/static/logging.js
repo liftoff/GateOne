@@ -65,12 +65,43 @@ GateOne.Base.update(GateOne.Logging, {
             l.level = level;
         }
     },
-    /** @id MochiKit.Logging.Logger.prototype.logToConsole */
-    logToConsole: function (msg) {
+    logToConsole: function (msg, /*opt*/level) {
+        /**:GateOne.Logging.logToConsole(msg, level)
+
+        Logs the given *msg* to the browser's JavaScript console.  If *level* is provided it will attempt to use the appropriate console logger (e.g. console.warn()).
+
+        .. note:: Original version of this function is from: MochiKit.Logging.Logger.prototype.logToConsole.
+        */
         if (typeof(window) != "undefined" && window.console && window.console.log) {
             // Safari and FireBug 0.4
             // Percent replacement is a workaround for cute Safari crashing bug
-            window.console.log(msg.replace(/%/g, '\uFF05'));
+            msg = msg.replace(/%/g, '\uFF05');
+            if (!level) {
+                window.console.log(msg);
+                return;
+            } else if (level == 'ERROR' || level == 'FATAL') {
+                if (typeof(window.console.error) == "function") {
+                    window.console.error(msg);
+                    return;
+                }
+            } else if (level == 'WARN') {
+                if (typeof(window.console.warn) == "function") {
+                    window.console.warn(msg);
+                    return;
+                }
+            } else if (level == 'DEBUG') {
+                if (typeof(window.console.debug) == "function") {
+                    window.console.debug(msg);
+                    return;
+                }
+            } else if (level == 'INFO') {
+                if (typeof(window.console.info) == "function") {
+                    window.console.info(msg);
+                    return;
+                }
+            }
+            // Fallback to default
+            window.console.warn(msg);
         } else if (typeof(opera) != "undefined" && opera.postError) {
             // Opera
             opera.postError(msg);
@@ -95,7 +126,7 @@ GateOne.Base.update(GateOne.Logging, {
              If undefined, the level will be set to GateOne.Logging.level.
              If null (as opposed to undefined), level info will not be included in the log message.
 
-        If *destination* is given (must be a function) it will be used to log messages like so: destination(message).  The usual conversion of *msg* to *message* will apply.
+        If *destination* is given (must be a function) it will be used to log messages like so: destination(message, levelStr).  The usual conversion of *msg* to *message* will apply.
         */
         var l = GateOne.Logging,
             now = new Date(),
@@ -103,7 +134,7 @@ GateOne.Base.update(GateOne.Logging, {
         if (typeof(level) == 'undefined') {
             level = l.level;
         }
-        if (level === parseInt(level,10)) { // It's an integer
+        if (level === parseInt(level, 10)) { // It's an integer
             if (l.levels[level]) {
                 levelStr = l.levels[level]; // Get string
             } else {
@@ -125,10 +156,10 @@ GateOne.Base.update(GateOne.Logging, {
         if (message) {
             if (!destination) {
                 for (var dest in l.destinations) {
-                    l.destinations[dest](message);
+                    l.destinations[dest](message, levelStr);
                 }
             } else {
-                destination(message);
+                destination(message, levelStr);
             }
         }
     },

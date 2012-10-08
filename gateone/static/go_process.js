@@ -84,7 +84,6 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms) {
             scrollback = [];
         }
     }
-
     if (incoming_scrollback.length) {
         // Process the scrollback buffer before we concatenate it
         incoming_scrollback = processLines(incoming_scrollback, textTransforms);

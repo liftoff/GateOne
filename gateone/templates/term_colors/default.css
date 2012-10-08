@@ -261,8 +261,18 @@
     cursor: pointer;
 }
 /* Syntax highlighting classes below */
+#{{container}} span.colheader { font-weight: bold; }
+/* Rows alternate their background color; I love CSS3! */
+#{{container}} span.row { display: inline-block; width: 100%; }
+#{{container}} span.row:hover { background-color: rgba(9, 38, 173, 0.2); }
+#{{container}} span.selectedrow { background-color: rgba(64, 166, 166, 0.2); }
 #{{container}} span.date { font-weight: bold; }
-#{{container}} span.time { color: #C14855; }
-#{{container}} span.hostname { color: #4199C1; }
+#{{container}} span.time { color: #169416; font-weight: bold; }
+#{{container}} span.hostname { color: #008DCE; font-weight: bold; }
 #{{container}} span.service { color: #C56300; font-weight: bold; }
 #{{container}} span.string { color: #0AAC0A; }
+#{{container}} span.crit { font-weight: bold; color: #D50000; }
+#{{container}} span.error { color: #D50000; }
+#{{container}} span.warn { color: #B97800; }
+#{{container}} span.info { /* Defaults are probably fine for info */ }
+#{{container}} span.debug { color: #919191; }

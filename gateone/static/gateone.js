@@ -586,7 +586,9 @@ var go = GateOne.Base.update(GateOne, {
             // In case the user changed the rows/cols or the font/size changed:
             setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
                 go.Visual.updateDimensions();
-                go.Net.sendDimensions();
+                for (term in GateOne.terminals) {
+                    go.Net.sendDimensions(term);
+                };
             }, 3000);
         }
         // Apply user-specified dimension styles and settings
@@ -694,7 +696,9 @@ var go = GateOne.Base.update(GateOne, {
                     emHeight = u.getEmDimensions(goDiv).h;
                 if (goDiv.style.display != "none") {
                     go.Visual.updateDimensions();
-                    go.Net.sendDimensions();
+                    for (term in GateOne.terminals) {
+                        go.Net.sendDimensions(term);
+                    };
                 }
                 // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
                 if (!go.prefs.embedded) {
@@ -703,11 +707,19 @@ var go = GateOne.Base.update(GateOne, {
                     go.resizeAdjustTimer = setTimeout(function() {
                         var distance = goDiv.clientHeight - screenNode.offsetHeight;
                         distance -= (emHeight * go.prefs.rowAdjust); // Have to adjust for the extra row we add for the playback controls
-                        if (GateOne.Utils.isVisible(termPre)) {
+                        if (go.Utils.isVisible(termPre)) {
                             var transform = "translateY(-" + distance + "px)";
-                            GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                            go.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
                         }
                     }, 500);
+                }
+                if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
+                    var nodeHeight = screenNode.getClientRects()[0].top;
+                    if (nodeHeight < goDiv.clientHeight) { // Resize to fit
+                        var scale = goDiv.clientHeight / (goDiv.clientHeight - nodeHeight),
+                            transform = "scale(" + scale + ", " + scale + ")";
+                        go.Visual.applyTransform(termPre, transform);
+                    }
                 }
             }, 750);
         }
@@ -1029,6 +1041,7 @@ GateOne.Base.update(GateOne.Utils, {
             lineCounter = 0;
         // We need two lines so we can factor in the line height and character spacing (if it has been messed with).
         sizingDiv.className = "terminal";
+        sizingDiv.style.wordWrap = 'normal';
         for (var i=0; i <= 63; i++) {
             fillerX += "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  Using the \u syntax because minifiers don't seem to like unicode characters to be in the source as-is.
         }
@@ -1926,6 +1939,7 @@ GateOne.Base.update(GateOne.Input, {
     onPaste: function(e) {
         var go = GateOne,
             u = go.Utils,
+            prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv);
         logDebug("goDiv registered paste event.");
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
@@ -1956,7 +1970,7 @@ GateOne.Base.update(GateOne.Input, {
             // This is wrapped in a timeout so that the paste events that bubble up after the first get ignored
             setTimeout(function() {
                 go.Input.handlingPaste = false;
-            }, 250);
+            }, 100);
         } else {
             e.preventDefault(); // Prevent any funny business around queuing up pastes
         }
@@ -2393,8 +2407,10 @@ GateOne.Base.update(GateOne.Input, {
         if (key.string == "KEY_UNKNOWN") {
             return; // Without this, unknown keys end up sending a null character which isn't a good idea =)
         }
-        // Scroll to bottom (seems like a normal convention for when a key is pressed in a terminal)
-        u.scrollToBottom(go.terminals[term]['node']);
+        if (key.string != "KEY_SHIFT" && key.string != "KEY_CTRL" && key.string != "KEY_ALT" && key.string != "KEY_META") {
+            // Scroll to bottom (seems like a normal convention for when a key is pressed in a terminal)
+            u.scrollToBottom(go.terminals[term]['node']);
+        }
         // Try using the keyTable first (so everything can be overridden)
         if (key.string in goIn.keyTable) {
             if (goIn.keyTable[key.string]) { // Not null
@@ -2902,8 +2918,10 @@ GateOne.Base.update(GateOne.Visual, {
             timeDiff = now - go.Visual.sinceLastMessage,
             noticeContainer = u.getNode('#'+prefix+'noticecontainer'),
             notice = u.createElement('div', {'id': prefix+id}),
+            messageSpan = u.createElement('span'),
+            closeX = u.createElement('span', {'class': 'close_notice'}),
             unique = u.randomPrime(),
-            removeFunc = function() {
+            removeFunc = function(now) {
                 v.noticeTimers[unique] = setTimeout(function() {
                     go.Visual.applyStyle(notice, {'opacity': 0});
                     v.noticeTimers[unique] = setTimeout(function() {
@@ -2924,7 +2942,17 @@ GateOne.Base.update(GateOne.Visual, {
         if (!removeTimeout) {
             removeTimeout = 5000;
         }
-        notice.innerHTML = message;
+        messageSpan.innerHTML = message;
+        closeX.innerHTML = go.Icons['close'];
+        closeX.onclick = function(e) {
+            if (v.noticeTimers[unique]) {
+                clearTimeout(v.noticeTimers[unique]);
+            }
+            u.removeElement(notice);
+            go.Input.capture();
+        }
+        notice.appendChild(messageSpan);
+        notice.appendChild(closeX);
         noticeContainer.appendChild(notice);
         if (!v.noticeTimers) {
             v.noticeTimers = {}
@@ -3010,7 +3038,7 @@ GateOne.Base.update(GateOne.Visual, {
                     clearTimeout(go.terminals[termNum]['scrollbackTimer']);
                     go.terminals[termNum]['scrollbackTimer'] = setTimeout(function() {
                         go.Visual.enableScrollback(termNum);
-                    }, 3500);
+                    }, 500);
                     return;
                 }
                 // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
@@ -3028,7 +3056,7 @@ GateOne.Base.update(GateOne.Visual, {
                     u.scrollToBottom(termPreNode);
                 } else {
                     // Create the span that holds the scrollback buffer
-                    termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback'});
+                    termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback', 'class': 'scrollback'});
                     termScrollback.innerHTML = go.terminals[termNum]['scrollback'].join('\n') + '\n';
                     termPreNode.insertBefore(termScrollback, termScreen);
                     go.terminals[termNum]['scrollbackNode'] = termScrollback;
@@ -3193,6 +3221,7 @@ GateOne.Base.update(GateOne.Visual, {
                 } else {
                     v.applyTransform(termNode, 'translate(-' + wPX + 'px, -' + hPX + 'px) scale(0.5)');
                 }
+                u.scrollToBottom(termNode);
             });
         }, 1);
         // Now hide everything but the terminal in the primary view
@@ -4292,7 +4321,8 @@ go.Base.update(GateOne.Terminal, {
                     if (existingLine) {
                         existingLine.innerHTML = screen[i] + '\n';
                     } else { // Size of the terminal increased
-                        var lineSpan = u.createElement('span', {'class': 'line_' + i});
+                        var classes = 'termline ' + prefix + 'line_' + i,
+                            lineSpan = u.createElement('span', {'class': classes});
                         lineSpan.innerHTML = screen[i] + '\n';
                         existingScreen.appendChild(lineSpan);
                     }
@@ -4301,7 +4331,6 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
         }
-//         u.scrollToBottom(existingPre);
     },
     termUpdateFromWorker: function(e) {
         var u = GateOne.Utils,
@@ -4317,9 +4346,7 @@ go.Base.update(GateOne.Terminal, {
             goDiv = u.getNode(GateOne.prefs.goDiv),
             termContainer = u.getNode('#'+prefix+'term'+term),
             existingPre = GateOne.terminals[term]['node'],
-            existingScreen = GateOne.terminals[term]['screenNode'],
-            reScrollback = u.partial(GateOne.Visual.enableScrollback, term),
-            writeScrollback = u.partial(GateOne.Terminal.writeScrollback, term, scrollback);
+            existingScreen = GateOne.terminals[term]['screenNode'];
         if (term && GateOne.terminals[term]) {
             termTitle = go.terminals[term]['title'];
         } else {
@@ -4330,24 +4357,42 @@ go.Base.update(GateOne.Terminal, {
             try {
                 if (existingScreen && GateOne.terminals[term]['screen'].length != screen.length) {
                     // Resized
+                    var prevLength = GateOne.terminals[term]['screen'].length;
                     GateOne.terminals[term]['screen'].length = screen.length; // Resize the array to match
-                    for (var i=0; i < screen.length; i++) {
-                        var existingLine = existingPre.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i),
-                            lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
-                        if (!existingLine) {
-                            lineSpan.innerHTML = screen[i] + '\n';
-                            existingScreen.appendChild(lineSpan);
-                            // Update the existing screen array in-place to cut down on GC
-                            GateOne.terminals[term]['screen'][i] = screen[i];
+                    if (prevLength < screen.length) {
+                        // Grow to fit
+                        for (var i=0; i < screen.length; i++) {
+                            var classes = 'termline ' + prefix + 'line_' + i,
+                                existingLine = existingPre.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i),
+                                lineSpan = u.createElement('span', {'class': classes});
+                            if (!existingLine) {
+                                lineSpan.innerHTML = screen[i] + '\n';
+                                existingScreen.appendChild(lineSpan);
+                                // Update the existing screen array in-place to cut down on GC
+                                GateOne.terminals[term]['screen'][i] = screen[i];
+                            }
+                        }
+                    } else {
+                        // Shrink to fit
+                        for (var i=0; i < prevLength; i++) {
+                            var classes = 'termline ' + prefix + 'line_' + i,
+                                existingLine = existingPre.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
+                            if (existingLine) {
+                                if (i >= screen.length) {
+                                   u.removeElement(existingLine);
+                                }
+                            }
                         }
                     }
+                    u.scrollToBottom(existingPre);
                 }
                 if (existingScreen) { // Update the terminal display
                     GateOne.Terminal.applyScreen(screen, term);
                 } else { // Create the elements necessary to display the screen
-                    var screenSpan = u.createElement('span', {'id': 'term'+term+'screen'});
+                    var screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': 'screen'});
                     for (var i=0; i < screen.length; i++) {
-                        var lineSpan = u.createElement('span', {'class': prefix + 'line_' + i});
+                        var classes = 'termline ' + prefix + 'line_' + i,
+                            lineSpan = u.createElement('span', {'class': classes});
                         lineSpan.innerHTML = screen[i] + '\n';
                         screenSpan.appendChild(lineSpan);
                         // Update the existing screen array in-place to cut down on GC
@@ -4435,22 +4480,19 @@ go.Base.update(GateOne.Terminal, {
                 screen = null;
             }
         }
-        if (scrollback.length) {
+        if (scrollback.length && GateOne.terminals[term]['scrollback'].toString() != scrollback.toString()) {
+            var reScrollback = u.partial(GateOne.Visual.enableScrollback, term),
+                writeScrollback = u.partial(GateOne.Terminal.writeScrollback, term, scrollback);
             GateOne.terminals[term]['scrollback'] = scrollback;
             // We wrap the logic that stores the scrollback buffer in a timer so we're not writing to localStorage (aka "to disk") every nth of a second for fast screen refreshes (e.g. fast typers).  Writing to localStorage is a blocking operation so this could speed things up considerable for larger terminal sizes.
             clearTimeout(GateOne.terminals[term]['scrollbackWriteTimer']);
             GateOne.terminals[term]['scrollbackWriteTimer'] = null;
             // This will save the scrollback buffer after 3.5 seconds of terminal inactivity (idle)
-            try {
-                GateOne.terminals[term]['scrollbackWriteTimer'] = setTimeout(writeScrollback, 3500);
-            } finally {
-                writeScrollback = null;
-                scrollback = null;
-            }
+            GateOne.terminals[term]['scrollbackWriteTimer'] = setTimeout(writeScrollback, 3500);
             // This updates the scrollback buffer in the DOM
             clearTimeout(GateOne.terminals[term]['scrollbackTimer']);
-            // This timeout re-adds the scrollback buffer after .5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
-            GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 3500); // Just enough to de-bounce (to keep things smooth)
+            // This timeout re-adds the scrollback buffer after .75 seconds.  If we don't do this it can slow down the responsiveness quite a bit
+            GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
         }
         if (consoleLog) {
             // This is only used when debugging the Web Worker
@@ -4732,11 +4774,11 @@ go.Base.update(GateOne.Terminal, {
         pastearea.onpaste = function(e) {
             go.Input.onPaste(e);
             // Start capturing input again
-//             pastearea.value = '';
             setTimeout(function() {
                 // For some reason when you paste the onmouseup event doesn't fire on goDiv; goFigure
                 go.Input.mouseDown = false;
                 GateOne.Input.capture();
+                pastearea.value = ''; // Empty it out to ensure there's no leftovers in subsequent pastes
             }, 1);
         }
         pastearea.oncontextmenu = function(e) {
@@ -4750,25 +4792,14 @@ go.Base.update(GateOne.Terminal, {
                 Y = e.clientY;
             u.hideElement(pastearea);
             if (GateOne.Terminal.pasteAreaTimer) {
-                clearTimeout(GateOne.Terminal.pasteAreaTimer);
-                GateOne.Terminal.pasteAreaTimer = null;
+                return; // Let it return to visibility on its own
             }
             GateOne.Terminal.pasteAreaTimer = setTimeout(function() {
-                u.showElement(pastearea);
-            }, 250);
-            var elementUnder = document.elementFromPoint(X, Y);
-            if (elementUnder.tagName == "span") {
-                // Fire the mouseover events as if there was no pastearea
-                if (typeof(elementUnder.onclick) == "function") {
-                    pastearea.style.cursor = 'pointer';
-                } else {
-                    pastearea.style.cursor = 'default';
+                if (!u.getSelText()) {
+                    u.showElement(pastearea);
+                    GateOne.Terminal.pasteAreaTimer = null;
                 }
-            } else if (elementUnder.tagName == "A") {
-                pastearea.style.cursor = 'pointer';
-            } else {
-                pastearea.style.cursor = 'default';
-            }
+            }, 100);
         }
         pastearea.onmousedown = function(e) {
             // When the user left-clicks assume they're trying to highlight text
