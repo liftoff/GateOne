@@ -96,7 +96,7 @@ Module Functions and Classes
 """
 
 # Stdlib imports
-import os, sys, time, struct, io, gzip, re, logging
+import os, sys, time, struct, io, gzip, re, logging, signal
 from copy import copy
 from datetime import timedelta, datetime
 from functools import partial
@@ -1386,10 +1386,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         except IOError:
             # Process already ended--no big deal
             return
+        os.kill(self.pid, signal.SIGWINCH) # Send the resize signal
         if ctrl_l:
             self.write(u'\x0c') # ctrl-l
-        # SIGWINCH has been disabled since it can screw things up
-        #os.kill(self.pid, signal.SIGWINCH) # Send the resize signal
 
     def terminate(self):
         """
@@ -1431,7 +1430,6 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         del self.scheduler
         try:
             # TODO: Make this walk the series from SIGINT to SIGKILL
-            import signal
             #os.kill(self.pid, signal.SIGINT)
             os.kill(self.pid, signal.SIGTERM)
             #os.kill(self.pid, signal.SIGKILL)

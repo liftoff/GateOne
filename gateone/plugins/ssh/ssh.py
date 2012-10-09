@@ -985,7 +985,7 @@ def opt_esc_handler(text, tws):
     information to duplicate sessions (if the user so desires).  For reference,
     the specific string which will call this function from a terminal app is::
 
-        \x1b]_;ssh|<whatever>\x07
+        \\x1b]_;ssh|<whatever>\x07
 
     .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`
     """

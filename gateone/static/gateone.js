@@ -721,6 +721,7 @@ var go = GateOne.Base.update(GateOne, {
                         go.Visual.applyTransform(termPre, transform);
                     }
                 }
+                u.scrollToBottom(termPre);
             }, 750);
         }
         window.onresize = onResizeEvent;

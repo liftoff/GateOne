@@ -1048,8 +1048,11 @@ class Terminal(object):
             return # Nothing to do--don't mess with the margins or the cursor
         if rows < self.rows: # Remove rows from the top
             for i in xrange(self.rows - rows):
-                self.screen.pop(0)
-                self.renditions.pop(0)
+                line = self.screen.pop(0)
+                # Add it to the scrollback buffer so it isn't lost forever
+                self.scrollback_buf.append(line)
+                rend = self.renditions.pop(0)
+                self.scrollback_renditions.append(rend)
         elif rows > self.rows: # Add rows at the bottom
             for i in xrange(rows - self.rows):
                 line = array('u', u' ' * self.cols)
@@ -1059,16 +1062,10 @@ class Terminal(object):
         self.rows = rows
         self.top_margin = 0
         self.bottom_margin = self.rows - 1
-
         # Fix the cursor location:
         if self.cursorY >= self.rows:
             self.cursorY = self.rows - 1
-
-        if cols < self.cols: # Remove cols to the right
-            for i in xrange(self.rows):
-                self.screen[i] = self.screen[i][:cols - self.cols]
-                self.renditions[i] = self.renditions[i][:cols - self.cols]
-        elif cols > self.cols: # Add cols to the right
+        if cols > self.cols: # Add cols to the right
             for i in xrange(self.rows):
                 for j in xrange(cols - self.cols):
                     self.screen[i].append(u' ')
@@ -1497,9 +1494,9 @@ class Terminal(object):
             empty_line = array('u', u' ' * self.cols) # Line full of spaces
             # Add it to the bottom of the window:
             self.screen.insert(self.bottom_margin, empty_line)
-            # Remove top line's style information
-            style = self.renditions.pop(self.top_margin)
-            self.scrollback_renditions.append(style)
+            # Remove top line's rendition information
+            rend = self.renditions.pop(self.top_margin)
+            self.scrollback_renditions.append(rend)
             # Insert a new empty rendition as well:
             empty_line = array('u', unichr(1000) * self.cols)
             self.renditions.insert(self.bottom_margin, empty_line)
@@ -1648,6 +1645,7 @@ class Terminal(object):
         if that action will move the curor past :attr:`self.bottom_margin`
         (usually the bottom of the screen).
         """
+        cols = self.cols
         self.cursorY += 1
         # Do CR with every NL because that's how every other terminal emulator
         # seems to do it
@@ -1656,6 +1654,19 @@ class Terminal(object):
             self.scroll_up()
             self.cursorY = self.bottom_margin
             self.clear_line()
+        # Shorten the line if it is longer than the number of columns
+        # NOTE: This lets us keep the width of existing lines even if the number
+        # of columns is reduced while at the same time accounting for apps like
+        # 'top' that merely overwrite existing lines.  If we didn't do this
+        # the output from 'top' would get all messed up from leftovers at the
+        # tail end of every line when self.cols had a larger value.
+        if len(self.screen[self.cursorY]) >= cols:
+            self.screen[self.cursorY] = self.screen[self.cursorY][:cols]
+            self.renditions[self.cursorY] = self.renditions[self.cursorY][:cols]
+        # NOTE: The above logic is placed inside of this function instead of
+        # inside self.write() in order to reduce CPU utilization.  There's no
+        # point in performing a conditional check for every incoming character
+        # when the only time it will matter is when a newline is being written.
 
     def carriage_return(self):
         """
