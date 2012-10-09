@@ -609,8 +609,11 @@ class FileType(object):
         self.name = name
         self.re_header = re_header
         self.re_capture = re_capture
+        # A path just in case something needs to access it outside of Python:
         self.path = path
-        self.file_obj = open(path)
+        self.file_obj = None
+        if self.path:
+            self.file_obj = open(path)
 
     def __repr__(self):
         return "<%s>" % self.name
@@ -619,8 +622,15 @@ class FileType(object):
         "Override if the defined file type warrants a text-based output"
         return self.__repr__()
 
+    def __del__(self):
+        """
+        Make sure that self.file_obj gets closed/deleted.
+        """
+        self.file_obj.close()
+
     def raw(self):
-        return open(self.path).read()
+        self.file_obj.seek(0)
+        return open(self.file_obj).read()
 
     def html(self):
         """
@@ -628,11 +638,74 @@ class FileType(object):
         """
         raise NotImplementedError
 
+    def capture(self, term_instance, data):
+        """
+        Stores *data* as a temporary file and returns that file's object.
+        *term_instance* can be used by overrides of this function to make
+        adjustments to the terminal emulator after the *data* is captured e.g.
+        to make room for an image.
+        """
+        # Remove the extra \r's that the terminal adds:
+        data = str(data).replace('\r\n', '\n')
+        logging.debug("capture() len(data): %s" % len(data))
+        # Write the data to disk in a temporary location
+        self.file_obj = tempfile.NamedTemporaryFile()
+        self.file_obj.write(data)
+        self.file_obj.flush()
+        self.path = self.file_obj.name
+        # Leave it open
+        return self.file_obj
+
 class ImageFile(FileType):
     """
     A subclass of :class:`FileType` for images (specifically to override
     :meth:`self.html`)
     """
+    def capture(self, term_instance, data):
+        if Image: # PIL is loaded--try to guess how many lines the image takes
+            i = StringIO.StringIO(data)
+            try:
+                im = Image.open(i)
+            except IOError:
+                # i.e. PIL couldn't identify the file
+                return # Don't do anything--bad image
+        else: # No PIL means no images.  Don't bother wasting memory.
+            return
+        ref = self.file_counter.next()
+        if self.em_dimensions:
+            # Make sure the image will fit properly in the screen
+            width = im.size[0]
+            height = im.size[1]
+            if height <= self.em_dimensions['height']:
+                # Fits within a line.  No need for a newline
+                num_chars = int(width/self.em_dimensions['width'])
+                # Put the image at the current cursor location
+                self.screen[self.cursorY][self.cursorX] = ref
+                # Move the cursor an equivalent number of characters
+                self.cursor_right(num_chars)
+            else:
+                newlines = int(height/self.em_dimensions['height'])
+                self.cursorX = 0
+                newlines = abs(self.cursorY - newlines)
+                self.newline() # Start with a newline for good measure... For
+                # Some reason it seems to look better that way.
+                if newlines > self.cursorY:
+                    for line in xrange(newlines):
+                        self.newline()
+                self.screen[self.cursorY][self.cursorX] = ref
+                self.newline()
+        else:
+            # No way to calculate the number of lines the image will take
+            self.cursorY = self.rows - 1 # Move to the end of the screen
+            # ... so it doesn't get cut off at the top
+            self.screen[self.cursorY][self.cursorX] = ref
+            self.newline() # Make some space at the bottom too just in case
+            self.newline()
+        # Write the image to disk in a temporary location
+        self.captured_files[ref] = tempfile.TemporaryFile()
+        im.save(self.captured_files[ref], im.format)
+        self.captured_files[ref].flush()
+
     def html(self):
         try:
             im = Image.open(self.path)
@@ -663,33 +736,35 @@ class ImageFile(FileType):
 
 class PNGFile(ImageFile):
     "An override of ImageFile for PNGs to hard-code the regular expressions."
+    name = "PNG Image"
+    re_header = re.compile('.*\x89PNG\r', re.DOTALL)
+    re_capture = re.compile('\x89PNG\r.+IEND\xaeB`\x82', re.DOTALL)
     def __init__(self, path=""):
         """
-        **name:** Name of the file type.
-        **path:** The path to the file.
+        **path:** (optional) The path to the file.
         """
-        self.name = "PNG Image"
-        self.re_header = re.compile('.*\x89PNG\r', re.DOTALL)
-        self.re_capture = re.compile('\x89PNG\r.+IEND\xaeB`\x82', re.DOTALL)
         self.path = path
-        self.file_obj = open(path)
+        self.file_obj = None
+        if self.path:
+            self.file_obj = open(path)
 
 class JPEGFile(ImageFile):
     "An override of ImageFile for JPEGs to hard-code the regular expressions."
+    name = "JPEG Image"
+    re_header = re.compile(
+        '.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
+    re_capture = re.compile(
+        '\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9',
+        re.DOTALL
+    )
     def __init__(self, path=""):
         """
-        **name:** Name of the file type.
-        **path:** The path to the file.
+        **path:** (optional) The path to the file.
         """
-        self.name = "JPEG Image"
-        self.re_header = re.compile(
-            '.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
-        self.re_capture = re.compile(
-            '\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9',
-            re.DOTALL
-        )
         self.path = path
-        self.file_obj = open(path)
+        self.file_obj = None
+        if self.path:
+            self.file_obj = open(path)
 
 class Terminal(object):
     """
@@ -962,21 +1037,40 @@ class Terminal(object):
             '\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9', re.DOTALL)
         pdf_header = re.compile('.*%PDF-[0-9]+\.[0-9]+', re.DOTALL)
         pdf_whole = re.compile('%PDF-[0-9]+\.[0-9]+.+%%EOF\r?', re.DOTALL)
-        self.magic = {
-            # Dict for magic "numbers" so we can tell when a particular type of
-            # file begins and ends (so we can capture it in binary form and
-            # later dump it out via dump_html())
-            # The format is 'beginning': 'whole'
-            png_header: png_whole,
-            jpeg_header: jpeg_whole,
-        }
-        self.magic_functions = {
-            # These determine what to do with the data we captured using
-            # self.magic
-            pdf_header: self.__ignore,
-            png_header: self._capture_image,
-            jpeg_header: self._capture_image,
-        }
+        # Supported magic
+        self.supported_magic = [
+            PNGFile,
+            JPEGFile,
+            # ExpectoPatronum, # TODO: More happy memories
+        ]
+        #self.magic = {
+            ## Dict for magic "numbers" so we can tell when a particular type of
+            ## file begins and ends (so we can capture it in binary form and
+            ## later dump it out via dump_html())
+            ## The format is 'beginning': 'whole'
+            #png_header: png_whole,
+            #jpeg_header: jpeg_whole,
+        #}
+        # Dict for magic "numbers" so we can tell when a particular type of
+        # file begins and ends (so we can capture it in binary form and
+        # later dump it out via dump_html())
+        # The format is 'beginning': 'whole'
+        self.magic = {}
+        # Wand ready...
+        for Magic in self.supported_magic:
+            self.magic.update({Magic.re_header: Magic.re_capture})
+        #self.magic_functions = {
+            #
+            ## self.magic
+            #pdf_header: self.__ignore,
+            #png_header: self._capture_image,
+            #jpeg_header: self._capture_image,
+        #}
+        # magic_functions is just a quicker way of capturing magical creatures
+        # Er, I mean supported magic
+        self.magic_functions = {}
+        for Magic in self.supported_magic:
+            self.magic_functions.update({Magic.re_header: Magic.capture})
         self.matched_header = None
         # These are for saving self.screen and self.renditions so we can support
         # an "alternate buffer"
@@ -1413,11 +1507,11 @@ class Terminal(object):
         cursor_right = self.cursor_right
         magic = self.magic
         changed = False
-        logging.debug('handling chars: %s' % repr(chars))
+        #logging.debug('handling chars: %s' % repr(chars))
         if special_checks:
             before_chars = ""
             after_chars = ""
-            for magic_header in magic.keys():
+            for magic_header in magic:
                 try:
                     if magic_header.match(str(chars)):
                         self.matched_header = magic_header
@@ -1862,7 +1956,18 @@ class Terminal(object):
         logging.debug("_capture_file()")
         for magic_header in self.magic.keys():
             if magic_header.match(self.capture):
-                self.magic_functions[magic_header]()
+                # Capture the data
+                ref = term_instance.file_counter.next()
+                self.captured_files[ref] = self.magic_functions[magic_header](
+                    self, self.capture)
+                # Start up an open file watcher so leftover file objects get
+                # closed when they're no longer being used
+                if not self.watcher or not self.watcher.isAlive():
+                    import threading
+                    self.watcher = threading.Thread(
+                        name='watcher', target=self._captured_fd_watcher)
+                    self.watcher.setDaemon(True)
+                    self.watcher.start()
                 break
 
     def _capture_image(self):
