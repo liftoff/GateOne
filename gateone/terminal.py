@@ -254,6 +254,7 @@ RENDITION_CLASSES = defaultdict(lambda: None, {
     95: 'bf5', # Bright magenta
     96: 'bf6', # Bright cyan
     97: 'bf7', # Bright white
+# TODO:  Handle the ESC sequence that sets the colors from 90-87 (e.g. ESC]91;orange/brown^G)
     # 'Bright' Backgrounds
     100: 'bb0', # Bright black
     101: 'bb1', # Bright red
@@ -750,14 +751,14 @@ class Terminal(object):
         }
     }
 
-    RE_CSI_ESC_SEQ = re.compile(r'\x1B\[([?A-Za-z0-9;@:\!]*)([A-Za-z@_])')
+    RE_CSI_ESC_SEQ = re.compile(r'\x1B\[([?A-Za-z0-9>;@:\!]*)([A-Za-z@_])')
     RE_ESC_SEQ = re.compile(r'\x1b(.*\x1b\\|[ABCDEFGHIJKLMNOQRSTUVWXYZa-z0-9=<>]|[()# %*+].)')
     RE_TITLE_SEQ = re.compile(r'\x1b\][0-2]\;(.*?)(\x07|\x1b\\)')
     # The below regex is used to match our optional (non-standard) handler
     RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)')
     RE_NUMBERS = re.compile('\d*') # Matches any number
 
-    def __init__(self, rows=24, cols=80, em_dimensions=None):
+    def __init__(self, rows=24, cols=80, em_dimensions=None, debug=False):
         """
         Initializes the terminal by calling *self.initialize(rows, cols)*.  This
         is so we can have an equivalent function in situations where __init__()
@@ -769,7 +770,12 @@ class Terminal(object):
         their tops cut off.  *em_dimensions* should be a dict in the form of::
 
             {'height': <px>, 'width': <px>}
+
+        If *debug* is True, the root logger will have its level set to DEBUG.
         """
+        if debug:
+            logger = logging.getLogger()
+            logger.level = logging.DEBUG
         self.initialize(rows, cols, em_dimensions)
 
     def initialize(self, rows=24, cols=80, em_dimensions=None):
@@ -793,10 +799,7 @@ class Terminal(object):
         self.cur_rendition = unichr(1000) # Should always be reset ([0])
         self.init_screen()
         self.init_renditions()
-        self.G0_charset = self.charsets['B']
-        self.G1_charset = self.charsets['B']
         self.current_charset = 0
-        self.charset = self.G0_charset
         self.set_G0_charset('B')
         self.set_G1_charset('B')
         self.use_g0_charset()
@@ -812,7 +815,7 @@ class Terminal(object):
             self.ASCII_LF: self.linefeed,
             self.ASCII_VT: self.linefeed,
             self.ASCII_FF: self.linefeed,
-            self.ASCII_CR: self._carriage_return,
+            self.ASCII_CR: self.carriage_return,
             self.ASCII_SO: self.use_g1_charset,
             self.ASCII_SI: self.use_g0_charset,
             self.ASCII_XON: self._xon,
@@ -850,6 +853,7 @@ class Terminal(object):
             '=': self.__ignore, # Application Keypad  DECPAM
             '>': self.__ignore, # Exit alternate keypad mode
             '<': self.__ignore, # Exit VT-52 mode
+            'Z': self._csi_device_identification,
         }
         self.csi_handlers = {
             'A': self.cursor_up,
@@ -863,7 +867,7 @@ class Terminal(object):
             'L': self.insert_line,
             'M': self.delete_line,
             #'b': self.repeat_last_char, # TODO
-            'c': self._csi_device_status_report, # Device status report (DSR)
+            'c': self._csi_device_identification, # Device status report (DSR)
             'g': self.__ignore, # TODO: Tab clear
             'h': self.set_expanded_mode,
             'i': self.__ignore, # ESC[5i is "redirect to printer", ESC[4i ends it
@@ -878,8 +882,7 @@ class Terminal(object):
             's': self.save_cursor_position,
             'u': self.restore_cursor_position,
             'm': self._set_rendition,
-            'n': self.__ignore, # <ESC>[6n is the only one I know of (request cursor position)
-            #'m': self.__ignore, # For testing how much CPU we save when not processing CSI
+            'n': self._csi_device_status_report, # <ESC>[6n is the only one I know of (request cursor position)
             'p': self.reset, # TODO: "!p" is "Soft terminal reset".  Also, "Set conformance level" (VT100, VT200, or VT300)
             'r': self._set_top_bottom, # DECSTBM (used by many apps)
             'q': self.set_led_state, # Seems a bit silly but you never know
@@ -899,7 +902,7 @@ class Terminal(object):
             '4': self.__ignore, # Smooth (Slow) Scroll (DECSCLM)
             '5': self.__ignore, # Reverse video (might support in future)
             '6': self.__ignore, # Origin Mode (DECOM)
-            '7': self.__ignore, # Wraparound Mode (DECAWM)
+            '7': self.toggle_autowrap, # Wraparound Mode (DECAWM)
             '8': self.__ignore, # Auto-repeat Keys (DECARM)
             '9': self.__ignore, # Send Mouse X & Y on button press (maybe)
             '12': self.send_receive_mode, # SRM
@@ -979,6 +982,7 @@ class Terminal(object):
         # an "alternate buffer"
         self.alt_screen = None
         self.alt_renditions = None
+        self.autowrap = False
         self.alt_cursorX = 0
         self.alt_cursorY = 0
         self.saved_cursorX = 0
@@ -1092,6 +1096,7 @@ class Terminal(object):
 
         .. note:: If terminal output has been suspended (e.g. via ctrl-s) this will not un-suspend it (you need to issue ctrl-q to the underlying program to do that).
         """
+        logging.debug('reset()')
         self.leds = {
             1: False,
             2: False,
@@ -1104,12 +1109,15 @@ class Terminal(object):
         self.show_cursor = True
         self.insert_mode = False
         self.rendition_set = False
-        self.G0_charset = 'B'
-        self.current_charset = self.charsets['B']
+        self.current_charset = 0
+        self.set_G0_charset('B')
+        self.set_G1_charset('B')
+        self.use_g0_charset()
         self.top_margin = 0
         self.bottom_margin = self.rows - 1
         self.alt_screen = None
         self.alt_renditions = None
+        self.autowrap = False
         self.alt_cursorX = 0
         self.alt_cursorY = 0
         self.saved_cursorX = 0
@@ -1147,8 +1155,11 @@ class Terminal(object):
             return # Nothing to do--don't mess with the margins or the cursor
         if rows < self.rows: # Remove rows from the top
             for i in xrange(self.rows - rows):
-                self.screen.pop(0)
-                self.renditions.pop(0)
+                line = self.screen.pop(0)
+                # Add it to the scrollback buffer so it isn't lost forever
+                self.scrollback_buf.append(line)
+                rend = self.renditions.pop(0)
+                self.scrollback_renditions.append(rend)
         elif rows > self.rows: # Add rows at the bottom
             for i in xrange(rows - self.rows):
                 line = array('u', u' ' * self.cols)
@@ -1158,16 +1169,10 @@ class Terminal(object):
         self.rows = rows
         self.top_margin = 0
         self.bottom_margin = self.rows - 1
-
         # Fix the cursor location:
         if self.cursorY >= self.rows:
             self.cursorY = self.rows - 1
-
-        if cols < self.cols: # Remove cols to the right
-            for i in xrange(self.rows):
-                self.screen[i] = self.screen[i][:cols - self.cols]
-                self.renditions[i] = self.renditions[i][:cols - self.cols]
-        elif cols > self.cols: # Add cols to the right
+        if cols > self.cols: # Add cols to the right
             for i in xrange(self.rows):
                 for j in xrange(cols - self.cols):
                     self.screen[i].append(u' ')
@@ -1375,6 +1380,7 @@ class Terminal(object):
         #logging.debug(
             #"Switching to G0 charset (which is %s)" % repr(self.G0_charset))
         self.current_charset = 0
+        self.charset = self.G0_charset
 
     def use_g1_charset(self):
         """
@@ -1384,6 +1390,7 @@ class Terminal(object):
         #logging.debug(
             #"Switching to G1 charset (which is %s)" % repr(self.G1_charset))
         self.current_charset = 1
+        self.charset = self.G1_charset
 
     def write(self, chars, special_checks=True):
         """
@@ -1406,7 +1413,7 @@ class Terminal(object):
         cursor_right = self.cursor_right
         magic = self.magic
         changed = False
-        #logging.debug('handling chars: %s' % repr(chars))
+        logging.debug('handling chars: %s' % repr(chars))
         if special_checks:
             before_chars = ""
             after_chars = ""
@@ -1511,23 +1518,14 @@ class Terminal(object):
                             ))
                             self.esc_buffer = ''
                     continue # We're done here
-# TODO: Figure out a way to write characters past the edge of the screen so that users can copy & paste without having newlines in the middle of everything.
                 changed = True
                 if self.cursorX >= self.cols:
-                    # Start a newline but NOTE: Not really the best way to
-                    # handle this because it means copying and pasting lines
-                    # will end up broken into pieces of size=self.cols
-                    self.newline()
-                    self.cursorX = 0
-                    # This actually works but until I figure out a way to
-                    # get the browser to properly wrap the line without
-                    # freaking out whenever someone clicks on the page it
-                    # will have to stay commented.  NOTE: This might be a
-                    # browser bug.
-                    #self.screen[self.cursorY].append(unicode(char))
-                    #self.renditions[self.cursorY].append([])
-                    # To try it just uncomment the above two lines and
-                    # comment out the self.newline() and self.cusorX lines
+                    if self.autowrap:
+                        self.cursorX = 0
+                        self.newline()
+                    else:
+                        self.screen[self.cursorY].append(u' ') # Make room
+                        self.renditions[self.cursorY].append(u' ')
                 try:
                     self.renditions[self.cursorY][
                         self.cursorX] = self.cur_rendition
@@ -1568,7 +1566,6 @@ class Terminal(object):
                     # This can happen when escape sequences go haywire
                     logging.error(_(
                         "IndexError in write() (rate limiter?): %s" % e))
-                    pass
                 cursor_right()
         if changed:
             self.modified = True
@@ -1611,9 +1608,9 @@ class Terminal(object):
             empty_line = array('u', u' ' * self.cols) # Line full of spaces
             # Add it to the bottom of the window:
             self.screen.insert(self.bottom_margin, empty_line)
-            # Remove top line's style information
-            style = self.renditions.pop(self.top_margin)
-            self.scrollback_renditions.append(style)
+            # Remove top line's rendition information
+            rend = self.renditions.pop(self.top_margin)
+            self.scrollback_renditions.append(rend)
             # Insert a new empty rendition as well:
             empty_line = array('u', unichr(1000) * self.cols)
             self.renditions.insert(self.bottom_margin, empty_line)
@@ -1762,18 +1759,41 @@ class Terminal(object):
         if that action will move the curor past :attr:`self.bottom_margin`
         (usually the bottom of the screen).
         """
+        cols = self.cols
         self.cursorY += 1
+        # Do CR with every NL because that's how every other terminal emulator
+        # seems to do it
+        self.cursorX = 0
         if self.cursorY > self.bottom_margin:
             self.scroll_up()
             self.cursorY = self.bottom_margin
             self.clear_line()
+        # Shorten the line if it is longer than the number of columns
+        # NOTE: This lets us keep the width of existing lines even if the number
+        # of columns is reduced while at the same time accounting for apps like
+        # 'top' that merely overwrite existing lines.  If we didn't do this
+        # the output from 'top' would get all messed up from leftovers at the
+        # tail end of every line when self.cols had a larger value.
+        if len(self.screen[self.cursorY]) >= cols:
+            self.screen[self.cursorY] = self.screen[self.cursorY][:cols]
+            self.renditions[self.cursorY] = self.renditions[self.cursorY][:cols]
+        # NOTE: The above logic is placed inside of this function instead of
+        # inside self.write() in order to reduce CPU utilization.  There's no
+        # point in performing a conditional check for every incoming character
+        # when the only time it will matter is when a newline is being written.
 
-    def _carriage_return(self):
+    def carriage_return(self):
         """
         Executes a carriage return (sets :attr:`self.cursorX` to 0).  In other
         words it moves the cursor back to position 0 on the line.
         """
-        self.cursorX = 0
+        if self.cursorX >= self.cols:
+            if self.screen[self.cursorY][self.cursorX-1] == u' ':
+                # This is just the underlying program telling us to wrap
+                # Let the browser do it for us.
+                # NOTE: I know this assumes HTML output.  Deal with it :P
+                return
+        self.cursorX = 0 # Yeah this is redundant if newline() is called.
 
     def _xon(self):
         """
@@ -2018,9 +2038,9 @@ class Terminal(object):
             self.esc_buffer += '\x07' # Add the bell char so we don't lose it
             self._osc_handler()
 
-    def _device_status_report(self):
+    def _device_status_report(self, n=None):
         """
-        Returns '\x1b[0n' (terminal OK) and executes:
+        Returns '\\\\x1b[0n' (terminal OK) and executes:
 
         .. code-block:: python
 
@@ -2035,17 +2055,74 @@ class Terminal(object):
             pass
         return response
 
-    def _csi_device_status_report(self, request):
+    def _csi_device_identification(self, request=None):
         """
-        Returns '\\\\x1b[1;2c' (Meaning: I'm a vt220 terminal, version 1.0) and
+        If we're responding to ^[Z, ^[c, or ^[0c, returns '\\\\x1b[1;2c'
+        (Meaning: I'm a vt220 terminal, version 1.0) and
         executes:
 
         .. code-block:: python
 
             self.callbacks[self.CALLBACK_DSR]("\\x1b[1;2c")
+
+        If we're responding to ^[>c or ^[>0c, executes:
+
+        .. code-block:: python
+
+            self.callbacks[self.CALLBACK_DSR]("\\x1b[>0;271;0c")
         """
-        logging.debug("_csi_device_status_report()")
-        response = u"\x1b[1;2c"
+        logging.debug("_csi_device_identification(%s)" % request)
+        if request and u">" in request:
+            response = u"\x1b[>0;271;0c"
+        else:
+            response = u"\x1b[?1;2c"
+        try:
+            for callback in self.callbacks[CALLBACK_DSR].values():
+                callback(response)
+        except TypeError:
+            pass
+        return response
+
+    def _csi_device_status_report(self, request=None):
+        """
+        Calls :meth:`self.callbacks[self.CALLBACK_DSR]` with an appropriate
+        response to the given *request*.
+
+        .. code-block:: python
+
+            self.callbacks[self.CALLBACK_DSR](response)
+
+        Supported requests and their responses:
+
+            =============================    ==================
+            Request                          Response
+            =============================    ==================
+            ^[5n (Status Report)             ^[[0n
+            ^[6n (Report Cursor Position)    ^[[<row>;<column>R
+            ^[15n (Printer Ready?)           ^[[10n (Ready)
+            =============================    ==================
+        """
+        logging.debug("_csi_device_status_report(%s)" % request)
+        supported_requests = [
+            u"5",
+            u"6",
+            u"15",
+        ]
+        if not request:
+            return # Nothing to do
+        response = u""
+        if request.startswith('?'):
+            # Get rid of it
+            request = request[1:]
+        if request in supported_requests:
+            if request == u"5":
+                response = u"\x1b[0n"
+            elif request == u"6":
+                rows = self.cursorY + 1
+                cols = self.cursorX + 1
+                response = u"\x1b[%s;%sR" % (rows, cols)
+            elif request == u"15":
+                response = u"\x1b[10n"
         try:
             for callback in self.callbacks[CALLBACK_DSR].values():
                 callback(response)
@@ -2061,6 +2138,7 @@ class Terminal(object):
 
             '?1h' - Application Cursor Keys
             '?5h' - DECSCNM (default off): Set reverse-video mode.
+            '?7h' - DECAWM: Autowrap mode
             '?12h' - Local echo (SRM or Send Receive Mode)
             '?25h' - Hide cursor
             '?1049h' - Save cursor and screen
@@ -2176,6 +2254,17 @@ class Terminal(object):
             self.cursorX = self.alt_cursorX
             self.cursorY = self.alt_cursorY
         self.toggle_alternate_screen_buffer(alt)
+
+    def toggle_autowrap(self, boolean):
+        """
+        Sets :attr:`self.autowrap equal to *boolean*.  Literally:
+
+        .. code-block:: python
+
+            self.autowrap = boolean
+        """
+        logging.debug('setting autowrap: %s' % boolean)
+        self.autowrap = boolean
 
     def show_hide_cursor(self, boolean):
         """

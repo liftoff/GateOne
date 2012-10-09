@@ -1,5 +1,3 @@
-// NOTE: Named smoothie_js so it wouldn't be auto-included by Gate One
-
 // MIT License:
 //
 // Copyright (c) 2010-2011, Joe Walnes
@@ -38,12 +36,16 @@
  * v1.6: minValue/maxValue will always get converted to floats, by Przemek Matylla
  * v1.7: options.grid.fillStyle may be a transparent color, by Dmitry A. Shashkin
  *       Smooth rescaling, by Kostas Michalopoulos
+ * v1.8: Set max length to customize number of live points in the dataset with options.maxDataSetLength, by Krishna Narni
+ * v1.9: Display timestamps along the bottom, by Nick and Stev-io
+ *       (https://groups.google.com/forum/?fromgroups#!topic/smoothie-charts/-Ywse8FCpKI%5B1-25%5D)
+ *       Refactored by Krishna Narni, to support timestamp formatting function
  */
 
-var TimeSeries = function(options) {
+function TimeSeries(options) {
   options = options || {};
   options.resetBoundsInterval = options.resetBoundsInterval || 3000; // Reset the max/min bounds after this many milliseconds
-  options.resetBounds = options.resetBounds || true; // Enable or disable the resetBounds timer
+  options.resetBounds = options.resetBounds === undefined ? true : options.resetBounds; // Enable or disable the resetBounds timer
   this.options = options;
   this.data = [];
 
@@ -52,7 +54,7 @@ var TimeSeries = function(options) {
 
   // Start a resetBounds Interval timer desired
   if (options.resetBounds) {
-    this.boundsTimer = setInterval(function(thisObj) { thisObj.resetBounds(); }, options.resetBoundsInterval, this);
+    this.boundsTimer = setInterval((function(thisObj) { return function() { thisObj.resetBounds(); } })(this), options.resetBoundsInterval);
   }
 }
 
@@ -72,7 +74,7 @@ TimeSeries.prototype.append = function(timestamp, value) {
   this.minValue = !isNaN(this.minValue) ? Math.min(this.minValue, value) : value;
 };
 
-var SmoothieChart = function(options) {
+function SmoothieChart(options) {
   // Defaults
   options = options || {};
   options.grid = options.grid || { fillStyle:'#000000', strokeStyle: '#777777', lineWidth: 1, millisPerLine: 1000, verticalSections: 2 };
@@ -84,6 +86,8 @@ var SmoothieChart = function(options) {
   options.labels = options.labels || { fillStyle:'#ffffff' };
   options.interpolation = options.interpolation || "bezier";
   options.scaleSmoothing = options.scaleSmoothing || 0.125;
+  options.maxDataSetLength = options.maxDataSetLength || 2;
+  options.timestampFormatter = options.timestampFormatter || null;
   this.options = options;
   this.seriesSet = [];
   this.currentValueRange = 1;
@@ -95,7 +99,7 @@ SmoothieChart.prototype.addTimeSeries = function(timeSeries, options) {
 };
 
 SmoothieChart.prototype.removeTimeSeries = function(timeSeries) {
-  this.seriesSet.splice(this.seriesSet.indexOf(timeSeries), 1);
+	this.seriesSet.splice(this.seriesSet.indexOf(timeSeries), 1);
 };
 
 SmoothieChart.prototype.streamTo = function(canvas, delay) {
@@ -117,6 +121,12 @@ SmoothieChart.prototype.stop = function() {
     clearInterval(this.timer);
     this.timer = undefined;
   }
+};
+
+// Sample timestamp formatting function
+SmoothieChart.timeFormatter = function(dateObject) {
+  function pad2(number){return (number < 10 ? '0' : '') + number};
+  return pad2(dateObject.getHours())+':'+pad2(dateObject.getMinutes())+':'+pad2(dateObject.getSeconds());
 };
 
 SmoothieChart.prototype.render = function(canvas, time) {
@@ -160,6 +170,20 @@ SmoothieChart.prototype.render = function(canvas, time) {
       canvasContext.moveTo(gx, 0);
       canvasContext.lineTo(gx, dimensions.height);
       canvasContext.stroke();
+      // To display timestamps along the bottom
+      // May have to adjust millisPerLine to display non-overlapping timestamps, depending on the canvas size
+      if (options.timestampFormatter){
+        var tx=new Date(t);
+        // Formats the timestamp based on user specified formatting function
+        // SmoothieChart.timeFormatter function above is one such formatting option
+        var ts = options.timestampFormatter(tx);
+        var txtwidth=(canvasContext.measureText(ts).width/2)+canvasContext.measureText(minValueString).width + 4;
+        if (gx<dimensions.width - txtwidth){
+          canvasContext.fillStyle = options.labels.fillStyle;
+          // Insert the time string so it doesn't overlap on the minimum value
+          canvasContext.fillText(ts, gx-(canvasContext.measureText(ts).width / 2), dimensions.height-2);
+        }
+      }
       canvasContext.closePath();
     }
   }
@@ -196,6 +220,7 @@ SmoothieChart.prototype.render = function(canvas, time) {
   }
 
   if (isNaN(maxValue) && isNaN(minValue)) {
+      canvasContext.restore(); // without this there is crash in Android browser
       return;
   }
 
@@ -223,7 +248,7 @@ SmoothieChart.prototype.render = function(canvas, time) {
     // Delete old data that's moved off the left of the chart.
     // We must always keep the last expired data point as we need this to draw the
     // line that comes into the chart, but any points prior to that can be removed.
-    while (dataSet.length >= 2 && dataSet[1][0] < time - (dimensions.width * options.millisPerPixel)) {
+    while (dataSet.length >= options.maxDataSetLength && dataSet[1][0] < time - (dimensions.width * options.millisPerPixel)) {
       dataSet.splice(0, 1);
     }
 
@@ -247,7 +272,7 @@ SmoothieChart.prototype.render = function(canvas, time) {
         firstX = x;
         canvasContext.moveTo(x, y);
       }
-      // Great explanation of Bezier curves: http://en.wikipedia.org/wiki/B�zier_curve#Quadratic_curves
+      // Great explanation of Bezier curves: http://en.wikipedia.org/wiki/Bezier_curve#Quadratic_curves
       //
       // Assuming A was the last point in the line plotted and B is the new point,
       // we draw a curve with control points P and Q as below.

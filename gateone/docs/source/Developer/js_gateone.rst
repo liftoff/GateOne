@@ -120,6 +120,7 @@ Properties
         * :js:attr:`GateOne.terminals[num].scrollback`
         * :js:attr:`GateOne.terminals[num].scrollbackVisible`
         * :js:attr:`GateOne.terminals[num].sshConnectString`
+        * :js:attr:`GateOne.terminals[num].title`
         * :js:attr:`GateOne.Icons`
         * :js:attr:`GateOne.loadedModules`
         * :js:attr:`GateOne.ws`
@@ -668,6 +669,16 @@ prefs
         If the SSH plugin is enabled, this variable contains the connection string used by the SSH client to connect to the server.
 
         .. note:: This is a good example of a plugin using :js:attr:`GateOne.terminals` to great effect.
+
+    .. js:attribute:: GateOne.terminals[num].title
+
+        :type: String
+
+        .. code-block:: javascript
+
+            GateOne.terminals[num].title = "user@somehost:~";
+
+        Stores the title of the terminal.  Unless the user has set it manually this will be the same value as :js:attr:`GateOne.terminals[num].X11Title`.
 
 .. js:attribute:: GateOne.Icons
 
@@ -2547,6 +2558,7 @@ Functions
         * :js:attr:`GateOne.Terminal.switchTerminal`
         * :js:attr:`GateOne.Terminal.termUpdateFromWorker`
         * :js:attr:`GateOne.Terminal.timeoutAction`
+        * :js:attr:`GateOne.Terminal.unregisterTextTransform`
         * :js:attr:`GateOne.Terminal.updateTerminalAction`
         * :js:attr:`GateOne.Terminal.writeScrollback`
 
@@ -2669,10 +2681,10 @@ Functions
 .. js:function:: GateOne.Terminal.registerTextTransform(name, pattern, newString)
 
     :param string name: The name of this pattern (so we can reference it later).
-    :param regex pattern: A regular expression that will be used to process incoming terminal screen updates.
-    :param string newString: An HTML string with regular expression placement indicators (e.g. $1) that will replace what was matched in *pattern*.
+    :param pattern: A regular expression or function that will be used to process incoming terminal screen updates.
+    :param string newString: An HTML string with regular expression placement indicators (e.g. $1) that will replace what was matched in *pattern* (if *pattern* is a regular expression).
 
-    Adds a new or replaces an existing text transformation to :js:attr:`GateOne.Terminal.textTransforms` using *pattern* and *newString* with the given *name*.  Example:
+    Adds to or replaces existing text transformations in :js:attr:`GateOne.Terminal.textTransforms` using *pattern* and *newString* with the given *name*.  Example:
 
     .. code-block:: javascript
 
@@ -2686,11 +2698,30 @@ Functions
 
     .. rubric:: What is a text transformation?  Why should I care?
 
-    Text transformations allow one to arbitrarily replace any string in the incoming terminal screen with one of your choosing.  In the example code above it turns ticket numbers like IM0123456789 into clickable links but you can also match things like credit card numbers, man page commands, etc and do what you want with them.
+    Text transformations allow one to arbitrarily replace any single-line strings in the incoming terminal screen with one of your choosing.  In the example code above it turns ticket numbers like IM0123456789 into clickable links but you can also match things like credit card numbers, man page commands, etc and do what you want with them.
 
     .. tip:: A single .js file in ``gateone/plugins/yourplugin/static/`` is all it takes to use your own text transformations on a Gate One server!
 
     .. note:: To keep things smooth and prevent blocking the interactivity of the browser all text transformations are processed within Gate One's `Web Worker <https://developer.mozilla.org/en-US/docs/DOM/Worker>`_ (go_process.js).  In fact, this is exactly how Gate One transforms URLs into clickable links.
+
+    .. note:: Text transformations only apply to the terminal's screen; not the scrollback buffer.
+
+    Instead of providing a regular expression and replacement string, a function may be given as the second parameter.  Example:
+
+    .. code-block:: javascript
+
+        var replaceFoo = function(line) {
+            return line.replace('foo', 'bar');
+        }
+        GateOne.Terminal.registerTextTransform("foo", replaceFoo);
+
+    This would result in the `replacefoo()` function being called for each line of the incoming screen like so:
+
+    .. code-block:: javascript
+
+        line = replaceFoo(line);
+
+    .. note:: Why is it called on each line individually and not on the text as a whole?  Because Gate One uses a line-based difference protocol to communicate between the client and server.  So when the only thing that changes is a single line, only a single line will be sent to the client.
 
 .. js:function:: GateOne.Terminal.resetTerminalAction(term)
 
@@ -2733,6 +2764,12 @@ Functions
 .. js:function:: GateOne.Terminal.timeoutAction
 
     This function gets attached to the 'timeout' action in :js:attr:`GateOne.Net.actions` and gets called when the user's session has timed out on the Gate One server.  It writes a message to the screen indicating a timeout has occurred and closes the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_.
+
+.. js:function:: GateOne.Terminal.unregisterTextTransform(name)
+
+    :param string name: The name of the text transform to remove.
+
+    Removes the text transform of the given name from :js:attr:`GateOne.Terminal.textTransforms`.
 
 .. js:function:: GateOne.Terminal.updateTerminalAction(termUpdateObj)
 

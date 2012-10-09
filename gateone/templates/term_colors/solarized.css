@@ -242,3 +242,21 @@
     animation-timing-function: cubic-bezier(1.0,0,0,1.0);
     animation-duration: 0.5s;
 }
+#{{container}} span.clickable { /* Give emphasis to things we've added onclick events to */
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+#{{container}} span.clickable:hover {
+    cursor: pointer;
+}
+/* Syntax highlighting classes below */
+#{{container}} span.colheader { font-weight: bold; }
+#{{container}} span.date { font-weight: bold; }
+#{{container}} span.time { color: #C14855; }
+#{{container}} span.hostname { color: #4199C1; }
+#{{container}} span.service { color: #C56300; font-weight: bold; }
+#{{container}} span.string { color: #0AAC0A; }
+#{{container}} span.crit { font-weight: bold; color: #D50000; }
+#{{container}} span.error { color: #D50000; }
+#{{container}} span.warn { color: #B97800; }
+#{{container}} span.info { /* Defaults are probably fine for info */ }
+#{{container}} span.debug { color: #919191; }

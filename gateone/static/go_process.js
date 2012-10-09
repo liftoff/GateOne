@@ -5,11 +5,11 @@ var log = function(msg) {
     // Appends msg to a global consoleLog variable which will be handled by the caller
     consoleLog.push(msg);
 }
-var linkify = function(text, pattern, newString) {
+var transformText = function(text, pattern, newString) {
     // Given *text*, find all strings matching *pattern* and turn them into clickable links using *newString*
-    // If *pattern* or *baseURL* are not provided, simply transforms URLs into clickable links.
+    // If *pattern* is not provided, simply transforms URLs into clickable links.
     // Here's an example of replacing hypothetical ticket numbers with clickable links:
-    //      linkify("Please see ticket IM123456789", /(\bIM\d{9,10}\b)/g, "<a href='https://support.company.com/tracker?ticket=$1' target='new'>$1</a>")
+    //      transformText("Please see ticket IM123456789", /(\bIM\d{9,10}\b)/g, "<a href='https://support.company.com/tracker?ticket=$1' target='new'>$1</a>")
     if (!pattern) {
         pattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
     }
@@ -18,21 +18,64 @@ var linkify = function(text, pattern, newString) {
     }
     return text.replace(pattern, newString);
 };
+var processLines = function(lines, textTransforms) {
+    var output = []
+    for (var i=0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line == null) {
+            output[i] = ""; // An empty string will do (emulates unchanged)
+        } else if (line.length) {
+            // Trim trailing whitespace only if the line isn't just full of whitespace
+            var trimmedLine = line.replace(/\s*$/g, "");
+            if (trimmedLine) {
+                line = trimmedLine;
+            }
+            output[i] = line;
+        } else {
+            // Line is unchanged
+            output[i] = '';
+        }
+    }
+    outText = output.join('\n')
+    // Linkify and transform the text inside the screen before we push it
+    for (var trans in textTransforms) {
+        // Have to convert the regex to a string and use eval since Firefox can't seem to pass regexp objects to Web Workers.
+        var name = textTransforms[trans]['name'],
+            pattern = textTransforms[trans]['pattern'],
+            newString = textTransforms[trans]['newString'];
+        try {
+            pattern = eval(pattern);
+        } catch(e) {
+            // A SyntaxError likely means this is a function
+            if (e instanceof SyntaxError) {
+                try {
+                    pattern = Function("return " + pattern)();
+                } catch(e) {
+                    log("Error transforming text inside of the go_process.js Worker: " + e + ", name: " + name + ", pattern: '" + pattern + "'");
+                }
+            }
+        }
+        if (typeof(pattern) == "function") {
+            outText = pattern(outText);
+        } else {
+            outText = transformText(outText, pattern, newString);
+        }
+    }
+    output = transformText(outText).split('\n'); // Convert links to anchor tags and convert back to an array
+    return output;
+}
 var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms) {
     // Do all the necessary client-side processing of the terminal screen and scrollback buffer.  The idea being that a web worker doing this stuff should make Gate One more responsive (at the client).
     // scrollback: go.terminals[term]['scrollback']
     // termUpdateObj: The object containing the terminal screen/scrollback provided by the server
     // termTitle: u.getNode('#' + go.prefs.prefix + 'term' + term).title (since we can't query the DOM from within a Worker)
     // prefs: GateOne.prefs
-    // textTransforms: Textual transformations that will be passed to linkify()
-    var count = 0,
-        term = termUpdateObj['term'],
+    // textTransforms: Textual transformations that will be passed to transformText()
+    var term = termUpdateObj['term'],
         screen = [],
         incoming_scrollback = termUpdateObj['scrollback'],
         rateLimiter = termUpdateObj['ratelimiter'],
-        outputObj = {'term': term},
-        screen_html = '',
-        scrollback_html = '';
+        outputObj = {'term': term};
     // If there's no scrollback buffer, try filling it with what was preserved in localStorage
     if (!scrollback.length) {
         if (prevScrollback) {
@@ -42,6 +85,8 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms) {
         }
     }
     if (incoming_scrollback.length) {
+        // Process the scrollback buffer before we concatenate it
+        incoming_scrollback = processLines(incoming_scrollback, textTransforms);
         scrollback = scrollback.concat(incoming_scrollback);
     }
     // Now trim the array to match the go.prefs['scrollback'] setting
@@ -51,49 +96,7 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms) {
         scrollback.reverse(); // Put it back in the proper order
     }
     // Assemble the entire screen from what the server sent us (lines that haven't changed get sent as null)
-    for (var i=0; i < termUpdateObj['screen'].length; i++) {
-        var line = termUpdateObj['screen'][i];
-        if (line == null) {
-            screen[i] = ""; // An empty string will do (emulates unchanged)
-        } else if (line.length) {
-            // Linkify and transform the text inside the screen before we push it
-            line = linkify(line);
-            for (var trans in textTransforms) {
-                // Have to convert the regex to a string and use eval since Firefox can't seem to pass regexp objects to Web Workers.
-                var pattern = eval(textTransforms[trans]['pattern']),
-                    newString = textTransforms[trans]['newString'];
-                line = linkify(line, pattern, newString);
-            }
-            // Trim trailing whitespace only if the line isn't just full of whitespace
-            var trimmedLine = line.replace(/\s*$/g, "");
-            if (trimmedLine) {
-                line = trimmedLine;
-            }
-            screen[i] = line;
-        } else {
-            // Line is unchanged
-            screen[i] = '';
-        }
-    }
-//     for (var i=0; i < termUpdateObj['screen'].length; i++) {
-//         var line = termUpdateObj['screen'][i];
-//         if (line == null) {
-//             SCREEN[i] = ""; // An empty string will do (emulates unchanged)
-//         } else if (line.length) {
-//             // Linkify and transform the text inside the screen before we push it
-//             line = linkify(line);
-//             for (var trans in textTransforms) {
-//                 // Have to convert the regex to a string and use eval since Firefox can't seem to pass regexp objects to Web Workers.
-//                 var pattern = eval(textTransforms[trans]['pattern']),
-//                     newString = textTransforms[trans]['newString'];
-//                 line = linkify(line, pattern, newString);
-//             }
-//             SCREEN[i] = line;
-//         } /*else {*/
-//             // Line is unchanged.  Use the previous one
-// //             SCREEN[i] = terminalObj['screen'][i];
-// //         }
-//     }
+    screen = processLines(termUpdateObj['screen'], textTransforms);
     outputObj['screen'] = screen;
     outputObj['scrollback'] = scrollback;
     outputObj['log'] = consoleLog.join('\n');
@@ -112,15 +115,15 @@ self.addEventListener('message', function(e) {
     if (cmds) {
         cmds.forEach(function(cmd) {
             switch (cmd) {
-                case 'linkify':
+                case 'transformText':
                     // Linkify links before anything else so we don't clobber any follow-up linkification
-                    text = linkify(text);
+                    text = transformText(text);
                     if (textTransforms) {
                         for (var trans in textTransforms) {
                             // Have to convert the regex to a string and use eval since Firefox can't seem to pass regexp objects to Web Workers.
                             var pattern = eval(textTransforms[trans]['pattern']),
                                 newString = textTransforms[trans]['newString'];
-                            text = linkify(text, pattern, newString);
+                            text = transformText(text, pattern, newString);
                         }
                     }
                     break;

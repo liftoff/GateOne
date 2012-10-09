@@ -1,21 +1,6 @@
 (function(window, undefined) {
 var document = window.document; // Have to do this because we're sandboxed
 
-// This is so we can copy a whole function so there's no circular references
-Function.prototype.clone = function() {
-    var fct = this;
-    var clone = function() {
-        return fct.apply(this, arguments);
-    };
-    clone.prototype = fct.prototype;
-    for (property in fct) {
-        if (fct.hasOwnProperty(property) && property !== 'prototype') {
-            clone[property] = fct[property];
-        }
-    }
-    return clone;
-};
-
 // Tunable playback prefs
 if (!GateOne.prefs.playbackFrames) {
     GateOne.prefs.playbackFrames = 75; // Maximum number of session recording frames to store (in memory--for now)
@@ -235,7 +220,7 @@ GateOne.Base.update(GateOne.Playback, {
             p.frameUpdater = null;
             p.milliseconds = 0;
             // Restart the clock
-            p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1000);
+            p.clockUpdater = setInterval(GateOne.Playback.updateClock, 1000);
             return
         }
         p.clockElement.innerHTML = frameTime.toLocaleTimeString();
