@@ -411,6 +411,7 @@ hr {
     font-size: 1em;
     margin-top: 0.1em;
     margin-bottom: 0.1em;
+    max-height: 90%; /* Ensures a scrollbar will appear if the browser window is too small to fit a panel */
     -webkit-transform: scale(0);
     -webkit-transform-origin: top right;
     -webkit-transition: all 0.5s ease-in-out;
