@@ -1152,7 +1152,6 @@ class TerminalWebSocket(WebSocketHandler):
                         }
                         self.write_message(json_encode(message))
                         return
-                    print("api_keys: %s" % self.settings['api_keys'])
                     secret = self.settings['api_keys'][api_key]
                     # Check the signature against existing API keys
                     sig_check = tornado.web._create_signature(
@@ -1227,10 +1226,30 @@ class TerminalWebSocket(WebSocketHandler):
             # Double-check there isn't a user set in the cookie (i.e. we have
             # recently changed Gate One's settings).  If there is, force it
             # back to ANONYMOUS.
-            if settings['auth']: # Authentication from localStorage data
-                # Authenticate/decode the encoded auth info
-                cookie_data = self.get_secure_cookie(
-                    'gateone_user', value=settings['auth'])
+            if settings['auth']:
+                cookie_data = None
+                if isinstance(settings['auth'], basestring):
+                    # The client is trying to authenticate using the
+                    # 'gateone_user' parameter in localStorage.
+                    # Authenticate/decode the encoded auth info
+                    cookie_data = self.get_secure_cookie(
+                        'gateone_user', value=settings['auth'])
+                else:
+                    # Someone is attempting to perform API-based authentication
+                    # but this server isn't configured with 'auth = "api"'.
+                    # Let's be real user-friendly and point out this mistake
+                    # with a helpful error message...
+                    logging.error(_(
+                        "Client tried to use API-based authentication but this "
+                        "server is configured with 'auth = \"%s\".  Did you "
+                        "forget to set 'auth = \"api\" in your server.conf?" %
+                        self.settings['auth']))
+                    message = {'notice': _(
+                        "AUTHENTICATION ERROR: Server is not configured to "
+                        "perform API-based authentication.  Did someone forget "
+                        "to set 'auth = \"api\" in the server.conf?")}
+                    self.write_message(json_encode(message))
+                    return
                 if cookie_data:
                     self.user = json_decode(cookie_data)
             if not self.user:

@@ -1759,7 +1759,7 @@ GateOne.Base.update(GateOne.Net, {
                 msg = '<b>Message From Gate One Server:</b> ' + evt.data;
             if (noticeContainer) {
                 // This only works if Gate One loaded successfuly
-                v.displayMessage(msg, 5000, 5000);
+                v.displayMessage(msg, 10000); // Give it plenty of time
             } else {
                 // Fallback to this:
                 var msgContainer = u.createElement('div', {'id': 'noticecontainer', 'style': {'font-size': '1.5em', 'background-color': '#000', 'color': '#fff', 'display': 'block', 'position': 'fixed', 'bottom': '1em', 'right': '2em', 'left': '2em', 'z-index': 9999}}); // Have to use 'style' since CSS may not have been loaded
@@ -1767,7 +1767,7 @@ GateOne.Base.update(GateOne.Net, {
                 document.body.appendChild(msgContainer);
                 setTimeout(function() {
                     u.removeElement(msgContainer);
-                }, 5000);
+                }, 10000);
             }
         }
         // Execute each respective action
@@ -4556,7 +4556,6 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
         }
-        return null;
     },
     loadWebWorkerAction: function(source) {
         // Loads our Web Worker given it's *source* (which is sent to us over the WebSocket which is a clever workaround to the origin limitations of Web Workers =).

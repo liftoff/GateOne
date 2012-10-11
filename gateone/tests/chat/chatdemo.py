@@ -37,7 +37,6 @@ from tornado.options import define, options
 
 define("port", default=8000, help="Run on the given port", type=int)
 
-
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
@@ -48,7 +47,7 @@ class Application(tornado.web.Application):
             (r"/a/message/updates", MessageUpdatesHandler),
         ]
         settings = dict(
-            cookie_secret=u"♡☺☻♡(◕‿◕)",
+            cookie_secret=u"MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M",
             login_url="/auth/login",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
@@ -145,7 +144,6 @@ class MessageMixin(object):
         if len(cls.cache) > self.cache_size:
             cls.cache = cls.cache[-self.cache_size:]
 
-
 class MessageNewHandler(BaseHandler, MessageMixin):
     @tornado.web.authenticated
     def post(self):
@@ -160,7 +158,6 @@ class MessageNewHandler(BaseHandler, MessageMixin):
         else:
             self.write(message)
         self.new_messages([message])
-
 
 class MessageUpdatesHandler(BaseHandler, MessageMixin):
     @tornado.web.authenticated
@@ -194,7 +191,6 @@ class AuthLoginHandler(BaseHandler, tornado.auth.GoogleMixin):
         self.set_secure_cookie("user", tornado.escape.json_encode(user))
         self.redirect("/")
 
-
 class AuthLogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("user")
@@ -211,7 +207,7 @@ def main():
           "server.conf:\n")
     print('auth = "api"')
     # Using the cookie_secret as the API key here:
-    print('api_keys = "MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M:secret"')
+    print(u'api_keys = "MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M:secret"')
     print("\n...and restart Gate One for the change to take effect.")
     # NOTE: Gate One will actually generate a nice and secure secret when you
     # use --new_api_key option.  Using 'secret' here to demonstrate that it can
