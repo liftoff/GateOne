@@ -1,3 +1,4 @@
+
 // An example of how to add Google Analytics to your plugin:
 var _gaq = _gaq || []; // We'll actually make our plugin-specific Google Analytics call inside of init()
 (function() { // Load the GA script the Gate One way (you can include this in your own plugin without having to worry about duplicates/conflicts)

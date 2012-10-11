@@ -21,7 +21,7 @@ directory.
 .. note:: Why not just put the tutorial in the regular Gate One docs?  Because in order for the tutorial to work it must be run from a web server (file:// URLs won't work).  Gate One's documentation is made to work completely offline (you can even make a PDF out of it).
 """
 
-import os
+import os, sys
 
 import tornado.httpserver
 import tornado.ioloop
@@ -57,4 +57,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(0)

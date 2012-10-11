@@ -586,7 +586,7 @@ var go = GateOne.Base.update(GateOne, {
             // In case the user changed the rows/cols or the font/size changed:
             setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
                 go.Visual.updateDimensions();
-                for (term in GateOne.terminals) {
+                for (var term in GateOne.terminals) {
                     go.Net.sendDimensions(term);
                 };
             }, 3000);
@@ -1759,7 +1759,7 @@ GateOne.Base.update(GateOne.Net, {
                 msg = '<b>Message From Gate One Server:</b> ' + evt.data;
             if (noticeContainer) {
                 // This only works if Gate One loaded successfuly
-                v.displayMessage(msg, 5000, 5000);
+                v.displayMessage(msg, 10000); // Give it plenty of time
             } else {
                 // Fallback to this:
                 var msgContainer = u.createElement('div', {'id': 'noticecontainer', 'style': {'font-size': '1.5em', 'background-color': '#000', 'color': '#fff', 'display': 'block', 'position': 'fixed', 'bottom': '1em', 'right': '2em', 'left': '2em', 'z-index': 9999}}); // Have to use 'style' since CSS may not have been loaded
@@ -1767,7 +1767,7 @@ GateOne.Base.update(GateOne.Net, {
                 document.body.appendChild(msgContainer);
                 setTimeout(function() {
                     u.removeElement(msgContainer);
-                }, 5000);
+                }, 10000);
             }
         }
         // Execute each respective action
@@ -1813,6 +1813,80 @@ GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up 
 // 'KEY_N': [{'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'}]
 GateOne.Base.update(GateOne.Input, {
     // GateOne.Input is in charge of all keyboard input as well as copy & paste stuff
+    onMouseDown: function(e) {
+        // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
+        logDebug("goDiv.onmousedown() button: " + e.button + ", which: " + e.which);
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            goDiv = u.getNode(go.prefs.goDiv),
+            m = go.Input.mouse(e),
+            selectedTerm = localStorage[prefix+'selectedTerminal'],
+            selectedPastearea = go.terminals[selectedTerm]['pasteNode'],
+            selectedText = u.getSelText();
+        go.Input.mouseDown = true;
+        // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
+        // However, we only want this when the user is actually bringing up the context menu because
+        // having it enabled slows down screen updates by a non-trivial amount.
+        if (m.button.middle) {
+            u.showElement(selectedPastearea);
+            selectedPastearea.focus();
+            if (selectedText.length) {
+                go.Input.handlingPaste = true; // We're emulating a paste so we might as well act like one
+                // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
+                e.preventDefault();
+                go.Input.queue(selectedText);
+                go.Net.sendChars();
+                setTimeout(function() {
+                    go.Input.handlingPaste = false;
+                }, 250);
+            }
+        } else if (m.button.right) {
+            if (!selectedText.length) {
+                // Redisplay the pastearea so we can get a proper context menu in case the user wants to paste
+                // NOTE: On Firefox this behavior is broken.  See: https://bugzilla.mozilla.org/show_bug.cgi?id=785773
+                u.showElement(selectedPastearea);
+                selectedPastearea.focus();
+            } else {
+                goDiv.focus();
+            }
+        } else {
+            goDiv.focus();
+        }
+    },
+    onMouseUp: function(e) {
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            selectedTerm = localStorage[prefix+'selectedTerminal'],
+            selectedPastearea = go.terminals[selectedTerm]['pasteNode'],
+            goDiv = u.getNode(go.prefs.goDiv),
+            selectedText = u.getSelText();
+        logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
+        // Once the user is done pasting (or clicking), set it back to false for speed
+//             goDiv.contentEditable = false; // Having this as false makes screen updates faster
+        go.Input.mouseDown = false;
+        if (selectedText) {
+            // Don't show the pastearea as it will prevent the user from right-clicking to copy.
+            return;
+        }
+        if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
+            return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
+        }
+        if (!go.Visual.gridView) {
+            setTimeout(function() {
+                if (!u.getSelText()) {
+                    u.showElement(selectedPastearea);
+                }
+            }, 750); // NOTE: For this to work (to allow users to double-click-to-highlight a word) they must double-click before this timer fires.
+        }
+        // If the Firefox bug timer hasn't fired by now it wasn't a click-and-drag event
+        if (go.Input.firefoxBugTimer) {
+            clearTimeout(go.Input.firefoxBugTimer);
+            go.Input.firefoxBugTimer = null;
+        }
+        goDiv.focus();
+    },
     capture: function() {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
         logDebug('capture()');
@@ -1829,70 +1903,8 @@ GateOne.Base.update(GateOne.Input, {
             // After the copy we need to bring the pastearea back up so the context menu will work to paste again
             u.showElements('.pastearea');
         }
-        goDiv.onmousedown = function(e) {
-            // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
-            logDebug("goDiv.onmousedown() button: " + e.button + ", which: " + e.which);
-            var m = go.Input.mouse(e),
-                selectedTerm = localStorage[prefix+'selectedTerminal'],
-                selectedPastearea = go.terminals[selectedTerm]['pasteNode'],
-                selectedText = u.getSelText();
-            go.Input.mouseDown = true;
-            // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
-            // However, we only want this when the user is actually bringing up the context menu because
-            // having it enabled slows down screen updates by a non-trivial amount.
-            if (m.button.middle) {
-                u.showElement(selectedPastearea);
-                selectedPastearea.focus();
-                if (selectedText.length) {
-                    go.Input.handlingPaste = true; // We're emulating a paste so we might as well act like one
-                    // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
-                    e.preventDefault();
-                    go.Input.queue(selectedText);
-                    go.Net.sendChars();
-                    setTimeout(function() {
-                        go.Input.handlingPaste = false;
-                    }, 250);
-                }
-            } else if (m.button.right) {
-                if (!selectedText.length) {
-                    // Redisplay the pastearea so we can get a proper context menu in case the user wants to paste
-                    // NOTE: On Firefox this behavior is broken.  See: https://bugzilla.mozilla.org/show_bug.cgi?id=785773
-                    u.showElement(selectedPastearea);
-                    selectedPastearea.focus();
-                } else {
-                    goDiv.focus();
-                }
-            } else {
-                goDiv.focus();
-            }
-        }
-        goDiv.onmouseup = function(e) {
-            logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
-            // Once the user is done pasting (or clicking), set it back to false for speed
-//             goDiv.contentEditable = false; // Having this as false makes screen updates faster
-            go.Input.mouseDown = false;
-            var selectedText = u.getSelText();
-            if (selectedText) {
-                // Don't show the pastearea as it will prevent the user from right-clicking to copy.
-                return;
-            }
-            if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
-                return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
-            }
-            if (!go.Visual.gridView) {
-                setTimeout(function() {
-                    if (!u.getSelText()) {
-                        u.showElements('.pastearea');
-                    }
-                }, 750); // NOTE: For this to work (to allow users to double-click-to-highlight a word) they must double-click before this timer fires.
-            }
-            // If the Firefox bug timer hasn't fired by now it wasn't a click-and-drag event
-            if (go.Input.firefoxBugTimer) {
-                clearTimeout(go.Input.firefoxBugTimer);
-                go.Input.firefoxBugTimer = null;
-            }
-            goDiv.focus();
-        }
+        goDiv.onmousedown = go.Input.onMouseDown;
+        goDiv.onmouseup = go.Input.onMouseUp;
         if (go.Input.overlayTimer) {
             clearTimeout(go.Input.overlayTimer);
             go.Input.overlayTimer = null;
@@ -2661,7 +2673,7 @@ GateOne.Base.update(GateOne.Visual, {
             toolbarGrid = u.createElement('div', {'id': go.prefs.prefix+'icon_grid', 'class': 'toolbar', 'title': "Grid View"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
         // Add our grid icon to the icons list
-        GateOne.Icons['grid'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient3002" y2="255.75" gradientUnits="userSpaceOnUse" x2="311.03" gradientTransform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,261.98407,-149.06549)" y1="227.75" x1="311.03"><stop class="stop1" offset="0"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.66103562,-0.67114094,0.66103562,0.67114094,-611.1013,-118.18392)"><g fill="url(#linearGradient3002)" transform="translate(63.353214,322.07725)"><polygon points="311.03,255.22,304.94,249.13,311.03,243.03,317.13,249.13"/><polygon points="318.35,247.91,312.25,241.82,318.35,235.72,324.44,241.82"/><polygon points="303.52,247.71,297.42,241.61,303.52,235.52,309.61,241.61"/><polygon points="310.83,240.39,304.74,234.3,310.83,228.2,316.92,234.3"/></g></g></svg>';
+        GateOne.Icons['grid'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="gridGradient" y2="255.75" gradientUnits="userSpaceOnUse" x2="311.03" gradientTransform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,261.98407,-149.06549)" y1="227.75" x1="311.03"><stop class="stop1" offset="0"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.66103562,-0.67114094,0.66103562,0.67114094,-611.1013,-118.18392)"><g fill="url(#gridGradient)" transform="translate(63.353214,322.07725)"><polygon points="311.03,255.22,304.94,249.13,311.03,243.03,317.13,249.13"/><polygon points="318.35,247.91,312.25,241.82,318.35,235.72,324.44,241.82"/><polygon points="303.52,247.71,297.42,241.61,303.52,235.52,309.61,241.61"/><polygon points="310.83,240.39,304.74,234.3,310.83,228.2,316.92,234.3"/></g></g></svg>';
         // Setup our toolbar icons and actions
         toolbarGrid.innerHTML = GateOne.Icons['grid'];
         var gridToggle = function() {
@@ -2898,6 +2910,9 @@ GateOne.Base.update(GateOne.Visual, {
         }
         v.infoTimer = setTimeout(function() {
             v.applyStyle(infoContainer, {'opacity': 0});
+            setTimeout(function() {
+                u.hideElement(infoContainer);
+            }, 1000);
         }, 1000);
     },
     displayMessage: function(message, /*opt*/timeout, /*opt*/removeTimeout, /*opt*/id) {
@@ -2944,7 +2959,7 @@ GateOne.Base.update(GateOne.Visual, {
             removeTimeout = 5000;
         }
         messageSpan.innerHTML = message;
-        closeX.innerHTML = go.Icons['close'];
+        closeX.innerHTML = go.Icons['close'].replace('closeGradient', 'miniClose'); // replace() here works around a browser bug where SVGs will disappear if you remove one that has the same gradient name as another.
         closeX.onclick = function(e) {
             if (v.noticeTimers[unique]) {
                 clearTimeout(v.noticeTimers[unique]);
@@ -3921,7 +3936,7 @@ GateOne.Base.update(GateOne.Visual, {
         }, 50);
         close.innerHTML = go.Icons['panelclose'];
         close.onclick = closeWidget;
-        configure.innerHTML = go.Icons['prefs'];
+        configure.innerHTML = go.Icons['prefs'].replace('prefsGradient', 'widgetGradient' + u.randomPrime());
         widgetTitle.innerHTML = title;
         if (options.onconfig) {
             configure.onclick = options.onconfig;
@@ -4071,11 +4086,11 @@ go.Base.update(GateOne.Terminal, {
             logDebug = GateOne.Logging.logDebug;
         }
         // Create our info panel
-        go.Icons['info'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient12680" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#linearGradient12680)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
+        go.Icons['info'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
         toolbarInfo.innerHTML = go.Icons['info'];
-        go.Icons['close'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient3010" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#linearGradient3010)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
+        go.Icons['close'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="closeGradient" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#closeGradient)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
         toolbarClose.innerHTML = go.Icons['close'];
-        go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient12259" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#linearGradient12259)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#linearGradient12259)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#linearGradient12259)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#linearGradient12259)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#linearGradient12259)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#linearGradient12259)"/></g></g></svg>';
+        go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="newTermGradient" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#newTermGradient)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/></g></g></svg>';
         toolbarNewTerm.innerHTML = go.Icons['newTerm'];
         infoPanelH2.innerHTML = "Gate One";
         infoPanelH2.title = "Click to edit.  Leave blank for default.";
@@ -4541,7 +4556,6 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
         }
-        return null;
     },
     loadWebWorkerAction: function(source) {
         // Loads our Web Worker given it's *source* (which is sent to us over the WebSocket which is a clever workaround to the origin limitations of Web Workers =).
@@ -4785,22 +4799,55 @@ go.Base.update(GateOne.Terminal, {
         pastearea.oncontextmenu = function(e) {
             pastearea.focus();
         }
-        pastearea.onmouseover = function(e) {
+        pastearea.onmousemove = function(e) {
             var go = GateOne,
                 u = go.Utils,
                 prefix = go.prefs.prefix,
+                termline = null,
+                elem = null,
+                maxRecursion = 10,
+                count = 0,
                 X = e.clientX,
-                Y = e.clientY;
-            u.hideElement(pastearea);
-            if (GateOne.Terminal.pasteAreaTimer) {
+                Y = e.clientY,
+                timeout = 200;
+            if (pastearea.style.display != 'none') {
+                u.hideElement(pastearea);
+                go.Input.pasteareaTemp = pastearea.onmousemove;
+                pastearea.onmouseover = null;
+            }
+            var elementUnder = document.elementFromPoint(X, Y);
+            while (!termline) {
+                count += 1;
+                if (count > maxRecursion) {
+                    break;
+                }
+                if (!elem) {
+                    elem = elementUnder;
+                }
+                if (typeof(elem.className) == "undefined") {
+                    break;
+                }
+                if (elem.className.indexOf('termline') != -1) {
+                    termline = elem;
+                } else if (elem.className.indexOf('clickable') != -1) {
+                    // Clickable elements mean we shouldn't make the pastearea reappear
+                    if (go.Terminal.pasteAreaTimer) {
+                        clearTimeout(go.Terminal.pasteAreaTimer);
+                        go.Terminal.pasteAreaTimer = null;
+                    }
+                    return;
+                } else {
+                    elem = elem.parentNode;
+                }
+            }
+            if (go.Terminal.pasteAreaTimer) {
                 return; // Let it return to visibility on its own
             }
-            GateOne.Terminal.pasteAreaTimer = setTimeout(function() {
-                if (!u.getSelText()) {
-                    u.showElement(pastearea);
-                    GateOne.Terminal.pasteAreaTimer = null;
-                }
-            }, 100);
+            go.Terminal.pasteAreaTimer = setTimeout(function() {
+                pastearea.onmousemove = go.Input.pasteareaTemp;
+                go.Terminal.pasteAreaTimer = null;
+                u.showElement(pastearea);
+            }, timeout);
         }
         pastearea.onmousedown = function(e) {
             // When the user left-clicks assume they're trying to highlight text
@@ -4821,6 +4868,9 @@ go.Base.update(GateOne.Terminal, {
                 selectedTerm = localStorage[prefix+'selectedTerminal'];
             if (m.button.left) { // Left button depressed
                 u.hideElement(pastearea);
+                if (go.Terminal.pasteAreaTimer) {
+                    clearTimeout(go.Terminal.pasteAreaTimer);
+                }
                 var elementUnder = document.elementFromPoint(X, Y);
                 if (typeof(elementUnder.onclick) == "function") {
                     // Fire the onclick event
@@ -4844,6 +4894,10 @@ go.Base.update(GateOne.Terminal, {
                 } catch (e) {
                     // Browser won't let us execute a paste event...  Hope for the best with the pastearea!
                     ;; // Ignore
+                }
+            } else if (m.button.right) {
+                if (u.getSelText()) {
+                    u.hideElement(pastearea);
                 }
             }
         }
@@ -5208,8 +5262,8 @@ GateOne.Net.actions = {
     'reauthenticate': GateOne.Net.reauthenticate
 }
 
-GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15560" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#linearGradient15560)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
-GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient12573" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#linearGradient12573)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
+GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="prefsGradient" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#prefsGradient)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
+GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="backGradient" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#backGradient)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
 GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" class="svgplain"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
 
 })(window);

@@ -340,6 +340,9 @@ hr {
     width: 96%; /* For whatever reason Firefox needs the width/height set */
     height: 95%;
 }
+#{{container}} .pastearea:hover {
+    cursor: text;
+}
 /* This is to work around a Chrome/Windows bug where pasting gets disabled if you use JS to set display: none */
 #{{container}} .go_none { /* No prefix on this one because of issues with that in the JS code */
     display: none;
@@ -411,6 +414,7 @@ hr {
     font-size: 1em;
     margin-top: 0.1em;
     margin-bottom: 0.1em;
+    max-height: 90%; /* Ensures a scrollbar will appear if the browser window is too small to fit a panel */
     -webkit-transform: scale(0);
     -webkit-transform-origin: top right;
     -webkit-transition: all 0.5s ease-in-out;

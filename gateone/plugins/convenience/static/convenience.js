@@ -1,20 +1,109 @@
+
 (function(window, undefined) {
-var document = window.document, // Have to do this because we're sandboxed
-    // These are just convenient shortcuts:
-    go = GateOne,
+var document = window.document; // Have to do this because we're sandboxed
+
+"use strict";
+
+// These are just convenient shortcuts:
+var go = GateOne,
     u = go.Utils,
     t = go.Terminal,
     v = go.Visual,
     prefix = go.prefs.prefix;
+
+// Tunable prefs
+if (typeof(go.prefs.disableLSConvenience) == "undefined") {
+    go.prefs.disableLSConvenience = false;
+}
+if (typeof(go.prefs.disableSyslogConvenience) == "undefined") {
+    go.prefs.disableSyslogConvenience = false;
+}
+if (typeof(go.prefs.disableIPConvenience) == "undefined") {
+    go.prefs.disableIPConvenience = false;
+}
 
 // GateOne.Convenience (adds convenient stuff to Gate One)
 GateOne.Base.module(GateOne, "Convenience", "1.0", ['Base']);
 GateOne.Convenience.groupTemp = {}; // Used to pass group information around before a final message is displayed
 GateOne.Base.update(GateOne.Convenience, {
     init: function() {
-        go.Convenience.registerLSConvenience();
-        go.Convenience.registerIPConvenience();
-        go.Convenience.registerSyslogConvenience();
+        go.Convenience.addPrefs();
+        if (!go.prefs.disableLSConvenience) {
+            go.Convenience.registerLSConvenience();
+        }
+        if (!go.prefs.disableSyslogConvenience) {
+            go.Convenience.registerIPConvenience();
+        }
+        if (!go.prefs.disableIPConvenience) {
+            go.Convenience.registerSyslogConvenience();
+        }
+    },
+    addPrefs: function() {
+        /**:GateOne.Convenience.addPrefs()
+
+        Adds a number of configurable elements to Gate One's preferences panel.
+        */
+        var prefsPanelForm = u.getNode('#'+prefix+'prefs_form'),
+            saveButton = u.getNode('#'+prefix+'prefs_save'),
+            LSRow = u.createElement('div', {'class':'paneltablerow'}),
+            SyslogRow = u.createElement('div', {'class':'paneltablerow'}),
+            IPRow = u.createElement('div', {'class':'paneltablerow'}),
+            tableDiv = u.createElement('div', {'id': 'prefs_convenience', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            LSPrefsLabel = u.createElement('span', {'id': 'prefs_ls_label', 'class':'paneltablelabel'}),
+            LSPrefs = u.createElement('input', {'id': 'prefs_disableLStt', 'name': prefix+'prefs_disableLStt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            SyslogPrefsLabel = u.createElement('span', {'id': 'prefs_sylog_label', 'class':'paneltablelabel'}),
+            SyslogPrefs = u.createElement('input', {'id': 'prefs_disableSyslogtt', 'name': prefix+'prefs_disableSyslogtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            IPPrefsLabel = u.createElement('span', {'id': 'prefs_IP_label', 'class':'paneltablelabel'}),
+            IPPrefs = u.createElement('input', {'id': 'prefs_disableIPtt', 'name': prefix+'prefs_disableIPtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            conveniencesTitle = u.createElement('h3', {'style': {'margin-bottom': '0.2em'}});
+        if (prefsPanelForm) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
+            conveniencesTitle.innerHTML = "<b>Convenience Plugin</b>";
+            prefsPanelForm.insertBefore(conveniencesTitle, saveButton);
+            tableDiv.appendChild(LSRow);
+            LSPrefsLabel.innerHTML = "<b>Disable 'ls -l' Convenience:</b> ";
+            LSPrefs.checked = go.prefs.disableLSConvenience;
+            LSRow.appendChild(LSPrefsLabel);
+            LSRow.appendChild(LSPrefs);
+            tableDiv.appendChild(LSRow);
+            SyslogPrefsLabel.innerHTML = "<b>Disable Syslog Convenience:</b> ";
+            SyslogPrefs.checked = go.prefs.disableSyslogConvenience;
+            SyslogRow.appendChild(SyslogPrefsLabel);
+            SyslogRow.appendChild(SyslogPrefs);
+            tableDiv.appendChild(SyslogRow);
+            IPPrefsLabel.innerHTML = "<b>Disable IP Address Convenience:</b> ";
+            IPPrefs.checked = go.prefs.disableIPConvenience;
+            IPRow.appendChild(IPPrefsLabel);
+            IPRow.appendChild(IPPrefs);
+            tableDiv.appendChild(IPRow);
+            prefsPanelForm.insertBefore(tableDiv, saveButton);
+            // This makes sure our prefs get saved along with everything else
+            go.savePrefsCallbacks.push(go.Convenience.savePrefsCallback);
+        }
+    },
+    savePrefsCallback: function() {
+        /**:GateOne.Convenience.savePrefsCallback()
+
+        Called when the user clicks the "Save" button in the prefs panel.
+        */
+        var c = go.Convenience,
+            disableLS = u.getNode('#'+prefix+'prefs_disableLStt').checked,
+            disableSyslog = u.getNode('#'+prefix+'prefs_disableSyslogtt').checked,
+            disableIP = u.getNode('#'+prefix+'prefs_disableIPtt').checked;
+        go.prefs.disableLSConvenience = disableLS;
+        go.prefs.disableSyslogConvenience = disableSyslog;
+        go.prefs.disableIPConvenience = disableIP;
+        c.unregisterLSConvenience();
+        c.unregisterSyslogConvenience();
+        c.unregisterIPConvenience();
+        if (!disableLS) {
+            c.registerLSConvenience();
+        }
+        if (!disableSyslog) {
+            c.registerSyslogConvenience();
+        }
+        if (!disableIP) {
+            c.registerIPConvenience();
+        }
     },
     registerLSConvenience: function() {
         /**:GateOne.Convenience.registerLSConvenience()
@@ -34,6 +123,16 @@ GateOne.Base.update(GateOne.Convenience, {
             permissionsReplacementString = "<span class='clickable' onclick='GateOne.Convenience.permissionsInfo(this)'>$1</span>";
         t.registerTextTransform("ls-lperms", permissionsPattern, permissionsReplacementString);
     },
+    unregisterLSConvenience: function() {
+        /**:GateOne.Convenience.unregisterLSConvenience()
+
+        Removes all of the text transforms that apply to the output of 'ls -l'
+        */
+        t.unregisterTextTransform("ls-lbytes");
+        t.unregisterTextTransform("ls-lgroup");
+        t.unregisterTextTransform("ls-luser");
+        t.unregisterTextTransform("ls-lperms");
+    },
     registerIPConvenience: function() {
         /**:GateOne.Convenience.registerIPConvenience()
 
@@ -46,6 +145,14 @@ GateOne.Base.update(GateOne.Convenience, {
         var IPv6Pattern = /(\b((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\b)(?![\:])/g,
             IPv6ReplacementString = "<span class='clickable' onclick='GateOne.Convenience.IPInfo(this)'>$1</span>";
         t.registerTextTransform("IPv6", IPv6Pattern, IPv6ReplacementString);
+    },
+    unregisterIPConvenience: function() {
+        /**:GateOne.Convenience.registerIPConvenience()
+
+        Removes all the text transforms that apply to IP addresses.
+        */
+        t.unregisterTextTransform("IPv4");
+        t.unregisterTextTransform("IPv6");
     },
     IPInfo: function(elem) {
         /**:GateOne.Convenience.IPv4Info(elem)
@@ -268,19 +375,36 @@ GateOne.Base.update(GateOne.Convenience, {
         Registers a text transform that makes standard syslog output easier on the eyes.
         */
         var timeRegex = /^((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+[0-9]+(st|th|nd)?)\s+([0-9][0-9]\:[0-9][0-9]\:[0-9][0-9])\s+(\w+)\s+(.+?\:)?(.*?)$/mg,
-            timeReplacementString = "<span class='row' onclick='GateOne.Convenience.toggleBackground(this)'><span class='date' onclick='this.parentElement.onclick()'>$1</span> <span class='time' onclick='this.parentElement.onclick()'>$4</span> <span class='hostname' onclick='this.parentElement.onclick()'>$5</span> <span class='service' onclick='this.parentElement.onclick()'>$6</span><span class='message' onclick='this.parentElement.onclick()'>$7</span></span>";
-        t.registerTextTransform("syslogtime", timeRegex, timeReplacementString);
+            timeReplacementString = "<span class='row' onclick='GateOne.Convenience.toggleBackground(this)'><span class='date' onclick='this.parentElement.onclick()'>$1</span> <span class='time' onclick='this.parentElement.onclick(this.parentElement)'>$4</span> <span class='hostname' onclick='this.parentElement.onclick(this.parentElement)'>$5</span> <span class='service' onclick='this.parentElement.onclick(this.parentElement)'>$6</span><span class='message' onclick='this.parentElement.onclick(this.parentElement)'>$7</span></span>";
+        t.registerTextTransform("sysloglines", timeRegex, timeReplacementString);
+    },
+    unregisterSyslogConvenience: function() {
+        /**:GateOne.Convenience.unregisterSyslogConvenience()
+
+        Removes all the text transforms associated with syslog output.
+        */
+        t.unregisterTextTransform("sysloglines");
     },
     toggleBackground: function(elem) {
         /**:GateOne.Convenience.groupInfoError(result)
 
         Toggles a background color on and off for the given *elem* by adding or removing the 'selectedrow' class.
         */
+        // Sometimes the browser registers one click for the entire row sometimes it registers two clicks:  One for the row and one for the span inside of it.
+        // Sometimes the browser will only register a click for the span inside of the row--failing to fire the containing row's onclick event.
+        // The semi-strange logic below handles all of these situations gracefully.
+        if (go.Convenience.togglingBackground) {
+            return; // Only once per click thanks :)
+        }
+        go.Convenience.togglingBackground = true;
         if (elem.className.indexOf('selectedrow') == -1) {
             elem.className += ' selectedrow';
         } else {
             elem.className = elem.className.replace('selectedrow', '');
         }
+        setTimeout(function() {
+            go.Convenience.togglingBackground = false;
+        }, 1);
     }
 });
 
