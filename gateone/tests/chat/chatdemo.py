@@ -21,6 +21,7 @@
 # TODO: Write a nice long docstring for this and make sure it shows up in the
 #       regular Gate One documentation.
 
+import sys
 import logging
 import time
 import json
@@ -220,4 +221,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(0)
