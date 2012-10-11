@@ -54,7 +54,7 @@ def walk_data_files(path, install_path=prefix):
     Walks *path* and returns a list suitable for use in data_files.
     *install_path* will be used as the base installation path of the output.
 
-    NOTE: Ignores .git directories.
+    NOTE: Ignores .git directories and .pyc/.pyo files.
     """
     out = []
     for (dirpath, dirs, filenames) in os.walk(path):
@@ -64,6 +64,8 @@ def walk_data_files(path, install_path=prefix):
         shortened_path = dirpath.split(setup_dir)[1][1:]
         final_path = os.path.join(install_path, shortened_path)
         for fname in filenames:
+            if fname.endswith('.pyc') or fname.endswith('.pyo'):
+                continue # Skip it
             file_path = os.path.join(dirpath, fname)
             thesefiles.append(file_path)
         out.append((final_path, thesefiles))

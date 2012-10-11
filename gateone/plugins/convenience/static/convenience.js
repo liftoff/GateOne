@@ -1,14 +1,17 @@
-(function(window, undefined) {
 
-var document = window.document, // Have to do this because we're sandboxed
-    // These are just convenient shortcuts:
-    go = GateOne,
+(function(window, undefined) {
+var document = window.document; // Have to do this because we're sandboxed
+
+"use strict";
+
+// These are just convenient shortcuts:
+var go = GateOne,
     u = go.Utils,
     t = go.Terminal,
     v = go.Visual,
     prefix = go.prefs.prefix;
 
-// Tunable playback prefs
+// Tunable prefs
 if (typeof(go.prefs.disableLSConvenience) == "undefined") {
     go.prefs.disableLSConvenience = false;
 }

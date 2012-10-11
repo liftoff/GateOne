@@ -1813,6 +1813,80 @@ GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up 
 // 'KEY_N': [{'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'}]
 GateOne.Base.update(GateOne.Input, {
     // GateOne.Input is in charge of all keyboard input as well as copy & paste stuff
+    onMouseDown: function(e) {
+        // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
+        logDebug("goDiv.onmousedown() button: " + e.button + ", which: " + e.which);
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            goDiv = u.getNode(go.prefs.goDiv),
+            m = go.Input.mouse(e),
+            selectedTerm = localStorage[prefix+'selectedTerminal'],
+            selectedPastearea = go.terminals[selectedTerm]['pasteNode'],
+            selectedText = u.getSelText();
+        go.Input.mouseDown = true;
+        // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
+        // However, we only want this when the user is actually bringing up the context menu because
+        // having it enabled slows down screen updates by a non-trivial amount.
+        if (m.button.middle) {
+            u.showElement(selectedPastearea);
+            selectedPastearea.focus();
+            if (selectedText.length) {
+                go.Input.handlingPaste = true; // We're emulating a paste so we might as well act like one
+                // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
+                e.preventDefault();
+                go.Input.queue(selectedText);
+                go.Net.sendChars();
+                setTimeout(function() {
+                    go.Input.handlingPaste = false;
+                }, 250);
+            }
+        } else if (m.button.right) {
+            if (!selectedText.length) {
+                // Redisplay the pastearea so we can get a proper context menu in case the user wants to paste
+                // NOTE: On Firefox this behavior is broken.  See: https://bugzilla.mozilla.org/show_bug.cgi?id=785773
+                u.showElement(selectedPastearea);
+                selectedPastearea.focus();
+            } else {
+                goDiv.focus();
+            }
+        } else {
+            goDiv.focus();
+        }
+    },
+    onMouseUp: function(e) {
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            selectedTerm = localStorage[prefix+'selectedTerminal'],
+            selectedPastearea = go.terminals[selectedTerm]['pasteNode'],
+            goDiv = u.getNode(go.prefs.goDiv),
+            selectedText = u.getSelText();
+        logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
+        // Once the user is done pasting (or clicking), set it back to false for speed
+//             goDiv.contentEditable = false; // Having this as false makes screen updates faster
+        go.Input.mouseDown = false;
+        if (selectedText) {
+            // Don't show the pastearea as it will prevent the user from right-clicking to copy.
+            return;
+        }
+        if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
+            return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
+        }
+        if (!go.Visual.gridView) {
+            setTimeout(function() {
+                if (!u.getSelText()) {
+                    u.showElement(selectedPastearea);
+                }
+            }, 750); // NOTE: For this to work (to allow users to double-click-to-highlight a word) they must double-click before this timer fires.
+        }
+        // If the Firefox bug timer hasn't fired by now it wasn't a click-and-drag event
+        if (go.Input.firefoxBugTimer) {
+            clearTimeout(go.Input.firefoxBugTimer);
+            go.Input.firefoxBugTimer = null;
+        }
+        goDiv.focus();
+    },
     capture: function() {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
         logDebug('capture()');
@@ -1829,70 +1903,8 @@ GateOne.Base.update(GateOne.Input, {
             // After the copy we need to bring the pastearea back up so the context menu will work to paste again
             u.showElements('.pastearea');
         }
-        goDiv.onmousedown = function(e) {
-            // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
-            logDebug("goDiv.onmousedown() button: " + e.button + ", which: " + e.which);
-            var m = go.Input.mouse(e),
-                selectedTerm = localStorage[prefix+'selectedTerminal'],
-                selectedPastearea = go.terminals[selectedTerm]['pasteNode'],
-                selectedText = u.getSelText();
-            go.Input.mouseDown = true;
-            // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
-            // However, we only want this when the user is actually bringing up the context menu because
-            // having it enabled slows down screen updates by a non-trivial amount.
-            if (m.button.middle) {
-                u.showElement(selectedPastearea);
-                selectedPastearea.focus();
-                if (selectedText.length) {
-                    go.Input.handlingPaste = true; // We're emulating a paste so we might as well act like one
-                    // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
-                    e.preventDefault();
-                    go.Input.queue(selectedText);
-                    go.Net.sendChars();
-                    setTimeout(function() {
-                        go.Input.handlingPaste = false;
-                    }, 250);
-                }
-            } else if (m.button.right) {
-                if (!selectedText.length) {
-                    // Redisplay the pastearea so we can get a proper context menu in case the user wants to paste
-                    // NOTE: On Firefox this behavior is broken.  See: https://bugzilla.mozilla.org/show_bug.cgi?id=785773
-                    u.showElement(selectedPastearea);
-                    selectedPastearea.focus();
-                } else {
-                    goDiv.focus();
-                }
-            } else {
-                goDiv.focus();
-            }
-        }
-        goDiv.onmouseup = function(e) {
-            logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
-            // Once the user is done pasting (or clicking), set it back to false for speed
-//             goDiv.contentEditable = false; // Having this as false makes screen updates faster
-            go.Input.mouseDown = false;
-            var selectedText = u.getSelText();
-            if (selectedText) {
-                // Don't show the pastearea as it will prevent the user from right-clicking to copy.
-                return;
-            }
-            if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
-                return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
-            }
-            if (!go.Visual.gridView) {
-                setTimeout(function() {
-                    if (!u.getSelText()) {
-                        u.showElements('.pastearea');
-                    }
-                }, 750); // NOTE: For this to work (to allow users to double-click-to-highlight a word) they must double-click before this timer fires.
-            }
-            // If the Firefox bug timer hasn't fired by now it wasn't a click-and-drag event
-            if (go.Input.firefoxBugTimer) {
-                clearTimeout(go.Input.firefoxBugTimer);
-                go.Input.firefoxBugTimer = null;
-            }
-            goDiv.focus();
-        }
+        goDiv.onmousedown = go.Input.onMouseDown;
+        goDiv.onmouseup = go.Input.onMouseUp;
         if (go.Input.overlayTimer) {
             clearTimeout(go.Input.overlayTimer);
             go.Input.overlayTimer = null;
@@ -2898,6 +2910,9 @@ GateOne.Base.update(GateOne.Visual, {
         }
         v.infoTimer = setTimeout(function() {
             v.applyStyle(infoContainer, {'opacity': 0});
+            setTimeout(function() {
+                u.hideElement(infoContainer);
+            }, 1000);
         }, 1000);
     },
     displayMessage: function(message, /*opt*/timeout, /*opt*/removeTimeout, /*opt*/id) {
@@ -4785,24 +4800,55 @@ go.Base.update(GateOne.Terminal, {
         pastearea.oncontextmenu = function(e) {
             pastearea.focus();
         }
-        pastearea.onmouseover = function(e) {
+        pastearea.onmousemove = function(e) {
             var go = GateOne,
                 u = go.Utils,
                 prefix = go.prefs.prefix,
+                termline = null,
+                elem = null,
+                maxRecursion = 10,
+                count = 0,
                 X = e.clientX,
-                Y = e.clientY;
+                Y = e.clientY,
+                timeout = 200;
             if (pastearea.style.display != 'none') {
                 u.hideElement(pastearea);
+                go.Input.pasteareaTemp = pastearea.onmousemove;
+                pastearea.onmouseover = null;
+            }
+            var elementUnder = document.elementFromPoint(X, Y);
+            while (!termline) {
+                count += 1;
+                if (count > maxRecursion) {
+                    break;
+                }
+                if (!elem) {
+                    elem = elementUnder;
+                }
+                if (typeof(elem.className) == "undefined") {
+                    break;
+                }
+                if (elem.className.indexOf('termline') != -1) {
+                    termline = elem;
+                } else if (elem.className.indexOf('clickable') != -1) {
+                    // Clickable elements mean we shouldn't make the pastearea reappear
+                    if (go.Terminal.pasteAreaTimer) {
+                        clearTimeout(go.Terminal.pasteAreaTimer);
+                        go.Terminal.pasteAreaTimer = null;
+                    }
+                    return;
+                } else {
+                    elem = elem.parentNode;
+                }
             }
             if (go.Terminal.pasteAreaTimer) {
                 return; // Let it return to visibility on its own
             }
             go.Terminal.pasteAreaTimer = setTimeout(function() {
-                if (!u.getSelText()) {
-                    u.showElement(pastearea);
-                    go.Terminal.pasteAreaTimer = null;
-                }
-            }, 100);
+                pastearea.onmousemove = go.Input.pasteareaTemp;
+                go.Terminal.pasteAreaTimer = null;
+                u.showElement(pastearea);
+            }, timeout);
         }
         pastearea.onmousedown = function(e) {
             // When the user left-clicks assume they're trying to highlight text
@@ -4849,6 +4895,10 @@ go.Base.update(GateOne.Terminal, {
                 } catch (e) {
                     // Browser won't let us execute a paste event...  Hope for the best with the pastearea!
                     ;; // Ignore
+                }
+            } else if (m.button.right) {
+                if (u.getSelText()) {
+                    u.hideElement(pastearea);
                 }
             }
         }

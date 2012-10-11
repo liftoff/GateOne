@@ -851,7 +851,7 @@ class JSPluginsHandler(BaseHandler):
         if os.path.exists(combined_plugins):
             with open(combined_plugins) as f:
                 js_data = f.read()
-                if len(js_data) < 100: # Needs to be created
+                if len(js_data) < 200: # Needs to be created
                     self.write(self._combine_plugins())
                     return
                 else: # It hasn't changed, send it as-is
