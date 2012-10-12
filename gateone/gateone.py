@@ -1467,6 +1467,8 @@ class TerminalWebSocket(WebSocketHandler):
                 'GO_SESSION_DIR': session_dir
             }
             m.spawn(rows, cols, env=env, em_dimensions=self.em_dimensions)
+            # Give the terminal emulator a path to store temporary files
+            m.term.temppath = session_dir
             if resumed_dtach:
                 # Send an extra Ctrl-L to refresh the screen and fix the sizing
                 # after it has been reattached.
