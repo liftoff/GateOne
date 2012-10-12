@@ -4403,7 +4403,19 @@ go.Base.update(GateOne.Terminal, {
                     u.scrollToBottom(existingPre);
                 }
                 if (existingScreen) { // Update the terminal display
+                    // Get the current scrollbar position so we can make a determination as to whether or not we should scroll to the bottom.
+                    var scroll = false;
+                    if ((existingPre.scrollHeight - existingPre.scrollTop) == existingPre.clientHeight) {
+                        scroll = true;
+                    }
+                    // NOTE: Why would we need to scroll to the bottom if it is *already* scrolled to the bottom?  Because, when the entire screen is updated and there's really long lines or images it can result in the page being scrolled up a bit.  If the screen was scrolled all the way to the bottom before we applied an update we know that we should scroll to the bottom again.
                     GateOne.Terminal.applyScreen(screen, term);
+                    if (scroll) {
+                        setTimeout(function() {
+                            // It can take a second for the browser to draw everything so we wait just a moment before scrolling
+                            u.scrollToBottom(existingPre);
+                        }, 100);
+                    }
                 } else { // Create the elements necessary to display the screen
                     var screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': 'screen'});
                     for (var i=0; i < screen.length; i++) {
