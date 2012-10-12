@@ -599,38 +599,41 @@ class FileType(object):
     """
     An object to hold the attributes of a supported file capture/output type.
     """
-    def __init__(self, name, re_header, re_capture, path=""):
+    def __init__(self, name, mimetype, re_header, re_capture, path=""):
         """
         **name:** Name of the file type.
+        **mimetype:** Mime type of the file.
         **re_header:** The regex to match the start of the file.
         **re_capture:** The regex to carve the file out of the stream.
         **path:** The path to the file.
         """
         self.name = name
+        self.mimetype = mimetype
         self.re_header = re_header
         self.re_capture = re_capture
         # A path just in case something needs to access it outside of Python:
         self.path = path
         self.file_obj = None
-        if self.path:
-            self.file_obj = open(path)
 
     def __repr__(self):
         return "<%s>" % self.name
 
     def __str__(self):
-        "Override if the defined file type warrants a text-based output"
+        "Override if the defined file type warrants a text-based output."
         return self.__repr__()
 
     def __del__(self):
         """
         Make sure that self.file_obj gets closed/deleted.
         """
-        self.file_obj.close()
+        logging.debug("FileType __del__(): Closing temp file")
+        self.file_obj.close() # Ensures it gets deleted
 
     def raw(self):
         self.file_obj.seek(0)
-        return open(self.file_obj).read()
+        data = open(self.file_obj).read()
+        self.file_obj.seek(0)
+        return data
 
     def html(self):
         """
@@ -638,7 +641,7 @@ class FileType(object):
         """
         raise NotImplementedError
 
-    def capture(self, term_instance, data):
+    def capture(self, data, term_instance=None):
         """
         Stores *data* as a temporary file and returns that file's object.
         *term_instance* can be used by overrides of this function to make
@@ -649,86 +652,107 @@ class FileType(object):
         data = str(data).replace('\r\n', '\n')
         logging.debug("capture() len(data): %s" % len(data))
         # Write the data to disk in a temporary location
-        self.file_obj = tempfile.NamedTemporaryFile()
+        self.file_obj = tempfile.TemporaryFile()
         self.file_obj.write(data)
         self.file_obj.flush()
-        self.path = self.file_obj.name
         # Leave it open
         return self.file_obj
+
+    def close(self):
+        """
+        Closes :attr:`self.file_obj`
+        """
+        self.file_obj.close()
 
 class ImageFile(FileType):
     """
     A subclass of :class:`FileType` for images (specifically to override
-    :meth:`self.html`)
+    :meth:`self.html` and :meth:`self.capture`).
     """
-    def capture(self, term_instance, data):
+    def capture(self, data, term_instance):
+        """
+        Captures the image contained within *data*.  Will use *term_instance*
+        to make room for the image in the terminal screen.
+
+        .. note::  Unlike :class:`FileType`, *term_instance* is mandatory.
+        """
+        logging.debug('ImageFile.capture()')
+        # Image file formats don't usually like carriage returns:
+        data = str(data).replace('\r\n', '\n')
         if Image: # PIL is loaded--try to guess how many lines the image takes
             i = StringIO.StringIO(data)
             try:
                 im = Image.open(i)
             except IOError:
                 # i.e. PIL couldn't identify the file
+                logging.error("PIL couldn't process the image")
                 return # Don't do anything--bad image
         else: # No PIL means no images.  Don't bother wasting memory.
             return
-        ref = self.file_counter.next()
-        if self.em_dimensions:
+        # Resize the image to be small enough to fit within a typical terminal
+        if im.size[0] > 640 or im.size[1] > 480:
+            im.thumbnail((640, 480), Image.ANTIALIAS)
+        # Get the current image location and reference so we can move it around
+        img_Y = term_instance.cursorY
+        img_X = term_instance.cursorX
+        ref = term_instance.screen[img_Y][img_X]
+        if term_instance.em_dimensions:
             # Make sure the image will fit properly in the screen
             width = im.size[0]
             height = im.size[1]
-            if height <= self.em_dimensions['height']:
+            if height <= term_instance.em_dimensions['height']:
                 # Fits within a line.  No need for a newline
-                num_chars = int(width/self.em_dimensions['width'])
-                # Put the image at the current cursor location
-                self.screen[self.cursorY][self.cursorX] = ref
+                num_chars = int(width/term_instance.em_dimensions['width'])
                 # Move the cursor an equivalent number of characters
-                self.cursor_right(num_chars)
+                term_instance.cursor_right(num_chars)
             else:
-                newlines = int(height/self.em_dimensions['height'])
-                self.cursorX = 0
-                newlines = abs(self.cursorY - newlines)
-                self.newline() # Start with a newline for good measure... For
-                # Some reason it seems to look better that way.
-                if newlines > self.cursorY:
+                # We're going to move the image so clear out the current spot
+                term_instance.screen[img_Y][img_X] = u' '
+                # This is how many newlines the image represents:
+                newlines = int(height/term_instance.em_dimensions['height'])
+                term_instance.cursorX = 0
+                term_instance.newline() # Start with a newline
+                if newlines > term_instance.cursorY:
                     for line in xrange(newlines):
-                        self.newline()
-                self.screen[self.cursorY][self.cursorX] = ref
-                self.newline()
+                        term_instance.newline()
+                # Save the new image location
+                term_instance.screen[
+                    term_instance.cursorY][term_instance.cursorX] = ref
+                term_instance.newline()
         else:
+            term_instance.screen[img_Y][img_X] = u' ' # We're going to move it
             # No way to calculate the number of lines the image will take
-            self.cursorY = self.rows - 1 # Move to the end of the screen
+            term_instance.cursorY = term_instance.rows - 1 # Move to the end of the screen
             # ... so it doesn't get cut off at the top
-            self.screen[self.cursorY][self.cursorX] = ref
-            self.newline() # Make some space at the bottom too just in case
-            self.newline()
-        # Write the image to disk in a temporary location
-        self.captured_files[ref] = tempfile.TemporaryFile()
-        im.save(self.captured_files[ref], im.format)
-        self.captured_files[ref].flush()
+            # Save the new image location
+            term_instance.screen[
+                term_instance.cursorY][term_instance.cursorX] = ref
+            term_instance.newline() # Make some space at the bottom too just in case
+            term_instance.newline()
+        # Write the captured image to disk
+        if self.path:
+            self.file_obj = open(self.path, 'rb+')
+        else:
+            self.file_obj = tempfile.TemporaryFile()
+        im.save(self.file_obj, im.format)
+        self.file_obj.flush()
+        self.file_obj.seek(0) # Go back to the start
+        return self.file_obj
 
     def html(self):
+        """
+        Returns :attr:`self.file_obj` as an <img> tag with the src set to a
+        data::URI.
+        """
+        self.file_obj.seek(0)
         try:
-            im = Image.open(self.path)
+            im = Image.open(self.file_obj)
         except IOError:
             # i.e. PIL couldn't identify the file
             return "<i>Image file couldn't be opened</i>"
-        # TODO: Make these sizes adjustable:
-        if im.size[0] > 640 or im.size[1] > 480:
-            # Probably too big to send to browser as a data URI.
-            if im: # Resize it...
-                # 640x480 should come in <32k for most stuff
-                try:
-                    # Save it so we don't have to do this again
-                    im.thumbnail((640, 480), Image.ANTIALIAS)
-                    im.save(self.file_obj, im.format)
-                except IOError:
-                    # Sometimes PIL will throw this if it can't read
-                    # the image.
-                    return "<i>Problem displaying this image</i>"
-            else: # Generic error
-                return "<i>Problem displaying this image</i>"
+        self.file_obj.seek(0)
         # Need to encode base64 to create a data URI
-        encoded = base64.b64encode(im.tostring()).replace('\n', '')
+        encoded = base64.b64encode(self.file_obj.read())
         data_uri = "data:image/%s;base64,%s" % (
             im.format.lower(), encoded)
         return '<img src="%s" width="%s" height="%s">' % (
@@ -737,6 +761,7 @@ class ImageFile(FileType):
 class PNGFile(ImageFile):
     "An override of ImageFile for PNGs to hard-code the regular expressions."
     name = "PNG Image"
+    mimetype = "image/png"
     re_header = re.compile('.*\x89PNG\r', re.DOTALL)
     re_capture = re.compile('\x89PNG\r.+IEND\xaeB`\x82', re.DOTALL)
     def __init__(self, path=""):
@@ -745,12 +770,11 @@ class PNGFile(ImageFile):
         """
         self.path = path
         self.file_obj = None
-        if self.path:
-            self.file_obj = open(path)
 
 class JPEGFile(ImageFile):
     "An override of ImageFile for JPEGs to hard-code the regular expressions."
     name = "JPEG Image"
+    mimetype = "image/jpeg"
     re_header = re.compile(
         '.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
     re_capture = re.compile(
@@ -763,8 +787,111 @@ class JPEGFile(ImageFile):
         """
         self.path = path
         self.file_obj = None
-        if self.path:
-            self.file_obj = open(path)
+
+class PDFFile(FileType):
+    """
+    A subclass of :class:`FileType` for PDFs (specifically to override
+    :meth:`self.html`)
+    """
+    name = "PDF"
+    mimetype = "application/pdf"
+    re_header = re.compile(r'.*%PDF-[0-9]\.[0-9]{1,2}', re.DOTALL)
+    re_capture = re.compile(r'%PDF-[0-9]\.[0-9]{1,2}.+%%EOF', re.DOTALL)
+    def __init__(self, path=""):
+        """
+        **path:** (optional) The path to the file.
+        """
+        self.path = path
+        self.file_obj = None
+
+    def generate_thumbnail(self):
+        """
+        If available, will use ghostscript (gs) to generate a thumbnail of this
+        PDF in the form of an <img> tag with the src set to a data::URI.
+        """
+        from commands import getstatusoutput
+        thumb = tempfile.NamedTemporaryFile()
+        params = [
+            'gs', # gs must be in your path
+            '-dPDFFitPage',
+            '-dPARANOIDSAFER',
+            '-dBATCH',
+            '-dNOPAUSE',
+            '-dNOPROMPT',
+            '-dMaxBitmap=500000000',
+            '-dAlignToPixels=0',
+            '-dGridFitTT=0',
+            '-dDEVICEWIDTH=90',
+            '-dDEVICEHEIGHT=120',
+            '-dORIENT1=true',
+            '-sDEVICE=jpeg',
+            '-dTextAlphaBits=4',
+            '-dGraphicsAlphaBits=4',
+            '-sOutputFile=%s' % thumb.name,
+            self.path
+        ]
+        retcode, output = getstatusoutput(" ".join(params))
+        if retcode == 0:
+            # Success
+            data = None
+            with open(thumb.name) as f:
+                data = f.read()
+            thumb.close() # Make sure it gets removed now we've read it
+            if data:
+                encoded = base64.b64encode(data)
+                data_uri = "data:image/jpeg;base64,%s" % encoded
+                return '<img src="%s">' % data_uri
+
+    def capture(self, data, term_instance):
+        """
+        Stores *data* as a temporary file and returns that file's object.
+        *term_instance* can be used by overrides of this function to make
+        adjustments to the terminal emulator after the *data* is captured e.g.
+        to make room for an image.
+        """
+        # Remove the extra \r's that the terminal adds:
+        data = str(data).replace('\r\n', '\n')
+        logging.debug("capture() len(data): %s" % len(data))
+        # Write the data to disk in a temporary location
+        self.file_obj = tempfile.NamedTemporaryFile(dir=term_instance.temppath)
+        self.path = self.file_obj.name
+        self.file_obj.write(data)
+        self.file_obj.flush()
+        self.thumbnail = self.generate_thumbnail()
+        if self.thumbnail:
+            # Make room for our link
+            img_Y = term_instance.cursorY
+            img_X = term_instance.cursorX
+            ref = term_instance.screen[img_Y][img_X]
+            term_instance.screen[img_Y][img_X] = u' ' # We're going to move it
+            term_instance.newline()
+            if term_instance.cursorY < 8:
+                for line in xrange(8 - term_instance.cursorY):
+                    term_instance.newline()
+            #for i in xrange(4): # 8 newlines ought to do it
+                #term_instance.newline()
+            # Save the new location
+            term_instance.screen[
+                term_instance.cursorY][term_instance.cursorX] = ref
+        # Leave it open
+        return self.file_obj
+
+    def html(self):
+        """
+        Returns a link to download the PDF.
+        """
+        self.file_obj.seek(0)
+        return (
+            '<span class="clickable"><a href="%s">%s<br>PDF Document</a></span>'
+            % (self.path, self.thumbnail)
+        )
+
+class NotFoundError(Exception):
+    """
+    Raised by :meth:`Terminal.remove_magic` if a given filetype was not found in
+    :attr:`Terminal.supported_magic`.
+    """
+    pass
 
 class Terminal(object):
     """
@@ -833,7 +960,8 @@ class Terminal(object):
     RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)')
     RE_NUMBERS = re.compile('\d*') # Matches any number
 
-    def __init__(self, rows=24, cols=80, em_dimensions=None, debug=False):
+    def __init__(self,
+        rows=24, cols=80, em_dimensions=None, temppath='/tmp', debug=False):
         """
         Initializes the terminal by calling *self.initialize(rows, cols)*.  This
         is so we can have an equivalent function in situations where __init__()
@@ -846,11 +974,15 @@ class Terminal(object):
 
             {'height': <px>, 'width': <px>}
 
+        *temppath*, if provided will be used to store temporary files that may
+        be captured.
+
         If *debug* is True, the root logger will have its level set to DEBUG.
         """
         if debug:
             logger = logging.getLogger()
             logger.level = logging.DEBUG
+        self.temppath = temppath
         self.initialize(rows, cols, em_dimensions)
 
     def initialize(self, rows=24, cols=80, em_dimensions=None):
@@ -1028,37 +1160,29 @@ class Terminal(object):
             3: False,
             4: False
         }
-        png_header = re.compile('.*\x89PNG\r', re.DOTALL)
-        png_whole = re.compile('\x89PNG\r.+IEND\xaeB`\x82', re.DOTALL)
-        # NOTE: Only matching JFIF and Exif JPEGs because "\xff\xd8" is too
-        # ambiguous.
-        jpeg_header = re.compile('.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
-        jpeg_whole = re.compile(
-            '\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9', re.DOTALL)
+        #png_header = re.compile('.*\x89PNG\r', re.DOTALL)
+        #png_whole = re.compile('\x89PNG\r.+IEND\xaeB`\x82', re.DOTALL)
+        ## NOTE: Only matching JFIF and Exif JPEGs because "\xff\xd8" is too
+        ## ambiguous.
+        #jpeg_header = re.compile('.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
+        #jpeg_whole = re.compile(
+            #'\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9', re.DOTALL)
         pdf_header = re.compile('.*%PDF-[0-9]+\.[0-9]+', re.DOTALL)
         pdf_whole = re.compile('%PDF-[0-9]+\.[0-9]+.+%%EOF\r?', re.DOTALL)
-        # Supported magic
-        self.supported_magic = [
-            PNGFile,
-            JPEGFile,
-            # ExpectoPatronum, # TODO: More happy memories
-        ]
-        #self.magic = {
-            ## Dict for magic "numbers" so we can tell when a particular type of
-            ## file begins and ends (so we can capture it in binary form and
-            ## later dump it out via dump_html())
-            ## The format is 'beginning': 'whole'
-            #png_header: png_whole,
-            #jpeg_header: jpeg_whole,
-        #}
+        # supported_magic gets assigned via self.add_magic() below
+        self.supported_magic = []
         # Dict for magic "numbers" so we can tell when a particular type of
         # file begins and ends (so we can capture it in binary form and
         # later dump it out via dump_html())
         # The format is 'beginning': 'whole'
         self.magic = {}
-        # Wand ready...
-        for Magic in self.supported_magic:
-            self.magic.update({Magic.re_header: Magic.re_capture})
+        # magic_map is like magic except it is in the format of:
+        #   'beginning': <filetype class>
+        self.magic_map = {}
+        # Supported magic (defaults)
+        self.add_magic(PNGFile)
+        self.add_magic(JPEGFile)
+        self.add_magic(PDFFile)
         #self.magic_functions = {
             #
             ## self.magic
@@ -1066,11 +1190,6 @@ class Terminal(object):
             #png_header: self._capture_image,
             #jpeg_header: self._capture_image,
         #}
-        # magic_functions is just a quicker way of capturing magical creatures
-        # Er, I mean supported magic
-        self.magic_functions = {}
-        for Magic in self.supported_magic:
-            self.magic_functions.update({Magic.re_header: Magic.capture})
         self.matched_header = None
         # These are for saving self.screen and self.renditions so we can support
         # an "alternate buffer"
@@ -1098,6 +1217,54 @@ class Terminal(object):
         self.prev_dump_rend = [] # Ditto
         self.html_cache = [] # Ditto
         self.watcher = None # Placeholder for the file watcher thread (if used)
+
+    def add_magic(self, filetype):
+        """
+        Adds the given *filetype* to :attr:`self.supported_magic` and generates
+        the necessary bits in :attr:`self.magic` and
+        :attr:`self.magic_map.
+
+        *filetype* is expected to be a subclass of :class:`FileType`.
+        """
+        if filetype in self.supported_magic:
+            return # Nothing to do; it's already there
+        self.supported_magic.append(filetype)
+        # Wand ready...
+        for Magic in self.supported_magic:
+            self.magic.update({Magic.re_header: Magic.re_capture})
+        # magic_map is just a convenient way of performing magic, er, I
+        # mean referencing filetypes that match the supported magic numbers.
+        self.magic_map = {}
+        for Magic in self.supported_magic:
+            self.magic_map.update({Magic.re_header: Magic})
+
+    def remove_magic(self, filetype):
+        """
+        Removes the given *filetype* from :attr:`self.supported_magic`,
+        :attr:`self.magic`, and :attr:`self.magic_map`.
+
+        *filetype* may be the specific filetype class or a string that can be
+        either a filetype.name or filetype.mimetype.
+        """
+        found = None
+        if isinstance(filetype, basestring):
+            for Type in self.supported_magic:
+                if Type.name == filetype:
+                    found = Type
+                    break
+                elif Type.mimetype == filetype:
+                    found = Type
+                    break
+        else:
+            for Type in self.supported_magic:
+                if Type == filetype:
+                    found = Type
+                    break
+        if not found:
+            raise NotFoundError("%s not found in supported magic" % filetype)
+        self.supported_magic.remove(Type)
+        del self.magic[Type.re_header]
+        del self.magic_map[Type.re_header]
 
     def init_screen(self):
         """
@@ -1537,10 +1704,10 @@ class Terminal(object):
                     self.write(before_chars, special_checks=False)
                 if after_chars:
                     self.write(after_chars, special_checks=False)
-                # If we haven't got a complete file after one second something
+                # If we haven't got a complete file after two seconds something
                 # went wrong.  Discard what we've got and restart.
-                one_second = timedelta(seconds=1)
-                if datetime.now() - self.timeout_capture > one_second:
+                two_seconds = timedelta(seconds=2)
+                if datetime.now() - self.timeout_capture > two_seconds:
                     self.capture = "" # Empty it
                     self.matched_header = None
                     chars = _("Failed to decode file.  Buffer discarded.")
@@ -1882,11 +2049,14 @@ class Terminal(object):
         words it moves the cursor back to position 0 on the line.
         """
         if self.cursorX >= self.cols:
-            if self.screen[self.cursorY][self.cursorX-1] == u' ':
-                # This is just the underlying program telling us to wrap
-                # Let the browser do it for us.
-                # NOTE: I know this assumes HTML output.  Deal with it :P
-                return
+            try:
+                if self.screen[self.cursorY][self.cursorX-1] == u' ':
+                    # This is just the underlying program telling us to wrap
+                    # Let the browser do it for us.
+                    # NOTE: I know this assumes HTML output.  Deal with it :P
+                    return
+            except IndexError:
+                pass # Probably some app going nuts (or rate limiter)
         self.cursorX = 0 # Yeah this is redundant if newline() is called.
 
     def _xon(self):
@@ -1951,15 +2121,21 @@ class Terminal(object):
         This function gets called by :meth:`Terminal.write` when the incoming
         character stream matches a value in :attr:`self.magic`.  It will call
         whatever function is associated with the matching regex in
-        :attr:`self.magic_functions`.
+        :attr:`self.magic_map`.
         """
         logging.debug("_capture_file()")
         for magic_header in self.magic.keys():
             if magic_header.match(self.capture):
-                # Capture the data
-                ref = term_instance.file_counter.next()
-                self.captured_files[ref] = self.magic_functions[magic_header](
-                    self, self.capture)
+                # Create a reference point we can use to retrieve the file later
+                ref = self.file_counter.next()
+                # Before doing anything else we need to mark the current cursor
+                # location as belonging to our file
+                self.screen[self.cursorY][self.cursorX] = ref
+                # Create an instance of the filetype we can reference
+                filetype_instance = self.magic_map[magic_header]()
+                filetype_instance.capture(self.capture, self)
+                self.captured_files[ref] = filetype_instance
+                print("filetype instance: %s" % filetype_instance)
                 # Start up an open file watcher so leftover file objects get
                 # closed when they're no longer being used
                 if not self.watcher or not self.watcher.isAlive():
@@ -1968,7 +2144,8 @@ class Terminal(object):
                         name='watcher', target=self._captured_fd_watcher)
                     self.watcher.setDaemon(True)
                     self.watcher.start()
-                break
+                return
+        print("Didn't find magic!")
 
     def _capture_image(self):
         """
@@ -2078,7 +2255,7 @@ class Terminal(object):
                             found = True
                             break
                 if not found:
-                    self.captured_files[ref].close()
+                    #self.captured_files[ref].close()
                     del self.captured_files[ref]
 
     def _string_terminator(self):
@@ -2952,45 +3129,46 @@ class Terminal(object):
                 rend = renditions_store[rend] # Get actual rendition
                 if ord(char) >= special: # Special stuff =)
                     # Obviously, not really a single character
-                    if not Image: # Can't use images in the terminal
-                        outline += "<i>Image file</i>"
-                        continue # Can't do anything else
-                    image_file = self.captured_files[char]
-                    image_file.seek(0) # Back to the start
-                    image_data = image_file.read()
-                    # PIL likes StringIO objects for some reason
-                    i = StringIO.StringIO(image_data)
-                    try:
-                        im = Image.open(i)
-                    except IOError:
-                        # i.e. PIL couldn't identify the file
-                        outline += "<i>Image file</i>"
-                        continue # Can't do anything else
-                    # TODO: Make these sizes adjustable:
-                    if im.size[0] > 640 or im.size[1] > 480:
-                        # Probably too big to send to browser as a data URI.
-                        if im: # Resize it...
-                            # 640x480 should come in <32k for most stuff
-                            try:
-                                im.thumbnail((640, 480), Image.ANTIALIAS)
-                                im.save(image_file, im.format)
-                                # Re-read it in
-                                image_file.seek(0)
-                                image_data = image_file.read()
-                            except IOError:
-                                # Sometimes PIL will throw this if it can't read
-                                # the image.
-                                outline += "<i>Problem displaying this image</i>"
-                                continue
-                        else: # Generic error
-                            outline += "<i>Problem displaying this image</i>"
-                            continue
+                    outline += self.captured_files[char].html()
+                    #if not Image: # Can't use images in the terminal
+                        #outline += "<i>Image file</i>"
+                        #continue # Can't do anything else
+                    #image_file = self.captured_files[char]
+                    #image_file.seek(0) # Back to the start
+                    #image_data = image_file.read()
+                    ## PIL likes StringIO objects for some reason
+                    #i = StringIO.StringIO(image_data)
+                    #try:
+                        #im = Image.open(i)
+                    #except IOError:
+                        ## i.e. PIL couldn't identify the file
+                        #outline += "<i>Image file</i>"
+                        #continue # Can't do anything else
+                    ## TODO: Make these sizes adjustable:
+                    #if im.size[0] > 640 or im.size[1] > 480:
+                        ## Probably too big to send to browser as a data URI.
+                        #if im: # Resize it...
+                            ## 640x480 should come in <32k for most stuff
+                            #try:
+                                #im.thumbnail((640, 480), Image.ANTIALIAS)
+                                #im.save(image_file, im.format)
+                                ## Re-read it in
+                                #image_file.seek(0)
+                                #image_data = image_file.read()
+                            #except IOError:
+                                ## Sometimes PIL will throw this if it can't read
+                                ## the image.
+                                #outline += "<i>Problem displaying this image</i>"
+                                #continue
+                        #else: # Generic error
+                            #outline += "<i>Problem displaying this image</i>"
+                            #continue
                     # Need to encode base64 to create a data URI
-                    encoded = base64.b64encode(image_data).replace('\n', '')
-                    data_uri = "data:image/%s;base64,%s" % (
-                        im.format.lower(), encoded)
-                    outline += '<img src="%s" width="%s" height="%s">' % (
-                        data_uri, im.size[0], im.size[1])
+                    #encoded = base64.b64encode(image_data).replace('\n', '')
+                    #data_uri = "data:image/%s;base64,%s" % (
+                        #im.format.lower(), encoded)
+                    #outline += '<img src="%s" width="%s" height="%s">' % (
+                        #data_uri, im.size[0], im.size[1])
                     continue
                 changed = True
                 if char in "&<>":
@@ -3103,46 +3281,47 @@ class Terminal(object):
                 rend = renditions_store[rend] # Get actual rendition
                 if ord(char) >= special: # Special stuff =)
                     # Obviously, not really a single character
-                    if not Image: # Can't use images in the terminal
-                        outline += "<i>Image file</i>"
-                        continue # Can't do anything else
-                    image_file = self.captured_files[char]
-                    image_file.seek(0) # Back to the start
-                    image_data = image_file.read()
-                    # PIL likes StringIO objects for some reason
-                    i = StringIO.StringIO(image_data)
-                    try:
-                        im = Image.open(i)
-                    except IOError:
-                        # i.e. PIL couldn't identify the file
-                        outline += "<i>Image file</i>"
-                        continue # Can't do anything else
-                    # TODO: Make these sizes adjustable:
-                    if im.size[0] > 640 or im.size[1] > 480:
-                        # Probably too big to send to browser as a data URI.
-                        if im: # Resize it...
-                            # 640x480 should come in <32k for most stuff
-                            try:
-                                image_file.seek(0)
-                                im.thumbnail((640, 480), Image.ANTIALIAS)
-                                im.save(image_file, im.format)
-                                # Re-read it in
-                                image_file.seek(0)
-                                image_data = image_file.read()
-                            except IOError:
-                                # Sometimes PIL will throw this if it can't read
-                                # the image.
-                                outline += "<i>Problem displaying this image</i>"
-                                continue
-                        else: # Generic error
-                            outline += "<i>Problem displaying this image</i>"
-                            continue
-                    # Need to encode base64 to create a data URI
-                    encoded = base64.b64encode(image_data).replace('\n', '')
-                    data_uri = "data:image/%s;base64,%s" % (
-                        im.format.lower(), encoded)
-                    outline += '<img src="%s" width="%s" height="%s">' % (
-                        data_uri, im.size[0], im.size[1])
+                    outline += self.captured_files[char].html()
+                    #if not Image: # Can't use images in the terminal
+                        #outline += "<i>Image file</i>"
+                        #continue # Can't do anything else
+                    #image_file = self.captured_files[char]
+                    #image_file.seek(0) # Back to the start
+                    #image_data = image_file.read()
+                    ## PIL likes StringIO objects for some reason
+                    #i = StringIO.StringIO(image_data)
+                    #try:
+                        #im = Image.open(i)
+                    #except IOError:
+                        ## i.e. PIL couldn't identify the file
+                        #outline += "<i>Image file</i>"
+                        #continue # Can't do anything else
+                    ## TODO: Make these sizes adjustable:
+                    #if im.size[0] > 640 or im.size[1] > 480:
+                        ## Probably too big to send to browser as a data URI.
+                        #if im: # Resize it...
+                            ## 640x480 should come in <32k for most stuff
+                            #try:
+                                #image_file.seek(0)
+                                #im.thumbnail((640, 480), Image.ANTIALIAS)
+                                #im.save(image_file, im.format)
+                                ## Re-read it in
+                                #image_file.seek(0)
+                                #image_data = image_file.read()
+                            #except IOError:
+                                ## Sometimes PIL will throw this if it can't read
+                                ## the image.
+                                #outline += "<i>Problem displaying this image</i>"
+                                #continue
+                        #else: # Generic error
+                            #outline += "<i>Problem displaying this image</i>"
+                            #continue
+                    ## Need to encode base64 to create a data URI
+                    #encoded = base64.b64encode(image_data).replace('\n', '')
+                    #data_uri = "data:image/%s;base64,%s" % (
+                        #im.format.lower(), encoded)
+                    #outline += '<img src="%s" width="%s" height="%s">' % (
+                        #data_uri, im.size[0], im.size[1])
                     continue
                 changed = True
                 if char in "&<>":
