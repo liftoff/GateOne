@@ -145,7 +145,7 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import re, logging, base64, StringIO, codecs, unicodedata, tempfile
+import os, re, logging, base64, StringIO, codecs, unicodedata, tempfile
 from array import array
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -599,20 +599,27 @@ class FileType(object):
     """
     An object to hold the attributes of a supported file capture/output type.
     """
-    def __init__(self, name, mimetype, re_header, re_capture, path=""):
+    def __init__(self,
+        name, mimetype, re_header, re_capture, suffix="", path="", linkpath="", icondir=None):
         """
         **name:** Name of the file type.
         **mimetype:** Mime type of the file.
         **re_header:** The regex to match the start of the file.
         **re_capture:** The regex to carve the file out of the stream.
-        **path:** The path to the file.
+        **suffix:** (optional) The suffix to be appended to the end of the filename (if one is generated).
+        **path:** (optional) The path to a file or directory where the file should be stored.  If *path* is a directory a random filename will be chosen.
+        **linkpath:** (optional) The path to use when generating a link in HTML output.
+        **icondir:** (optional) A path to look for a relevant icon to display when generating HTML output.
         """
         self.name = name
         self.mimetype = mimetype
         self.re_header = re_header
         self.re_capture = re_capture
+        self.suffix = suffix
         # A path just in case something needs to access it outside of Python:
         self.path = path
+        self.linkpath = linkpath
+        self.icondir = icondir
         self.file_obj = None
 
     def __repr__(self):
@@ -731,7 +738,16 @@ class ImageFile(FileType):
             term_instance.newline()
         # Write the captured image to disk
         if self.path:
-            self.file_obj = open(self.path, 'rb+')
+            if os.path.exists(self.path):
+                if os.path.isdir(self.path):
+                    # Assume that a path was given for a reason and use a
+                    # NamedTemporaryFile instead of TemporaryFile.
+                    self.file_obj = tempfile.NamedTemporaryFile(
+                        suffix=self.suffix, dir=self.path)
+                    # Update self.path to use the new, actual file path
+                    self.path = self.file_obj.name
+                else:
+                    self.file_obj = open(self.path, 'rb+')
         else:
             self.file_obj = tempfile.TemporaryFile()
         im.save(self.file_obj, im.format)
@@ -749,7 +765,7 @@ class ImageFile(FileType):
             im = Image.open(self.file_obj)
         except IOError:
             # i.e. PIL couldn't identify the file
-            return "<i>Image file couldn't be opened</i>"
+            return "<i>Error displaying image</i>"
         self.file_obj.seek(0)
         # Need to encode base64 to create a data URI
         encoded = base64.b64encode(self.file_obj.read())
@@ -759,31 +775,39 @@ class ImageFile(FileType):
             data_uri, im.size[0], im.size[1])
 
 class PNGFile(ImageFile):
-    "An override of ImageFile for PNGs to hard-code the regular expressions."
+    """
+    An override of :class:`ImageFile` for PNGs to hard-code the name, regular
+    expressions, mimetype, and suffix.
+    """
     name = "PNG Image"
     mimetype = "image/png"
+    suffix = ".png"
     re_header = re.compile('.*\x89PNG\r', re.DOTALL)
     re_capture = re.compile('\x89PNG\r.+IEND\xaeB`\x82', re.DOTALL)
-    def __init__(self, path=""):
+    def __init__(self, path="", **kwargs):
         """
-        **path:** (optional) The path to the file.
+        **path:** (optional) The path to a file or directory where the file should be stored.  If *path* is a directory a random filename will be chosen.
         """
         self.path = path
         self.file_obj = None
 
 class JPEGFile(ImageFile):
-    "An override of ImageFile for JPEGs to hard-code the regular expressions."
+    """
+    An override of :class:`ImageFile` for JPEGs to hard-code the name, regular
+    expressions, mimetype, and suffix.
+    """
     name = "JPEG Image"
     mimetype = "image/jpeg"
+    suffix = ".jpeg"
     re_header = re.compile(
         '.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
     re_capture = re.compile(
         '\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9',
         re.DOTALL
     )
-    def __init__(self, path=""):
+    def __init__(self, path="", **kwargs):
         """
-        **path:** (optional) The path to the file.
+        **path:** (optional) The path to a file or directory where the file should be stored.  If *path* is a directory a random filename will be chosen.
         """
         self.path = path
         self.file_obj = None
@@ -791,18 +815,29 @@ class JPEGFile(ImageFile):
 class PDFFile(FileType):
     """
     A subclass of :class:`FileType` for PDFs (specifically to override
-    :meth:`self.html`)
+    :meth:`self.html`).  Has hard-coded name, mimetype, suffix, and regular
+    expressions.  This class will also utilize :attr:`self.icondir` to look for
+    an icon named, 'pdf.svg'.  If found it will be utilized by
+    :meth:`self.html` when generating output.
     """
     name = "PDF"
     mimetype = "application/pdf"
-    re_header = re.compile(r'.*%PDF-[0-9]\.[0-9]{1,2}', re.DOTALL)
-    re_capture = re.compile(r'%PDF-[0-9]\.[0-9]{1,2}.+%%EOF', re.DOTALL)
-    def __init__(self, path=""):
+    suffix = ".pdf"
+    re_header = re.compile(r'.*%PDF-[0-9]\.[0-9]{1,2}.+?obj', re.DOTALL)
+    re_capture = re.compile(r'%PDF-[0-9]\.[0-9]{1,2}.+?obj.+%%EOF', re.DOTALL)
+    icon = "pdf.svg" # Name of the file inside of self.icondir
+    def __init__(self, path="", linkpath="", icondir=None):
         """
         **path:** (optional) The path to the file.
+        **linkpath:** (optional) The path to use when generating a link in HTML output.
+        **icondir:** (optional) A path to look for a relevant icon to display when generating HTML output.
         """
         self.path = path
+        self.linkpath = linkpath
+        self.icondir = icondir
         self.file_obj = None
+        self.thumbnail = None
+        print("PDFFile path: %s, linkpath: %s, icondir: %s" % (path, linkpath, icondir))
 
     def generate_thumbnail(self):
         """
@@ -853,26 +888,49 @@ class PDFFile(FileType):
         data = str(data).replace('\r\n', '\n')
         logging.debug("capture() len(data): %s" % len(data))
         # Write the data to disk in a temporary location
-        self.file_obj = tempfile.NamedTemporaryFile(dir=term_instance.temppath)
-        self.path = self.file_obj.name
+        if self.path:
+            if os.path.exists(self.path):
+                if os.path.isdir(self.path):
+                    # Assume that a path was given for a reason and use a
+                    # NamedTemporaryFile instead of TemporaryFile.
+                    self.file_obj = tempfile.NamedTemporaryFile(
+                        suffix=self.suffix, dir=self.path)
+                    # Update self.path to use the new, actual file path
+                    self.path = self.file_obj.name
+                else:
+                    self.file_obj = open(self.path, 'rb+')
+        else:
+            # Use the terminal emulator's temppath
+            self.file_obj = tempfile.NamedTemporaryFile(
+                suffix=self.suffix, dir=term_instance.temppath)
+            self.path = self.file_obj.name
         self.file_obj.write(data)
         self.file_obj.flush()
-        self.thumbnail = self.generate_thumbnail()
+        # Ghostscript-based thumbnail generation disabled due to its slow,
+        # blocking nature.  Works great though!
+        #self.thumbnail = self.generate_thumbnail()
+        # TODO: Figure out a way to do non-blocking thumbnail generation
+        if self.icondir:
+            pdf_icon = os.path.join(self.icondir, self.icon)
+            if os.path.exists(pdf_icon):
+                with open(pdf_icon) as f:
+                    self.thumbnail = f.read()
         if self.thumbnail:
             # Make room for our link
             img_Y = term_instance.cursorY
             img_X = term_instance.cursorX
             ref = term_instance.screen[img_Y][img_X]
+            print("Removing existing reference")
             term_instance.screen[img_Y][img_X] = u' ' # We're going to move it
             term_instance.newline()
-            if term_instance.cursorY < 8:
+            if term_instance.cursorY < 8: # Icons are about ~8 newlines high
                 for line in xrange(8 - term_instance.cursorY):
                     term_instance.newline()
-            #for i in xrange(4): # 8 newlines ought to do it
-                #term_instance.newline()
             # Save the new location
+            print("adding new reference location")
             term_instance.screen[
                 term_instance.cursorY][term_instance.cursorX] = ref
+            print(term_instance.dump())
         # Leave it open
         return self.file_obj
 
@@ -880,11 +938,11 @@ class PDFFile(FileType):
         """
         Returns a link to download the PDF.
         """
-        self.file_obj.seek(0)
-        return (
-            '<span class="clickable"><a href="%s">%s<br>PDF Document</a></span>'
-            % (self.path, self.thumbnail)
-        )
+        link = "%s/%s" % (self.linkpath, os.path.split(self.path)[1])
+        print("link: %s" % link)
+        return ('<a target="_blank" href="%s">%s</a><br>'
+                '   <a href="%s">PDF Document</a>'
+                % (link, self.thumbnail, link))
 
 class NotFoundError(Exception):
     """
@@ -960,8 +1018,8 @@ class Terminal(object):
     RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)')
     RE_NUMBERS = re.compile('\d*') # Matches any number
 
-    def __init__(self,
-        rows=24, cols=80, em_dimensions=None, temppath='/tmp', debug=False):
+    def __init__(self, rows=24, cols=80, em_dimensions=None, temppath='/tmp',
+        linkpath='/tmp', icondir=None, debug=False):
         """
         Initializes the terminal by calling *self.initialize(rows, cols)*.  This
         is so we can have an equivalent function in situations where __init__()
@@ -974,8 +1032,41 @@ class Terminal(object):
 
             {'height': <px>, 'width': <px>}
 
-        *temppath*, if provided will be used to store temporary files that may
-        be captured.
+        The *temppath* will be used to store files that are captured/saved by
+        the terminal emulator.  In conjunction with this is the *linkpath* which
+        will be used when creating links to these temporary files.  For example,
+        a web-based application may wish to have the terminal emulator store
+        temporary files in /tmp but give clients a completely unrelated URL to
+        retrieve these files (for security or convenience reasons).  Here's a
+        real world example of how it works::
+
+            >> term = Terminal(rows=10, cols=40, temppath='/var/tmp', linkpath='/terminal')
+            >> term.write('About to write a PDF...\n')
+            >> pdf = open('/path/to/somefile.pdf').read()
+            >> term.write(pdf)
+            >> term.dump_html()
+            ([],
+            [u'About to write a PDF...                 ',
+            # <unnecessary lines of whitespace have been removed for this example>
+            u'<a target="_blank" href="/terminal/tmpZoOKVM.pdf">PDF Document</a>']
+
+        The PDF file in question will reside in `/var/tmp` but the link was
+        created as `href="/terminal/tmpZoOKVM.pdf"`.  As long as your web app
+        knows to look in /var/tmp for incoming '/terminal' requests users should
+        be able to retrieve their documents.
+
+            http://yourapp.company.com/terminal/tmpZoOKVM.pdf
+
+        The *icondir* parameter, if given, will be used to provide a relevant
+        icon when outputing a link to a file.  When a supported
+        :class:`FileType` is captured the instance will be given the *icondir*
+        as a parameter in a manner similar to this::
+
+            filetype_instance = filetype_class(icondir=self.icondir)
+
+        That way when filetype_instance.html() is called it can display a nice
+        icon to the user...  if that particular :class:`FileType` supports icons
+        and the icon it is looking for happens to be available at *icondir*.
 
         If *debug* is True, the root logger will have its level set to DEBUG.
         """
@@ -983,6 +1074,8 @@ class Terminal(object):
             logger = logging.getLogger()
             logger.level = logging.DEBUG
         self.temppath = temppath
+        self.linkpath = linkpath
+        self.icondir = icondir
         self.initialize(rows, cols, em_dimensions)
 
     def initialize(self, rows=24, cols=80, em_dimensions=None):
@@ -1167,8 +1260,8 @@ class Terminal(object):
         #jpeg_header = re.compile('.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
         #jpeg_whole = re.compile(
             #'\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9', re.DOTALL)
-        pdf_header = re.compile('.*%PDF-[0-9]+\.[0-9]+', re.DOTALL)
-        pdf_whole = re.compile('%PDF-[0-9]+\.[0-9]+.+%%EOF\r?', re.DOTALL)
+        #pdf_header = re.compile('.*%PDF-[0-9]+\.[0-9]+', re.DOTALL)
+        #pdf_whole = re.compile('%PDF-[0-9]+\.[0-9]+.+%%EOF\r?', re.DOTALL)
         # supported_magic gets assigned via self.add_magic() below
         self.supported_magic = []
         # Dict for magic "numbers" so we can tell when a particular type of
@@ -1180,9 +1273,9 @@ class Terminal(object):
         #   'beginning': <filetype class>
         self.magic_map = {}
         # Supported magic (defaults)
+        self.add_magic(PDFFile)
         self.add_magic(PNGFile)
         self.add_magic(JPEGFile)
-        self.add_magic(PDFFile)
         #self.magic_functions = {
             #
             ## self.magic
@@ -1681,6 +1774,7 @@ class Terminal(object):
             for magic_header in magic:
                 try:
                     if magic_header.match(str(chars)):
+                        #print("magic_header matched")
                         self.matched_header = magic_header
                         self.timeout_capture = datetime.now()
                 except UnicodeEncodeError:
@@ -1689,30 +1783,59 @@ class Terminal(object):
                     # Make it so it won't barf below
                     chars = chars.encode('UTF-8', 'ignore')
             if self.capture or self.matched_header:
+                #print("Adding to self.capture")
                 self.capture += chars
                 match = magic[self.matched_header].search(self.capture)
                 if match:
-                    #logging.debug("Matched file format.  Capturing...")
+                    logging.debug("Matched file format.  Capturing...")
                     before_chars, after_chars = magic[
                             self.matched_header].split(self.capture)
+                    split = magic[self.matched_header].split(self.capture)
+                    #print("len(split): %s" % len(split))
                     # Eliminate anything before the match
+                    #print("match.group()")
                     self.capture = match.group()
-                    self._capture_file()
-                    self.capture = "" # Empty it now that is is captured
-                    self.matched_header = None # Ditto
-                if before_chars:
-                    self.write(before_chars, special_checks=False)
+                    #self._capture_file()
+                    #self.capture = "" # Empty it now that is is captured
+                    #self.matched_header = None # Ditto
                 if after_chars:
+                    #print('len(after_chars): %s' % len(after_chars))
+                    if len(after_chars) > 300:
+                        #print('length after_chars is big. Changed my mind.')
+                        # Could be more to this file.  Let's wait until output
+                        # slows down before attempting to perform a match
+                        if len(after_chars) > 53687091200: # 50Mb
+                            # This is just too big for us to capture.  Discard
+                            self.capture = ""
+                            self.matched_header = None
+                            after_chars = ""
+                            # TODO: "Ignore for X seconds" logic
+                        else:
+                            return
+                    else:
+                        # Perform the capture and start anew
+                        #self.capture = match.group()
+                        print("Capturing actual file...")
+                        self._capture_file()
+                        self.capture = "" # Empty it now that is is captured
+                        self.matched_header = None # Ditto
+                        if before_chars:
+                            # Remove them from the capture and write them immediately
+                            print("before_chars: %s" % repr(before_chars))
+                            print("len(capture) before: %s" % len(self.capture))
+                            self.capture = self.capture[len(before_chars)-1:]
+                            print("len(capture) after: %s" % len(self.capture))
+                            self.write(before_chars, special_checks=False)
                     self.write(after_chars, special_checks=False)
-                # If we haven't got a complete file after two seconds something
-                # went wrong.  Discard what we've got and restart.
-                two_seconds = timedelta(seconds=2)
-                if datetime.now() - self.timeout_capture > two_seconds:
-                    self.capture = "" # Empty it
-                    self.matched_header = None
-                    chars = _("Failed to decode file.  Buffer discarded.")
-                else:
-                    return
+                    # If we haven't got a complete file after two seconds something
+                    # went wrong.  Discard what we've got and restart.
+                    two_seconds = timedelta(seconds=2)
+                    if datetime.now() - self.timeout_capture > two_seconds:
+                        self.capture = "" # Empty it
+                        self.matched_header = None
+                        chars = _("Failed to decode file.  Buffer discarded.")
+
+                return
         # Have to convert to unicode
         try:
             chars = chars.decode('utf-8', "handle_special")
@@ -2132,10 +2255,12 @@ class Terminal(object):
                 # location as belonging to our file
                 self.screen[self.cursorY][self.cursorX] = ref
                 # Create an instance of the filetype we can reference
-                filetype_instance = self.magic_map[magic_header]()
+                filetype_instance = self.magic_map[magic_header](
+                    path=self.temppath,
+                    linkpath=self.linkpath,
+                    icondir=self.icondir)
                 filetype_instance.capture(self.capture, self)
                 self.captured_files[ref] = filetype_instance
-                print("filetype instance: %s" % filetype_instance)
                 # Start up an open file watcher so leftover file objects get
                 # closed when they're no longer being used
                 if not self.watcher or not self.watcher.isAlive():
