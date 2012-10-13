@@ -780,6 +780,7 @@ Functions
         * :js:attr:`GateOne.Utils.deleteCookie`
         * :js:attr:`GateOne.Utils.endsWith`
         * :js:attr:`GateOne.Utils.enumerateThemes` ###
+        * :js:attr:`GateOne.Utils.getCookie`
         * :js:attr:`GateOne.Utils.getEmDimensions`
         * :js:attr:`GateOne.Utils.getNode`
         * :js:attr:`GateOne.Utils.getNodes`
@@ -907,6 +908,18 @@ Functions
 .. js:function:: GateOne.Utils.enumerateThemes(messageObj)
 
     Attached to the 'themes_list' action, updates the preferences panel with the list of themes stored on the server.
+
+.. js:function:: GateOne.Utils.deleteCookie(name)
+
+    Returns the given cookie (*name*).
+
+    :param string name: The name of the cookie to retrieve.
+
+    Examples:
+
+    .. code-block:: javascript
+
+        GateOne.Utils.getCookie(GateOne.prefs.prefix + 'gateone_user'); // Returns the 'gateone_user' cookie
 
 .. js:function:: GateOne.Utils.getEmDimensions(elem)
 
@@ -1436,6 +1449,20 @@ Functions
     .. code-block:: javascript
 
         GateOne.Utils.setActiveStyleSheet("myplugin_stylesheet");
+
+.. js:function:: GateOne.Utils.setCookie(name, value, days)
+
+    Sets the cookie of the given *name* to the given *value* with the given number of expiration *days*.
+
+    :param string name: The name of the cookie to retrieve.
+    :param string value: The value to set.
+    :param number days: The number of days the cookie will be allowed to last before expiring.
+
+    Examples:
+
+    .. code-block:: javascript
+
+        GateOne.Utils.setCookie('test', 'some value', 30); // Sets the 'test' cookie to 'some value' with an expiration of 30 days
 
 .. js:function:: GateOne.Utils.showElement(elem)
 

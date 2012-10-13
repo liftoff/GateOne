@@ -341,7 +341,6 @@ def retrieve_log_playback(settings, tws=None):
                 # process was already terminated...  Nothing to do
                 pass
     PROCS[user]['queue'] = q = Queue()
-    PROCS[user]['queue'] = q = Queue()
     PROCS[user]['process'] = Process(
         target=_retrieve_log_playback, args=(q, settings))
     def send_message(fd, event):

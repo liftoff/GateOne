@@ -1344,6 +1344,31 @@ GateOne.Base.update(GateOne.Utils, {
         }
         http.send(null); // All done
     },
+    getCookie: function(name) {
+        /**:GateOne.Utils.getCookie(name)
+
+            Returns the cookie of the given *name*
+        */
+        var i,x,y,ARRcookies=document.cookie.split(";");
+        for (i=0;i<ARRcookies.length;i++) {
+            x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+            y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+            x=x.replace(/^\s+|\s+$/g,"");
+            if (x==name) {
+                return unescape(y);
+            }
+        }
+    },
+    setCookie: function(name, value, days) {
+        /**:GateOne.Utils.setCookie(name, value, days)
+
+            Sets the cookie of the given *name* to the given *value* with the given number of expiration *days*.
+        */
+        var exdate=new Date();
+        exdate.setDate(exdate.getDate() + days);
+        var c_value=escape(value) + ((days==null) ? "" : "; expires=" + exdate.toUTCString());
+        document.cookie=name + "=" + c_value;
+    },
     deleteCookie: function(name, path, domain) {
         document.cookie = name + "=" + ((path) ? ";path=" + path : "") + ((domain) ? ";domain=" + domain : "") + ";expires=Thu, 01-Jan-1970 00:00:01 GMT";
     },
@@ -1731,7 +1756,15 @@ GateOne.Base.update(GateOne.Net, {
                 }
                 if (!go.prefs.auth) {
                     // If 'auth' isn't set that means we're not in API mode but we could still be embedded so check for the user's session info in localStorage
-                    if (localStorage[prefix+'gateone_user']) {
+                    var goCookie = u.getCookie('gateone_user');
+                    if (goCookie) {
+                        // Prefer the cookie
+                        if (goCookie[0] == '"') {
+                            goCookie = eval(goCookie); // Wraped in quotes; this removes them
+                        }
+                        go.prefs.auth = goCookie;
+                        settings['auth'] = go.prefs.auth;
+                    } else if (localStorage[prefix+'gateone_user']) {
                         go.prefs.auth = localStorage[prefix+'gateone_user'];
                         settings['auth'] = go.prefs.auth;
                     }
@@ -4829,6 +4862,7 @@ go.Base.update(GateOne.Terminal, {
             }
             var elementUnder = document.elementFromPoint(X, Y);
             while (!termline) {
+                // Look for special things under the mouse until we've reached the parent container of the line
                 count += 1;
                 if (count > maxRecursion) {
                     break;
@@ -4839,9 +4873,16 @@ go.Base.update(GateOne.Terminal, {
                 if (typeof(elem.className) == "undefined") {
                     break;
                 }
-                if (elem.className.indexOf('termline') != -1) {
-                    termline = elem;
-                } else if (elem.className.indexOf('clickable') != -1) {
+                if (elem.className.indexOf && elem.className.indexOf('termline') != -1) {
+                    termline = elem; // End it
+                } else if (elem.tagName.toLowerCase && elem.tagName.toLowerCase() == 'a') {
+                    // Anchor elements mean we shouldn't make the pastearea reappear so the user can click on them
+                    if (go.Terminal.pasteAreaTimer) {
+                        clearTimeout(go.Terminal.pasteAreaTimer);
+                        go.Terminal.pasteAreaTimer = null;
+                    }
+                    return;
+                } else if (elem.className.indexOf && elem.className.indexOf('clickable') != -1) {
                     // Clickable elements mean we shouldn't make the pastearea reappear
                     if (go.Terminal.pasteAreaTimer) {
                         clearTimeout(go.Terminal.pasteAreaTimer);
@@ -5261,7 +5302,11 @@ GateOne.Base.update(GateOne.User, {
     },
     storeSession: function(message) {
         //  Stores the 'gateone_user' data in localStorage in a nearly identical fashion to how it gets stored in the 'gateone_user' cookie.
+        console.log('message: ' + message);
         localStorage[GateOne.prefs.prefix+'gateone_user'] = message;
+        // Delete the cookie just in case (it might be a leftover from testing during development; or something like that)
+        // Commented out the following because it still needs testing...  Probably won't work in many embedded situations since the browser won't let the client access a cookie belonging to a different FQDN.
+//         GateOne.Utils.deleteCookie('gateone_user');
     }
 });
 
