@@ -977,6 +977,7 @@ class TerminalWebSocket(WebSocketHandler):
             #'get_js': self.get_js,
             'enumerate_themes': self.enumerate_themes,
             'manual_title': self.manual_title,
+            'reset_terminal': self.reset_terminal,
             'debug_terminal': self.debug_terminal
         }
         self.terms = {}
@@ -1602,12 +1603,14 @@ class TerminalWebSocket(WebSocketHandler):
         mode_handler = partial(self.mode_handler, term)
         term_emulator.add_callback(
             terminal.CALLBACK_MODE, mode_handler, callback_id)
-        reset_term = partial(self.reset_terminal, term)
+        reset_term = partial(self.reset_client_terminal, term)
         term_emulator.add_callback(
             terminal.CALLBACK_RESET, reset_term, callback_id)
         dsr = partial(self.dsr, term)
         term_emulator.add_callback(
             terminal.CALLBACK_DSR, dsr, callback_id)
+        term_emulator.add_callback(
+            terminal.CALLBACK_MESSAGE, self.send_message, callback_id)
         # Call any registered plugin Terminal hooks
         if PLUGIN_TERM_HOOKS:
             for hook, func in PLUGIN_TERM_HOOKS.items():
@@ -1620,12 +1623,9 @@ class TerminalWebSocket(WebSocketHandler):
             current_setting = SESSIONS[self.session][term]['application_mode']
             self.mode_handler(term, '1', current_setting)
         if self.settings['logging'] == 'debug':
-            message = {
-                'notice': _(
-                    "WARNING: Logging is set to DEBUG.  All keystrokes will be "
-                    "logged!")
-            }
-            self.write_message(message)
+            self.send_message(_(
+                "WARNING: Logging is set to DEBUG.  All keystrokes will be "
+                "logged!"))
 
     @require_auth
     def kill_terminal(self, term):
@@ -1658,14 +1658,31 @@ class TerminalWebSocket(WebSocketHandler):
         """
         self.current_term = term
 
-    @require_auth
-    def reset_terminal(self, term):
+    def reset_client_terminal(self, term):
         """
         Tells the client to reset the terminal (clear the screen and remove
         scrollback).
         """
-        message = {'reset_terminal': term}
+        message = {'reset_client_terminal': term}
         self.write_message(json_encode(message))
+
+    @require_auth
+    def reset_terminal(self, term):
+        """
+        Performs the equivalent of the 'reset' command which resets the terminal
+        emulator (among other things) to return the terminal to a sane state in
+        the event that something went wrong (bad escape sequence).
+        """
+        logging.debug('reset_terminal(%s)' % term)
+        term = int(term)
+        # This re-creates all the tabstops:
+        tabs = u'\x1bH        ' * 22
+        reset_sequence = (
+            '\r\x1b[3g        %sr\x1bc\x1b[!p\x1b[?3;4l\x1b[4l\x1b>\r' % tabs)
+        SESSIONS[self.session][term]['multiplex'].term.write(reset_sequence)
+        SESSIONS[self.session][term]['multiplex'].write(u'\x0c') # ctrl-l
+        #self.reset_client_terminal(term)
+        self.full_refresh(term)
 
     @require_auth
     def set_title(self, term, force=False):
@@ -2150,6 +2167,14 @@ class TerminalWebSocket(WebSocketHandler):
         colors = [a.replace('.css', '') for a in colors]
         message = {'themes_list': {'themes': themes, 'colors': colors}}
         self.write_message(message)
+
+    def send_message(self, message):
+        """
+        Sends the given *message* to the client using the 'notice' WebSocket
+        action at the client.
+        """
+        message_dict = {'notice': message}
+        self.write_message(message_dict)
 
     @require_auth
     def debug_terminal(self, term):
@@ -2785,6 +2810,9 @@ def main():
     if options.kill:
         # Kill all running dtach sessions (associated with Gate One anyway)
         killall(options.session_dir)
+        # Cleanup the session_dir (it is supposed to only contain temp stuff)
+        import shutil
+        shutil.rmtree(options.session_dir, ignore_errors=True)
         sys.exit(0)
     if options.new_api_key:
         # Generate a new API key for an application to use

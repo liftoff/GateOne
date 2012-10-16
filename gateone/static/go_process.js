@@ -78,11 +78,7 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms) {
         outputObj = {'term': term};
     // If there's no scrollback buffer, try filling it with what was preserved in localStorage
     if (!scrollback.length) {
-        if (prevScrollback) {
-            scrollback = prevScrollback;
-        } else {
-            scrollback = [];
-        }
+        scrollback = [];
     }
     if (incoming_scrollback.length) {
         // Process the scrollback buffer before we concatenate it

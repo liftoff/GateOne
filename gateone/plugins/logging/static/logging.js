@@ -40,7 +40,7 @@ GateOne.Base.update(GateOne.Logging, {
             pTag = u.getNode('#'+prefix+'info_actions'),
             infoPanelViewLogs = u.createElement('button', {'id': 'logging_viewlogs', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
         infoPanelViewLogs.innerHTML = "Log Viewer";
-        infoPanelViewLogs.title = "Opens a panel where you can browse, preview, and open all of your server-side session logs."
+        infoPanelViewLogs.title = "Opens a panel where you can browse, preview, and open all of your server-side session logs.";
         infoPanelViewLogs.onclick = function() {
             l.loadLogs(true);
         }

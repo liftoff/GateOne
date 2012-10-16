@@ -1258,6 +1258,7 @@
 <li><a class="reference internal" href="#GateOne.Utils.deleteCookie" title="GateOne.Utils.deleteCookie"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.deleteCookie</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Utils.endsWith" title="GateOne.Utils.endsWith"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.endsWith</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Utils.enumerateThemes" title="GateOne.Utils.enumerateThemes"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.enumerateThemes</span></tt></a> ###</li>
+<li><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getCookie</span></tt></li>
 <li><a class="reference internal" href="#GateOne.Utils.getEmDimensions" title="GateOne.Utils.getEmDimensions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getEmDimensions</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Utils.getNode" title="GateOne.Utils.getNode"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getNode</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Utils.getNodes" title="GateOne.Utils.getNodes"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.getNodes</span></tt></a></li>
@@ -1279,9 +1280,9 @@
 <li><a class="reference internal" href="#GateOne.Utils.isVisible" title="GateOne.Utils.isVisible"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.isVisible</span></tt></a> ###</li>
 <li><a class="reference internal" href="#GateOne.Utils.itemgetter" title="GateOne.Utils.itemgetter"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.itemgetter</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Utils.items" title="GateOne.Utils.items"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.items</span></tt></a></li>
-<li><a class="reference internal" href="#GateOne.Utils.loadCSS" title="GateOne.Utils.loadCSS"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadCSS</span></tt></a></li>
 </ul>
 </td><td><ul class="simple">
+<li><a class="reference internal" href="#GateOne.Utils.loadCSS" title="GateOne.Utils.loadCSS"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadCSS</span></tt></a></li>
 <li><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadPluginCSS</span></tt></li>
 <li><a class="reference internal" href="#GateOne.Utils.loadPrefs" title="GateOne.Utils.loadPrefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadPrefs</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Utils.loadScript" title="GateOne.Utils.loadScript"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadScript</span></tt></a></li>
@@ -1433,6 +1434,27 @@
 <dt id="GateOne.Utils.enumerateThemes">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">enumerateThemes</tt><big>(</big><em>messageObj</em><big>)</big><a class="headerlink" href="#GateOne.Utils.enumerateThemes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attached to the 'themes_list' action, updates the preferences panel with the list of themes stored on the server.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">deleteCookie</tt><big>(</big><em>name</em><big>)</big></dt>
+<dd><p>Returns the given cookie (<em>name</em>).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) -- The name of the cookie to retrieve.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Examples:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getCookie</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">prefs</span><span class="p">.</span><span class="nx">prefix</span> <span class="o">+</span> <span class="s1">&#39;gateone_user&#39;</span><span class="p">);</span> <span class="c1">// Returns the &#39;gateone_user&#39; cookie</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -2305,6 +2327,29 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </table>
 <p>Example:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">setActiveStyleSheet</span><span class="p">(</span><span class="s2">&quot;myplugin_stylesheet&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.setCookie">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">setCookie</tt><big>(</big><em>name</em>, <em>value</em>, <em>days</em><big>)</big><a class="headerlink" href="#GateOne.Utils.setCookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the cookie of the given <em>name</em> to the given <em>value</em> with the given number of expiration <em>days</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) -- The name of the cookie to retrieve.</li>
+<li><strong>value</strong> (<em>string</em>) -- The value to set.</li>
+<li><strong>days</strong> (<em>number</em>) -- The number of days the cookie will be allowed to last before expiring.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Examples:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">setCookie</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;some value&#39;</span><span class="p">,</span> <span class="mi">30</span><span class="p">);</span> <span class="c1">// Sets the &#39;test&#39; cookie to &#39;some value&#39; with an expiration of 30 days</span>
 </pre></div>
 </div>
 </dd></dl>

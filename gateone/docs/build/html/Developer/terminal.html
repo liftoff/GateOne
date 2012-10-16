@@ -120,8 +120,8 @@ to support extensive callbacks that are called when certain events are
 encountered.  Here are the events and their callbacks:</p>
 <table border="1" class="docutils" id="callback-constants">
 <colgroup>
-<col width="33%" />
-<col width="67%" />
+<col width="31%" />
+<col width="69%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Callback Constant (ID)</th>
@@ -152,6 +152,9 @@ encountered.  Here are the events and their callbacks:</p>
 </tr>
 <tr class="row-odd"><td><tt class="xref py py-attr docutils literal"><span class="pre">terminal.CALLBACK_MODE</span></tt></td>
 <td>The terminal mode setting changes (e.g. use alternate screen buffer).</td>
+</tr>
+<tr class="row-even"><td><tt class="xref py py-attr docutils literal"><span class="pre">terminal.CALLBACK_MESSAGE</span></tt></td>
+<td>The terminal needs to send the user a message (without messing with the screen).</td>
 </tr>
 </tbody>
 </table>
@@ -296,10 +299,138 @@ will be used as a fallback (with a lot less characters).</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="terminal.FileType">
+<em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">FileType</tt><big>(</big><em>name</em>, <em>mimetype</em>, <em>re_header</em>, <em>re_capture</em>, <em>suffix=''</em>, <em>path=''</em>, <em>linkpath=''</em>, <em>icondir=None</em><big>)</big><a class="headerlink" href="#terminal.FileType" title="Permalink to this definition">¶</a></dt>
+<dd><p>An object to hold the attributes of a supported file capture/output type.</p>
+<p><strong>name:</strong> Name of the file type.
+<strong>mimetype:</strong> Mime type of the file.
+<strong>re_header:</strong> The regex to match the start of the file.
+<strong>re_capture:</strong> The regex to carve the file out of the stream.
+<strong>suffix:</strong> (optional) The suffix to be appended to the end of the filename (if one is generated).
+<strong>path:</strong> (optional) The path to a file or directory where the file should be stored.  If <em>path</em> is a directory a random filename will be chosen.
+<strong>linkpath:</strong> (optional) The path to use when generating a link in HTML output.
+<strong>icondir:</strong> (optional) A path to look for a relevant icon to display when generating HTML output.</p>
+<dl class="method">
+<dt id="terminal.FileType.html">
+<tt class="descname">html</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.FileType.html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object as an HTML-formatted string.  Must be overridden.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.FileType.capture">
+<tt class="descname">capture</tt><big>(</big><em>data</em>, <em>term_instance=None</em><big>)</big><a class="headerlink" href="#terminal.FileType.capture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores <em>data</em> as a temporary file and returns that file's object.
+<em>term_instance</em> can be used by overrides of this function to make
+adjustments to the terminal emulator after the <em>data</em> is captured e.g.
+to make room for an image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.FileType.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.FileType.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes <tt class="xref py py-attr docutils literal"><span class="pre">self.file_obj</span></tt></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terminal.ImageFile">
+<em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">ImageFile</tt><big>(</big><em>name</em>, <em>mimetype</em>, <em>re_header</em>, <em>re_capture</em>, <em>suffix=''</em>, <em>path=''</em>, <em>linkpath=''</em>, <em>icondir=None</em><big>)</big><a class="headerlink" href="#terminal.ImageFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>A subclass of <a class="reference internal" href="#terminal.FileType" title="terminal.FileType"><tt class="xref py py-class docutils literal"><span class="pre">FileType</span></tt></a> for images (specifically to override
+<tt class="xref py py-meth docutils literal"><span class="pre">self.html()</span></tt> and <tt class="xref py py-meth docutils literal"><span class="pre">self.capture()</span></tt>).</p>
+<p><strong>name:</strong> Name of the file type.
+<strong>mimetype:</strong> Mime type of the file.
+<strong>re_header:</strong> The regex to match the start of the file.
+<strong>re_capture:</strong> The regex to carve the file out of the stream.
+<strong>suffix:</strong> (optional) The suffix to be appended to the end of the filename (if one is generated).
+<strong>path:</strong> (optional) The path to a file or directory where the file should be stored.  If <em>path</em> is a directory a random filename will be chosen.
+<strong>linkpath:</strong> (optional) The path to use when generating a link in HTML output.
+<strong>icondir:</strong> (optional) A path to look for a relevant icon to display when generating HTML output.</p>
+<dl class="method">
+<dt id="terminal.ImageFile.capture">
+<tt class="descname">capture</tt><big>(</big><em>data</em>, <em>term_instance</em><big>)</big><a class="headerlink" href="#terminal.ImageFile.capture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Captures the image contained within <em>data</em>.  Will use <em>term_instance</em>
+to make room for the image in the terminal screen.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike <a class="reference internal" href="#terminal.FileType" title="terminal.FileType"><tt class="xref py py-class docutils literal"><span class="pre">FileType</span></tt></a>, <em>term_instance</em> is mandatory.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.ImageFile.html">
+<tt class="descname">html</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.ImageFile.html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <tt class="xref py py-attr docutils literal"><span class="pre">self.file_obj</span></tt> as an &lt;img&gt; tag with the src set to a
+<a class="reference external" href="data::URI">data::URI</a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="terminal.PNGFile">
+<em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">PNGFile</tt><big>(</big><em>path=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#terminal.PNGFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>An override of <a class="reference internal" href="#terminal.ImageFile" title="terminal.ImageFile"><tt class="xref py py-class docutils literal"><span class="pre">ImageFile</span></tt></a> for PNGs to hard-code the name, regular
+expressions, mimetype, and suffix.</p>
+<p><strong>path:</strong> (optional) The path to a file or directory where the file should be stored.  If <em>path</em> is a directory a random filename will be chosen.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="terminal.JPEGFile">
+<em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">JPEGFile</tt><big>(</big><em>path=''</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#terminal.JPEGFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>An override of <a class="reference internal" href="#terminal.ImageFile" title="terminal.ImageFile"><tt class="xref py py-class docutils literal"><span class="pre">ImageFile</span></tt></a> for JPEGs to hard-code the name, regular
+expressions, mimetype, and suffix.</p>
+<p><strong>path:</strong> (optional) The path to a file or directory where the file should be stored.  If <em>path</em> is a directory a random filename will be chosen.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="terminal.PDFFile">
+<em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">PDFFile</tt><big>(</big><em>path=''</em>, <em>linkpath=''</em>, <em>icondir=None</em><big>)</big><a class="headerlink" href="#terminal.PDFFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>A subclass of <a class="reference internal" href="#terminal.FileType" title="terminal.FileType"><tt class="xref py py-class docutils literal"><span class="pre">FileType</span></tt></a> for PDFs (specifically to override
+<tt class="xref py py-meth docutils literal"><span class="pre">self.html()</span></tt>).  Has hard-coded name, mimetype, suffix, and regular
+expressions.  This class will also utilize <tt class="xref py py-attr docutils literal"><span class="pre">self.icondir</span></tt> to look for
+an icon named, 'pdf.svg'.  If found it will be utilized by
+<tt class="xref py py-meth docutils literal"><span class="pre">self.html()</span></tt> when generating output.</p>
+<p><strong>path:</strong> (optional) The path to the file.
+<strong>linkpath:</strong> (optional) The path to use when generating a link in HTML output.
+<strong>icondir:</strong> (optional) A path to look for a relevant icon to display when generating HTML output.</p>
+<dl class="method">
+<dt id="terminal.PDFFile.generate_thumbnail">
+<tt class="descname">generate_thumbnail</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.PDFFile.generate_thumbnail" title="Permalink to this definition">¶</a></dt>
+<dd><p>If available, will use ghostscript (gs) to generate a thumbnail of this
+PDF in the form of an &lt;img&gt; tag with the src set to a <a class="reference external" href="data::URI">data::URI</a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.PDFFile.capture">
+<tt class="descname">capture</tt><big>(</big><em>data</em>, <em>term_instance</em><big>)</big><a class="headerlink" href="#terminal.PDFFile.capture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores <em>data</em> as a temporary file and returns that file's object.
+<em>term_instance</em> can be used by overrides of this function to make
+adjustments to the terminal emulator after the <em>data</em> is captured e.g.
+to make room for an image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.PDFFile.html">
+<tt class="descname">html</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.PDFFile.html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a link to download the PDF using <tt class="xref py py-attr docutils literal"><span class="pre">self.linkpath</span></tt> for the
+href attribute.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="terminal.NotFoundError">
+<em class="property">exception </em><tt class="descclassname">terminal.</tt><tt class="descname">NotFoundError</tt><a class="headerlink" href="#terminal.NotFoundError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised by <a class="reference internal" href="#terminal.Terminal.remove_magic" title="terminal.Terminal.remove_magic"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.remove_magic()</span></tt></a> if a given filetype was not found in
+<tt class="xref py py-attr docutils literal"><span class="pre">Terminal.supported_magic</span></tt>.</p>
+</dd></dl>
+
+<dl class="class">
 <dt id="terminal.Terminal">
-<em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">Terminal</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">Terminal</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>em_dimensions=None</em>, <em>temppath='/tmp'</em>, <em>linkpath='/tmp'</em>, <em>icondir=None</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminal controller class.</p>
-<p>Initializes the terminal by calling <em>self.initialize(rows, cols)</em>.  This
+<blockquote>
+<div><p>Initializes the terminal by calling <em>self.initialize(rows, cols)</em>.  This
 is so we can have an equivalent function in situations where __init__()
 gets overridden.</p>
 <p>If <em>em_dimensions</em> are provided they will be used to determine how many
@@ -308,10 +439,68 @@ prevent images that are written to the top of the screen from having
 their tops cut off.  <em>em_dimensions</em> should be a dict in the form of:</p>
 <div class="highlight-python"><pre>{'height': &lt;px&gt;, 'width': &lt;px&gt;}</pre>
 </div>
+<p>The <em>temppath</em> will be used to store files that are captured/saved by
+the terminal emulator.  In conjunction with this is the <em>linkpath</em> which
+will be used when creating links to these temporary files.  For example,
+a web-based application may wish to have the terminal emulator store
+temporary files in /tmp but give clients a completely unrelated URL to
+retrieve these files (for security or convenience reasons).  Here's a
+real world example of how it works:</p>
+<div class="highlight-python"><pre>&gt;&gt; term = Terminal(rows=10, cols=40, temppath='/var/tmp', linkpath='/terminal')
+&gt;&gt; term.write('About to write a PDF...</pre>
+</div>
+</div></blockquote>
+<dl class="docutils">
+<dt>')</dt>
+<dd><blockquote class="first">
+<div>&gt;&gt; pdf = open('/path/to/somefile.pdf').read()
+&gt;&gt; term.write(pdf)
+&gt;&gt; term.dump_html()
+([],
+[u'About to write a PDF...                 ',
+# &lt;unnecessary lines of whitespace have been removed for this example&gt;
+u'&lt;a target=&quot;_blank&quot; href=&quot;/terminal/tmpZoOKVM.pdf&quot;&gt;PDF Document&lt;/a&gt;']</div></blockquote>
+<p>The PDF file in question will reside in <tt class="xref py py-obj docutils literal"><span class="pre">/var/tmp</span></tt> but the link was
+created as <tt class="xref py py-obj docutils literal"><span class="pre">href=&quot;/terminal/tmpZoOKVM.pdf&quot;</span></tt>.  As long as your web app
+knows to look in /var/tmp for incoming '/terminal' requests users should
+be able to retrieve their documents.</p>
+<blockquote>
+<div><a class="reference external" href="http://yourapp.company.com/terminal/tmpZoOKVM.pdf">http://yourapp.company.com/terminal/tmpZoOKVM.pdf</a></div></blockquote>
+<p>The <em>icondir</em> parameter, if given, will be used to provide a relevant
+icon when outputing a link to a file.  When a supported
+<a class="reference internal" href="#terminal.FileType" title="terminal.FileType"><tt class="xref py py-class docutils literal"><span class="pre">FileType</span></tt></a> is captured the instance will be given the <em>icondir</em>
+as a parameter in a manner similar to this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">filetype_instance</span> <span class="o">=</span> <span class="n">filetype_class</span><span class="p">(</span><span class="n">icondir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">icondir</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>That way when filetype_instance.html() is called it can display a nice
+icon to the user...  if that particular <a class="reference internal" href="#terminal.FileType" title="terminal.FileType"><tt class="xref py py-class docutils literal"><span class="pre">FileType</span></tt></a> supports icons
+and the icon it is looking for happens to be available at <em>icondir</em>.</p>
+<p class="last">If <em>debug</em> is True, the root logger will have its level set to DEBUG.</p>
+</dd>
+</dl>
 <dl class="method">
 <dt id="terminal.Terminal.initialize">
 <tt class="descname">initialize</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes the terminal (the actual equivalent to <tt class="xref py py-meth docutils literal"><span class="pre">__init__()</span></tt>).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.add_magic">
+<tt class="descname">add_magic</tt><big>(</big><em>filetype</em><big>)</big><a class="headerlink" href="#terminal.Terminal.add_magic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given <em>filetype</em> to <tt class="xref py py-attr docutils literal"><span class="pre">self.supported_magic</span></tt> and generates
+the necessary bits in <tt class="xref py py-attr docutils literal"><span class="pre">self.magic</span></tt> and
+<tt class="xref py py-attr docutils literal"><span class="pre">self.magic_map</span></tt>.</p>
+<p><em>filetype</em> is expected to be a subclass of <a class="reference internal" href="#terminal.FileType" title="terminal.FileType"><tt class="xref py py-class docutils literal"><span class="pre">FileType</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.remove_magic">
+<tt class="descname">remove_magic</tt><big>(</big><em>filetype</em><big>)</big><a class="headerlink" href="#terminal.Terminal.remove_magic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the given <em>filetype</em> from <tt class="xref py py-attr docutils literal"><span class="pre">self.supported_magic</span></tt>,
+<tt class="xref py py-attr docutils literal"><span class="pre">self.magic</span></tt>, and <tt class="xref py py-attr docutils literal"><span class="pre">self.magic_map</span></tt>.</p>
+<p><em>filetype</em> may be the specific filetype class or a string that can be
+either a filetype.name or filetype.mimetype.</p>
 </dd></dl>
 
 <dl class="method">
@@ -665,8 +854,8 @@ if that action will move the curor past <tt class="xref py py-attr docutils lite
 </dd></dl>
 
 <dl class="method">
-<dt id="terminal.Terminal._carriage_return">
-<tt class="descname">_carriage_return</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._carriage_return"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._carriage_return" title="Permalink to this definition">¶</a></dt>
+<dt id="terminal.Terminal.carriage_return">
+<tt class="descname">carriage_return</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal.carriage_return" title="Permalink to this definition">¶</a></dt>
 <dd><p>Executes a carriage return (sets <tt class="xref py py-attr docutils literal"><span class="pre">self.cursorX</span></tt> to 0).  In other
 words it moves the cursor back to position 0 on the line.</p>
 </dd></dl>
@@ -720,43 +909,31 @@ with an escape character.</p>
 <dt id="terminal.Terminal._csi">
 <tt class="descname">_csi</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._csi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._csi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Marks the start of a CSI escape sequence (which is itself a character)
-by setting <tt class="xref py py-attr docutils literal"><span class="pre">self.esc_buffer</span></tt> to '\x1b[' (which is the CSI escape
-sequence).</p>
+by setting <tt class="xref py py-attr docutils literal"><span class="pre">self.esc_buffer</span></tt> to '\x1b[' (which is the CSI
+escape sequence).</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="terminal.Terminal._capture_image">
-<tt class="descname">_capture_image</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._capture_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._capture_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>This gets called when an image (PNG or JPEG) was detected by
-<a class="reference internal" href="#terminal.Terminal.write" title="terminal.Terminal.write"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.write()</span></tt></a> and captured in <tt class="xref py py-attr docutils literal"><span class="pre">self.image</span></tt>.  It cleans up
-the data inside <tt class="xref py py-attr docutils literal"><span class="pre">self.image</span></tt> (getting rid of carriage returns) and
-stores a reference to self.image as a single character (using
-<tt class="xref py py-attr docutils literal"><span class="pre">self.image_counter</span></tt>) in <tt class="xref py py-attr docutils literal"><span class="pre">self.screen</span></tt> at the current cursor
-position.  The actual image will be written to disk and read on-demand
-by <tt class="xref py py-meth docutils literal"><span class="pre">self__spanify_screen()</span></tt> when it needs to be displayed.  The
-image on disk will be automatically removed  when it is no longer
-visible.</p>
-<p>It also moves the cursor to the beginning of the last line before doing
-this in order to ensure that the captured image stays within the
-browser's current window.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The <a class="reference internal" href="#terminal.Terminal._spanify_screen" title="terminal.Terminal._spanify_screen"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal._spanify_screen()</span></tt></a> function is aware of this logic and knows that a 'character' in Plane 16 of the Unicode PUA indicates the presence of something like an image that needs special processing.</p>
-</div>
+<dt id="terminal.Terminal._capture_file">
+<tt class="descname">_capture_file</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal._capture_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets called by <a class="reference internal" href="#terminal.Terminal.write" title="terminal.Terminal.write"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.write()</span></tt></a> when the incoming
+character stream matches a value in <tt class="xref py py-attr docutils literal"><span class="pre">self.magic</span></tt>.  It will call
+whatever function is associated with the matching regex in
+<tt class="xref py py-attr docutils literal"><span class="pre">self.magic_map</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="terminal.Terminal._image_fd_watcher">
-<tt class="descname">_image_fd_watcher</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._image_fd_watcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._image_fd_watcher" title="Permalink to this definition">¶</a></dt>
-<dd><p>Meant to be run inside of a thread, calls close_image_fds() until there
+<dt id="terminal.Terminal._captured_fd_watcher">
+<tt class="descname">_captured_fd_watcher</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal._captured_fd_watcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Meant to be run inside of a thread, calls close_captured_fds() until there
 are no more open image file descriptors.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="terminal.Terminal.close_image_fds">
-<tt class="descname">close_image_fds</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.close_image_fds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.close_image_fds" title="Permalink to this definition">¶</a></dt>
-<dd><p>Closes the file descriptors of any images that are no longer on the
-screen.</p>
+<dt id="terminal.Terminal.close_captured_fds">
+<tt class="descname">close_captured_fds</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal.close_captured_fds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the file descriptors of any captured files that are no longer on
+the screen.</p>
 </dd></dl>
 
 <dl class="method">
@@ -793,21 +970,61 @@ sequence. Isn't terminal emulation grand? ⨀_⨀</p>
 
 <dl class="method">
 <dt id="terminal.Terminal._device_status_report">
-<tt class="descname">_device_status_report</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._device_status_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._device_status_report" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns '[0n' (terminal OK) and executes:</p>
+<tt class="descname">_device_status_report</tt><big>(</big><em>n=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._device_status_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._device_status_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns '\x1b[0n' (terminal OK) and executes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="n">CALLBACK_DSR</span><span class="p">](</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[0n&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="method">
-<dt id="terminal.Terminal._csi_device_status_report">
-<tt class="descname">_csi_device_status_report</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._csi_device_status_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._csi_device_status_report" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns '\x1b[1;2c' (Meaning: I'm a vt220 terminal, version 1.0) and
+<dt id="terminal.Terminal._csi_device_identification">
+<tt class="descname">_csi_device_identification</tt><big>(</big><em>request=None</em><big>)</big><a class="headerlink" href="#terminal.Terminal._csi_device_identification" title="Permalink to this definition">¶</a></dt>
+<dd><p>If we're responding to ^[Z, ^[c, or ^[0c, returns '\x1b[1;2c'
+(Meaning: I'm a vt220 terminal, version 1.0) and
 executes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_DSR</span><span class="p">](</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[1;2c&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>If we're responding to ^[&gt;c or ^[&gt;0c, executes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_DSR</span><span class="p">](</span><span class="s">&quot;</span><span class="se">\x1b</span><span class="s">[&gt;0;271;0c&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._csi_device_status_report">
+<tt class="descname">_csi_device_status_report</tt><big>(</big><em>request=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal._csi_device_status_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal._csi_device_status_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <tt class="xref py py-meth docutils literal"><span class="pre">self.callbacks[self.CALLBACK_DSR]()</span></tt> with an appropriate
+response to the given <em>request</em>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_DSR</span><span class="p">](</span><span class="n">response</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Supported requests and their responses:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="62%" />
+<col width="38%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Request</th>
+<th class="head">Response</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>^[5n (Status Report)</td>
+<td>^[[0n</td>
+</tr>
+<tr class="row-odd"><td>^[6n (Report Cursor Position)</td>
+<td>^[[&lt;row&gt;;&lt;column&gt;R</td>
+</tr>
+<tr class="row-even"><td>^[15n (Printer Ready?)</td>
+<td>^[[10n (Ready)</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -817,6 +1034,7 @@ executes:</p>
 <p>Notes on modes:</p>
 <div class="highlight-python"><pre>'?1h' - Application Cursor Keys
 '?5h' - DECSCNM (default off): Set reverse-video mode.
+'?7h' - DECAWM: Autowrap mode
 '?12h' - Local echo (SRM or Send Receive Mode)
 '?25h' - Hide cursor
 '?1049h' - Save cursor and screen</pre>
@@ -854,6 +1072,15 @@ nullify <tt class="xref py py-attr docutils literal"><span class="pre">self.alt_
 <tt class="descname">toggle_alternate_screen_buffer_cursor</tt><big>(</big><em>alt</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.toggle_alternate_screen_buffer_cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.toggle_alternate_screen_buffer_cursor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Same as <a class="reference internal" href="#terminal.Terminal.toggle_alternate_screen_buffer" title="terminal.Terminal.toggle_alternate_screen_buffer"><tt class="xref py py-meth docutils literal"><span class="pre">Terminal.toggle_alternate_screen_buffer()</span></tt></a> but also
 saves/restores the cursor location.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.toggle_autowrap">
+<tt class="descname">toggle_autowrap</tt><big>(</big><em>boolean</em><big>)</big><a class="headerlink" href="#terminal.Terminal.toggle_autowrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets <tt class="xref py py-attr docutils literal"><span class="pre">self.autowrap</span></tt> equal to <em>boolean</em>.  Literally:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">autowrap</span> <span class="o">=</span> <span class="n">boolean</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1153,6 +1380,18 @@ inbetween <em>chars</em> (e.g. ]_;&lt;chars&gt;) as the argument.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">I added this functionality so that plugin authors would have a mechanism to communicate with terminal applications.  See the SSH plugin for an example of how this can be done (there's channels of communication amongst ssh_connect.py, ssh.js, and ssh.py).</p>
 </div>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal._captured_file_output">
+<tt class="descname">_captured_file_output</tt><big>(</big><em>captured_file</em><big>)</big><a class="headerlink" href="#terminal.Terminal._captured_file_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <tt class="xref py py-meth docutils literal"><span class="pre">self._spanify_screen()</span></tt> and
+<tt class="xref py py-meth docutils literal"><span class="pre">self._spanify_scrollback()</span></tt>, returns an HTML-formatted string
+containing the data stored in <em>captured_file</em> in a way that's suitable
+for display in a terminal.</p>
+<p>Raises a HTMLEncodeError exception if a problem is encountered while
+converting the file data.</p>
+<p>Example: It will convert PNG and JPEG images into <a class="reference external" href="data::URI">data::URI</a> &lt;IMG&gt; tags.</p>
 </dd></dl>
 
 <dl class="method">

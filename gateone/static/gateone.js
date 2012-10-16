@@ -1855,15 +1855,20 @@ GateOne.Base.update(GateOne.Input, {
             goDiv = u.getNode(go.prefs.goDiv),
             m = go.Input.mouse(e),
             selectedTerm = localStorage[prefix+'selectedTerminal'],
-            selectedPastearea = go.terminals[selectedTerm]['pasteNode'],
+            selectedPastearea = null,
             selectedText = u.getSelText();
+        if (go.terminals[selectedTerm]['pasteNode']) {
+            selectedPastearea = go.terminals[selectedTerm]['pasteNode'];
+        }
         go.Input.mouseDown = true;
         // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
         // However, we only want this when the user is actually bringing up the context menu because
         // having it enabled slows down screen updates by a non-trivial amount.
         if (m.button.middle) {
-            u.showElement(selectedPastearea);
-            selectedPastearea.focus();
+            if (selectedPastearea) {
+                u.showElement(selectedPastearea);
+                selectedPastearea.focus();
+            }
             if (selectedText.length) {
                 go.Input.handlingPaste = true; // We're emulating a paste so we might as well act like one
                 // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
@@ -4108,6 +4113,7 @@ go.Base.update(GateOne.Terminal, {
             infoPanelInactivityInterval = u.createElement('input', {'id': 'inactivity_interval', 'name': prefix+'inactivity_interval', 'size': 3, 'value': 10, 'style': {'margin-right': '0.5em', 'text-align': 'right', 'width': '4em'}}),
             infoPanelInactivityIntervalLabel = u.createElement('span'),
             goDiv = u.getNode(go.prefs.goDiv),
+            resetTermButton = u.createElement('button', {'id': 'reset_terminal', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
             toolbar = u.getNode('#'+prefix+'toolbar');
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
@@ -4262,6 +4268,12 @@ go.Base.update(GateOne.Terminal, {
         toolbar.insertBefore(toolbarInfo, toolbarPrefs);
         toolbar.insertBefore(toolbarNewTerm, toolbarInfo);
         toolbar.insertBefore(toolbarClose, toolbarNewTerm);
+        resetTermButton.innerHTML = "Rescue Terminal";
+        resetTermButton.title = "Attempts to rescue a hung terminal by performing a terminal reset; the equivalent of executing the 'reset' command.";
+        resetTermButton.onclick = function() {
+            go.ws.send(JSON.stringify({'terminal_reset': localStorage[prefix+'selectedTerminal']}));
+        }
+        p.appendChild(resetTermButton);
         // Assign our visual terminal switching function (if not already assigned)
         if (!go.prefs.embedded) { // In embedded mode the developer must choose their own way to switch terminals explicitly
             if (!go.Terminal.termSelectCallback) {
@@ -4290,6 +4302,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('timeout', go.Terminal.timeoutAction);
         go.Net.addAction('term_exists', go.Terminal.reconnectTerminalAction);
         go.Net.addAction('set_mode', go.Terminal.setModeAction); // For things like application cursor keys
+        go.Net.addAction('reset_terminal', go.Terminal.resetTerminalAction);
 //         go.Net.addAction('metadata', go.Terminal.storeMetadata);
         go.Net.addAction('load_webworker', go.Terminal.loadWebWorkerAction);
     },
@@ -4649,7 +4662,7 @@ go.Base.update(GateOne.Terminal, {
             message = null;
 //         logDebug('GateOne.Utils.updateTerminalActionTest() termUpdateObj: ' + u.items(termUpdateObj));
         if (ratelimiter) {
-            v.displayMessage("WARNING: The rate limiter was engaged on terminal " + term + ".  Output will be truncated for ten seconds.");
+            v.displayMessage("WARNING: The rate limiter was engaged on terminal " + term + ".  Output will be severely slowed until you press a key (e.g. Ctrl-C).");
         }
         try {
             if (!scrollback) {

@@ -1155,6 +1155,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         self.scheduler = ioloop.PeriodicCallback(self._timeout_checker,interval)
         self.exitstatus = None
         self._checking_patterns = False
+        self.read_timeout = datetime.now()
 
     def __del__(self):
         """
@@ -1184,7 +1185,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         Restarts capturing output from the underlying terminal program by
         disengaging the rate limiter.
         """
+        logging.debug("Disabling rate limiter")
         self.ratelimiter_engaged = False
+        self.io_loop.add_handler(
+            self.fd, self._ioloop_read_handler, self.io_loop.READ)
 
     def __reset_sent_sigint(self):
         self.sent_sigint = False
@@ -1205,10 +1209,11 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         self.ratelimiter_engaged = True
         # CALLBACK_UPDATE is called here so the client can be made aware of the
         # fact that the rate limiter was engaged.
-        for callback in self.callbacks[self.CALLBACK_UPDATE].values():
-            self._call_callback(callback)
+        #for callback in self.callbacks[self.CALLBACK_UPDATE].values():
+            #self._call_callback(callback)
+        self.io_loop.remove_handler(self.fd)
         self.reenable_timeout = self.io_loop.add_timeout(
-            timedelta(seconds=10), self._reenable_output)
+            timedelta(milliseconds=10000), self._reenable_output)
 
     def spawn(self,
             rows=24, cols=80, env=None, em_dimensions=None, exitfunc=None):
@@ -1498,36 +1503,28 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
 
         .. note:: Non-blocking.
         """
+        # Commented out because it can be really noisy.  Uncomment only if you
+        # *really* need to debug this method.
         #logging.debug("MultiplexPOSIXIOLoop._read()")
         result = b""
         try:
             with io.open(self.fd, 'rb', closefd=False, buffering=0) as reader:
                 if bytes == -1:
-                    # Even though -1 indicates "read everything" we still
-                    # want to read in chunks so we can catch when an fd is
-                    # feeding us too much data (so we can engage the rate
-                    # limiter).
-                    bytes = 8192 # Should be plenty
-                    # If we need to block/read for longer than five seconds
-                    # the fd is outputting too much data.
-                    five_seconds = timedelta(seconds=5)
+                    # 5 seconds should be long enough for the terminal emulator
+                    # to process big images and other kinds of files.
+                    timeout = timedelta(seconds=5)
                     loop_start = datetime.now()
                     while True:
-                        updated = reader.read(bytes)
+                        #updated = reader.read(bytes)
+                        updated = reader.read()
                         if not updated:
                             break
-                        if self.ratelimiter_engaged:
-                            # Truncate the output to the last 1024 chars
-                            self.term_write(updated[-1024:])
-                            result += updated[-1024:]
-                            # NOTE: If we didn't truncate the output we'd
-                            # eventually have to process it all which would
-                            # take forever.
-                            break
-                        elif datetime.now() - loop_start > five_seconds:
-                            self._blocked_io_handler()
                         result += updated
                         self.term_write(updated)
+                        if datetime.now() - loop_start > timeout:
+                            # Engage the rate limiter
+                            self._blocked_io_handler()
+                            break
                 elif bytes:
                     result = reader.read(bytes)
                     self.term_write(result)
@@ -1581,14 +1578,18 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         `PeriodicCallback` will automatically cancel itself if there are no more
         non-sticky patterns in :attr:`self._patterns`.
         """
-        result = self._read(bytes)
-        remaining_patterns = self.timeout_check()
-        if remaining_patterns and not self.scheduler._running:
-            # Start 'er up in case we don't get any more output
-            logging.debug("Starting self.scheduler to check for timeouts")
-            self.scheduler.start()
-        self.isalive() # This just ensures the exitfunc is called (if necessary)
-        return result
+        # 50ms basic output rate limit on everything
+        rate_wait = timedelta(milliseconds=50)
+        if datetime.now() - self.read_timeout > rate_wait:
+            result = self._read(bytes)
+            self.read_timeout = datetime.now()
+            remaining_patterns = self.timeout_check()
+            if remaining_patterns and not self.scheduler._running:
+                # Start 'er up in case we don't get any more output
+                logging.debug("Starting self.scheduler to check for timeouts")
+                self.scheduler.start()
+            self.isalive() # This just ensures the exitfunc is called (if necessary)
+            return result
 
     def _write(self, chars):
         """
@@ -1598,23 +1599,12 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         """
         #logging.debug("MultiplexPOSIXIOLoop._write(%s)" % repr(chars))
         try:
-            if self.ratelimiter_engaged:
-                # This empties the fd buffer so the user gets immediate
-                # responses to their keystrokes.  Just note that this can
-                # truncating a lot of data.
-                with io.open(
-                    self.fd, 'rb', closefd=False, buffering=0) as reader:
-                        reader.read() # Empty it out
-                # In testing, emptying out the fd read buffer in this way
-                # increased responsiveness to user keystrokes when the rate
-                # limiter is engaged by about 3-4 seconds (which is a lot!)
-                self.ratelimiter_engaged = False
-                # For reference, the time between reader.read() above and
-                # writer.write() below is enough for the 'yes' command to
-                # output a few lines.
             with io.open(
                 self.fd, 'wt', encoding='UTF-8', closefd=False) as writer:
                     writer.write(chars)
+            if self.ratelimiter_engaged:
+                # Reattach the fd so the user can continue immediately
+                self._reenable_output()
         except (IOError, OSError) as e:
             if self.isalive():
                 self.terminate()
