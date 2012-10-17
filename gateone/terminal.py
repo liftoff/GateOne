@@ -604,6 +604,10 @@ class FileType(object):
     """
     An object to hold the attributes of a supported file capture/output type.
     """
+    # These attributes are here to prevent AttributeErrors if not overridden
+    thumbnail = None
+    html_template = "" # Must be overridden
+    html_icon_template = "" # Must be overridden
     def __init__(self,
         name, mimetype, re_header, re_capture, suffix="", path="", linkpath="", icondir=None):
         """
@@ -697,7 +701,7 @@ class ImageFile(FileType):
                 im = Image.open(i)
             except IOError:
                 # i.e. PIL couldn't identify the file
-                logging.error("PIL couldn't process the image")
+                logging.error(_("PIL couldn't process the image"))
                 return # Don't do anything--bad image
         else: # No PIL means no images.  Don't bother wasting memory.
             return
@@ -718,8 +722,6 @@ class ImageFile(FileType):
                 # Move the cursor an equivalent number of characters
                 term_instance.cursor_right(num_chars)
             else:
-                # We're going to move the image so clear out the current spot
-                term_instance.screen[img_Y][img_X] = u' '
                 # This is how many newlines the image represents:
                 newlines = int(height/term_instance.em_dimensions['height'])
                 term_instance.cursorX = 0
@@ -730,16 +732,18 @@ class ImageFile(FileType):
                 # Save the new image location
                 term_instance.screen[
                     term_instance.cursorY][term_instance.cursorX] = ref
+                term_instance.screen[img_Y][img_X] = u' ' # empty old location
                 term_instance.newline()
         else:
-            term_instance.screen[img_Y][img_X] = u' ' # We're going to move it
             # No way to calculate the number of lines the image will take
-            term_instance.cursorY = term_instance.rows - 1 # Move to the end of the screen
+            term_instance.cursorY = term_instance.rows - 1 # Move to the end
             # ... so it doesn't get cut off at the top
             # Save the new image location
             term_instance.screen[
                 term_instance.cursorY][term_instance.cursorX] = ref
-            term_instance.newline() # Make some space at the bottom too just in case
+            term_instance.screen[img_Y][img_X] = u' ' # empty old location
+            # Make some space at the bottom too just in case
+            term_instance.newline()
             term_instance.newline()
         # Write the captured image to disk
         if self.path:
@@ -755,7 +759,16 @@ class ImageFile(FileType):
                     self.file_obj = open(self.path, 'rb+')
         else:
             self.file_obj = tempfile.TemporaryFile()
-        im.save(self.file_obj, im.format)
+        try:
+            im.save(self.file_obj, im.format)
+        except IOError:
+            # PIL was compiled without (complete) support for this format
+            logging.error(_(
+                "PIL is missing support for this image type (%s).  You probably"
+                " need to install zlib-devel and libjpeg-devel then re-install "
+                "it with 'pip install --upgrade PIL'" % self.name))
+            self.file_obj.close() # Can't do anything with it
+            return None
         self.file_obj.flush()
         self.file_obj.seek(0) # Go back to the start
         return self.file_obj
@@ -778,32 +791,39 @@ class ImageFile(FileType):
         encoded = base64.b64encode(self.file_obj.read())
         data_uri = "data:image/%s;base64,%s" % (
             im.format.lower(), encoded)
-        return '<img src="%s" width="%s" height="%s">' % (
-            data_uri, im.size[0], im.size[1])
+        if self.thumbnail:
+            return self.html_icon_template.format(
+                src=data_uri, width=im.size[0], height=im.size[1])
+        return self.html_template.format(
+            src=data_uri, width=im.size[0], height=im.size[1])
 
 class PNGFile(ImageFile):
     """
     An override of :class:`ImageFile` for PNGs to hard-code the name, regular
     expressions, mimetype, and suffix.
     """
-    name = "PNG Image"
+    name = _("PNG Image")
     mimetype = "image/png"
     suffix = ".png"
     re_header = re.compile('.*\x89PNG\r', re.DOTALL)
     re_capture = re.compile('\x89PNG\r.+IEND\xaeB`\x82', re.DOTALL)
+    html_template = '<img src="{src}" width="{width}" height="{height}">'
+
     def __init__(self, path="", **kwargs):
         """
         **path:** (optional) The path to a file or directory where the file should be stored.  If *path* is a directory a random filename will be chosen.
         """
         self.path = path
         self.file_obj = None
+        # Images will be displayed inline so no icons unless overridden:
+        self.html_icon_template = self.html_template
 
 class JPEGFile(ImageFile):
     """
     An override of :class:`ImageFile` for JPEGs to hard-code the name, regular
     expressions, mimetype, and suffix.
     """
-    name = "JPEG Image"
+    name = _("JPEG Image")
     mimetype = "image/jpeg"
     suffix = ".jpeg"
     re_header = re.compile(
@@ -812,12 +832,15 @@ class JPEGFile(ImageFile):
         '\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9',
         re.DOTALL
     )
+    html_template = '<img src="{src}" width="{width}" height="{height}">'
     def __init__(self, path="", **kwargs):
         """
         **path:** (optional) The path to a file or directory where the file should be stored.  If *path* is a directory a random filename will be chosen.
         """
         self.path = path
         self.file_obj = None
+        # Images will be displayed inline so no icons unless overridden:
+        self.html_icon_template = self.html_template
 
 class PDFFile(FileType):
     """
@@ -827,12 +850,22 @@ class PDFFile(FileType):
     an icon named, 'pdf.svg'.  If found it will be utilized by
     :meth:`self.html` when generating output.
     """
-    name = "PDF"
+    name = _("PDF Document")
     mimetype = "application/pdf"
     suffix = ".pdf"
     re_header = re.compile(r'.*%PDF-[0-9]\.[0-9]{1,2}.+?obj', re.DOTALL)
     re_capture = re.compile(r'%PDF-[0-9]\.[0-9]{1,2}.+?obj.+%%EOF', re.DOTALL)
     icon = "pdf.svg" # Name of the file inside of self.icondir
+    # NOTE:  Using two separate links below so the whitespace doesn't end up
+    # underlined.  Looks much nicer this way.
+    html_icon_template = (
+        '<span class="pdfcontainer"><a class="pdflink" target="_blank" '
+        'href="{link}">{icon}</a><br>'
+        '   <a class="pdflink" href="{link}">{name}</a></span>')
+    html_template = (
+        '<span class="pdfcontainer"><a target="_blank" href="{link}">{name}</a>'
+        '</span>')
+
     def __init__(self, path="", linkpath="", icondir=None):
         """
         **path:** (optional) The path to the file.
@@ -926,7 +959,7 @@ class PDFFile(FileType):
             img_Y = term_instance.cursorY
             img_X = term_instance.cursorX
             ref = term_instance.screen[img_Y][img_X]
-            term_instance.screen[img_Y][img_X] = u' ' # We're going to move it
+            term_instance.screen[img_Y][img_X] = u' ' # No longer at this loc
             if term_instance.cursorY < 8: # Icons are about ~8 newlines high
                 for line in xrange(8 - term_instance.cursorY):
                     term_instance.newline()
@@ -934,18 +967,27 @@ class PDFFile(FileType):
             term_instance.screen[
                 term_instance.cursorY][term_instance.cursorX] = ref
             term_instance.newline()
+        else:
+            # Make room for the characters in the name, "PDF Document"
+            for i in xrange(len(self.name)):
+                term_instance.screen[term_instance.cursorY].pop()
+            print(term_instance.dump())
         # Leave it open
         return self.file_obj
 
     def html(self):
         """
         Returns a link to download the PDF using :attr:`self.linkpath` for the
-        href attribute.
+        href attribute.  Will use :attr:`self.html_icon_template` if
+        :attr:`self.icon` can be found.  Otherwise it will just output
+        :attr:`self.name` as a clickable link.
         """
         link = "%s/%s" % (self.linkpath, os.path.split(self.path)[1])
-        return ('<a target="_blank" href="%s">%s</a><br>'
-                '   <a href="%s">PDF Document</a>'
-                % (link, self.thumbnail, link))
+        if self.thumbnail:
+            return self.html_icon_template.format(
+                link=link, icon=self.thumbnail, name=self.name)
+        return self.html_template.format(
+            link=link, icon=self.thumbnail, name=self.name)
 
 class NotFoundError(Exception):
     """
@@ -1306,8 +1348,7 @@ class Terminal(object):
     def add_magic(self, filetype):
         """
         Adds the given *filetype* to :attr:`self.supported_magic` and generates
-        the necessary bits in :attr:`self.magic` and
-        :attr:`self.magic_map`.
+        the necessary bits in :attr:`self.magic` and :attr:`self.magic_map`.
 
         *filetype* is expected to be a subclass of :class:`FileType`.
         """
@@ -1315,13 +1356,13 @@ class Terminal(object):
             return # Nothing to do; it's already there
         self.supported_magic.append(filetype)
         # Wand ready...
-        for Magic in self.supported_magic:
-            self.magic.update({Magic.re_header: Magic.re_capture})
+        for Type in self.supported_magic:
+            self.magic.update({Type.re_header: Type.re_capture})
         # magic_map is just a convenient way of performing magic, er, I
         # mean referencing filetypes that match the supported magic numbers.
         self.magic_map = {}
-        for Magic in self.supported_magic:
-            self.magic_map.update({Magic.re_header: Magic})
+        for Type in self.supported_magic:
+            self.magic_map.update({Type.re_header: Type})
 
     def remove_magic(self, filetype):
         """
@@ -1350,6 +1391,31 @@ class Terminal(object):
         self.supported_magic.remove(Type)
         del self.magic[Type.re_header]
         del self.magic_map[Type.re_header]
+
+    def update_magic(self, filetype, mimetype):
+        """
+        Replaces an existing FileType with the given *mimetype* in
+        :attr:`self.supported_magic` with the given *filetype*.  Example::
+
+            >>> import terminal
+            >>> term = terminal.Terminal()
+            >>> class NewPDF = class(terminal.PDFile)
+            >>> # Open PDFs immediately in a new window
+            >>> NewPDF.html_template = "<script>window.open({link})</script>"
+            >>> NewPDF.html_icon_template = NewPDF.html_template # Ignore icon
+            >>> term.update_magic(NewPDF, mimetype="application/pdf")
+        """
+        # Find the matching magic filetype
+        for i, Type in enumerate(self.supported_magic):
+            if Type.mimetype == mimetype:
+                break
+        # Replace self.magic and self.magic_map
+        del self.magic[Type.re_header]
+        del self.magic_map[Type.re_header]
+        self.magic.update({filetype.re_header: filetype.re_capture})
+        self.magic_map.update({filetype.re_header: filetype})
+        # Finally replace the existing filetype in supported_magic
+        self.supported_magic[i] = filetype
 
     def init_screen(self):
         """
@@ -1756,7 +1822,6 @@ class Terminal(object):
         csi_handlers = self.csi_handlers
         RE_ESC_SEQ = self.RE_ESC_SEQ
         RE_CSI_ESC_SEQ = self.RE_CSI_ESC_SEQ
-        cursor_right = self.cursor_right
         magic = self.magic
         changed = False
         #logging.debug('handling chars: %s' % repr(chars))
@@ -1798,13 +1863,17 @@ class Terminal(object):
                         else:
                             return
                     else:
+                        # These needs to be written before the capture so that
+                        # the FileType.capture() method can position things
+                        # appropriately.
+                        if before_chars:
+                            self.write(before_chars, special_checks=False)
                         # Perform the capture and start anew
                         self.capture = match.group()
                         self._capture_file()
+                        self.cursorX += 1 # So it doesn't get overwritten
                         self.capture = "" # Empty it now that is is captured
                         self.matched_header = None # Ditto
-                        if before_chars:
-                            self.write(before_chars, special_checks=False)
                     self.write(after_chars, special_checks=False)
                     return
                 return
@@ -1913,7 +1982,7 @@ class Terminal(object):
                                     self.screen[self.cursorY][
                                         self.cursorX] = c
                                     if i < len(combined) - 1:
-                                        cursor_right()
+                                        self.cursorX += 1
                             else:
                                 self.screen[self.cursorY][
                                     self.cursorX] = combined
@@ -1924,7 +1993,7 @@ class Terminal(object):
                     # This can happen when escape sequences go haywire
                     logging.error(_(
                         "IndexError in write() (rate limiter?): %s" % e))
-                cursor_right()
+                self.cursorX += 1
         if changed:
             self.modified = True
             # Execute our callbacks
@@ -2151,7 +2220,8 @@ class Terminal(object):
         # output by, say, bash when you type a really long command.
         #if self.cursorX >= self.cols and self.cursorX != self.cols:
             #self.newline()
-        self.cursorX = 0 # Yeah this is redundant if newline() is called
+        if not self.capture:
+            self.cursorX = 0 # Yeah this is redundant if newline() is called
 
     def _xon(self):
         """
@@ -2230,8 +2300,8 @@ class Terminal(object):
                     path=self.temppath,
                     linkpath=self.linkpath,
                     icondir=self.icondir)
-                filetype_instance.capture(self.capture, self)
                 self.captured_files[ref] = filetype_instance
+                filetype_instance.capture(self.capture, self)
                 # Start up an open file watcher so leftover file objects get
                 # closed when they're no longer being used
                 if not self.watcher or not self.watcher.isAlive():
@@ -2706,6 +2776,7 @@ class Terminal(object):
 
     def cursor_next_line(self, n):
         """ESCnE CNL (Cursor Next Line)"""
+        logging.debug("cursor_next_line(%s)" % n)
         if not n:
             n = 1
         n = int(n)
@@ -2719,6 +2790,7 @@ class Terminal(object):
 
     def cursor_previous_line(self, n):
         """ESCnF CPL (Cursor Previous Line)"""
+        logging.debug("cursor_previous_line(%s)" % n)
         if not n:
             n = 1
         n = int(n)
@@ -2791,7 +2863,7 @@ class Terminal(object):
 
         .. note:: The current rendition (self.cur_rendition) will be applied to all characters on the screen when this function is called.
         """
-        #logging.debug('clear_screen()')
+        logging.debug('clear_screen()')
         self.init_screen()
         self.init_renditions(self.cur_rendition)
         self.cursorX = 0
@@ -2801,7 +2873,7 @@ class Terminal(object):
         """
         Clears the screen from the cursor down (ESC[J or ESC[0J).
         """
-        #logging.debug('clear_screen_from_cursor_down()')
+        logging.debug('clear_screen_from_cursor_down()')
         self.screen[self.cursorY:] = [
             array('u', u' ' * self.cols) for a in self.screen[self.cursorY:]
         ]
@@ -2815,7 +2887,7 @@ class Terminal(object):
         """
         Clears the screen from the cursor up (ESC[1J).
         """
-        #logging.debug('clear_screen_from_cursor_up()')
+        logging.debug('clear_screen_from_cursor_up()')
         self.screen[:self.cursorY+1] = [
             array('u', u' ' * self.cols) for a in self.screen[:self.cursorY]
         ]
@@ -2894,7 +2966,7 @@ class Terminal(object):
         """
         Clears the entire line (ESC[2K).
         """
-        #logging.debug("clear_line()")
+        logging.debug("clear_line()")
         self.screen[self.cursorY] = array('u', u' ' * self.cols)
         c = self.cur_rendition
         self.renditions[self.cursorY] = array('u', c * self.cols)

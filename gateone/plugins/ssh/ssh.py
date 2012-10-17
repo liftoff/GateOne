@@ -992,7 +992,7 @@ def opt_esc_handler(text, tws):
     message = {'sshjs_connect': text}
     tws.write_message(message)
 
-def create_user_ssh_dir(current_user, settings):
+def create_user_ssh_dir(tws, current_user, settings):
     """
     To be called by the 'Auth' hook that gets called after the user is done
     authenticating, ensures that the `<user's dir>/ssh` directory exists.

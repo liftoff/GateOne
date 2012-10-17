@@ -685,9 +685,11 @@ if __name__ == "__main__":
         default_host_str = " [%s]" % options.default_host
         if options.default_host == "":
             default_host_str = ""
+        # Set a pre-connection title
+        print("\x1b]0;SSH Connect\007")
         while not validated:
             url = raw_input(_(
-               "[Press Shift-F1 for help]\n\nHost/IP or SSH URL%s: " %
+               "[Press Shift-F1 for help]\n\nHost/IP or ssh:// URL%s: " %
                default_host_str))
             if bad_chars.match(url):
                 noop = raw_input(invalid_hostname_err)

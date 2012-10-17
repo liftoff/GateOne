@@ -197,16 +197,20 @@ def example_websocket_action(message, tws=None):
     tws.write_message(json_encode(combined))
 
 # Now for some special sauce...  The Special Optional Escape Sequence Handler!
-def example_opt_esc_handler(message):
+def example_opt_esc_handler(message, tws):
     """
     Gate One includes a mechanism for plugins to send messages from terminal
     programs directly to plugins written in Python.  It's called the "Special
     Optional Escape Sequence Handler" or SOESH for short.  Here's how it works:
     Whenever a terminal program emits, "\\x1b]_;" it gets detected by Gate One's
-    :class:`~terminal.Terminal` class (which lives in `terminal.py`) and it will execute whatever
-    callback is registered for SOESH.  Inside of Gate One this callback will
-    always be :func:`gateone.TerminalWebSocket.esc_opt_handler`.
+    :class:`~terminal.Terminal` class (which lives in `terminal.py`) and it will
+    execute whatever callback is registered for SOESH.  Inside of Gate One this
+    callback will always be :func:`gateone.TerminalWebSocket.esc_opt_handler`.
     """
+    message = {'notice':
+     "You just executed the Example plugin's optional escape sequence handler!"}
+    tws.write_message(message)
+
 # SOESH allows plugins to attach actions that will be called whenever a terminal
 # encounters the
 
@@ -218,5 +222,5 @@ hooks = {
         'example_action': example_websocket_action
     },
     'Escape': example_opt_esc_handler,
-    #'Auth': create_user_ssh_dir
+    #'Auth': some_post_authentication_function
 }

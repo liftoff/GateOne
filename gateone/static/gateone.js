@@ -4525,6 +4525,15 @@ go.Base.update(GateOne.Terminal, {
                 }
                 screenUpdate = true;
                 GateOne.terminals[term]['scrollbackVisible'] = false;
+                // This is a convenience for plugin authors:  Execute any incoming <script> tags automatically
+                var scriptElements = GateOne.terminals[term]['node'].querySelectorAll('script');
+                if (scriptElements.length) {
+                    console.log("Found script tags")
+                    u.toArray(scriptElements).forEach(function(tag) {
+                        console.log("Calling eval on the script");
+                        eval(tag.innerHTML);
+                    });
+                }
                 // Adjust the toolbar so it isn't too close or too far from the scrollbar
                 setTimeout(function() {
                     // This is wrapped in a long timeout to allow the browser to finish drawing everything (especially the scroll bars)

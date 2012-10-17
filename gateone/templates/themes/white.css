@@ -186,10 +186,10 @@ hr {
     outline: none;
     resize: none;
     font-family: 'Ubuntu Mono', monospace; /* For consistency */
-    line-height: 1.1;
+    line-height: 1.04;
 }
 #{{container}} .terminal {
-    line-height: 1.1;
+    line-height: 1.04;
     background-color: #fff;
     color: #000;
     position:static;
@@ -216,7 +216,7 @@ hr {
 #{{container}} .terminal pre {
     font-family: 'Ubuntu Mono', monospace;
     font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */
-    line-height: 1.1;
+    line-height: 1.04;
     /*height: auto;*/ /* Needs to be 100% when scrollback is enabled */
     width: 100%;
     overflow-y: auto;
@@ -317,6 +317,12 @@ hr {
 #{{prefix}}noticecontainer .close_notice:hover {
     cursor: pointer;
     opacity: 1;
+}
+#{{prefix}}noticecontainer a {
+    color: maroon;
+}
+#{{prefix}}noticecontainer a:visited {
+    color: maroon;
 }
 #{{prefix}}terminfo {
     color: #000;

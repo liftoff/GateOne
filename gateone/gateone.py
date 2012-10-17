@@ -337,8 +337,18 @@ PLUGIN_AUTH_HOOKS = [] # For plugins to register functions to be called after a
 PLUGIN_ESC_HANDLERS = {}
 # This is used to store plugin terminal hooks that are called when a new
 # terminal is created (so a plugin could override/attach callbacks to the
-# multiplex or terminal emulator instances).
+# multiplex or terminal emulator instances).  NOTE: This is specifically for
+# adding to the terminal emulator's CALLBACK_* capability.  For modifying the
+# terminal emulator instance directly see PLUGIN_NEW_TERM_HOOKS.
 PLUGIN_TERM_HOOKS = {}
+# The NEW_TERM hooks are called at the end of TerminalWebSocket.new_terminal()
+# with 'self' and the new instance of the terminal emulator as the only
+# arguments.  It's a more DIY/generic version of PLUGIN_TERM_HOOKS.
+PLUGIN_NEW_TERM_HOOKS = []
+# 'Multiplex' hooks get called at the end of TerminalWebSocket.new_multiplex()
+# with the instance of TerminalWebSocket and the new instance of Multiplex as
+# the only arguments, respectively.
+PLUGIN_NEW_MULTIPLEX_HOOKS = []
 
 # Secondary locale setup
 locale_dir = os.path.join(GATEONE_DIR, 'i18n')
@@ -1361,7 +1371,7 @@ class TerminalWebSocket(WebSocketHandler):
             # Execute any post-authentication hooks that plugins have registered
             if PLUGIN_AUTH_HOOKS:
                 for auth_hook in PLUGIN_AUTH_HOOKS:
-                    auth_hook(self.get_current_user(), self.settings)
+                    auth_hook(self, self.get_current_user(), self.settings)
         except Exception as e:
             logging.error(_("Exception in registered Auth hook: %s" % e))
         # Apply the container/prefix settings (if present)
@@ -1442,7 +1452,7 @@ class TerminalWebSocket(WebSocketHandler):
                 log_name = datetime.now().strftime('%Y%m%d%H%M%S%f.golog')
                 log_path = os.path.join(log_dir, log_name)
         facility = string_to_syslog_facility(self.settings['syslog_facility'])
-        return termio.Multiplex(
+        m = termio.Multiplex(
             cmd,
             log_path=log_path,
             user=user,
@@ -1451,6 +1461,10 @@ class TerminalWebSocket(WebSocketHandler):
             syslog_facility=facility,
             syslog_host=self.settings['syslog_host']
         )
+        if PLUGIN_NEW_MULTIPLEX_HOOKS:
+            for func in PLUGIN_NEW_MULTIPLEX_HOOKS:
+                func(self, m)
+        return m
 
     def term_ended(self, term):
         """
@@ -1615,6 +1629,9 @@ class TerminalWebSocket(WebSocketHandler):
         if PLUGIN_TERM_HOOKS:
             for hook, func in PLUGIN_TERM_HOOKS.items():
                 term_emulator.add_callback(hook, func(self))
+        if PLUGIN_NEW_TERM_HOOKS:
+            for func in PLUGIN_NEW_TERM_HOOKS:
+                func(self, term_emulator)
         # NOTE: refresh_screen will also take care of cleaning things up if
         #       SESSIONS[self.session][term]['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
@@ -2251,6 +2268,8 @@ class Application(tornado.web.Application):
         global PLUGIN_ESC_HANDLERS
         global PLUGIN_AUTH_HOOKS
         global PLUGIN_TERM_HOOKS
+        global PLUGIN_NEW_TERM_HOOKS
+        global PLUGIN_NEW_MULTIPLEX_HOOKS
         # Base settings for our Tornado app
         static_url = os.path.join(GATEONE_DIR, "static")
         tornado_settings = dict(
@@ -2335,13 +2354,28 @@ class Application(tornado.web.Application):
                 PLUGIN_ESC_HANDLERS.update({plugin_name: hooks['Escape']})
             if 'Auth' in hooks:
                 # Apply the plugin's post-authentication functions
-                if isinstance(hooks['Auth'], list):
+                if isinstance(hooks['Auth'], (list, tuple)):
                     PLUGIN_AUTH_HOOKS.extend(hooks['Auth'])
                 else:
                     PLUGIN_AUTH_HOOKS.append(hooks['Auth'])
+            if 'Multiplex' in hooks:
+                # Apply the plugin's Multiplex hooks (called by new_multiplex)
+                if isinstance(hooks['Multiplex'], (list, tuple)):
+                    PLUGIN_NEW_MULTIPLEX_HOOKS.extend(hooks['Multiplex'])
+                else:
+                    PLUGIN_NEW_MULTIPLEX_HOOKS.append(hooks['Multiplex'])
             if 'Terminal' in hooks:
                 # Apply the plugin's Terminal hooks (called by new_terminal)
                 PLUGIN_TERM_HOOKS.update(hooks['Terminal'])
+            if 'TermInstance' in hooks:
+                # Apply the plugin's TermInstance hooks (called by new_terminal)
+                if isinstance(hooks['TermInstance'], (list, tuple)):
+                    PLUGIN_NEW_TERM_HOOKS.extend(hooks['TermInstance'])
+                else:
+                    PLUGIN_NEW_TERM_HOOKS.append(hooks['TermInstance'])
+            if 'Init' in hooks:
+                # Call the plugin's initialization functions
+                hooks['Init'](tornado_settings)
         # This removes duplicate handlers for the same regex, allowing plugins
         # to override defaults:
         handlers = merge_handlers(handlers)

@@ -1317,7 +1317,7 @@ GateOne.Base.update(GateOne.Bookmarks, {
         }
         if (u.startsWith('ssh', URL) || u.startsWith('telnet', URL)) {
             // This is a URL that will be handled by Gate One.  Send it to the terminal:
-            if (termTitle == 'Gate One') {
+            if (termTitle == 'SSH Connect') { // NOTE: This MUST be equal to the title set by ssh_connect.py or it will send the ssh:// URL to the active terminal
                 // Foreground terminal has yet to be connected, use it
                 b.incrementVisits(URL);
                 go.Input.queue(URL+'\n');
