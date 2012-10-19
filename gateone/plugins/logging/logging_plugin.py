@@ -89,12 +89,15 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
         if limit and i == limit:
             break
         if len(frame) > 14:
+            if i == 0 and frame[14] == '{':
+                # This is just the metadata frame.  Skip it
+                continue
             frame_time = int(float(frame[:13]))
             frame_screen = frame[14:] # Skips the colon
             term.write(frame_screen)
-            # Ensure we're not in the middle of capturing an image.  Otherwise
+            # Ensure we're not in the middle of capturing a file.  Otherwise
             # it might get cut off and result in no image being shown.
-            if not term.image:
+            if not term.capture:
                 scrollback, screen = term.dump_html()
             out_frames.append({'screen': screen, 'time': frame_time})
     return out_frames # Skip the first frame which is the metadata

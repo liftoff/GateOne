@@ -642,7 +642,7 @@ class FileType(object):
         """
         Make sure that self.file_obj gets closed/deleted.
         """
-        logging.debug("FileType __del__(): Closing temp file")
+        logging.debug("FileType __del__(): Closing/deleting temp file")
         self.file_obj.close() # Ensures it gets deleted
 
     def raw(self):
@@ -724,6 +724,7 @@ class ImageFile(FileType):
             else:
                 # This is how many newlines the image represents:
                 newlines = int(height/term_instance.em_dimensions['height'])
+                term_instance.screen[img_Y][img_X] = u' ' # Empty old location
                 term_instance.cursorX = 0
                 term_instance.newline() # Start with a newline
                 if newlines > term_instance.cursorY:
@@ -732,16 +733,15 @@ class ImageFile(FileType):
                 # Save the new image location
                 term_instance.screen[
                     term_instance.cursorY][term_instance.cursorX] = ref
-                term_instance.screen[img_Y][img_X] = u' ' # empty old location
                 term_instance.newline()
         else:
             # No way to calculate the number of lines the image will take
+            term_instance.screen[img_Y][img_X] = u' ' # Empty old location
             term_instance.cursorY = term_instance.rows - 1 # Move to the end
             # ... so it doesn't get cut off at the top
             # Save the new image location
             term_instance.screen[
                 term_instance.cursorY][term_instance.cursorX] = ref
-            term_instance.screen[img_Y][img_X] = u' ' # empty old location
             # Make some space at the bottom too just in case
             term_instance.newline()
             term_instance.newline()
@@ -854,7 +854,7 @@ class PDFFile(FileType):
     mimetype = "application/pdf"
     suffix = ".pdf"
     re_header = re.compile(r'.*%PDF-[0-9]\.[0-9]{1,2}.+?obj', re.DOTALL)
-    re_capture = re.compile(r'%PDF-[0-9]\.[0-9]{1,2}.+?obj.+%%EOF', re.DOTALL)
+    re_capture = re.compile(r'%PDF-[0-9]\.[0-9]{1,2}.+%%EOF', re.DOTALL)
     icon = "pdf.svg" # Name of the file inside of self.icondir
     # NOTE:  Using two separate links below so the whitespace doesn't end up
     # underlined.  Looks much nicer this way.
@@ -923,9 +923,9 @@ class PDFFile(FileType):
         adjustments to the terminal emulator after the *data* is captured e.g.
         to make room for an image.
         """
+        logging.debug("PDFFile.capture()")
         # Remove the extra \r's that the terminal adds:
         data = str(data).replace('\r\n', '\n')
-        logging.debug("capture() len(data): %s" % len(data))
         # Write the data to disk in a temporary location
         if self.path:
             if os.path.exists(self.path):
@@ -971,7 +971,6 @@ class PDFFile(FileType):
             # Make room for the characters in the name, "PDF Document"
             for i in xrange(len(self.name)):
                 term_instance.screen[term_instance.cursorY].pop()
-            print(term_instance.dump())
         # Leave it open
         return self.file_obj
 
@@ -1062,6 +1061,7 @@ class Terminal(object):
     # The below regex is used to match our optional (non-standard) handler
     RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)')
     RE_NUMBERS = re.compile('\d*') # Matches any number
+    RE_SIGINT = re.compile('.*\^C', re.MULTILINE|re.DOTALL)
 
     def __init__(self, rows=24, cols=80, em_dimensions=None, temppath='/tmp',
         linkpath='/tmp', icondir=None, debug=False):
@@ -1121,6 +1121,12 @@ class Terminal(object):
         self.temppath = temppath
         self.linkpath = linkpath
         self.icondir = icondir
+        # This controls how often we send a message to the client when capturing
+        # a special file type.  The default is to update the user of progress
+        # once every 1.5 seconds.
+        self.message_interval = timedelta(seconds=1.5)
+        self.notified = False # Used to tell if we have notified the user before
+        self.cancel_capture = False
         self.initialize(rows, cols, em_dimensions)
 
     def initialize(self, rows=24, cols=80, em_dimensions=None):
@@ -1157,9 +1163,9 @@ class Terminal(object):
             self.ASCII_BEL: self.bell,
             self.ASCII_BS: self.backspace,
             self.ASCII_HT: self.horizontal_tab,
-            self.ASCII_LF: self.linefeed,
-            self.ASCII_VT: self.linefeed,
-            self.ASCII_FF: self.linefeed,
+            self.ASCII_LF: self.newline,
+            self.ASCII_VT: self.newline,
+            self.ASCII_FF: self.newline,
             self.ASCII_CR: self.carriage_return,
             self.ASCII_SO: self.use_g1_charset,
             self.ASCII_SI: self.use_g0_charset,
@@ -1501,6 +1507,39 @@ class Terminal(object):
             except KeyError:
                 pass # No match, no biggie
 
+    def send_message(self, message):
+        """
+        A convenience function for calling all CALLBACK_MESSAGE callbacks.
+        """
+        logging.debug('send_message(%s)' % message)
+        try:
+            for callback in self.callbacks[CALLBACK_MESSAGE].values():
+                callback(message)
+        except TypeError as e:
+            pass
+
+    def send_update(self):
+        """
+        A convenience function for calling all CALLBACK_CHANGED callbacks.
+        """
+        #logging.debug('send_update()')
+        try:
+            for callback in self.callbacks[CALLBACK_CHANGED].values():
+                callback()
+        except TypeError as e:
+            pass
+
+    def send_cursor_update(self):
+        """
+        A convenience function for calling all CALLBACK_CURSOR_POS callbacks.
+        """
+        #logging.debug('send_cursor_update()')
+        try:
+            for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
+                callback()
+        except TypeError as e:
+            pass
+
     def reset(self, *args, **kwargs):
         """
         Resets the terminal back to an empty screen with all defaults.  Calls
@@ -1804,6 +1843,17 @@ class Terminal(object):
         self.current_charset = 1
         self.charset = self.G1_charset
 
+    def abort_capture(self):
+        """
+        A convenience function that takes care of canceling a file capture and
+        cleaning up the output.
+        """
+        logging.debug('abort_capture()')
+        self.cancel_capture = True
+        self.write('\x00') # This won't actually get written
+        self.send_update()
+        self.send_message(_(u'File capture aborted.'))
+
     def write(self, chars, special_checks=True):
         """
         Write *chars* to the terminal at the current cursor position advancing
@@ -1823,6 +1873,7 @@ class Terminal(object):
         RE_ESC_SEQ = self.RE_ESC_SEQ
         RE_CSI_ESC_SEQ = self.RE_CSI_ESC_SEQ
         magic = self.magic
+        magic_map = self.magic_map
         changed = False
         #logging.debug('handling chars: %s' % repr(chars))
         if special_checks:
@@ -1833,8 +1884,9 @@ class Terminal(object):
                     try:
                         if magic_header.match(str(chars)):
                             self.matched_header = magic_header
-                            self.capture_regex = magic[self.matched_header]
+                            self.capture_regex = magic[magic_header]
                             self.timeout_capture = datetime.now()
+                            self.progress_timer = datetime.now()
                             break
                     except UnicodeEncodeError:
                         # Gibberish; drop it and pretend it never happened
@@ -1843,25 +1895,48 @@ class Terminal(object):
                         chars = chars.encode('UTF-8', 'ignore')
             if self.capture or self.matched_header:
                 self.capture += chars
+                if self.cancel_capture:
+                    # Try to split the garbage from the post-ctrl-c output
+                    split_capture = self.RE_SIGINT.split(self.capture)
+                    after_chars = split_capture[-1]
+                    self.capture = ''
+                    self.matched_header = None
+                    self.cancel_capture = False
+                    self.write(u'^C\r\n', special_checks=False)
+                    self.write(after_chars, special_checks=False)
+                    return
+                now = datetime.now()
+                if now - self.progress_timer > self.message_interval:
+                    # Send an update of the progress to the user
+                    # NOTE: This message will only get sent if it takes longer
+                    # than self.message_interval to capture a file.  So it is
+                    # nice and user friendly:  Small things output instantly
+                    # without notifications while larger files that take longer
+                    # to capture will keep the user abreast of the progress.
+                    ft = magic_map[self.matched_header].name
+                    indicator = 'K'
+                    size = float(len(self.capture))/1024 # Kb
+                    if size > 1024: # Switch to Mb
+                        size = size/1024
+                        indicator = 'M'
+                    message = _(
+                        "%s: %.2f%s captured..." % (ft, size, indicator))
+                    self.notified = True
+                    self.send_message(message)
+                    self.progress_timer = datetime.now()
                 match = self.capture_regex.search(self.capture)
                 if match:
                     logging.debug(
                         "Matched %s format.  Capturing..." %
                         self.magic_map[self.matched_header].name)
-                    before_chars, after_chars = self.capture_regex.split(
-                        self.capture)
+                    split_capture = self.capture_regex.split(self.capture)
+                    before_chars = "".join(split_capture[:-1])
+                    after_chars = split_capture[-1]
                 if after_chars:
-                    if len(after_chars) > 300:
+                    if len(after_chars) > 500:
                         # Could be more to this file.  Let's wait until output
                         # slows down before attempting to perform a match
-                        if len(after_chars) > 5368709120: # 5Mb
-                            # This is just too big for us to capture.  Discard
-                            self.capture = ""
-                            self.matched_header = None
-                            after_chars = ""
-                            # TODO: "Ignore for X seconds" logic
-                        else:
-                            return
+                        return
                     else:
                         # These needs to be written before the capture so that
                         # the FileType.capture() method can position things
@@ -1871,7 +1946,21 @@ class Terminal(object):
                         # Perform the capture and start anew
                         self.capture = match.group()
                         self._capture_file()
-                        self.cursorX += 1 # So it doesn't get overwritten
+                        if self.notified:
+                            # Send a final notice of how big the file was (just
+                            # to keep things consistent).
+                            ft = magic_map[self.matched_header].name
+                            indicator = 'K'
+                            size = float(len(self.capture))/1024 # Kb
+                            if size > 1024: # Switch to Mb
+                                size = size/1024
+                                indicator = 'M'
+                            message = _(
+                                "%s: Capture complete (%.2f%s)" % (
+                                ft, size, indicator))
+                            self.notified = False
+                            self.send_message(message)
+                        #self.cursorX += 1 # So it doesn't get overwritten
                         self.capture = "" # Empty it now that is is captured
                         self.matched_header = None # Ditto
                     self.write(after_chars, special_checks=False)
@@ -1936,7 +2025,6 @@ class Terminal(object):
                         if self.esc_buffer.endswith('\x1b\\'):
                             self._osc_handler()
                         else:
-                            # Commented this out because it can be super noisy
                             logging.warning(_(
                                 "Warning: No ESC sequence handler for %s"
                                 % `self.esc_buffer`
@@ -1992,21 +2080,15 @@ class Terminal(object):
                 except IndexError as e:
                     # This can happen when escape sequences go haywire
                     logging.error(_(
-                        "IndexError in write() (rate limiter?): %s" % e))
+                        "IndexError in write(): %s" % e))
+                    import traceback, sys
+                    traceback.print_exc(file=sys.stdout)
                 self.cursorX += 1
         if changed:
             self.modified = True
             # Execute our callbacks
-            try:
-                for callback in self.callbacks[CALLBACK_CHANGED].values():
-                    callback()
-            except TypeError:
-                pass
-            try:
-                for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
-                    callback()
-            except TypeError:
-                pass
+            self.send_update()
+            self.send_cursor_update()
 
     def flush(self):
         """
@@ -2317,7 +2399,7 @@ class Terminal(object):
         Meant to be run inside of a thread, calls close_captured_fds() until there
         are no more open image file descriptors.
         """
-        logging.debug("starting image_fd_watcher()")
+        logging.debug("starting _captured_fd_watcher()")
         import time
         quitting = False
         while not quitting:
@@ -2326,7 +2408,7 @@ class Terminal(object):
                 time.sleep(5)
             else:
                 quitting = True
-        logging.debug('image_fd_watcher() quitting: No more images.')
+        logging.debug('_captured_fd_watcher() quitting: No more images.')
 
     def close_captured_fds(self):
         """
@@ -2383,8 +2465,8 @@ class Terminal(object):
             self._opt_handler(text)
             return
         # At this point we've encountered something unusual
-        #logging.warning(_("Warning: No ESC sequence handler for %s" %
-            #`self.esc_buffer`))
+        logging.warning(_("Warning: No special ESC sequence handler for %s" %
+            `self.esc_buffer`))
         self.esc_buffer = ''
 
     def bell(self):
@@ -2776,7 +2858,7 @@ class Terminal(object):
 
     def cursor_next_line(self, n):
         """ESCnE CNL (Cursor Next Line)"""
-        logging.debug("cursor_next_line(%s)" % n)
+        #logging.debug("cursor_next_line(%s)" % n)
         if not n:
             n = 1
         n = int(n)
@@ -2790,7 +2872,7 @@ class Terminal(object):
 
     def cursor_previous_line(self, n):
         """ESCnF CPL (Cursor Previous Line)"""
-        logging.debug("cursor_previous_line(%s)" % n)
+        #logging.debug("cursor_previous_line(%s)" % n)
         if not n:
             n = 1
         n = int(n)
@@ -2873,7 +2955,7 @@ class Terminal(object):
         """
         Clears the screen from the cursor down (ESC[J or ESC[0J).
         """
-        logging.debug('clear_screen_from_cursor_down()')
+        #logging.debug('clear_screen_from_cursor_down()')
         self.screen[self.cursorY:] = [
             array('u', u' ' * self.cols) for a in self.screen[self.cursorY:]
         ]
@@ -2887,7 +2969,7 @@ class Terminal(object):
         """
         Clears the screen from the cursor up (ESC[1J).
         """
-        logging.debug('clear_screen_from_cursor_up()')
+        #logging.debug('clear_screen_from_cursor_up()')
         self.screen[:self.cursorY+1] = [
             array('u', u' ' * self.cols) for a in self.screen[:self.cursorY]
         ]
@@ -2966,7 +3048,7 @@ class Terminal(object):
         """
         Clears the entire line (ESC[2K).
         """
-        logging.debug("clear_line()")
+        #logging.debug("clear_line()")
         self.screen[self.cursorY] = array('u', u' ' * self.cols)
         c = self.cur_rendition
         self.renditions[self.cursorY] = array('u', c * self.cols)
@@ -3026,6 +3108,7 @@ class Terminal(object):
 
         .. note:: These aren't implemented in Gate One's GUI (yet) but they certainly kept track of!
         """
+        logging.debug("set_led_state(%s)" % n)
         leds = n.split(';')
         for led in leds:
             led = int(led)
@@ -3161,19 +3244,6 @@ class Terminal(object):
             # High likelyhood that nothing is defined.  No biggie.
             pass
 
-    def _captured_file_output(self, captured_file):
-        """
-        Called by :meth:`self._spanify_screen` and
-        :meth:`self._spanify_scrollback`, returns an HTML-formatted string
-        containing the data stored in *captured_file* in a way that's suitable
-        for display in a terminal.
-
-        Raises a HTMLEncodeError exception if a problem is encountered while
-        converting the file data.
-
-        Example: It will convert PNG and JPEG images into data::URI <IMG> tags.
-        """
-
     def _spanify_screen(self):
         """
         Iterates over the lines in *screen* and *renditions*, applying HTML
@@ -3224,8 +3294,9 @@ class Terminal(object):
                 rend = renditions_store[rend] # Get actual rendition
                 if ord(char) >= special: # Special stuff =)
                     # Obviously, not really a single character
-                    outline += self.captured_files[char].html()
-                    continue
+                    if char in self.captured_files:
+                        outline += self.captured_files[char].html()
+                        continue
                 changed = True
                 if char in "&<>":
                     # Have to convert ampersands and lt/gt to HTML entities
@@ -3337,8 +3408,9 @@ class Terminal(object):
                 rend = renditions_store[rend] # Get actual rendition
                 if ord(char) >= special: # Special stuff =)
                     # Obviously, not really a single character
-                    outline += self.captured_files[char].html()
-                    continue
+                    if char in self.captured_files:
+                        outline += self.captured_files[char].html()
+                        continue
                 changed = True
                 if char in "&<>":
                     # Have to convert ampersands and lt/gt to HTML entities

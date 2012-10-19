@@ -4528,9 +4528,7 @@ go.Base.update(GateOne.Terminal, {
                 // This is a convenience for plugin authors:  Execute any incoming <script> tags automatically
                 var scriptElements = GateOne.terminals[term]['node'].querySelectorAll('script');
                 if (scriptElements.length) {
-                    console.log("Found script tags")
                     u.toArray(scriptElements).forEach(function(tag) {
-                        console.log("Calling eval on the script");
                         eval(tag.innerHTML);
                     });
                 }

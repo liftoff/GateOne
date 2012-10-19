@@ -62,6 +62,8 @@ OPEN_SUBCHANNELS = {}
 SUBCHANNEL_TIMEOUT = timedelta(minutes=5) # How long to wait before auto-closing
 READY_STRING = "GATEONE_SSH_EXEC_CMD_CHANNEL_READY"
 READY_MATCH = re.compile("^%s$" % READY_STRING, re.MULTILINE)
+OUTPUT_MATCH = re.compile(
+    "^{rs}.+^{rs}$".format(rs=READY_STRING), re.MULTILINE|re.DOTALL)
 VALID_PRIVATE_KEY = valid = re.compile(
     r'^-----BEGIN [A-Z]+ PRIVATE KEY-----.*-----END [A-Z]+ PRIVATE KEY-----$',
     re.MULTILINE|re.DOTALL)
@@ -171,7 +173,7 @@ def open_sub_channel(term, tws):
     fd = m.spawn(rows=100, cols=200) # Hopefully 100/200 lines/cols is enough
     # ...if it isn't, well, that's not really what this is for :)
     # Set the term title so it gets a proper name in the logs
-    m.writeline(u'\x1b]0;Term %s sub-channel\007' % term)
+    m.writeline(u'echo -e "\\033]0;Term %s sub-channel\\007"' % term)
     return m
 
 def wait_for_prompt(term, cmd, errorback, callback, m_instance, matched):
@@ -184,9 +186,13 @@ def wait_for_prompt(term, cmd, errorback, callback, m_instance, matched):
     logging.debug('wait_for_prompt()')
     m_instance.term.clear_screen() # Makes capturing just what we need easier
     getoutput = partial(get_cmd_output, term, errorback, callback)
-    m_instance.expect(READY_MATCH, getoutput, errorback=errorback, timeout=10)
+    m_instance.expect(OUTPUT_MATCH, getoutput, errorback=errorback, timeout=10)
     # Run our command immediately followed by our separation/ready string
-    m_instance.writeline(u'%s; echo "%s"' % (cmd, READY_STRING))
+    m_instance.writeline((
+        u'echo -e "{rs}"; ' # Echo the first READY_STRING
+        u'{cmd}; ' # Execute the command in question
+        u'echo -e "{rs}"' # READY_STRING again so we can capture the between
+    ).format(rs=READY_STRING, cmd=cmd))
 
 def get_cmd_output(term, errorback, callback, m_instance, matched):
     """
@@ -197,9 +203,8 @@ def get_cmd_output(term, errorback, callback, m_instance, matched):
     cmd_out = [a.rstrip() for a in m_instance.dump() if a.rstrip()]
     capture = False
     out = []
-    # cmd_out: [u'getent passwd riskable; echo "GATEONE_SSH_EXEC_CMD_CHANNEL_READY"', u'riskable:x:1000:1000:Riskable,,,:/home/riskable:/bin/bash', u'GATEONE_SSH_EXEC_CMD_CHANNEL_READY', u'riskable@portarisk:~ $', u'riskable@portarisk:~ $']
     for line in cmd_out:
-        if not capture and READY_STRING in line:
+        if not capture and line.startswith(READY_STRING):
             capture = True
         elif capture:
             if READY_STRING in line:
@@ -229,7 +234,7 @@ def terminate_sub_channel(m_instance):
     global OPEN_SUBCHANNELS
     m_instance.terminate()
     # Find the Multiplex object inside of OPEN_SUBCHANNELS and remove it
-    for key, value in OPEN_SUBCHANNELS.items():
+    for key, value in list(OPEN_SUBCHANNELS.items()):
         # This will be something like: {1: <Multiplex instance>}
         if hash(value) == hash(m_instance):
             # This is necessary so the interpreter can properly collect garbage:
@@ -254,6 +259,7 @@ def got_error(m_instance, match=None, term=None, cmd=None, tws=None):
     logging.error(_(
         "%s: Got an error trying to capture output inside of "
         "execute_command() running: %s" % (m_instance.user, m_instance.cmd)))
+    logging.debug("output before error: %s" % m_instance.dump())
     terminate_sub_channel(m_instance)
     if tws:
         message = {
@@ -315,7 +321,7 @@ def execute_command(term, cmd, callback=None, tws=None):
     wait = partial(wait_for_prompt, term, cmd, errorback, callback)
     m.expect(READY_MATCH, callback=wait, errorback=errorback, timeout=10)
     logging.debug("Waiting for READY_MATCH inside execute_command()")
-    m.writeline(u'echo "%s"' % READY_STRING)
+    m.writeline(u'echo -e "\\n%s"' % READY_STRING)
 
 def send_result(tws, term, cmd, output, m_instance):
     """

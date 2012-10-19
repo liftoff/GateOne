@@ -1955,11 +1955,22 @@ class TerminalWebSocket(WebSocketHandler):
         term = int(term) # Just in case it was sent as a string
         session = self.session
         if session in SESSIONS and term in SESSIONS[session]:
-            if SESSIONS[session][term]['multiplex'].isalive():
-                if chars:
-                    SESSIONS[ # Force an update
-                        session][term]['multiplex'].ratelimit = time.time()
-                    SESSIONS[session][term]['multiplex'].write(chars)
+            multiplex = SESSIONS[session][term]['multiplex']
+            if multiplex.isalive():
+                multiplex.write(chars)
+                # Handle (gracefully) the situation where a capture is stopped
+                if u'\x03' in chars:
+                    if not multiplex.term.capture:
+                        return # Nothing to do
+                    # Make sure the call to abort_capture() comes *after* the
+                    # underlying program has itself caught the SIGINT (Ctrl-C)
+                    multiplex.io_loop.add_timeout(
+                        timedelta(milliseconds=1000),
+                        multiplex.term.abort_capture)
+                    # Also make sure the client gets a screen update
+                    refresh = partial(self.refresh_screen, term)
+                    multiplex.io_loop.add_timeout(
+                        timedelta(milliseconds=1050), refresh)
 
     @require_auth
     def write_chars(self, message):

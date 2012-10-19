@@ -282,7 +282,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
         except IOError:
             return # Something wrong with the file
         if count == 0:
-            if chunk[14:].startswith('{'): # Old/incomplete metadata
+            if chunk[14] == "{": # Old/incomplete metadata
                 # Need to keep reading until the next frame
                 while True:
                     try:
@@ -410,6 +410,9 @@ class BaseMultiplex(object):
         self.syslog = syslog # See "if self.syslog:" below
         self._alive = False
         self.ratelimiter_engaged = False
+        self.capture_ratelimiter = False
+        self.ctrl_c_pressed = False
+        self.capturing_timeout = timedelta(seconds=2)
         self.rows = 24
         self.cols = 80
         self.pid = -1 # Means "no pid yet"
@@ -1156,6 +1159,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         self.exitstatus = None
         self._checking_patterns = False
         self.read_timeout = datetime.now()
+        self.capture_limit = -1 # Huge reads by default
+        self.restore_rate = None
 
     def __del__(self):
         """
@@ -1187,17 +1192,24 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         """
         logging.debug("Disabling rate limiter")
         self.ratelimiter_engaged = False
-        self.io_loop.add_handler(
-            self.fd, self._ioloop_read_handler, self.io_loop.READ)
+        try:
+            self.io_loop.add_handler(
+                self.fd, self._ioloop_read_handler, self.io_loop.READ)
+        except IOError:
+            # Already been re-added...  Probably by write().  Ignore.
+            pass
 
     def __reset_sent_sigint(self):
         self.sent_sigint = False
 
-    def _blocked_io_handler(self, signum=None, frame=None):
+    def _blocked_io_handler(self, signum=None, frame=None, wait=None):
         """
         Handles the situation where a terminal is blocking IO (usually because
         of too much output).  This method would typically get called inside of
         `MultiplexPOSIXIOLoop._read` when the output of an fd is too noisy.
+
+        If *wait* is given, will wait that many milliseconds long before
+        disengaging the rate limiter.
         """
         if not self.isalive():
             # This can happen if terminate() gets called too fast from another
@@ -1206,14 +1218,16 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             return # Nothing to do
         logging.warning(_(
             "Noisy process (%s) kicked off rate limiter." % self.pid))
+        if not wait:
+            wait = 5000
         self.ratelimiter_engaged = True
         # CALLBACK_UPDATE is called here so the client can be made aware of the
         # fact that the rate limiter was engaged.
-        #for callback in self.callbacks[self.CALLBACK_UPDATE].values():
-            #self._call_callback(callback)
+        for callback in self.callbacks[self.CALLBACK_UPDATE].values():
+            self._call_callback(callback)
         self.io_loop.remove_handler(self.fd)
         self.reenable_timeout = self.io_loop.add_timeout(
-            timedelta(milliseconds=10000), self._reenable_output)
+            timedelta(milliseconds=wait), self._reenable_output)
 
     def spawn(self,
             rows=24, cols=80, env=None, em_dimensions=None, exitfunc=None):
@@ -1507,23 +1521,62 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         # *really* need to debug this method.
         #logging.debug("MultiplexPOSIXIOLoop._read()")
         result = b""
+        def restore_capture_limit():
+            self.capture_limit = -1
+            self.restore_rate = None
         try:
-            with io.open(self.fd, 'rb', closefd=False, buffering=0) as reader:
+            with io.open(self.fd, 'rb', closefd=False,buffering=1024) as reader:
                 if bytes == -1:
-                    # 5 seconds should be long enough for the terminal emulator
-                    # to process big images and other kinds of files.
-                    timeout = timedelta(seconds=5)
+                    # 2 seconds of blocking is too much.
+                    timeout = timedelta(seconds=2)
                     loop_start = datetime.now()
+                    if self.ctrl_c_pressed:
+                        # If the user pressed Ctrl-C and the ratelimiter was
+                        # engaged then we'd best discard the (possibly huge)
+                        # buffer so we don't waste CPU cyles processing it.
+                        discard = reader.read(-1)
+                        self.ctrl_c_pressed = False
+                        return u'^C\n' # Let the user know what happened
+                    if self.restore_rate:
+                        # Need at least three seconds of inactivity to go back
+                        # to unlimited reads
+                        self.io_loop.remove_timeout(self.restore_rate)
+                        self.restore_rate = self.io_loop.add_timeout(
+                            timedelta(seconds=6), restore_capture_limit)
                     while True:
-                        #updated = reader.read(bytes)
-                        updated = reader.read()
+                        updated = reader.read(self.capture_limit)
                         if not updated:
                             break
                         result += updated
                         self.term_write(updated)
+                        if self.ratelimiter_engaged or self.capture_ratelimiter:
+                            break # Only allow one read per IOLoop loop
+                        if self.capture_limit == 2048:
+                            # Block for a little while: Enough to keep things
+                            # moving but not fast enough to slow everyone else
+                            # down
+                            self._blocked_io_handler(wait=1000)
+                            break
                         if datetime.now() - loop_start > timeout:
                             # Engage the rate limiter
-                            self._blocked_io_handler()
+                            if self.term.capture:
+                                self.capture_ratelimiter = True
+                                self.capture_limit = 65536
+                                # Make sure we eventually get back to defaults:
+                                self.io_loop.add_timeout(
+                                    timedelta(seconds=10),
+                                    restore_capture_limit)
+                                # NOTE: The capture_ratelimiter doesn't remove
+                                # self.fd from the IOLoop (that's the diff)
+                            else:
+                                # Set the capture limit to a smaller value so
+                                # when we re-start output again the noisy
+                                # program won't be able to take over again.
+                                self.capture_limit = 2048
+                                self.restore_rate = self.io_loop.add_timeout(
+                                    timedelta(seconds=6),
+                                    restore_capture_limit)
+                                self._blocked_io_handler()
                             break
                 elif bytes:
                     result = reader.read(bytes)
@@ -1603,6 +1656,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 self.fd, 'wt', encoding='UTF-8', closefd=False) as writer:
                     writer.write(chars)
             if self.ratelimiter_engaged:
+                if u'\x03' in chars: # Ctrl-C
+                    # This will force self._read() to discard the buffer
+                    self.ctrl_c_pressed = True
                 # Reattach the fd so the user can continue immediately
                 self._reenable_output()
         except (IOError, OSError) as e:
