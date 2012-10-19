@@ -4271,7 +4271,7 @@ go.Base.update(GateOne.Terminal, {
         resetTermButton.innerHTML = "Rescue Terminal";
         resetTermButton.title = "Attempts to rescue a hung terminal by performing a terminal reset; the equivalent of executing the 'reset' command.";
         resetTermButton.onclick = function() {
-            go.ws.send(JSON.stringify({'terminal_reset': localStorage[prefix+'selectedTerminal']}));
+            go.ws.send(JSON.stringify({'reset_terminal': localStorage[prefix+'selectedTerminal']}));
         }
         p.appendChild(resetTermButton);
         // Assign our visual terminal switching function (if not already assigned)
