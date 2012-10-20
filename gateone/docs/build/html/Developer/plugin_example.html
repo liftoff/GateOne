@@ -178,14 +178,14 @@ plugin's 'static' dir).</p>
 
 <dl class="function">
 <dt id="example.example_opt_esc_handler">
-<tt class="descclassname">example.</tt><tt class="descname">example_opt_esc_handler</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../_modules/example.html#example_opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.example_opt_esc_handler" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">example.</tt><tt class="descname">example_opt_esc_handler</tt><big>(</big><em>message</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/example.html#example_opt_esc_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.example_opt_esc_handler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gate One includes a mechanism for plugins to send messages from terminal
 programs directly to plugins written in Python.  It's called the &quot;Special
 Optional Escape Sequence Handler&quot; or SOESH for short.  Here's how it works:
 Whenever a terminal program emits, &quot;x1b]_;&quot; it gets detected by Gate One's
-<a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-class docutils literal"><span class="pre">Terminal</span></tt></a> class (which lives in <tt class="xref py py-obj docutils literal"><span class="pre">terminal.py</span></tt>) and it will execute whatever
-callback is registered for SOESH.  Inside of Gate One this callback will
-always be <a class="reference internal" href="gateone.html#gateone.TerminalWebSocket.esc_opt_handler" title="gateone.TerminalWebSocket.esc_opt_handler"><tt class="xref py py-func docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler()</span></tt></a>.</p>
+<a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-class docutils literal"><span class="pre">Terminal</span></tt></a> class (which lives in <tt class="xref py py-obj docutils literal"><span class="pre">terminal.py</span></tt>) and it will
+execute whatever callback is registered for SOESH.  Inside of Gate One this
+callback will always be <a class="reference internal" href="gateone.html#gateone.TerminalWebSocket.esc_opt_handler" title="gateone.TerminalWebSocket.esc_opt_handler"><tt class="xref py py-func docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler()</span></tt></a>.</p>
 </dd></dl>
 
 </div>

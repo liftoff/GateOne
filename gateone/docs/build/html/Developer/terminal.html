@@ -413,7 +413,9 @@ to make room for an image.</p>
 <dt id="terminal.PDFFile.html">
 <tt class="descname">html</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.PDFFile.html" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a link to download the PDF using <tt class="xref py py-attr docutils literal"><span class="pre">self.linkpath</span></tt> for the
-href attribute.</p>
+href attribute.  Will use <tt class="xref py py-attr docutils literal"><span class="pre">self.html_icon_template</span></tt> if
+<tt class="xref py py-attr docutils literal"><span class="pre">self.icon</span></tt> can be found.  Otherwise it will just output
+<tt class="xref py py-attr docutils literal"><span class="pre">self.name</span></tt> as a clickable link.</p>
 </dd></dl>
 
 </dd></dl>
@@ -489,8 +491,7 @@ and the icon it is looking for happens to be available at <em>icondir</em>.</p>
 <dt id="terminal.Terminal.add_magic">
 <tt class="descname">add_magic</tt><big>(</big><em>filetype</em><big>)</big><a class="headerlink" href="#terminal.Terminal.add_magic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds the given <em>filetype</em> to <tt class="xref py py-attr docutils literal"><span class="pre">self.supported_magic</span></tt> and generates
-the necessary bits in <tt class="xref py py-attr docutils literal"><span class="pre">self.magic</span></tt> and
-<tt class="xref py py-attr docutils literal"><span class="pre">self.magic_map</span></tt>.</p>
+the necessary bits in <tt class="xref py py-attr docutils literal"><span class="pre">self.magic</span></tt> and <tt class="xref py py-attr docutils literal"><span class="pre">self.magic_map</span></tt>.</p>
 <p><em>filetype</em> is expected to be a subclass of <a class="reference internal" href="#terminal.FileType" title="terminal.FileType"><tt class="xref py py-class docutils literal"><span class="pre">FileType</span></tt></a>.</p>
 </dd></dl>
 
@@ -501,6 +502,22 @@ the necessary bits in <tt class="xref py py-attr docutils literal"><span class="
 <tt class="xref py py-attr docutils literal"><span class="pre">self.magic</span></tt>, and <tt class="xref py py-attr docutils literal"><span class="pre">self.magic_map</span></tt>.</p>
 <p><em>filetype</em> may be the specific filetype class or a string that can be
 either a filetype.name or filetype.mimetype.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.update_magic">
+<tt class="descname">update_magic</tt><big>(</big><em>filetype</em>, <em>mimetype</em><big>)</big><a class="headerlink" href="#terminal.Terminal.update_magic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces an existing FileType with the given <em>mimetype</em> in
+<tt class="xref py py-attr docutils literal"><span class="pre">self.supported_magic</span></tt> with the given <em>filetype</em>.  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">terminal</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">term</span> <span class="o">=</span> <span class="n">terminal</span><span class="o">.</span><span class="n">Terminal</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">NewPDF</span> <span class="o">=</span> <span class="n">class</span><span class="p">(</span><span class="n">terminal</span><span class="o">.</span><span class="n">PDFile</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Open PDFs immediately in a new window</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NewPDF</span><span class="o">.</span><span class="n">html_template</span> <span class="o">=</span> <span class="s">&quot;&lt;script&gt;window.open({link})&lt;/script&gt;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NewPDF</span><span class="o">.</span><span class="n">html_icon_template</span> <span class="o">=</span> <span class="n">NewPDF</span><span class="o">.</span><span class="n">html_template</span> <span class="c"># Ignore icon</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">term</span><span class="o">.</span><span class="n">update_magic</span><span class="p">(</span><span class="n">NewPDF</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s">&quot;application/pdf&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -578,6 +595,24 @@ given <em>event</em>.  Example:</p>
 <dt id="terminal.Terminal.remove_all_callbacks">
 <tt class="descname">remove_all_callbacks</tt><big>(</big><em>identifier</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.remove_all_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.remove_all_callbacks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removes all callbacks associated with <em>identifier</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.send_message">
+<tt class="descname">send_message</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#terminal.Terminal.send_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>A convenience function for calling all CALLBACK_MESSAGE callbacks.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.send_update">
+<tt class="descname">send_update</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal.send_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>A convenience function for calling all CALLBACK_CHANGED callbacks.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.send_cursor_update">
+<tt class="descname">send_cursor_update</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal.send_cursor_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>A convenience function for calling all CALLBACK_CURSOR_POS callbacks.</p>
 </dd></dl>
 
 <dl class="method">
@@ -747,6 +782,13 @@ is encountered.</p>
 <tt class="descname">use_g1_charset</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.use_g1_charset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.use_g1_charset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the current charset to G1.  This should get called when ASCII_SI
 is encountered.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="terminal.Terminal.abort_capture">
+<tt class="descname">abort_capture</tt><big>(</big><big>)</big><a class="headerlink" href="#terminal.Terminal.abort_capture" title="Permalink to this definition">¶</a></dt>
+<dd><p>A convenience function that takes care of canceling a file capture and
+cleaning up the output.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1380,18 +1422,6 @@ inbetween <em>chars</em> (e.g. ]_;&lt;chars&gt;) as the argument.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">I added this functionality so that plugin authors would have a mechanism to communicate with terminal applications.  See the SSH plugin for an example of how this can be done (there's channels of communication amongst ssh_connect.py, ssh.js, and ssh.py).</p>
 </div>
-</dd></dl>
-
-<dl class="method">
-<dt id="terminal.Terminal._captured_file_output">
-<tt class="descname">_captured_file_output</tt><big>(</big><em>captured_file</em><big>)</big><a class="headerlink" href="#terminal.Terminal._captured_file_output" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called by <tt class="xref py py-meth docutils literal"><span class="pre">self._spanify_screen()</span></tt> and
-<tt class="xref py py-meth docutils literal"><span class="pre">self._spanify_scrollback()</span></tt>, returns an HTML-formatted string
-containing the data stored in <em>captured_file</em> in a way that's suitable
-for display in a terminal.</p>
-<p>Raises a HTMLEncodeError exception if a problem is encountered while
-converting the file data.</p>
-<p>Example: It will convert PNG and JPEG images into <a class="reference external" href="data::URI">data::URI</a> &lt;IMG&gt; tags.</p>
 </dd></dl>
 
 <dl class="method">

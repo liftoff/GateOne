@@ -685,10 +685,12 @@ disengaging the rate limiter.</p>
 
 <dl class="method">
 <dt id="termio.MultiplexPOSIXIOLoop._blocked_io_handler">
-<tt class="descname">_blocked_io_handler</tt><big>(</big><em>signum=None</em>, <em>frame=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop._blocked_io_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop._blocked_io_handler" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">_blocked_io_handler</tt><big>(</big><em>signum=None</em>, <em>frame=None</em>, <em>wait=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#MultiplexPOSIXIOLoop._blocked_io_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.MultiplexPOSIXIOLoop._blocked_io_handler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles the situation where a terminal is blocking IO (usually because
 of too much output).  This method would typically get called inside of
 <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop._read" title="termio.MultiplexPOSIXIOLoop._read"><tt class="xref py py-obj docutils literal"><span class="pre">MultiplexPOSIXIOLoop._read</span></tt></a> when the output of an fd is too noisy.</p>
+<p>If <em>wait</em> is given, will wait that many milliseconds long before
+disengaging the rate limiter.</p>
 </dd></dl>
 
 <dl class="method">
@@ -869,7 +871,7 @@ passed to the spawn() command.</p>
                         title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="utils.html"
-                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
+                        title="next chapter"><tt class="docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/termio.txt"
