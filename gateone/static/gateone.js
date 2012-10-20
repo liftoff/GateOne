@@ -4492,12 +4492,15 @@ go.Base.update(GateOne.Terminal, {
                             if (!go.prefs.embedded) {
                                 // In embedded mode this kind of adjustment can be unreliable
                                 GateOne.Visual.applyTransform(termPre, ''); // Need to reset before we do the calculation
-                                var distance = goDiv.clientHeight - screenSpan.offsetHeight;
                                 GateOne.terminals[term]['heightAdjust'] = 0; // Have to set this as a default value for new terminals
                                 // Feel free to put something like this in updateTermCallbacks if you want.
                                 if (GateOne.Utils.isVisible(termPre)) {
-                                    var transform = "translateY(-" + distance + "px)";
+                                    // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
+                                    setTimeout(function() {
+                                        var distance = goDiv.clientHeight - screenSpan.offsetHeight,
+                                        transform = "translateY(-" + distance + "px)";
                                     GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                                    }, 1000);
                                 }
                             }
                         }

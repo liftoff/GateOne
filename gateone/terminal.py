@@ -829,7 +829,7 @@ class JPEGFile(ImageFile):
     re_header = re.compile(
         '.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
     re_capture = re.compile(
-        '\xff\xd8\xff.+JFIF\x00.*?\xff\xd9|\xff\xd8\xff.+Exif\x00.*?\xff\xd9',
+        '\xff\xd8\xff.+\xff\xd9',
         re.DOTALL
     )
     html_template = '<img src="{src}" width="{width}" height="{height}">'

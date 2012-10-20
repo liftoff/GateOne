@@ -5,7 +5,7 @@ To install Gate One from source execute the following from this directory:
 By default it will be installed in /opt (/opt/gateone).  If you want to install
 it somewhere else just pass --prefix:
 
-    python setup.py --prefix=/usr/local install
+    python setup.py install --prefix=/usr/local
 
 To build an RPM package:
 
