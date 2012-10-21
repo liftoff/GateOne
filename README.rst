@@ -20,7 +20,7 @@ About Gate One
     * The Bookmarks plugin lets you keep track of *all* of your hosts with support for tagging, sorting, and includes a super fast search.  It was built to handle thousands of bookmarks and can be used with whatever URLs you want--it isn't limited to SSH!
     * The Logging plugin includes a Log Viewer that allows users to sort, view, and even export recordings of their terminal sessions to self-contained HTML files that can be shared.  Demonstrating anything on the command line can be as simple as performing the task and clicking a button!
     * The Playback plugin allows users to "rewind" and play back their connected terminal sessions in real-time, just like a video!  This can be done via the playback controls or by holding the shift key while scrolling.
-    * The Convenience plugin adds many conenvient capabilities:
+    * The Convenience plugin adds many convenient capabilities:
         * IPv4 and IPv6 addresses become clickable elements that can perform a reverse DNS lookup.
         * The output of 'ls -l' is transformed into clickable elements that can perform user and group lookups, convert bytes into human-readable strings, and even tell you what the 'chmod equivalent' is of the permissions field (e.g. clicking on 'crw-rw-rw-' would tell you, "(Character Device) with permissions equivalent to 'chmod 0666'").
         * Automatic syntax highlighting of syslog messages.
