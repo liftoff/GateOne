@@ -66,4 +66,10 @@ Just press the ESC key on any page at http://liftoffsoftware.com/ to have Gate O
 
 Other Notable Bits
 ------------------
-Gate One's `termio` and `terminal` Python modules can be used together to automate, screen-scrape,
+Gate One's `termio` and `terminal` Python modules can be used together to automate, screen-scrape, and completely control terminal applications.  The `expect() <http://liftoff.github.com/GateOne/Developer/termio.html#termio.BaseMultiplex.expect>`_ function can be used as a replacement for `pexpect <http://www.noah.org/wiki/pexpect>`_ that has some additional features and benefits:
+
+    * It can be used asynchronously:  It won't block which means it is perfect for executing commands from a web application.
+    * It supports sophisticated decision trees and callbacks:  You can completely re-define all patterns and callbacks on-the-fly based on whatever conditions you want.
+    * It supports Unicode output *and* input.
+    * It works with Python 3.
+
