@@ -119,8 +119,8 @@ GateOne.Base.update(GateOne.Convenience, {
         var userPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+)([A-Za-z0-9\-._@]+)/g,
             userReplacementString = "$1<span class='clickable' onclick='GateOne.Convenience.userInfo(this)'>$2</span>";
         t.registerTextTransform("ls-luser", userPattern, userReplacementString);
-        var permissionsPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?)/g,
-            permissionsReplacementString = "<span class='clickable' onclick='GateOne.Convenience.permissionsInfo(this)'>$1</span>";
+        var permissionsPattern = /^([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?) /mg,
+            permissionsReplacementString = "<span class='clickable' onclick='GateOne.Convenience.permissionsInfo(this)'>$1</span> ";
         t.registerTextTransform("ls-lperms", permissionsPattern, permissionsReplacementString);
     },
     unregisterLSConvenience: function() {
