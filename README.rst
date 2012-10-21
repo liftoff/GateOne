@@ -56,7 +56,7 @@ Screenshots
 
 Documentation
 -------------
-The documentation for Gate One can be found hee:  http://liftoff.github.com/GateOne/
+The documentation for Gate One can be found here:  http://liftoff.github.com/GateOne/
 
 Also, all (this) documentation is in the "gateone/docs" directory.  The HTML form is pre-built and ready-to-read.
 
