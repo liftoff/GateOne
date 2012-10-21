@@ -604,17 +604,17 @@ GateOne.Base.update(GateOne.Logging, {
             u.removeElement(existingButtonRow);
         }
         buttonRowTitle.innerHTML = "Actions";
-        viewFlatButton.innerHTML = "Printable Log";
+        viewFlatButton.innerHTML = "Printable";
         viewFlatButton.title = "Opens a new window with a traditional flat view of the log that can be printed.";
         viewFlatButton.onclick = function(e) {
             l.openLogFlat(logFile);
         }
-        viewPlaybackButton.innerHTML = "View Playback";
+        viewPlaybackButton.innerHTML = "Open Playback";
         viewPlaybackButton.title = "Opens a new window with a realtime playback of the log.";
         viewPlaybackButton.onclick = function(e) {
             l.openLogPlayback(logFile);
         }
-        downloadButton.innerHTML = "Save Log (HTML)";
+        downloadButton.innerHTML = "Save (HTML)";
         downloadButton.title = "Save a pre-rendered, self-contained recording of this log to disk in HTML format.";
         downloadButton.onclick = function(e) {
             l.saveRenderedLog(logFile);
