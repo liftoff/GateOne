@@ -4177,7 +4177,7 @@ go.Base.update(GateOne.Terminal, {
                 termTitle = go.terminals[term]['title'];
             if (monitorInactivity.checked) {
                 var inactivity = function() {
-                    go.Terminal.notifyInactivity(termTitle);
+                    go.Terminal.notifyInactivity(term + ': ' + termTitle);
                     // Restart the timer
                     go.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.terminals[term]['inactivityTimeout']);
                 }
@@ -4591,7 +4591,7 @@ go.Base.update(GateOne.Terminal, {
             // Take care of the activity/inactivity notifications
             if (GateOne.terminals[term]['inactivityTimer']) {
                 clearTimeout(GateOne.terminals[term]['inactivityTimer']);
-                var inactivity = u.partial(GateOne.Terminal.notifyInactivity, termTitle);
+                var inactivity = u.partial(GateOne.Terminal.notifyInactivity, term + ': ' + termTitle);
                 try {
                     GateOne.terminals[term]['inactivityTimer'] = setTimeout(inactivity, GateOne.terminals[term]['inactivityTimeout']);
                 } finally {
@@ -4602,7 +4602,7 @@ go.Base.update(GateOne.Terminal, {
                 if (!GateOne.terminals[term]['lastNotifyTime']) {
                     // Setup a minimum delay between activity notifications so we're not spamming the user
                     GateOne.terminals[term]['lastNotifyTime'] = new Date();
-                    GateOne.Terminal.notifyActivity(termTitle);
+                    GateOne.Terminal.notifyActivity(term + ': ' + termTitle);
                 } else {
                     var then = new Date(GateOne.terminals[term]['lastNotifyTime']),
                         now = new Date();
@@ -4610,7 +4610,7 @@ go.Base.update(GateOne.Terminal, {
                         then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
                         if (now > then) {
                             GateOne.terminals[term]['lastNotifyTime'] = new Date(); // Reset
-                            GateOne.Terminal.notifyActivity(termTitle);
+                            GateOne.Terminal.notifyActivity(term + ': ' + termTitle);
                         }
                     } finally {
                         then = null;
@@ -4704,13 +4704,13 @@ go.Base.update(GateOne.Terminal, {
     },
     notifyInactivity: function(term) {
         // Notifies the user of inactivity in *term*
-        var message = "Inactivity in terminal: " + term;
+        var message = "Inactivity in terminal " + term;
         GateOne.Visual.playBell();
         GateOne.Visual.displayMessage(message);
     },
     notifyActivity: function(term) {
         // Notifies the user of activity in *term*
-        var message = "Activity in terminal: " + term;
+        var message = "Activity in terminal " + term;
         GateOne.Visual.playBell();
         GateOne.Visual.displayMessage(message);
     },
