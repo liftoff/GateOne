@@ -780,8 +780,8 @@ if __name__ == "__main__":
                 # Set title
                 print("\x1b]0;telnet://%s\007" % host)
             telnet_connect(user, host, port)
-    except KeyboardInterrupt:
-        print(_("\nKeyboardInterrupt detected.  Quitting..."))
+    except (KeyboardInterrupt, EOFError):
+        print(_("\nUser requested exit.  Quitting..."))
     except Exception as e: # Catch all
         print(_("Got Exception: %s" % e))
         import traceback
