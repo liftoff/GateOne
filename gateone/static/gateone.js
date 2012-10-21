@@ -4497,10 +4497,11 @@ go.Base.update(GateOne.Terminal, {
                                 if (GateOne.Utils.isVisible(termPre)) {
                                     // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
                                     setTimeout(function() {
-                                        var distance = goDiv.clientHeight - screenSpan.offsetHeight,
+                                        var distance = goDiv.clientHeight - termPre.offsetHeight,
                                         transform = "translateY(-" + distance + "px)";
+                                        logInfo('distance: ' + distance);
                                     GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
-                                    }, 500);
+                                    }, 1100);
                                 }
                             }
                         }
