@@ -97,8 +97,9 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
             term.write(frame_screen)
             # Ensure we're not in the middle of capturing a file.  Otherwise
             # it might get cut off and result in no image being shown.
-            if not term.capture:
-                scrollback, screen = term.dump_html()
+            if term.capture:
+                continue
+            scrollback, screen = term.dump_html()
             out_frames.append({'screen': screen, 'time': frame_time})
     return out_frames # Skip the first frame which is the metadata
 
