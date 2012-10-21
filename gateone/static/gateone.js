@@ -4500,7 +4500,7 @@ go.Base.update(GateOne.Terminal, {
                                         var distance = goDiv.clientHeight - screenSpan.offsetHeight,
                                         transform = "translateY(-" + distance + "px)";
                                     GateOne.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
-                                    }, 1000);
+                                    }, 500);
                                 }
                             }
                         }
