@@ -1730,8 +1730,10 @@ def getstatusoutput(cmd, **kwargs):
     m = Multiplex(cmd)
     m.spawn(**kwargs)
     while m.isalive():
-        output += m.read()
-        time.sleep(0.01)
+        result = m.read()
+        if result:
+            output += result
+        time.sleep(0.01) # Reduce CPU overhead
     return (m.exitstatus, output)
 
 if POSIX:
