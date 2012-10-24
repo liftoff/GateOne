@@ -56,7 +56,7 @@ class PAMAuthMixin(tornado.web.RequestHandler):
         Perform Basic authentication using self.settings['pam_realm'].
         """
         auth_decoded = base64.decodestring(auth_header[6:])
-        username, password = auth_decoded.split(':', 2)
+        username, password = auth_decoded.split(':', 1)
 
         def _pam_conv(auth, query_list, user_data=None):
             resp = []
