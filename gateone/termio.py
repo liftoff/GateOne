@@ -1049,7 +1049,7 @@ class BaseMultiplex(object):
             if hash(item) == ref:
                 self._patterns.pop(i)
 
-    def await(self, timeout=15, rows=24, cols=80, env=None, em_dimensions=None):
+    def await(self, timeout=15, **kwargs):
         """
         Blocks until all non-optional patterns inside self._patterns have been
         removed *or* if the given *timeout* is reached.  *timeout* may be an
@@ -1061,15 +1061,13 @@ class BaseMultiplex(object):
         .. warning:: The timeouts attached to Patterns are set when they are created.  Not when when you call :meth:`await`!
 
         As a convenience, if :meth:`isalive` resolves to False,
-        :meth:`spawn` will be called automatically with *rows*, *cols*,
-        and *env* given as arguments.
+        :meth:`spawn` will be called automatically with *\*\*kwargs*
 
         await
             To wait with expectation.
         """
         if not self.isalive():
-            self.spawn(
-                rows=rows, cols=cols, env=env, em_dimensions=em_dimensions)
+            self.spawn(**kwargs)
         start = datetime.now()
         # Convert timeout to a timedelta if necessary
         if isinstance(timeout, (str, int, float)):
@@ -1084,6 +1082,8 @@ class BaseMultiplex(object):
         while remaining_patterns:
             # First we need to discount optional patterns
             remaining_patterns = False
+            if not self._patterns:
+                break
             for pattern in self._patterns:
                 if not pattern.optional and not pattern.sticky:
                     remaining_patterns = True
@@ -1350,13 +1350,17 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 except OSError:
                     # This can happen if the program closes itself very quickly
                     # immediately after being executed.
-                    if self.debug: # Useful to know when debugging...
-                        print(_(
+                    try: # Try again with -1
+                        pid, status = os.waitpid(-1, os.WNOHANG)
+                        if pid: # pid is 0 if the process is still running
+                            self.exitstatus = os.WEXITSTATUS(status)
+                    except OSError:
+                        logging.debug(_(
                             "Could not determine exit status for child with "
                             "PID: %s\n" % self.pid
                         ))
-                        print(_("Setting self.exitstatus to 99"))
-                    self.exitstatus = 99 # Seems like a good number
+                        logging.debug(_("Setting self.exitstatus to 999"))
+                        self.exitstatus = 999 # Seems like a good number
         if self._alive: # Re-check it
             try:
                 os.kill(self.pid, 0)
@@ -1364,8 +1368,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             except OSError:
                 # Process is dead
                 self._alive = False
-                if self.debug: # Useful to know when debugging...
-                    print(_("Child exited with status: %s\n" % self.exitstatus))
+                logging.debug(_(
+                    "Child exited with status: %s" % self.exitstatus))
                 # Call the exitfunc (if set)
                 if self.exitfunc:
                     self.exitfunc(self, self.exitstatus)
@@ -1455,10 +1459,13 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         except OSError:
             # The process is already dead--great.
             pass
-        if not self.exitstatus:
-            pid, status = os.waitpid(-1, os.WNOHANG)
-            if pid:
-                self.exitstatus = os.WEXITSTATUS(status)
+        if self.exitstatus != None:
+            try:
+                pid, status = os.waitpid(-1, os.WNOHANG)
+                if pid:
+                    self.exitstatus = os.WEXITSTATUS(status)
+            except OSError:
+                self.exitstatus = 999 # unknown
         if self._patterns:
             self.timeout_check(timeout_now=True)
             self.unexpect()
