@@ -2270,9 +2270,6 @@ class Terminal(object):
         """
         cols = self.cols
         self.cursorY += 1
-        # Do CR with every NL because that's how every other terminal emulator
-        # seems to do it
-        self.cursorX = 0
         if self.cursorY > self.bottom_margin:
             self.scroll_up()
             self.cursorY = self.bottom_margin
@@ -2303,7 +2300,7 @@ class Terminal(object):
         #if self.cursorX >= self.cols and self.cursorX != self.cols:
             #self.newline()
         if not self.capture:
-            self.cursorX = 0 # Yeah this is redundant if newline() is called
+            self.cursorX = 0
 
     def _xon(self):
         """
