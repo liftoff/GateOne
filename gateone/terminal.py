@@ -146,10 +146,22 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import os, re, logging, base64, StringIO, codecs, unicodedata, tempfile
+import os, sys, re, logging, base64, StringIO, codecs, unicodedata, tempfile
 from array import array
 from datetime import datetime, timedelta
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+try:
+    from collections import OrderedDict
+except ImportError: # Python <2.7 didn't have OrderedDict in collections
+    try:
+        from ordereddict import OrderedDict
+    except ImportError:
+        logging.error(
+            "Error: Could not import OrderedDict.  Please install it:")
+        logging.error("\tsudo pip install ordereddict")
+        logging.error(
+            "...or download it from http://pypi.python.org/pypi/ordereddict")
+        sys.exit(1)
 from itertools import imap, izip
 
 # Inernationalization support
