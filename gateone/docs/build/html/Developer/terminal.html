@@ -431,8 +431,7 @@ href attribute.  Will use <tt class="xref py py-attr docutils literal"><span cla
 <dt id="terminal.Terminal">
 <em class="property">class </em><tt class="descclassname">terminal.</tt><tt class="descname">Terminal</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>em_dimensions=None</em>, <em>temppath='/tmp'</em>, <em>linkpath='/tmp'</em>, <em>icondir=None</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminal controller class.</p>
-<blockquote>
-<div><p>Initializes the terminal by calling <em>self.initialize(rows, cols)</em>.  This
+<p>Initializes the terminal by calling <em>self.initialize(rows, cols)</em>.  This
 is so we can have an equivalent function in situations where __init__()
 gets overridden.</p>
 <p>If <em>em_dimensions</em> are provided they will be used to determine how many
@@ -448,20 +447,16 @@ a web-based application may wish to have the terminal emulator store
 temporary files in /tmp but give clients a completely unrelated URL to
 retrieve these files (for security or convenience reasons).  Here's a
 real world example of how it works:</p>
-<div class="highlight-python"><pre>&gt;&gt; term = Terminal(rows=10, cols=40, temppath='/var/tmp', linkpath='/terminal')
-&gt;&gt; term.write('About to write a PDF...</pre>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">term</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">temppath</span><span class="o">=</span><span class="s">&#39;/var/tmp&#39;</span><span class="p">,</span> <span class="n">linkpath</span><span class="o">=</span><span class="s">&#39;/terminal&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;About to write a PDF</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pdf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/path/to/somefile.pdf&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pdf</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">term</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
+<span class="go">([u&#39;About to write a PDF                    &#39;,</span>
+<span class="go"># &lt;unnecessary lines of whitespace have been removed for this example&gt;</span>
+<span class="go">u&#39;&lt;a target=&quot;_blank&quot; href=&quot;/terminal/tmpZoOKVM.pdf&quot;&gt;PDF Document&lt;/a&gt;&#39;])</span>
+</pre></div>
 </div>
-</div></blockquote>
-<dl class="docutils">
-<dt>')</dt>
-<dd><blockquote class="first">
-<div>&gt;&gt; pdf = open('/path/to/somefile.pdf').read()
-&gt;&gt; term.write(pdf)
-&gt;&gt; term.dump_html()
-([],
-[u'About to write a PDF...                 ',
-# &lt;unnecessary lines of whitespace have been removed for this example&gt;
-u'&lt;a target=&quot;_blank&quot; href=&quot;/terminal/tmpZoOKVM.pdf&quot;&gt;PDF Document&lt;/a&gt;']</div></blockquote>
 <p>The PDF file in question will reside in <tt class="xref py py-obj docutils literal"><span class="pre">/var/tmp</span></tt> but the link was
 created as <tt class="xref py py-obj docutils literal"><span class="pre">href=&quot;/terminal/tmpZoOKVM.pdf&quot;</span></tt>.  As long as your web app
 knows to look in /var/tmp for incoming '/terminal' requests users should
@@ -478,9 +473,7 @@ as a parameter in a manner similar to this:</p>
 <p>That way when filetype_instance.html() is called it can display a nice
 icon to the user...  if that particular <a class="reference internal" href="#terminal.FileType" title="terminal.FileType"><tt class="xref py py-class docutils literal"><span class="pre">FileType</span></tt></a> supports icons
 and the icon it is looking for happens to be available at <em>icondir</em>.</p>
-<p class="last">If <em>debug</em> is True, the root logger will have its level set to DEBUG.</p>
-</dd>
-</dl>
+<p>If <em>debug</em> is True, the root logger will have its level set to DEBUG.</p>
 <dl class="method">
 <dt id="terminal.Terminal.initialize">
 <tt class="descname">initialize</tt><big>(</big><em>rows=24</em>, <em>cols=80</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/terminal.html#Terminal.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#terminal.Terminal.initialize" title="Permalink to this definition">¶</a></dt>

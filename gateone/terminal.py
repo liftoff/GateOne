@@ -1030,7 +1030,7 @@ class Terminal(object):
     ASCII_HTS = 210   # Horizontal Tab Stop (HTS)
 
     charsets = {
-        'B': {}, # Default: USA
+        'B': {}, # Default is USA (aka 'B')
         '0': { # Line drawing mode
             95: u' ',
             96: u'◆',
@@ -1097,15 +1097,14 @@ class Terminal(object):
         retrieve these files (for security or convenience reasons).  Here's a
         real world example of how it works::
 
-            >> term = Terminal(rows=10, cols=40, temppath='/var/tmp', linkpath='/terminal')
-            >> term.write('About to write a PDF...\n')
-            >> pdf = open('/path/to/somefile.pdf').read()
-            >> term.write(pdf)
-            >> term.dump_html()
-            ([],
-            [u'About to write a PDF...                 ',
+            >>> term = Terminal(rows=10, cols=40, temppath='/var/tmp', linkpath='/terminal')
+            >>> term.write('About to write a PDF\\n')
+            >>> pdf = open('/path/to/somefile.pdf').read()
+            >>> term.write(pdf)
+            >>> term.dump_html()
+            ([u'About to write a PDF                    ',
             # <unnecessary lines of whitespace have been removed for this example>
-            u'<a target="_blank" href="/terminal/tmpZoOKVM.pdf">PDF Document</a>']
+            u'<a target="_blank" href="/terminal/tmpZoOKVM.pdf">PDF Document</a>'])
 
         The PDF file in question will reside in `/var/tmp` but the link was
         created as `href="/terminal/tmpZoOKVM.pdf"`.  As long as your web app

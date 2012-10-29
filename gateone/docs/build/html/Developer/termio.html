@@ -606,7 +606,7 @@ against the incoming stream.  If <em>ref</em> is None (the default),
 
 <dl class="method">
 <dt id="termio.BaseMultiplex.await">
-<tt class="descname">await</tt><big>(</big><em>timeout=15</em>, <em>rows=24</em>, <em>cols=80</em>, <em>env=None</em>, <em>em_dimensions=None</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.await"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.await" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">await</tt><big>(</big><em>timeout=15</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/termio.html#BaseMultiplex.await"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#termio.BaseMultiplex.await" title="Permalink to this definition">¶</a></dt>
 <dd><p>Blocks until all non-optional patterns inside self._patterns have been
 removed <em>or</em> if the given <em>timeout</em> is reached.  <em>timeout</em> may be an
 integer (in seconds) or a <a class="reference external" href="http://docs.python.org/2.7/library/datetime.html#datetime.timedelta" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt></a> object.</p>
@@ -617,8 +617,7 @@ successfully.</p>
 <p class="last">The timeouts attached to Patterns are set when they are created.  Not when when you call <a class="reference internal" href="#termio.BaseMultiplex.await" title="termio.BaseMultiplex.await"><tt class="xref py py-meth docutils literal"><span class="pre">await()</span></tt></a>!</p>
 </div>
 <p>As a convenience, if <a class="reference internal" href="#termio.BaseMultiplex.isalive" title="termio.BaseMultiplex.isalive"><tt class="xref py py-meth docutils literal"><span class="pre">isalive()</span></tt></a> resolves to False,
-<a class="reference internal" href="#termio.spawn" title="termio.spawn"><tt class="xref py py-meth docutils literal"><span class="pre">spawn()</span></tt></a> will be called automatically with <em>rows</em>, <em>cols</em>,
-and <em>env</em> given as arguments.</p>
+<a class="reference internal" href="#termio.spawn" title="termio.spawn"><tt class="xref py py-meth docutils literal"><span class="pre">spawn()</span></tt></a> will be called automatically with <em>**kwargs</em></p>
 <dl class="docutils">
 <dt>await</dt>
 <dd>To wait with expectation.</dd>

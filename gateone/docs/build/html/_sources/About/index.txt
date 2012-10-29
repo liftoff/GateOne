@@ -53,6 +53,8 @@ Python                                              2.6+ or 3.2+
 `Tornado Framework <http://www.tornadoweb.org/>`_   2.2+
 =================================================   =================================================
 
+.. note:: If using Python 2.6 you'll need to install the ordereddict module:  `sudo pip install ordereddict` or you can download it `here <http://pypi.python.org/pypi/ordereddict>`_.  As of Python 2.7 OrderedDict was added to the `collections <http://docs.python.org/library/collections.html>`_ module in the standard library.
+
 The following commands can be used to verify which version of each are installed:
 
 .. ansi-block::
