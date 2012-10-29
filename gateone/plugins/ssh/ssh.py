@@ -799,8 +799,14 @@ def store_id_file(settings, tws=None):
             raise SSHKeypairException(_("No files were given to save!"))
         users_ssh_dir = get_ssh_dir(tws)
         private_key_path = os.path.join(users_ssh_dir, name)
-        public_key_path = os.path.join(users_ssh_dir, name+'.pub')
-        certificate_path = os.path.join(users_ssh_dir, name+'-cert.pub')
+        public_key_name = name + '.pub'
+        if name.endswith('.pub'):
+            public_key_name = name # Get rid of the extra .pub
+        public_key_path = os.path.join(users_ssh_dir, public_key_name)
+        certificate_name = name + '-cert.pub'
+        if name.endswith('-cert.pub'):
+            certificate_name = name # Don't need an extra -cert.pub at the end
+        certificate_path = os.path.join(users_ssh_dir, certificate_name)
         if private:
             if VALID_PRIVATE_KEY.match(private):
                 with open(private_key_path, 'w') as f:

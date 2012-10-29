@@ -873,11 +873,13 @@ GateOne.Base.update(GateOne.SSH, {
         passphraseForm.appendChild(safetyNote);
         passphraseForm.appendChild(submit);
         passphraseForm.appendChild(cancel);
+        var closeDialog = go.Visual.dialog('Passphrase for "' + settings['name'] + '"', passphraseForm);
+        // TODO: Make it so that the identity in question gets deleted if the user cancels out trying to enter the correct passphrase
+        // TODO: Alternatively, hang on to the identity but provide a button to re-try the passphrase (will require some server-side detection too I think)
         if (settings['bad']) {
             delete settings['bad'];
             explanation.innerHTML = "<span style='color: red;'>Invalid passphrase.</span>  Please try again.";
         }
-        var closeDialog = go.Visual.dialog('Passphrase for "' + settings['name'] + '"', passphraseForm);
         cancel.onclick = closeDialog;
         passphraseForm.onsubmit = function(e) {
             // Don't actually submit it
