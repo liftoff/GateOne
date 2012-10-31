@@ -1018,3 +1018,6 @@ hr {
     opacity: .1;
     z-index: 510; /* Just above the pastearea */
 }
+/* Override the black text background since our background is already black */
+#{{container}} span.b0 { background-color: transparent; }
+#{{container}} span.f0.b0 { color: #444; background-color: transparent; } /* Black on Black */

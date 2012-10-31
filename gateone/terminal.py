@@ -1354,7 +1354,7 @@ class Terminal(object):
         self.rend_counter = unicode_counter()
         # Used for mapping unicode chars to acutal renditions (to save memory):
         self.renditions_store = {
-            u' ': [0], # Nada, nothing, no rendition.  Not the same as below
+            u' ': [], # Nada, nothing, no rendition.  Not the same as below
             self.rend_counter.next(): [0] # Default is actually reset
         }
         self.prev_dump = [] # A cache to speed things up
@@ -1460,6 +1460,7 @@ class Terminal(object):
         Replaces :attr:`self.renditions` with arrays of *rendition* (characters)
         using :attr:`self.cols` and :attr:`self.rows` for the dimenions.
         """
+        logging.debug("init_renditions(%s)" % repr(rendition))
         # The actual renditions at various coordinates:
         self.renditions = [
             array('u', rendition * self.cols) for a in xrange(self.rows)]
@@ -1711,7 +1712,7 @@ class Terminal(object):
         #       when we're called via escape sequences.
         self.saved_cursorX = self.cursorX
         self.saved_cursorY = self.cursorY
-        self.saved_rendition = self.renditions[self.cursorY][self.cursorX]
+        self.saved_rendition = self.cur_rendition
 
     def restore_cursor_position(self, *args, **kwargs):
         """
@@ -1722,7 +1723,7 @@ class Terminal(object):
         if self.saved_cursorX and self.saved_cursorY:
             self.cursorX = self.saved_cursorX
             self.cursorY = self.saved_cursorY
-            self.renditions[self.cursorY][self.cursorX] = self.saved_rendition
+            self.cur_rendition = self.saved_rendition
 
     def _dsr_get_cursor_position(self):
         """
@@ -2218,10 +2219,6 @@ class Terminal(object):
 
     def backspace(self):
         """Execute a backspace (\\x08)"""
-        try:
-            self.renditions[self.cursorY][self.cursorX] = u' '
-        except IndexError:
-            pass # At the edge, no biggie
         self.cursor_left(1)
 
     def horizontal_tab(self):
