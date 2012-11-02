@@ -51,7 +51,7 @@ See the git commit log for full details on all changes.
 ---
 Release Date
 ^^^^^^^^^^^^
-October Nth, 2012
+November 1st, 2012
 
 Summary of Changes
 ^^^^^^^^^^^^^^^^^^
