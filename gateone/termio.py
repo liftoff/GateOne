@@ -1340,40 +1340,16 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         Checks the underlying process to see if it is alive and sets self._alive
         appropriately.
         """
-        if self.exitstatus == None:
-            # This doesn't hurt anything if the process is still running
-            if self.pid != -1:
-                try:
-                    pid, status = os.waitpid(self.pid, os.WNOHANG)
-                    if pid: # pid is 0 if the process is still running
-                        self.exitstatus = os.WEXITSTATUS(status)
-                except OSError:
-                    # This can happen if the program closes itself very quickly
-                    # immediately after being executed.
-                    try: # Try again with -1
-                        pid, status = os.waitpid(-1, os.WNOHANG)
-                        if pid: # pid is 0 if the process is still running
-                            self.exitstatus = os.WEXITSTATUS(status)
-                    except OSError:
-                        logging.debug(_(
-                            "Could not determine exit status for child with "
-                            "PID: %s\n" % self.pid
-                        ))
-                        logging.debug(_("Setting self.exitstatus to 999"))
-                        self.exitstatus = 999 # Seems like a good number
         if self._alive: # Re-check it
             try:
-                os.kill(self.pid, 0)
+                os.kill(self.pid, 0) # kill -0 tells us it's still alive
                 return self._alive
             except OSError:
                 # Process is dead
                 self._alive = False
                 logging.debug(_(
                     "Child exited with status: %s" % self.exitstatus))
-                # Call the exitfunc (if set)
-                if self.exitfunc:
-                    self.exitfunc(self, self.exitstatus)
-                    self.exitfunc = None # Just in case
+                self.terminate()
                 return False
         else:
             return False
@@ -1459,13 +1435,25 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         except OSError:
             # The process is already dead--great.
             pass
-        if self.exitstatus != None:
+        if self.exitstatus == None:
             try:
-                pid, status = os.waitpid(-1, os.WNOHANG)
-                if pid:
+                pid, status = os.waitpid(self.pid, 0)
+                if pid: # pid is 0 if the process is still running
                     self.exitstatus = os.WEXITSTATUS(status)
             except OSError:
-                self.exitstatus = 999 # unknown
+                # This can happen if the program closes itself very quickly
+                # immediately after being executed.
+                try: # Try again with -1
+                    pid, status = os.waitpid(-1, os.WNOHANG)
+                    if pid: # pid is 0 if the process is still running
+                        self.exitstatus = os.WEXITSTATUS(status)
+                except OSError:
+                    logging.debug(_(
+                        "Could not determine exit status for child with "
+                        "PID: %s\n" % self.pid
+                    ))
+                    logging.debug(_("Setting self.exitstatus to 999"))
+                    self.exitstatus = 999 # Seems like a good number
         if self._patterns:
             self.timeout_check(timeout_now=True)
             self.unexpect()
