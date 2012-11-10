@@ -1041,6 +1041,7 @@ GateOne.Base.update(GateOne.Utils, {
             fillerX = '', fillerY = [],
             lineCounter = 0;
         // We need two lines so we can factor in the line height and character spacing (if it has been messed with).
+        sizingDiv.id = "go_sizingDiv";
         sizingDiv.className = "terminal";
         sizingDiv.style.wordWrap = 'normal';
         for (var i=0; i <= 63; i++) {

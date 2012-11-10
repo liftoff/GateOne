@@ -58,12 +58,18 @@ Docstrings
 ==========
 """
 
+# TODO: Need authorization stuff for the following:
+#   * Access (you are/are not allowed to do this, etc)
+#   * Limits (max terms, you may only do this X times, etc)
+#   *
+
 # Import stdlib stuff
 import os
 import logging
+import shlex
 
 # Import our own stuff
-from utils import mkdir_p, generate_session_id
+from utils import mkdir_p, generate_session_id, noop
 from utils import get_translation
 
 # 3rd party imports
@@ -74,6 +80,201 @@ import tornado.escape
 # Localization support
 _ = get_translation()
 
+# Globals
+# This is modeled after /etc/security/limits.conf which is common on Linux
+# If it ain't broke...
+LIMITS_DEFAULTS = """\
+# /opt/gateone/security.conf
+#
+# Each line describes a limit for a user or group in the form:
+#
+# <domain>     <application>     <item>     <value>
+#
+# <domain> can be:
+#   - The wildcard *, for default entry
+#   - A user name or userPrincipalName (aka UPN)
+#   - A group name, with @group syntax (if configured auth type supports groups).
+#   - %user.attribute, to specify all users with a given attribute (if auth type supports it)
+#   - %group.attribute, to specify all groups with a given attribute (if auth type supports it)
+#
+# <application> can be:
+#   - terminal
+#   - A name specified by any plugin's 'application' hook (if it sets one).
+#
+# <item> can be one of the following:
+#   - login - User may authenticate and use Gate One.
+#   - max_terminals - Maximum number of open terminals.
+#   - session_timeout - Length of time before the user's session times out.
+#   - max_sessions - max number of simultaneous (browser) sessions for this user.
+#   - Any value specified by a plugin's 'application' hook.
+#
+# <value> can be:
+#   - A numeric value (will be converted to a float).
+#   - The wildcard:  *
+#   - Empty; if not applicable (e.g. 'login' doesn't need a value).
+#
+# NOTES:
+#   * Values may be surrounded by single or double quotes.
+#   * White space or tabs between fields (doesn't matter).
+#
+#<domain>       <application>   <item>          <value>
+#
+*               terminal        login
+*               terminal        max_terminals   *
+
+"""
+# NOTE about the above:
+#   * I MAY CHANGE ALL OF IT!  Still a work in progress ;)
+#   * That config file format was chosen to be user-friendly.  JSON may be easier to parse but it isn't ideal from a, "user can grok this" standpoint.
+#   * The <domain> options were chosen so that Role-Based Access Controls (RBAC) and Attribute-Based Access Controls (ABAC) can be supported simultaneously.
+#   * Only Google auth supports additional attributes at the moment but LDAP support is forthcoming.  Probably going to add the ability to define arbitrary attributes and user profiles as well at some point.  Need a post-authentication information-gathering process.
+#   *
+GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
+# The limit stuff below is a work-in-progress.  Likely to change all around.
+#LIMITS_PATH = os.path.join(GATEONE_DIR, 'security.conf')
+#LIMITS = {}
+#if not os.path.exists(LIMITS_PATH):
+    #open(LIMITS_PATH, 'w').write(LIMITS_DEFAULTS)
+# Populate the LIMITS dict with all the settings
+#with open(LIMITS_PATH) as limits_conf:
+    #for line in limits_conf:
+        #if not line.strip():
+            #continue # Skip blank lines
+        #elif line.startswith('#'):
+            #continue # Ignore comments
+        #else:
+            #fields = shlex.split(line, comments=True)
+            #domain = fields[0]
+            #application = fields[1]
+            #item = fields[2]
+            #try:
+                #value = fields[3]
+            #except IndexError: # Not all items need values
+                #value = True
+            #if domain not in LIMITS:
+                #LIMITS[domain] = {}
+            #if application not in LIMITS[domain]:
+                #LIMITS[domain][application] = {}
+            #if item not in LIMITS[domain][application]:
+                #LIMITS[domain][application][item] = value
+
+# Authorization stuff
+class require(object):
+    """
+    A decorator to add authorization requirements to any given function or
+    method using condition classes. Condition classes are classes with check()
+    methods that return True if the condition is met.
+
+    Example of using @require with is_user()::
+
+        @require(is_user('administrator'))
+        def admin_index(self):
+            return 'Hello, Administrator!'
+
+    This would only allow the user, 'administrator' access to the index page.
+    """
+    def __init__(self, *conditions):
+        self.conditions = conditions
+
+    def __call__(self, f):
+        conditions = self.conditions
+        # The following only gets run when the wrapped method is called
+        def wrapped_f(self, *args, **kwargs):
+            # Now check the conditions
+            for condition in conditions:
+                # Conditions don't have access to self directly so we use the
+                # 'self' associated with the user's open connection to update
+                # the condition's 'instance' attribute
+                condition.instance = self
+                if not condition.check():
+                    logging.error(_(
+                        "%s -> %s failed condition: %s" % (
+                        self._current_user['upn'], f.__name__, str(condition))))
+                    self.send_message(_(
+                        "ERROR: %s (%s)" % (condition.error, f.__name__)))
+                    return noop
+            return f(self, *args, **kwargs)
+        return wrapped_f
+
+class authenticated(object):
+    """
+    A condition class to be used with the @require decorator that returns true
+    if the user is authenticated.
+
+    .. note:: Only meant to be used with WebSockets.  tornado.web.RequestHandler instances can use tornado.web.authenticated
+    """
+    error = _("Only valid users may access this function")
+    def __str__(self):
+        return "authenticated"
+
+    def __init__(self, instance={}):
+        self.instance = instance
+
+    def check(self):
+        if not self.instance.get_current_user():
+            self.instance.close() # Close the WebSocket for this level of fail
+            return False
+        return True
+
+class is_user(object):
+    """
+    A condition class to be used with the @require decorator that returns true
+    if the given username/UPN matches what's in `self._current_user`.
+    """
+    error = _("You are not authorized to perform this action")
+    def __str__(self):
+        return "is_user: %s" % self.upn
+
+    def __init__(self, upn, instance={}):
+        self.upn = upn
+        self.instance = instance
+
+    def check(self):
+        user = self.instance.get_current_user()
+        if user and 'upn' in user:
+            logging.debug("Checking if %s == %s" % (user['upn'], self.upn))
+            return self.upn == user['upn']
+        else:
+            return False
+
+# Still experimenting on how various security limits will be handled...  This is likely to change:
+#class limit(object):
+    #"""
+    #A condition class to be used with the @require decorator that returns true
+    #if all the specified conditions are within the limits specified in
+    #security.conf.
+    #"""
+    #error = _("Your ability to perform this action has been restricted")
+    #def __str__(self):
+        #return "limits: %s" % self.upn
+
+    #def __init__(self, application, item, instance={}):
+        #self.application = application
+        #self.item = item
+        #self.instance = instance
+
+    #def check(self):
+        #user = self.instance.get_current_user()
+        #if user and 'upn' in user:
+            #upn = user['upn']
+            #try:
+                #value = LIMITS[upn][self.application][self.item]
+            #except ValueError:
+                #value = None
+            ## Try number values first (must be less than)
+            #if value != None:
+
+                #try:
+                    #value = float(value)
+                    #return value
+                #except ValueError:
+                    #pass
+                ##logging.debug("Checking condition: %s" % )
+            #return self.upn == user['upn']
+        #else:
+            #return False
+
+# Authentication stuff
 class BaseAuthHandler(tornado.web.RequestHandler):
     """The base class for all Gate One authentication handlers."""
     def get_current_user(self):
@@ -86,12 +287,13 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         """
         Called immediately after a user authenticates successfully.  Saves
         session information in the user's directory.  Expects *user* to be a
-        string containing the username or userPrincipalName. e.g. 'user@REALM'
-        or just 'someuser'.
+        dict containing a 'upn' value representing the username or
+        userPrincipalName. e.g. 'user@REALM' or just 'someuser'.  Any additional
+        values will be attached to the user object/cookie.
         """
-        logging.debug("user_login(%s)" % user)
+        logging.debug("user_login(%s)" % user['upn'])
         # Make a directory to store this user's settings/files/logs/etc
-        user_dir = os.path.join(self.settings['user_dir'], user)
+        user_dir = os.path.join(self.settings['user_dir'], user['upn'])
         if not os.path.exists(user_dir):
             logging.info(_("Creating user directory: %s" % user_dir))
             mkdir_p(user_dir)
@@ -108,9 +310,9 @@ class BaseAuthHandler(tornado.web.RequestHandler):
             with open(session_file, 'w') as f:
                 # Save it so we can keep track across multiple clients
                 session_info = {
-                    'upn': user, # FYI: UPN == userPrincipalName
                     'session': generate_session_id()
                 }
+                session_info.update(user)
                 session_info_json = tornado.escape.json_encode(session_info)
                 f.write(session_info_json)
         self.set_secure_cookie(
@@ -143,7 +345,7 @@ class NullAuthHandler(BaseAuthHandler):
         Sets the 'user' cookie with a new random session ID (*go_session*) and
         sets *go_upn* to 'ANONYMOUS'.
         """
-        user = 'ANONYMOUS'
+        user = {'upn': 'ANONYMOUS'}
         check = self.get_argument("check", None)
         if check:
             # This lets any origin check if the user has been authenticated
@@ -174,17 +376,17 @@ class NullAuthHandler(BaseAuthHandler):
         cookie.  This is to ensure that anonymous users can't access each
         other's sessions.
         """
-        logging.debug("NullAuthHandler.user_login(%s)" % user)
+        logging.debug("NullAuthHandler.user_login(%s)" % user['upn'])
         # Make a directory to store this user's settings/files/logs/etc
-        user_dir = os.path.join(self.settings['user_dir'], user)
+        user_dir = os.path.join(self.settings['user_dir'], user['upn'])
         if not os.path.exists(user_dir):
             logging.info(_("Creating user directory: %s" % user_dir))
             mkdir_p(user_dir)
             os.chmod(user_dir, 0o700)
         session_info = {
-            'upn': user,
             'session': generate_session_id()
         }
+        session_info.update(user)
         self.set_secure_cookie(
             "gateone_user", tornado.escape.json_encode(session_info))
 
@@ -196,7 +398,9 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
     @tornado.web.asynchronous
     def get(self):
         """
-        Sets the 'user' cookie with an appropriate *upn* and *session*.
+        Sets the 'user' cookie with an appropriate *upn* and *session* and any
+        other values that might be attached to the user object given to us by
+        Google.
         """
         check = self.get_argument("check", None)
         if check:
@@ -231,17 +435,14 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
         if not user:
             raise tornado.web.HTTPError(500, _("Google auth failed"))
         # NOTE: Google auth 'user' will be a dict like so:
-        # user: {
+        # user = {
         #     'locale': u'en-us',
         #     'first_name': u'Dan',
         #     'last_name': u'McDougall',
         #     'name': u'Dan McDougall',
         #     'email': u'daniel.mcdougall@liftoffsoftware.com'}
-        # Named these 'go_<whatever>' since that is less likely to conflict with
-        # anything in the future (should some auth mechanism start returning
-        # session IDs of some sort).
-        # This takes care of the user's settings dir and their session info
-        self.user_login(user['email'])
+        user['upn'] = user['email'] # Use the email for the upn
+        self.user_login(user)
         next_url = self.get_argument("next", None)
         if next_url:
             self.redirect(next_url)
@@ -277,7 +478,7 @@ try:
                 return
             logout = self.get_argument("logout", None)
             if logout:
-                user = self.get_current_user()['upn']
+                user = self.get_current_user()
                 self.clear_cookie('gateone_user')
                 self.user_logout(user)
                 return
@@ -290,10 +491,11 @@ try:
         def _on_auth(self, user):
             if not user:
                 raise tornado.web.HTTPError(500, _("Kerberos auth failed"))
+            logging.debug(_("KerberosAuthHandler user: %s" % user))
+            user = {'upn': user} # Convert to dict
             # This takes care of the user's settings dir and their session info
             self.user_login(user)
             # TODO: Add some LDAP or local DB lookups here to add more detail to user objects
-            logging.debug(_("KerberosAuthHandler user: %s" % user))
             next_url = self.get_argument("next", None)
             if next_url:
                 self.redirect(next_url)
@@ -332,7 +534,7 @@ try:
                 return
             logout = self.get_argument("logout", None)
             if logout:
-                user = self.get_current_user()['upn']
+                user = self.get_current_user()
                 self.clear_cookie('gateone_user')
                 self.user_logout(user)
                 return
@@ -345,6 +547,7 @@ try:
         def _on_auth(self, user):
             if not user:
                 raise tornado.web.HTTPError(500, _("PAM auth failed"))
+            user = {'upn': user}
             # This takes care of the user's settings dir and their session info
             self.user_login(user)
             logging.debug(_("PAMAuthHandler user: %s" % user))

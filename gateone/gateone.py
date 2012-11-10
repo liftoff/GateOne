@@ -291,7 +291,7 @@ tornado.options.enable_pretty_logging()
 # Our own modules
 import termio, terminal
 from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
-from auth import PAMAuthHandler
+from auth import PAMAuthHandler, require, authenticated
 from utils import str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
 from utils import create_plugin_links, merge_handlers, none_fix, short_hash
@@ -1057,10 +1057,11 @@ class TerminalWebSocket(WebSocketHandler):
         # to the user.  It isn't used much right now but it will be useful in
         # the future once more stuff is running over WebSockets.
         self.client_id = generate_session_id()
+        client_address = self.request.connection.address[0]
         user = self.get_current_user()
         if user and 'upn' in user:
             logging.info(
-                _("WebSocket opened (%s).") % user['upn'])
+                _("WebSocket opened (%s %s).") % (user['upn'], client_address))
         else:
             logging.info(_("WebSocket opened (unknown user)."))
         if user and 'upn' not in user: # Invalid user info
@@ -1119,6 +1120,7 @@ class TerminalWebSocket(WebSocketHandler):
         """
         logging.debug("on_close()")
         user = self.get_current_user()
+        client_address = self.request.connection.address[0]
         if user and user['session'] in SESSIONS:
             # Update 'last_seen' with a datetime object for accuracy
             SESSIONS[user['session']]['last_seen'] = datetime.now()
@@ -1144,7 +1146,7 @@ class TerminalWebSocket(WebSocketHandler):
                             del SESSIONS[user['session']][term][self.client_id]
         if user and 'upn' in user:
             logging.info(
-                _("WebSocket closed (%s).") % user['upn'])
+                _("WebSocket closed (%s %s).") % (user['upn'], client_address))
         else:
             logging.info(_("WebSocket closed (unknown user)."))
 
@@ -1474,7 +1476,7 @@ class TerminalWebSocket(WebSocketHandler):
         message = {'term_ended': term}
         self.write_message(json_encode(message))
 
-    @require_auth
+    @require(authenticated())
     def new_terminal(self, settings):
         """
         Starts up a new terminal associated with the user's session using
@@ -1644,7 +1646,7 @@ class TerminalWebSocket(WebSocketHandler):
                 "WARNING: Logging is set to DEBUG.  All keystrokes will be "
                 "logged!"))
 
-    @require_auth
+    @require(authenticated())
     def kill_terminal(self, term):
         """
         Kills *term* and any associated processes.
@@ -1667,7 +1669,7 @@ class TerminalWebSocket(WebSocketHandler):
         finally:
             del SESSIONS[self.session][term]
 
-    @require_auth
+    @require(authenticated())
     def set_terminal(self, term):
         """
         Sets `self.current_term = *term*` so we can determine where to send
@@ -1683,7 +1685,7 @@ class TerminalWebSocket(WebSocketHandler):
         message = {'reset_client_terminal': term}
         self.write_message(json_encode(message))
 
-    @require_auth
+    @require(authenticated())
     def reset_terminal(self, term):
         """
         Performs the equivalent of the 'reset' command which resets the terminal
@@ -1701,7 +1703,7 @@ class TerminalWebSocket(WebSocketHandler):
         #self.reset_client_terminal(term)
         self.full_refresh(term)
 
-    @require_auth
+    @require(authenticated())
     def set_title(self, term, force=False):
         """
         Sends a message to the client telling it to set the window title of
@@ -1732,7 +1734,7 @@ class TerminalWebSocket(WebSocketHandler):
             title_message = {'set_title': {'term': term, 'title': title}}
             self.write_message(json_encode(title_message))
 
-    @require_auth
+    @require(authenticated())
     def manual_title(self, settings):
         """
         Sets the title of *settings['term']* to *settings['title']*.  Differs
@@ -1751,7 +1753,7 @@ class TerminalWebSocket(WebSocketHandler):
         title_message = {'set_title': {'term': term, 'title': title}}
         self.write_message(json_encode(title_message))
 
-    @require_auth
+    @require(authenticated())
     def bell(self, term):
         """
         Sends a message to the client indicating that a bell was encountered in
@@ -1762,7 +1764,7 @@ class TerminalWebSocket(WebSocketHandler):
         bell_message = {'bell': {'term': term}}
         self.write_message(json_encode(bell_message))
 
-    @require_auth
+    @require(authenticated())
     def mode_handler(self, term, setting, boolean):
         """
         Handles mode settings that require an action on the client by pasing it
@@ -1838,7 +1840,7 @@ class TerminalWebSocket(WebSocketHandler):
                 multiplex.remove_callback( # Stop trying to write
                     multiplex.CALLBACK_UPDATE, self.callback_id)
 
-    @require_auth
+    @require(authenticated())
     def refresh_screen(self, term, full=False):
         """
         Writes the state of the given terminal's screen and scrollback buffer to
@@ -1887,7 +1889,7 @@ class TerminalWebSocket(WebSocketHandler):
         except KeyError as e: # Session died (i.e. command ended).
             logging.debug(_("KeyError in refresh_screen: %s" % e))
 
-    @require_auth
+    @require(authenticated())
     def full_refresh(self, term):
         """Calls `self.refresh_screen(*term*, full=True)`"""
         try:
@@ -1897,7 +1899,7 @@ class TerminalWebSocket(WebSocketHandler):
                 "Invalid terminal number given to full_refresh(): %s" % term))
         self.refresh_screen(term, full=True)
 
-    @require_auth
+    @require(authenticated())
     def resize(self, resize_obj):
         """
         Resize the terminal window to the rows/cols specified in *resize_obj*
@@ -1943,7 +1945,7 @@ class TerminalWebSocket(WebSocketHandler):
         except KeyError: # Session doesn't exist yet, no biggie
             pass
 
-    @require_auth
+    @require(authenticated())
     def char_handler(self, chars, term=None):
         """
         Writes *chars* (string) to *term*.  If *term* is not provided the
@@ -1972,7 +1974,7 @@ class TerminalWebSocket(WebSocketHandler):
                     multiplex.io_loop.add_timeout(
                         timedelta(milliseconds=1050), refresh)
 
-    @require_auth
+    @require(authenticated())
     def write_chars(self, message):
         """
         Writes *message['chars']* to *message['term']*.  If *message['term']*
@@ -1992,7 +1994,7 @@ class TerminalWebSocket(WebSocketHandler):
                 % message['term']))
             logging.error(str(e))
 
-    @require_auth
+    @require(authenticated())
     def esc_opt_handler(self, chars):
         """
         Executes whatever function is registered matching the tuple returned by
@@ -2204,7 +2206,7 @@ class TerminalWebSocket(WebSocketHandler):
         message_dict = {'notice': message}
         self.write_message(message_dict)
 
-    @require_auth
+    @require(authenticated())
     def debug_terminal(self, term):
         """
         Prints the terminal's screen and renditions to stdout so they can be

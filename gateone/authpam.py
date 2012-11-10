@@ -80,7 +80,7 @@ class PAMAuthMixin(tornado.web.RequestHandler):
             pam_auth.acct_mgmt()
         except Exception as e: # Basic auth failed
             if self.settings['debug']:
-                print(e) # Very useful for debugging Kerberos errors
+                logging.debug(e)
             return self.authenticate_redirect()
         # NOTE: Basic auth just gives us the username without the @REALM part
         #       so we have to add it:

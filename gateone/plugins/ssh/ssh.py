@@ -808,6 +808,8 @@ def store_id_file(settings, tws=None):
             certificate_name = name # Don't need an extra -cert.pub at the end
         certificate_path = os.path.join(users_ssh_dir, certificate_name)
         if private:
+            # Fix Windows newlines
+            private = private.replace('\r\n', '\n')
             if VALID_PRIVATE_KEY.match(private):
                 with open(private_key_path, 'w') as f:
                     f.write(private)
@@ -818,6 +820,8 @@ def store_id_file(settings, tws=None):
                     "ERROR: Private key is not valid.")})
                 return
         if public:
+            # Fix Windows newlines
+            public = public.replace('\r\n', '\n')
             with open(public_key_path, 'w') as f:
                 f.write(public)
             # Now remove the timer that will generate the public key from the
@@ -845,6 +849,8 @@ def store_id_file(settings, tws=None):
             # This gets removed if the public key is uploaded
             TIMER = io_loop.add_timeout(deadline, generate_public_key)
         if certificate:
+            # Fix Windows newlines
+            certificate = certificate.replace('\r\n', '\n')
             with open(certificate_path, 'w') as f:
                 f.write(certificate)
     except Exception as e:
