@@ -229,6 +229,7 @@ hr {
     padding: 0;
     border: none;
     white-space: pre;
+    word-break: normal;
     word-wrap: normal; /* If this gets set to 'break-word' it might as well be 'break-everything' :) */
     -webkit-transform-origin: left bottom;
     -moz-transform-origin: left bottom;
