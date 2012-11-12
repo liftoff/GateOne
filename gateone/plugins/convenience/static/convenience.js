@@ -165,7 +165,7 @@ GateOne.Base.update(GateOne.Convenience, {
         go.SSH.execRemoteCmd(term, 'host ' + IP + " | awk '{print $NF}'", go.Convenience.displayIPInfo);
     },
     displayIPInfo: function(output) {
-        /**:GateOne.Convenience.IPv4Info(elem)
+        /**:GateOne.Convenience.displayIPInfo(output)
 
         Displays the result of `host <IP address>`.
         */

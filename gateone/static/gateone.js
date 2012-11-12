@@ -1525,6 +1525,27 @@ GateOne.Base.update(GateOne.Utils, {
             // Just return the bytes as-is (as a string)
             return bytes + "";
         }
+    },
+    getQueryVariable: function(variable) {
+        /**:GateOne.Utils.getQueryVariable(variable)
+
+        Returns the value of a query string variable from :js:attr:`window.location.href`
+
+        If no matching variable is found, returns undefined.  Example::
+
+            > // Assume window.location.href = 'https://gateone/?foo=bar,bar,bar'
+            > GateOne.Utils.getQueryVariable('foo');
+            'bar,bar,bar'
+            >
+        */
+        var query = window.location.search.substring(1);
+        var vars = query.split('&');
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split('=');
+            if (decodeURIComponent(pair[0]) == variable) {
+                return decodeURIComponent(pair[1]);
+            }
+        }
     }
 });
 

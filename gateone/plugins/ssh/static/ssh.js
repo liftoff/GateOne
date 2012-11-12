@@ -25,6 +25,7 @@ GateOne.Base.update(GateOne.SSH, {
             prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
             infoPanel = u.getNode('#'+prefix+'panel_info'),
             h3 = u.createElement('h3'),
+            sshQueryString = u.getQueryVariable('ssh'),
             infoPanelDuplicateSession = u.createElement('button', {'id': 'duplicate_session', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             infoPanelManageIdentities = u.createElement('button', {'id': 'manage_identities', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             prefsPanelKnownHosts = u.createElement('button', {'id': 'edit_kh', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
@@ -56,6 +57,13 @@ GateOne.Base.update(GateOne.SSH, {
             infoPanel.appendChild(infoPanelManageIdentities);
             infoPanel.appendChild(prefsPanelKnownHosts);
             go.SSH.createKHPanel();
+        }
+        // Connect to the given ssh:// URL if we were given an 'ssh' query string variable
+        if (sshQueryString) {
+            var connect = function(term) {
+                go.Net.sendString(sshQueryString + '\n', term);
+            }
+            go.Terminal.newTermCallbacks.push(connect);
         }
         // Setup a callback that runs disableCapture() whenever the panel is opened
         if (!GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_ssh_ids']) {
