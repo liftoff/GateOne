@@ -2,7 +2,11 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+{% if location == 'default' %}
     <title>Gate One - {{hostname}}</title>
+{% else %}
+    <title>Gate One - {{location}}</title>
+{% end %}
     <link rel="stylesheet" href="{{url_prefix}}static/gateone.css" type="text/css" media="screen" />
     <link rel="shortcut icon" href="{{url_prefix}}static/favicon.ico" />
     {% raw head %}
@@ -14,6 +18,7 @@
 <script>
 window.onload = function() {
     // Initialize Gate One using defaults:
+    GateOne.location = '{{location}}';
     GateOne.init({% raw js_init %}); // NOTE: Many defaults (e.g. CSS themes/colors, font size, etc) can be overridden by the user.
 
     // Commented out below are a few examples of the various ways you can initialize Gate One...

@@ -641,12 +641,13 @@ def kill_session(session, kill_dtach=False):
     *session* from the global SESSIONS dict.  If *kill_dtach* is True, will
     also call kill_dtached_proc() on the terminal processes.
     """
-    for term in list(SESSIONS[session].keys()):
-        if isinstance(term, int) and term in SESSIONS[session]:
-            if SESSIONS[session][term]['multiplex'].isalive():
-                SESSIONS[session][term]['multiplex'].terminate()
-            if kill_dtach:
-                kill_dtached_proc(session, term)
+    for location in list(SESSIONS[session].keys()):
+        for term in location:
+            if isinstance(term, int) and term in SESSIONS[session][location]:
+                if SESSIONS[session][location][term]['multiplex'].isalive():
+                    SESSIONS[session][location][term]['multiplex'].terminate()
+                if kill_dtach:
+                    kill_dtached_proc(session, term)
     del SESSIONS[session]
 
 @atexit.register # I love this feature!
@@ -853,6 +854,7 @@ class MainHandler(BaseHandler):
     @tornado.web.addslash
     def get(self):
         hostname = os.uname()[1]
+        location = self.get_argument("location", "default")
         gateone_js = "%sstatic/gateone.js" % self.settings['url_prefix']
         minified_js_abspath = os.path.join(GATEONE_DIR, 'static')
         minified_js_abspath = os.path.join(
@@ -881,6 +883,7 @@ class MainHandler(BaseHandler):
             gateone_js=gateone_js,
             jsplugins=PLUGINS['js'],
             cssplugins=PLUGINS['css'],
+            location=location,
             js_init=js_init,
             url_prefix=self.settings['url_prefix'],
             head=head_html,
@@ -1126,24 +1129,25 @@ class TerminalWebSocket(WebSocketHandler):
             SESSIONS[user['session']]['last_seen'] = datetime.now()
             # Remove all attached callbacks so we're not wasting memory/CPU on
             # disconnected clients
-            for term in SESSIONS[user['session']]:
+            for term in SESSIONS[user['session']][self.location]:
                 if isinstance(term, int):
+                    term_obj = SESSIONS[user['session']][self.location][term]
                     try:
-                        multiplex = SESSIONS[user['session']][term]['multiplex']
+                        multiplex = term_obj['multiplex']
                         multiplex.remove_all_callbacks(self.callback_id)
-                        client_dict = SESSIONS[user['session']][term][
-                            self.client_id]
+                        client_dict = term_obj[self.client_id]
                         term_emulator = multiplex.term
                         term_emulator.remove_all_callbacks(self.callback_id)
                         # Remove anything associated with the client_id
                         multiplex.io_loop.remove_timeout(
                             client_dict['refresh_timeout'])
-                        del SESSIONS[user['session']][term][self.client_id]
+                        del SESSIONS[user['session']][self.location][
+                            term][self.client_id]
                     except AttributeError:
                         # User never completed opening a terminal so
                         # self.callback_id is missing.  Nothing to worry about
-                        if self.client_id in SESSIONS[user['session']][term]:
-                            del SESSIONS[user['session']][term][self.client_id]
+                        if self.client_id in term_obj:
+                            del term_obj[self.client_id]
         if user and 'upn' in user:
             logging.info(
                 _("WebSocket closed (%s %s).") % (user['upn'], client_address))
@@ -1165,7 +1169,13 @@ class TerminalWebSocket(WebSocketHandler):
         use *settings['auth']*.  Additionally, it will accept
         *settings['container']* and *settings['prefix']* to apply those to the
         equivalent properties (self.container and self.prefix).
+
+        If *settings['location']* is something other than 'default' all new
+        terminals will be associated with the given (string) value.  These
+        terminals will be treated separately from the usual terminals so they
+        can exist in a different browser tab/window.
         """
+        # TODO: Add a mechanism to move terminals between locations.
         logging.debug("authenticate(): %s" % settings)
         if 'Origin' in self.request.headers:
             origin_header = self.request.headers['Origin']
@@ -1382,19 +1392,25 @@ class TerminalWebSocket(WebSocketHandler):
             self.container = settings['container']
         if 'prefix' in settings:
             self.prefix = settings['prefix']
+        self.location = 'default'
+        if 'location' in settings:
+            self.location = settings['location']
         # This check is to make sure there's no existing session so we don't
         # accidentally clobber it.
         if self.session not in SESSIONS:
             # Old session is no good, start a new one:
             SESSIONS[self.session] = {
-                'last_seen': 'connected'
+                'last_seen': 'connected',
+                self.location: {}
             }
         else:
             SESSIONS[self.session]['last_seen'] = 'connected'
+            if self.location not in SESSIONS[self.session]:
+                SESSIONS[self.session][self.location] = {}
         terminals = []
-        for term in list(SESSIONS[self.session].keys()):
-            if isinstance(term, int):
-                terminals.append(term) # Only terminals are integers in the dict
+        for term in list(SESSIONS[self.session][self.location].keys()):
+            if isinstance(term, int): # Only terminals are integers in the dict
+                terminals.append(term)
         # Check for any dtach'd terminals we might have missed
         if self.settings['dtach']:
             session_dir = self.settings['session_dir']
@@ -1504,21 +1520,22 @@ class TerminalWebSocket(WebSocketHandler):
             }
         user_dir = self.settings['user_dir']
         needs_full_refresh = False
-        if term not in SESSIONS[self.session]:
+        if term not in SESSIONS[self.session][self.location]:
             # Setup the requisite dict
-            SESSIONS[self.session][term] = {
+            SESSIONS[self.session][self.location][term] = {
                 'last_activity': datetime.now(),
                 'title': 'Gate One',
                 'manual_title': False
             }
-        if self.client_id not in SESSIONS[self.session][term]:
-            SESSIONS[self.session][term][self.client_id] = {
+        term_obj = SESSIONS[self.session][self.location][term]
+        if self.client_id not in term_obj:
+            term_obj[self.client_id] = {
                 # Used by refresh_screen()
                 'refresh_timeout': None
             }
-        if 'multiplex' not in SESSIONS[self.session][term]:
+        if 'multiplex' not in term_obj:
             # Start up a new terminal
-            SESSIONS[self.session][term]['created'] = datetime.now()
+            term_obj['created'] = datetime.now()
             # NOTE: Not doing anything with 'created'...  yet!
             now = int(round(time.time() * 1000))
             try:
@@ -1549,8 +1566,7 @@ class TerminalWebSocket(WebSocketHandler):
                     resumed_dtach = True
                 else: # No existing dtach session...  Make a new one
                     cmd = "dtach -c %s -E -z -r none %s" % (dtach_path, cmd)
-            m = SESSIONS[self.session][term]['multiplex'] = self.new_multiplex(
-                cmd, term)
+            m = term_obj['multiplex'] = self.new_multiplex(cmd, term)
             # Set some environment variables so the programs we execute can use
             # them (very handy).  Allows for "tight integration" and "synergy"!
             env = {
@@ -1578,15 +1594,16 @@ class TerminalWebSocket(WebSocketHandler):
                     timedelta(seconds=2), resize)
         else:
             # Terminal already exists
-            if SESSIONS[self.session][term]['multiplex'].isalive():
+            multiplex = term_obj['multiplex']
+            if multiplex.isalive():
                 # It's ALIVE!!!
-                SESSIONS[self.session][term]['multiplex'].resize(
+                multiplex.resize(
                     rows, cols, ctrl_l=False, em_dimensions=self.em_dimensions)
                 message = {'term_exists': term}
                 self.write_message(json_encode(message))
                 # This resets the screen diff
-                SESSIONS[self.session][term]['multiplex'].prev_output[
-                    self.client_id] = [None for a in xrange(rows-1)]
+                multiplex.prev_output[self.client_id] = [
+                    None for a in xrange(rows-1)]
                 # Remind the client about this terminal's title
                 self.set_title(term, force=True)
             else:
@@ -1601,7 +1618,7 @@ class TerminalWebSocket(WebSocketHandler):
         # from the same IP just use an alternate hostname/IP for the URL.
         # Setup the termio callbacks
         refresh = partial(self.refresh_screen, term)
-        multiplex = SESSIONS[self.session][term]['multiplex']
+        multiplex = term_obj['multiplex']
         multiplex.add_callback(multiplex.CALLBACK_UPDATE, refresh, callback_id)
         ended = partial(self.term_ended, term)
         multiplex.add_callback(multiplex.CALLBACK_EXIT, ended, callback_id)
@@ -1635,11 +1652,11 @@ class TerminalWebSocket(WebSocketHandler):
             for func in PLUGIN_NEW_TERM_HOOKS:
                 func(self, term_emulator)
         # NOTE: refresh_screen will also take care of cleaning things up if
-        #       SESSIONS[self.session][term]['multiplex'].isalive() is False
+        #       term_obj['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
         # Restore application cursor keys mode if set
-        if 'application_mode' in SESSIONS[self.session][term]:
-            current_setting = SESSIONS[self.session][term]['application_mode']
+        if 'application_mode' in term_obj:
+            current_setting = term_obj['application_mode']
             self.mode_handler(term, '1', current_setting)
         if self.settings['logging'] == 'debug':
             self.send_message(_(
@@ -1653,9 +1670,9 @@ class TerminalWebSocket(WebSocketHandler):
         """
         logging.debug("killing terminal: %s" % term)
         term = int(term)
-        if term not in SESSIONS[self.session]:
+        if term not in SESSIONS[self.session][self.location]:
             return # Nothing to do
-        multiplex = SESSIONS[self.session][term]['multiplex']
+        multiplex = SESSIONS[self.session][self.location][term]['multiplex']
         # Remove the EXIT callback so the terminal doesn't restart itself
         multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
         try:
@@ -1667,7 +1684,7 @@ class TerminalWebSocket(WebSocketHandler):
             pass # The EVIL termio has killed my child!  Wait, that's good...
                  # Because now I don't have to worry about it!
         finally:
-            del SESSIONS[self.session][term]
+            del SESSIONS[self.session][self.location][term]
 
     @require(authenticated())
     def set_terminal(self, term):
@@ -1698,8 +1715,9 @@ class TerminalWebSocket(WebSocketHandler):
         tabs = u'\x1bH        ' * 22
         reset_sequence = (
             '\r\x1b[3g        %sr\x1bc\x1b[!p\x1b[?3;4l\x1b[4l\x1b>\r' % tabs)
-        SESSIONS[self.session][term]['multiplex'].term.write(reset_sequence)
-        SESSIONS[self.session][term]['multiplex'].write(u'\x0c') # ctrl-l
+        multiplex = SESSIONS[self.session][self.location][term]['multiplex']
+        multiplex.term.write(reset_sequence)
+        multiplex.write(u'\x0c') # ctrl-l
         #self.reset_client_terminal(term)
         self.full_refresh(term)
 
@@ -1709,7 +1727,7 @@ class TerminalWebSocket(WebSocketHandler):
         Sends a message to the client telling it to set the window title of
         *term* to whatever comes out of::
 
-            SESSIONS[self.session][term]['multiplex'].term.get_title() # Whew! Say that three times fast!
+            SESSIONS[self.session][self.location][term]['multiplex'].term.get_title() # Whew! Say that three times fast!
 
         Example message::
 
@@ -1721,16 +1739,17 @@ class TerminalWebSocket(WebSocketHandler):
         .. note:: Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.
         """
         logging.debug("set_title(%s, %s)" % (term, force))
-        if SESSIONS[self.session][term]['manual_title']:
+        term_obj = SESSIONS[self.session][self.location][term]
+        if term_obj['manual_title']:
             if force:
-                title = SESSIONS[self.session][term]['title']
+                title = term_obj['title']
                 title_message = {'set_title': {'term': term, 'title': title}}
                 self.write_message(json_encode(title_message))
             return
-        title = SESSIONS[self.session][term]['multiplex'].term.get_title()
+        title = term_obj['multiplex'].term.get_title()
         # Only send a title update if it actually changed
-        if title != SESSIONS[self.session][term]['title'] or force:
-            SESSIONS[self.session][term]['title'] = title
+        if title != term_obj['title'] or force:
+            term_obj['title'] = title
             title_message = {'set_title': {'term': term, 'title': title}}
             self.write_message(json_encode(title_message))
 
@@ -1744,12 +1763,13 @@ class TerminalWebSocket(WebSocketHandler):
         logging.debug("manual_title: %s" % settings)
         term = int(settings['term'])
         title = settings['title']
+        term_obj = SESSIONS[self.session][self.location][term]
         if not title:
-            title = SESSIONS[self.session][term]['multiplex'].term.get_title()
-            SESSIONS[self.session][term]['manual_title'] = False
+            title = term_obj['multiplex'].term.get_title()
+            term_obj['manual_title'] = False
         else:
-            SESSIONS[self.session][term]['manual_title'] = True
-        SESSIONS[self.session][term]['title'] = title
+            term_obj['manual_title'] = True
+        term_obj['title'] = title
         title_message = {'set_title': {'term': term, 'title': title}}
         self.write_message(json_encode(title_message))
 
@@ -1781,9 +1801,10 @@ class TerminalWebSocket(WebSocketHandler):
         logging.debug(
             "mode_handler() term: %s, setting: %s, boolean: %s" %
             (term, setting, boolean))
+        term_obj = SESSIONS[self.session][self.location][term]
         if setting in ['1']: # Only support this mode right now
             # So we can restore it:
-            SESSIONS[self.session][term]['application_mode'] = boolean
+            term_obj['application_mode'] = boolean
             if boolean:
                 # Tell client to enable application cursor mode
                 mode_message = {'set_mode': {
@@ -1809,17 +1830,18 @@ class TerminalWebSocket(WebSocketHandler):
 
         .. note:: This also handles the CSI DSR sequence.
         """
-        SESSIONS[self.session][term]['multiplex'].write(response)
+        SESSIONS[self.session][self.location][term]['multiplex'].write(response)
 
     def _send_refresh(self, term, full=False):
         """Sends a screen update to the client."""
+        term_obj = SESSIONS[self.session][self.location][term]
         try:
-            SESSIONS[self.session][term]['last_activity'] = datetime.now()
+            term_obj['last_activity'] = datetime.now()
         except KeyError:
             # This can happen if the user disconnected in the middle of a screen
             # update.  Nothing to be concerned about.
             return # Ignore
-        multiplex = SESSIONS[self.session][term]['multiplex']
+        multiplex = term_obj['multiplex']
         scrollback, screen = multiplex.dump_html(
             full=full, client_id=self.client_id)
         if [a for a in screen if a]:
@@ -1836,7 +1858,7 @@ class TerminalWebSocket(WebSocketHandler):
             except IOError: # Socket was just closed, no biggie
                 logging.info(
                  _("WebSocket closed (%s)") % self.get_current_user()['upn'])
-                multiplex = SESSIONS[self.session][term]['multiplex']
+                multiplex = term_obj['multiplex']
                 multiplex.remove_callback( # Stop trying to write
                     multiplex.CALLBACK_UPDATE, self.callback_id)
 
@@ -1860,16 +1882,16 @@ class TerminalWebSocket(WebSocketHandler):
             term = int(term)
         else:
             return # This just prevents an exception when the cookie is invalid
+        term_obj = SESSIONS[self.session][self.location][term]
         try:
             msec = timedelta(milliseconds=50) # Keeps things smooth
             # In testing, 150 milliseconds was about as low as I could go and
             # still remain practical.
             force_refresh_threshold = timedelta(milliseconds=150)
-            last_activity = SESSIONS[self.session][term]['last_activity']
+            last_activity = term_obj['last_activity']
             timediff = datetime.now() - last_activity
-            sess = SESSIONS[self.session][term]
-            client_dict = sess[self.client_id]
-            multiplex = sess['multiplex']
+            client_dict = term_obj[self.client_id]
+            multiplex = term_obj['multiplex']
             refresh = partial(self._send_refresh, term, full)
             # We impose a rate limit of max one screen update every 50ms by
             # wrapping the call to _send_refresh() in an IOLoop timeout that
@@ -1928,19 +1950,20 @@ class TerminalWebSocket(WebSocketHandler):
         # If the user already has a running session, set the new terminal size:
         try:
             if term:
-                SESSIONS[self.session][term]['multiplex'].resize(
+                SESSIONS[self.session][self.location][term]['multiplex'].resize(
                     self.rows,
                     self.cols,
                     self.em_dimensions,
                     ctrl_l=ctrl_l
                 )
             else: # Resize them all
-                for term in list(SESSIONS[self.session].keys()):
+                for term in list(SESSIONS[self.session][self.location].keys()):
                     if isinstance(term, int): # Skip the TidyThread
-                        SESSIONS[self.session][term]['multiplex'].resize(
-                            self.rows,
-                            self.cols,
-                            self.em_dimensions
+                        SESSIONS[self.session][self.location][
+                            term]['multiplex'].resize(
+                                self.rows,
+                                self.cols,
+                                self.em_dimensions
                         )
         except KeyError: # Session doesn't exist yet, no biggie
             pass
@@ -1956,8 +1979,8 @@ class TerminalWebSocket(WebSocketHandler):
             term = self.current_term
         term = int(term) # Just in case it was sent as a string
         session = self.session
-        if session in SESSIONS and term in SESSIONS[session]:
-            multiplex = SESSIONS[session][term]['multiplex']
+        if session in SESSIONS and term in SESSIONS[session][self.location]:
+            multiplex = SESSIONS[session][self.location][term]['multiplex']
             if multiplex.isalive():
                 multiplex.write(chars)
                 # Handle (gracefully) the situation where a capture is stopped
@@ -2218,9 +2241,9 @@ class TerminalWebSocket(WebSocketHandler):
 
             GateOne.ws.send(JSON.stringify({'debug_terminal': *term*}));
         """
-        termObj = SESSIONS[self.session][term]['multiplex'].term
-        screen = termObj.screen
-        renditions = termObj.renditions
+        term_obj = SESSIONS[self.session][self.location][term]['multiplex'].term
+        screen = term_obj.screen
+        renditions = term_obj.renditions
         for i, line in enumerate(screen):
             # This gets rid of images:
             line = [a for a in line if len(a) == 1]
@@ -2239,7 +2262,7 @@ class TerminalWebSocket(WebSocketHandler):
             from pympler import asizeof
             print("screen size: %s" % asizeof.asizeof(screen))
             print("renditions size: %s" % asizeof.asizeof(renditions))
-            print("Total term object size: %s" % asizeof.asizeof(termObj))
+            print("Total term object size: %s" % asizeof.asizeof(term_obj))
         except ImportError:
             pass # No biggie
 
@@ -2254,7 +2277,8 @@ class ErrorHandler(tornado.web.RequestHandler):
     def get_error_html(self, status_code, **kwargs):
         self.require_setting("static_url")
         if status_code in [404, 500, 503, 403]:
-            filename = os.path.join(self.settings['static_url'], '%d.html' % status_code)
+            filename = os.path.join(
+                self.settings['static_url'], '%d.html' % status_code)
             if os.path.exists(filename):
                 f = open(filename, 'r')
                 data = f.read()
@@ -2262,9 +2286,9 @@ class ErrorHandler(tornado.web.RequestHandler):
                 return data
         import httplib
         return "<html><title>%(code)d: %(message)s</title>" \
-                "<body class='bodyErrorPage'>%(code)d: %(message)s</body></html>" % {
-            "code": status_code,
-            "message": httplib.responses[status_code],
+           "<body class='bodyErrorPage'>%(code)d: %(message)s</body></html>" % {
+               "code": status_code,
+               "message": httplib.responses[status_code],
         }
 
     def prepare(self):
@@ -2306,8 +2330,9 @@ class Application(tornado.web.Application):
                 AuthHandler = GoogleAuthHandler
             logging.info(_("Using %s authentication" % settings['auth']))
         else:
-            logging.info(_("No authentication method configured. All users will "
-                         "be ANONYMOUS"))
+            logging.info(_(
+                "No authentication method configured. All users will be "
+                "ANONYMOUS"))
         docs_path = os.path.join(GATEONE_DIR, 'docs')
         docs_path = os.path.join(docs_path, 'build')
         docs_path = os.path.join(docs_path, 'html')
@@ -2400,7 +2425,6 @@ class Application(tornado.web.Application):
                 css_plugins.append(i.split('plugin=')[1].split('&')[0])
             else: # Static CSS file
                 css_plugins.append(i.split('/')[1])
-        #css_plugins = [a.split('?')[1].split('&')[0].split('=')[1] for a in PLUGINS['css']]
         plugin_list = list(set(PLUGINS['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
         logging.info(_("Loaded plugins: %s" % ", ".join(plugin_list)))
@@ -2539,7 +2563,8 @@ def main():
     define(
         "session_dir",
         default="/tmp/gateone",
-        help=_("Path to the location where session information will be stored."),
+        help=_(
+            "Path to the location where session information will be stored."),
         type=str
     )
     define(
@@ -3095,7 +3120,7 @@ def main():
             # when Gate One is closed.  This is primarily to handle that
             # specific situation.
             killall(options.session_dir)
-            # Cleanup the session_dir (it is supposed to only contain temp stuff)
+            # Cleanup the session_dir (it's supposed to only contain temp stuff)
             import shutil
             shutil.rmtree(options.session_dir, ignore_errors=True)
 

@@ -157,6 +157,7 @@ GateOne.Base.update = function (self, obj/*, ... */) {
 // }
 
 // GateOne Settings
+GateOne.location = "default"; // Yes, the default location is called "default" :)
 GateOne.prefs = { // Tunable prefs (things users can change)
     url: null, // URL of the GateOne server.  Will default to whatever is in window.location
     webWorker: null, // This is the fallback path to Gate One's Web Worker.  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.
@@ -1730,7 +1731,7 @@ GateOne.Base.update(GateOne.Net, {
         var u = go.Utils,
             prefix = go.prefs.prefix,
             termwrapper = u.getNode('#'+prefix+'termwrapper'),
-            settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix};
+            settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix, 'location': go.location};
         // Cancel our SSL error timeout since everything is working fine.
         clearTimeout(go.Net.sslErrorTimeout);
         // Set connectionSuccess so we don't do an SSL check if the server goes down for a while.
@@ -4727,11 +4728,11 @@ go.Base.update(GateOne.Terminal, {
         GateOne.Visual.playBell();
         GateOne.Visual.displayMessage(message);
     },
-    newTerminal: function(/*Opt:*/term, /*Opt:*/type, /*Opt*/where) {
+    newTerminal: function(/*Opt:*/term, /*Opt:*/settings, /*Opt*/where) {
         // Adds a new terminal to the grid and starts updates with the server.
         // If *term* is provided, the created terminal will use that number.
-        // If *type* is provided, the new terminal that is created will be of the given *type*.  Otherwise the default will be used.
-        // If *where* is provided, the new terminal element will be appeded like so:  where.appendChild(<new terminal element>);  Otherwise the terminal will be added to the grid.
+        // If *settings* (associative array) are provided the given parameters will be applied to the created terminal's parameters in GateOne.terminals[term] as well as sent as part of the 'new_terminal' WebSocket action.
+        // If *where* is provided, the new terminal element will be appended like so:  where.appendChild(<new terminal element>);  Otherwise the terminal will be added to the grid.
         // Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
         // TODO: Finish supporting terminal types.
         logDebug("calling newTerminal(" + term + ")");
@@ -4800,6 +4801,9 @@ go.Base.update(GateOne.Terminal, {
             scrollback: [],
             scrollbackTimer: null // Controls re-adding scrollback buffer
         };
+        for (var v in settings) {
+            go.terminals[term][v] = settings[v];
+        }
         for (var i=0; i<dimensions.rows; i++) {
             // Fill out prevScreen with spaces
             go.terminals[term]['prevScreen'].push(' ');
@@ -4866,6 +4870,10 @@ go.Base.update(GateOne.Terminal, {
                     u.showElement(pastearea);
                 }, 1000);
             };
+        // Update termSettings with *settings* (overriding with anything that was given)
+        for (var v in settings) {
+            termSettings[v] = settings[v];
+        }
         pastearea.oninput = pasteareaOnInput;
         pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
         pastearea.onpaste = function(e) {
