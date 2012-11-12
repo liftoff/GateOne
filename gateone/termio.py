@@ -510,7 +510,7 @@ class BaseMultiplex(object):
         Removes the callback referenced by *identifier* that is attached to the
         given *event*.  Example:
 
-            >>> m.remove_callback(m.CALLBACK_BELL, "myref")
+            >>> m.remove_callback(m.CALLBACK_UPDATE, "myref")
 
         """
         try:
@@ -1252,6 +1252,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         cols = min(500, cols) # Max 500 for the same reason
         self.rows = rows
         self.cols = cols
+        self.em_dimensions = em_dimensions
         import pty
         pid, fd = pty.fork()
         if pid == 0: # We're inside the child process
@@ -1306,7 +1307,6 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             self._alive = True
             self.fd = fd
             self.env = env
-            self.em_dimensions = em_dimensions
             self.exitfunc = exitfunc
             self.pid = pid
             self.time = time.time()

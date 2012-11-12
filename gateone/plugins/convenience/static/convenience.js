@@ -155,7 +155,7 @@ GateOne.Base.update(GateOne.Convenience, {
         t.unregisterTextTransform("IPv6");
     },
     IPInfo: function(elem) {
-        /**:GateOne.Convenience.IPv4Info(elem)
+        /**:GateOne.Convenience.IPInfo(elem)
 
         Calls `GateOne.SSH.execRemoteCmd(term, 'host ' + elem.innerHTML)`.
         */

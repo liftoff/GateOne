@@ -971,6 +971,7 @@ class TerminalWebSocket(WebSocketHandler):
     registered this way will be exposed and directly callable over the
     WebSocket.
     """
+    instances = set()
     def __init__(self, application, request):
         WebSocketHandler.__init__(self, application, request)
         self.commands = {
@@ -978,6 +979,7 @@ class TerminalWebSocket(WebSocketHandler):
             'authenticate': self.authenticate,
             'new_terminal': self.new_terminal,
             'set_terminal': self.set_terminal,
+            'move_terminal': self.move_terminal,
             'kill_terminal': self.kill_terminal,
             'c': self.char_handler, # Just 'c' to keep the bandwidth down
             'write_chars': self.write_chars,
@@ -1034,6 +1036,8 @@ class TerminalWebSocket(WebSocketHandler):
         Called when a new WebSocket is opened.  Will deny access to any
         origin that is not defined in self.settings['origin'].
         """
+        cls = TerminalWebSocket
+        cls.instances.add(self)
         valid_origins = self.settings['origins']
         if 'Origin' in self.request.headers:
             origin_header = self.request.headers['Origin']
@@ -1061,6 +1065,8 @@ class TerminalWebSocket(WebSocketHandler):
         # the future once more stuff is running over WebSockets.
         self.client_id = generate_session_id()
         client_address = self.request.connection.address[0]
+        self.callback_id = callback_id = "%s;%s;%s" % (
+            self.client_id, self.request.host, self.request.remote_ip)
         user = self.get_current_user()
         if user and 'upn' in user:
             logging.info(
@@ -1122,6 +1128,8 @@ class TerminalWebSocket(WebSocketHandler):
         .. note:: Normally self.refresh_screen() catches the disconnect first and this method won't end up being called.
         """
         logging.debug("on_close()")
+        cls = TerminalWebSocket
+        cls.instances.discard(self)
         user = self.get_current_user()
         client_address = self.request.connection.address[0]
         if user and user['session'] in SESSIONS:
@@ -1492,6 +1500,62 @@ class TerminalWebSocket(WebSocketHandler):
         message = {'term_ended': term}
         self.write_message(json_encode(message))
 
+    def add_terminal_callbacks(self, term, multiplex, callback_id):
+        """
+        Sets up all the callbacks associated with the given *term*, *multiplex*
+        instance and *callback_id*.
+        """
+        refresh = partial(self.refresh_screen, term)
+        multiplex.add_callback(multiplex.CALLBACK_UPDATE, refresh, callback_id)
+        ended = partial(self.term_ended, term)
+        multiplex.add_callback(multiplex.CALLBACK_EXIT, ended, callback_id)
+        # Setup the terminal emulator callbacks
+        term_emulator = multiplex.term
+        set_title = partial(self.set_title, term)
+        term_emulator.add_callback(
+            terminal.CALLBACK_TITLE, set_title, callback_id)
+        set_title() # Set initial title
+        bell = partial(self.bell, term)
+        term_emulator.add_callback(
+            terminal.CALLBACK_BELL, bell, callback_id)
+        term_emulator.add_callback(
+            terminal.CALLBACK_OPT, self.esc_opt_handler, callback_id)
+        mode_handler = partial(self.mode_handler, term)
+        term_emulator.add_callback(
+            terminal.CALLBACK_MODE, mode_handler, callback_id)
+        reset_term = partial(self.reset_client_terminal, term)
+        term_emulator.add_callback(
+            terminal.CALLBACK_RESET, reset_term, callback_id)
+        dsr = partial(self.dsr, term)
+        term_emulator.add_callback(
+            terminal.CALLBACK_DSR, dsr, callback_id)
+        term_emulator.add_callback(
+            terminal.CALLBACK_MESSAGE, self.send_message, callback_id)
+        # Call any registered plugin Terminal hooks
+        if PLUGIN_TERM_HOOKS:
+            for hook, func in PLUGIN_TERM_HOOKS.items():
+                term_emulator.add_callback(hook, func(self))
+        if PLUGIN_NEW_TERM_HOOKS:
+            for func in PLUGIN_NEW_TERM_HOOKS:
+                func(self, term_emulator)
+
+    def remove_terminal_callbacks(self, multiplex, callback_id):
+        """
+        Removes all the Multiplex and terminal emulator callbacks attached to
+        the given *multiplex* instance and *callback_id*.
+        """
+        multiplex.remove_callback(multiplex.CALLBACK_UPDATE, callback_id)
+        multiplex.remove_callback(multiplex.CALLBACK_EXIT, callback_id)
+        term_emulator = multiplex.term
+        term_emulator.remove_callback(terminal.CALLBACK_TITLE, callback_id)
+        term_emulator.remove_callback(
+            terminal.CALLBACK_MESSAGE, callback_id)
+        term_emulator.remove_callback(terminal.CALLBACK_DSR, callback_id)
+        term_emulator.remove_callback(terminal.CALLBACK_RESET, callback_id)
+        term_emulator.remove_callback(terminal.CALLBACK_MODE, callback_id)
+        term_emulator.remove_callback(terminal.CALLBACK_OPT, callback_id)
+        term_emulator.remove_callback(terminal.CALLBACK_BELL, callback_id)
+
     @require(authenticated())
     def new_terminal(self, settings):
         """
@@ -1611,46 +1675,8 @@ class TerminalWebSocket(WebSocketHandler):
                 self.term_ended(term)
                 return
         # Setup callbacks so that everything gets called when it should
-        self.callback_id = callback_id = "%s;%s;%s" % (
-            self.client_id, self.request.host, self.request.remote_ip)
-        # NOTE: request.host is the FQDN or IP the user entered to open Gate One
-        # so if you want to have multiple browsers open to the same user session
-        # from the same IP just use an alternate hostname/IP for the URL.
-        # Setup the termio callbacks
-        refresh = partial(self.refresh_screen, term)
-        multiplex = term_obj['multiplex']
-        multiplex.add_callback(multiplex.CALLBACK_UPDATE, refresh, callback_id)
-        ended = partial(self.term_ended, term)
-        multiplex.add_callback(multiplex.CALLBACK_EXIT, ended, callback_id)
-        # Setup the terminal emulator callbacks
-        term_emulator = multiplex.term
-        set_title = partial(self.set_title, term)
-        term_emulator.add_callback(
-            terminal.CALLBACK_TITLE, set_title, callback_id)
-        set_title() # Set initial title
-        bell = partial(self.bell, term)
-        term_emulator.add_callback(
-            terminal.CALLBACK_BELL, bell, callback_id)
-        term_emulator.add_callback(
-            terminal.CALLBACK_OPT, self.esc_opt_handler, callback_id)
-        mode_handler = partial(self.mode_handler, term)
-        term_emulator.add_callback(
-            terminal.CALLBACK_MODE, mode_handler, callback_id)
-        reset_term = partial(self.reset_client_terminal, term)
-        term_emulator.add_callback(
-            terminal.CALLBACK_RESET, reset_term, callback_id)
-        dsr = partial(self.dsr, term)
-        term_emulator.add_callback(
-            terminal.CALLBACK_DSR, dsr, callback_id)
-        term_emulator.add_callback(
-            terminal.CALLBACK_MESSAGE, self.send_message, callback_id)
-        # Call any registered plugin Terminal hooks
-        if PLUGIN_TERM_HOOKS:
-            for hook, func in PLUGIN_TERM_HOOKS.items():
-                term_emulator.add_callback(hook, func(self))
-        if PLUGIN_NEW_TERM_HOOKS:
-            for func in PLUGIN_NEW_TERM_HOOKS:
-                func(self, term_emulator)
+        self.add_terminal_callbacks(
+            term, term_obj['multiplex'], self.callback_id)
         # NOTE: refresh_screen will also take care of cleaning things up if
         #       term_obj['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
@@ -1662,6 +1688,69 @@ class TerminalWebSocket(WebSocketHandler):
             self.send_message(_(
                 "WARNING: Logging is set to DEBUG.  All keystrokes will be "
                 "logged!"))
+
+    @require(authenticated())
+    def move_terminal(self, settings):
+        """
+        Moves *settings['term']* (terminal number) to
+        *SESSIONS[self.session][[settings['location']]*.  In other words, it
+        moves the given terminal to the given location in the *SESSIONS* dict.
+
+        If the given location dict doesn't exist (yet) it will be created.
+        """
+        logging.debug("move_terminal(%s)" % settings)
+        new_location_exists = True
+        term = existing_term = int(settings['term'])
+        new_location = settings['location']
+        session_obj = SESSIONS[self.session]
+        existing_term_obj = session_obj[self.location][term]
+        if new_location not in session_obj:
+            term = 1 # Starting anew in the new location
+            session_obj[new_location] = {term: existing_term_obj}
+            new_location_exists = False
+        else:
+            existing_terms = [a for a in session_obj[new_location].keys()
+                                if isinstance(a, int)]
+            existing_terms.sort()
+            term = existing_terms[-1] + 1
+            session_obj[new_location][term] = existing_term_obj
+        multiplex = existing_term_obj['multiplex']
+        # Remove the existing object's callbacks so we don't end up sending
+        # things like screen updates to the wrong place.
+        try:
+            self.remove_terminal_callbacks(multiplex, self.callback_id)
+        except KeyError:
+            pass # Already removed callbacks--no biggie
+        em_dimensions = {
+            'h': multiplex.em_dimensions['height'],
+            'w': multiplex.em_dimensions['width']
+        }
+        if new_location_exists:
+            # Already an open window using this 'location'...  Tell it to open
+            # a new terminal for the user.
+            new_location_instance = None
+            for instance in self.instances:
+                if instance.location == new_location:
+                    new_location_instance = instance
+                    break
+            new_location_instance.new_terminal({
+                'term': term,
+                'rows': multiplex.rows,
+                'cols': multiplex.cols,
+                'em_dimensions': em_dimensions
+            })
+        #else:
+            # Make sure the new location dict is setup properly
+            #self.add_terminal_callbacks(term, multiplex, callback_id)
+        del session_obj[self.location][existing_term] # Remove old location
+        details = {
+            'term': term,
+            'location': new_location
+        }
+        message = {
+            'term_moved': details, # Closes the term in the current window/tab
+        }
+        self.write_message(json_encode(message))
 
     @require(authenticated())
     def kill_terminal(self, term):

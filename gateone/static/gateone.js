@@ -276,6 +276,8 @@ var go = GateOne.Base.update(GateOne, {
         for (var setting in prefs) {
             go.prefs[setting] = prefs[setting];
         }
+        // Make our prefix unique to our location
+        go.prefs.prefix += go.location + '_';
         // Capabilities Notifications
         if (!go.prefs.skipChecks) {
             if (!WebSocket) {
@@ -4337,6 +4339,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('term_ended', go.Terminal.closeTerminal);
         go.Net.addAction('timeout', go.Terminal.timeoutAction);
         go.Net.addAction('term_exists', go.Terminal.reconnectTerminalAction);
+        go.Net.addAction('term_moved', go.Terminal.moveTerminalAction);
         go.Net.addAction('set_mode', go.Terminal.setModeAction); // For things like application cursor keys
         go.Net.addAction('reset_terminal', go.Terminal.resetTerminalAction);
 //         go.Net.addAction('metadata', go.Terminal.storeMetadata);
@@ -5053,13 +5056,16 @@ go.Base.update(GateOne.Terminal, {
         }
         return term; // So you can call it from your own code and know what terminal number you wound up with
     },
-    closeTerminal: function(term, /*opt*/noCleanup) {
+    closeTerminal: function(term, /*opt*/noCleanup, /*opt*/message) {
         // Closes the given terminal and tells the server to end its running process.
         // If noCleanup resolves to true, stored data will be left hanging around for this terminal (e.g. the scrollback buffer in localStorage).  Otherwise it will be deleted.
+        // If a *message* is given it will be displayed to the user instead of the default "Closed term..." message.
         var u = GateOne.Utils,
             prefix = go.prefs.prefix,
-            message = "Closed term " + term + ": " + go.terminals[term]['title'],
             lastTerm = null;
+        if (!message) {
+            message = "Closed term " + term + ": " + go.terminals[term]['title'];
+        }
         // Tell the server to kill the terminal
         go.Net.killTerminal(term);
         if (!noCleanup) {
@@ -5103,11 +5109,39 @@ go.Base.update(GateOne.Terminal, {
         }
         go.Net.setTerminal(term);
     },
+    moveTerminalLocation: function(term, location) {
+        /**:GateOne.Terminal.moveTerminalLocation(term, location)
+
+        Moves the given *term* to the given *location* (aka window) by sending
+        the appropriate message to the Gate One server.
+        */
+        var settings = {
+            'term': term,
+            'location': location
+        }
+        go.ws.send(JSON.stringify({'move_terminal': settings}));
+    },
     reconnectTerminalAction: function(term) {
         // Called when the server reports that the terminal number supplied via 'new_terminal' already exists
-        // NOTE: Doesn't do anything at the moment...  May never do anything.  You never know.
         // NOTE: Might be useful to override if you're embedding Gate One into something else
         logDebug('reconnectTerminalAction(' + term + ')');
+        // This gets called when a terminal is moved from one 'location' to another.  When that happens we need to open it up like it's new...
+        if (!go.terminals[term]) {
+            go.Terminal.newTerminal(term);
+            go.Terminal.lastTermNumber = term;
+            // Assume the user wants to switch to this terminal immediately
+            go.Terminal.switchTerminal(term);
+        }
+    },
+    moveTerminalAction: function(obj) {
+        /**:GateOne.Terminal.moveTerminalAction(obj)
+
+        Attached to the 'term_moved' WebSocket Action, closes the given *term* with a slightly different message than closeTerminal().
+        */
+        var term = obj['term'],
+            location = obj['location'],
+            message = "Terminal " + term + " has been relocated to location, '" + location + "'";
+        GateOne.Terminal.closeTerminal(term, null, message);
     },
     reattachTerminalsAction: function(terminals){
         // Called after we authenticate to the server...
