@@ -7,6 +7,10 @@
 
 from distutils.core import setup
 import sys, os, shutil
+try:
+    from commands import getstatusoutput
+except ImportError: # Python 3
+    from subprocess import getstatusoutput
 
 # Globals
 POSIX = 'posix' in sys.builtin_module_names
@@ -168,6 +172,10 @@ setup(
     data_files = data_files
 )
 
+# TODO: This is a work-in-progress
+# Update the version string of gateone.py (so we can tell which git revision)
+#retcode, output = getstatusoutput("git describe")
+
 # Python3 support stuff is below
 def fix_shebang(filepath):
     """
@@ -186,7 +194,6 @@ def fix_shebang(filepath):
             return True
 
 if major == 3:
-    from subprocess import getstatusoutput
     try:
         import html5lib
     except ImportError:

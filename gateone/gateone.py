@@ -291,7 +291,7 @@ tornado.options.enable_pretty_logging()
 # Our own modules
 import termio, terminal
 from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
-from auth import PAMAuthHandler, require, authenticated
+from auth import SSLAuthHandler, PAMAuthHandler, require, authenticated
 from utils import str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
 from utils import create_plugin_links, merge_handlers, none_fix, short_hash
@@ -2417,6 +2417,8 @@ class Application(tornado.web.Application):
                 AuthHandler = PAMAuthHandler
             elif settings['auth'] == 'google':
                 AuthHandler = GoogleAuthHandler
+            elif settings['auth'] == 'ssl':
+                AuthHandler = SSLAuthHandler
             logging.info(_("Using %s authentication" % settings['auth']))
         else:
             logging.info(_(
@@ -2530,7 +2532,7 @@ def main():
     user_locale = locale.get(default_locale)
     # NOTE: The locale setting above is only for the --help messages.
     # Simplify the auth option help message
-    auths = "none, api, google"
+    auths = "none, api, google, ssl"
     if KerberosAuthHandler:
         auths += ", kerberos"
     if PAMAuthHandler:
@@ -2580,8 +2582,8 @@ def main():
     define("command",
         # The default command assumes the SSH plugin is enabled
         default=GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
-                r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp "
-                "-a '-oUserKnownHostsFile=%USERDIR%/%USER%/ssh/known_hosts'",
+            r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp "
+            "-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/ssh/known_hosts\"'",
         help=_("Run the given command when a user connects (e.g. '/bin/login')."
                ),
         type=str
@@ -2997,6 +2999,8 @@ def main():
         logging.info(_("This key can now be used to embed Gate One into other "
                 "applications."))
         sys.exit(0)
+    # Display the version in case someone sends in a log for for support
+    logging.info(_("Gate One %s" % __version__))
     # Set our CMD variable to tell the multiplexer which command to execute
     global CMD
     CMD = options.command
@@ -3057,7 +3061,9 @@ def main():
         'api_keys': api_keys,
         'url_prefix': options.url_prefix,
         'origins': real_origins,
-        'pid_file': options.pid_file
+        'pid_file': options.pid_file,
+        'ca_certs': options.ca_certs,
+        'ssl_auth': options.ssl_auth
     }
     # Check to make sure we have a certificate and keyfile and generate fresh
     # ones if not.

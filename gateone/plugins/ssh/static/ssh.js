@@ -13,7 +13,7 @@ var logInfo = noop;
 var logDebug = noop;
 
 // GateOne.SSH (ssh client functions)
-GateOne.Base.module(GateOne, "SSH", "1.0", ['Base']);
+GateOne.Base.module(GateOne, "SSH", "1.1", ['Base']);
 GateOne.SSH.identities = []; // SSH identity objects end up in here
 GateOne.SSH.remoteCmdCallbacks = {};
 GateOne.SSH.remoteCmdErrorbacks = {};

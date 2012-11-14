@@ -23,7 +23,7 @@ if (typeof(go.prefs.disableIPConvenience) == "undefined") {
 }
 
 // GateOne.Convenience (adds convenient stuff to Gate One)
-GateOne.Base.module(GateOne, "Convenience", "1.0", ['Base']);
+GateOne.Base.module(GateOne, "Convenience", "1.1", ['Base']);
 GateOne.Convenience.groupTemp = {}; // Used to pass group information around before a final message is displayed
 GateOne.Base.update(GateOne.Convenience, {
     init: function() {

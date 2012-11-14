@@ -259,15 +259,14 @@ def openssh_connect(
         # Create it (an empty one so ssh doesn't error out)
         with open(ssh_config_path, 'w') as f:
             f.write('\n')
-    ssh_default_identity_path = os.path.join(users_ssh_dir, 'id_ecdsa')
     args = [
         "-x", # No X11 forwarding, thanks :)
-        "-F%s" % ssh_config_path, # It's OK if it doesn't exist
+        "-F'%s'" % ssh_config_path, # It's OK if it doesn't exist
         # This is so people won't have to worry about user management when
         # running one-Gate One-per-server...
         "-oNoHostAuthenticationForLocalhost=yes",
         # This ensure's that the executing user's identity won't be used:
-        "-oIdentityFile=%s" % ssh_default_identity_path,
+        "-oIdentityFile='/dev/null'",
         # This ensures the other end can tell we're a Gate One terminal
         "-oSendEnv=GO_TERM",
         "-p", str(port),
@@ -296,12 +295,12 @@ def openssh_connect(
             args.insert(3, "-i%s" % identity)
             print(_("\t\x1b[1m%s\x1b[0m" % os.path.split(identity)[1]))
         args.insert(3, # Make sure we're using publickey auth first
-        "-oPreferredAuthentications=publickey,keyboard-interactive,password"
+        "-oPreferredAuthentications='publickey,keyboard-interactive,password'"
         )
     else:
         args.insert(
             3, # Don't use publickey
-            "-oPreferredAuthentications=keyboard-interactive,password"
+            "-oPreferredAuthentications='keyboard-interactive,password'"
         )
     if sshfp:
         args.insert(3, "-oVerifyHostKeyDNS=yes")

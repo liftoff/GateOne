@@ -359,7 +359,7 @@ class NullAuthHandler(BaseAuthHandler):
         logout = self.get_argument("logout", None)
         if logout:
             self.clear_cookie('gateone_user')
-            self.user_logout(user)
+            self.user_logout(user['upn'])
             return
         # This takes care of the user's settings dir and their session info
         self.user_login(user)
@@ -425,7 +425,7 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
             self.get_authenticated_user(self._on_auth)
             return
         self.authenticate_redirect(
-            ax_attrs=["name","email","language","username"])
+            ax_attrs=["name", "email", "language", "username"])
 
     def _on_auth(self, user):
         """
@@ -442,6 +442,87 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
         #     'name': u'Dan McDougall',
         #     'email': u'daniel.mcdougall@liftoffsoftware.com'}
         user['upn'] = user['email'] # Use the email for the upn
+        self.user_login(user)
+        next_url = self.get_argument("next", None)
+        if next_url:
+            self.redirect(next_url)
+        else:
+            self.redirect(self.settings['url_prefix'])
+
+class SSLAuthHandler(BaseAuthHandler):
+    """
+    SSL Certificate-based  authentication handler.  Can only be used if the
+    `ca_certs` is set and `ssl_auth=required` or `ssl_auth=optional`.
+    """
+    def initialize(self):
+        """
+        Print out helpful error messages if the requisite settings aren't
+        configured.
+        """
+        self.require_setting("ca_certs", "CA Certificates File")
+        self.require_setting("ssl_auth", "SSL Authentication ('required')")
+
+    def _convert_certificate(self, cert):
+        """
+        Converts the certificate format returned by get_ssl_certificate() into
+        a format more suitable for a user dict.
+        """
+        import re
+        # Can't have any of these in the upn because we name a directory with it
+        bad_chars = re.compile(r'[\/\\\$\;&`\!\*\?\|<>\n]')
+        user = {'notAfter': cert['notAfter']} # This one is the most direct
+        for item in cert['subject']:
+            for key, value in item:
+                user.update({key: value})
+        cn = user['commonName'] # Use the commonName as the UPN
+        cn = bad_chars.sub('.', cn) # Replace bad chars with dots
+        # Try to use the 'issuer' to add more depth to the CN
+        if 'issuer' in cert: # This will only be there if you're using Python 3
+            for item in cert['issuer']:
+                for key, value in item:
+                    if key == 'organizationName':
+                        # Yeah this can get long but that's OK (it's better than
+                        # conflicts)
+                        cn = "%s@%s" % (cn, value)
+                        break
+                        # Should wind up as something like this:
+                        #   John William Smith-Doe@ACME Widget Corporation, LLC
+                        # So that would be used in the users dir like so:
+                        #   /opt/gateone/users/John William Smith-Doe... etc
+        user['upn'] = cn
+        return user
+
+    @tornado.web.asynchronous
+    def get(self):
+        """
+        Sets the 'user' cookie with an appropriate *upn* and *session* and any
+        other values that might be attached to the user's client SSL
+        certificate.
+        """
+        check = self.get_argument("check", None)
+        if check:
+            self.set_header ('Access-Control-Allow-Origin', '*')
+            user = self.get_current_user()
+            if user:
+                logging.debug('SSLAuthHandler: user is authenticated')
+                self.write('authenticated')
+            else:
+                logging.debug('SSLAuthHandler: user is NOT authenticated')
+                self.write('unauthenticated')
+            self.finish()
+            return
+        logout = self.get_argument("logout", None)
+        if logout:
+            user = self.get_current_user()['upn']
+            self.clear_cookie('gateone_user')
+            self.user_logout(user)
+            return
+        # Extract the user's information from their certificate
+        cert = self.request.get_ssl_certificate()
+        bincert = self.request.get_ssl_certificate(binary_form=True)
+        open('/tmp/cert.der', 'w').write(bincert)
+        user = self._convert_certificate(cert)
+        # This takes care of the user's settings dir and their session info
         self.user_login(user)
         next_url = self.get_argument("next", None)
         if next_url:
