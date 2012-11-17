@@ -1005,6 +1005,18 @@ Functions
         > GateOne.Utils.getOffset(someNode);
         {"top":130, "left":50}
 
+.. js:function:: GateOne.Utils.getQueryVariable(variable)
+
+    :returns: The value of the given query string *variable* from :js:attr:`window.location.href`.
+
+    Example:
+
+    .. code-block:: javascript
+
+        > // Assume window.location.href = 'https://gateone/?foo=bar,bar,bar'
+        > GateOne.Utils.getQueryVariable('foo');
+        'bar,bar,bar'
+
 .. js:function:: GateOne.Utils.getSelText()
 
     :returns: The text that is currently highlighted in the browser.
@@ -1363,6 +1375,21 @@ Functions
     .. code-block:: javascript
 
         GateOne.Utils.removeElement('#go_infocontainer');
+
+.. js:function:: GateOne.Utils.removeQueryVariable(variable)
+
+    Removes the given query string *variable* from window.location.href using window.history.replaceState().  Leaving all other query string variables alone.
+
+    :returns: The current query string (after being modified) from :js:attr:`window.location.href`.
+
+    Example:
+
+    .. code-block:: javascript
+
+        > // Assume window.location.href = 'https://gateone/?location=window2&foo=bar,bar,bar'
+        > GateOne.Utils.removeQueryVariable('foo');
+        '?location=window2'
+        > // ...and the URL in the addres bar would become 'https://gateone/?location=window2'
 
 .. js:function:: GateOne.Utils.replaceURLWithHTMLLinks(text)
 

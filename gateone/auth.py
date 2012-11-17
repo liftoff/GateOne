@@ -81,58 +81,44 @@ import tornado.escape
 _ = get_translation()
 
 # Globals
-# This is modeled after /etc/security/limits.conf which is common on Linux
-# If it ain't broke...
-LIMITS_DEFAULTS = """\
-# /opt/gateone/security.conf
-#
-# Each line describes a limit for a user or group in the form:
-#
-# <domain>     <application>     <item>     <value>
-#
-# <domain> can be:
-#   - The wildcard *, for default entry
-#   - A user name or userPrincipalName (aka UPN)
-#   - A group name, with @group syntax (if configured auth type supports groups).
-#   - %user.attribute, to specify all users with a given attribute (if auth type supports it)
-#   - %group.attribute, to specify all groups with a given attribute (if auth type supports it)
-#
-# <application> can be:
-#   - terminal
-#   - A name specified by any plugin's 'application' hook (if it sets one).
-#
-# <item> can be one of the following:
-#   - login - User may authenticate and use Gate One.
-#   - max_terminals - Maximum number of open terminals.
-#   - session_timeout - Length of time before the user's session times out.
-#   - max_sessions - max number of simultaneous (browser) sessions for this user.
-#   - Any value specified by a plugin's 'application' hook.
-#
-# <value> can be:
-#   - A numeric value (will be converted to a float).
-#   - The wildcard:  *
-#   - Empty; if not applicable (e.g. 'login' doesn't need a value).
-#
-# NOTES:
-#   * Values may be surrounded by single or double quotes.
-#   * White space or tabs between fields (doesn't matter).
-#
-#<domain>       <application>   <item>          <value>
-#
-*               terminal        login
-*               terminal        max_terminals   *
-
+LIMITS_DEFAULTS = r"""\
+// I'm seriously considering this style configuration (JSON) for security.conf
+// It is very flexible but less readable.  It's also much easier to parse.
+{
+    // '*' for default (all users)
+    '*': {
+        'terminal': { // This is the "application" i.e. whatever is registered via @require(policies('<application>'))
+            'login': false, // This would be, "default deny"
+            'max_terms': 10, // An absolute maximum
+            'max_terms_per_location': 1 // How many per 'location'
+        }
+    },
+    // Regular expressions work too
+    'bob.*': {},
+    // Group syntax
+    '@gateone_users': {
+        'terminal': {
+            'login': true, // Let these guys in
+            'max_terms_total': 10, // Absolute maximum
+            'max_terms_per_location': 1 // Only one terminal per window
+        }
+    },
+    // You can also use properties if the user or group object has them
+    // Property matching too:
+    '%user.email=.*liftoffsoftware.com' {
+        'terminal': {}
+    },
+    '%group.whatever=foo': {
+        'terminal' {}
+    }
+}
 """
 # NOTE about the above:
 #   * I MAY CHANGE ALL OF IT!  Still a work in progress ;)
-#   * That config file format was chosen to be user-friendly.  JSON may be easier to parse but it isn't ideal from a, "user can grok this" standpoint.
-#   * The <domain> options were chosen so that Role-Based Access Controls (RBAC) and Attribute-Based Access Controls (ABAC) can be supported simultaneously.
-#   * Only Google auth supports additional attributes at the moment but LDAP support is forthcoming.  Probably going to add the ability to define arbitrary attributes and user profiles as well at some point.  Need a post-authentication information-gathering process.
-#   *
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 # The limit stuff below is a work-in-progress.  Likely to change all around.
-#LIMITS_PATH = os.path.join(GATEONE_DIR, 'security.conf')
-#LIMITS = {}
+SECURITY_CONF_PATH = os.path.join(GATEONE_DIR, 'security.conf')
+SECURITY = {}
 #if not os.path.exists(LIMITS_PATH):
     #open(LIMITS_PATH, 'w').write(LIMITS_DEFAULTS)
 # Populate the LIMITS dict with all the settings
@@ -159,6 +145,45 @@ GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
                 #LIMITS[domain][application][item] = value
 
 # Authorization stuff
+def applicable_policies(application, user):
+    """
+    Given an *application* and a *user* object, returns the applicable policies
+    from the SECURITY dict.
+    """
+    # Iterate over all the policies in the SECURITY dict and determine which
+    # would apply to this user (in order).
+    # Need to check for:
+    #   * Direct matches (key == user['upn'])
+    #   * Wildcard matches (re.)
+
+def terminal_policies(instance, function):
+    """
+    This function gets registered under the 'terminal' application and is called
+    by the :class:`policies` class as part of the :func:`require` decorator.
+    It returns True or False depending on what is defined in security.conf and
+    what function is being called.
+
+    This function will keep track of the following pieces of information:
+
+        * The number of open terminals.
+        * The number of shared terminals.
+        * How many users are connected to a shared terminal.
+        * How many locations a user is currently using.
+        * The number of terminals in each location.
+
+    If no 'terminal' policies are defined this function will always return True.
+    """
+    try:
+        security = SECURITY['terminal']
+    except:
+        return True
+    user = instance.current_user
+    #if user['upn'] in security:
+        #if 'login' in security[user['upn']]:
+
+    if function.__name__ == 'new_terminal':
+        max_terms = restrictions
+
 class require(object):
     """
     A decorator to add authorization requirements to any given function or
@@ -186,6 +211,8 @@ class require(object):
                 # 'self' associated with the user's open connection to update
                 # the condition's 'instance' attribute
                 condition.instance = self
+                # This lets the condition know what it is being applied to:
+                condition.function = f
                 if not condition.check():
                     logging.error(_(
                         "%s -> %s failed condition: %s" % (
@@ -198,39 +225,42 @@ class require(object):
 
 class authenticated(object):
     """
-    A condition class to be used with the @require decorator that returns true
+    A condition class to be used with the @require decorator that returns True
     if the user is authenticated.
 
-    .. note:: Only meant to be used with WebSockets.  tornado.web.RequestHandler instances can use tornado.web.authenticated
+    .. note:: Only meant to be used with WebSockets.  tornado.web.RequestHandler instances can use @tornado.web.authenticated
     """
     error = _("Only valid users may access this function")
     def __str__(self):
         return "authenticated"
 
-    def __init__(self, instance={}):
-        self.instance = instance
+    def __init__(self):
+        # These are just here as reminders that (they will be set when called)
+        self.instance = None
+        self.function = None
 
     def check(self):
-        if not self.instance.get_current_user():
+        if not self.instance.current_user:
             self.instance.close() # Close the WebSocket for this level of fail
             return False
         return True
 
 class is_user(object):
     """
-    A condition class to be used with the @require decorator that returns true
+    A condition class to be used with the @require decorator that returns True
     if the given username/UPN matches what's in `self._current_user`.
     """
     error = _("You are not authorized to perform this action")
     def __str__(self):
         return "is_user: %s" % self.upn
 
-    def __init__(self, upn, instance={}):
+    def __init__(self, upn):
         self.upn = upn
-        self.instance = instance
+        self.instance = None
+        self.function = None
 
     def check(self):
-        user = self.instance.get_current_user()
+        user = self.instance.current_user
         if user and 'upn' in user:
             logging.debug("Checking if %s == %s" % (user['upn'], self.upn))
             return self.upn == user['upn']
@@ -238,41 +268,33 @@ class is_user(object):
             return False
 
 # Still experimenting on how various security limits will be handled...  This is likely to change:
-#class limit(object):
-    #"""
-    #A condition class to be used with the @require decorator that returns true
-    #if all the specified conditions are within the limits specified in
-    #security.conf.
-    #"""
-    #error = _("Your ability to perform this action has been restricted")
-    #def __str__(self):
-        #return "limits: %s" % self.upn
+class policies(object):
+    """
+    A condition class to be used with the @require decorator that returns True
+    if all the specified conditions are within the limits specified in
+    security.conf.  Here's an example::
 
-    #def __init__(self, application, item, instance={}):
-        #self.application = application
-        #self.item = item
-        #self.instance = instance
+        @require(authenticated(), policies('terminal))
+        def new_terminal(self, settings):
+            # Actual function would be here
 
-    #def check(self):
-        #user = self.instance.get_current_user()
-        #if user and 'upn' in user:
-            #upn = user['upn']
-            #try:
-                #value = LIMITS[upn][self.application][self.item]
-            #except ValueError:
-                #value = None
-            ## Try number values first (must be less than)
-            #if value != None:
+    That would apply all policies that are configured for the 'terminal'
+    application by way of whatever function is registered to handle 'terminal'
+    restriction checks.
+    """
+    error = _("Your ability to perform this action has been restricted")
+    def __str__(self):
+        return "policies: %s" % self.upn
 
-                #try:
-                    #value = float(value)
-                    #return value
-                #except ValueError:
-                    #pass
-                ##logging.debug("Checking condition: %s" % )
-            #return self.upn == user['upn']
-        #else:
-            #return False
+    def __init__(self, app):
+        self.app = app
+        self.instance = None
+        self.function = None
+
+    def check(self):
+        security = self.instance.security
+        if self.app in security:
+            security[self.app](self.instance, self.function)
 
 # Authentication stuff
 class BaseAuthHandler(tornado.web.RequestHandler):

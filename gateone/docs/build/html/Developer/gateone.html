@@ -545,6 +545,10 @@ cookie or if Gate One is configured to use API authentication it will
 use <em>settings['auth']</em>.  Additionally, it will accept
 <em>settings['container']</em> and <em>settings['prefix']</em> to apply those to the
 equivalent properties (self.container and self.prefix).</p>
+<p>If <em>settings['location']</em> is something other than 'default' all new
+terminals will be associated with the given (string) value.  These
+terminals will be treated separately from the usual terminals so they
+can exist in a different browser tab/window.</p>
 </dd></dl>
 
 <dl class="method">
@@ -569,27 +573,17 @@ given <em>term</em> is no more.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.new_terminal">
-<tt class="descname">new_terminal</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.new_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.new_terminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Starts up a new terminal associated with the user's session using
-<em>settings</em> as the parameters.  If a terminal already exists with the
-same number as <em>settings[term]</em>, self.set_terminal() will be called
-instead of starting a new terminal (so clients can resume their session
-without having to worry about figuring out if a new terminal already
-exists or not).</p>
+<dt id="gateone.TerminalWebSocket.add_terminal_callbacks">
+<tt class="descname">add_terminal_callbacks</tt><big>(</big><em>term</em>, <em>multiplex</em>, <em>callback_id</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.add_terminal_callbacks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up all the callbacks associated with the given <em>term</em>, <em>multiplex</em>
+instance and <em>callback_id</em>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.kill_terminal">
-<tt class="descname">kill_terminal</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.kill_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.kill_terminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Kills <em>term</em> and any associated processes.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.set_terminal">
-<tt class="descname">set_terminal</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.set_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.set_terminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets <tt class="xref py py-obj docutils literal"><span class="pre">self.current_term</span> <span class="pre">=</span> <span class="pre">*term*</span></tt> so we can determine where to send
-keystrokes.</p>
+<dt id="gateone.TerminalWebSocket.remove_terminal_callbacks">
+<tt class="descname">remove_terminal_callbacks</tt><big>(</big><em>multiplex</em>, <em>callback_id</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.remove_terminal_callbacks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all the Multiplex and terminal emulator callbacks attached to
+the given <em>multiplex</em> instance and <em>callback_id</em>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -597,68 +591,6 @@ keystrokes.</p>
 <tt class="descname">reset_client_terminal</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#gateone.TerminalWebSocket.reset_client_terminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tells the client to reset the terminal (clear the screen and remove
 scrollback).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.reset_terminal">
-<tt class="descname">reset_terminal</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.reset_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.reset_terminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs the equivalent of the 'reset' command which resets the terminal
-emulator (among other things) to return the terminal to a sane state in
-the event that something went wrong (bad escape sequence).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.set_title">
-<tt class="descname">set_title</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.set_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.set_title" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends a message to the client telling it to set the window title of
-<em>term</em> to whatever comes out of:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">SESSIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">][</span><span class="n">term</span><span class="p">][</span><span class="s">&#39;multiplex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">get_title</span><span class="p">()</span> <span class="c"># Whew! Say that three times fast!</span>
-</pre></div>
-</div>
-<p>Example message:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;set_title&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&quot;user@host&quot;</span><span class="p">}}</span>
-</pre></div>
-</div>
-<p>If <em>force</em> resolves to True the title will be sent to the cleint even if
-it matches the previously-set title.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.</p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.manual_title">
-<tt class="descname">manual_title</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.manual_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.manual_title" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the title of <em>settings['term']</em> to <em>settings['title']</em>.  Differs
-from <a class="reference internal" href="#gateone.TerminalWebSocket.set_title" title="gateone.TerminalWebSocket.set_title"><tt class="xref py py-func docutils literal"><span class="pre">set_title()</span></tt></a> in that this is an action that gets called by the
-client when the user sets a terminal title manually.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.bell">
-<tt class="descname">bell</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.bell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.bell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends a message to the client indicating that a bell was encountered in
-the given terminal (<em>term</em>).  Example message:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}}</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.mode_handler">
-<tt class="descname">mode_handler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.mode_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.mode_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles mode settings that require an action on the client by pasing it
-a message like:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
-    <span class="s">&#39;set_mode&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="n">setting</span><span class="p">,</span>
-        <span class="s">&#39;bool&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="method">
@@ -677,55 +609,6 @@ terminal emulator returns from the CALLBACK_DSR callback.</p>
 <dt id="gateone.TerminalWebSocket._send_refresh">
 <tt class="descname">_send_refresh</tt><big>(</big><em>term</em>, <em>full=False</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket._send_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket._send_refresh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a screen update to the client.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.refresh_screen">
-<tt class="descname">refresh_screen</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.refresh_screen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.refresh_screen" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes the state of the given terminal's screen and scrollback buffer to
-the client using <a class="reference internal" href="#gateone.TerminalWebSocket._send_refresh" title="gateone.TerminalWebSocket._send_refresh"><tt class="xref py py-obj docutils literal"><span class="pre">_send_refresh()</span></tt></a>.  Also ensures that screen updates
-don't get sent too fast to the client by instituting a rate limiter that
-also forces a refresh every 150ms.  This keeps things smooth on the
-client side and also reduces the bandwidth used by the application (CPU
-too).</p>
-<p>If <em>full</em>, send the whole screen (not just the difference).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.full_refresh">
-<tt class="descname">full_refresh</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.full_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.full_refresh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls <tt class="xref py py-obj docutils literal"><span class="pre">self.refresh_screen(*term*,</span> <span class="pre">full=True)</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.resize">
-<tt class="descname">resize</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.resize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resize the terminal window to the rows/cols specified in <em>resize_obj</em></p>
-<p>Example <em>resize_obj</em>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;rows&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span> <span class="s">&#39;cols&#39;</span><span class="p">:</span> <span class="mi">80</span><span class="p">}</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.char_handler">
-<tt class="descname">char_handler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.char_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.char_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes <em>chars</em> (string) to <em>term</em>.  If <em>term</em> is not provided the
-characters will be sent to the currently-selected terminal.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.write_chars">
-<tt class="descname">write_chars</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.write_chars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.write_chars" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes <em>message['chars']</em> to <em>message['term']</em>.  If <em>message['term']</em>
-is not present, <em>self.current_term</em> will be used.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.esc_opt_handler">
-<tt class="descname">esc_opt_handler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.esc_opt_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.esc_opt_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Executes whatever function is registered matching the tuple returned by
-<a class="reference internal" href="utils.html#utils.process_opt_esc_sequence" title="utils.process_opt_esc_sequence"><tt class="xref py py-func docutils literal"><span class="pre">utils.process_opt_esc_sequence()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -778,20 +661,6 @@ color schemes.</p>
 action at the client.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.debug_terminal">
-<tt class="descname">debug_terminal</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.debug_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.debug_terminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints the terminal's screen and renditions to stdout so they can be
-examined more closely.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Can only be called from a JavaScript console like so...</p>
-</div>
-<div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="s1">&#39;debug_terminal&#39;</span><span class="o">:</span> <span class="o">*</span><span class="nx">term</span><span class="o">*</span><span class="p">}));</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -830,7 +699,7 @@ examined more closely.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="authpam.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">authpam.py</span></tt> - A PAM Authentication Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="logviewer.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">logviewer.py</span></tt> - Session Log Viewer</a></p>

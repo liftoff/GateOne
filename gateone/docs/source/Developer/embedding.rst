@@ -55,11 +55,11 @@ Before you can initialize Gate One you need to include gateone.js in the web pag
 Call GateOne.init()
 -------------------
 
-The :js:func:`GateOne.init` function takes a number of optional arguments but for this example all we need is `goURL`.
+The :js:func:`GateOne.init` function takes a number of optional arguments but for this example all we need is `url`.
 
 .. code-block:: javascript
 
-    GateOne.init({goURL: "https://your-gateone-server/"});
+    GateOne.init({url: "https://your-gateone-server/"});
 
 Put that somewhere in your `window.onload` function and you should see something like this:
 

@@ -129,32 +129,15 @@ GateOne.Base.update = function (self, obj/*, ... */) {
         if (typeof(o) != 'undefined' && o !== null) {
             for (var k in o) {
                 self[k] = o[k];
+                if (self[k]) {
+                    self[k].NAME = k
+                    self[k].parent = self;
+                }
             }
         }
     }
     return self;
 };
-// NOTE: This (or something like it) will be used in the future to replace the current mess of callbacks (e.g. newTermCallbacks):
-// GateOne.Callbacks.setupCallbacks = function(f) {
-//     var self = this;
-//     var newFunc = function(arg) {
-//         newFunc.callBefore.forEach(function(callback) {
-//             if (typeof(callback) == 'function') {
-//                 callback();
-//             }
-//         });
-//         var result = f.call(self, arg);
-//         newFunc.callAfter.forEach(function(callback) {
-//             if (typeof(callback) == 'function') {
-//                 callback();
-//             }
-//         });
-//         return result;
-//     }
-//     newFunc.callBefore = [];
-//     newFunc.callAfter = [];
-//     return newFunc;
-// }
 
 // GateOne Settings
 GateOne.location = "default"; // Yes, the default location is called "default" :)
@@ -1540,14 +1523,40 @@ GateOne.Base.update(GateOne.Utils, {
             'bar,bar,bar'
             >
         */
-        var query = window.location.search.substring(1);
-        var vars = query.split('&');
+        var query = window.location.search.substring(1),
+            vars = query.split('&');
         for (var i = 0; i < vars.length; i++) {
             var pair = vars[i].split('=');
             if (decodeURIComponent(pair[0]) == variable) {
                 return decodeURIComponent(pair[1]);
             }
         }
+    },
+    removeQueryVariable: function(variable) {
+        /**:GateOne.Utils.removeQueryVariable(variable)
+
+        Removes the given query string variable from window.location.href using window.history.replaceState().  Leaving all other query string variables alone.
+
+        Returns the new query string
+        */
+        var query = window.location.search.substring(1),
+            vars = query.split('&'),
+            newVars = {},
+            newString = "?";
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split('=');
+            if (decodeURIComponent(pair[0]) != variable) {
+                newVars[pair[0]] = pair[1];
+            }
+        }
+        // Now turn everything back into a query string and replace the current location
+        for (var i in newVars) {
+            newString += i + '=' + newVars[i] + '&';
+        }
+        // Remove the trailing &
+        newString = newString.substring(0, newString.length - 1);
+        window.history.replaceState("Replace", "Page Title", "/" + newString);
+        return newString;
     }
 });
 
@@ -1858,6 +1867,14 @@ GateOne.Base.update(GateOne.Net, {
         GateOne.ws.send(JSON.stringify({'full_refresh': term}));
     }
 });
+// Protocol actions
+GateOne.Net.actions = {
+// These are what will get called when the server sends us each respective action
+    'log': GateOne.Net.log,
+    'ping': GateOne.Net.ping,
+    'pong': GateOne.Net.pong,
+    'reauthenticate': GateOne.Net.reauthenticate
+}
 GateOne.Base.module(GateOne, "Input", '1.1', ['Base', 'Utils']);
 GateOne.Input.charBuffer = []; // Queue for sending characters to the server
 GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since some browsers/platforms don't get it right.
@@ -1867,6 +1884,7 @@ GateOne.Input.F11 = false;
 GateOne.Input.F11timer = null;
 GateOne.Input.handledKeystroke = false;
 GateOne.Input.handlingPaste = false;
+GateOne.Input.automaticBackspace = true; // This controls whether or not we'll try to automatically switch between ^H and ^?
 GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.  They will end up looking like this:
 // 'KEY_N': [{'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'}]
 GateOne.Base.update(GateOne.Input, {
@@ -2463,6 +2481,7 @@ GateOne.Base.update(GateOne.Input, {
             keyString = String.fromCharCode(key.code);
         logDebug("emulateKey() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
         goIn.handledKeystroke = false;
+        goIn.sentBackspace = false;
         // Need some special logic for the F11 key since it controls fullscreen mode and without it, users could get stuck in fullscreen mode.
         if (!modifiers.shift && goIn.F11 == true && !skipF11check) { // This is the *second* time F11 was pressed within 0.750 seconds.
             goIn.F11 = false;
@@ -2495,6 +2514,9 @@ GateOne.Base.update(GateOne.Input, {
                     if (key.string == 'KEY_BACKSPACE') {
                         // So we can switch between ^? and ^H
                         q(go.terminals[term]['backspace']);
+                        if (goIn.automaticBackspace) {
+                            goIn.sentBackspace = true;
+                        }
                     } else {
                         if (goIn.keyTable[key.string][mode]) {
                             q(goIn.keyTable[key.string][mode]);
@@ -3078,21 +3100,17 @@ GateOne.Base.update(GateOne.Visual, {
             scrollbarAdjust = (go.Terminal.scrollbarWidth || 15); // Fallback to 15px if this hasn't been set yet (a common width)
         logDebug("Setting term " + term + " to title: " + title);
         go.terminals[term]['X11Title'] = title;
-        // Only set the title of the terminal if it hasn't been overridden
-        if (!go.Terminal.manualTitle) {
-//             termNode.title = title;
-            go.terminals[term]['title'] = title;
-            sideinfo.innerHTML = term + ": " + title;
-            sideinfo.style.right = scrollbarAdjust + 'px';
-            // Also update the info panel
-            termTitle.innerHTML = term+': '+title;
-            // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
-            go.Visual.applyTransform(sideinfo, "rotate(90deg)"); // Have to reset it first
-            if (sideinfo.clientWidth > heightDiff) { // We have overlap
-                var scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
-                scrollbarAdjust = Math.ceil(scrollbarAdjust * (1-scaleDown));
-                go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")" + "translateY(" + scrollbarAdjust + "px)");
-            }
+        go.terminals[term]['title'] = title;
+        sideinfo.innerHTML = term + ": " + title;
+        sideinfo.style.right = scrollbarAdjust + 'px';
+        // Also update the info panel
+        termTitle.innerHTML = term+': '+title;
+        // Now scale sideinfo so that it looks as nice as possible without overlapping the icons
+        go.Visual.applyTransform(sideinfo, "rotate(90deg)"); // Have to reset it first
+        if (sideinfo.clientWidth > heightDiff) { // We have overlap
+            var scaleDown = heightDiff / (sideinfo.clientWidth + 10); // +10 to give us some space between
+            scrollbarAdjust = Math.ceil(scrollbarAdjust * (1-scaleDown));
+            go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")" + "translateY(" + scrollbarAdjust + "px)");
         }
     },
     bellAction: function(bellObj) {
@@ -4123,6 +4141,7 @@ go.Base.update(GateOne.Terminal, {
         var t = go.Terminal,
             u = go.Utils,
             prefix = go.prefs.prefix,
+            term = localStorage[prefix+'selectedTerminal'],
             p = u.createElement('p', {'id': 'info_actions', 'style': {'padding-bottom': '0.4em'}}),
             tableDiv = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
@@ -4135,6 +4154,7 @@ go.Base.update(GateOne.Terminal, {
             infoPanelRow2 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow2'}),
             infoPanelRow3 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow3'}),
             infoPanelRow4 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow4'}),
+            infoPanelRow5 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow5'}),
             infoPanelH2 = u.createElement('h2', {'id': 'termtitle'}),
             infoPanelTimeLabel = u.createElement('span', {'id': 'term_time_label', 'style': {'display': 'table-cell'}}),
             infoPanelTime = u.createElement('span', {'id': 'term_time', 'style': {'display': 'table-cell'}}),
@@ -4142,7 +4162,10 @@ go.Base.update(GateOne.Terminal, {
             infoPanelRows = u.createElement('span', {'id': 'rows', 'style': {'display': 'table-cell'}}),
             infoPanelColsLabel = u.createElement('span', {'id': 'cols_label', 'style': {'display': 'table-cell'}}),
             infoPanelCols = u.createElement('span', {'id': 'cols', 'style': {'display': 'table-cell'}}),
-//             infoPanelViewLog = u.createElement('button', {'id': 'viewlog', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            infoPanelBackspaceLabel = u.createElement('span', {'id': 'backspace_label', 'style': {'display': 'table-cell'}}),
+            infoPanelBackspace = u.createElement('span', {'id': 'backspace', 'style': {'display': 'table-cell'}}),
+            infoPanelBackspaceCheckH = u.createElement('input', {'type': 'radio', 'id': 'backspace_h', 'name': 'backspace', 'value': '^H', 'style': {'display': 'table-cell'}}),
+            infoPanelBackspaceCheckQ = u.createElement('input', {'type': 'radio', 'id': 'backspace_q', 'name': 'backspace', 'value': '^?', 'style': {'display': 'table-cell'}}),
             infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             infoPanelMonitorActivity = u.createElement('input', {'id': 'monitor_activity', 'type': 'checkbox', 'name': 'monitor_activity', 'value': 'monitor_activity', 'style': {'margin-right': '0.5em'}}),
             infoPanelMonitorActivityLabel = u.createElement('span'),
@@ -4180,30 +4203,45 @@ go.Base.update(GateOne.Terminal, {
         infoPanelRows.innerHTML = go.prefs.rows; // Will be replaced
         infoPanelColsLabel.innerHTML = "<b>Columns:</b> ";
         infoPanelCols.innerHTML = go.prefs.cols; // Will be replaced
+        infoPanelBackspaceLabel.innerHTML = "<b>Backspace Key:</b> ";
+        infoPanelBackspaceCheckQ.checked = true;
+        infoPanelBackspaceCheckQ.onclick = function(e) {
+            go.terminals[term]['backspace'] = String.fromCharCode(127);
+        }
+        infoPanelBackspaceCheckH.onclick = function(e) {
+            go.terminals[term]['backspace'] = String.fromCharCode(8);
+        }
+        infoPanelBackspace.appendChild(infoPanelBackspaceCheckH);
+        infoPanelBackspace.appendChild(infoPanelBackspaceCheckQ);
         infoPanel.appendChild(infoPanelH2);
         infoPanel.appendChild(panelClose);
         infoPanel.appendChild(p);
         infoPanel.appendChild(tableDiv);
         infoPanel.appendChild(tableDiv2);
+        infoPanelBackspaceCheckQ.insertAdjacentHTML('afterend', "^?");
+        infoPanelBackspaceCheckH.insertAdjacentHTML('afterend', "^H");
         infoPanelRow1.appendChild(infoPanelTimeLabel);
         infoPanelRow1.appendChild(infoPanelTime);
         infoPanelRow2.appendChild(infoPanelRowsLabel);
         infoPanelRow2.appendChild(infoPanelRows);
         infoPanelRow3.appendChild(infoPanelColsLabel);
         infoPanelRow3.appendChild(infoPanelCols);
+        infoPanelRow4.appendChild(infoPanelBackspaceLabel);
+        infoPanelRow4.appendChild(infoPanelBackspace);
         tableDiv.appendChild(infoPanelRow1);
         tableDiv.appendChild(infoPanelRow2);
         tableDiv.appendChild(infoPanelRow3);
+        tableDiv.appendChild(infoPanelRow4);
         infoPanelMonitorActivityLabel.innerHTML = "Monitor for Activity<br />";
         infoPanelMonitorInactivityLabel.innerHTML = "Monitor for ";
         infoPanelInactivityIntervalLabel.innerHTML = "Seconds of Inactivity";
-        infoPanelRow4.appendChild(infoPanelMonitorActivity);
-        infoPanelRow4.appendChild(infoPanelMonitorActivityLabel);
-        infoPanelRow4.appendChild(infoPanelMonitorInactivity);
-        infoPanelRow4.appendChild(infoPanelMonitorInactivityLabel);
-        infoPanelRow4.appendChild(infoPanelInactivityInterval);
-        infoPanelRow4.appendChild(infoPanelInactivityIntervalLabel);
-        tableDiv2.appendChild(infoPanelRow4);
+        infoPanelRow5.appendChild(infoPanelMonitorActivity);
+        infoPanelRow5.appendChild(infoPanelMonitorActivityLabel);
+        infoPanelRow5.appendChild(infoPanelMonitorInactivity);
+        infoPanelRow5.appendChild(infoPanelMonitorInactivityLabel);
+        infoPanelRow5.appendChild(infoPanelInactivityInterval);
+        infoPanelRow5.appendChild(infoPanelInactivityIntervalLabel);
+        tableDiv2.appendChild(infoPanelRow5);
         u.hideElement(infoPanel); // Start out hidden
         go.Visual.applyTransform(infoPanel, 'scale(0)');
         goDiv.appendChild(infoPanel); // Doesn't really matter where it goes
@@ -4440,6 +4478,7 @@ go.Base.update(GateOne.Terminal, {
             term = data.term,
             screen = data.screen,
             scrollback = data.scrollback,
+            backspace = data.backspace,
             screen_html = "",
             consoleLog = data.log, // Only used when debugging
             screenUpdate = false,
@@ -4454,6 +4493,24 @@ go.Base.update(GateOne.Terminal, {
             // Terminal was likely just closed.
             return;
         };
+        if (backspace.length) {
+            go.Input.automaticBackspace = false; // Tells us to hold off on attempting to detect backspace for a while
+            setTimeout(function() {
+                // Don't bother checking for incorrect backspace again for at least 30 seconds
+                go.Input.automaticBackspace = true;
+            }, 10000);
+            // Use whatever was detected
+            if (backspace.charCodeAt(0) == 8) {
+                GateOne.Visual.displayMessage("Backspace difference detected; switching to ^?");
+                GateOne.Net.sendString(String.fromCharCode(8)); // Send the intended backspace
+                u.getNode('#'+prefix+'backspace_h').checked = true;
+            } else {
+                GateOne.Visual.displayMessage("Backspace difference detected; switching to ^H");
+                GateOne.Net.sendString(String.fromCharCode(127)); // Send the intended backspace
+                u.getNode('#'+prefix+'backspace_q').checked = true;
+            }
+            GateOne.terminals[term]['backspace'] = backspace;
+        }
         if (screen) {
             try {
                 if (existingScreen && GateOne.terminals[term]['screen'].length != screen.length) {
@@ -4708,10 +4765,15 @@ go.Base.update(GateOne.Terminal, {
             ratelimiter = termUpdateObj['ratelimiter'],
             scrollback = go.terminals[term]['scrollback'],
             textTransforms = go.Terminal.textTransforms,
+            checkBackspace = null,
             message = null;
 //         logDebug('GateOne.Utils.updateTerminalActionTest() termUpdateObj: ' + u.items(termUpdateObj));
         if (ratelimiter) {
             v.displayMessage("WARNING: The rate limiter was engaged on terminal " + term + ".  Output will be severely slowed until you press a key (e.g. Ctrl-C).");
+        }
+        if (go.Input.sentBackspace) {
+            checkBackspace = go.terminals[term]['backspace'];
+            go.Input.sentBackspace = false; // Prevent a potential race condition
         }
         try {
             if (!scrollback) {
@@ -4719,13 +4781,14 @@ go.Base.update(GateOne.Terminal, {
                 return;
             }
             // Remove all DOM nodes from the terminalObj since they can't be passed to a Web Worker
-            if (screen) {
+            if (termUpdateObj['screen']) {
                 message = {
                     'cmds': ['processScreen'],
                     'scrollback': scrollback,
                     'termUpdateObj': termUpdateObj,
                     'prefs': go.prefs,
-                    'textTransforms': textTransforms
+                    'textTransforms': textTransforms,
+                    'checkBackspace': checkBackspace
                 };
                 // Offload processing of the incoming screen to the Web Worker
                 t.termUpdatesWorker.postMessage(message);
@@ -5410,15 +5473,145 @@ GateOne.Base.update(GateOne.User, {
 //         GateOne.Utils.deleteCookie('gateone_user');
     }
 });
+GateOne.Base.module(GateOne, "Events", '1.0', ['Base', 'Utils']);
+GateOne.Events.callbacks = {};
+GateOne.Base.update(GateOne.Events, {
+    /**:GateOne.Events
 
-// Protocol actions
-GateOne.Net.actions = {
-// These are what will get called when the server sends us each respective action
-    'log': GateOne.Net.log,
-    'ping': GateOne.Net.ping,
-    'pong': GateOne.Net.pong,
-    'reauthenticate': GateOne.Net.reauthenticate
-}
+    An object for event-specific stuff.  Modeled after Backbone.js Events (but with different patterns).
+    */
+    init: {
+        // Nothing here yet :)
+    },
+    _setupCallbacks: function(f) {
+        // This can be used to attach before and after callbacks to any function in Gate One.  It is used like so:
+        // GateOne.Base.setupCallbacks(GateOne.Whatever.Whatever);
+        // Why not just call this on every function automatically?  Memory/resources.  No reason to attach empty arrays to every method.
+        // NOTE: Only works on objects that were created/updated via GateOne.Base.update();
+        var self = this;
+        if (!f.parent) {
+            logError('_setupCallbacks: Cannot attach to provided function (no parent!).');
+        }
+        var newFunc = function() {
+            var args = arguments,
+                callbackResult = null;
+            newFunc.callBefore.forEach(function(callObj) {
+                var context = (callObj.context || this),
+                    newArgs = callObj.callback.apply(context, args);
+                // Allow the callBefore to modify the arguments passed to the wrapped function
+                if (newArgs !== undefined) {
+                    args = newArgs;
+                }
+            });
+            var result = f.apply(self, args); // 'self' here makes sure the callling function retains the proper 'this'
+            newFunc.callAfter.forEach(function(callObj) {
+                var context = (callObj.context || this);
+                if (typeof(callObj.callback) == 'function') {
+                    // This allows manipulating results before they're actually returned
+                    // If the callback attached to this function returns something other than undefined it will replace the called function's result
+                    callbackResult = callObj.callback.call(context, result); // Passing the result of the call to the callback so it can modify it before it is finally returned
+                }
+            });
+            if (callbackResult !== undefined) {
+                result = callbackResult;
+            }
+            return result;
+        }
+        newFunc.callBefore = [];
+        newFunc.callAfter = [];
+        f.parent[f.NAME] = newFunc; // Update in place (because it's awesome)
+        return newFunc;
+    },
+    before: function(f, callback, context) {
+        /**:GateOne.Events.before(f, callback, context)
+
+        Attaches the given *callback* to the given function (*f*) to be called **before** *f* is called.  If provided, *callback* will be called with the given *context* via `callback.apply(context)`.  Otherwise *callback* will be called with whatever arguments were given to *f* via `callback.apply(arguments)`.
+
+        If the given *callback* returns a value other than `undefined` that value will be passed to *f* as its arguments.  This allows *callback* to modify the arguments passed to *f* before it is called; aka the decorator pattern.
+
+        Returns the modified function (*f*).
+        */
+        var E = GateOne.Events,
+            callObj = {
+                'callback': callback,
+                'context': context
+            };
+        if (!f.callBefore) {
+            f = E._setupCallbacks(f);
+        }
+        f.callBefore.push(callObj);
+        return f;
+    },
+    after: function(f, callback, context) {
+        /**:GateOne.Events.after(f, callback, context)
+
+        Attaches the given *callback* to the given function (*f*) to be called **after** it (*f*).  If provided, the *callback* will be called with the given *context*.  Otherwise *callback* will be called with whatever arguments were given to the function (*f*).
+        */
+        var E = GateOne.Events,
+            callObj = {
+                'callback': callback,
+                'context': context
+            };
+        if (!f.callAfter) {
+            f = E._setupCallbacks(f);
+        }
+        f.callAfter.push(callObj);
+        return f;
+    },
+    on: function(events, callback, context) {
+        var E = GateOne.Events;
+        events.split(/\s+/).forEach(function(event) {
+            var callList = E.callbacks[event],
+                callObj = {
+                    callback: callback,
+                    context: context
+                };
+            if (!callList) {
+                // Initialize the callback list for this event
+                callList = E.callbacks[event] = [];
+            }
+            callList.push(callObj);
+        });
+        return this;
+    },
+    off: function(events, callback, context) {
+        var E = GateOne.Events;
+        if (!GateOne.Utils.items(E.callbacks).length) { return this } // Nothing to do
+        if (events === undefined) {
+            E.callbacks = {}; // Empty it out
+            return this;
+        }
+        events.split(/\s+/).forEach(function(event) {
+            var callList = E.callbacks[event];
+            if (!callback && callList) {
+                // Clear all callbacks for this event
+                delete E.callbacks[event];
+            } else if (callback && callList) {
+                callList.forEach(function(callObj) {
+                    if (callObj.callback == callback) {
+                        if (context === undefined || callObj.context == context) {
+                            delete E.callbacks[event];
+                        }
+                    }
+                });
+            }
+        });
+        return this;
+    },
+    trigger: function(events) {
+        var E = GateOne.Events,
+            args = Array.prototype.slice.call(arguments, 1); // Everything after *events*
+        events.split(/\s+/).forEach(function(event) {
+            var callList = E.callbacks[event];
+            if (callList) {
+                callList.forEach(function(callObj) {
+                    callObj.callback.apply(callObj.context || this, args);
+                });
+            }
+        });
+        return this;
+    }
+});
 
 GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="prefsGradient" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#prefsGradient)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
 GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="backGradient" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#backGradient)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';

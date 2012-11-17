@@ -123,6 +123,81 @@ Internet.</p>
 </div>
 <div class="section" id="docstrings">
 <h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="auth.applicable_policies">
+<tt class="descclassname">auth.</tt><tt class="descname">applicable_policies</tt><big>(</big><em>application</em>, <em>user</em><big>)</big><a class="headerlink" href="#auth.applicable_policies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an <em>application</em> and a <em>user</em> object, returns the applicable policies
+from the SECURITY dict.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="auth.terminal_policies">
+<tt class="descclassname">auth.</tt><tt class="descname">terminal_policies</tt><big>(</big><em>instance</em>, <em>function</em><big>)</big><a class="headerlink" href="#auth.terminal_policies" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets registered under the 'terminal' application and is called
+by the <a class="reference internal" href="#auth.policies" title="auth.policies"><tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt></a> class as part of the <a class="reference internal" href="#auth.require" title="auth.require"><tt class="xref py py-func docutils literal"><span class="pre">require()</span></tt></a> decorator.
+It returns True or False depending on what is defined in security.conf and
+what function is being called.</p>
+<p>This function will keep track of the following pieces of information:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The number of open terminals.</li>
+<li>The number of shared terminals.</li>
+<li>How many users are connected to a shared terminal.</li>
+<li>How many locations a user is currently using.</li>
+<li>The number of terminals in each location.</li>
+</ul>
+</div></blockquote>
+<p>If no 'terminal' policies are defined this function will always return True.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="auth.require">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">require</tt><big>(</big><em>*conditions</em><big>)</big><a class="headerlink" href="#auth.require" title="Permalink to this definition">¶</a></dt>
+<dd><p>A decorator to add authorization requirements to any given function or
+method using condition classes. Condition classes are classes with check()
+methods that return True if the condition is met.</p>
+<p>Example of using &#64;require with is_user():</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@require</span><span class="p">(</span><span class="n">is_user</span><span class="p">(</span><span class="s">&#39;administrator&#39;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">admin_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&#39;Hello, Administrator!&#39;</span>
+</pre></div>
+</div>
+<p>This would only allow the user, 'administrator' access to the index page.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="auth.authenticated">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">authenticated</tt><a class="headerlink" href="#auth.authenticated" title="Permalink to this definition">¶</a></dt>
+<dd><p>A condition class to be used with the &#64;require decorator that returns True
+if the user is authenticated.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only meant to be used with WebSockets.  tornado.web.RequestHandler instances can use &#64;tornado.web.authenticated</p>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="auth.is_user">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">is_user</tt><big>(</big><em>upn</em><big>)</big><a class="headerlink" href="#auth.is_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>A condition class to be used with the &#64;require decorator that returns True
+if the given username/UPN matches what's in <tt class="xref py py-obj docutils literal"><span class="pre">self._current_user</span></tt>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="auth.policies">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">policies</tt><big>(</big><em>app</em><big>)</big><a class="headerlink" href="#auth.policies" title="Permalink to this definition">¶</a></dt>
+<dd><p>A condition class to be used with the &#64;require decorator that returns True
+if all the specified conditions are within the limits specified in
+security.conf.  Here's an example:</p>
+<div class="highlight-python"><pre>@require(authenticated(), policies('terminal))
+def new_terminal(self, settings):
+    # Actual function would be here</pre>
+</div>
+<p>That would apply all policies that are configured for the 'terminal'
+application by way of whatever function is registered to handle 'terminal'
+restriction checks.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="auth.BaseAuthHandler">
 <em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">BaseAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#BaseAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.BaseAuthHandler" title="Permalink to this definition">¶</a></dt>
@@ -138,8 +213,9 @@ Internet.</p>
 <tt class="descname">user_login</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="../_modules/auth.html#BaseAuthHandler.user_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.BaseAuthHandler.user_login" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called immediately after a user authenticates successfully.  Saves
 session information in the user's directory.  Expects <em>user</em> to be a
-string containing the username or userPrincipalName. e.g. <a class="reference external" href="mailto:'user&#37;&#52;&#48;REALM">'user<span>&#64;</span>REALM</a>'
-or just 'someuser'.</p>
+dict containing a 'upn' value representing the username or
+userPrincipalName. e.g. <a class="reference external" href="mailto:'user&#37;&#52;&#48;REALM">'user<span>&#64;</span>REALM</a>' or just 'someuser'.  Any additional
+values will be attached to the user object/cookie.</p>
 </dd></dl>
 
 <dl class="method">
@@ -182,7 +258,9 @@ boilerplate).</p>
 <dl class="method">
 <dt id="auth.GoogleAuthHandler.get">
 <tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#GoogleAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.GoogleAuthHandler.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the 'user' cookie with an appropriate <em>upn</em> and <em>session</em>.</p>
+<dd><p>Sets the 'user' cookie with an appropriate <em>upn</em> and <em>session</em> and any
+other values that might be attached to the user object given to us by
+Google.</p>
 </dd></dl>
 
 <dl class="method">
@@ -190,6 +268,35 @@ boilerplate).</p>
 <tt class="descname">_on_auth</tt><big>(</big><em>user</em><big>)</big><a class="reference internal" href="../_modules/auth.html#GoogleAuthHandler._on_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.GoogleAuthHandler._on_auth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Just a continuation of the get() method (the final step where it
 actually sets the cookie).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="auth.SSLAuthHandler">
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">SSLAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#auth.SSLAuthHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>SSL Certificate-based  authentication handler.  Can only be used if the
+<tt class="xref py py-obj docutils literal"><span class="pre">ca_certs</span></tt> is set and <tt class="xref py py-obj docutils literal"><span class="pre">ssl_auth=required</span></tt> or <tt class="xref py py-obj docutils literal"><span class="pre">ssl_auth=optional</span></tt>.</p>
+<dl class="method">
+<dt id="auth.SSLAuthHandler.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="headerlink" href="#auth.SSLAuthHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print out helpful error messages if the requisite settings aren't
+configured.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auth.SSLAuthHandler._convert_certificate">
+<tt class="descname">_convert_certificate</tt><big>(</big><em>cert</em><big>)</big><a class="headerlink" href="#auth.SSLAuthHandler._convert_certificate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the certificate format returned by get_ssl_certificate() into
+a format more suitable for a user dict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="auth.SSLAuthHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#auth.SSLAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the 'user' cookie with an appropriate <em>upn</em> and <em>session</em> and any
+other values that might be attached to the user's client SSL
+certificate.</p>
 </dd></dl>
 
 </dd></dl>

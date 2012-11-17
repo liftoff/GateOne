@@ -629,7 +629,7 @@ def require_auth(method):
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        if not self.get_current_user():
+        if not self.current_user:
             self.write_message(_("Only valid users please.  Thanks!"))
             self.close() # Close the WebSocket
         return method(self, *args, **kwargs)
@@ -755,6 +755,8 @@ class BaseHandler(tornado.web.RequestHandler):
     # Right now it's just the one function...
     def get_current_user(self):
         """Tornado standard method--implemented our way."""
+        # NOTE: self.current_user is actually an @property that calls
+        #       self.get_current_user() and caches the result.
         user_json = self.get_secure_cookie("gateone_user")
         if user_json:
             user = json_decode(user_json)
@@ -855,6 +857,7 @@ class MainHandler(BaseHandler):
     def get(self):
         hostname = os.uname()[1]
         location = self.get_argument("location", "default")
+        prefs = self.get_argument("prefs", None)
         gateone_js = "%sstatic/gateone.js" % self.settings['url_prefix']
         minified_js_abspath = os.path.join(GATEONE_DIR, 'static')
         minified_js_abspath = os.path.join(
@@ -887,7 +890,8 @@ class MainHandler(BaseHandler):
             js_init=js_init,
             url_prefix=self.settings['url_prefix'],
             head=head_html,
-            body=body_html
+            body=body_html,
+            prefs=prefs
         )
 
 class PluginCSSTemplateHandler(BaseHandler):
@@ -1259,7 +1263,15 @@ class TerminalWebSocket(WebSocketHandler):
                         }
                         self.write_message(json_encode(message))
                         return
-                    secret = self.settings['api_keys'][api_key]
+                    try:
+                        secret = self.settings['api_keys'][api_key]
+                    except KeyError:
+                        message = {
+                            'notice': _(
+                                'AUTHENTICATION ERROR: API Key not found.')
+                        }
+                        self.write_message(json_encode(message))
+                        return
                     # Check the signature against existing API keys
                     sig_check = tornado.web._create_signature(
                         secret, api_key, upn, timestamp)
@@ -1362,7 +1374,7 @@ class TerminalWebSocket(WebSocketHandler):
                     self.user = json_decode(cookie_data)
             if not self.user:
                 # Generate a new session/anon user
-                self.user = self.get_current_user()
+                self.user = self.current_user
                 # Also store/update their session info in localStorage
                 encoded_user = self.create_signed_value(
                     'gateone_user', tornado.escape.json_encode(self.user))
@@ -1375,7 +1387,7 @@ class TerminalWebSocket(WebSocketHandler):
                 #self.close() # Close the WebSocket
                 return
         try:
-            user = self.get_current_user()
+            user = self.current_user
             if user and 'session' in user:
                 self.session = user['session']
             else:
@@ -1391,7 +1403,7 @@ class TerminalWebSocket(WebSocketHandler):
             # Execute any post-authentication hooks that plugins have registered
             if PLUGIN_AUTH_HOOKS:
                 for auth_hook in PLUGIN_AUTH_HOOKS:
-                    auth_hook(self, self.get_current_user(), self.settings)
+                    auth_hook(self, self.current_user, self.settings)
         except Exception as e:
             logging.error(_("Exception in registered Auth hook: %s" % e))
         # Apply the container/prefix settings (if present)
@@ -1435,7 +1447,7 @@ class TerminalWebSocket(WebSocketHandler):
         message = {
             'terminals': terminals,
         # This is just so the client has a human-readable point of reference:
-            'set_username': self.get_current_user()['upn']
+            'set_username': self.current_user['upn']
         }
         # TODO: Add a hook here for plugins to send their own messages when a
         #       given terminal is reconnected.
@@ -1459,7 +1471,7 @@ class TerminalWebSocket(WebSocketHandler):
         """
         user_dir = self.settings['user_dir']
         try:
-            user = self.get_current_user()['upn']
+            user = self.current_user['upn']
         except:
             # No auth, use ANONYMOUS (% is there to prevent conflicts)
             user = r'ANONYMOUS' # Don't get on this guy's bad side
@@ -1567,7 +1579,7 @@ class TerminalWebSocket(WebSocketHandler):
         exists or not).
         """
         logging.debug("%s new_terminal(): %s" % (
-            self.get_current_user()['upn'], settings))
+            self.current_user['upn'], settings))
         if self.session not in SESSIONS:
             # This happens when timeout_sessions() times out a session
             # Tell the client it timed out:
@@ -1603,7 +1615,7 @@ class TerminalWebSocket(WebSocketHandler):
             # NOTE: Not doing anything with 'created'...  yet!
             now = int(round(time.time() * 1000))
             try:
-                user = self.get_current_user()['upn']
+                user = self.current_user['upn']
             except:
                 # No auth, use ANONYMOUS (% is there to prevent conflicts)
                 user = 'ANONYMOUS' # Don't get on this guy's bad side
@@ -1946,7 +1958,7 @@ class TerminalWebSocket(WebSocketHandler):
                 self.write_message(json_encode(output_dict))
             except IOError: # Socket was just closed, no biggie
                 logging.info(
-                 _("WebSocket closed (%s)") % self.get_current_user()['upn'])
+                 _("WebSocket closed (%s)") % self.current_user['upn'])
                 multiplex = term_obj['multiplex']
                 multiplex.remove_callback( # Stop trying to write
                     multiplex.CALLBACK_UPDATE, self.callback_id)
@@ -2581,9 +2593,9 @@ def main():
     )
     define("command",
         # The default command assumes the SSH plugin is enabled
-        default=GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
+        default=(GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
             r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp "
-            "-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/ssh/known_hosts\"'",
+            r"-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/ssh/known_hosts\"'"),
         help=_("Run the given command when a user connects (e.g. '/bin/login')."
                ),
         type=str

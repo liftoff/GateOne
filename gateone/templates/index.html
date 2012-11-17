@@ -19,6 +19,14 @@
 window.onload = function() {
     // Initialize Gate One using defaults:
     GateOne.location = '{{location}}';
+{% if prefs %}
+    var urlPrefs = {% raw prefs %};
+    for (var pref in urlPrefs) {
+        GateOne.prefs[pref] = urlPrefs[pref];
+    }
+    // Also remove the long obtrusive query string from the URL
+    GateOne.Utils.removeQueryVariable('prefs');
+{% end %}
     GateOne.init({% raw js_init %}); // NOTE: Many defaults (e.g. CSS themes/colors, font size, etc) can be overridden by the user.
 
     // Commented out below are a few examples of the various ways you can initialize Gate One...

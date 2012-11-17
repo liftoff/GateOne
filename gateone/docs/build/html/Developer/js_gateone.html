@@ -1603,6 +1603,25 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="GateOne.Utils.getQueryVariable">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getQueryVariable</tt><big>(</big><em>variable</em><big>)</big><a class="headerlink" href="#GateOne.Utils.getQueryVariable" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The value of the given query string <em>variable</em> from <tt class="xref js js-attr docutils literal"><span class="pre">window.location.href</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="c1">// Assume window.location.href = &#39;https://gateone/?foo=bar,bar,bar&#39;</span>
+<span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">getQueryVariable</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">);</span>
+<span class="s1">&#39;bar,bar,bar&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="GateOne.Utils.getSelText">
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">getSelText</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.getSelText" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
@@ -2179,6 +2198,27 @@
 </table>
 <p>Example:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">removeElement</span><span class="p">(</span><span class="s1">&#39;#go_infocontainer&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Utils.removeQueryVariable">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">removeQueryVariable</tt><big>(</big><em>variable</em><big>)</big><a class="headerlink" href="#GateOne.Utils.removeQueryVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the given query string <em>variable</em> from window.location.href using window.history.replaceState().  Leaving all other query string variables alone.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The current query string (after being modified) from <tt class="xref js js-attr docutils literal"><span class="pre">window.location.href</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="o">&gt;</span> <span class="c1">// Assume window.location.href = &#39;https://gateone/?location=window2&amp;foo=bar,bar,bar&#39;</span>
+<span class="o">&gt;</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">removeQueryVariable</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">);</span>
+<span class="s1">&#39;?location=window2&#39;</span>
+<span class="o">&gt;</span> <span class="c1">// ...and the URL in the addres bar would become &#39;https://gateone/?location=window2&#39;</span>
 </pre></div>
 </div>
 </dd></dl>

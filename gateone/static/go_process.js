@@ -64,17 +64,19 @@ var processLines = function(lines, textTransforms) {
     output = transformText(outText).split('\n'); // Convert links to anchor tags and convert back to an array
     return output;
 }
-var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms) {
+var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms, checkBackspace) {
     // Do all the necessary client-side processing of the terminal screen and scrollback buffer.  The idea being that a web worker doing this stuff should make Gate One more responsive (at the client).
     // scrollback: go.terminals[term]['scrollback']
     // termUpdateObj: The object containing the terminal screen/scrollback provided by the server
     // termTitle: u.getNode('#' + go.prefs.prefix + 'term' + term).title (since we can't query the DOM from within a Worker)
     // prefs: GateOne.prefs
-    // textTransforms: Textual transformations that will be passed to transformText()
+    // textTransforms: Textual transformations that will be passed to transformText(),
+    // checkBackspace: null or the current value of the backspace key (if we're to check it).
     var term = termUpdateObj['term'],
         screen = [],
         incoming_scrollback = termUpdateObj['scrollback'],
         rateLimiter = termUpdateObj['ratelimiter'],
+        backspace = "",
         outputObj = {'term': term};
     // If there's no scrollback buffer, try filling it with what was preserved in localStorage
     if (!scrollback.length) {
@@ -91,10 +93,30 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms) {
         scrollback.length = prefs.scrollback; // I love that Array().length isn't just a read-only value =)
         scrollback.reverse(); // Put it back in the proper order
     }
+    if (checkBackspace) {
+        // Find the first non-empty line and check for ^H and ^? then return the opposite value
+        for (var i=0; i < termUpdateObj['screen'].length; i++) {
+            if (termUpdateObj['screen'][i].length) {
+                if (termUpdateObj['screen'][i].indexOf('<span class="cursor">') != -1) { // Only care about lines that have the cursor in them
+                    var beforeCursor = termUpdateObj['screen'][i].split('<span class="cursor">')[0];
+                    if (beforeCursor.substr(beforeCursor.length - 2) == '^H') {
+                        if (checkBackspace != String.fromCharCode(127)) {
+                            backspace = String.fromCharCode(127); // Switch to ^H
+                        }
+                    } else if (beforeCursor.substr(beforeCursor.length - 2) == '^?') {
+                        if (checkBackspace != String.fromCharCode(8)) {
+                            backspace = String.fromCharCode(8); // Switch to ^?
+                        }
+                    }
+                }
+            }
+        }
+    }
     // Assemble the entire screen from what the server sent us (lines that haven't changed get sent as null)
     screen = processLines(termUpdateObj['screen'], textTransforms);
     outputObj['screen'] = screen;
     outputObj['scrollback'] = scrollback;
+    outputObj['backspace'] = backspace;
     outputObj['log'] = consoleLog.join('\n');
     return outputObj
 }
@@ -104,6 +126,7 @@ self.addEventListener('message', function(e) {
         cmds = data.cmds,
         text = data.text,
         scrollback = data.scrollback,
+        checkBackspace = data.checkBackspace,
         termUpdateObj = data.termUpdateObj,
         prefs= data.prefs,
         textTransforms = data.textTransforms,
@@ -124,7 +147,7 @@ self.addEventListener('message', function(e) {
                     }
                     break;
                 case 'processScreen':
-                    result = processScreen(scrollback, termUpdateObj, prefs, textTransforms);
+                    result = processScreen(scrollback, termUpdateObj, prefs, textTransforms, checkBackspace);
                     break;
                 default:
                     self.postMessage('Unknown command: ' + cmds);
