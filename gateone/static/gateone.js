@@ -233,8 +233,9 @@ var go = GateOne.Base.update(GateOne, {
         GateOne.Utils.savePrefs(true); // 'true' here skips the notification
     },
     // This starts up GateOne using the given *prefs*
-    init: function(prefs) {
+    init: function(prefs, /*opt*/callback) {
         // Before we do anything else, load our prefs
+        // If *callback* is provided it will be called after GateOne.Net.connect() completes
         var go = GateOne,
             u = go.Utils,
             criticalFailure = false,
@@ -1712,8 +1713,9 @@ GateOne.Base.update(GateOne.Net, {
             closeDialog();
         }
     },
-    connect: function() {
+    connect: function(/*opt*/callback) {
         // Connects to the WebSocket defined in GateOne.prefs.url
+        // If provided, *callback* will be called after the connection has been established
         go.Net.connectionProblem = false;
         // TODO: Get this appending a / if it isn't provided.  Also get it working with ws:// and wss:// URLs in go.prefs.url
         var u = go.Utils,
@@ -1738,7 +1740,12 @@ GateOne.Base.update(GateOne.Net, {
         }
         logDebug("GateOne.Net.connect(" + go.wsURL + ")");
         go.ws = new WebSocket(go.wsURL); // For reference, I already tried Socket.IO and custom implementations of long-held HTTP streams...  Only WebSockets provide low enough latency for real-time terminal interaction.  All others were absolutely unacceptable in real-world testing (especially Flash-based...  Wow, really surprised me how bad it was).
-        go.ws.onopen = go.Net.onOpen;
+        go.ws.onopen = function(evt) {
+            go.Net.onOpen();
+            if (callback) {
+                callback();
+            }
+        }
         go.ws.onclose = function(evt) {
             // Connection to the server was lost
             logDebug("WebSocket Closed");
