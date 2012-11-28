@@ -42,6 +42,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
     'sphinxcontrib.ansi', # Displays text codes as they would appear in a shell
+    'sphinxcontrib.autojs', # Lets us use docstring-like syntax in JS
 ]
 
 # Add any paths that contain templates here, relative to this directory.

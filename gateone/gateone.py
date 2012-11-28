@@ -9,6 +9,7 @@
 # * Write init scripts to stop/start/restart Gate One safely.  Also make sure that .deb and .rpm packages safely restart Gate One without impacting running sessions.  The setup.py should also attempt to minify the .css and .js files.
 # * Write a permissions check function so we don't have to repeat ourselves all over the place inside of main()
 # * Make it so that the session_dir gets cleaned up.  Will require some logic in regards dtach detection.
+# * Add some logic to remove bad symbolic links in /opt/gateone/static
 
 # Meta
 __version__ = '1.1.0'
@@ -291,7 +292,8 @@ tornado.options.enable_pretty_logging()
 # Our own modules
 import termio, terminal
 from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
-from auth import SSLAuthHandler, PAMAuthHandler, require, authenticated
+from auth import APIAuthHandler, SSLAuthHandler, PAMAuthHandler
+from auth import require, authenticated
 from utils import str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
 from utils import create_plugin_links, merge_handlers, none_fix, short_hash
@@ -2431,6 +2433,8 @@ class Application(tornado.web.Application):
                 AuthHandler = GoogleAuthHandler
             elif settings['auth'] == 'ssl':
                 AuthHandler = SSLAuthHandler
+            elif settings['auth'] == 'api':
+                AuthHandler = APIAuthHandler
             logging.info(_("Using %s authentication" % settings['auth']))
         else:
             logging.info(_(

@@ -170,6 +170,7 @@ GateOne.Base.update(GateOne.Logging, {
     logWarning: function(msg) { GateOne.Logging.log(msg, 'WARNING') },
     logInfo: function(msg) { GateOne.Logging.log(msg, 'INFO') },
     logDebug: function(msg) { GateOne.Logging.log(msg, 'DEBUG') },
+    deprecated: function(whatever, moreInfo) { GateOne.Logging.log(whatever + " is deprecated.  " + moreInfo, 'WARNING') },
     addDestination: function(name, dest) {
         // Creates a new log destination named, *name* that calls function *dest* like so:
         //     dest(<log message>)

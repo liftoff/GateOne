@@ -125,14 +125,14 @@ Internet.</p>
 <h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="auth.applicable_policies">
-<tt class="descclassname">auth.</tt><tt class="descname">applicable_policies</tt><big>(</big><em>application</em>, <em>user</em><big>)</big><a class="headerlink" href="#auth.applicable_policies" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">auth.</tt><tt class="descname">applicable_policies</tt><big>(</big><em>application</em>, <em>user</em><big>)</big><a class="reference internal" href="../_modules/auth.html#applicable_policies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.applicable_policies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given an <em>application</em> and a <em>user</em> object, returns the applicable policies
 from the SECURITY dict.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="auth.terminal_policies">
-<tt class="descclassname">auth.</tt><tt class="descname">terminal_policies</tt><big>(</big><em>instance</em>, <em>function</em><big>)</big><a class="headerlink" href="#auth.terminal_policies" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">auth.</tt><tt class="descname">terminal_policies</tt><big>(</big><em>instance</em>, <em>function</em><big>)</big><a class="reference internal" href="../_modules/auth.html#terminal_policies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.terminal_policies" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function gets registered under the 'terminal' application and is called
 by the <a class="reference internal" href="#auth.policies" title="auth.policies"><tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt></a> class as part of the <a class="reference internal" href="#auth.require" title="auth.require"><tt class="xref py py-func docutils literal"><span class="pre">require()</span></tt></a> decorator.
 It returns True or False depending on what is defined in security.conf and
@@ -152,7 +152,7 @@ what function is being called.</p>
 
 <dl class="class">
 <dt id="auth.require">
-<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">require</tt><big>(</big><em>*conditions</em><big>)</big><a class="headerlink" href="#auth.require" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">require</tt><big>(</big><em>*conditions</em><big>)</big><a class="reference internal" href="../_modules/auth.html#require"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.require" title="Permalink to this definition">¶</a></dt>
 <dd><p>A decorator to add authorization requirements to any given function or
 method using condition classes. Condition classes are classes with check()
 methods that return True if the condition is met.</p>
@@ -167,7 +167,7 @@ methods that return True if the condition is met.</p>
 
 <dl class="class">
 <dt id="auth.authenticated">
-<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">authenticated</tt><a class="headerlink" href="#auth.authenticated" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">authenticated</tt><a class="reference internal" href="../_modules/auth.html#authenticated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.authenticated" title="Permalink to this definition">¶</a></dt>
 <dd><p>A condition class to be used with the &#64;require decorator that returns True
 if the user is authenticated.</p>
 <div class="admonition note">
@@ -178,14 +178,14 @@ if the user is authenticated.</p>
 
 <dl class="class">
 <dt id="auth.is_user">
-<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">is_user</tt><big>(</big><em>upn</em><big>)</big><a class="headerlink" href="#auth.is_user" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">is_user</tt><big>(</big><em>upn</em><big>)</big><a class="reference internal" href="../_modules/auth.html#is_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.is_user" title="Permalink to this definition">¶</a></dt>
 <dd><p>A condition class to be used with the &#64;require decorator that returns True
 if the given username/UPN matches what's in <tt class="xref py py-obj docutils literal"><span class="pre">self._current_user</span></tt>.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="auth.policies">
-<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">policies</tt><big>(</big><em>app</em><big>)</big><a class="headerlink" href="#auth.policies" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">policies</tt><big>(</big><em>app</em><big>)</big><a class="reference internal" href="../_modules/auth.html#policies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.policies" title="Permalink to this definition">¶</a></dt>
 <dd><p>A condition class to be used with the &#64;require decorator that returns True
 if all the specified conditions are within the limits specified in
 security.conf.  Here's an example:</p>
@@ -274,26 +274,26 @@ actually sets the cookie).</p>
 
 <dl class="class">
 <dt id="auth.SSLAuthHandler">
-<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">SSLAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#auth.SSLAuthHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">auth.</tt><tt class="descname">SSLAuthHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#SSLAuthHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.SSLAuthHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>SSL Certificate-based  authentication handler.  Can only be used if the
 <tt class="xref py py-obj docutils literal"><span class="pre">ca_certs</span></tt> is set and <tt class="xref py py-obj docutils literal"><span class="pre">ssl_auth=required</span></tt> or <tt class="xref py py-obj docutils literal"><span class="pre">ssl_auth=optional</span></tt>.</p>
 <dl class="method">
 <dt id="auth.SSLAuthHandler.initialize">
-<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="headerlink" href="#auth.SSLAuthHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/auth.html#SSLAuthHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.SSLAuthHandler.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print out helpful error messages if the requisite settings aren't
 configured.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="auth.SSLAuthHandler._convert_certificate">
-<tt class="descname">_convert_certificate</tt><big>(</big><em>cert</em><big>)</big><a class="headerlink" href="#auth.SSLAuthHandler._convert_certificate" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">_convert_certificate</tt><big>(</big><em>cert</em><big>)</big><a class="reference internal" href="../_modules/auth.html#SSLAuthHandler._convert_certificate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.SSLAuthHandler._convert_certificate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts the certificate format returned by get_ssl_certificate() into
 a format more suitable for a user dict.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="auth.SSLAuthHandler.get">
-<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#auth.SSLAuthHandler.get" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/auth.html#SSLAuthHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#auth.SSLAuthHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the 'user' cookie with an appropriate <em>upn</em> and <em>session</em> and any
 other values that might be attached to the user's client SSL
 certificate.</p>

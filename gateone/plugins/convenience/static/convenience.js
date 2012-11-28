@@ -27,6 +27,10 @@ GateOne.Base.module(GateOne, "Convenience", "1.1", ['Base']);
 GateOne.Convenience.groupTemp = {}; // Used to pass group information around before a final message is displayed
 GateOne.Base.update(GateOne.Convenience, {
     init: function() {
+        /**:GateOne.Convenience.init()
+
+        Sets up all our conveniences.
+        */
         go.Convenience.addPrefs();
         if (!go.prefs.disableLSConvenience) {
             go.Convenience.registerLSConvenience();
@@ -201,8 +205,8 @@ GateOne.Base.update(GateOne.Convenience, {
 
         Returns the bitmask (i.e. chmod <bitmask>) to a file/directory's permissions.  For example:
 
-            > someElement.innerHTML = 'drwxrwxr-x';
-            > GateOne.Convenience.permissionsBitmask(someElement);
+            >>> someElement.innerHTML = 'drwxrwxr-x';
+            >>> GateOne.Convenience.permissionsBitmask(someElement);
             '0775'
         */
         var text = '',

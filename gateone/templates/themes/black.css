@@ -23,7 +23,7 @@
   font-weight: normal;
   src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('{{url_prefix}}static/ubuntumono-italic.woff') format('woff');
 }
-hr {
+#{{container}} hr {
     margin: 0;
     padding: 0;
 }

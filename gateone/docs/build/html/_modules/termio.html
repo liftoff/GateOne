@@ -149,7 +149,7 @@
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Stdlib imports</span>
-<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">struct</span><span class="o">,</span> <span class="nn">io</span><span class="o">,</span> <span class="nn">gzip</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">struct</span><span class="o">,</span> <span class="nn">io</span><span class="o">,</span> <span class="nn">gzip</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">signal</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
@@ -231,7 +231,7 @@
             <span class="k">return</span> <span class="c"># Something wrong with the file</span>
         <span class="n">distance</span> <span class="o">+=</span> <span class="n">distance</span>
     <span class="c"># Now that we&#39;re at the end, go back a bit and split from there</span>
-    <span class="n">golog</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">golog</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">-</span> <span class="n">chunk_size</span><span class="p">)</span>
+    <span class="n">golog</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">golog</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">-</span> <span class="n">chunk_size</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">end_frames</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">encoded_separator</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">end_frames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="c"># Very last item will be empty</span>
@@ -271,14 +271,10 @@
     <span class="c"># of magnitude)</span>
     <span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">1024</span><span class="o">*</span><span class="mi">128</span> <span class="c"># 128k should be enough for a 100x300 terminal full</span>
     <span class="c"># of 4-byte unicode characters. That would be one BIG frame (i.e. unlikely).</span>
-    <span class="c"># Sadly, we have to read the whole thing into memory (log_data) in order to</span>
-    <span class="c"># perform this important work (creating proper metadata).</span>
-    <span class="c"># On the plus side re-compressing the log can save a _lot_ of disk space</span>
-    <span class="c"># Why?  Because termio.py writes the frames using gzip.open() in append mode</span>
-    <span class="c"># which is a lot less efficient than compressing all the data in one go.</span>
     <span class="n">log_data</span> <span class="o">=</span> <span class="n">b</span><span class="s">&#39;&#39;</span>
     <span class="n">total_frames</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="n">max_data</span> <span class="o">=</span> <span class="n">chunk_size</span> <span class="o">*</span> <span class="mi">10</span> <span class="c"># Hopefully this is enough to capture a title</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">log_data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">max_data</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">chunk</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
@@ -287,9 +283,13 @@
         <span class="n">log_data</span> <span class="o">+=</span> <span class="n">chunk</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">chunk_size</span><span class="p">:</span>
             <span class="k">break</span>
+    <span class="c"># Remove the trailing incomplete frame</span>
+    <span class="n">log_data</span> <span class="o">=</span> <span class="n">encoded_separator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">encoded_separator</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">log_data</span> <span class="o">=</span> <span class="n">log_data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&#39;ignore&#39;</span><span class="p">)</span>
     <span class="n">start_date</span> <span class="o">=</span> <span class="n">first_frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">]</span> <span class="c"># Getting the start date is easy</span>
     <span class="n">last_frame</span> <span class="o">=</span> <span class="n">retrieve_last_frame</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span> <span class="c"># This takes some work</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">last_frame</span><span class="p">:</span>
+        <span class="k">return</span> <span class="c"># Something wrong with log</span>
     <span class="n">end_date</span> <span class="o">=</span> <span class="n">last_frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">]</span>
     <span class="n">version</span> <span class="o">=</span> <span class="s">u&quot;1.0&quot;</span>
     <span class="n">connect_string</span> <span class="o">=</span> <span class="bp">None</span>
@@ -320,11 +320,40 @@
     <span class="p">})</span>
     <span class="c"># Make a *new* first_frame</span>
     <span class="n">first_frame</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">start_date</span>
-    <span class="n">first_frame</span> <span class="o">+=</span> <span class="n">json_encode</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">first_frame</span> <span class="o">+=</span> <span class="n">json_encode</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span> <span class="o">+</span> <span class="n">SEPARATOR</span>
+    <span class="n">first_frame</span> <span class="o">=</span> <span class="n">first_frame</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
     <span class="c"># Replace the first frame and re-save the log</span>
-    <span class="n">log_data</span> <span class="o">=</span> <span class="n">log_data</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span> <span class="c"># Encode this first to ensure &#39;distance&#39;</span>
-    <span class="n">log_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">first_frame</span> <span class="o">+</span> <span class="n">SEPARATOR</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">log_data</span><span class="p">[</span><span class="n">distance</span><span class="p">:]</span>
-    <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">log_data</span><span class="p">)</span>
+    <span class="n">temp_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.tmp&quot;</span> <span class="o">%</span> <span class="n">golog_path</span>
+    <span class="n">golog</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span> <span class="c"># Re-open</span>
+    <span class="n">new_golog</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">temp_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">new_golog</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">first_frame</span><span class="p">)</span>
+    <span class="c"># Now write out the rest of it</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c"># Something wrong with the file</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">chunk</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;{&quot;</span><span class="p">:</span> <span class="c"># Old/incomplete metadata</span>
+                <span class="c"># Need to keep reading until the next frame</span>
+                <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">chunk</span> <span class="o">+=</span> <span class="n">golog</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="c"># Something wrong with the file</span>
+                    <span class="k">if</span> <span class="n">encoded_separator</span> <span class="ow">in</span> <span class="n">chunk</span><span class="p">:</span>
+                        <span class="c"># This removes the first frame:</span>
+                        <span class="n">chunk</span> <span class="o">=</span> <span class="n">encoded_separator</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                            <span class="n">chunk</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">encoded_separator</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+                        <span class="k">break</span>
+        <span class="n">new_golog</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">chunk_size</span><span class="p">:</span>
+            <span class="k">break</span> <span class="c"># Everything must come to an end</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c"># Overwrite the old log</span>
+    <span class="kn">import</span> <span class="nn">shutil</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">temp_path</span><span class="p">,</span> <span class="n">golog_path</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">metadata</span>
 
 <span class="c"># Exceptions</span></div>
@@ -434,6 +463,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">syslog</span> <span class="o">=</span> <span class="n">syslog</span> <span class="c"># See &quot;if self.syslog:&quot; below</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_alive</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capture_ratelimiter</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctrl_c_pressed</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capturing_timeout</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="mi">24</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="mi">80</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="c"># Means &quot;no pid yet&quot;</span>
@@ -531,7 +563,7 @@
 <span class="sd">        Removes the callback referenced by *identifier* that is attached to the</span>
 <span class="sd">        given *event*.  Example:</span>
 
-<span class="sd">            &gt;&gt;&gt; m.remove_callback(m.CALLBACK_BELL, &quot;myref&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; m.remove_callback(m.CALLBACK_UPDATE, &quot;myref&quot;)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1070,7 +1102,7 @@
             <span class="k">if</span> <span class="nb">hash</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="n">ref</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_patterns</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="BaseMultiplex.await"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.await">[docs]</a>    <span class="k">def</span> <span class="nf">await</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseMultiplex.await"><a class="viewcode-back" href="../Developer/termio.html#termio.BaseMultiplex.await">[docs]</a>    <span class="k">def</span> <span class="nf">await</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Blocks until all non-optional patterns inside self._patterns have been</span>
 <span class="sd">        removed *or* if the given *timeout* is reached.  *timeout* may be an</span>
@@ -1082,15 +1114,13 @@
 <span class="sd">        .. warning:: The timeouts attached to Patterns are set when they are created.  Not when when you call :meth:`await`!</span>
 
 <span class="sd">        As a convenience, if :meth:`isalive` resolves to False,</span>
-<span class="sd">        :meth:`spawn` will be called automatically with *rows*, *cols*,</span>
-<span class="sd">        and *env* given as arguments.</span>
+<span class="sd">        :meth:`spawn` will be called automatically with *\*\*kwargs*</span>
 
 <span class="sd">        await</span>
 <span class="sd">            To wait with expectation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isalive</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span>
-                <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="n">em_dimensions</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
         <span class="c"># Convert timeout to a timedelta if necessary</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timeout</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
@@ -1105,6 +1135,8 @@
         <span class="k">while</span> <span class="n">remaining_patterns</span><span class="p">:</span>
             <span class="c"># First we need to discount optional patterns</span>
             <span class="n">remaining_patterns</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patterns</span><span class="p">:</span>
+                <span class="k">break</span>
             <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patterns</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">pattern</span><span class="o">.</span><span class="n">optional</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pattern</span><span class="o">.</span><span class="n">sticky</span><span class="p">:</span>
                     <span class="n">remaining_patterns</span> <span class="o">=</span> <span class="bp">True</span>
@@ -1179,6 +1211,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">ioloop</span><span class="o">.</span><span class="n">PeriodicCallback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeout_checker</span><span class="p">,</span><span class="n">interval</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_checking_patterns</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_timeout</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capture_limit</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="c"># Huge reads by default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">restore_rate</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1208,16 +1243,26 @@
 <span class="sd">        Restarts capturing output from the underlying terminal program by</span>
 <span class="sd">        disengaging the rate limiter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Disabling rate limiter&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ioloop_read_handler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="c"># Already been re-added...  Probably by write().  Ignore.</span>
+            <span class="k">pass</span>
 </div>
     <span class="k">def</span> <span class="nf">__reset_sent_sigint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sent_sigint</span> <span class="o">=</span> <span class="bp">False</span>
 
-<div class="viewcode-block" id="MultiplexPOSIXIOLoop._blocked_io_handler"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop._blocked_io_handler">[docs]</a>    <span class="k">def</span> <span class="nf">_blocked_io_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiplexPOSIXIOLoop._blocked_io_handler"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop._blocked_io_handler">[docs]</a>    <span class="k">def</span> <span class="nf">_blocked_io_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handles the situation where a terminal is blocking IO (usually because</span>
 <span class="sd">        of too much output).  This method would typically get called inside of</span>
 <span class="sd">        `MultiplexPOSIXIOLoop._read` when the output of an fd is too noisy.</span>
+
+<span class="sd">        If *wait* is given, will wait that many milliseconds long before</span>
+<span class="sd">        disengaging the rate limiter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isalive</span><span class="p">():</span>
             <span class="c"># This can happen if terminate() gets called too fast from another</span>
@@ -1226,13 +1271,16 @@
             <span class="k">return</span> <span class="c"># Nothing to do</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;Noisy process (</span><span class="si">%s</span><span class="s">) kicked off rate limiter.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">wait</span><span class="p">:</span>
+            <span class="n">wait</span> <span class="o">=</span> <span class="mi">5000</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="c"># CALLBACK_UPDATE is called here so the client can be made aware of the</span>
         <span class="c"># fact that the rate limiter was engaged.</span>
         <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">callbacks</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CALLBACK_UPDATE</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_call_callback</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reenable_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span>
-            <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reenable_output</span><span class="p">)</span>
+            <span class="n">timedelta</span><span class="p">(</span><span class="n">milliseconds</span><span class="o">=</span><span class="n">wait</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reenable_output</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="MultiplexPOSIXIOLoop.spawn"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop.spawn">[docs]</a>    <span class="k">def</span> <span class="nf">spawn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
             <span class="n">rows</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exitfunc</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -1255,6 +1303,9 @@
                 <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">env</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="n">em_dimensions</span><span class="p">)))</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">rows</span><span class="p">)</span> <span class="c"># Max 200 to limit memory utilization</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span> <span class="c"># Max 500 for the same reason</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="n">rows</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">em_dimensions</span> <span class="o">=</span> <span class="n">em_dimensions</span>
         <span class="kn">import</span> <span class="nn">pty</span>
         <span class="n">pid</span><span class="p">,</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">pty</span><span class="o">.</span><span class="n">fork</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c"># We&#39;re inside the child process</span>
@@ -1309,7 +1360,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_alive</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fd</span> <span class="o">=</span> <span class="n">fd</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">env</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">em_dimensions</span> <span class="o">=</span> <span class="n">em_dimensions</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">exitfunc</span> <span class="o">=</span> <span class="n">exitfunc</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pid</span> <span class="o">=</span> <span class="n">pid</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -1343,36 +1393,16 @@
 <span class="sd">        Checks the underlying process to see if it is alive and sets self._alive</span>
 <span class="sd">        appropriately.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c"># This doesn&#39;t hurt anything if the process is still running</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pid</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">pid</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">waitpid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">WNOHANG</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">pid</span><span class="p">:</span> <span class="c"># pid is 0 if the process is still running</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                    <span class="c"># This can happen if the program closes itself very quickly</span>
-                    <span class="c"># immediately after being executed.</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span> <span class="c"># Useful to know when debugging...</span>
-                        <span class="k">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-                            <span class="s">&quot;Could not determine exit status for child with &quot;</span>
-                            <span class="s">&quot;PID: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pid</span>
-                        <span class="p">))</span>
-                        <span class="k">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Setting self.exitstatus to 99&quot;</span><span class="p">))</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span> <span class="o">=</span> <span class="mi">99</span> <span class="c"># Seems like a good number</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alive</span><span class="p">:</span> <span class="c"># Re-check it</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c"># kill -0 tells us it&#39;s still alive</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alive</span>
             <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
                 <span class="c"># Process is dead</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_alive</span> <span class="o">=</span> <span class="bp">False</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span> <span class="c"># Useful to know when debugging...</span>
-                    <span class="k">print</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Child exited with status: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span><span class="p">))</span>
-                <span class="c"># Call the exitfunc (if set)</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitfunc</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">exitfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">exitfunc</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Just in case</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                    <span class="s">&quot;Child exited with status: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
                 <span class="k">return</span> <span class="bp">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
@@ -1408,10 +1438,9 @@
         <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
             <span class="c"># Process already ended--no big deal</span>
             <span class="k">return</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGWINCH</span><span class="p">)</span> <span class="c"># Send the resize signal</span>
         <span class="k">if</span> <span class="n">ctrl_l</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x0c</span><span class="s">&#39;</span><span class="p">)</span> <span class="c"># ctrl-l</span>
-        <span class="c"># SIGWINCH has been disabled since it can screw things up</span>
-        <span class="c">#os.kill(self.pid, signal.SIGWINCH) # Send the resize signal</span>
 </div>
 <div class="viewcode-block" id="MultiplexPOSIXIOLoop.terminate"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop.terminate">[docs]</a>    <span class="k">def</span> <span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1453,17 +1482,31 @@
         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c"># TODO: Make this walk the series from SIGINT to SIGKILL</span>
-            <span class="kn">import</span> <span class="nn">signal</span>
             <span class="c">#os.kill(self.pid, signal.SIGINT)</span>
             <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">)</span>
             <span class="c">#os.kill(self.pid, signal.SIGKILL)</span>
         <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
             <span class="c"># The process is already dead--great.</span>
             <span class="k">pass</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span><span class="p">:</span>
-            <span class="n">pid</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">waitpid</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">WNOHANG</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">pid</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pid</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">waitpid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">pid</span><span class="p">:</span> <span class="c"># pid is 0 if the process is still running</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="c"># This can happen if the program closes itself very quickly</span>
+                <span class="c"># immediately after being executed.</span>
+                <span class="k">try</span><span class="p">:</span> <span class="c"># Try again with -1</span>
+                    <span class="n">pid</span><span class="p">,</span> <span class="n">status</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">waitpid</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">WNOHANG</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">pid</span><span class="p">:</span> <span class="c"># pid is 0 if the process is still running</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">WEXITSTATUS</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                        <span class="s">&quot;Could not determine exit status for child with &quot;</span>
+                        <span class="s">&quot;PID: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pid</span>
+                    <span class="p">))</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Setting self.exitstatus to 999&quot;</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">exitstatus</span> <span class="o">=</span> <span class="mi">999</span> <span class="c"># Seems like a good number</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patterns</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">timeout_check</span><span class="p">(</span><span class="n">timeout_now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">unexpect</span><span class="p">()</span>
@@ -1522,36 +1565,67 @@
 
 <span class="sd">        .. note:: Non-blocking.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Commented out because it can be really noisy.  Uncomment only if you</span>
+        <span class="c"># *really* need to debug this method.</span>
         <span class="c">#logging.debug(&quot;MultiplexPOSIXIOLoop._read()&quot;)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">restore_capture_limit</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">capture_limit</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">restore_rate</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">buffering</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">bytes</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                    <span class="c"># Even though -1 indicates &quot;read everything&quot; we still</span>
-                    <span class="c"># want to read in chunks so we can catch when an fd is</span>
-                    <span class="c"># feeding us too much data (so we can engage the rate</span>
-                    <span class="c"># limiter).</span>
-                    <span class="nb">bytes</span> <span class="o">=</span> <span class="mi">8192</span> <span class="c"># Should be plenty</span>
-                    <span class="c"># If we need to block/read for longer than five seconds</span>
-                    <span class="c"># the fd is outputting too much data.</span>
-                    <span class="n">five_seconds</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+                    <span class="c"># 2 seconds of blocking is too much.</span>
+                    <span class="n">timeout</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
                     <span class="n">loop_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctrl_c_pressed</span><span class="p">:</span>
+                        <span class="c"># If the user pressed Ctrl-C and the ratelimiter was</span>
+                        <span class="c"># engaged then we&#39;d best discard the (possibly huge)</span>
+                        <span class="c"># buffer so we don&#39;t waste CPU cyles processing it.</span>
+                        <span class="n">discard</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ctrl_c_pressed</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="k">return</span> <span class="s">u&#39;^C</span><span class="se">\n</span><span class="s">&#39;</span> <span class="c"># Let the user know what happened</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">restore_rate</span><span class="p">:</span>
+                        <span class="c"># Need at least three seconds of inactivity to go back</span>
+                        <span class="c"># to unlimited reads</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">remove_timeout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">restore_rate</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">restore_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span>
+                            <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">6</span><span class="p">),</span> <span class="n">restore_capture_limit</span><span class="p">)</span>
                     <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
-                        <span class="n">updated</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">bytes</span><span class="p">)</span>
+                        <span class="n">updated</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">capture_limit</span><span class="p">)</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">updated</span><span class="p">:</span>
                             <span class="k">break</span>
-                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span><span class="p">:</span>
-                            <span class="c"># Truncate the output to the last 1024 chars</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">term_write</span><span class="p">(</span><span class="n">updated</span><span class="p">[</span><span class="o">-</span><span class="mi">1024</span><span class="p">:])</span>
-                            <span class="n">result</span> <span class="o">+=</span> <span class="n">updated</span><span class="p">[</span><span class="o">-</span><span class="mi">1024</span><span class="p">:]</span>
-                            <span class="c"># NOTE: If we didn&#39;t truncate the output we&#39;d</span>
-                            <span class="c"># eventually have to process it all which would</span>
-                            <span class="c"># take forever.</span>
-                            <span class="k">break</span>
-                        <span class="k">elif</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">loop_start</span> <span class="o">&gt;</span> <span class="n">five_seconds</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_blocked_io_handler</span><span class="p">()</span>
                         <span class="n">result</span> <span class="o">+=</span> <span class="n">updated</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">term_write</span><span class="p">(</span><span class="n">updated</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">capture_ratelimiter</span><span class="p">:</span>
+                            <span class="k">break</span> <span class="c"># Only allow one read per IOLoop loop</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">capture_limit</span> <span class="o">==</span> <span class="mi">2048</span><span class="p">:</span>
+                            <span class="c"># Block for a little while: Enough to keep things</span>
+                            <span class="c"># moving but not fast enough to slow everyone else</span>
+                            <span class="c"># down</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_blocked_io_handler</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+                            <span class="k">break</span>
+                        <span class="k">if</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">loop_start</span> <span class="o">&gt;</span> <span class="n">timeout</span><span class="p">:</span>
+                            <span class="c"># Engage the rate limiter</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">capture</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">capture_ratelimiter</span> <span class="o">=</span> <span class="bp">True</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">capture_limit</span> <span class="o">=</span> <span class="mi">65536</span>
+                                <span class="c"># Make sure we eventually get back to defaults:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span>
+                                    <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+                                    <span class="n">restore_capture_limit</span><span class="p">)</span>
+                                <span class="c"># NOTE: The capture_ratelimiter doesn&#39;t remove</span>
+                                <span class="c"># self.fd from the IOLoop (that&#39;s the diff)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c"># Set the capture limit to a smaller value so</span>
+                                <span class="c"># when we re-start output again the noisy</span>
+                                <span class="c"># program won&#39;t be able to take over again.</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">capture_limit</span> <span class="o">=</span> <span class="mi">2048</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">restore_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span>
+                                    <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">6</span><span class="p">),</span>
+                                    <span class="n">restore_capture_limit</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_blocked_io_handler</span><span class="p">()</span>
+                            <span class="k">break</span>
                 <span class="k">elif</span> <span class="nb">bytes</span><span class="p">:</span>
                     <span class="n">result</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">bytes</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">term_write</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -1605,14 +1679,18 @@
 <span class="sd">        `PeriodicCallback` will automatically cancel itself if there are no more</span>
 <span class="sd">        non-sticky patterns in :attr:`self._patterns`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">(</span><span class="nb">bytes</span><span class="p">)</span>
-        <span class="n">remaining_patterns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout_check</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">remaining_patterns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">_running</span><span class="p">:</span>
-            <span class="c"># Start &#39;er up in case we don&#39;t get any more output</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Starting self.scheduler to check for timeouts&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">isalive</span><span class="p">()</span> <span class="c"># This just ensures the exitfunc is called (if necessary)</span>
-        <span class="k">return</span> <span class="n">result</span>
+        <span class="c"># 50ms basic output rate limit on everything</span>
+        <span class="n">rate_wait</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">milliseconds</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_timeout</span> <span class="o">&gt;</span> <span class="n">rate_wait</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">(</span><span class="nb">bytes</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read_timeout</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="n">remaining_patterns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout_check</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">remaining_patterns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">_running</span><span class="p">:</span>
+                <span class="c"># Start &#39;er up in case we don&#39;t get any more output</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Starting self.scheduler to check for timeouts&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isalive</span><span class="p">()</span> <span class="c"># This just ensures the exitfunc is called (if necessary)</span>
+            <span class="k">return</span> <span class="n">result</span>
 </div>
 <div class="viewcode-block" id="MultiplexPOSIXIOLoop._write"><a class="viewcode-back" href="../Developer/termio.html#termio.MultiplexPOSIXIOLoop._write">[docs]</a>    <span class="k">def</span> <span class="nf">_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chars</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1620,25 +1698,17 @@
 <span class="sd">        OSError exceptions are encountered, will run `terminate`.  All other</span>
 <span class="sd">        exceptions are logged but no action will be taken.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c">#logging.debug(&quot;MultiplexPOSIXIOLoop._write()&quot;)</span>
+        <span class="c">#logging.debug(&quot;MultiplexPOSIXIOLoop._write(%s)&quot; % repr(chars))</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span><span class="p">:</span>
-                <span class="c"># This empties the fd buffer so the user gets immediate</span>
-                <span class="c"># responses to their keystrokes.  Just note that this can</span>
-                <span class="c"># truncating a lot of data.</span>
-                <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
-                        <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="c"># Empty it out</span>
-                <span class="c"># In testing, emptying out the fd read buffer in this way</span>
-                <span class="c"># increased responsiveness to user keystrokes when the rate</span>
-                <span class="c"># limiter is engaged by about 3-4 seconds (which is a lot!)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span> <span class="o">=</span> <span class="bp">False</span>
-                <span class="c"># For reference, the time between reader.read() above and</span>
-                <span class="c"># writer.write() below is enough for the &#39;yes&#39; command to</span>
-                <span class="c"># output a few lines.</span>
             <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="s">&#39;wt&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
                     <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratelimiter_engaged</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s">u&#39;</span><span class="se">\x03</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">:</span> <span class="c"># Ctrl-C</span>
+                    <span class="c"># This will force self._read() to discard the buffer</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ctrl_c_pressed</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="c"># Reattach the fd so the user can continue immediately</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_reenable_output</span><span class="p">()</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isalive</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
@@ -1708,8 +1778,10 @@
     <span class="n">m</span> <span class="o">=</span> <span class="n">Multiplex</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
     <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">while</span> <span class="n">m</span><span class="o">.</span><span class="n">isalive</span><span class="p">():</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="n">m</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="n">result</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span> <span class="c"># Reduce CPU overhead</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">exitstatus</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
 </div>
 <span class="k">if</span> <span class="n">POSIX</span><span class="p">:</span>

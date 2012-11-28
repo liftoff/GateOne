@@ -135,6 +135,40 @@ class ChownError(Exception):
     """
     pass
 
+class RUDict(dict):
+    """
+    A dict that will recursively update keys and values in a safe manner so that
+    sub-dicts will be merged without one clobbering the other.
+
+    .. note:: This class taken from `here <http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python>`_
+    """
+    def __init__(self, *args, **kw):
+        super(RUDict,self).__init__(*args, **kw)
+
+    def update(self, E=None, **F):
+        if E is not None:
+            if 'keys' in dir(E) and callable(getattr(E, 'keys')):
+                for k in E:
+                    if k in self:  # existing ...must recurse into both sides
+                        self.r_update(k, E)
+                    else: # doesn't currently exist, just update
+                        self[k] = E[k]
+            else:
+                for (k, v) in E:
+                    self.r_update(k, {k:v})
+
+        for k in F:
+            self.r_update(k, {k:F[k]})
+
+    def r_update(self, key, other_dict):
+        if isinstance(self[key], dict) and isinstance(other_dict[key], dict):
+            od = RUDict(self[key])
+            nd = other_dict[key]
+            od.update(nd)
+            self[key] = od
+        else:
+            self[key] = other_dict[key]
+
 # Functions
 def noop(*args, **kwargs):
     """Do nothing (i.e. "No Operation")"""

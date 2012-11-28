@@ -57,9 +57,9 @@
 <span class="c">#</span>
 
 <span class="c"># Meta</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.1&#39;</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
-<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.1</span><span class="p">)</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
@@ -111,12 +111,16 @@
 <span class="s">==========</span>
 <span class="s">&quot;&quot;&quot;</span>
 
+<span class="c"># TODO: Need authorization stuff for the following:</span>
+<span class="c">#   * Access (you are/are not allowed to do this, etc)</span>
+<span class="c">#   * Limits (max terms, you may only do this X times, etc)</span>
+<span class="c">#   *</span>
+
 <span class="c"># Import stdlib stuff</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">re</span>
 
 <span class="c"># Import our own stuff</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">generate_session_id</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">generate_session_id</span><span class="p">,</span> <span class="n">noop</span><span class="p">,</span> <span class="n">RUDict</span><span class="p">,</span> <span class="n">json_decode</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
 
 <span class="c"># 3rd party imports</span>
@@ -127,6 +131,187 @@
 <span class="c"># Localization support</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 
+<span class="c"># Globals</span>
+<span class="n">RE_COMMENT</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span> <span class="c"># This removes JavaScript-style comments</span>
+    <span class="s">&#39;(^)?[^\S</span><span class="se">\n</span><span class="s">]*/(?:\*(.*?)\*/[^\S</span><span class="se">\n</span><span class="s">]*|/[^</span><span class="se">\n</span><span class="s">]*)($)?&#39;</span><span class="p">,</span>
+    <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span>
+<span class="p">)</span>
+<span class="n">BLANKS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;^\s*$&#39;</span><span class="p">)</span>
+<span class="c"># NOTE about the above:</span>
+<span class="c">#   * I MAY CHANGE ALL OF IT!  Still a work in progress ;)</span>
+<span class="n">GATEONE_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+<span class="c"># The security stuff below is a work-in-progress.  Likely to change all around.</span>
+<span class="n">SECURITY_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">GATEONE_DIR</span><span class="p">,</span> <span class="s">&#39;security&#39;</span><span class="p">)</span>
+<span class="c"># The default for security is &#39;allow everything&#39;</span>
+<span class="n">SECURITY</span> <span class="o">=</span> <span class="n">RUDict</span><span class="p">({</span>
+    <span class="s">&#39;*&#39;</span><span class="p">:</span> <span class="p">{}</span>
+<span class="p">})</span> <span class="c"># Using an RUDict so that subsequent .conf files can safely override settings</span>
+   <span class="c"># way down the chain without clobbering parent keys/dicts.</span>
+<span class="c"># Combine all .conf files in the &#39;security&#39; dir into a single dict</span>
+<span class="n">_security_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">SECURITY_DIR</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.conf&#39;</span><span class="p">)]</span>
+<span class="n">_security_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">_security_files</span><span class="p">:</span>
+    <span class="c"># Use this file to update SECURITY</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SECURITY_DIR</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">no_comments</span> <span class="o">=</span> <span class="n">RE_COMMENT</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="c"># Remove empty lines so the json parser doesn&#39;t complain</span>
+        <span class="n">proper_json</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">BLANKS</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">no_comments</span><span class="p">)</span>
+        <span class="n">SECURITY</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">json_decode</span><span class="p">(</span><span class="n">proper_json</span><span class="p">))</span>
+<span class="k">del</span> <span class="n">_security_files</span>
+
+<span class="c"># Authorization stuff</span>
+<div class="viewcode-block" id="applicable_policies"><a class="viewcode-back" href="../Developer/auth.html#auth.applicable_policies">[docs]</a><span class="k">def</span> <span class="nf">applicable_policies</span><span class="p">(</span><span class="n">application</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given an *application* and a *user* object, returns the applicable policies</span>
+<span class="sd">    from the SECURITY dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Iterate over all the policies in the SECURITY dict and determine which</span>
+    <span class="c"># would apply to this user (in order).</span>
+    <span class="c"># Need to check for:</span>
+    <span class="c">#   * Direct matches (key == user[&#39;upn&#39;])</span>
+    <span class="c">#   * Wildcard matches (re.)</span>
+</div>
+<div class="viewcode-block" id="terminal_policies"><a class="viewcode-back" href="../Developer/auth.html#auth.terminal_policies">[docs]</a><span class="k">def</span> <span class="nf">terminal_policies</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function gets registered under the &#39;terminal&#39; application and is called</span>
+<span class="sd">    by the :class:`policies` class as part of the :func:`require` decorator.</span>
+<span class="sd">    It returns True or False depending on what is defined in security.conf and</span>
+<span class="sd">    what function is being called.</span>
+
+<span class="sd">    This function will keep track of the following pieces of information:</span>
+
+<span class="sd">        * The number of open terminals.</span>
+<span class="sd">        * The number of shared terminals.</span>
+<span class="sd">        * How many users are connected to a shared terminal.</span>
+<span class="sd">        * How many locations a user is currently using.</span>
+<span class="sd">        * The number of terminals in each location.</span>
+
+<span class="sd">    If no &#39;terminal&#39; policies are defined this function will always return True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">security</span> <span class="o">=</span> <span class="n">SECURITY</span><span class="p">[</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">current_user</span>
+    <span class="c">#if user[&#39;upn&#39;] in security:</span>
+        <span class="c">#if &#39;login&#39; in security[user[&#39;upn&#39;]]:</span>
+
+    <span class="k">if</span> <span class="n">function</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;new_terminal&#39;</span><span class="p">:</span>
+        <span class="n">max_terms</span> <span class="o">=</span> <span class="n">restrictions</span>
+</div>
+<div class="viewcode-block" id="require"><a class="viewcode-back" href="../Developer/auth.html#auth.require">[docs]</a><span class="k">class</span> <span class="nc">require</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A decorator to add authorization requirements to any given function or</span>
+<span class="sd">    method using condition classes. Condition classes are classes with check()</span>
+<span class="sd">    methods that return True if the condition is met.</span>
+
+<span class="sd">    Example of using @require with is_user()::</span>
+
+<span class="sd">        @require(is_user(&#39;administrator&#39;))</span>
+<span class="sd">        def admin_index(self):</span>
+<span class="sd">            return &#39;Hello, Administrator!&#39;</span>
+
+<span class="sd">    This would only allow the user, &#39;administrator&#39; access to the index page.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">conditions</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="n">conditions</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+        <span class="n">conditions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span>
+        <span class="c"># The following only gets run when the wrapped method is called</span>
+        <span class="k">def</span> <span class="nf">wrapped_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c"># Now check the conditions</span>
+            <span class="k">for</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
+                <span class="c"># Conditions don&#39;t have access to self directly so we use the</span>
+                <span class="c"># &#39;self&#39; associated with the user&#39;s open connection to update</span>
+                <span class="c"># the condition&#39;s &#39;instance&#39; attribute</span>
+                <span class="n">condition</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="bp">self</span>
+                <span class="c"># This lets the condition know what it is being applied to:</span>
+                <span class="n">condition</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">f</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">condition</span><span class="o">.</span><span class="n">check</span><span class="p">():</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                        <span class="s">&quot;</span><span class="si">%s</span><span class="s"> -&gt; </span><span class="si">%s</span><span class="s"> failed condition: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">condition</span><span class="p">))))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                        <span class="s">&quot;ERROR: </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">condition</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">)))</span>
+                    <span class="k">return</span> <span class="n">noop</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">wrapped_f</span>
+</div>
+<div class="viewcode-block" id="authenticated"><a class="viewcode-back" href="../Developer/auth.html#auth.authenticated">[docs]</a><span class="k">class</span> <span class="nc">authenticated</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A condition class to be used with the @require decorator that returns True</span>
+<span class="sd">    if the user is authenticated.</span>
+
+<span class="sd">    .. note:: Only meant to be used with WebSockets.  tornado.web.RequestHandler instances can use @tornado.web.authenticated</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Only valid users may access this function&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;authenticated&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># These are just here as reminders that (they will be set when called)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">current_user</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Close the WebSocket for this level of fail</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="is_user"><a class="viewcode-back" href="../Developer/auth.html#auth.is_user">[docs]</a><span class="k">class</span> <span class="nc">is_user</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A condition class to be used with the @require decorator that returns True</span>
+<span class="sd">    if the given username/UPN matches what&#39;s in `self._current_user`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;You are not authorized to perform this action&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;is_user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">upn</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">upn</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upn</span> <span class="o">=</span> <span class="n">upn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">current_user</span>
+        <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="s">&#39;upn&#39;</span> <span class="ow">in</span> <span class="n">user</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Checking if </span><span class="si">%s</span><span class="s"> == </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">upn</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">upn</span> <span class="o">==</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+<span class="c"># Still experimenting on how various security limits will be handled...  This is likely to change:</span></div>
+<div class="viewcode-block" id="policies"><a class="viewcode-back" href="../Developer/auth.html#auth.policies">[docs]</a><span class="k">class</span> <span class="nc">policies</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A condition class to be used with the @require decorator that returns True</span>
+<span class="sd">    if all the specified conditions are within the limits specified in</span>
+<span class="sd">    security.conf.  Here&#39;s an example::</span>
+
+<span class="sd">        @require(authenticated(), policies(&#39;terminal))</span>
+<span class="sd">        def new_terminal(self, settings):</span>
+<span class="sd">            # Actual function would be here</span>
+
+<span class="sd">    That would apply all policies that are configured for the &#39;terminal&#39;</span>
+<span class="sd">    application by way of whatever function is registered to handle &#39;terminal&#39;</span>
+<span class="sd">    restriction checks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Your ability to perform this action has been restricted&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;policies: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">upn</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">app</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">security</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">security</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="ow">in</span> <span class="n">security</span><span class="p">:</span>
+            <span class="n">security</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">)</span>
+
+<span class="c"># Authentication stuff</span></div>
 <div class="viewcode-block" id="BaseAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseAuthHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;The base class for all Gate One authentication handlers.&quot;&quot;&quot;</span>
 <div class="viewcode-block" id="BaseAuthHandler.get_current_user"><a class="viewcode-back" href="../Developer/auth.html#auth.BaseAuthHandler.get_current_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -139,12 +324,13 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Called immediately after a user authenticates successfully.  Saves</span>
 <span class="sd">        session information in the user&#39;s directory.  Expects *user* to be a</span>
-<span class="sd">        string containing the username or userPrincipalName. e.g. &#39;user@REALM&#39;</span>
-<span class="sd">        or just &#39;someuser&#39;.</span>
+<span class="sd">        dict containing a &#39;upn&#39; value representing the username or</span>
+<span class="sd">        userPrincipalName. e.g. &#39;user@REALM&#39; or just &#39;someuser&#39;.  Any additional</span>
+<span class="sd">        values will be attached to the user object/cookie.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;user_login(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;user_login(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
         <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
-        <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+        <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">user_dir</span><span class="p">):</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
             <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
@@ -161,9 +347,9 @@
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">session_file</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="c"># Save it so we can keep track across multiple clients</span>
                 <span class="n">session_info</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span> <span class="c"># FYI: UPN == userPrincipalName</span>
                     <span class="s">&#39;session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
                 <span class="p">}</span>
+                <span class="n">session_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
                 <span class="n">session_info_json</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">)</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">session_info_json</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span>
@@ -196,20 +382,21 @@
 <span class="sd">        Sets the &#39;user&#39; cookie with a new random session ID (*go_session*) and</span>
 <span class="sd">        sets *go_upn* to &#39;ANONYMOUS&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="s">&#39;ANONYMOUS&#39;</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="s">&#39;ANONYMOUS&#39;</span><span class="p">}</span>
         <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
             <span class="c"># This lets any origin check if the user has been authenticated</span>
             <span class="c"># (necessary to prevent &quot;not allowed ...&quot; XHR errors)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
             <span class="k">return</span>
         <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
             <span class="k">return</span>
         <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
@@ -226,17 +413,17 @@
 <span class="sd">        cookie.  This is to ensure that anonymous users can&#39;t access each</span>
 <span class="sd">        other&#39;s sessions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;NullAuthHandler.user_login(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;NullAuthHandler.user_login(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
         <span class="c"># Make a directory to store this user&#39;s settings/files/logs/etc</span>
-        <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+        <span class="n">user_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">user_dir</span><span class="p">):</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Creating user directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user_dir</span><span class="p">))</span>
             <span class="n">mkdir_p</span><span class="p">(</span><span class="n">user_dir</span><span class="p">)</span>
             <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">user_dir</span><span class="p">,</span> <span class="mi">0</span><span class="n">o700</span><span class="p">)</span>
         <span class="n">session_info</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span>
             <span class="s">&#39;session&#39;</span><span class="p">:</span> <span class="n">generate_session_id</span><span class="p">()</span>
         <span class="p">}</span>
+        <span class="n">session_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span>
             <span class="s">&quot;gateone_user&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_encode</span><span class="p">(</span><span class="n">session_info</span><span class="p">))</span>
 </div></div>
@@ -248,7 +435,9 @@
     <span class="nd">@tornado.web.asynchronous</span>
 <div class="viewcode-block" id="GoogleAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.GoogleAuthHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sets the &#39;user&#39; cookie with an appropriate *upn* and *session*.</span>
+<span class="sd">        Sets the &#39;user&#39; cookie with an appropriate *upn* and *session* and any</span>
+<span class="sd">        other values that might be attached to the user object given to us by</span>
+<span class="sd">        Google.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
@@ -273,7 +462,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">get_authenticated_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_auth</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">(</span>
-            <span class="n">ax_attrs</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="s">&quot;email&quot;</span><span class="p">,</span><span class="s">&quot;language&quot;</span><span class="p">,</span><span class="s">&quot;username&quot;</span><span class="p">])</span>
+            <span class="n">ax_attrs</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="s">&quot;email&quot;</span><span class="p">,</span> <span class="s">&quot;language&quot;</span><span class="p">,</span> <span class="s">&quot;username&quot;</span><span class="p">])</span>
 </div>
 <div class="viewcode-block" id="GoogleAuthHandler._on_auth"><a class="viewcode-back" href="../Developer/auth.html#auth.GoogleAuthHandler._on_auth">[docs]</a>    <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -283,17 +472,95 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Google auth failed&quot;</span><span class="p">))</span>
         <span class="c"># NOTE: Google auth &#39;user&#39; will be a dict like so:</span>
-        <span class="c"># user: {</span>
+        <span class="c"># user = {</span>
         <span class="c">#     &#39;locale&#39;: u&#39;en-us&#39;,</span>
         <span class="c">#     &#39;first_name&#39;: u&#39;Dan&#39;,</span>
         <span class="c">#     &#39;last_name&#39;: u&#39;McDougall&#39;,</span>
         <span class="c">#     &#39;name&#39;: u&#39;Dan McDougall&#39;,</span>
         <span class="c">#     &#39;email&#39;: u&#39;daniel.mcdougall@liftoffsoftware.com&#39;}</span>
-        <span class="c"># Named these &#39;go_&lt;whatever&gt;&#39; since that is less likely to conflict with</span>
-        <span class="c"># anything in the future (should some auth mechanism start returning</span>
-        <span class="c"># session IDs of some sort).</span>
+        <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">]</span> <span class="c"># Use the email for the upn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+        <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">])</span>
+</div></div>
+<div class="viewcode-block" id="SSLAuthHandler"><a class="viewcode-back" href="../Developer/auth.html#auth.SSLAuthHandler">[docs]</a><span class="k">class</span> <span class="nc">SSLAuthHandler</span><span class="p">(</span><span class="n">BaseAuthHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SSL Certificate-based  authentication handler.  Can only be used if the</span>
+<span class="sd">    `ca_certs` is set and `ssl_auth=required` or `ssl_auth=optional`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SSLAuthHandler.initialize"><a class="viewcode-back" href="../Developer/auth.html#auth.SSLAuthHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print out helpful error messages if the requisite settings aren&#39;t</span>
+<span class="sd">        configured.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;ca_certs&quot;</span><span class="p">,</span> <span class="s">&quot;CA Certificates File&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_setting</span><span class="p">(</span><span class="s">&quot;ssl_auth&quot;</span><span class="p">,</span> <span class="s">&quot;SSL Authentication (&#39;required&#39;)&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SSLAuthHandler._convert_certificate"><a class="viewcode-back" href="../Developer/auth.html#auth.SSLAuthHandler._convert_certificate">[docs]</a>    <span class="k">def</span> <span class="nf">_convert_certificate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cert</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts the certificate format returned by get_ssl_certificate() into</span>
+<span class="sd">        a format more suitable for a user dict.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">re</span>
+        <span class="c"># Can&#39;t have any of these in the upn because we name a directory with it</span>
+        <span class="n">bad_chars</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;[\/</span><span class="se">\\</span><span class="s">\$\;&amp;`\!\*\?\|&lt;&gt;\n]&#39;</span><span class="p">)</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notAfter&#39;</span><span class="p">:</span> <span class="n">cert</span><span class="p">[</span><span class="s">&#39;notAfter&#39;</span><span class="p">]}</span> <span class="c"># This one is the most direct</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cert</span><span class="p">[</span><span class="s">&#39;subject&#39;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+                <span class="n">user</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+        <span class="n">cn</span> <span class="o">=</span> <span class="n">user</span><span class="p">[</span><span class="s">&#39;commonName&#39;</span><span class="p">]</span> <span class="c"># Use the commonName as the UPN</span>
+        <span class="n">cn</span> <span class="o">=</span> <span class="n">bad_chars</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="n">cn</span><span class="p">)</span> <span class="c"># Replace bad chars with dots</span>
+        <span class="c"># Try to use the &#39;issuer&#39; to add more depth to the CN</span>
+        <span class="k">if</span> <span class="s">&#39;issuer&#39;</span> <span class="ow">in</span> <span class="n">cert</span><span class="p">:</span> <span class="c"># This will only be there if you&#39;re using Python 3</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">cert</span><span class="p">[</span><span class="s">&#39;issuer&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;organizationName&#39;</span><span class="p">:</span>
+                        <span class="c"># Yeah this can get long but that&#39;s OK (it&#39;s better than</span>
+                        <span class="c"># conflicts)</span>
+                        <span class="n">cn</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">@</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cn</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                        <span class="k">break</span>
+                        <span class="c"># Should wind up as something like this:</span>
+                        <span class="c">#   John William Smith-Doe@ACME Widget Corporation, LLC</span>
+                        <span class="c"># So that would be used in the users dir like so:</span>
+                        <span class="c">#   /opt/gateone/users/John William Smith-Doe... etc</span>
+        <span class="n">user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cn</span>
+        <span class="k">return</span> <span class="n">user</span>
+</div>
+    <span class="nd">@tornado.web.asynchronous</span>
+<div class="viewcode-block" id="SSLAuthHandler.get"><a class="viewcode-back" href="../Developer/auth.html#auth.SSLAuthHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the &#39;user&#39; cookie with an appropriate *upn* and *session* and any</span>
+<span class="sd">        other values that might be attached to the user&#39;s client SSL</span>
+<span class="sd">        certificate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;check&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span> <span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;SSLAuthHandler: user is authenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;authenticated&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;SSLAuthHandler: user is NOT authenticated&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;unauthenticated&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c"># Extract the user&#39;s information from their certificate</span>
+        <span class="n">cert</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get_ssl_certificate</span><span class="p">()</span>
+        <span class="n">bincert</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">get_ssl_certificate</span><span class="p">(</span><span class="n">binary_form</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/tmp/cert.der&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bincert</span><span class="p">)</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_certificate</span><span class="p">(</span><span class="n">cert</span><span class="p">)</span>
         <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
         <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
@@ -329,7 +596,7 @@
                 <span class="k">return</span>
             <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
-                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
                 <span class="k">return</span>
@@ -342,10 +609,11 @@
         <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Kerberos auth failed&quot;</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;KerberosAuthHandler user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">))</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">}</span> <span class="c"># Convert to dict</span>
             <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
             <span class="c"># TODO: Add some LDAP or local DB lookups here to add more detail to user objects</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;KerberosAuthHandler user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">))</span>
             <span class="n">next_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;next&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">next_url</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">next_url</span><span class="p">)</span>
@@ -384,7 +652,7 @@
                 <span class="k">return</span>
             <span class="n">logout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;logout&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">logout</span><span class="p">:</span>
-                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="s">&#39;gateone_user&#39;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">user_logout</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
                 <span class="k">return</span>
@@ -397,6 +665,7 @@
         <span class="k">def</span> <span class="nf">_on_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;PAM auth failed&quot;</span><span class="p">))</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;upn&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">}</span>
             <span class="c"># This takes care of the user&#39;s settings dir and their session info</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user_login</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;PAMAuthHandler user: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">))</span>

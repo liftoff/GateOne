@@ -29,8 +29,8 @@
     <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
-    <link rel="next" title="Embedding Gate One Into Other Applications" href="embedding.html" />
-    <link rel="prev" title="The SSH Plugin" href="plugin_ssh.html" /> 
+    <link rel="next" title="The Help Plugin" href="plugin_help.html" />
+    <link rel="prev" title="The Convenience Plugin" href="plugin_convenience.html" /> 
   </head>
   <body>
     <div class="related">
@@ -43,10 +43,10 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="embedding.html" title="Embedding Gate One Into Other Applications"
+          <a href="plugin_help.html" title="The Help Plugin"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="plugin_ssh.html" title="The SSH Plugin"
+          <a href="plugin_convenience.html" title="The Convenience Plugin"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
@@ -130,7 +130,7 @@ hook at the bottom of this file.  The way it works is like this:</p>
 Gate One will automatically
 decode it into a Python <a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a> (only JSON-encoded messages are accepted).
 Any and all keys in that <a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a> will be assumed to be 'actions' (just
-like <a class="reference internal" href="js_gateone.html#GateOne.Net.actions" title="GateOne.Net.actions"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt></a> but on the server) such as this one.  If
+like <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt> but on the server) such as this one.  If
 the incoming key matches a registered action that action will be called
 like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">key</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -185,7 +185,7 @@ Optional Escape Sequence Handler&quot; or SOESH for short.  Here's how it works:
 Whenever a terminal program emits, &quot;x1b]_;&quot; it gets detected by Gate One's
 <a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-class docutils literal"><span class="pre">Terminal</span></tt></a> class (which lives in <tt class="xref py py-obj docutils literal"><span class="pre">terminal.py</span></tt>) and it will
 execute whatever callback is registered for SOESH.  Inside of Gate One this
-callback will always be <a class="reference internal" href="gateone.html#gateone.TerminalWebSocket.esc_opt_handler" title="gateone.TerminalWebSocket.esc_opt_handler"><tt class="xref py py-func docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler()</span></tt></a>.</p>
+callback will always be <tt class="xref py py-func docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler()</span></tt>.</p>
 </dd></dl>
 
 </div>
@@ -210,11 +210,11 @@ callback will always be <a class="reference internal" href="gateone.html#gateone
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="plugin_ssh.html"
-                        title="previous chapter">The SSH Plugin</a></p>
+  <p class="topless"><a href="plugin_convenience.html"
+                        title="previous chapter">The Convenience Plugin</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="embedding.html"
-                        title="next chapter">Embedding Gate One Into Other Applications</a></p>
+  <p class="topless"><a href="plugin_help.html"
+                        title="next chapter">The Help Plugin</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/plugin_example.txt"
@@ -247,10 +247,10 @@ callback will always be <a class="reference internal" href="gateone.html#gateone
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="embedding.html" title="Embedding Gate One Into Other Applications"
+          <a href="plugin_help.html" title="The Help Plugin"
              >next</a> |</li>
         <li class="right" >
-          <a href="plugin_ssh.html" title="The SSH Plugin"
+          <a href="plugin_convenience.html" title="The Convenience Plugin"
              >previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 

@@ -187,6 +187,40 @@
 <span class="sd">    recursively chown a directory.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="RUDict"><a class="viewcode-back" href="../Developer/utils.html#utils.RUDict">[docs]</a><span class="k">class</span> <span class="nc">RUDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A dict that will recursively update keys and values in a safe manner so that</span>
+<span class="sd">    sub-dicts will be merged without one clobbering the other.</span>
+
+<span class="sd">    .. note:: This class taken from `here &lt;http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python&gt;`_</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RUDict</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">F</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">E</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;keys&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="s">&#39;keys&#39;</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">E</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>  <span class="c"># existing ...must recurse into both sides</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">r_update</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span> <span class="c"># doesn&#39;t currently exist, just update</span>
+                        <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">E</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">E</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">r_update</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span><span class="p">})</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">F</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">r_update</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">F</span><span class="p">[</span><span class="n">k</span><span class="p">]})</span>
+
+    <span class="k">def</span> <span class="nf">r_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">other_dict</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">od</span> <span class="o">=</span> <span class="n">RUDict</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="n">nd</span> <span class="o">=</span> <span class="n">other_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">od</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">nd</span><span class="p">)</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">od</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">other_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
 <span class="c"># Functions</span></div>
 <div class="viewcode-block" id="noop"><a class="viewcode-back" href="../Developer/utils.html#utils.noop">[docs]</a><span class="k">def</span> <span class="nf">noop</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -770,7 +804,7 @@
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;js&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;css&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="p">[]}</span>
     <span class="n">plugins_conf_path</span> <span class="o">=</span> <span class="n">plugin_dir</span> <span class="o">+</span> <span class="s">&#39;.conf&#39;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">plugins_conf_path</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">plugins_conf_path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">enabled_plugins</span> <span class="ow">or</span> <span class="s">&quot;*&quot;</span> <span class="ow">in</span> <span class="n">enabled_plugins</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Loading all plugins&#39;</span><span class="p">))</span>
             <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="bp">None</span>

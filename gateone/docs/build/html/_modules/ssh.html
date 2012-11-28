@@ -115,6 +115,8 @@
 <span class="n">SUBCHANNEL_TIMEOUT</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="c"># How long to wait before auto-closing</span>
 <span class="n">READY_STRING</span> <span class="o">=</span> <span class="s">&quot;GATEONE_SSH_EXEC_CMD_CHANNEL_READY&quot;</span>
 <span class="n">READY_MATCH</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;^</span><span class="si">%s</span><span class="s">$&quot;</span> <span class="o">%</span> <span class="n">READY_STRING</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+<span class="n">OUTPUT_MATCH</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="s">&quot;^{rs}.+^{rs}$&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rs</span><span class="o">=</span><span class="n">READY_STRING</span><span class="p">),</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
 <span class="n">VALID_PRIVATE_KEY</span> <span class="o">=</span> <span class="n">valid</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
     <span class="s">r&#39;^-----BEGIN [A-Z]+ PRIVATE KEY-----.*-----END [A-Z]+ PRIVATE KEY-----$&#39;</span><span class="p">,</span>
     <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
@@ -186,6 +188,9 @@
     <span class="n">session</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">session</span>
     <span class="n">session_dir</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;session_dir&#39;</span><span class="p">]</span>
     <span class="n">session_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">session_dir</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">session_path</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SSHMultiplexingException</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="s">&quot;SSH Plugin: Unable to open slave sub-channel.&quot;</span><span class="p">))</span>
     <span class="n">socket_path</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="c"># Find the SSH socket path...</span>
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">session_path</span><span class="p">):</span>
@@ -221,7 +226,7 @@
     <span class="n">fd</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span> <span class="c"># Hopefully 100/200 lines/cols is enough</span>
     <span class="c"># ...if it isn&#39;t, well, that&#39;s not really what this is for :)</span>
     <span class="c"># Set the term title so it gets a proper name in the logs</span>
-    <span class="n">m</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">]0;Term </span><span class="si">%s</span><span class="s"> sub-channel</span><span class="se">\007</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">u&#39;echo -e &quot;</span><span class="se">\\</span><span class="s">033]0;Term </span><span class="si">%s</span><span class="s"> sub-channel</span><span class="se">\\</span><span class="s">007&quot;&#39;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">m</span>
 </div>
 <div class="viewcode-block" id="wait_for_prompt"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.wait_for_prompt">[docs]</a><span class="k">def</span> <span class="nf">wait_for_prompt</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
@@ -234,9 +239,13 @@
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;wait_for_prompt()&#39;</span><span class="p">)</span>
     <span class="n">m_instance</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">clear_screen</span><span class="p">()</span> <span class="c"># Makes capturing just what we need easier</span>
     <span class="n">getoutput</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_cmd_output</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
-    <span class="n">m_instance</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="n">READY_MATCH</span><span class="p">,</span> <span class="n">getoutput</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">errorback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">m_instance</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="n">OUTPUT_MATCH</span><span class="p">,</span> <span class="n">getoutput</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">errorback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
     <span class="c"># Run our command immediately followed by our separation/ready string</span>
-    <span class="n">m_instance</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">u&#39;</span><span class="si">%s</span><span class="s">; echo &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">READY_STRING</span><span class="p">))</span>
+    <span class="n">m_instance</span><span class="o">.</span><span class="n">writeline</span><span class="p">((</span>
+        <span class="s">u&#39;echo -e &quot;{rs}&quot;; &#39;</span> <span class="c"># Echo the first READY_STRING</span>
+        <span class="s">u&#39;{cmd}; &#39;</span> <span class="c"># Execute the command in question</span>
+        <span class="s">u&#39;echo -e &quot;{rs}&quot;&#39;</span> <span class="c"># READY_STRING again so we can capture the between</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rs</span><span class="o">=</span><span class="n">READY_STRING</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="n">cmd</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="get_cmd_output"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_cmd_output">[docs]</a><span class="k">def</span> <span class="nf">get_cmd_output</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">matched</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -248,12 +257,12 @@
     <span class="n">capture</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cmd_out</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">capture</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">capture</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">READY_STRING</span><span class="p">):</span>
+            <span class="n">capture</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">capture</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">READY_STRING</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                 <span class="k">break</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">READY_STRING</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-            <span class="n">capture</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="c"># This is just a silly trick to get the shell timing out/terminating itself</span>
     <span class="c"># after a timout (so we don&#39;t keep the sub-channel open forever).  It is</span>
     <span class="c"># easier than starting a timeout thread, timer, IOLoop.add_timeout(), etc</span>
@@ -278,7 +287,7 @@
     <span class="k">global</span> <span class="n">OPEN_SUBCHANNELS</span>
     <span class="n">m_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
     <span class="c"># Find the Multiplex object inside of OPEN_SUBCHANNELS and remove it</span>
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">OPEN_SUBCHANNELS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">OPEN_SUBCHANNELS</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
         <span class="c"># This will be something like: {1: &lt;Multiplex instance&gt;}</span>
         <span class="k">if</span> <span class="nb">hash</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">m_instance</span><span class="p">):</span>
             <span class="c"># This is necessary so the interpreter can properly collect garbage:</span>
@@ -303,6 +312,7 @@
     <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
         <span class="s">&quot;</span><span class="si">%s</span><span class="s">: Got an error trying to capture output inside of &quot;</span>
         <span class="s">&quot;execute_command() running: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">m_instance</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">m_instance</span><span class="o">.</span><span class="n">cmd</span><span class="p">)))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;output before error: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">m_instance</span><span class="o">.</span><span class="n">dump</span><span class="p">())</span>
     <span class="n">terminate_sub_channel</span><span class="p">(</span><span class="n">m_instance</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">tws</span><span class="p">:</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
@@ -338,6 +348,19 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;</span><span class="si">%s</span><span class="s">: Got an error trying to open sub-channel on term </span><span class="si">%s</span><span class="s">...&quot;</span> <span class="o">%</span>
             <span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">term</span><span class="p">)))</span>
+        <span class="c"># Try to send an error response to the client</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;sshjs_cmd_output&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
+                <span class="s">&#39;cmd&#39;</span><span class="p">:</span> <span class="n">cmd</span><span class="p">,</span>
+                <span class="s">&#39;output&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span> <span class="c"># This is really just a last-ditch thing</span>
+            <span class="k">pass</span>
         <span class="k">return</span>
     <span class="c"># NOTE: We can assume the IOLoop is started and automatically calling read()</span>
     <span class="n">m</span><span class="o">.</span><span class="n">unexpect</span><span class="p">()</span> <span class="c"># Clear out any existing patterns (if existing sub-channel)</span>
@@ -351,7 +374,7 @@
     <span class="n">wait</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">wait_for_prompt</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
     <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="n">READY_MATCH</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">wait</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">errorback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Waiting for READY_MATCH inside execute_command()&quot;</span><span class="p">)</span>
-    <span class="n">m</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">u&#39;echo &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">READY_STRING</span><span class="p">)</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">u&#39;echo -e &quot;</span><span class="se">\\</span><span class="s">n</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">READY_STRING</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="send_result"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.send_result">[docs]</a><span class="k">def</span> <span class="nf">send_result</span><span class="p">(</span><span class="n">tws</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -829,9 +852,17 @@
             <span class="k">raise</span> <span class="n">SSHKeypairException</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;No files were given to save!&quot;</span><span class="p">))</span>
         <span class="n">users_ssh_dir</span> <span class="o">=</span> <span class="n">get_ssh_dir</span><span class="p">(</span><span class="n">tws</span><span class="p">)</span>
         <span class="n">private_key_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_ssh_dir</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-        <span class="n">public_key_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_ssh_dir</span><span class="p">,</span> <span class="n">name</span><span class="o">+</span><span class="s">&#39;.pub&#39;</span><span class="p">)</span>
-        <span class="n">certificate_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_ssh_dir</span><span class="p">,</span> <span class="n">name</span><span class="o">+</span><span class="s">&#39;-cert.pub&#39;</span><span class="p">)</span>
+        <span class="n">public_key_name</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.pub&#39;</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.pub&#39;</span><span class="p">):</span>
+            <span class="n">public_key_name</span> <span class="o">=</span> <span class="n">name</span> <span class="c"># Get rid of the extra .pub</span>
+        <span class="n">public_key_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_ssh_dir</span><span class="p">,</span> <span class="n">public_key_name</span><span class="p">)</span>
+        <span class="n">certificate_name</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&#39;-cert.pub&#39;</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;-cert.pub&#39;</span><span class="p">):</span>
+            <span class="n">certificate_name</span> <span class="o">=</span> <span class="n">name</span> <span class="c"># Don&#39;t need an extra -cert.pub at the end</span>
+        <span class="n">certificate_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_ssh_dir</span><span class="p">,</span> <span class="n">certificate_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">private</span><span class="p">:</span>
+            <span class="c"># Fix Windows newlines</span>
+            <span class="n">private</span> <span class="o">=</span> <span class="n">private</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">VALID_PRIVATE_KEY</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">private</span><span class="p">):</span>
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">private_key_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                     <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">private</span><span class="p">)</span>
@@ -842,6 +873,8 @@
                     <span class="s">&quot;ERROR: Private key is not valid.&quot;</span><span class="p">)})</span>
                 <span class="k">return</span>
         <span class="k">if</span> <span class="n">public</span><span class="p">:</span>
+            <span class="c"># Fix Windows newlines</span>
+            <span class="n">public</span> <span class="o">=</span> <span class="n">public</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">public_key_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">public</span><span class="p">)</span>
             <span class="c"># Now remove the timer that will generate the public key from the</span>
@@ -869,6 +902,8 @@
             <span class="c"># This gets removed if the public key is uploaded</span>
             <span class="n">TIMER</span> <span class="o">=</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span><span class="n">deadline</span><span class="p">,</span> <span class="n">generate_public_key</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">certificate</span><span class="p">:</span>
+            <span class="c"># Fix Windows newlines</span>
+            <span class="n">certificate</span> <span class="o">=</span> <span class="n">certificate</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">certificate_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">certificate</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1021,14 +1056,14 @@
 <span class="sd">    information to duplicate sessions (if the user so desires).  For reference,</span>
 <span class="sd">    the specific string which will call this function from a terminal app is::</span>
 
-<span class="sd">        \x1b]_;ssh|&lt;whatever&gt;\x07</span>
+<span class="sd">        \\x1b]_;ssh|&lt;whatever&gt;\x07</span>
 
 <span class="sd">    .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;sshjs_connect&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span>
     <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="create_user_ssh_dir"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.create_user_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">create_user_ssh_dir</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="create_user_ssh_dir"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.create_user_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">create_user_ssh_dir</span><span class="p">(</span><span class="n">tws</span><span class="p">,</span> <span class="n">current_user</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    To be called by the &#39;Auth&#39; hook that gets called after the user is done</span>
 <span class="sd">    authenticating, ensures that the `&lt;user&#39;s dir&gt;/ssh` directory exists.</span>

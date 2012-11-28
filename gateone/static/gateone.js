@@ -65,6 +65,7 @@ var logError = noop;
 var logWarning = noop;
 var logInfo = noop;
 var logDebug = noop;
+var deprecated = noop;
 
 // Define GateOne
 var GateOne = GateOne || {};
@@ -246,14 +247,8 @@ var go = GateOne.Base.update(GateOne, {
                     logDebug("GateOne.init() calling GateOne.Net.connect()");
                     go.Net.connect();
                 } else {
-                    if (go.prefs.auth) {
-                        // API authentication
-                        logDebug("Using API authentiation object: " + go.prefs.auth);
-                        go.Net.connect();
-                    } else {
-                        // Regular auth.  Clear the cookie and redirect the user...
-                        GateOne.Net.reauthenticate();
-                    }
+                    // Regular auth.  Clear the cookie and redirect the user...
+                    GateOne.Net.reauthenticate();
                 }
             };
         // Update GateOne.prefs with the settings provided in the calling page
@@ -359,8 +354,14 @@ var go = GateOne.Base.update(GateOne, {
             authCheck = go.prefs.url + 'auth?check=True';
         // Load our JS Plugins
         u.loadScript(combined_js, function() {
-            // Check if we're authenticated after all the scripts are done loading
-            u.xhrGet(authCheck, parseResponse);
+            if (go.prefs.auth) {
+                // API authentication doesn't need to use the /auth URL.
+                logDebug("Using API authentiation object: " + go.prefs.auth);
+                go.Net.connect();
+            } else {
+                // Check if we're authenticated after all the scripts are done loading
+                u.xhrGet(authCheck, parseResponse);
+            }
         });
         // Empty out anything that might be already-existing in goDiv
         u.getNode(go.prefs.goDiv).innerHTML = '';
@@ -378,9 +379,11 @@ var go = GateOne.Base.update(GateOne, {
             logWarning = GateOne.Logging.logWarning;
             logInfo = GateOne.Logging.logInfo;
             logDebug = GateOne.Logging.logDebug;
+            deprecated = GateOne.Logging.deprecated;
         }
         var go = GateOne,
             u = go.Utils,
+            E = go.Events,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
@@ -563,6 +566,8 @@ var go = GateOne.Base.update(GateOne, {
             } else {
                 go.prefs.audibleBell = true;
             }
+            E.trigger("save_prefs");
+            // savePrefsCallbacks is DEPRECATED.  Use GateOne.Events.on("save_prefs", yourFunc) instead
             if (go.savePrefsCallbacks.length) {
                 // Call any registered prefs callbacks
                 for (var i in go.savePrefsCallbacks) {
@@ -684,7 +689,9 @@ var go = GateOne.Base.update(GateOne, {
                 if (goDiv.style.display != "none") {
                     go.Visual.updateDimensions();
                     for (term in GateOne.terminals) {
-                        go.Net.sendDimensions(term);
+                        if (term % 1 === 0) {
+                            go.Net.sendDimensions(term);
+                        }
                     };
                 }
                 // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
@@ -713,10 +720,11 @@ var go = GateOne.Base.update(GateOne, {
         }
         window.onresize = onResizeEvent;
         // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
-        if (!go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']) {
-            go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs'] = {};
-        }
-        go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']['updateCSS'] = updateCSSfunc;
+        go.Events.on("panel_toggle:in", updateCSSfunc);
+//         if (!go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']) {
+//             go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs'] = {};
+//         }
+//         go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']['updateCSS'] = updateCSSfunc;
         // Make sure the termwrapper is the proper width for 2 columns
         go.Visual.updateDimensions();
         // This calls plugins init() and postInit() functions:
@@ -1665,6 +1673,8 @@ GateOne.Base.update(GateOne.Net, {
         if (go.prefs.cols) { prefs.cols = go.prefs.cols };
         if (go.prefs.rows) { prefs.rows = go.prefs.rows };
         // Execute any sendDimensionsCallbacks
+        go.Events.trigger("send_dimensions", term);
+        // sendDimensionsCallbacks is DEPRECATED.  Use GateOne.Events.on("send_dimensions", yourFunc) instead
         if (GateOne.Net.sendDimensionsCallbacks.length) {
             for (var i=0; i<GateOne.Net.sendDimensionsCallbacks.length; i++) {
                 GateOne.Net.sendDimensionsCallbacks[i](term);
@@ -2891,22 +2901,28 @@ GateOne.Base.update(GateOne.Visual, {
         }
     },
     togglePanel: function(panel) {
-        // Toggles the given *panel* in or out of view.
-        // If other panels are open at the time, they will be closed.
-        // If *panel* evaluates to false, close all open panels
-        // This function also has some callbacks that can be hooked into:
-        //      * When the panel is toggled out of view: GateOne.Visual.panelToggleCallbacks['out']['panelName'] = {'myreference': somefunc()}
-        //      * When the panel is toggled into view: GateOne.Visual.panelToggleCallbacks['in']['panelName'] = {'myreference': somefunc()}
-        //
-        // Say you wanted to call a function whenever the preferences panel was toggled into view:
-        //      GateOne.Visual.panelToggleCallbacks['in']['#'+go.prefs.prefix+'panel_prefs']['updateOptions'] = myFunction;
-        // Then whenever the preferences panel was toggled into view, myfunction() would be called.
+        /**:GateOne.Visual.togglePanel(panel)
+
+        Toggles the given *panel* in or out of view.  If other panels are open at the time, they will be closed.
+        If *panel* evaluates to false, all open panels will be closed.
+
+        This function also has some events that can be hooked into:
+
+            * When the panel is toggled out of view: GateOne.Events.trigger("panel_toggle:out", panel)
+            * When the panel is toggled into view: GateOne.Events.trigger("panel_toggle:in", panel)
+
+        You can hook into these events like so::
+
+            > GateOne.Events.on("panel_toggle:in", myFunc); // When panel is toggled into view
+            > GateOne.Events.on("panel_toggle:out", myFunc); // When panel is toggled out of view
+        */
         var v = go.Visual,
             u = go.Utils,
             panelID = panel,
             panel = u.getNode(panel),
             origState = null,
             panels = u.getNodes(go.prefs.goDiv + ' .panel'),
+            deprecatedMsg = "Use GateOne.Events.on('panel_toggle:in', func) or GateOne.Events.on('panel_toggle:out', func) instead.",
             setHideTimeout = function(panel) {
                 // Just used to get around the closure issue below
                 if (v.hidePanelsTimeout[panel.id]) {
@@ -2932,9 +2948,11 @@ GateOne.Base.update(GateOne.Visual, {
             if (panels[i] && go.Visual.getTransform(panels[i]) == "scale(1)") {
                 v.applyTransform(panels[i], 'scale(0)');
                 // Call any registered 'out' callbacks for all of these panels
+                GateOne.Events.trigger("panel_toggle:out", panel);
                 if (v.panelToggleCallbacks['out']['#'+panels[i].id]) {
                     for (var ref in v.panelToggleCallbacks['out']['#'+panels[i].id]) {
                         if (typeof(v.panelToggleCallbacks['out']['#'+panels[i].id][ref]) == "function") {
+                            deprecated("panelToggleCallbacks", deprecatedMsg);
                             v.panelToggleCallbacks['out']['#'+panels[i].id][ref]();
                         }
                     }
@@ -2955,10 +2973,12 @@ GateOne.Base.update(GateOne.Visual, {
                 v.applyTransform(panel, 'scale(1)');
             }, 1);
             // Call any registered 'in' callbacks for all of these panels
+            GateOne.Events.trigger("panel_toggle:in", panel)
             if (v.panelToggleCallbacks['in']['#'+panel.id]) {
                 for (var ref in v.panelToggleCallbacks['in']['#'+panel.id]) {
                     if (typeof(v.panelToggleCallbacks['in']['#'+panel.id][ref]) == "function") {
                         v.panelToggleCallbacks['in']['#'+panel.id][ref]();
+                        deprecated("panelToggleCallbacks", deprecatedMsg);
                     }
                 }
             }
@@ -2980,10 +3000,12 @@ GateOne.Base.update(GateOne.Visual, {
             // Activate capturing of keystrokes so the user doesn't have to click on #gateone to start typing again
             go.Input.capture();
             // Call any registered 'out' callbacks for all of these panels
+            GateOne.Events.trigger("panel_toggle:out", panel);
             if (v.panelToggleCallbacks['out']['#'+panel.id]) {
                 for (var ref in v.panelToggleCallbacks['out']['#'+panel.id]) {
                     if (typeof(v.panelToggleCallbacks['out']['#'+panel.id][ref]) == "function") {
                         v.panelToggleCallbacks['out']['#'+panel.id][ref]();
+                        deprecated("panelToggleCallbacks", deprecatedMsg);
                     }
                 }
             }
@@ -5118,12 +5140,14 @@ go.Base.update(GateOne.Terminal, {
             // Only slide for terminals that are actually *new* (as opposed to ones that we're re-attaching to)
             setTimeout(slide, 100);
         }
-        // Excute any registered callbacks
+        // Excute any registered callbacks (DEPRECATED: Use GateOne.Events.on("new_terminal", <callback>) instead)
         if (go.Terminal.newTermCallbacks.length) {
             go.Terminal.newTermCallbacks.forEach(function(callback) {
                 callback(term);
             });
         }
+        // Fire our new_terminal event
+        GateOne.Events.trigger("new_terminal", term);
         return term; // So you can call it from your own code and know what terminal number you wound up with
     },
     closeTerminal: function(term, /*opt*/noCleanup, /*opt*/message) {
@@ -5552,7 +5576,7 @@ GateOne.Base.update(GateOne.Events, {
     after: function(f, callback, context) {
         /**:GateOne.Events.after(f, callback, context)
 
-        Attaches the given *callback* to the given function (*f*) to be called **after** it (*f*).  If provided, the *callback* will be called with the given *context*.  Otherwise *callback* will be called with whatever arguments were given to the function (*f*).
+        Attaches the given *callback* to the given function (*f*) to be called **after** it (*f*) has been executed.  If provided, the *callback* will be called with the given *context*.  Otherwise *callback* will be called with whatever arguments were given to the function (*f*).
         */
         var E = GateOne.Events,
             callObj = {
@@ -5565,13 +5589,40 @@ GateOne.Base.update(GateOne.Events, {
         f.callAfter.push(callObj);
         return f;
     },
-    on: function(events, callback, context) {
+    on: function(events, callback, context, times) {
+        /**:GateOne.Events on(events, callback, context, times)
+
+        Adds the given *callback* / *context* combination to the given *events*; to be called when the given *events* are triggered.
+
+        :param string events: A space-separated list of events that will have the given *callback* / *context* attached.
+        :param function callback: The function to be called when the given *event* is triggered.
+        :param object context: An object that will be bound to *callback* as `this` when it is called.
+        :param integer times: The number of times this callback will be called before it is removed from the given *event*.
+
+        Examples::
+
+            > // A little test function
+            > var testFunc = function(args) { console.log('args: ' + args + ', this.foo: ' + this.foo) };
+            > // Call testFunc whenever the "test_event" event is triggered
+            > GateOne.Events.on("test_event", testFunc);
+            > // Fire the test_event with 'an argument' as the only argument
+            > GateOne.Events.trigger("test_event", 'an argument');
+            args: an argument, this.foo: undefined
+            > // Remove the event so we can change it
+            > GateOne.Events.off("test_event", testFunc);
+            > // Now let's pass in a context object
+            > GateOne.Events.on("test_event", testFunc, {'foo': 'bar'});
+            > // Now fire it just like before
+            > GateOne.Events.trigger("test_event", 'an argument');
+            args: an argument, this.foo: bar
+        */
         var E = GateOne.Events;
         events.split(/\s+/).forEach(function(event) {
             var callList = E.callbacks[event],
                 callObj = {
                     callback: callback,
-                    context: context
+                    context: context,
+                    times: times
                 };
             if (!callList) {
                 // Initialize the callback list for this event
@@ -5582,6 +5633,18 @@ GateOne.Base.update(GateOne.Events, {
         return this;
     },
     off: function(events, callback, context) {
+        /**:GateOne.Events off(events, callback, context)
+
+        Removes the given *callback* / *context* combination from the given *events*
+
+        :param string events: A space-separated list of events.
+        :param function callback: The function that's attached to the given events to be removed.
+        :param object context: The context attached to the given event/callback to be removed.
+
+        Example::
+
+            > GateOne.Events.off("new_terminal", someFunction);
+        */
         var E = GateOne.Events;
         if (!GateOne.Utils.items(E.callbacks).length) { return this } // Nothing to do
         if (events === undefined) {
@@ -5605,7 +5668,26 @@ GateOne.Base.update(GateOne.Events, {
         });
         return this;
     },
+    once: function(events, callback, context) {
+        /**:GateOne.Events once(events, callback, context)
+
+        A shortcut that performs the equivalent of GateOne.Events.on(events, callback, context, 1)
+        */
+        var E = GateOne.Events;
+        E.on(events, callback, context, 1);
+    },
     trigger: function(events) {
+        /**:GateOne.Events trigger(events)
+
+        Triggers the given *events*.  Any additional provided arguments will be passed to the callbacks attached to the given events.
+
+        :param string events: A space-separated list of events to trigger
+
+        Example::
+
+            > // The '1' below will be passed to each callback as the only argument
+            > GateOne.Events.trigger("new_terminal", 1);
+        */
         var E = GateOne.Events,
             args = Array.prototype.slice.call(arguments, 1); // Everything after *events*
         events.split(/\s+/).forEach(function(event) {
@@ -5613,6 +5695,12 @@ GateOne.Base.update(GateOne.Events, {
             if (callList) {
                 callList.forEach(function(callObj) {
                     callObj.callback.apply(callObj.context || this, args);
+                    if (callObj.times) {
+                        callObj.times -= 1;
+                        if (callObj.times == 0) {
+                            E.off(events, callObj.callback, callObj.context);
+                        }
+                    }
                 });
             }
         });

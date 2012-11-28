@@ -250,16 +250,20 @@
     <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">combined</span><span class="p">))</span>
 
 <span class="c"># Now for some special sauce...  The Special Optional Escape Sequence Handler!</span></div>
-<div class="viewcode-block" id="example_opt_esc_handler"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_opt_esc_handler">[docs]</a><span class="k">def</span> <span class="nf">example_opt_esc_handler</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+<div class="viewcode-block" id="example_opt_esc_handler"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_opt_esc_handler">[docs]</a><span class="k">def</span> <span class="nf">example_opt_esc_handler</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gate One includes a mechanism for plugins to send messages from terminal</span>
 <span class="sd">    programs directly to plugins written in Python.  It&#39;s called the &quot;Special</span>
 <span class="sd">    Optional Escape Sequence Handler&quot; or SOESH for short.  Here&#39;s how it works:</span>
 <span class="sd">    Whenever a terminal program emits, &quot;\\x1b]_;&quot; it gets detected by Gate One&#39;s</span>
-<span class="sd">    :class:`~terminal.Terminal` class (which lives in `terminal.py`) and it will execute whatever</span>
-<span class="sd">    callback is registered for SOESH.  Inside of Gate One this callback will</span>
-<span class="sd">    always be :func:`gateone.TerminalWebSocket.esc_opt_handler`.</span>
+<span class="sd">    :class:`~terminal.Terminal` class (which lives in `terminal.py`) and it will</span>
+<span class="sd">    execute whatever callback is registered for SOESH.  Inside of Gate One this</span>
+<span class="sd">    callback will always be :func:`gateone.TerminalWebSocket.esc_opt_handler`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notice&#39;</span><span class="p">:</span>
+     <span class="s">&quot;You just executed the Example plugin&#39;s optional escape sequence handler!&quot;</span><span class="p">}</span>
+    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
 <span class="c"># SOESH allows plugins to attach actions that will be called whenever a terminal</span>
 <span class="c"># encounters the</span>
 
@@ -271,7 +275,7 @@
         <span class="s">&#39;example_action&#39;</span><span class="p">:</span> <span class="n">example_websocket_action</span>
     <span class="p">},</span>
     <span class="s">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">example_opt_esc_handler</span><span class="p">,</span>
-    <span class="c">#&#39;Auth&#39;: create_user_ssh_dir</span>
+    <span class="c">#&#39;Auth&#39;: some_post_authentication_function</span>
 <span class="p">}</span>
 </pre></div>
 

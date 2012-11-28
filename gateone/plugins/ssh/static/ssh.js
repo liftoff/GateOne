@@ -956,16 +956,21 @@ GateOne.Base.update(GateOne.SSH, {
     duplicateSession: function(term) {
         // Duplicates the SSH session at *term* in a new terminal
         var go = GateOne,
-            connectString = GateOne.terminals[term]['sshConnectString'];
+            E = go.Events,
+            connectString = GateOne.terminals[term]['sshConnectString'],
+            connectFunc = function(term) {
+                // This gets attached to the "new_terminal" event
+                GateOne.Net.sendString('ssh://' + connectString + '\n');
+            }
         if (!connectString.length) {
             return; // Can't do anything without a connection string!
         }
-        go.Terminal.newTerminal()
-        setTimeout(function() {
-            // Give the browser a moment to get the new terminal open
-            go.Input.queue('ssh://' + connectString + '\n');
-            go.Net.sendChars();
-        }, 250);
+        if (!go.prefs.autoConnectURL) {
+            // Only send the connection string if autoConnectURL isn't set
+            E.once("new_terminal", connectFunc);
+        }
+        go.Terminal.newTerminal();
+
     },
     updateKH: function(known_hosts) {
         // Updates the sshKHTextArea with the given *known_hosts* file.

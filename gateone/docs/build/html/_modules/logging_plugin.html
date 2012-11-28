@@ -99,7 +99,7 @@
 
 <span class="c"># Our stuff</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">BaseHandler</span><span class="p">,</span> <span class="n">PLUGINS</span>
-<span class="kn">from</span> <span class="nn">logviewer</span> <span class="kn">import</span> <span class="n">flatten_log</span>
+<span class="kn">from</span> <span class="nn">logviewer</span> <span class="kn">import</span> <span class="n">flatten_log</span><span class="p">,</span> <span class="n">get_frames</span>
 <span class="kn">from</span> <span class="nn">termio</span> <span class="kn">import</span> <span class="n">retrieve_first_frame</span><span class="p">,</span> <span class="n">retrieve_last_frame</span>
 <span class="kn">from</span> <span class="nn">termio</span> <span class="kn">import</span> <span class="n">get_or_update_metadata</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">json_encode</span>
@@ -110,6 +110,8 @@
 <span class="kn">import</span> <span class="nn">tornado.template</span>
 <span class="kn">import</span> <span class="nn">tornado.ioloop</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_decode</span>
+
+<span class="c"># TODO: Make the log retrieval functions work incrementally as logs are read so they don&#39;t have to be stored entirely in memory before being sent to the client.</span>
 
 <span class="c"># Globals</span>
 <span class="n">SEPARATOR</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="se">\U000f0f0f</span><span class="s">&quot;</span> <span class="c"># The character used to separate frames in the log</span>
@@ -136,14 +138,20 @@
         <span class="c"># 14/7 for the em_height should be OK for most browsers to ensure that</span>
         <span class="c"># images don&#39;t always wind up at the bottom of the screen.</span>
         <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;height&#39;</span><span class="p">:</span><span class="mi">14</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">})</span>
-    <span class="n">frames</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">SEPARATOR</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">))[</span><span class="mi">1</span><span class="p">:]</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">limit</span><span class="p">:</span>
-        <span class="n">limit</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">[:</span><span class="n">limit</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">get_frames</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">limit</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="n">limit</span><span class="p">:</span>
+            <span class="k">break</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">14</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;{&#39;</span><span class="p">:</span>
+                <span class="c"># This is just the metadata frame.  Skip it</span>
+                <span class="k">continue</span>
             <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">]))</span>
             <span class="n">frame_screen</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]</span> <span class="c"># Skips the colon</span>
             <span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame_screen</span><span class="p">)</span>
+            <span class="c"># Ensure we&#39;re not in the middle of capturing a file.  Otherwise</span>
+            <span class="c"># it might get cut off and result in no image being shown.</span>
+            <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">capture</span><span class="p">:</span>
+                <span class="k">continue</span>
             <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
             <span class="n">out_frames</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s">&#39;screen&#39;</span><span class="p">:</span> <span class="n">screen</span><span class="p">,</span> <span class="s">&#39;time&#39;</span><span class="p">:</span> <span class="n">frame_time</span><span class="p">})</span>
     <span class="k">return</span> <span class="n">out_frames</span> <span class="c"># Skip the first frame which is the metadata</span>
@@ -339,11 +347,15 @@
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_or_update_metadata</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">][</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_filename</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Success&quot;</span>
-        <span class="n">flattened_log</span> <span class="o">=</span> <span class="n">flatten_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span>
-        <span class="n">flattened_log</span> <span class="o">=</span> <span class="n">flattened_log</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="c"># Needed to emulate an actual term</span>
+        <span class="kn">import</span> <span class="nn">StringIO</span>
         <span class="c"># Use the terminal emulator to create nice HTML-formatted output</span>
         <span class="kn">from</span> <span class="nn">terminal</span> <span class="kn">import</span> <span class="n">Terminal</span>
         <span class="n">term</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+        <span class="n">io_obj</span> <span class="o">=</span> <span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+        <span class="n">flatten_log</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">io_obj</span><span class="p">)</span>
+        <span class="n">io_obj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c"># Needed to emulate an actual term</span>
+        <span class="n">flattened_log</span> <span class="o">=</span> <span class="n">io_obj</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">)</span>
         <span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">flattened_log</span><span class="p">)</span>
         <span class="n">scrollback</span><span class="p">,</span> <span class="n">screen</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">dump_html</span><span class="p">()</span>
         <span class="c"># Join them together</span>
@@ -385,7 +397,6 @@
             <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
                 <span class="c"># process was already terminated...  Nothing to do</span>
                 <span class="k">pass</span>
-    <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;queue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
     <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;queue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
     <span class="n">PROCS</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="s">&#39;process&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span>
         <span class="n">target</span><span class="o">=</span><span class="n">_retrieve_log_playback</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">settings</span><span class="p">))</span>

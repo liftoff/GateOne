@@ -109,7 +109,7 @@
 <span class="sd">        Perform Basic authentication using self.settings[&#39;pam_realm&#39;].</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">auth_decoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodestring</span><span class="p">(</span><span class="n">auth_header</span><span class="p">[</span><span class="mi">6</span><span class="p">:])</span>
-        <span class="n">username</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="n">auth_decoded</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">username</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="n">auth_decoded</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">_pam_conv</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="n">query_list</span><span class="p">,</span> <span class="n">user_data</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
             <span class="n">resp</span> <span class="o">=</span> <span class="p">[]</span>
@@ -133,7 +133,7 @@
             <span class="n">pam_auth</span><span class="o">.</span><span class="n">acct_mgmt</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="c"># Basic auth failed</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;debug&#39;</span><span class="p">]:</span>
-                <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="c"># Very useful for debugging Kerberos errors</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span>
         <span class="c"># NOTE: Basic auth just gives us the username without the @REALM part</span>
         <span class="c">#       so we have to add it:</span>

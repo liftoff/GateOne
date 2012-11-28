@@ -4,9 +4,9 @@
 #
 
 # Meta
-__version__ = '1.0'
+__version__ = '1.1'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1.0)
+__version_info__ = (1.1)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
@@ -64,12 +64,10 @@ Docstrings
 #   *
 
 # Import stdlib stuff
-import os
-import logging
-import shlex
+import os, logging, re
 
 # Import our own stuff
-from utils import mkdir_p, generate_session_id, noop
+from utils import mkdir_p, generate_session_id, noop, RUDict, json_decode
 from utils import get_translation
 
 # 3rd party imports
@@ -81,68 +79,32 @@ import tornado.escape
 _ = get_translation()
 
 # Globals
-LIMITS_DEFAULTS = r"""\
-// I'm seriously considering this style configuration (JSON) for security.conf
-// It is very flexible but less readable.  It's also much easier to parse.
-{
-    // '*' for default (all users)
-    '*': {
-        'terminal': { // This is the "application" i.e. whatever is registered via @require(policies('<application>'))
-            'login': false, // This would be, "default deny"
-            'max_terms': 10, // An absolute maximum
-            'max_terms_per_location': 1 // How many per 'location'
-        }
-    },
-    // Regular expressions work too
-    'bob.*': {},
-    // Group syntax
-    '@gateone_users': {
-        'terminal': {
-            'login': true, // Let these guys in
-            'max_terms_total': 10, // Absolute maximum
-            'max_terms_per_location': 1 // Only one terminal per window
-        }
-    },
-    // You can also use properties if the user or group object has them
-    // Property matching too:
-    '%user.email=.*liftoffsoftware.com' {
-        'terminal': {}
-    },
-    '%group.whatever=foo': {
-        'terminal' {}
-    }
-}
-"""
+RE_COMMENT = re.compile( # This removes JavaScript-style comments
+    '(^)?[^\S\n]*/(?:\*(.*?)\*/[^\S\n]*|/[^\n]*)($)?',
+    re.DOTALL | re.MULTILINE
+)
+BLANKS = re.compile(r'^\s*$')
 # NOTE about the above:
 #   * I MAY CHANGE ALL OF IT!  Still a work in progress ;)
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
-# The limit stuff below is a work-in-progress.  Likely to change all around.
-SECURITY_CONF_PATH = os.path.join(GATEONE_DIR, 'security.conf')
-SECURITY = {}
-#if not os.path.exists(LIMITS_PATH):
-    #open(LIMITS_PATH, 'w').write(LIMITS_DEFAULTS)
-# Populate the LIMITS dict with all the settings
-#with open(LIMITS_PATH) as limits_conf:
-    #for line in limits_conf:
-        #if not line.strip():
-            #continue # Skip blank lines
-        #elif line.startswith('#'):
-            #continue # Ignore comments
-        #else:
-            #fields = shlex.split(line, comments=True)
-            #domain = fields[0]
-            #application = fields[1]
-            #item = fields[2]
-            #try:
-                #value = fields[3]
-            #except IndexError: # Not all items need values
-                #value = True
-            #if domain not in LIMITS:
-                #LIMITS[domain] = {}
-            #if application not in LIMITS[domain]:
-                #LIMITS[domain][application] = {}
-            #if item not in LIMITS[domain][application]:
-                #LIMITS[domain][application][item] = value
+# The security stuff below is a work-in-progress.  Likely to change all around.
+SECURITY_DIR = os.path.join(GATEONE_DIR, 'security')
+# The default for security is 'allow everything'
+SECURITY = RUDict({
+    '*': {}
+}) # Using an RUDict so that subsequent .conf files can safely override settings
+   # way down the chain without clobbering parent keys/dicts.
+# Combine all .conf files in the 'security' dir into a single dict
+#_security_files = [a for a in os.listdir(SECURITY_DIR) if a.endswith('.conf')]
+#_security_files.sort()
+#for fname in _security_files:
+    ## Use this file to update SECURITY
+    #with open(os.path.join(SECURITY_DIR, fname)) as f:
+        #no_comments = RE_COMMENT.sub('', f.read())
+        ## Remove empty lines so the json parser doesn't complain
+        #proper_json = filter(lambda x: not re.match(BLANKS, x), no_comments)
+        #SECURITY.update(json_decode(proper_json))
+#del _security_files
 
 # Authorization stuff
 def applicable_policies(application, user):
@@ -411,6 +373,38 @@ class NullAuthHandler(BaseAuthHandler):
         session_info.update(user)
         self.set_secure_cookie(
             "gateone_user", tornado.escape.json_encode(session_info))
+
+class APIAuthHandler(BaseAuthHandler):
+    """
+    A handler that always reports 'unauthenticated' since API-based auth doesn't
+    use auth handlers.
+    """
+    @tornado.web.asynchronous
+    def get(self):
+        """
+        Sets the 'user' cookie with a new random session ID (*go_session*) and
+        sets *go_upn* to 'ANONYMOUS'.
+        """
+        check = self.get_argument("check", None)
+        if check:
+            # This lets any origin check if the user has been authenticated
+            # (necessary to prevent "not allowed ..." XHR errors)
+            self.set_header('Access-Control-Allow-Origin', '*')
+            logout = self.get_argument("logout", None)
+            if logout:
+                self.clear_cookie('gateone_user')
+                self.user_logout(user['upn'])
+                return
+            # This takes care of the user's settings dir and their session info
+            self.user_login(user)
+            next_url = self.get_argument("next", None)
+            if next_url:
+                self.redirect(next_url)
+            else:
+                self.redirect(self.settings['url_prefix'])
+        logging.debug('APIAuthHandler: user is NOT authenticated')
+        self.write('unauthenticated')
+        self.finish()
 
 class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
     """
