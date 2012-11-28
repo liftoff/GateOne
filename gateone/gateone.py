@@ -701,8 +701,9 @@ def timeout_sessions(kill_dtach=False):
 
 def cleanup_session_logs(users_dir, max_age):
     """
-    Cleans up all user's session logs older than *max_age* (timedelta) given the
-    *users_dir* (string).  The session log directory is assumed to be:
+    Cleans up all user's session logs (*.golog files) older than *max_age*
+    (timedelta) given the *users_dir* (string).  The session log directory is
+    assumed to be:
 
         *users_dir*/<user>/logs
     """
@@ -714,6 +715,8 @@ def cleanup_session_logs(users_dir, max_age):
             continue
         for log_name in os.listdir(logs_path):
             log_path = os.path.join(logs_path, log_name)
+            if not log_path.endswith('.golog'):
+                continue
             mtime = time.localtime(os.stat(log_path).st_mtime)
             # Convert to a datetime object for easier comparison
             mtime = datetime.fromtimestamp(time.mktime(mtime))
