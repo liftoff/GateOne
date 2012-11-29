@@ -167,7 +167,7 @@ setup(
     url = "http:/liftoffsoftware.com/Products/GateOne",
     author = 'Dan McDougall',
     author_email = 'daniel.mcdougall@liftoffsoftware.com',
-    requires=["tornado (>=2.2)"],
+    requires=["tornado (>=2.4)"],
     provides = ['gateone'],
     data_files = data_files
 )

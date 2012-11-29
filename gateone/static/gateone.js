@@ -201,7 +201,18 @@ GateOne.Icons = {}; // NOTE: The built-in icons are actually at the bottom of th
 GateOne.initialized = false; // Used to detect if we've already called initialize()
 var go = GateOne.Base.update(GateOne, {
     // GateOne internal tracking variables and user functions
-    terminals: {}, // For keeping track of running terminals
+    terminals: {
+        count: function() {
+            // Returns the number of open terminals
+            var counter = 0;
+            for (var term in GateOne.terminals) {
+                if (term % 1 === 0) {
+                    counter += 1;
+                }
+            }
+            return counter;
+        }
+    }, // For keeping track of running terminals
     doingUpdate: false, // Used to prevent out-of-order character events
     ws: null, // Where our WebSocket gets stored
     savePrefsCallbacks: [], // For plugins to use so they can have their own preferences saved when the user clicks "Save" in the Gate One prefs panel
@@ -1270,7 +1281,15 @@ GateOne.Base.update(GateOne.Utils, {
                 var acceptURL = go.prefs.url + 'static/accept_certificate.html',
                     okCallback = function() {
                         // Called when the user clicks OK
-                        window.location.href = acceptURL + '?url=' + window.location.href.replace(/:\/\/(.*@)?/g, '://'+u.randomString(8)+'@');
+                        u.acceptWindow = window.open(acceptURL, 'accept');
+                        u.windowChecker = setInterval(function() {
+                            if (u.acceptWindow.closed) {
+                                // Re-proceed
+                                u.removeElement(tag);
+                                u.loadScript(url, callback);
+                                clearInterval(u.windowChecker);
+                            }
+                        }, 100);
                     }
                 // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
                 GateOne.Visual.alert("SSL Certificate Error", "Click OK to be directed to a page where you can accept the Gate One server's SSL certificate.  If the page doesn't load it means the Gate One server is currently unavailable.", okCallback);

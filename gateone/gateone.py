@@ -1341,6 +1341,7 @@ class TerminalWebSocket(WebSocketHandler):
                                 }
                                 session_info_json = json_encode(self.user)
                                 f.write(session_info_json)
+                        self._current_user = self.user
                     else:
                         logging.error(_(
                             "WebSocket auth failed signature check."))
@@ -1467,8 +1468,8 @@ class TerminalWebSocket(WebSocketHandler):
 
     def new_multiplex(self, cmd, term_id, logging=True):
         """
-        Returns a new instance of :py:class:`termio.Multiplex` with the proper global and
-        client-specific settings.
+        Returns a new instance of :py:class:`termio.Multiplex` with the proper
+        global and client-specific settings.
 
             * *cmd* - The command to execute inside of Multiplex.
             * *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).
@@ -2858,6 +2859,13 @@ def main():
                "before it is removed."),
         type=str
     )
+    define(
+        "api_keys",
+        default="",
+        help=_("The 'key:secret,...' API key pairs you wish to use (only "
+               "applies if using API authentication)"),
+        type=str
+    )
     # Before we do anythong else, load plugins and assign their hooks.  This
     # allows plugins to add their own define() statements/options.
     imported = load_plugins(PLUGINS['py'])
@@ -3033,17 +3041,13 @@ def main():
         options.dtach = False
     # Turn our API keys into a dict
     api_keys = {}
-    with open(options.config) as f:
-        for line in f.readlines():
-            if line.startswith("api_keys"):
-                values = line.split('=')[1].strip().strip('"').strip("'")
-                pairs = values.split(',')
-                for pair in pairs:
-                    api_key, secret = pair.split(':')
-                    if bytes == str:
-                        api_key = api_key.decode('UTF-8')
-                        secret = secret.decode('UTF-8')
-                    api_keys.update({api_key: secret})
+    if options.api_keys:
+        for pair in options.api_keys.split(','):
+            api_key, secret = pair.split(':')
+            if bytes == str:
+                api_key = api_key.decode('UTF-8')
+                secret = secret.decode('UTF-8')
+            api_keys.update({api_key: secret})
     # Fix the url_prefix if the user forgot the trailing slash
     if not options.url_prefix.endswith('/'):
         options.url_prefix += '/'
@@ -3059,6 +3063,7 @@ def main():
     app_settings = {
         'gateone_dir': GATEONE_DIR, # Only here so plugins can reference it
         'debug': options.debug,
+        'command': options.command,
         'cookie_secret': options.cookie_secret,
         'auth': none_fix(options.auth),
         'api_timestamp_window': api_timestamp_window,

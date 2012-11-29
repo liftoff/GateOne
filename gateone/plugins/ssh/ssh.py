@@ -166,6 +166,7 @@ def open_sub_channel(term, tws):
     ssh = which('ssh')
     ssh_command = '%s -x -S%s -F%s go_ssh_remote_cmd' % (
         ssh, socket_path, ssh_config_path)
+    logging.debug("ssh_command: %s" % ssh_command)
     OPEN_SUBCHANNELS[term] = m = tws.new_multiplex(
         ssh_command, "%s (sub)" % term)
     # Using huge numbers here so we don't miss much (if anything) if the user
