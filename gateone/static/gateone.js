@@ -684,7 +684,7 @@ var go = GateOne.Base.update(GateOne, {
             }
         }
         goDiv.addEventListener(mousewheelevt, wheelFunc, true);
-        var onResizeEvent = function(e) {
+        go.onResizeEvent = function(e) {
             // Update the Terminal if it is resized
             if (go.resizeEventTimer) {
                 clearTimeout(go.resizeEventTimer);
@@ -729,7 +729,7 @@ var go = GateOne.Base.update(GateOne, {
                 u.scrollToBottom(termPre);
             }, 750);
         }
-        window.onresize = onResizeEvent;
+        window.addEventListener('resize', go.onResizeEvent, false);
         // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
         go.Events.on("panel_toggle:in", updateCSSfunc);
 //         if (!go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']) {
@@ -1922,7 +1922,6 @@ GateOne.Input.handledKeystroke = false;
 GateOne.Input.handlingPaste = false;
 GateOne.Input.automaticBackspace = true; // This controls whether or not we'll try to automatically switch between ^H and ^?
 GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.  They will end up looking like this:
-// 'KEY_N': [{'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'}]
 GateOne.Base.update(GateOne.Input, {
     // GateOne.Input is in charge of all keyboard input as well as copy & paste stuff
     onMouseDown: function(e) {
@@ -4490,9 +4489,13 @@ go.Base.update(GateOne.Terminal, {
         return null;
     },
     applyScreen: function(screen, term) {
-        // Uses *screen* (array of HTML-formatted lines) to update *term*
-        // If *term* isn't given, will use localStorage[prefix+selectedTerminal]
-        // NOTE:  Lines in *screen* that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line)
+        /**:GateOne.Terminal.applyScreen(screen, term)
+
+        Uses *screen* (array of HTML-formatted lines) to update *term*
+        If *term* isn't given, will use localStorage[prefix+selectedTerminal]
+
+        .. note::  Lines in *screen* that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line).
+        */
         var u = GateOne.Utils,
             prefix = GateOne.prefs.prefix,
             existingPre = GateOne.terminals[term]['node'],
@@ -4683,8 +4686,7 @@ go.Base.update(GateOne.Terminal, {
                 setTimeout(function() {
                     // This is wrapped in a long timeout to allow the browser to finish drawing everything (especially the scroll bars)
                     if (!GateOne.Terminal.scrollbarWidth) { // Only need to do this once
-                        var emDimensions = u.getEmDimensions(GateOne.prefs.goDiv),
-                            pre = (existingPre || termPre); // Whatever was used in the code above
+                        var pre = (existingPre || termPre); // Whatever was used in the code above
                         GateOne.Terminal.scrollbarWidth = pre.offsetWidth - pre.clientWidth;
                         if (GateOne.prefs.showToolbar) {
                             // Normalize the toolbar's position
