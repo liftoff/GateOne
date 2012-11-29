@@ -697,13 +697,22 @@ var go = GateOne.Base.update(GateOne, {
                     termPre = terminalObj['node'],
                     screenNode = terminalObj['screenNode'],
                     emHeight = u.getEmDimensions(goDiv).h;
-                if (goDiv.style.display != "none") {
+                if (u.isVisible(termPre)) {
                     go.Visual.updateDimensions();
-                    for (term in GateOne.terminals) {
-                        if (term % 1 === 0) {
+                    for (var termObj in GateOne.terminals) {
+                        if (termObj % 1 === 0) { // Actual terminal objects are integers
                             go.Net.sendDimensions(term);
                         }
                     };
+                    setTimeout(function() {
+                        var parentHeight = termPre.parentElement.clientHeight;
+                        if (parentHeight) {
+                            termPre.style.height = (parentHeight - go.terminals[term]['heightAdjust']) + 'px';
+                        } else {
+                            termPre.style.height = "100%";
+                        }
+                    }, 100);
+
                 }
                 // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
                 if (!go.prefs.embedded) {
@@ -716,7 +725,7 @@ var go = GateOne.Base.update(GateOne, {
                             var transform = "translateY(-" + distance + "px)";
                             go.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
                         }
-                    }, 500);
+                    }, 1000);
                 }
                 if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
                     var nodeHeight = screenNode.getClientRects()[0].top;
@@ -1666,6 +1675,9 @@ GateOne.Base.update(GateOne.Net, {
         }
     },
     sendDimensions: function(term, /*opt*/ctrl_l) {
+        /**GateOne.Net.sendDimensions(term, ctrl_l)
+        Sends the current terminal's dimensions to the server.
+        */
         logDebug('sendDimensions(' + term + ', ' + ctrl_l + ')');
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
@@ -1720,6 +1732,9 @@ GateOne.Base.update(GateOne.Net, {
         }
         errorElem.innerHTML = message;
         u.getNode(go.prefs.goDiv).appendChild(errorElem);
+        // Fire a connection_error event.  Primarily so developers can get a new/valid API authentication object.
+        // For reference, to reset the auth object just assign it:  GateOne.prefs.auth = <your auth object>
+        go.Events.trigger("connection_error");
         setTimeout(go.Net.connect, 5000);
     },
     sslError: function(callback) {
@@ -2832,7 +2847,10 @@ GateOne.Base.update(GateOne.Visual, {
         go.Net.addAction('notice', go.Visual.serverMessageAction);
         go.Net.addAction('load_css', go.Visual.CSSPluginAction);
     },
-    updateDimensions: function() { // Sets GateOne.Visual.goDimensions to the current width/height of prefs.goDiv
+    updateDimensions: function() {
+        /**GateOne.Visual.updateDimensions()
+        Sets GateOne.Visual.goDimensions to the current width/height of prefs.goDiv
+        */
         var u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),

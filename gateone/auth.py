@@ -385,6 +385,8 @@ class APIAuthHandler(BaseAuthHandler):
         Sets the 'user' cookie with a new random session ID (*go_session*) and
         sets *go_upn* to 'ANONYMOUS'.
         """
+        # Get rid of the cookie no matter what (API auth doesn't use cookies)
+        self.clear_cookie('gateone_user')
         check = self.get_argument("check", None)
         if check:
             # This lets any origin check if the user has been authenticated
@@ -392,7 +394,6 @@ class APIAuthHandler(BaseAuthHandler):
             self.set_header('Access-Control-Allow-Origin', '*')
             logout = self.get_argument("logout", None)
             if logout:
-                self.clear_cookie('gateone_user')
                 self.user_logout(user['upn'])
                 return
             # This takes care of the user's settings dir and their session info
