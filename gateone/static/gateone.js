@@ -256,7 +256,7 @@ var go = GateOne.Base.update(GateOne, {
                 if (response == 'authenticated') {
                     // Connect (GateOne.initialize() will be called after the connection is made)
                     logDebug("GateOne.init() calling GateOne.Net.connect()");
-                    go.Net.connect();
+                    go.Net.connect(callback);
                 } else {
                     // Regular auth.  Clear the cookie and redirect the user...
                     GateOne.Net.reauthenticate();
@@ -368,7 +368,7 @@ var go = GateOne.Base.update(GateOne, {
             if (go.prefs.auth) {
                 // API authentication doesn't need to use the /auth URL.
                 logDebug("Using API authentiation object: " + go.prefs.auth);
-                go.Net.connect();
+                go.Net.connect(callback);
             } else {
                 // Check if we're authenticated after all the scripts are done loading
                 u.xhrGet(authCheck, parseResponse);
