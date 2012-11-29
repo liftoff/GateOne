@@ -755,11 +755,12 @@ var go = GateOne.Base.update(GateOne, {
         go.Input.capture();
         document.addEventListener(visibilityChange, go.Input.handleVisibility, false);
         goDiv.addEventListener('blur', go.Input.disableCapture, false); // So we don't end up stealing input from something else on the page
-        GateOne.initialized = true;
+        go.initialized = true;
+        go.Events.trigger("initialized");
         setTimeout(function() {
             // Make sure all the panels have their style set to 'display:none' to prevent their form elements from gaining focus when the user presses the tab key (only matters when a dialog or other panel is open)
             u.hideElements(go.prefs.goDiv+' .panel');
-        },500);
+        }, 500);
     }
 });
 
@@ -1785,10 +1786,7 @@ GateOne.Base.update(GateOne.Net, {
         logDebug("GateOne.Net.connect(" + go.wsURL + ")");
         go.ws = new WebSocket(go.wsURL); // For reference, I already tried Socket.IO and custom implementations of long-held HTTP streams...  Only WebSockets provide low enough latency for real-time terminal interaction.  All others were absolutely unacceptable in real-world testing (especially Flash-based...  Wow, really surprised me how bad it was).
         go.ws.onopen = function(evt) {
-            go.Net.onOpen();
-            if (callback) {
-                callback();
-            }
+            go.Net.onOpen(callback);
         }
         go.ws.onclose = function(evt) {
             // Connection to the server was lost
@@ -1809,7 +1807,7 @@ GateOne.Base.update(GateOne.Net, {
         }
         return go.ws;
     },
-    onOpen: function() {
+    onOpen: function(/*opt*/callback) {
         logDebug("onOpen()");
         var u = go.Utils,
             prefix = go.prefs.prefix,
@@ -1859,6 +1857,9 @@ GateOne.Base.update(GateOne.Net, {
                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
                 }, 4000);
                 go.initialize();
+                if (callback) {
+                    callback();
+                }
             }, 100);
         }
     },
@@ -4782,8 +4783,10 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
             // Excute any registered callbacks
+            GateOne.Events.trigger("term_updated", term);
             if (GateOne.Terminal.updateTermCallbacks.length) {
                 for (var i=0; i<GateOne.Terminal.updateTermCallbacks.length; i++) {
+                    GateOne.Logging.deprecated("updateTermCallbacks", "Use GateOne.Events.on('term_updated', func) instead.");
                     GateOne.Terminal.updateTermCallbacks[i](term);
                 }
             }
@@ -5182,6 +5185,7 @@ go.Base.update(GateOne.Terminal, {
         // Excute any registered callbacks (DEPRECATED: Use GateOne.Events.on("new_terminal", <callback>) instead)
         if (go.Terminal.newTermCallbacks.length) {
             go.Terminal.newTermCallbacks.forEach(function(callback) {
+                go.Logging.deprecated("updateTermCallbacks", "Use GateOne.Events.on('new_terminal', func) instead.");
                 callback(term);
             });
         }
@@ -5216,8 +5220,10 @@ go.Base.update(GateOne.Terminal, {
             lastTerm = termObj;
         });
         // Excute any registered callbacks
+        go.Events.trigger("term_closed", term);
         if (go.Terminal.closeTermCallbacks.length) {
             go.Terminal.closeTermCallbacks.forEach(function(callback) {
+                go.Logging.deprecated("closeTermCallbacks", "Use GateOne.Events.on('term_closed', func) instead.");
                 callback(term);
             });
         }

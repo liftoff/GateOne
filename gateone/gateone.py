@@ -944,8 +944,8 @@ class JSPluginsHandler(BaseHandler):
         # having to accept the SSL certificate:
         self.set_header('Access-Control-Allow-Origin', '*')
         plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
-        static_dir = os.path.join(GATEONE_DIR, "static")
-        combined_plugins = os.path.join(static_dir, "combined_plugins.js")
+        session_dir = self.settings['session_dir']
+        combined_plugins = os.path.join(session_dir, "combined_plugins.js")
         if os.path.exists(combined_plugins):
             with open(combined_plugins) as f:
                 js_data = f.read()
@@ -962,8 +962,8 @@ class JSPluginsHandler(BaseHandler):
         Combines all plugin .js files into one (combined_plugins.js)
         """
         plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
-        static_dir = os.path.join(GATEONE_DIR, "static")
-        combined_plugins = os.path.join(static_dir, "combined_plugins.js")
+        session_dir = self.settings['session_dir']
+        combined_plugins = os.path.join(session_dir, "combined_plugins.js")
         out = ""
         for js_plugin in plugins['js']:
             js_path = os.path.join(GATEONE_DIR, js_plugin.lstrip('/'))

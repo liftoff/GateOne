@@ -39,9 +39,6 @@ templates_dir = os.path.join(setup_dir, 'gateone', 'templates')
 docs_dir = os.path.join(setup_dir, 'gateone', 'docs')
 tests_dir = os.path.join(setup_dir, 'gateone', 'tests')
 i18n_dir = os.path.join(setup_dir, 'gateone', 'i18n')
-combined_js = os.path.join(static_dir, 'combined_plugins.js')
-with open(combined_js, 'w') as f:
-    f.write('// This forces the file to be recreated')
 
 if POSIX:
     prefix = '/opt'
