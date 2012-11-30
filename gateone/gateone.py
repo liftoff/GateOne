@@ -329,6 +329,8 @@ PLUGIN_WS_CMDS = {} # Gives plugins the ability to extend/enhance TerminalWebSoc
 PLUGIN_HOOKS = {} # Gives plugins the ability to hook into various things.
 PLUGIN_AUTH_HOOKS = [] # For plugins to register functions to be called after a
                        # user successfully authenticates
+PLUGIN_ENV_HOOKS = {} # Allows plugins to add environment variables that will be
+                      # available to all executed commands.
 # Gate One registers a handler for for terminal.py's CALLBACK_OPT special escape
 # sequence callback.  Whenever this escape sequence is encountered, Gate One
 # will parse the sequence's contained characters looking for the following
@@ -1658,6 +1660,9 @@ class TerminalWebSocket(WebSocketHandler):
                 'GO_SESSION': self.session,
                 'GO_SESSION_DIR': session_dir
             }
+            if PLUGIN_ENV_HOOKS:
+                # This allows plugins to add/override environment variables
+                env.update(PLUGIN_ENV_HOOKS)
             m.spawn(rows, cols, env=env, em_dimensions=self.em_dimensions)
             # Give the terminal emulator a path to store temporary files
             m.term.temppath = os.path.join(session_dir, 'downloads')
@@ -2414,6 +2419,7 @@ class Application(tornado.web.Application):
         global PLUGIN_TERM_HOOKS
         global PLUGIN_NEW_TERM_HOOKS
         global PLUGIN_NEW_MULTIPLEX_HOOKS
+        global PLUGIN_ENV_HOOKS
         # Base settings for our Tornado app
         static_url = os.path.join(GATEONE_DIR, "static")
         tornado_settings = dict(
@@ -2522,6 +2528,8 @@ class Application(tornado.web.Application):
                     PLUGIN_NEW_TERM_HOOKS.extend(hooks['TermInstance'])
                 else:
                     PLUGIN_NEW_TERM_HOOKS.append(hooks['TermInstance'])
+            if 'Environment' in hooks:
+                PLUGIN_ENV_HOOKS.update(hooks['Environment'])
             if 'Init' in hooks:
                 # Call the plugin's initialization functions
                 hooks['Init'](tornado_settings)

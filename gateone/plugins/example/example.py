@@ -222,5 +222,8 @@ hooks = {
         'example_action': example_websocket_action
     },
     'Escape': example_opt_esc_handler,
+    'Environment': {
+        'EXAMPLE_VAR': 'This was set via the Example plugin'
+    }
     #'Auth': some_post_authentication_function
 }
