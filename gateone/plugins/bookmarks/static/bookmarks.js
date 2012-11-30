@@ -5,27 +5,30 @@ var document = window.document; // Have to do this because we're sandboxed
 "use strict";
 
 // Useful sandbox-wide stuff
-var noop = GateOne.Utils.noop;
-var months = {
-    '0': 'JAN',
-    '1': 'FEB',
-    '2': 'MAR',
-    '3': 'APR',
-    '4': 'MAY',
-    '5': 'JUN',
-    '6': 'JUL',
-    '7': 'AUG',
-    '8': 'SEP',
-    '9': 'OCT',
-    '10': 'NOV',
-    '11': 'DEC'
-}
+var go = GateOne,
+    u = go.Utils,
+    prefix = go.prefs.prefix,
+    noop = u.noop,
+    months = {
+        '0': 'JAN',
+        '1': 'FEB',
+        '2': 'MAR',
+        '3': 'APR',
+        '4': 'MAY',
+        '5': 'JUN',
+        '6': 'JUL',
+        '7': 'AUG',
+        '8': 'SEP',
+        '9': 'OCT',
+        '10': 'NOV',
+        '11': 'DEC'
+    };
 // Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = noop;
-var logError = noop;
-var logWarning = noop;
-var logInfo = noop;
-var logDebug = noop;
+var logFatal = noop,
+    logError = noop,
+    logWarning = noop,
+    logInfo = noop,
+    logDebug = noop;
 
 // TODO: Add the ability to have Search bookmarks for query types that use POST instead of GET
 // TODO: Make it so you can have a bookmark containing multiple URLs.  So they all get opened at once when you open it.
@@ -33,23 +36,20 @@ var logDebug = noop;
 // TODO: Add hooks that allow other plugins to attach actions to be called before and after bookmarks are executed.
 
 // GateOne.Bookmarks (bookmark management functions)
-GateOne.Base.module(GateOne, "Bookmarks", "1.0", ['Base']);
-GateOne.Bookmarks.bookmarks = [];
-GateOne.Bookmarks.tags = [];
-GateOne.Bookmarks.sortToggle = false;
-GateOne.Bookmarks.searchFilter = null;
-GateOne.Bookmarks.page = 0; // Used to tracking pagination
-GateOne.Bookmarks.dateTags = [];
-GateOne.Bookmarks.URLTypeTags = [];
-GateOne.Bookmarks.toUpload = []; // Used for tracking what needs to be uploaded to the server
-GateOne.Bookmarks.loginSync = true; // Makes sure we don't display "Synchronization Complete" if the user just logged in (unless it is the first time).
-GateOne.Bookmarks.temp = ""; // Just a temporary holding space for things like drag & drop
-GateOne.Base.update(GateOne.Bookmarks, {
+go.Base.module(GateOne, "Bookmarks", "1.0", ['Base']);
+go.Bookmarks.bookmarks = [];
+go.Bookmarks.tags = [];
+go.Bookmarks.sortToggle = false;
+go.Bookmarks.searchFilter = null;
+go.Bookmarks.page = 0; // Used to tracking pagination
+go.Bookmarks.dateTags = [];
+go.Bookmarks.URLTypeTags = [];
+go.Bookmarks.toUpload = []; // Used for tracking what needs to be uploaded to the server
+go.Bookmarks.loginSync = true; // Makes sure we don't display "Synchronization Complete" if the user just logged in (unless it is the first time).
+go.Bookmarks.temp = ""; // Just a temporary holding space for things like drag & drop
+go.Base.update(GateOne.Bookmarks, {
     init: function() {
-        var go = GateOne,
-            u = go.Utils,
-            b = go.Bookmarks,
-            prefix = go.prefs.prefix,
+        var b = go.Bookmarks,
             goDiv = u.getNode(go.prefs.goDiv),
             toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': 'toolbar', 'title': "Bookmarks"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
@@ -125,10 +125,11 @@ GateOne.Base.update(GateOne.Bookmarks, {
             go.Input.registerShortcut('KEY_B', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': toggleBookmarks});
         }
         // Setup a callback that synchronizes the user's bookmarks after they login
-        go.User.userLoginCallbacks.push(function(username) {
-            var USN = localStorage[prefix+'USN'] || 0;
-            go.ws.send(JSON.stringify({'bookmarks_get': USN}));
-        });
+        go.Events.on("user_login", b.userLoginSync);
+    },
+    userLoginSync: function(username) {
+        var USN = localStorage[prefix+'USN'] || 0;
+        go.ws.send(JSON.stringify({'bookmarks_get': USN}));
     },
     sortFunctions: {
         visits: function(a,b) {

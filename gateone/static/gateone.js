@@ -215,7 +215,7 @@ var go = GateOne.Base.update(GateOne, {
     }, // For keeping track of running terminals
     doingUpdate: false, // Used to prevent out-of-order character events
     ws: null, // Where our WebSocket gets stored
-    savePrefsCallbacks: [], // For plugins to use so they can have their own preferences saved when the user clicks "Save" in the Gate One prefs panel
+    savePrefsCallbacks: [], // DEPRECATED: For plugins to use so they can have their own preferences saved when the user clicks "Save" in the Gate One prefs panel
     restoreDefaults: function() {
         // Restores all of Gate One's prefs to default values
         GateOne.prefs = { // Tunable prefs (things users can change)
@@ -741,10 +741,6 @@ var go = GateOne.Base.update(GateOne, {
         window.addEventListener('resize', go.onResizeEvent, false);
         // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
         go.Events.on("panel_toggle:in", updateCSSfunc);
-//         if (!go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']) {
-//             go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs'] = {};
-//         }
-//         go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_prefs']['updateCSS'] = updateCSSfunc;
         // Make sure the termwrapper is the proper width for 2 columns
         go.Visual.updateDimensions();
         // This calls plugins init() and postInit() functions:
@@ -1601,7 +1597,7 @@ GateOne.Base.update(GateOne.Utils, {
 GateOne.Base.module(GateOne, 'Net', '1.1', ['Base', 'Utils']);
 GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
 GateOne.Net.connectionSuccess = false; // Gets set after we connect successfully at least once
-GateOne.Net.sendDimensionsCallbacks = []; // A hook plugins can use if they want to call something whenever the terminal dimensions change
+GateOne.Net.sendDimensionsCallbacks = []; // DEPRECATED: A hook plugins can use if they want to call something whenever the terminal dimensions change
 GateOne.Base.update(GateOne.Net, {
     sendChars: function() {
         // pop()s out the current charBuffer and sends it to the server.
@@ -1708,6 +1704,7 @@ GateOne.Base.update(GateOne.Net, {
         go.Events.trigger("send_dimensions", term);
         // sendDimensionsCallbacks is DEPRECATED.  Use GateOne.Events.on("send_dimensions", yourFunc) instead
         if (GateOne.Net.sendDimensionsCallbacks.length) {
+            go.Logging.deprecated("sendDimensionsCallbacks", "Use GateOne.Events.on('send_dimensions', func) instead.");
             for (var i=0; i<GateOne.Net.sendDimensionsCallbacks.length; i++) {
                 GateOne.Net.sendDimensionsCallbacks[i](term);
             }
@@ -2810,7 +2807,7 @@ GateOne.Base.module(GateOne, 'Visual', '1.1', ['Base', 'Net', 'Utils']);
 GateOne.Visual.scrollbackToggle = false;
 GateOne.Visual.gridView = false;
 GateOne.Visual.goDimensions = {};
-GateOne.Visual.panelToggleCallbacks = {'in': {}, 'out': {}};
+GateOne.Visual.panelToggleCallbacks = {'in': {}, 'out': {}}; // DEPRECATED
 GateOne.Visual.lastMessage = '';
 GateOne.Visual.sinceLastMessage = new Date();
 GateOne.Visual.hidePanelsTimeout = {}; // Used by togglePanel() to keep track of which panels have timeouts
@@ -4190,13 +4187,13 @@ var logFatal = go.Utils.noop,
 go.Base.module(GateOne, "Terminal", "1.1", ['Base', 'Utils', 'Visual']);
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
-go.Terminal.updateTermCallbacks = [];
+go.Terminal.updateTermCallbacks = []; // DEPRECATED
 // All defined newTermCallbacks are executed whenever a new terminal is created like so: callback(<term number>)
-go.Terminal.newTermCallbacks = [];
+go.Terminal.newTermCallbacks = []; // DEPRECATED
 // All defined closeTermCallbacks are executed whenever a terminal is closed just like newTermCallbacks:  callback(<term number>)
-go.Terminal.closeTermCallbacks = [];
+go.Terminal.closeTermCallbacks = []; // DEPRECATED
 // All defined reattachTerminalsCallbacks are executed whenever the reattachTerminalsAction is called.  It is important to register a callback here when in embedded mode (if you want to place terminals in a specific location).
-go.Terminal.reattachTerminalsCallbacks = [];
+go.Terminal.reattachTerminalsCallbacks = []; // DEPRECATED
 go.Terminal.termSelectCallback = null; // Gets assigned in switchTerminal if not already.  Can be used to override the default termimnal switching animation function (GateOne.Visual.slideToTerm)
 go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into clickable links).  Use registerTextTransform() to add new ones.
 go.Terminal.lastTermNumber = 0; // Starts at 0 since newTerminal() increments it by 1
@@ -4659,7 +4656,7 @@ go.Base.update(GateOne.Terminal, {
                                 // In embedded mode this kind of adjustment can be unreliable
                                 GateOne.Visual.applyTransform(termPre, ''); // Need to reset before we do the calculation
                                 GateOne.terminals[term]['heightAdjust'] = 0; // Have to set this as a default value for new terminals
-                                // Feel free to put something like this in updateTermCallbacks if you want.
+                                // Feel free to attach something like this to the "term_updated" event if you want.
                                 if (GateOne.Utils.isVisible(termPre)) {
                                     // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
                                     setTimeout(function() {
@@ -4785,8 +4782,8 @@ go.Base.update(GateOne.Terminal, {
             // Excute any registered callbacks
             GateOne.Events.trigger("term_updated", term);
             if (GateOne.Terminal.updateTermCallbacks.length) {
+                GateOne.Logging.deprecated("updateTermCallbacks", "Use GateOne.Events.on('term_updated', func) instead.");
                 for (var i=0; i<GateOne.Terminal.updateTermCallbacks.length; i++) {
-                    GateOne.Logging.deprecated("updateTermCallbacks", "Use GateOne.Events.on('term_updated', func) instead.");
                     GateOne.Terminal.updateTermCallbacks[i](term);
                 }
             }
@@ -5184,8 +5181,8 @@ go.Base.update(GateOne.Terminal, {
         }
         // Excute any registered callbacks (DEPRECATED: Use GateOne.Events.on("new_terminal", <callback>) instead)
         if (go.Terminal.newTermCallbacks.length) {
+            go.Logging.deprecated("newTermCallbacks", "Use GateOne.Events.on('new_terminal', func) instead.");
             go.Terminal.newTermCallbacks.forEach(function(callback) {
-                go.Logging.deprecated("updateTermCallbacks", "Use GateOne.Events.on('new_terminal', func) instead.");
                 callback(term);
             });
         }
@@ -5283,11 +5280,15 @@ go.Base.update(GateOne.Terminal, {
         GateOne.Terminal.closeTerminal(term, null, message);
     },
     reattachTerminalsAction: function(terminals){
-        // Called after we authenticate to the server...
-        // If we're reconnecting to an existing session, running terminals will be recreated/reattached.
-        // If this is a new session, a new terminal will be created.
+        /**GateOne.Terminal.reattachTerminalsAction(terminals)
+
+        Called after we authenticate to the server, this function is attached to the 'terminals' WebSocket action which is the server's way of notifying the client that there are existing terminals.
+        If we're reconnecting to an existing session, running terminals will be recreated/reattached.
+        If this is a new session (and we're not in embedded mode), a new terminal will be created.
+        */
         var u = go.Utils,
-            prefix = go.prefs.prefix;
+            prefix = go.prefs.prefix,
+            reattachCallbacks = false;
         logDebug("reattachTerminalsAction() terminals: " + terminals);
         // Clean up localStorage
         for (var key in localStorage) {
@@ -5300,7 +5301,10 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
         }
-        if (!go.prefs.embedded && go.Terminal.reattachTerminalsCallbacks.length == 0) { // Only perform the default action if not in embedded mode and there are no registered reattachTerminalsCallbacks callbacks.
+        if (go.Terminal.reattachTerminalsCallbacks.length || "term_reattach" in go.Events.callbacks) {
+            reattachCallbacks = true;
+        }
+        if (!go.prefs.embedded && !reattachCallbacks) { // Only perform the default action if not in embedded mode and there are no registered reattach callbacks.
             if (terminals.length) {
                 // Reattach the running terminals
                 var selectedMatch = false;
@@ -5324,7 +5328,9 @@ go.Base.update(GateOne.Terminal, {
                 }, 1000); // Give everything a moment to settle so the dimensions are set properly
             }
         }
+        go.Events.trigger("term_reattach", terminals);
         if (go.Terminal.reattachTerminalsCallbacks.length) {
+            go.Logging.deprecated("reattachTerminalsCallbacks", "Use GateOne.Events.on('term_reattach', func) instead.");
             // Call any registered callbacks
             go.Terminal.reattachTerminalsCallbacks.forEach(function(callback) {
                 callback(terminals);
@@ -5430,12 +5436,14 @@ GateOne.Base.update(GateOne.User, {
             prefix = go.prefs.prefix,
             prefsPanelUserID = u.getNode('#'+prefix+'user_info_id');
         logDebug("setUsername(" + username + ")");
-        GateOne.User.username = username;
+        go.User.username = username;
         if (prefsPanelUserID) {
             prefsPanelUserID.innerHTML = username + " ";
         }
+        go.Events.trigger("user_login", username);
         if (go.User.userLoginCallbacks.length) {
             // Call any registered callbacks
+            go.Logging.deprecated("userLoginCallbacks", "Use GateOne.Events.on('user_login', func) instead.");
             go.User.userLoginCallbacks.forEach(function(callback) {
                 callback(username);
             });
@@ -5458,6 +5466,7 @@ GateOne.Base.update(GateOne.User, {
         } else {
             redirectURL = '';
         }
+        go.Events.trigger("user_logout", go.User.username);
         // NOTE: This takes care of deleting the "user" cookie
         u.xhrGet(go.prefs.url+'auth?logout=True&redirect='+redirectURL, function(response) {
             logDebug("Logout Response: " + response);
@@ -5554,7 +5563,7 @@ GateOne.Events.callbacks = {};
 GateOne.Base.update(GateOne.Events, {
     /**:GateOne.Events
 
-    An object for event-specific stuff.  Modeled after Backbone.js Events (but with different patterns).
+    An object for event-specific stuff.  Inspired by Backbone.js Events.
     */
     init: {
         // Nothing here yet :)

@@ -58,12 +58,24 @@ GateOne.Base.update(GateOne.SSH, {
             infoPanel.appendChild(prefsPanelKnownHosts);
             go.SSH.createKHPanel();
         }
-        // Connect to the given ssh:// URL if we were given an 'ssh' query string variable
+        // Connect to the given ssh:// URL if we were given an 'ssh' query string variable (e.g. https://gateone/ssh?ssh://whatever:22)
         if (sshQueryString) {
-            var connect = function(term) {
-                go.Net.sendString(sshQueryString + '\n', term);
+            // Perform a bit of validation so someone can't be tricked into going to a malicious URL
+            if (!sshQueryString.match(/[\$\n\!\;&` |<>]/)) { // Check for bad characters
+                if (u.startsWith('ssh://', sshQueryString) || u.startsWith('telnet://', sshQueryString)) {
+                    var connect = function(term) {
+                        // This ensures that we only send this string if it's a new terminal
+                        if (GateOne.terminals[term]['title'] == 'Gate One') {
+                            go.Net.sendString(sshQueryString + '\n', term);
+                        }
+                    }
+                    go.Events.on("new_terminal", connect);
+                } else {
+                    logError("SSH Plugin:  ssh query string must start with ssh:// or telnet:// (e.g. ssh=ssh://)");
+                }
+            } else {
+                logError("Bad characters in ssh query string: " + sshQueryString.match(/[\$\n\!\;&` |<>]/));
             }
-            go.Terminal.newTermCallbacks.push(connect);
         }
         // Setup a callback that runs disableCapture() whenever the panel is opened
         if (!GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_ssh_ids']) {
@@ -85,7 +97,7 @@ GateOne.Base.update(GateOne.SSH, {
         go.Net.addAction('sshjs_delete_identity_complete', go.SSH.deleteCompleteAction);
         go.Net.addAction('sshjs_cmd_output', go.SSH.commandCompleted);
         go.Net.addAction('sshjs_ask_passphrase', go.SSH.enterPassphraseAction);
-        go.Terminal.newTermCallbacks.push(go.SSH.getConnectString);
+        go.Events.on("new_terminal", go.SSH.getConnectString);
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
         }
@@ -970,7 +982,6 @@ GateOne.Base.update(GateOne.SSH, {
             E.once("new_terminal", connectFunc);
         }
         go.Terminal.newTerminal();
-
     },
     updateKH: function(known_hosts) {
         // Updates the sshKHTextArea with the given *known_hosts* file.

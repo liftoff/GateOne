@@ -2,29 +2,35 @@
 (function(window, undefined) {
 var document = window.document; // Have to do this because we're sandboxed
 
+// Useful sandbox-wide stuff
+var go = GateOne,
+    u = go.Utils,
+    prefix = go.prefs.prefix,
+    noop = u.noop;
+
 // Tunable playback prefs
-if (!GateOne.prefs.playbackFrames) {
-    GateOne.prefs.playbackFrames = 75; // Maximum number of session recording frames to store (in memory--for now)
+if (!go.prefs.playbackFrames) {
+    go.prefs.playbackFrames = 75; // Maximum number of session recording frames to store (in memory--for now)
 }
 // Let folks embedding Gate One skip loading the playback controls
-if (typeof(GateOne.prefs.showPlaybackControls) == "undefined") {
-    GateOne.prefs.showPlaybackControls = true;
+if (typeof(go.prefs.showPlaybackControls) == "undefined") {
+    go.prefs.showPlaybackControls = true;
 }
 // Don't want the client saving this
-GateOne.noSavePrefs['showPlaybackControls'] = null;
+go.noSavePrefs['showPlaybackControls'] = null;
 
 // GateOne.Playback
-GateOne.Base.module(GateOne, 'Playback', '1.1', ['Base', 'Net', 'Logging']);
-GateOne.Playback.clockElement = null; // Set with a global scope so we don't have to keep looking it up every time the clock is updated
-GateOne.Playback.progressBarElement = null; // Set with a global scope so we don't have to keep looking it up every time we update a terminal
-GateOne.Playback.progressBarMouseDown = false;
-GateOne.Playback.clockUpdater = null; // Will be a timer
-GateOne.Playback.frameUpdater = null; // Ditto
-GateOne.Playback.milliseconds = 0;
-GateOne.Playback.frameRate = 15; // Approximate
-GateOne.Playback.frameInterval = Math.round(1000/GateOne.Playback.frameRate); // Needs to be converted to ms
-GateOne.Playback.frameObj = {'screen': null, 'time': null}; // Used to prevent garbage from building up
-GateOne.Base.update(GateOne.Playback, {
+go.Base.module(GateOne, 'Playback', '1.1', ['Base', 'Net', 'Logging']);
+go.Playback.clockElement = null; // Set with a global scope so we don't have to keep looking it up every time the clock is updated
+go.Playback.progressBarElement = null; // Set with a global scope so we don't have to keep looking it up every time we update a terminal
+go.Playback.progressBarMouseDown = false;
+go.Playback.clockUpdater = null; // Will be a timer
+go.Playback.frameUpdater = null; // Ditto
+go.Playback.milliseconds = 0;
+go.Playback.frameRate = 15; // Approximate
+go.Playback.frameInterval = Math.round(1000/go.Playback.frameRate); // Needs to be converted to ms
+go.Playback.frameObj = {'screen': null, 'time': null}; // Used to prevent garbage from building up
+go.Base.update(GateOne.Playback, {
     init: function() {
         var go = GateOne,
             u = go.Utils,
@@ -54,11 +60,11 @@ GateOne.Base.update(GateOne.Playback, {
             go.prefs.rowAdjust += 1;
         }
         // Add our callback that adds an extra newline to all terminals
-        go.Terminal.newTermCallbacks.push(p.newTerminalCallback);
+        go.Events.on("new_terminal", p.newTerminalCallback);
         // This makes sure our playback frames get added to the terminal object whenever the screen is updated
-        go.Terminal.updateTermCallbacks.push(p.pushPlaybackFrame);
+        go.Events.on("term_updated", p.pushPlaybackFrame);
         // This makes sure our prefs get saved along with everything else
-        go.savePrefsCallbacks.push(p.savePrefsCallback);
+        go.Events.on("save_prefs", p.savePrefsCallback)
     },
     newTerminalCallback: function(term, calledTwice) {
         // This gets added to GateOne.Terminal.newTermCallbacks to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls
