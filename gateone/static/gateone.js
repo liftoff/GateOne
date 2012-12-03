@@ -761,8 +761,8 @@ var go = GateOne.Base.update(GateOne, {
 });
 
 // Apply some universal defaults
-if (!localStorage[GateOne.prefs.prefix+'selectedTerminal']) {
-    localStorage[GateOne.prefs.prefix+'selectedTerminal'] = 1;
+if (!localStorage[GateOne.prefs.prefix+GateOne.location+'selectedTerminal']) {
+    localStorage[GateOne.prefs.prefix+GateOne.location+'selectedTerminal'] = 1;
 }
 
 // GateOne.Utils (generic utility functions)
@@ -1052,6 +1052,9 @@ GateOne.Base.update(GateOne.Utils, {
             sizingPre = document.createElement("pre"),
             fillerX = '', fillerY = [],
             lineCounter = 0;
+        if (!GateOne.Utils.isVisible(node)) {
+            return; // Nothing to do
+        }
         // We need two lines so we can factor in the line height and character spacing (if it has been messed with).
         sizingDiv.id = "go_sizingDiv";
         sizingDiv.className = "terminal";
@@ -1088,10 +1091,13 @@ GateOne.Base.update(GateOne.Utils, {
         var node = GateOne.Utils.getNode(elem),
             style = window.getComputedStyle(node, ':line-marker');
         var elementDimensions = {
-            h: parseInt(style.height.split('px')[0]),
-            w: parseInt(style.width.split('px')[0])
-        },
+                h: parseInt(style.height.split('px')[0]),
+                w: parseInt(style.width.split('px')[0])
+            },
             textDimensions = GateOne.Utils.getEmDimensions(elem);
+        if (!textDimensions) {
+            return; // Nothing to do
+        }
         // Calculate the rows and columns:
         var rows = (elementDimensions.h / textDimensions.h),
             cols = (elementDimensions.w / textDimensions.w);
@@ -1694,6 +1700,9 @@ GateOne.Base.update(GateOne.Net, {
                 'cols': Math.ceil(dimensions.cols - colAdjust),
                 'em_dimensions': emDimensions
             }
+        if (!emDimensions || !dimensions) {
+            return; // Nothing to do
+        }
         if (go.prefs.showToolbar || go.prefs.showTitle) {
             prefs['cols'] = prefs['cols'] - 4; // If there's no toolbar and no title there's no reason to have empty space on the right.
         }
@@ -1948,7 +1957,7 @@ GateOne.Base.update(GateOne.Input, {
             selectedTerm = localStorage[prefix+'selectedTerminal'],
             selectedPastearea = null,
             selectedText = u.getSelText();
-        if (go.terminals[selectedTerm]['pasteNode']) {
+        if (go.terminals[selectedTerm] && go.terminals[selectedTerm]['pasteNode']) {
             selectedPastearea = go.terminals[selectedTerm]['pasteNode'];
         }
         go.Input.mouseDown = true;
@@ -1988,7 +1997,6 @@ GateOne.Base.update(GateOne.Input, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             selectedTerm = localStorage[prefix+'selectedTerminal'],
-            selectedPastearea = go.terminals[selectedTerm]['pasteNode'],
             goDiv = u.getNode(go.prefs.goDiv),
             selectedText = u.getSelText();
         logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
@@ -2004,8 +2012,8 @@ GateOne.Base.update(GateOne.Input, {
         }
         if (!go.Visual.gridView) {
             setTimeout(function() {
-                if (!u.getSelText()) {
-                    u.showElement(selectedPastearea);
+                if (!u.getSelText() && go.terminals[selectedTerm]) {
+                    u.showElement(go.terminals[selectedTerm]['pasteNode']);
                 }
             }, 750); // NOTE: For this to work (to allow users to double-click-to-highlight a word) they must double-click before this timer fires.
         }

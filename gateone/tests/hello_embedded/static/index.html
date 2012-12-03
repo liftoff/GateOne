@@ -240,7 +240,7 @@
             }
         });
         // This makes sure our keystrokes are sent to the correct terminal
-        go.Net.setTerminal(termNum);
+        go.Terminal.switchTerminal(termNum); // Calls GateOne.Net.setTerminal()
         // This displays the terminal info in a transient pop-up
         go.Visual.displayTermInfo(termNum);
         // Scroll the pre to the bottom (undoing display:none scrolls elements to the top)
@@ -292,6 +292,7 @@
         }
         // Add our new tab
         tabContainer.appendChild(newTab);
+        GateOne.Terminal.switchTerminal(termNum);
         GateOne.Input.capture(); // (re)start capturing keyboard input
     }
     var reattachTerminals = function(terminals) {
@@ -525,7 +526,7 @@ var selectTerminal = function(termNum) {
         }
     });
     // This makes sure our keystrokes are sent to the correct terminal
-    go.Net.setTerminal(termNum);
+    go.Terminal.switchTerminal(termNum);
     // This displays the terminal info in a transient pop-up
     go.Visual.displayTermInfo(termNum);
     // Scroll the pre to the bottom (just in case)
@@ -577,6 +578,7 @@ var newTabTerminal = function(termNum) {
     }
     // Add our new tab
     tabContainer.appendChild(newTab);
+    GateOne.Terminal.switchTerminal(termNum);
     GateOne.Input.capture(); // Make sure that keyboard input works right away
 }
 var reattachTerminals = function(terminals) {
@@ -659,6 +661,7 @@ var newTabTerminal2 = function(termNum) {
     }
     // Add our new tab
     tabContainer.appendChild(newTab);
+    GateOne.Terminal.switchTerminal(termNum);
     GateOne.Input.capture(); // (re)start capturing keyboard input
 }
 var reattachTerminals2 = function(terminals) {
