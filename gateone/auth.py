@@ -20,6 +20,7 @@ This module contains Gate One's authentication classes.  They map to Gate One's
 --auth=kerberos KerberosAuthHandler
 --auth=google   GoogleAuthHandler
 --auth=pam      PAMAuthHandler
+--auth=api      APIAuthHandler
 =============== ===================
 
 .. note:: API authentication is handled inside of :ref:`gateone.py`
@@ -53,6 +54,13 @@ of course, that your Gate One server and clients will have access to the
 Internet.
 
 .. note:: This authentication type is perfect if you're using Chromebooks (Chrome OS devices).
+
+API Authentication
+------------------
+API-based authentication is actually handled in gateone.py but we still need
+*something* to exist at the /auth URL that will always return the
+'unauthenticated' response.  This ensures that no one can authenticate
+themselves by visiting that URL manually.
 
 Docstrings
 ==========

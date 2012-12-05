@@ -761,8 +761,8 @@ var go = GateOne.Base.update(GateOne, {
 });
 
 // Apply some universal defaults
-if (!localStorage[GateOne.prefs.prefix+GateOne.location+'selectedTerminal']) {
-    localStorage[GateOne.prefs.prefix+GateOne.location+'selectedTerminal'] = 1;
+if (!localStorage[GateOne.prefs.prefix+GateOne.location+'_selectedTerminal']) {
+    localStorage[GateOne.prefs.prefix+GateOne.location+'_selectedTerminal'] = 1;
 }
 
 // GateOne.Utils (generic utility functions)

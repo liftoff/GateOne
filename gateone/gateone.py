@@ -349,6 +349,11 @@ PLUGIN_TERM_HOOKS = {}
 # with 'self' and the new instance of the terminal emulator as the only
 # arguments.  It's a more DIY/generic version of PLUGIN_TERM_HOOKS.
 PLUGIN_NEW_TERM_HOOKS = []
+# 'Command' hooks get called before a new Multiplex instance is created inside
+# of TerminalWebSocket.new_multiplex().  They are passed the 'command' and must
+# return a string that will be used as the replacement 'command'.  This allows
+# plugin authors to modify the configured 'command' before it is executed
+PLUGIN_COMMAND_HOOKS = []
 # 'Multiplex' hooks get called at the end of TerminalWebSocket.new_multiplex()
 # with the instance of TerminalWebSocket and the new instance of Multiplex as
 # the only arguments, respectively.
@@ -983,9 +988,10 @@ class TerminalWebSocket(WebSocketHandler):
     WebSocket.
     """
     instances = set()
+    commands = {}
     def __init__(self, application, request):
         WebSocketHandler.__init__(self, application, request)
-        self.commands = {
+        self.commands.update({
             'ping': self.pong,
             'authenticate': self.authenticate,
             'new_terminal': self.new_terminal,
@@ -1005,7 +1011,7 @@ class TerminalWebSocket(WebSocketHandler):
             'manual_title': self.manual_title,
             'reset_terminal': self.reset_terminal,
             'debug_terminal': self.debug_terminal
-        }
+        })
         self.terms = {}
         # So we can keep track and avoid sending unnecessary messages:
         self.titles = {}
@@ -1435,6 +1441,9 @@ class TerminalWebSocket(WebSocketHandler):
             SESSIONS[self.session]['last_seen'] = 'connected'
             if self.location not in SESSIONS[self.session]:
                 SESSIONS[self.session][self.location] = {}
+        # TODO: Take the terminal-specific stuff out of this function
+        #       ...need an 'application hooks' call here that would execute the
+        #       terminal-specific stuff.
         terminals = []
         for term in list(SESSIONS[self.session][self.location].keys()):
             if isinstance(term, int): # Only terminals are integers in the dict
@@ -1498,6 +1507,10 @@ class TerminalWebSocket(WebSocketHandler):
                 log_name = datetime.now().strftime('%Y%m%d%H%M%S%f.golog')
                 log_path = os.path.join(log_dir, log_name)
         facility = string_to_syslog_facility(self.settings['syslog_facility'])
+        # This allows plugins to transform the command however they like
+        if PLUGIN_COMMAND_HOOKS:
+            for func in PLUGIN_COMMAND_HOOKS:
+                cmd = func(cmd)
         m = termio.Multiplex(
             cmd,
             log_path=log_path,
@@ -2413,6 +2426,7 @@ class Application(tornado.web.Application):
         in the Tornado settings dict so as to be accessible under self.settings.
         """
         global PLUGIN_WS_CMDS
+        global PLUGIN_COMMAND_HOOKS
         global PLUGIN_HOOKS
         global PLUGIN_ESC_HANDLERS
         global PLUGIN_AUTH_HOOKS
@@ -2513,6 +2527,12 @@ class Application(tornado.web.Application):
                     PLUGIN_AUTH_HOOKS.extend(hooks['Auth'])
                 else:
                     PLUGIN_AUTH_HOOKS.append(hooks['Auth'])
+            if 'Command' in hooks:
+                # Apply the plugin's 'Command' hooks (called by new_multiplex)
+                if isinstance(hooks['Command'], (list, tuple)):
+                    PLUGIN_COMMAND_HOOKS.extend(hooks['Command'])
+                else:
+                    PLUGIN_COMMAND_HOOKS.append(hooks['Command'])
             if 'Multiplex' in hooks:
                 # Apply the plugin's Multiplex hooks (called by new_multiplex)
                 if isinstance(hooks['Multiplex'], (list, tuple)):

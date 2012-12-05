@@ -80,6 +80,7 @@ gateone_files=[ # Start with the basics...
     (os.path.join(prefix, 'gateone'), [
         os.path.join(setup_dir, 'gateone', 'auth.py'),
         os.path.join(setup_dir, 'gateone', 'gateone.py'),
+        os.path.join(setup_dir, 'gateone', 'gopam.py'),
         os.path.join(setup_dir, 'gateone', 'logviewer.py'),
         os.path.join(setup_dir, 'gateone', 'sso.py'),
         os.path.join(setup_dir, 'gateone', 'terminal.py'),

@@ -110,10 +110,20 @@ def get_ssh_dir(tws):
     """
     Given a :class:`gateone.TerminalWebSocket` (*tws*) instance, return the
     current user's ssh directory
+
+    .. note:: If the user's ssh directory doesn't start with a . (dot) it will be renamed.
     """
     user = tws.get_current_user()['upn']
     users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
-    users_ssh_dir = os.path.join(users_dir, 'ssh')
+    old_ssh_dir = os.path.join(users_dir, 'ssh')
+    users_ssh_dir = os.path.join(users_dir, '.ssh')
+    if os.path.exists(old_ssh_dir):
+        if not os.path.exists(users_ssh_dir):
+            os.rename(old_ssh_dir, users_ssh_dir)
+        else:
+            logging.warning(
+                "Both an 'ssh' and '.ssh' directory exist for user %s.  "
+                "Using the .ssh directory.")
     return users_ssh_dir
 
 def open_sub_channel(term, tws):

@@ -9,9 +9,8 @@ __version__ = '1.0'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 0)
 __doc__ = """
-This authentication module is built on top of python-pam (or PAM).  The latest
-version of which can be found here:  ftp://ftp.pangalactic.org/pub/tummy/ or if
-that doesn't work try:  http://packages.debian.org/lenny/python-pam
+This authentication module is built on top of gopam.py which is included with
+Gate One.
 
 It was originally written by Alan Schmitz.
 
@@ -24,8 +23,10 @@ authentication (PAM doesn't take a "realm" setting).
 # Standard library modules
 import base64
 
+# Our modules
+import gopam
+
 # 3rd party modules
-import PAM
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
@@ -57,27 +58,15 @@ class PAMAuthMixin(tornado.web.RequestHandler):
         """
         auth_decoded = base64.decodestring(auth_header[6:])
         username, password = auth_decoded.split(':', 1)
-
-        def _pam_conv(auth, query_list, user_data=None):
-            resp = []
-            for i in range(len(query_list)):
-                query, qtype = query_list[i]
-                if qtype == PAM.PAM_PROMPT_ECHO_ON:
-                    resp.append((username, 0))
-                elif qtype == PAM.PAM_PROMPT_ECHO_OFF:
-                    resp.append((password, 0))
-                else:
-                    return None
-            return resp
-
-        pam_auth = PAM.pam()
-        pam_auth.start(self.settings['pam_service'])
-        pam_auth.set_item(PAM.PAM_USER, username)
-        pam_auth.set_item(PAM.PAM_TTY, 'console')
-        pam_auth.set_item(PAM.PAM_CONV, _pam_conv)
         try:
-            pam_auth.authenticate()
-            pam_auth.acct_mgmt()
+            result = gopam.authenticate(
+                username,
+                password,
+                service=self.settings['pam_service'],
+                tty="console",
+                PAM_RHOST=self.request.remote_ip) # RHOST so it shows up in logs
+            if not result:
+                return self.authenticate_redirect()
         except Exception as e: # Basic auth failed
             if self.settings['debug']:
                 logging.debug(e)

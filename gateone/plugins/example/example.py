@@ -211,6 +211,16 @@ def example_opt_esc_handler(message, tws):
      "You just executed the Example plugin's optional escape sequence handler!"}
     tws.write_message(message)
 
+def example_command_hook(command):
+    """
+    This demonstrates how to modify Gate One's configured 'command' before it is
+    executed.  It will replace any occurrance of %EXAMPLE% with 'foo'.  So if
+    'command = "some_script.sh %EXAMPLE%"' in your server.conf it would be
+    transformed to "some_script.sh foo" before being executed when a user opens
+    a new terminal.
+    """
+    return command.replace(r'%EXAMPLE%', 'foo')
+
 # SOESH allows plugins to attach actions that will be called whenever a terminal
 # encounters the
 
@@ -221,6 +231,7 @@ hooks = {
     'WebSocket': {
         'example_action': example_websocket_action
     },
+    'Command': example_command_hook,
     'Escape': example_opt_esc_handler,
     'Environment': {
         'EXAMPLE_VAR': 'This was set via the Example plugin'
