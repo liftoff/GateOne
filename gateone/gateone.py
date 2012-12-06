@@ -2959,6 +2959,7 @@ def main():
     try:
         uid = int(options.uid)
     except ValueError:
+        import pwd
         # Assume it's a username and grab its uid
         uid = pwd.getpwnam(options.uid).pw_uid
     try:
@@ -2970,19 +2971,23 @@ def main():
         try:
             mkdir_p(options.user_dir)
         except OSError:
+            import pwd
             logging.error(_(
                 "Error: Gate One could not create %s.  Please ensure that user,"
                 " %s has permission to create this directory or create it "
                 "yourself and make user, %s its owner." % (options.user_dir,
-                repr(os.getlogin()), repr(os.getlogin()))))
+                repr(pwd.getpwuid(os.geteuid())[0]),
+                repr(pwd.getpwuid(os.geteuid())[0]))))
             sys.exit(1)
         # If we could create it we should be able to adjust its permissions:
         os.chmod(options.user_dir, 0o770)
-    if os.stat(options.user_dir).st_uid != uid:
+    if not os.access(options.user_dir, os.W_OK):
         # Try correcting this first
         try:
             recursive_chown(options.user_dir, uid, gid)
-        except ChownError as e:
+        except (ChownError, OSError) as e:
+            logging.error("user_dir: %s, uid: %s, gid: %s" % (
+                options.user_dir, uid, gid))
             logging.error(e)
             sys.exit(1)
     if not os.path.exists(options.session_dir): # Make our session_dir
@@ -2993,14 +2998,17 @@ def main():
                 "Error: Gate One could not create %s.  Please ensure that user,"
                 " %s has permission to create this directory or create it "
                 "yourself and make user, %s its owner." % (options.session_dir,
-                repr(os.getlogin()), repr(os.getlogin()))))
+                repr(pwd.getpwuid(os.geteuid())[0]),
+                repr(pwd.getpwuid(os.geteuid())[0]))))
             sys.exit(1)
         os.chmod(options.session_dir, 0o770)
-    if os.stat(options.session_dir).st_uid != uid:
+    if not os.access(options.session_dir, os.W_OK):
         # Try correcting it
         try:
             recursive_chown(options.session_dir, uid, gid)
-        except ChownError as e:
+        except (ChownError, OSError) as e:
+            logging.error("session_dir: %s, uid: %s, gid: %s" % (
+                options.session_dir, uid, gid))
             logging.error(e)
             sys.exit(1)
     # Re-do the locale in case the user supplied something as --locale
@@ -3018,11 +3026,12 @@ def main():
                   "One as root, or create that directory and give the proper "
                   "user ownership of it."))
             sys.exit(1)
-    if os.stat(log_dir).st_uid != uid:
+    if not os.access(log_dir, os.W_OK):
         # Try to correct it
         try:
             recursive_chown(log_dir, uid, gid)
-        except ChownError as e:
+        except (ChownError, OSError) as e:
+            logging.error("log_dir: %s, uid: %s, gid: %s" % (log_dir, uid, gid))
             logging.error(e)
             sys.exit(1)
     if options.kill:
@@ -3141,12 +3150,13 @@ def main():
         try: # Just os.chown on this one (recursive could be bad)
             os.chown(static_dir, uid, gid)
         except OSError:
-            logging.error(_(
-                "Error: Gate One does not have permission to write to %s.  "
+            import pwd
+            logging.warning(_(
+                "Warning: Gate One does not have permission to write to %s.  "
                 "Please ensure that user, %s has write permission to the "
-                "directory." % (
-                static_dir, os.getlogin())))
-            sys.exit(1)
+                "directory.  Or just make sure that the static/<plugin> "
+                "symbolic links are created and ignore this message." % (
+                static_dir, pwd.getpwuid(os.geteuid())[0])))
     plugin_dir = os.path.join(GATEONE_DIR, "plugins")
     templates_dir = os.path.join(GATEONE_DIR, "templates")
     combined_plugins = os.path.join(static_dir, "combined_plugins.js")

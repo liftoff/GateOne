@@ -1121,8 +1121,10 @@ def recursive_chown(path, uid, gid):
     try:
         os.chown(path, uid, gid)
     except OSError as e:
+        import pwd
         if e.errno in [errno.EACCES, errno.EPERM]:
-            raise ChownError(error_msg % (path, uid, gid, repr(os.getlogin())))
+            raise ChownError(error_msg % (path, uid, gid,
+                repr(pwd.getpwuid(os.geteuid())[0])))
         else:
             raise
     for root, dirs, files in os.walk(path):
@@ -1131,9 +1133,10 @@ def recursive_chown(path, uid, gid):
             try:
                 os.chown(_path, uid, gid)
             except OSError as e:
+                import pwd
                 if e.errno in [errno.EACCES, errno.EPERM]:
                     raise ChownError(error_msg % (
-                        _path, uid, gid, repr(os.getlogin())))
+                        _path, uid, gid, repr(pwd.getpwuid(os.geteuid())[0])))
                 else:
                     raise
         for momo in files:
@@ -1141,9 +1144,10 @@ def recursive_chown(path, uid, gid):
             try:
                 os.chown(_path, uid, gid)
             except OSError as e:
+                import pwd
                 if e.errno in [errno.EACCES, errno.EPERM]:
                     raise ChownError(error_msg % (
-                        _path, uid, gid, repr(os.getlogin())))
+                        _path, uid, gid, repr(pwd.getpwuid(os.geteuid())[0])))
                 else:
                     raise
 
