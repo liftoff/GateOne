@@ -1,11 +1,14 @@
 
 (function(window, undefined) {
+
+"use strict";
+
 var document = window.document; // Have to do this because we're sandboxed
 
 // First we need to know if this is a mobile browser or not so we can decide whether we want to invoke our mobile-specific JS
-var mobile = function(){
+var mobile = function() {
     return {
-        detect:function(){
+        detect:function() {
             var uagent = navigator.userAgent.toLowerCase();
             var list = this.mobiles;
             var ismobile = false;
@@ -16,7 +19,7 @@ var mobile = function(){
             }
             return ismobile;
         },
-        mobiles:[
+        mobiles: [
             "midp","240x320","blackberry","netfront","nokia","panasonic",
             "portalmmm","sharp","sie-","sonyericsson","symbian",
             "windows ce","benq","mda","mot-","opera mini",
@@ -40,7 +43,7 @@ GateOne.Base.update(GateOne.Mobile, {
                 goDiv = u.getNode(go.prefs.goDiv),
                 style = window.getComputedStyle(goDiv, null),
                 form = u.createElement('form'),
-                inputElement = u.createElement('input', {'type': 'text', 'name': 'mobile_input', 'id': 'mobile_input', 'size': 10, 'style': {'background': 'transparent', 'height': '1em', 'color': '#ccc', 'position': 'fixed', 'bottom': 0, 'left': 0, 'z-index': 1000, 'font-size': '200%', 'height': '2em', 'opacity': '0.5', 'border': 'none'}});
+                inputElement = u.createElement('input', {'type': 'text', 'name': 'mobile_input', 'id': 'mobile_input', 'size': 10, 'style': {'background': 'transparent', 'color': '#ccc', 'position': 'fixed', 'bottom': 0, 'left': 0, 'z-index': 1000, 'font-size': '200%', 'height': '2em', 'opacity': '0.5', 'border': 'none'}});
             goDiv.onkeydown = null;
             goDiv.addEventListener('touchstart', function(e) {
                 var t = e.touches[0];
@@ -139,7 +142,7 @@ GateOne.Base.update(GateOne.Mobile, {
         if (go.prefs.rows) { prefs.rows = go.prefs.rows };
         // Tell the server the new dimensions
         go.ws.send(JSON.stringify({'resize': prefs}));
-    },
+    }
 });
 
 })(window);

@@ -1,6 +1,8 @@
 
 (function(window, undefined) {
 
+"use strict";
+
 var document = window.document; // Have to do this because we're sandboxed
 
 // Useful sandbox-wide stuff
@@ -122,40 +124,40 @@ GateOne.Base.update(GateOne.Help, {
             helpPanel = u.getNode('#'+prefix+'panel_help'),
             helpNav = u.createElement('div', {'id': prefix+'help_nav', 'class': 'panel_nav sectrans', 'style': {'padding-bottom': '0.5em'}}),
             helpBack = u.createElement('a', {'id': prefix+'help_back'}),
-            newHelpContent = u.createElement('p', {'id': prefix+'help_section', 'class': 'sectrans', 'style': {'padding-bottom': '0.4em'}});
-        var displayHelp = function(helpText) {
-            go.Visual.applyTransform(helpContent, 'translateX(200%)');
-            helpBack.innerHTML = go.Icons['back_arrow'] + " Back";
-            helpBack.onclick = function(e) {
-                e.preventDefault(); // Don't mess with location.url
+            newHelpContent = u.createElement('p', {'id': prefix+'help_section', 'class': 'sectrans', 'style': {'padding-bottom': '0.4em'}}),
+            displayHelp = function(helpText) {
+                go.Visual.applyTransform(helpContent, 'translateX(200%)');
+                helpBack.innerHTML = go.Icons['back_arrow'] + " Back";
+                helpBack.onclick = function(e) {
+                    e.preventDefault(); // Don't mess with location.url
+                    go.Visual.applyTransform(helpNav, 'translateX(200%)');
+                    go.Visual.applyTransform(newHelpContent, 'translateX(200%)');
+                    setTimeout(function() {
+                        helpPanel.removeChild(newHelpContent);
+                        helpPanel.removeChild(helpNav);
+                        helpPanel.appendChild(helpContent);
+                    }, 900);
+                    setTimeout(function() {
+                        go.Visual.applyTransform(helpContent, 'translateX(0)');
+                    }, 1000);
+                };
+                helpNav.appendChild(helpBack);
+                helpNav.onmouseover = function(e) {
+                    this.style.cursor = "pointer";
+                };
+                newHelpContent.innerHTML = helpText;
                 go.Visual.applyTransform(helpNav, 'translateX(200%)');
                 go.Visual.applyTransform(newHelpContent, 'translateX(200%)');
                 setTimeout(function() {
-                    helpPanel.removeChild(newHelpContent);
-                    helpPanel.removeChild(helpNav);
-                    helpPanel.appendChild(helpContent);
+                    helpPanel.removeChild(helpContent);
+                    helpPanel.appendChild(helpNav);
+                    helpPanel.appendChild(newHelpContent);
                 }, 900);
                 setTimeout(function() {
-                    go.Visual.applyTransform(helpContent, 'translateX(0)');
+                    go.Visual.applyTransform(helpNav, 'translateX(0)');
+                    go.Visual.applyTransform(newHelpContent, 'translateX(0)');
                 }, 1000);
             };
-            helpNav.appendChild(helpBack);
-            helpNav.onmouseover = function(e) {
-                this.style.cursor = "pointer";
-            };
-            newHelpContent.innerHTML = helpText;
-            go.Visual.applyTransform(helpNav, 'translateX(200%)');
-            go.Visual.applyTransform(newHelpContent, 'translateX(200%)');
-            setTimeout(function() {
-                helpPanel.removeChild(helpContent);
-                helpPanel.appendChild(helpNav);
-                helpPanel.appendChild(newHelpContent);
-            }, 900);
-            setTimeout(function() {
-                go.Visual.applyTransform(helpNav, 'translateX(0)');
-                go.Visual.applyTransform(newHelpContent, 'translateX(0)');
-            }, 1000);
-        };
         u.xhrGet(sectionObj.helpURL, displayHelp);
     }
 });

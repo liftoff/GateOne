@@ -178,8 +178,12 @@ try:
 except ImportError:
     Image = None
     logging.warning(_(
-        "Could not import the Python Imaging Library (PIL) "
-        "so images will not be displayed in the terminal"))
+        "Could not import the Python Imaging Library (PIL).  "
+        "Images will not be displayed in the terminal."))
+    logging.info(_(
+        "TIP: Pillow is a 'friendly fork' of PIL that has been updated to work "
+        "with Python 3 (also works in Python 2.X).  You can install it with "
+        "'pip install --upgrade Pillow'."))
 
 # Globals
 CALLBACK_SCROLL_UP = 1    # Called after a scroll up event (new line)
@@ -778,7 +782,8 @@ class ImageFile(FileType):
             logging.error(_(
                 "PIL is missing support for this image type (%s).  You probably"
                 " need to install zlib-devel and libjpeg-devel then re-install "
-                "it with 'pip install --upgrade PIL'" % self.name))
+                "it with 'pip install --upgrade PIL' or 'pip install "
+                "--upgrade Pillow'" % self.name))
             self.file_obj.close() # Can't do anything with it
             return None
         self.file_obj.flush()

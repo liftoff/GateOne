@@ -296,12 +296,11 @@ from auth import APIAuthHandler, SSLAuthHandler, PAMAuthHandler
 from auth import require, authenticated
 from utils import str2bool, generate_session_id, cmd_var_swap, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
-from utils import create_plugin_links, merge_handlers, none_fix, short_hash
-from utils import convert_to_timedelta, kill_dtached_proc, FACILITIES, which
-from utils import process_opt_esc_sequence, create_data_uri, MimeTypeFail
-from utils import string_to_syslog_facility, fallback_bell, json_encode
+from utils import merge_handlers, none_fix, short_hash, convert_to_timedelta
+from utils import kill_dtached_proc, FACILITIES, which, process_opt_esc_sequence
+from utils import create_data_uri, MimeTypeFail, string_to_syslog_facility
+from utils import fallback_bell, json_encode, recursive_chown, ChownError
 from utils import write_pid, read_pid, remove_pid, drop_privileges
-from utils import recursive_chown, ChownError
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -950,7 +949,6 @@ class JSPluginsHandler(BaseHandler):
         # This is so we can load combined_plugins in a <script> tag without
         # having to accept the SSL certificate:
         self.set_header('Access-Control-Allow-Origin', '*')
-        plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
         session_dir = self.settings['session_dir']
         combined_plugins = os.path.join(session_dir, "combined_plugins.js")
         if os.path.exists(combined_plugins):
@@ -968,14 +966,23 @@ class JSPluginsHandler(BaseHandler):
         """
         Combines all plugin .js files into one (combined_plugins.js)
         """
-        plugins = get_plugins(os.path.join(GATEONE_DIR, "plugins"))
+        plugins_path = os.path.join(GATEONE_DIR, "plugins")
+        plugins = [
+            os.path.join(plugins_path, p) for p in os.listdir(plugins_path)]
+        plugins.sort()
         session_dir = self.settings['session_dir']
         combined_plugins = os.path.join(session_dir, "combined_plugins.js")
         out = ""
-        for js_plugin in plugins['js']:
-            js_path = os.path.join(GATEONE_DIR, js_plugin.lstrip('/'))
-            with open(js_path) as f:
-                out += f.read()
+        for plugin_path in plugins:
+            plugin_static_path = os.path.join(plugin_path, 'static')
+            if os.path.exists(plugin_static_path):
+                static_files = os.listdir(plugin_static_path)
+                static_files.sort()
+                for filename in static_files:
+                    if filename.endswith('.js'):
+                        js_path = os.path.join(plugin_static_path, filename)
+                        with open(js_path) as f:
+                            out += f.read() + "\n/* spacer */\n"
         with open(combined_plugins, 'w') as f:
             f.write(out)
         return out
@@ -2425,6 +2432,7 @@ class Application(tornado.web.Application):
         Setup our Tornado application...  Everything in *settings* will wind up
         in the Tornado settings dict so as to be accessible under self.settings.
         """
+        global APPLICATIONS
         global PLUGIN_WS_CMDS
         global PLUGIN_COMMAND_HOOKS
         global PLUGIN_HOOKS
@@ -2477,11 +2485,6 @@ class Application(tornado.web.Application):
         # Setup our URL handlers
         handlers = [
             (index_regex, MainHandler),
-            # Override the default static handler to ensure the headers are set
-            # to allow cross-origin requests.
-            (r"%sstatic/(.*)" % url_prefix, StaticHandler, {
-                "path": static_url,
-            }),
             (r"%sws" % url_prefix, TerminalWebSocket),
             (r"%sauth" % url_prefix, AuthHandler),
             (r"%sdownloads/(.*)" % url_prefix, DownloadHandler),
@@ -2492,6 +2495,20 @@ class Application(tornado.web.Application):
                 "default_filename": "index.html"
             })
         ]
+        # Add plugin /static/ routes
+        for plugin_name in os.listdir(os.path.join(GATEONE_DIR, 'plugins')):
+            plugin_path = os.path.join(GATEONE_DIR, 'plugins', plugin_name)
+            plugin_static_path = os.path.join(plugin_path, 'static')
+            if os.path.exists(plugin_static_path):
+                handlers.append((
+                    r"%sstatic/%s/(.*)" % (url_prefix, plugin_name),
+                    StaticHandler, {"path": plugin_static_path}
+                ))
+        # Override the default static handler to ensure the headers are set
+        # to allow cross-origin requests.
+        handlers.append( # NOTE: This has to come after the plugin stuff above
+            (r"%sstatic/(.*)" % url_prefix, StaticHandler, {"path": static_url}
+        ))
         # Hook up the hooks
         for plugin_name, hooks in PLUGIN_HOOKS.items():
             if 'Web' in hooks:
@@ -3036,7 +3053,7 @@ def main():
             sys.exit(1)
     if options.kill:
         # Kill all running dtach sessions (associated with Gate One anyway)
-        killall(options.session_dir)
+        killall(options.session_dir, options.pid_file)
         # Cleanup the session_dir (it is supposed to only contain temp stuff)
         import shutil
         shutil.rmtree(options.session_dir, ignore_errors=True)
@@ -3163,7 +3180,6 @@ def main():
     # Remove the combined_plugins.js (it will get auto-recreated)
     if os.path.exists(combined_plugins):
         os.remove(combined_plugins)
-    create_plugin_links(static_dir, templates_dir, plugin_dir)
     # When options.logging=="debug" it will display all user's keystrokes so
     # make sure we warn about this.
     if options.logging == "debug":
@@ -3270,13 +3286,15 @@ def main():
         tornado.ioloop.IOLoop.instance().stop()
         remove_pid(options.pid_file)
         logging.info(_("pid file removed."))
+        # Remove the combined_plugins.js in case the plugins change
+        os.remove(os.path.join(options.session_dir, 'combined_plugins.js'))
         if not options.dtach:
             # If we're not using dtach play it safe by cleaning up any leftover
             # processes.  When passwords are used with the ssh_conenct.py script
             # it runs os.setsid() on the child process which means it won't die
             # when Gate One is closed.  This is primarily to handle that
             # specific situation.
-            killall(options.session_dir)
+            killall(options.session_dir, options.pid_file)
             # Cleanup the session_dir (it's supposed to only contain temp stuff)
             import shutil
             shutil.rmtree(options.session_dir, ignore_errors=True)

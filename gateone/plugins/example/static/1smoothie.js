@@ -42,7 +42,7 @@
  *       Refactored by Krishna Narni, to support timestamp formatting function
  */
 
-function TimeSeries(options) {
+var TimeSeries = function(options) {
   options = options || {};
   options.resetBoundsInterval = options.resetBoundsInterval || 3000; // Reset the max/min bounds after this many milliseconds
   options.resetBounds = options.resetBounds === undefined ? true : options.resetBounds; // Enable or disable the resetBounds timer
@@ -56,7 +56,7 @@ function TimeSeries(options) {
   if (options.resetBounds) {
     this.boundsTimer = setInterval((function(thisObj) { return function() { thisObj.resetBounds(); } })(this), options.resetBoundsInterval);
   }
-}
+};
 
 // Reset the min and max for this timeseries so the graph rescales itself
 TimeSeries.prototype.resetBounds = function() {
@@ -74,7 +74,7 @@ TimeSeries.prototype.append = function(timestamp, value) {
   this.minValue = !isNaN(this.minValue) ? Math.min(this.minValue, value) : value;
 };
 
-function SmoothieChart(options) {
+var SmoothieChart = function(options) {
   // Defaults
   options = options || {};
   options.grid = options.grid || { fillStyle:'#000000', strokeStyle: '#777777', lineWidth: 1, millisPerLine: 1000, verticalSections: 2 };
@@ -92,7 +92,7 @@ function SmoothieChart(options) {
   this.seriesSet = [];
   this.currentValueRange = 1;
   this.currentVisMinValue = 0;
-}
+};
 
 SmoothieChart.prototype.addTimeSeries = function(timeSeries, options) {
   this.seriesSet.push({timeSeries: timeSeries, options: options || {}});
@@ -112,8 +112,9 @@ SmoothieChart.prototype.streamTo = function(canvas, delay) {
 };
 
 SmoothieChart.prototype.start = function() {
-  if (!this.timer)
+  if (!this.timer) {
     this.timer = setInterval(this.render_on_tick, 1000/this.options.fps);
+  }
 };
 
 SmoothieChart.prototype.stop = function() {
@@ -325,4 +326,4 @@ SmoothieChart.prototype.render = function(canvas, time) {
   }
 
   canvasContext.restore(); // See .save() above.
-}
+};

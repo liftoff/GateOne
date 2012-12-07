@@ -617,12 +617,13 @@ def kill_dtached_proc_macos(session, term):
             except OSError:
                 pass # Process already died.  Not a problem.
 
-def killall(session_dir):
+def killall(session_dir, pid_file):
     """
     Kills all running Gate One terminal processes including any detached dtach
     sessions.
 
     :session_dir: The path to Gate One's session directory.
+    :pid_file: The path to Gate One's PID file
     """
     sessions = os.listdir(session_dir)
     for f in os.listdir('/proc'):
@@ -648,12 +649,12 @@ def killall(session_dir):
                         os.kill(pid, signal.SIGTERM)
                     except OSError:
                         pass # PID is already dead--great
-                elif 'python' in cmdline:
-                    if 'gateone.py' in cmdline:
-                        try:
-                            os.kill(pid, signal.SIGTERM)
-                        except OSError:
-                            pass # PID is already dead--great
+    try:
+        go_pid = int(open(pid_file).read())
+    except:
+        logging.warning(_(
+            "Could not open pid_file (%s).  You may have to kill gateone.py "
+            "manually." % pid_file))
 
 def killall_macos(session_dir):
     """
@@ -671,53 +672,6 @@ def killall_macos(session_dir):
             "xargs kill" % session # Kill em'
         )
         exitstatus, output = shell_command(cmd)
-
-def create_plugin_links(static_dir, templates_dir, plugin_dir):
-    """
-    Creates symbolic links for all plugins in the ./static/ and ./templates/
-    directories.  The equivalent of:
-
-    .. ansi-block::
-
-        \x1b[1;31mroot\x1b[0m@host\x1b[1;34m:~ $\x1b[0m ln -s *plugin_dir*/<plugin>/static *static_dir*/<plugin>
-        \x1b[1;31mroot\x1b[0m@host\x1b[1;34m:~ $\x1b[0m ln -s *plugin_dir*/<plugin>/templates *templates_dir*/<plugin>
-
-    This is so plugins can reference files in these directories using the
-    following straightforward paths::
-
-        https://<gate one>/static/<plugin name>/<some file>
-        https://<gate one>/render/<plugin name>/<some file>
-
-    This function will also remove any dead links if a plugin is removed.
-    """
-    # Clean up dead links before we do anything else
-    for f in os.listdir(static_dir):
-        if os.path.islink(f):
-            if not os.path.exists(os.readlink(f)):
-                os.unlink(f)
-    for f in os.listdir(templates_dir):
-        if os.path.islink(f):
-            if not os.path.exists(os.readlink(f)):
-                os.unlink(f)
-    # Create symbolic links for each plugin's respective static directory
-    for directory in os.listdir(plugin_dir):
-        plugin_name = directory
-        directory = os.path.join(plugin_dir, directory) # Make absolute
-        for f in os.listdir(directory):
-            if f == 'static':
-                abs_src_path = os.path.join(directory, f)
-                abs_dest_path = os.path.join(static_dir, plugin_name)
-                try:
-                    os.symlink(abs_src_path, abs_dest_path)
-                except OSError:
-                    pass # Already exists
-            if f == 'templates':
-                abs_src_path = os.path.join(directory, f)
-                abs_dest_path = os.path.join(templates_dir, plugin_name)
-                try:
-                    os.symlink(abs_src_path, abs_dest_path)
-                except OSError:
-                    pass # Already exists
 
 def get_plugins(plugin_dir):
     """
