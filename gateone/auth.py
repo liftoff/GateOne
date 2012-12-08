@@ -273,7 +273,10 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         """Tornado standard method--implemented our way."""
         user_json = self.get_secure_cookie("gateone_user")
         if not user_json: return None
-        return tornado.escape.json_decode(user_json)
+        user = tornado.escape.json_decode(user_json)
+        # Add the IP attribute
+        user['ip_address'] = self.request.remote_ip
+        return user
 
     def user_login(self, user):
         """
@@ -303,7 +306,6 @@ class BaseAuthHandler(tornado.web.RequestHandler):
                 # Save it so we can keep track across multiple clients
                 session_info = {
                     'session': generate_session_id(),
-                    'ip_address': self.request.remote_ip
                 }
                 session_info.update(user)
                 session_info_json = tornado.escape.json_encode(session_info)
@@ -338,10 +340,7 @@ class NullAuthHandler(BaseAuthHandler):
         Sets the 'gateone_user' cookie with a new random session ID
         (*go_session*) and sets *go_upn* to 'ANONYMOUS'.
         """
-        user = {
-            'upn': 'ANONYMOUS',
-            'ip_address': self.request.remote_ip
-        }
+        user = {'upn': 'ANONYMOUS'}
         check = self.get_argument("check", None)
         if check:
             # This lets any origin check if the user has been authenticated
@@ -471,7 +470,6 @@ class GoogleAuthHandler(BaseAuthHandler, tornado.auth.GoogleMixin):
         #     'name': u'Dan McDougall',
         #     'email': u'daniel.mcdougall@liftoffsoftware.com'}
         user['upn'] = user['email'] # Use the email for the upn
-        user['ip_address'] = self.request.remote_ip
         self.user_login(user)
         next_url = self.get_argument("next", None)
         if next_url:
@@ -552,7 +550,6 @@ class SSLAuthHandler(BaseAuthHandler):
         bincert = self.request.get_ssl_certificate(binary_form=True)
         open('/tmp/cert.der', 'w').write(bincert)
         user = self._convert_certificate(cert)
-        user['ip_address'] = self.request.remote_ip
         # This takes care of the user's settings dir and their session info
         self.user_login(user)
         next_url = self.get_argument("next", None)
@@ -604,10 +601,7 @@ try:
             if not user:
                 raise tornado.web.HTTPError(500, _("Kerberos auth failed"))
             logging.debug(_("KerberosAuthHandler user: %s" % user))
-            user = {
-                'upn': user,
-                'ip_address': self.request.remote_ip
-            }
+            user = {'upn': user}
             # This takes care of the user's settings dir and their session info
             self.user_login(user)
             # TODO: Add some LDAP or local DB lookups here to add more detail to user objects
@@ -662,10 +656,7 @@ try:
         def _on_auth(self, user):
             if not user:
                 raise tornado.web.HTTPError(500, _("PAM auth failed"))
-            user = {
-                'upn': user,
-                'ip_address': self.request.remote_ip
-            }
+            user = {'upn': user}
             # This takes care of the user's settings dir and their session info
             self.user_login(user)
             logging.debug(_("PAMAuthHandler user: %s" % user))

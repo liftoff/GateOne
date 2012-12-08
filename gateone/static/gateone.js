@@ -1272,6 +1272,30 @@ GateOne.Base.update(GateOne.Utils, {
             container = go.prefs.goDiv.split('#')[1];
         go.ws.send(JSON.stringify({'get_style': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'plugins': true}}));
     },
+    loadScriptError: function(scriptTag, url, callback) {
+        /**GateOne.Utils.loadScriptError(url, scriptTag, callback)
+
+        Called when :js:meth:`GateOne.Utils.loadScript` fails to load the .js file at the given *url*.  Under the assumption that the user has yet to accept the Gate One server's SSL certificate, it will pop-up an alert that instructs the user they will be redirected to a page where they can accept Gate One's SSL certificate (when they click OK).
+        */
+        var u = go.Utils;
+        if (!u.scriptsLoaded) {
+            var acceptURL = go.prefs.url + 'static/accept_certificate.html',
+                okCallback = function() {
+                    // Called when the user clicks OK
+                    u.acceptWindow = window.open(acceptURL, 'accept');
+                    u.windowChecker = setInterval(function() {
+                        if (u.acceptWindow.closed) {
+                            // Re-proceed
+                            u.removeElement(scriptTag);
+                            u.loadScript(url, callback);
+                            clearInterval(u.windowChecker);
+                        }
+                    }, 100);
+                };
+            // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
+            GateOne.Visual.alert("JavaScript Load Error", "This can happen if you haven't accepted Gate One's SSL certificate yet.  Click OK to open a new tab/window where you can accept the Gate One server's SSL certificate.  If the page doesn't load it means the Gate One server is currently unavailable.", okCallback);
+        }
+    },
     loadScript: function(url, callback){
         // Imports the given JS *url*
         // If *callback* is given, it will be called in the onload() event handler for the script
@@ -1289,23 +1313,7 @@ GateOne.Base.update(GateOne.Utils, {
         document.body.appendChild(tag);
         setTimeout(function() {
             // If combined_js doesn't load within 5 seconds assume it is an SSL certificate issue
-            if (!u.scriptsLoaded) {
-                var acceptURL = go.prefs.url + 'static/accept_certificate.html',
-                    okCallback = function() {
-                        // Called when the user clicks OK
-                        u.acceptWindow = window.open(acceptURL, 'accept');
-                        u.windowChecker = setInterval(function() {
-                            if (u.acceptWindow.closed) {
-                                // Re-proceed
-                                u.removeElement(tag);
-                                u.loadScript(url, callback);
-                                clearInterval(u.windowChecker);
-                            }
-                        }, 100);
-                    }
-                // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
-                GateOne.Visual.alert("SSL Certificate Error", "Click OK to be directed to a page where you can accept the Gate One server's SSL certificate.  If the page doesn't load it means the Gate One server is currently unavailable.", okCallback);
-            }
+            u.loadScriptError(tag, url, callback);
         }, 5000);
     },
     enumerateThemes: function(messageObj) {
@@ -1943,9 +1951,15 @@ GateOne.Input.F11timer = null;
 GateOne.Input.handledKeystroke = false;
 GateOne.Input.handlingPaste = false;
 GateOne.Input.automaticBackspace = true; // This controls whether or not we'll try to automatically switch between ^H and ^?
-GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.  They will end up looking like this:
+GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.
+GateOne.Input.globalShortcuts = {}; // Global shortcuts added via registerGlobalShortcut() wind up here.
+GateOne.Input.handledGlobal = false; // Used to detect when a global shortcut needs to override a local (regular) one.
 GateOne.Base.update(GateOne.Input, {
     // GateOne.Input is in charge of all keyboard input as well as copy & paste stuff
+    init: function() {
+        // Attach our global shortcut handler to window
+        window.addEventListener('keydown', GateOne.Input.onGlobalKeyDown, true);
+    },
     onMouseDown: function(e) {
         // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
         logDebug("goDiv.onmousedown() button: " + e.button + ", which: " + e.which);
@@ -2293,9 +2307,9 @@ GateOne.Base.update(GateOne.Input, {
             modifiers = goIn.modifiers(e),
             goDivStyle = document.defaultView.getComputedStyle(container, null);
         logDebug("onKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
-        if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
-            goIn.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
-            return true; // Save some CPU
+        if (goIn.handledGlobal) {
+            // Global shortcuts take precedence
+            return;
         }
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
             return; // Let the browser handle it if the user is editing something
@@ -2303,48 +2317,85 @@ GateOne.Base.update(GateOne.Input, {
         }
         if (container) { // This display check prevents an exception when someone presses a key before the document has been fully loaded
             if (goDivStyle.display != "none" && goDivStyle.opacity != "0") {
-                // This loops over everything in *shortcuts* and executes actions for any matching keyboard shortcuts that have been defined.
-                for (var k in goIn.shortcuts) {
-                    if (key.string == k) {
-                        var matched = false;
-                        goIn.shortcuts[k].forEach(function(shortcut) {
-                            var match = true; // Have to use some reverse logic here...  Slightly confusing but if you can think of a better way by all means send in a patch!
-                            for (var mod in modifiers) {
-                                if (modifiers[mod] != shortcut.modifiers[mod]) {
-                                    match = false;
-                                }
-                            }
-                            if (match) {
-                                if (typeof(shortcut.preventDefault) == 'undefined') {
-                                    // if not set in the shortcut object assume preventDefault() is desired.
-                                    e.preventDefault();
-                                } else if (shortcut.preventDefault == true) {
-                                    // Explicitly set
-                                    e.preventDefault();
-                                }
-                                if (typeof(shortcut['action']) == 'string') {
-                                    eval(shortcut['action']);
-                                } else if (typeof(shortcut['action']) == 'function') {
-                                    shortcut['action'](e); // Pass it the event
-                                }
-                                matched = true;
-                            }
-                        });
-                        if (matched) {
-                            // Stop further processing of this keystroke
-                            return;
+                goIn.execKeystroke(e);
+            }
+        }
+    },
+    onGlobalKeyDown: function(e) {
+        /**GateOne.Input.onGlobalKeyDown(e)
+
+        Handles global keystroke events (i.e. those attached to the window object).
+        */
+        var goIn = go.Input,
+            key = goIn.key(e),
+            modifiers = goIn.modifiers(e);
+        logDebug("onGlobalKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
+        goIn.execKeystroke(e, true);
+    },
+    execKeystroke: function(e, /*opt*/global) {
+        /**GateOne.Input.execKeystroke(e, global)
+
+        Executes the keystroke or shortcut associated with the given keydown event (*e*).  If *global* is true, will only execute global shortcuts (no regular keystroke overrides).
+        */
+        var goIn = go.Input,
+            key = goIn.key(e),
+            modifiers = goIn.modifiers(e),
+            shortcuts = goIn.shortcuts;
+        if (global) {
+            shortcuts = goIn.globalShortcuts;
+        }
+        if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
+            goIn.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
+            return true; // Save some CPU
+        }
+        // This loops over everything in *shortcuts* and executes actions for any matching keyboard shortcuts that have been defined.
+        for (var k in shortcuts) {
+            if (key.string == k) {
+                var matched = false;
+                shortcuts[k].forEach(function(shortcut) {
+                    var match = true; // Have to use some reverse logic here...  Slightly confusing but if you can think of a better way by all means send in a patch!
+                    for (var mod in modifiers) {
+                        if (modifiers[mod] != shortcut.modifiers[mod]) {
+                            match = false;
                         }
                     }
-                }
-                // If a non-shift modifier was depressed, emulate the given keystroke:
-                if (modifiers.alt || modifiers.ctrl || modifiers.meta) {
-                    goIn.emulateKeyCombo(e);
-                    go.Net.sendChars();
-                } else { // Just send the key if no modifiers:
-                    goIn.emulateKey(e);
-                    go.Net.sendChars();
+                    if (match) {
+                        if (typeof(shortcut.preventDefault) == 'undefined') {
+                            // if not set in the shortcut object assume preventDefault() is desired.
+                            e.preventDefault();
+                        } else if (shortcut.preventDefault == true) {
+                            // Explicitly set
+                            e.preventDefault();
+                        }
+                        if (typeof(shortcut['action']) == 'string') {
+                            eval(shortcut['action']);
+                        } else if (typeof(shortcut['action']) == 'function') {
+                            shortcut['action'](e); // Pass it the event
+                        }
+                        goIn.handledGlobal = true;
+                        matched = true;
+                    }
+                });
+                if (matched) {
+                    setTimeout(function() {
+                        goIn.handledGlobal = false;
+                    }, 250);
+                    // Stop further processing of this keystroke
+                    return;
                 }
             }
+        }
+        if (global) {
+            // Don't send any keystrokes to the Gate One server if this is a global shortcut
+            return true;
+        }
+        // If a non-shift modifier was depressed, emulate the given keystroke:
+        if (modifiers.alt || modifiers.ctrl || modifiers.meta) {
+            goIn.emulateKeyCombo(e);
+            go.Net.sendChars();
+        } else { // Just send the key if no modifiers:
+            goIn.emulateKey(e);
+            go.Net.sendChars();
         }
     },
     // TODO: Add a GUI for configuring the keyboard.
@@ -2455,7 +2506,7 @@ GateOne.Base.update(GateOne.Input, {
         'KEY_RIGHT_SQUARE_BRACKET':  {'alt': ESC+"]", 'alt-shift': ESC+"}", 'ctrl': String.fromCharCode(29)},
         'KEY_APOSTROPHE': {'alt': ESC+"'", 'alt-shift': ESC+'"'}
     },
-    registerShortcut: function (keyString, shortcutObj) {
+    registerShortcut: function(keyString, shortcutObj) {
         // Used to register a shortcut.  The point being to prevent one shortcut being clobbered by another if they happen have the same base key.
         // Example usage:  GateOne.Input.registerShortcut('KEY_G', {
         //     'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
@@ -2487,6 +2538,43 @@ GateOne.Base.update(GateOne.Input, {
         } else {
             // Create a new shortcut with the given parameters
             GateOne.Input.shortcuts[keyString] = [shortcutObj];
+        }
+    },
+    registerGlobalShortcut: function(keyString, shortcutObj) {
+        /**GateOne.Input.registerGlobalShortcut(keyString, shortcutObj)
+
+        Used to register a *global* shortcut.  Identical to :js:meth:`GateOne.Input.registerShortcut` with the exception that shortcuts registered via this function will work even if `GateOne.prefs.goDiv` (e.g. #gateone) doesn't currently have focus (i.e. it will work even after disableCapture() is called).
+        */
+        // Example usage:  GateOne.Input.registerGlobalShortcut('KEY_G', {
+        //     'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false},
+        //     'action': 'GateOne.Visual.toggleGridView()',
+        //     'preventDefault': true
+        // });
+        // NOTE:  If preventDefault is not given in the shortcutObj it is assumed to be true
+        if (GateOne.Input.globalShortcuts[keyString]) {
+            // Already exists, overwrite existing if conflict (and log it) or append it
+            var overwrote = false;
+            GateOne.Input.globalShortcuts[keyString].forEach(function(shortcut) {
+                var match = true;
+                for (var mod in shortcutObj.modifiers) {
+                    if (shortcutObj.modifiers[mod] != shortcut.modifiers[mod]) {
+                        match = false;
+                    }
+                }
+                if (match) {
+                    // There's a match...  Log and overwrite it
+                    logWarning("Overwriting existing shortcut for: " + keyString);
+                    shortcut = shortcutObj;
+                    overwrote = true;
+                }
+            });
+            if (!overwrote) {
+                // No existing shortcut matches, append the new one
+                GateOne.Input.globalShortcuts[keyString].push(shortcutObj);
+            }
+        } else {
+            // Create a new shortcut with the given parameters
+            GateOne.Input.globalShortcuts[keyString] = [shortcutObj];
         }
     },
     // TODO: This...
@@ -2950,8 +3038,8 @@ GateOne.Base.update(GateOne.Visual, {
 
         This function also has some events that can be hooked into:
 
-            * When the panel is toggled out of view: GateOne.Events.trigger("panel_toggle:out", panel)
-            * When the panel is toggled into view: GateOne.Events.trigger("panel_toggle:in", panel)
+            * When the panel is toggled out of view: GateOne.Events.trigger("panel_toggle:out", panelElement)
+            * When the panel is toggled into view: GateOne.Events.trigger("panel_toggle:in", panelElement)
 
         You can hook into these events like so::
 
@@ -2976,7 +3064,7 @@ GateOne.Base.update(GateOne.Visual, {
                     u.hideElement(panel);
                     v.hidePanelsTimeout[panel.id] = null;
                 }, 1250);
-            }
+            };
         if (v.togglingPanel) {
             return; // Don't let the user muck with the toggle until everything has run its course
         } else {
@@ -4560,8 +4648,13 @@ go.Base.update(GateOne.Terminal, {
             termTitle = "Gate One", // Will be replaced down below
             goDiv = u.getNode(GateOne.prefs.goDiv),
             termContainer = u.getNode('#'+prefix+'term'+term),
-            existingPre = GateOne.terminals[term]['node'],
-            existingScreen = GateOne.terminals[term]['screenNode'];
+            existingPre = null,
+            existingScreen = null;
+        if (!GateOne.terminals[term]) {
+            return; // Nothing to do
+        }
+        existingPre = GateOne.terminals[term]['node'];
+        existingScreen = GateOne.terminals[term]['screenNode']
         if (term && GateOne.terminals[term]) {
             termTitle = go.terminals[term]['title'];
         } else {

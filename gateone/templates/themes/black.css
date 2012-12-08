@@ -29,6 +29,7 @@
 }
 #{{container}} {
     position: absolute;
+    outline: none;
     overflow: hidden;
     background-color: transparent;
     top: 0;

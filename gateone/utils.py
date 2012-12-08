@@ -710,7 +710,7 @@ def get_plugins(plugin_dir):
             logging.debug(_('Loading all plugins'))
             enabled_plugins = None
     except IOError:
-        logging.debug(_('Plugins conf file not found, loading all plugins'))
+        logging.debug(_('plugins.conf file not found, loading all plugins'))
         enabled_plugins = None
 
     for directory in os.listdir(plugin_dir):

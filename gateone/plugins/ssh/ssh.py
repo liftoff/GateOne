@@ -119,11 +119,12 @@ def get_ssh_dir(tws):
     users_ssh_dir = os.path.join(users_dir, '.ssh')
     if os.path.exists(old_ssh_dir):
         if not os.path.exists(users_ssh_dir):
+            logging.info(_("Renaming %s's 'ssh' directory to '.ssh'." % user))
             os.rename(old_ssh_dir, users_ssh_dir)
         else:
-            logging.warning(
+            logging.warning(_(
                 "Both an 'ssh' and '.ssh' directory exist for user %s.  "
-                "Using the .ssh directory.")
+                "Using the .ssh directory." % user))
     return users_ssh_dir
 
 def open_sub_channel(term, tws):

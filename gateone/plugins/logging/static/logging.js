@@ -393,20 +393,18 @@ GateOne.Base.update(GateOne.Logging, {
         logPreviewIframeDoc.open();
         logPreviewIframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">Click on a log to view a preview and metadata.</body></html>');
         logPreviewIframeDoc.close();
-        if (!GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_logs']) {
-            GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_logs'] = {};
-        }
-        if (!GateOne.Visual.panelToggleCallbacks['out']['#'+prefix+'panel_logs']) {
-            GateOne.Visual.panelToggleCallbacks['out']['#'+prefix+'panel_logs'] = {};
-        }
-        GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_logs']['fixIframe'] = function(e) {
-            // Make the iframe visible
-            u.showElement(logPreviewIframe);
-        };
-        GateOne.Visual.panelToggleCallbacks['out']['#'+prefix+'panel_logs']['fixIframe'] = function(e) {
-            // Make the iframe INvisible
-            u.hideElement(logPreviewIframe);
-        };
+        GateOne.Events.on('panel_toggle:in', function(panel) {
+            if (panel.id == go.prefs.prefix+'panel_logs') {
+                // Make the iframe visible
+                u.showElement(logPreviewIframe);
+            }
+        });
+        GateOne.Events.on('panel_toggle:out', function(panel) {
+            if (panel.id == go.prefs.prefix+'panel_logs') {
+                // Make the iframe INvisible
+                u.hideElement(logPreviewIframe);
+            }
+        });
     },
     loadLogs: function(forceUpdate) {
         // After GateOne.Logging.serverLogs has been populated, this function will redraw the view depending on sort and pagination values

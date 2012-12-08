@@ -771,6 +771,7 @@ class BaseHandler(tornado.web.RequestHandler):
         user_json = self.get_secure_cookie("gateone_user")
         if user_json:
             user = json_decode(user_json)
+            user['ip_address'] = self.request.remote_ip
             if user and 'upn' not in user:
                 return None
             return user
@@ -788,7 +789,7 @@ class DownloadHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, path, include_body=True):
         session_dir = self.settings['session_dir']
-        user = self.get_current_user()
+        user = self.current_user
         if user and 'session' in user:
             session = user['session']
         else:
@@ -967,8 +968,27 @@ class JSPluginsHandler(BaseHandler):
         Combines all plugin .js files into one (combined_plugins.js)
         """
         plugins_path = os.path.join(GATEONE_DIR, "plugins")
+        plugins_conf_path = os.path.join(GATEONE_DIR, 'plugins.conf')
+        try:
+            enabled_plugins = open(plugins_conf_path).read().split()
+            if not enabled_plugins or "*" in enabled_plugins:
+                logging.debug(_('JSPluginsHandler: Loading all plugins'))
+                enabled_plugins = None
+        except IOError:
+            logging.debug(_(
+                'JSPluginsHandler: plugins.conf file not found, loading all '
+                'plugins'))
+            enabled_plugins = None
         plugins = [
             os.path.join(plugins_path, p) for p in os.listdir(plugins_path)]
+        print("plugins before: %s" % plugins)
+        if enabled_plugins: # Filter out plugins that aren't in plugins.conf
+            for plugin in list(plugins):
+                plugin_name = os.path.split(plugin)[1]
+                if plugin_name not in enabled_plugins:
+                    plugins.remove(plugin)
+            print("enabled_plugins: %s" % enabled_plugins)
+            print("plugins after: %s" % plugins)
         plugins.sort()
         session_dir = self.settings['session_dir']
         combined_plugins = os.path.join(session_dir, "combined_plugins.js")
@@ -1053,7 +1073,9 @@ class TerminalWebSocket(WebSocketHandler):
                 # persistent cookies (e.g. incognito mode)
                 return {'upn': 'ANONYMOUS', 'session': generate_session_id()}
             return None
-        return json_decode(user_json)
+        user = json_decode(user_json)
+        user['ip_address'] = self.request.remote_ip
+        return user
 
     def open(self):
         """
@@ -1091,7 +1113,7 @@ class TerminalWebSocket(WebSocketHandler):
         client_address = self.request.connection.address[0]
         self.callback_id = callback_id = "%s;%s;%s" % (
             self.client_id, self.request.host, self.request.remote_ip)
-        user = self.get_current_user()
+        user = self.current_user
         if user and 'upn' in user:
             logging.info(
                 _("WebSocket opened (%s %s).") % (user['upn'], client_address))
@@ -1154,7 +1176,7 @@ class TerminalWebSocket(WebSocketHandler):
         logging.debug("on_close()")
         cls = TerminalWebSocket
         cls.instances.discard(self)
-        user = self.get_current_user()
+        user = self.current_user
         client_address = self.request.connection.address[0]
         if user and user['session'] in SESSIONS:
             # Update 'last_seen' with a datetime object for accuracy
@@ -1216,7 +1238,7 @@ class TerminalWebSocket(WebSocketHandler):
         # Make sure the client is authenticated if authentication is enabled
         if self.settings['auth'] and self.settings['auth'] != 'api':
             try:
-                user = self.get_current_user()
+                user = self.current_user
                 if not user:
                     logging.error(_("Unauthenticated WebSocket attempt."))
                     # This usually happens when the cookie_secret gets changed

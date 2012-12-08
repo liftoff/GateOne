@@ -78,15 +78,17 @@ GateOne.Base.update(GateOne.SSH, {
             }
         }
         // Setup a callback that runs disableCapture() whenever the panel is opened
-        if (!GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_ssh_ids']) {
-            GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_ssh_ids'] = {};
-        }
-        GateOne.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_ssh_ids']['disableCapture'] = GateOne.Input.disableCapture;
+        go.Events.on('panel_toggle:in', function(panel) {
+            if (panel.id == go.prefs.prefix+'panel_ssh_ids') {
+                go.Input.disableCapture();
+            }
+        });
         // Setup a callback that runs capture() whenever the panel is closed
-        if (!GateOne.Visual.panelToggleCallbacks['out']['#'+prefix+'panel_ssh_ids']) {
-            GateOne.Visual.panelToggleCallbacks['out']['#'+prefix+'panel_ssh_ids'] = {};
-        }
-        GateOne.Visual.panelToggleCallbacks['out']['#'+prefix+'panel_ssh_ids']['disableCapture'] = GateOne.Input.capture;
+        go.Events.on('panel_toggle:out', function(panel) {
+            if (panel.id == go.prefs.prefix+'panel_ssh_ids') {
+                go.Input.capture();
+            }
+        });
         go.SSH.createPanel();
         go.Net.addAction('sshjs_connect', go.SSH.handleConnect);
         go.Net.addAction('sshjs_reconnect', go.SSH.handleReconnect);

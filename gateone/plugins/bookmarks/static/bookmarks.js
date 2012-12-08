@@ -111,10 +111,7 @@ go.Base.update(GateOne.Bookmarks, {
             }
         }, 3000);
         // Setup a callback that re-draws the bookmarks panel whenever it is opened
-        if (!go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_bookmarks']) {
-            go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_bookmarks'] = {};
-        }
-        go.Visual.panelToggleCallbacks['in']['#'+prefix+'panel_bookmarks']['createPanel'] = b.createPanel;
+        go.Events.on('panel_toggle:in', b.panelToggleIn);
         // Register our WebSocket actions
         go.Net.addAction('bookmarks_updated', b.syncBookmarks);
         go.Net.addAction('bookmarks_save_result', b.syncComplete);
@@ -126,6 +123,15 @@ go.Base.update(GateOne.Bookmarks, {
         }
         // Setup a callback that synchronizes the user's bookmarks after they login
         go.Events.on("user_login", b.userLoginSync);
+    },
+    panelToggleIn: function(panel) {
+        /**GateOne.Bookmarks.panelToggleIn(panel)
+
+        Called when 'panel_toggle:in' event is triggered, calls :js:meth:`GateOne.Bookmarks.createPanel` if *panel* is the Bookmarks panel.
+        */
+        if (panel.id == go.prefs.prefix+'panel_bookmarks') {
+            go.Bookmarks.createPanel();
+        }
     },
     userLoginSync: function(username) {
         var USN = localStorage[prefix+'USN'] || 0;
