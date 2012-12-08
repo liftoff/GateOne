@@ -863,7 +863,6 @@ class MainHandler(BaseHandler):
     administrators can replace bell.ogg with whatever they like but the file
     size should be less than 32k when encoded to Base64.
     """
-    # TODO: Add the ability for users to define their own individual bells.
     @tornado.web.authenticated
     @tornado.web.addslash
     def get(self):
@@ -981,14 +980,11 @@ class JSPluginsHandler(BaseHandler):
             enabled_plugins = None
         plugins = [
             os.path.join(plugins_path, p) for p in os.listdir(plugins_path)]
-        print("plugins before: %s" % plugins)
         if enabled_plugins: # Filter out plugins that aren't in plugins.conf
             for plugin in list(plugins):
                 plugin_name = os.path.split(plugin)[1]
                 if plugin_name not in enabled_plugins:
                     plugins.remove(plugin)
-            print("enabled_plugins: %s" % enabled_plugins)
-            print("plugins after: %s" % plugins)
         plugins.sort()
         session_dir = self.settings['session_dir']
         combined_plugins = os.path.join(session_dir, "combined_plugins.js")
@@ -1033,7 +1029,7 @@ class TerminalWebSocket(WebSocketHandler):
             'get_bell': self.get_bell,
             'get_webworker': self.get_webworker,
             'get_style': self.get_style,
-            #'get_js': self.get_js,
+            'get_js': self.get_js,
             'enumerate_themes': self.enumerate_themes,
             'manual_title': self.manual_title,
             'reset_terminal': self.reset_terminal,
@@ -1105,7 +1101,6 @@ class TerminalWebSocket(WebSocketHandler):
                 ))
                 self.close()
         self.origin_denied = False
-        # TODO: Make it so that idle WebSockets that haven't passed authentication tests get auto-closed within N seconds in order to prevent a DoS scenario where the attacker keeps all possible ports open indefinitely.
         # client_id is unique to the browser/client whereas session_id is unique
         # to the user.  It isn't used much right now but it will be useful in
         # the future once more stuff is running over WebSockets.
@@ -1114,6 +1109,8 @@ class TerminalWebSocket(WebSocketHandler):
         self.callback_id = callback_id = "%s;%s;%s" % (
             self.client_id, self.request.host, self.request.remote_ip)
         user = self.current_user
+        # NOTE: self.current_user will call self.get_current_user() the first
+        # time it is used.
         if user and 'upn' in user:
             logging.info(
                 _("WebSocket opened (%s %s).") % (user['upn'], client_address))
@@ -1266,7 +1263,7 @@ class TerminalWebSocket(WebSocketHandler):
                 # {
                 #    'api_key': 'MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M',
                 #    'upn': 'joe@company.com',
-                #    'timestamp': 1323391717238,
+                #    'timestamp': '1323391717238',
                 #    'signature': <gibberish>,
                 #    'signature_method': 'HMAC-SHA1',
                 #    'api_version': '1.0'
@@ -1277,7 +1274,8 @@ class TerminalWebSocket(WebSocketHandler):
                 # *upn* is the User Principal Name of the user.  This is
                 #   typically something like "joe@company.com".
                 # *timestamp* is a JavaScript Date() object converted into an
-                #   "time since the epoch": var timestamp = new Date().getTime()
+                #   "time since the epoch" (int or string is OK):
+                #       var timestamp = new Date().getTime()
                 # *signature* is an HMAC signature of the previous three
                 #   variables that was created using the given API key's secret.
                 # *signature_method* is the HMAC hashing algorithm to use for
@@ -1293,7 +1291,7 @@ class TerminalWebSocket(WebSocketHandler):
                     # Assume everything else is present if the api_key is there
                     api_key = auth_obj['api_key']
                     upn = auth_obj['upn']
-                    timestamp = auth_obj['timestamp']
+                    timestamp = str(auth_obj['timestamp'])
                     signature = auth_obj['signature']
                     signature_method = auth_obj['signature_method']
                     api_version = auth_obj['api_version']
@@ -1302,6 +1300,14 @@ class TerminalWebSocket(WebSocketHandler):
                             'notice': _(
                                 'AUTHENTICATION ERROR: Unsupported API auth '
                                 'signature method: %s' % signature_method)
+                        }
+                        self.write_message(json_encode(message))
+                        return
+                    if api_version != "1.0":
+                        message = {
+                            'notice': _(
+                                'AUTHENTICATION ERROR: Unsupported API version:'
+                                '%s' % api_version)
                         }
                         self.write_message(json_encode(message))
                         return
@@ -1378,6 +1384,23 @@ class TerminalWebSocket(WebSocketHandler):
                                 }
                                 session_info_json = json_encode(self.user)
                                 f.write(session_info_json)
+                        # Attach any additional provided keys/values to the user
+                        # object so applications embedding Gate One can use
+                        # them in their own plugins and whatnot.
+                        known_params = [
+                            'api_key',
+                            'api_version',
+                            'timestamp',
+                            'upn',
+                            'signature',
+                            'signature_method'
+                        ]
+                        for key, value in auth_obj.items():
+                            if key not in known_params:
+                                self.user[key] = value
+                        # user dicts need a little extra attention for IPs...
+                        self.user['ip_address'] = self.request.remote_ip
+                        # Force-set the current user:
                         self._current_user = self.user
                     else:
                         logging.error(_(
@@ -2329,36 +2352,41 @@ class TerminalWebSocket(WebSocketHandler):
             out_dict['print'] = print_css
         self.write_message(json_encode({'load_style': out_dict}))
 
-    # NOTE: This has been disabled for now.  It works OK but the problem is that
-    # some plugin JS needs to load *before* the WebSocket is connected.  Might
-    # ultimately be something that just won't work.  I'm still considering
-    # ways I could take advantage of this though so I don't want to delete it
-    # just yet.
-    #def get_js(self):
-        #"""
-        #Sends all JavaScript files inside of plugins' 'static' directory to the
-        #client.
-        #"""
-        #logging.debug('get_js()')
-        #out_dict = {'result': 'Success', 'plugins': {}}
-        ## Build a dict of plugins
-        #plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
-        #for f in os.listdir(plugins_dir):
-            #if os.path.isdir(os.path.join(plugins_dir, f)):
-                #out_dict['plugins'][f] = {}
-        ## Add each found JS file to the respective dict
-        #for plugin in out_dict['plugins'].keys():
-            #plugin_static_path = os.path.join(plugins_dir, plugin, 'static')
-            #if os.path.exists(plugin_static_path):
-                #for f in os.listdir(plugin_static_path):
-                    #if f.endswith('.js'):
-                        #print("f: %s" % f)
-                        #plugin_js_path = os.path.join(plugin_static_path, f)
-                        #with open(plugin_js_path) as js_file:
-                            #plugin_js = js_file.read()
-                            #out_dict['plugins'][plugin][f] = plugin_js
-        #print("out_dict['plugins']: %s" % out_dict['plugins'])
-        #self.write_message({'load_js': out_dict})
+    # NOTE: This is a work-in-progress...
+    @require(authenticated())
+    def get_js(self, filename):
+        """
+        Attempts to find the specified *filename* file in Gate One's static
+        directories (GATEONE_DIR/static/ and each plugin's respective 'static'
+        dir).
+
+        In the event that a plugin's JavaScript file has the same name as a file
+        in GATEONE_DIR/static/ the plugin's copy of the file will take
+        precedence.  This is to allow plugins to override defaults.
+
+        .. note:: This will alow authenticated clients to download whatever file they want that ends in .js inside of /static/ directories.
+        """
+        logging.debug('get_js(%s)' % filename)
+        out_dict = {'result': 'Success', 'files': {}}
+        js_files = {} # Key:value == 'somefile.js': '/full/path/to/somefile.js'
+        # Build a list of plugins
+        plugins = []
+        plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
+        for f in os.listdir(plugins_dir):
+            if os.path.isdir(os.path.join(plugins_dir, f)):
+                plugins.append(f)
+        # Add each found JS file to the respective dict
+        for plugin in plugins:
+            plugin_static_path = os.path.join(plugins_dir, plugin, 'static')
+            if os.path.exists(plugin_static_path):
+                for f in os.listdir(plugin_static_path):
+                    if f.endswith('.js'):
+                        js_file_path = os.path.join(plugin_static_path, f)
+                        js_files.update({f: js_file_path})
+        print("js_files: %s" % js_files)
+        if filename in js_files:
+            with open(js_files[filename]) as f:
+                out_dict['files'][filename] = f.read()
 
     def enumerate_themes(self):
         """
@@ -2384,10 +2412,10 @@ class TerminalWebSocket(WebSocketHandler):
         self.write_message(message_dict)
 
     @require(authenticated())
-    def debug_terminal(self, term):
+    def debug_terminal(self, term=None):
         """
-        Prints the terminal's screen and renditions to stdout so they can be
-        examined more closely.
+        Prints to stdout various details that are useful when debugging Gate
+        One.  If *term* is not given *self.current_term* will be used.
 
         .. note:: Can only be called from a JavaScript console like so...
 
@@ -2395,14 +2423,21 @@ class TerminalWebSocket(WebSocketHandler):
 
             GateOne.ws.send(JSON.stringify({'debug_terminal': *term*}));
         """
+        if not term:
+            term = self.current_term
+        logging.info("TerminalWebSocket.debug_terminal(%s)" % term)
+        print("self.current_user: %s" % self.current_user)
         term_obj = SESSIONS[self.session][self.location][term]['multiplex'].term
         screen = term_obj.screen
         renditions = term_obj.renditions
-        for i, line in enumerate(screen):
-            # This gets rid of images:
-            line = [a for a in line if len(a) == 1]
-            print("%s:%s" % (i, "".join(line)))
-            print(renditions[i])
+        # Commented this out because it is rather noisy and only necessary when
+        # debugging the terminal emulator which isn't necessary for mose folks
+        # that will be using this method.
+        #for i, line in enumerate(screen):
+            ## This gets rid of images:
+            #line = [a for a in line if len(a) == 1]
+            #print("%s:%s" % (i, "".join(line)))
+            #print(renditions[i])
         # Also check if there's anything that's uncollectable
         import gc
         gc.set_debug(gc.DEBUG_UNCOLLECTABLE|gc.DEBUG_OBJECTS)
@@ -3309,7 +3344,10 @@ def main():
         remove_pid(options.pid_file)
         logging.info(_("pid file removed."))
         # Remove the combined_plugins.js in case the plugins change
-        os.remove(os.path.join(options.session_dir, 'combined_plugins.js'))
+        combined_plugins_path = os.path.join(
+            options.session_dir, 'combined_plugins.js')
+        if os.path.exists(combined_plugins_path):
+            os.remove(combined_plugins_path)
         if not options.dtach:
             # If we're not using dtach play it safe by cleaning up any leftover
             # processes.  When passwords are used with the ssh_conenct.py script

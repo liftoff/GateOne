@@ -150,7 +150,10 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         GateOne.Utils.removeElement(GateOne.Example.toptop);
     },
     topTop: function(term) {
-        // Displays the top three CPU-hogging processes on the server in real-time (updating every three seconds just like top)
+        /**GateOne.Exampe.topTop(term)
+
+        Displays the top three CPU-hogging processes on the server in real-time (updating every three seconds just like top).
+        */
         if (!term) {
             term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
@@ -173,6 +176,29 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         go.Example.topUpdateTimer = setInterval(function() {
             go.SSH.execRemoteCmd(term, 'top -bcn1 | head | tail -n4', go.Example.updateTop, go.Example.stopTop);
         }, 3000);
+    },
+    generateAuthObject: function(api_key, secret, upn) {
+        /**GateOne.Example.generateAuthObject(api_key, secret, upn)
+
+        Returns a properly-constructed authentication object that can be used with Gate One's API authentication mode.  The timestamp, signature, signature_method, and api_version values will be created automatically.
+
+        :param string api_key: The API key to use when generating the authentication object.  Must match Gate One's api_keys setting (e.g. in server.conf).
+        :param string secret: The secret attached to the given *api_key*.
+        :param string upn: The userPrincipalName (aka UPN or username) you'll be authenticating.
+
+        .. note:: This will also attach an 'example_attibute' that will be automatically assigned to the 'user' dict on the server so it can be used for other purposes (e.g. authorization checks and inside of plugins).
+        */
+        var timestamp = new Date().getTime(),
+            auth_obj = {
+            'api_key': api_key,
+            'upn': upn,
+            'timestamp': timestamp,
+            'api_version': '1.0',
+            'signature_method': 'HMAC-SHA1',
+            'example_attribute': "This will be attached to the user's identity on the server",
+            'signature': CryptoJS.HmacSHA1(api_key + upn + timestamp, secret).toString()
+        };
+        return auth_obj;
     }
 });
 

@@ -777,7 +777,7 @@ GateOne.Base.update(GateOne.Utils, {
         go.Net.addAction('save_file', go.Utils.saveAsAction);
         go.Net.addAction('load_style', go.Utils.loadStyle);
         // Commented this out since it wasn't working out but may be useful in the future
-//         go.Net.addAction('load_js', go.Utils.loadJS);
+        go.Net.addAction('load_js', go.Utils.loadJS);
         go.Net.addAction('themes_list', go.Utils.enumerateThemes);
     },
     // startBenchmark and stopBenchmark can be used to test the performance of various functions and code...
@@ -1142,32 +1142,34 @@ GateOne.Base.update(GateOne.Utils, {
 
         });
     },
-    // This may be used in the future...  Loads JS over the WebSocket but some stuff in plugins needs to load before the WebSocket is connected.  Might make use of it in the future for something--not sure yet.
-//     loadJS: function(message) {
-//         // Loads the JavaScript files sent via the 'load_js' WebSocket command into <script> tags inside of GateOne.prefs.goDiv (not that it matters where they go but at least this way they're logically attached to what they belong to)
-//         // NOTE: Also loads the web worker
-//         var go = GateOne,
-//             u = go.Utils,
-//             prefix = go.prefs.prefix,
-//             goDiv = u.getNode(go.prefs.goDiv);
-//         if (message['result'] == 'Success') {
-//             for (var plugin in message['plugins']) {
-//                 if (!message['plugins'][plugin].length) {
-//                     continue; // Nothing to load
-//                 }
-//                 for (var js_name in message['plugins'][plugin]) {
-//                     var existing = u.getNode('#'+prefix+plugin+js_name),
-//                         s = u.createElement('script', {'id': plugin+js_name});
-//                     s.innerHTML = message['plugins'][plugin][js_name];
-//                     if (existing) {
-//                         existing.innerHTML = message['plugins'][plugin][js_name];
-//                     } else {
-//                         goDiv.appendChild(s);
-//                     }
-//                 }
-//             }
-//         }
-//     },
+    // This may be used in the future to load JavaScript files via the WebSocket...
+    loadJSAction: function(message) {
+        /**GateOne.Utils.loadJSAction(message)
+
+        Loads the JavaScript files sent via the 'load_js' WebSocket command into <script> tags inside of GateOne.prefs.goDiv (not that it matters where they go but at least this way they're logically attached to what they belong to)
+        */
+        var go = GateOne,
+            u = go.Utils,
+            prefix = go.prefs.prefix,
+            goDiv = u.getNode(go.prefs.goDiv);
+        if (message['result'] == 'Success') {
+            for (var plugin in message['plugins']) {
+                if (!message['plugins'][plugin].length) {
+                    continue; // Nothing to load
+                }
+                for (var js_name in message['plugins'][plugin]) {
+                    var existing = u.getNode('#'+prefix+plugin+js_name),
+                        s = u.createElement('script', {'id': plugin+js_name});
+                    s.innerHTML = message['plugins'][plugin][js_name];
+                    if (existing) {
+                        existing.innerHTML = message['plugins'][plugin][js_name];
+                    } else {
+                        goDiv.appendChild(s);
+                    }
+                }
+            }
+        }
+    },
     loadStyle: function(message) {
         // Loads the stylesheet sent via the 'load_style' WebSocket command
         logDebug("loadStyle()");
@@ -5868,3 +5870,4 @@ GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-
 GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" class="svgplain"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
 
 })(window);
+
