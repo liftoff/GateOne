@@ -1028,7 +1028,7 @@ def create_user_ssh_dir(tws, current_user, settings):
     """
     user = current_user['upn']
     users_dir = os.path.join(settings['user_dir'], user) # "User's dir"
-    ssh_dir = os.path.join(users_dir, 'ssh')
+    ssh_dir = os.path.join(users_dir, '.ssh')
     try:
         mkdir_p(ssh_dir)
     except OSError as e:

@@ -775,9 +775,9 @@ GateOne.Utils.benchmarkAvg = 0; // Ditto
 GateOne.Base.update(GateOne.Utils, {
     init: function() {
         go.Net.addAction('save_file', go.Utils.saveAsAction);
-        go.Net.addAction('load_style', go.Utils.loadStyle);
+        go.Net.addAction('load_style', go.Utils.loadStyleAction);
         // Commented this out since it wasn't working out but may be useful in the future
-        go.Net.addAction('load_js', go.Utils.loadJS);
+        go.Net.addAction('load_js', go.Utils.loadJSAction);
         go.Net.addAction('themes_list', go.Utils.enumerateThemes);
     },
     // startBenchmark and stopBenchmark can be used to test the performance of various functions and code...
@@ -1146,32 +1146,33 @@ GateOne.Base.update(GateOne.Utils, {
     loadJSAction: function(message) {
         /**GateOne.Utils.loadJSAction(message)
 
-        Loads the JavaScript files sent via the 'load_js' WebSocket command into <script> tags inside of GateOne.prefs.goDiv (not that it matters where they go but at least this way they're logically attached to what they belong to)
+        Loads a JavaScript file sent via the 'load_js' WebSocket action into a <script> tag inside of GateOne.prefs.goDiv (not that it matters where it goes).  To request that a .js file be loaded from the Gate One server one can use the following::
+
+            >>> GateOne.ws.send(JSON.stringify({'get_js': 'some_script.js'}));
+            >>> // NOTE: some_script.js can reside in Gate One's /static directory or any plugin's /static directory.
+            >>> // Plugin .js files take precedence.
         */
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv);
         if (message['result'] == 'Success') {
-            for (var plugin in message['plugins']) {
-                if (!message['plugins'][plugin].length) {
-                    continue; // Nothing to load
-                }
-                for (var js_name in message['plugins'][plugin]) {
-                    var existing = u.getNode('#'+prefix+plugin+js_name),
-                        s = u.createElement('script', {'id': plugin+js_name});
-                    s.innerHTML = message['plugins'][plugin][js_name];
-                    if (existing) {
-                        existing.innerHTML = message['plugins'][plugin][js_name];
-                    } else {
-                        goDiv.appendChild(s);
-                    }
-                }
+            var elementID = message['filename'].replace(/\./g, '_'), // Element IDs with dots are a no-no.
+                existing = u.getNode('#'+prefix+elementID),
+                s = u.createElement('script', {'id': elementID});
+            s.innerHTML = message['data'];
+            if (existing) {
+                existing.innerHTML = message['data'];
+            } else {
+                goDiv.appendChild(s);
             }
         }
     },
-    loadStyle: function(message) {
-        // Loads the stylesheet sent via the 'load_style' WebSocket command
+    loadStyleAction: function(message) {
+        /**GateOne.Utils.loadStyle(message)
+
+        Loads the stylesheet sent via the 'load_style' WebSocket action
+        */
         logDebug("loadStyle()");
         var u = go.Utils,
             prefix = go.prefs.prefix;
@@ -3154,8 +3155,11 @@ GateOne.Base.update(GateOne.Visual, {
         var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
-            termObj = u.getNode('#'+prefix+'term' + term),
-            displayText = termObj.id.split('term')[1] + ": " + go.terminals[term]['title'],
+            termObj = u.getNode('#'+prefix+'term' + term);
+        if (!termObj) {
+            return;
+        }
+        var displayText = termObj.id.split('term')[1] + ": " + go.terminals[term]['title'],
             termInfoDiv = u.createElement('div', {'id': 'terminfo'}),
             marginFix = Math.round(go.terminals[term]['title'].length/2),
             infoContainer = u.createElement('div', {'id': 'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});

@@ -272,9 +272,6 @@ go.Base.update(GateOne.Playback, {
             playbackControls = u.createElement('div', {'id': 'playbackControls'}),
             controlsContainer = u.createElement('div', {'id': 'controlsContainer', 'class': 'centertrans'}),
             goDiv = u.getNode(go.prefs.goDiv),
-            style = window.getComputedStyle(goDiv, null),
-            emDimensions = u.getEmDimensions(goDiv),
-            controlsWidth = parseInt(style.width.split('px')[0]) - (emDimensions.w * 3),
             // Firefox doesn't support 'mousewheel'
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
         if (existingControls) {

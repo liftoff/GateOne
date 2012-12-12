@@ -134,7 +134,7 @@ well as descriptions of what each configurable option does:
       --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value must contain the hostnames and FQDNs (e.g. https://foo;https://foo.bar;) users will use to connect to your Gate One server as well as the hostnames/FQDNs of any sites that will be embedding Gate One. Here's the default on your system: 'https://localhost;https://yourhostname'. Alternatively, '*' may be  specified to allow access from anywhere.
       --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
       --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
-      --pid_file                       Path of the pid file.   Default: /var/run/gateone.pid
+      --pid_file                       Path of the pid file.   Default: /tmp/gateone.pid
       --port                           Run on the given port.
       --session_dir                    Path to the location where session information will be stored.
       --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/<user>/logs.  Default: Enabled
@@ -144,7 +144,7 @@ well as descriptions of what each configurable option does:
       --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
       --syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
       --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
-      --unix_socket_path               Run on the given socket file.  Default: /var/run/gateone.sock
+      --unix_socket_path               Run on the given socket file.  Default: /tmp/gateone.sock
       --url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
       --user_dir                       Path to the location where user files will be stored.
 
@@ -301,6 +301,7 @@ from utils import kill_dtached_proc, FACILITIES, which, process_opt_esc_sequence
 from utils import create_data_uri, MimeTypeFail, string_to_syslog_facility
 from utils import fallback_bell, json_encode, recursive_chown, ChownError
 from utils import write_pid, read_pid, remove_pid, drop_privileges
+from utils import check_write_permissions
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -323,6 +324,7 @@ TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
 WATCHER = None # Holds the reference to our timeout_sessions periodic callback
 CLEANER = None # The reference to our session logs cleanup periodic callback
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
+APPLICATIONS = [] # Not used yet (will be cool though when it is!)
 PLUGINS = get_plugins(os.path.join(GATEONE_DIR, 'plugins'))
 PLUGIN_WS_CMDS = {} # Gives plugins the ability to extend/enhance TerminalWebSocket
 PLUGIN_HOOKS = {} # Gives plugins the ability to hook into various things.
@@ -1003,6 +1005,17 @@ class JSPluginsHandler(BaseHandler):
             f.write(out)
         return out
 
+class TestApp(object):
+    """
+    Testing stuff:  This class should get assigned to TerminalWebSocket.apps
+    when it is instantiated.  Also, it should have its initialize() function
+    called.  Furthermore, `self` should actually refer to the current instance
+    of TerminalWebSocket.
+    """
+    def initialize(self):
+        logging.debug("TestApp initialized!")
+        logging.debug("self: %s" % self)
+
 class TerminalWebSocket(WebSocketHandler):
     """
     The main WebSocket interface for Gate One, this class is setup to call
@@ -1012,7 +1025,7 @@ class TerminalWebSocket(WebSocketHandler):
     """
     instances = set()
     commands = {}
-    def __init__(self, application, request):
+    def __init__(self, application, request, **kwargs):
         WebSocketHandler.__init__(self, application, request)
         self.commands.update({
             'ping': self.pong,
@@ -1044,6 +1057,28 @@ class TerminalWebSocket(WebSocketHandler):
         # we can prevent replay attacks.
         self.prev_signatures = []
         self.origin_denied = True # Only allow valid origins
+        self.apps = {} # Gets filled up by self.initialize()
+        self.initialize(**kwargs)
+
+    def initialize(self, apps=None):
+        """
+        This gets called by the Tornado framework when TerminalWebSocket is
+        instantiated.  It will be passed the list of *apps* (Gate One
+        applications) that are assigned inside the :class:`Application` object.
+        These *apps* will be mutated in-place so that `self` will refer to the
+        current instance of :class:`TerminalWebSocket`.  Kind of like a dynamic
+        mixin.
+        """
+        if not apps:
+            return
+        #for app in apps:
+            #app.__bases__ = (self, object)
+            #mutated = app
+            ##mutated = type('Mutated%s' % app.__name__, (self, app), {})
+            #self.apps.update({mutated.__name__, mutated})
+            #logging.debug("Initializing app: %s" % mutated.__name__)
+            #if hasattr(app, 'initialize'):
+                #mutated.initialize()
 
     def allow_draft76(self):
         """
@@ -2367,8 +2402,13 @@ class TerminalWebSocket(WebSocketHandler):
         .. note:: This will alow authenticated clients to download whatever file they want that ends in .js inside of /static/ directories.
         """
         logging.debug('get_js(%s)' % filename)
-        out_dict = {'result': 'Success', 'files': {}}
+        out_dict = {'result': 'Success', 'filename': filename, 'data': None}
         js_files = {} # Key:value == 'somefile.js': '/full/path/to/somefile.js'
+        static_dir = os.path.join(GATEONE_DIR, 'static')
+        for f in os.listdir(static_dir):
+            if f.endswith('.js'):
+                js_file_path = os.path.join(static_dir, f)
+                js_files.update({f: js_file_path})
         # Build a list of plugins
         plugins = []
         plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
@@ -2383,10 +2423,11 @@ class TerminalWebSocket(WebSocketHandler):
                     if f.endswith('.js'):
                         js_file_path = os.path.join(plugin_static_path, f)
                         js_files.update({f: js_file_path})
-        print("js_files: %s" % js_files)
-        if filename in js_files:
+        if filename in js_files.keys():
             with open(js_files[filename]) as f:
-                out_dict['files'][filename] = f.read()
+                out_dict['data'] = f.read()
+        message = {'load_js': out_dict}
+        self.write_message(message)
 
     def enumerate_themes(self):
         """
@@ -2499,6 +2540,7 @@ class Application(tornado.web.Application):
         global PLUGIN_NEW_TERM_HOOKS
         global PLUGIN_NEW_MULTIPLEX_HOOKS
         global PLUGIN_ENV_HOOKS
+        apps = [TestApp]
         # Base settings for our Tornado app
         static_url = os.path.join(GATEONE_DIR, "static")
         tornado_settings = dict(
@@ -2542,7 +2584,7 @@ class Application(tornado.web.Application):
         # Setup our URL handlers
         handlers = [
             (index_regex, MainHandler),
-            (r"%sws" % url_prefix, TerminalWebSocket),
+            (r"%sws" % url_prefix, TerminalWebSocket, {'apps': apps}),
             (r"%sauth" % url_prefix, AuthHandler),
             (r"%sdownloads/(.*)" % url_prefix, DownloadHandler),
             (r"%scssrender" % url_prefix, PluginCSSTemplateHandler),
@@ -2724,7 +2766,7 @@ def main():
         type=bool)
     define(
         "unix_socket_path",
-        default="/var/run/gateone.sock",
+        default="/tmp/gateone.sock",
         help=_("Path to the Unix socket (if --enable_unix_socket=True)."),
         type=str)
     # Please only use this if Gate One is running behind something with SSL:
@@ -2935,9 +2977,9 @@ def main():
     )
     define(
         "pid_file",
-        default="/var/run/gateone.pid",
+        default="/tmp/gateone.pid",
         help=_(
-            "Define the path to the pid file.  Default: /var/run/gateone.pid"),
+            "Define the path to the pid file.  Default: /tmp/gateone.pid"),
         type=str
     )
     define(
@@ -3055,7 +3097,7 @@ def main():
             sys.exit(1)
         # If we could create it we should be able to adjust its permissions:
         os.chmod(options.user_dir, 0o770)
-    if not os.access(options.user_dir, os.W_OK):
+    if not check_write_permissions(uid, options.user_dir):
         # Try correcting this first
         try:
             recursive_chown(options.user_dir, uid, gid)
@@ -3076,7 +3118,7 @@ def main():
                 repr(pwd.getpwuid(os.geteuid())[0]))))
             sys.exit(1)
         os.chmod(options.session_dir, 0o770)
-    if not os.access(options.session_dir, os.W_OK):
+    if not check_write_permissions(uid, options.session_dir):
         # Try correcting it
         try:
             recursive_chown(options.session_dir, uid, gid)
@@ -3100,7 +3142,7 @@ def main():
                   "One as root, or create that directory and give the proper "
                   "user ownership of it."))
             sys.exit(1)
-    if not os.access(log_dir, os.W_OK):
+    if not check_write_permissions(uid, log_dir):
         # Try to correct it
         try:
             recursive_chown(log_dir, uid, gid)
@@ -3139,6 +3181,7 @@ def main():
         sys.exit(0)
     # Display the version in case someone sends in a log for for support
     logging.info(_("Gate One %s" % __version__))
+    logging.info(_("Tornado version %s" % tornado_version))
     # Set our CMD variable to tell the multiplexer which command to execute
     global CMD
     CMD = options.command
@@ -3233,10 +3276,11 @@ def main():
                 static_dir, pwd.getpwuid(os.geteuid())[0])))
     plugin_dir = os.path.join(GATEONE_DIR, "plugins")
     templates_dir = os.path.join(GATEONE_DIR, "templates")
-    combined_plugins = os.path.join(static_dir, "combined_plugins.js")
+    combined_plugins_path = os.path.join(
+        options.session_dir, 'combined_plugins.js')
     # Remove the combined_plugins.js (it will get auto-recreated)
-    if os.path.exists(combined_plugins):
-        os.remove(combined_plugins)
+    if os.path.exists(combined_plugins_path):
+        os.remove(combined_plugins_path)
     # When options.logging=="debug" it will display all user's keystrokes so
     # make sure we warn about this.
     if options.logging == "debug":
@@ -3344,8 +3388,6 @@ def main():
         remove_pid(options.pid_file)
         logging.info(_("pid file removed."))
         # Remove the combined_plugins.js in case the plugins change
-        combined_plugins_path = os.path.join(
-            options.session_dir, 'combined_plugins.js')
         if os.path.exists(combined_plugins_path):
             os.remove(combined_plugins_path)
         if not options.dtach:

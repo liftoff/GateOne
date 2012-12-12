@@ -1105,6 +1105,35 @@ def recursive_chown(path, uid, gid):
                 else:
                     raise
 
+def check_write_permissions(user, path):
+    """
+    Returns True if the given *user* has write permissions to *path*.  *user*
+    can be a UID (int) or a username (string).
+    """
+    import pwd, grp, stat
+    # Get the user's complete passwd record
+    if isinstance(user, int):
+        user = pwd.getpwuid(user)
+    else:
+        user = pwd.getpwnam(user)
+    groups = [] # A combination of user's primary GID and supplemental groups
+    for group in grp.getgrall():
+        if user.pw_name in group.gr_mem:
+            groups.append(group.gr_gid)
+        if group.gr_gid == user.pw_gid:
+            groups.append(group.gr_gid)
+    st = os.stat(path)
+    other_write = bool(st.st_mode & stat.S_IWOTH)
+    if other_write:
+        return True # Read/write world!
+    owner_write = bool(st.st_mode & stat.S_IWUSR)
+    if st.st_uid == user.pw_uid and owner_write:
+        return True # User can write to their own file
+    group_write = bool(st.st_mode & stat.S_IWGRP)
+    if st.st_gid in groups and group_write:
+        return True # User belongs to a group that can write to the file
+    return False
+
 def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
     """
     Drop privileges by changing the current process owner/group to
@@ -1120,7 +1149,7 @@ def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
 
     .. note:: On most Unix systems users must belong to the 'tty' group to create new controlling TTYs which is necessary for 'pty.fork()' to work.
 
-    .. tip:: If you get errors like, "OSError: out of pty devices" it likely means that your OS uses something other than 'tty' as the group owner of the devpts filesystem.  'mount | grep pts' will tell you the owner.
+    .. tip:: If you get errors like, "OSError: out of pty devices" it likely means that your OS uses something other than 'tty' as the group owner of the devpts filesystem.  'mount | grep pts' will tell you the owner (look for gid=<owner>).
     """
     import pwd, grp
     running_gid = gid

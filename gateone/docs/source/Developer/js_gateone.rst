@@ -806,7 +806,7 @@ Functions
         * :js:attr:`GateOne.Utils.loadPluginCSS`
         * :js:attr:`GateOne.Utils.loadPrefs`
         * :js:attr:`GateOne.Utils.loadScript`
-        * :js:attr:`GateOne.Utils.loadStyle` ###
+        * :js:attr:`GateOne.Utils.loadStyleAction` ###
         * :js:attr:`GateOne.Utils.loadThemeCSS`
         * :js:attr:`GateOne.Utils.ltrim` ###
         * :js:attr:`GateOne.Utils.noop`
@@ -838,7 +838,7 @@ Functions
     .. code-block:: javascript
 
         GateOne.Net.addAction('save_file', GateOne.Utils.saveAsAction);
-        GateOne.Net.addAction('load_style', GateOne.Utils.loadStyle);
+        GateOne.Net.addAction('load_style', GateOne.Utils.loadStyleAction);
         GateOne.Net.addAction('themes_list', GateOne.Utils.enumerateThemes);
 
 
@@ -1272,7 +1272,7 @@ Functions
         var myfunc = function() { console.log("finished loading whatever.js"); };
         GateOne.Utils.loadScript("/static/someplugin/whatever.js", myfunc);
 
-.. js:function:: GateOne.Utils.loadStyle(message)
+.. js:function:: GateOne.Utils.loadStyleAction(message)
 
     Loads the stylesheet sent by the server via the 'load_style' `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_ action.
 
@@ -1601,7 +1601,7 @@ This is where all of Gate One's `WebSocket <https://developer.mozilla.org/en/Web
     gateone_user      :js:func:`GateOne.User.storeSession`
     load_bell         :js:func:`GateOne.User.loadBell`
     load_css          :js:func:`GateOne.Visual.CSSPluginAction`
-    load_style        :js:func:`GateOne.Utils.loadStyle`
+    load_style        :js:func:`GateOne.Utils.loadStyleAction`
     load_webworker    :js:func:`GateOne.Terminal.loadWebWorkerAction`
     log               :js:func:`GateOne.Net.log`
     notice            :js:func:`GateOne.Visual.serverMessageAction`
