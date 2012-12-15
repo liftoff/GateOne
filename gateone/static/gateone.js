@@ -1682,6 +1682,12 @@ GateOne.Base.update(GateOne.Net, {
             }
         u.deleteCookie('gateone_user', '/', '');
         delete localStorage[prefix+'gateone_user']; // Also clear this if it is set
+        // This is wrapped in a timeout because the 'reauthenticate' message comes just before the WebSocket is closed
+        setTimeout(function() {
+            if (go.Net.reconnectTimeout) {
+                clearTimeout(go.Net.reconnectTimeout);
+            }
+        }, 500);
         if (go.prefs.auth) {
             v.alert('API Authentication Failure', "The API authentication object was denied by the server.  Usually this means that one of the following is true:<ul style='width: 75%; margin-left: auto; margin-right: auto; text-align: left;'><li>The server's cookie_secret has changed and you must reauthenticate.  Simply reloading the page <i>once</i> will correct this.  Note that it is considered best practices to change the server's cookie_secret from time to time.</li><li>The api_keys parameter in Gate One's server.conf is not set correctly.</li><li>The Gate One server isn't configured to use API authentication ('auth = \"api\"' in the server.conf).</li><li>The API authentication object has expired.  This usually means the Gate One server was restarted or the clocks on one (or more) servers are set incorrectly (e.g. due to drift).</li><li>You are the victim of a Man-in-the-Middle attack.  Someone or <i>something</i> may have intercepted your API authentication object and already used it gain access to your session.  If this was the case you would have seen a message like, \"API authentication replay attack detected!\" appear as a notification at least once with similar messages logged on the server.  If you didn't see any such notification then it is highly likely that the problem is due to one of the aforementioned items.</li></ul><br><br>Click OK to reload the page.", redirect);
         } else {
@@ -1753,7 +1759,7 @@ GateOne.Base.update(GateOne.Net, {
         // Fire a connection_error event.  Primarily so developers can get a new/valid API authentication object.
         // For reference, to reset the auth object just assign it:  GateOne.prefs.auth = <your auth object>
         go.Events.trigger("connection_error");
-        setTimeout(go.Net.connect, 5000);
+        go.Net.reconnectTimeout = setTimeout(go.Net.connect, 5000);
     },
     sslError: function(callback) {
         // Called when we fail to connect due to an SSL error (user must accept the SSL certificate).  It opens a dialog where the user can click accept
@@ -2098,6 +2104,7 @@ GateOne.Base.update(GateOne.Input, {
         goDiv.onkeypress = null;
         goDiv.onmousedown = null;
         goDiv.onmouseup = null;
+        go.Input.metaHeld = false; // This can get stuck at 'true' if the uses does something like command-tab to switch applications.
         if (!go.Visual.overlay) {
             // The timer here is to prevent the screen from flashing whenever something is pasted.
             go.Input.overlayTimer = setTimeout(go.Visual.toggleOverlay, 250);

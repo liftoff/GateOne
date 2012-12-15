@@ -184,9 +184,16 @@ class require(object):
                 # This lets the condition know what it is being applied to:
                 condition.function = f
                 if not condition.check():
-                    logging.error(_(
-                        "%s -> %s failed condition: %s" % (
-                        self._current_user['upn'], f.__name__, str(condition))))
+                    if hasattr(self, 'current_user'):
+                        if ['upn'] in self.current_user:
+                            logging.error(_(
+                                "%s -> %s failed requirement: %s" % (
+                                self.current_user['upn'],
+                                f.__name__, str(condition))))
+                    else:
+                        logging.error(_(
+                            "unknown user -> %s failed requirement: %s" % (
+                            f.__name__, str(condition))))
                     self.send_message(_(
                         "ERROR: %s (%s)" % (condition.error, f.__name__)))
                     return noop
@@ -244,7 +251,7 @@ class policies(object):
     if all the specified conditions are within the limits specified in
     security.conf.  Here's an example::
 
-        @require(authenticated(), policies('terminal))
+        @require(authenticated(), policies('terminal'))
         def new_terminal(self, settings):
             # Actual function would be here
 
@@ -254,7 +261,7 @@ class policies(object):
     """
     error = _("Your ability to perform this action has been restricted")
     def __str__(self):
-        return "policies: %s" % self.upn
+        return "policies: %s" % self.app
 
     def __init__(self, app):
         self.app = app
@@ -264,7 +271,8 @@ class policies(object):
     def check(self):
         security = self.instance.security
         if self.app in security:
-            security[self.app](self.instance, self.function)
+            return security[self.app](self.instance, self.function)
+        return True # Nothing is registered for this application so it's OK
 
 # Authentication stuff
 class BaseAuthHandler(tornado.web.RequestHandler):

@@ -1331,28 +1331,25 @@ class TerminalWebSocket(WebSocketHandler):
                     signature_method = auth_obj['signature_method']
                     api_version = auth_obj['api_version']
                     if signature_method != 'HMAC-SHA1':
-                        message = {
-                            'notice': _(
+                        logging.error(_(
                                 'AUTHENTICATION ERROR: Unsupported API auth '
-                                'signature method: %s' % signature_method)
-                        }
+                                'signature method: %s' % signature_method))
+                        message = {'reauthenticate': True}
                         self.write_message(json_encode(message))
                         return
                     if api_version != "1.0":
-                        message = {
-                            'notice': _(
+                        logging.error(_(
                                 'AUTHENTICATION ERROR: Unsupported API version:'
-                                '%s' % api_version)
-                        }
+                                '%s' % api_version))
+                        message = {'reauthenticate': True}
                         self.write_message(json_encode(message))
                         return
                     try:
                         secret = self.settings['api_keys'][api_key]
                     except KeyError:
-                        message = {
-                            'notice': _(
-                                'AUTHENTICATION ERROR: API Key not found.')
-                        }
+                        logging.error(_(
+                            'AUTHENTICATION ERROR: API Key not found.'))
+                        message = {'reauthenticate': True}
                         self.write_message(json_encode(message))
                         return
                     # Check the signature against existing API keys
@@ -1440,8 +1437,14 @@ class TerminalWebSocket(WebSocketHandler):
                     else:
                         logging.error(_(
                             "WebSocket auth failed signature check."))
+                        message = {'reauthenticate': True}
+                        self.write_message(json_encode(message))
+                        return
             else:
                 logging.error(_("Missing API Key in authentication object"))
+                message = {'reauthenticate': True}
+                self.write_message(json_encode(message))
+                return
         else: # Anonymous auth
             # Double-check there isn't a user set in the cookie (i.e. we have
             # recently changed Gate One's settings).  If there is, force it
@@ -3314,6 +3317,16 @@ def main():
         url_prefix=options.url_prefix
     )
     tornado.web.ErrorHandler = ErrorHandler
+    if options.auth == 'pam':
+        if uid != 0 or os.getuid() != 0:
+            logging.warning(_(
+                "PAM authentication is configured but you are not running Gate"
+                " One as root.  If the pam_service you've selected (%s) is "
+                "configured to use pam_unix.so for 'auth' (i.e. authenticating "
+                "against /etc/passwd and /etc/shadow) Gate One will not be able"
+                " to authenticate all users.  It will only be able to "
+                "authenticate the user that owns the gateone.py process." %
+                options.pam_service))
     try: # Start your engines!
         if options.enable_unix_socket:
             https_server.add_socket(
