@@ -153,7 +153,7 @@ def valid_ip(ipaddr):
 
 def get_identities(users_ssh_dir, only_defaults=False):
     """
-    Returns a list of identities stored in the user's 'ssh' directory.  It does
+    Returns a list of identities stored in the user's '.ssh' directory.  It does
     this by examining os.environ['GO_USER'] os.environ['GO_USER_DIR'].  If
     *only_defaults* is True and if a '.default_ids' file exists only identities
     listed within it will be returned.
@@ -245,7 +245,7 @@ def openssh_connect(
         go_user = os.environ['USER']
     if 'GO_USER_DIR' in os.environ:
         users_dir = os.path.join(os.environ['GO_USER_DIR'], go_user)
-        users_ssh_dir = os.path.join(users_dir, 'ssh')
+        users_ssh_dir = os.path.join(users_dir, '.ssh')
     else: # Fall back to using the default OpenSSH location for ssh stuff
         if POSIX:
             users_ssh_dir = os.path.join(os.environ['HOME'], '.ssh')

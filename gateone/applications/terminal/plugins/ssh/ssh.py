@@ -40,7 +40,7 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
-import os, sys, logging, re, time
+import os, logging, re
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -58,6 +58,7 @@ import tornado.ioloop
 # Globals
 OPENSSH_VERSION = None
 DROPBEAR_VERSION = None
+PLUGIN_PATH = os.path.split(__file__)[0] # Path to this plugin's directory
 OPEN_SUBCHANNELS = {}
 SUBCHANNEL_TIMEOUT = timedelta(minutes=5) # How long to wait before auto-closing
 READY_STRING = "GATEONE_SSH_EXEC_CMD_CHANNEL_READY"
@@ -106,15 +107,15 @@ class SSHPassphraseException(Exception):
     """
     pass
 
-def get_ssh_dir(tws):
+def get_ssh_dir(self):
     """
-    Given a :class:`gateone.TerminalWebSocket` (*tws*) instance, return the
+    Given a :class:`gateone.TerminalWebSocket` (*self*) instance, return the
     current user's ssh directory
 
     .. note:: If the user's ssh directory doesn't start with a . (dot) it will be renamed.
     """
-    user = tws.get_current_user()['upn']
-    users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
+    user = self.get_current_user()['upn']
+    users_dir = os.path.join(self.ws.settings['user_dir'], user) # "User's dir"
     old_ssh_dir = os.path.join(users_dir, 'ssh')
     users_ssh_dir = os.path.join(users_dir, '.ssh')
     if os.path.exists(old_ssh_dir):
@@ -127,7 +128,7 @@ def get_ssh_dir(tws):
                 "Using the .ssh directory." % user))
     return users_ssh_dir
 
-def open_sub_channel(term, tws):
+def open_sub_channel(self, term):
     """
     Opens a sub-channel of communication by executing a new shell on the SSH
     server using OpenSSH's `Master mode <http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing>`_
@@ -143,8 +144,8 @@ def open_sub_channel(term, tws):
     # NOTE: When connecting a slave via ssh you can't tell it to execute a
     # command like you normally can (e.g. 'ssh user@host <some command>').  This
     # is why we're using the termio.Multiplex.expect() functionality below...
-    session = tws.session
-    session_dir = tws.settings['session_dir']
+    session = self.ws.session
+    session_dir = self.ws.settings['session_dir']
     session_path = os.path.join(session_dir, session)
     if not session_path:
         raise SSHMultiplexingException(_(
@@ -166,7 +167,7 @@ def open_sub_channel(term, tws):
     if not socket_path:
         raise SSHMultiplexingException(_(
             "SSH Plugin: Unable to open slave sub-channel."))
-    users_ssh_dir = get_ssh_dir(tws)
+    users_ssh_dir = get_ssh_dir(self)
     ssh_config_path = os.path.join(users_ssh_dir, 'config')
     if not os.path.exists(ssh_config_path):
         # Create it (an empty one so ssh doesn't error out)
@@ -177,7 +178,7 @@ def open_sub_channel(term, tws):
     ssh = which('ssh')
     ssh_command = '%s -x -S%s -F%s go_ssh_remote_cmd' % (
         ssh, socket_path, ssh_config_path)
-    OPEN_SUBCHANNELS[term] = m = tws.new_multiplex(
+    OPEN_SUBCHANNELS[term] = m = self.new_multiplex(
         ssh_command, "%s (sub)" % term)
     # Using huge numbers here so we don't miss much (if anything) if the user
     # executes something like "ps -ef".
@@ -334,7 +335,7 @@ def execute_command(term, cmd, callback=None, tws=None):
     logging.debug("Waiting for READY_MATCH inside execute_command()")
     m.writeline(u'echo -e "\\n%s"' % READY_STRING)
 
-def send_result(tws, term, cmd, output, m_instance):
+def send_result(self, term, cmd, output, m_instance):
     """
     Called by :func:`ws_exec_command` when the output of the executed command
     has been captured successfully.  Writes a message to the client with the
@@ -348,9 +349,9 @@ def send_result(tws, term, cmd, output, m_instance):
             'result': 'Success'
         }
     }
-    tws.write_message(message)
+    self.write_message(message)
 
-def ws_exec_command(settings, tws):
+def ws_exec_command(self, settings):
     """
     Takes the necessary variables from *settings* and calls :func:`execute_command`.
 
@@ -360,9 +361,9 @@ def ws_exec_command(settings, tws):
     """
     term = settings['term']
     cmd = settings['cmd']
-    send = partial(send_result, tws, term, cmd)
+    send = partial(send_result, self, term, cmd)
     try:
-        execute_command(term, cmd, send, tws=tws)
+        execute_command(term, cmd, send, tws=self)
     except SSHExecutionException as e:
         message = {
             'sshjs_cmd_output': {
@@ -372,7 +373,7 @@ def ws_exec_command(settings, tws):
                 'result': 'Error: %s' % e
             }
         }
-        tws.write_message(message)
+        self.write_message(message)
 
 # Handlers
 class KnownHostsHandler(BaseHandler):
@@ -405,7 +406,7 @@ class KnownHostsHandler(BaseHandler):
         user = self.get_current_user()['upn']
         logging.debug("known_hosts requested by %s" % user)
         users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
-        users_ssh_dir = os.path.join(users_dir, 'ssh')
+        users_ssh_dir = os.path.join(users_dir, '.ssh')
         kh_path = os.path.join(users_ssh_dir, 'known_hosts')
         known_hosts = ""
         if os.path.exists(kh_path):
@@ -417,7 +418,7 @@ class KnownHostsHandler(BaseHandler):
         """Save the given *known_hosts* file."""
         user = self.get_current_user()['upn']
         users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
-        users_ssh_dir = os.path.join(users_dir, 'ssh')
+        users_ssh_dir = os.path.join(users_dir, '.ssh')
         kh_path = os.path.join(users_ssh_dir, 'known_hosts')
         # Letting Tornado's exception handler deal with errors here
         f = open(kh_path, 'w')
@@ -430,7 +431,34 @@ WebSocket Commands
 ------------------
 """
 # WebSocket commands (not the same as handlers)
-def get_connect_string(term, tws):
+#def get_connect_string(term, tws):
+    #"""
+    #Writes the connection string associated with *term* to the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_
+    #like so::
+
+        #{'sshjs_reconnect': {*term*: <connection string>}}
+
+    #In ssh.js we attach an action (aka handler) to :js:attr:`GateOne.Net.actions`
+    #for 'sshjs_reconnect' messages that attaches the connection string to
+    #`GateOne.terminals[*term*]['sshConnectString']`
+    #"""
+    #logging.debug("get_connect_string() term: %s" % term)
+    #session = tws.session
+    #session_dir = tws.settings['session_dir']
+    #for f in os.listdir(os.path.join(session_dir, session)):
+        #if f.startswith('ssh:'):
+            #terminal, a_colon, connect_string = f[4:].partition(':')
+            #terminal = int(terminal)
+            #if terminal == term:
+                ## TODO: Make it so we don't have to use json_encode below...
+                #message = {
+                    #'sshjs_reconnect': json_encode({term: connect_string})
+                #}
+                #tws.write_message(message)
+                #return # All done
+
+# New version
+def get_connect_string(self, term):
     """
     Writes the connection string associated with *term* to the `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_
     like so::
@@ -442,8 +470,8 @@ def get_connect_string(term, tws):
     `GateOne.terminals[*term*]['sshConnectString']`
     """
     logging.debug("get_connect_string() term: %s" % term)
-    session = tws.session
-    session_dir = tws.settings['session_dir']
+    session = self.ws.session
+    session_dir = self.ws.settings['session_dir']
     for f in os.listdir(os.path.join(session_dir, session)):
         if f.startswith('ssh:'):
             terminal, a_colon, connect_string = f[4:].partition(':')
@@ -453,10 +481,10 @@ def get_connect_string(term, tws):
                 message = {
                     'sshjs_reconnect': json_encode({term: connect_string})
                 }
-                tws.write_message(message)
+                self.write_message(message)
                 return # All done
 
-def get_key(name, public, tws):
+def get_key(self, name, public):
     """
     Returns the private SSH key associated with *name* to the client.  If
     *public* is `True`, returns the public key to the client.
@@ -465,7 +493,7 @@ def get_key(name, public, tws):
         error_msg = _(
             'SSH Plugin Error: Invalid name given, %s' % repr(name))
         message = {'save_file': {'result': error_msg}}
-        tws.write_message(message)
+        self.write_message(message)
         return out_dict
     if public and not name.endswith('.pub'):
         name += '.pub'
@@ -475,7 +503,7 @@ def get_key(name, public, tws):
         'data': None,
         'mimetype': 'text/plain'
     }
-    users_ssh_dir = get_ssh_dir(tws)
+    users_ssh_dir = get_ssh_dir(self)
     key_path = os.path.join(users_ssh_dir, name)
     if os.path.exists(key_path):
         with open(key_path) as f:
@@ -485,22 +513,22 @@ def get_key(name, public, tws):
         out_dict['result'] = _(
             'SSH Plugin Error: Public key not found at %s' % key_path)
     message = {'save_file': out_dict}
-    tws.write_message(message)
+    self.write_message(message)
     return out_dict
 
-def get_public_key(name, tws):
+def get_public_key(self, name):
     """
     Returns the user's public key file named *name*.
     """
-    get_key(name, True, tws)
+    get_key(self, name, True)
 
-def get_private_key(name, tws):
+def get_private_key(self, name):
     """
     Returns the user's private key file named *name*.
     """
-    get_key(name, False, tws)
+    get_key(self, name, False)
 
-def get_host_fingerprint(settings, tws):
+def get_host_fingerprint(self, settings):
     """
     Returns a the hash of the given host's public key by making a remote
     connection to the server (not just by looking at known_hosts).
@@ -512,7 +540,7 @@ def get_host_fingerprint(settings, tws):
     if 'host' not in settings:
         out_dict['result'] = _("Error:  You must supply a 'host'.")
         message = {'sshjs_display_fingerprint': out_dict}
-        tws.write_message(message)
+        self.write_message(message)
     else:
         host = settings['host']
     logging.debug("get_host_fingerprint(%s:%s)" % (host, port))
@@ -522,7 +550,7 @@ def get_host_fingerprint(settings, tws):
         'fingerprint': None
     }
     ssh = which('ssh')
-    m = tws.new_multiplex(
+    m = self.new_multiplex(
         '%s -p %s -oUserKnownHostsFile=none -F. %s' % (ssh, port, host),
         'get_host_key',
         logging=False) # Logging is false so we don't make tons of silly logs
@@ -530,7 +558,7 @@ def get_host_fingerprint(settings, tws):
         out_dict['fingerprint'] = match.split()[-1][:-1]
         m_instance.terminate()
         message = {'sshjs_display_fingerprint': out_dict}
-        tws.write_message(message)
+        self.write_message(message)
         del m_instance
     def errorback(m_instance):
         leftovers = [a.rstrip() for a in m_instance.dump() if a.strip()]
@@ -539,7 +567,7 @@ def get_host_fingerprint(settings, tws):
             % (host, port, "\n".join(leftovers)))
         m_instance.terminate() # Don't leave stuff hanging around!
         message = {'sshjs_display_fingerprint': out_dict}
-        tws.write_message(message)
+        self.write_message(message)
         del m_instance
     m.expect('.+fingerprint .+$', grab_fingerprint, errorback=errorback)
     m.spawn()
@@ -548,7 +576,7 @@ def get_host_fingerprint(settings, tws):
     # Dropbear output example:
     # (fingerprint md5 fa:a1:5b:4f:e5:ab:fe:e6:1f:1f:74:20:d7:35:67:c2)
 
-def generate_new_keypair(settings, tws):
+def generate_new_keypair(self, settings):
     """
     Calls :func:`openssh_generate_new_keypair` or
     :func:`dropbear_generate_new_keypair` depending on what's available on the
@@ -556,7 +584,7 @@ def generate_new_keypair(settings, tws):
     """
     logging.debug('generate_new_keypair()')
     out_dict = {}
-    users_ssh_dir = get_ssh_dir(tws)
+    users_ssh_dir = get_ssh_dir(self)
     name = 'id_ecdsa'
     keytype = None
     bits = None
@@ -582,12 +610,12 @@ def generate_new_keypair(settings, tws):
             passphrase=passphrase,
             bits=bits,
             comment=comment,
-            tws=tws
+            tws=self
         )
     elif which('dropbearkey'):
         dropbear_generate_new_keypair(*args, **kwargs)
 
-def errorback(tws, m_instance):
+def errorback(self, m_instance):
     logging.debug("keygen errorback()")
     print(m_instance.dump())
     m_instance.terminate()
@@ -597,7 +625,7 @@ def errorback(tws, m_instance):
                         % m_instance.dump()),
         }
     }
-    tws.write_message(message)
+    self.write_message(message)
 
 def overwrite(m_instance, match):
     """
@@ -610,7 +638,7 @@ def enter_passphrase(passphrase, m_instance, match):
     logging.debug("entering passphrase...")
     m_instance.writeline('%s' % passphrase)
 
-def finished(tws, m_instance, fingerprint):
+def finished(self, m_instance, fingerprint):
     logging.debug("keygen finished.  fingerprint: %s" % fingerprint)
     message = {
         'sshjs_keygen_complete': {
@@ -619,7 +647,7 @@ def finished(tws, m_instance, fingerprint):
         }
     }
     m_instance.terminate()
-    tws.write_message(message)
+    self.write_message(message)
 
 def openssh_generate_new_keypair(name, path,
         keytype=None, passphrase="", bits=None, comment="", tws=None):
@@ -772,7 +800,7 @@ def openssh_generate_public_key(path, passphrase=None, settings=None, tws=None):
     #Fingerprint: md5 c6:f9:f2:95:b8:40:ac:f3:53:f1:39:e9:57:a0:58:18
 
 # TODO: Get this validating uploaded keys.
-def store_id_file(settings, tws=None):
+def store_id_file(self, settings):
     """
     Stores the given *settings['private']* and/or *settings['public']* keypair
     in the user's ssh directory as *settings['name']* and/or
@@ -808,7 +836,7 @@ def store_id_file(settings, tws=None):
             passphrase = settings['passphrase']
         if not private and not public and not certificate:
             raise SSHKeypairException(_("No files were given to save!"))
-        users_ssh_dir = get_ssh_dir(tws)
+        users_ssh_dir = get_ssh_dir(self)
         private_key_path = os.path.join(users_ssh_dir, name)
         public_key_name = name + '.pub'
         if name.endswith('.pub'):
@@ -827,7 +855,7 @@ def store_id_file(settings, tws=None):
                 # Without this you get a warning:
                 os.chmod(private_key_path, 0600)
             else:
-                tws.write_message({'notice': _(
+                self.write_message({'notice': _(
                     "ERROR: Private key is not valid.")})
                 return
         if public:
@@ -854,8 +882,8 @@ def store_id_file(settings, tws=None):
             deadline = timedelta(seconds=2)
             def generate_public_key(): # I love closures
                 openssh_generate_public_key(
-                    private_key_path, passphrase, settings=settings, tws=tws)
-                get_ids = partial(get_identities, None, tws)
+                    private_key_path, passphrase, settings=settings, tws=self)
+                get_ids = partial(get_identities, None, self)
                 io_loop.add_timeout(timedelta(seconds=2), get_ids)
             # This gets removed if the public key is uploaded
             TIMER = io_loop.add_timeout(deadline, generate_public_key)
@@ -869,9 +897,9 @@ def store_id_file(settings, tws=None):
     message = {
         'sshjs_save_id_complete': out_dict
     }
-    tws.write_message(message)
+    self.write_message(message)
 
-def delete_identity(name, tws):
+def delete_identity(self, name):
     """
     Removes the identity associated with *name*.  For example if *name* is
     'testkey', 'testkey' and 'testkey.pub' would be removed from the user's
@@ -879,7 +907,7 @@ def delete_identity(name, tws):
     """
     logging.debug('delete_identity()')
     out_dict = {'result': 'Success'}
-    users_ssh_dir = get_ssh_dir(tws)
+    users_ssh_dir = get_ssh_dir(self)
     private_key_path = os.path.join(users_ssh_dir, name)
     public_key_path = os.path.join(users_ssh_dir, name+'.pub')
     certificate_path = os.path.join(users_ssh_dir, name+'-cert.pub')
@@ -895,9 +923,9 @@ def delete_identity(name, tws):
     message = {
         'sshjs_delete_identity_complete': out_dict
     }
-    tws.write_message(message)
+    self.write_message(message)
 
-def get_identities(anything, tws):
+def get_identities(self, anything):
     """
     Sends a message to the client with a list of the identities stored on the
     server for the current user.
@@ -907,7 +935,7 @@ def get_identities(anything, tws):
     """
     logging.debug('get_identities()')
     out_dict = {'result': 'Success'}
-    users_ssh_dir = get_ssh_dir(tws)
+    users_ssh_dir = get_ssh_dir(self)
     out_dict['identities'] = []
     ssh_keygen_path = which('ssh-keygen')
     keytype_re = re.compile('.*\(([A-Z]+)\)$', re.MULTILINE)
@@ -969,7 +997,7 @@ def get_identities(anything, tws):
         # Figure out which identities are defaults
         default_ids = []
         default_ids_exists = False
-        users_ssh_dir = get_ssh_dir(tws)
+        users_ssh_dir = get_ssh_dir(self)
         default_ids_path = os.path.join(users_ssh_dir, '.default_ids')
         if os.path.exists(default_ids_path):
             default_ids_exists = True
@@ -990,9 +1018,9 @@ def get_identities(anything, tws):
     message = {
         'sshjs_identities_list': out_dict
     }
-    tws.write_message(message)
+    self.write_message(message)
 
-def set_default_identities(identities, tws):
+def set_default_identities(self, identities):
     """
     Given a list of *identities*, mark them as defaults to use in all outbound
     SSH connections by writing them to `<user's ssh dir>/.default_ids`.  If
@@ -1001,13 +1029,13 @@ def set_default_identities(identities, tws):
     .. note:: Whenever this function is called it will overwrite whatever is in `.default_ids`.
     """
     if isinstance(identities, list): # Ignore anything else
-        users_ssh_dir = get_ssh_dir(tws)
+        users_ssh_dir = get_ssh_dir(self)
         default_ids_path = os.path.join(users_ssh_dir, '.default_ids')
         with open(default_ids_path, 'w') as f:
             f.write('\n'.join(identities) + '\n') # Need that trailing newline
 
 # Special optional escape sequence handler (see docs on how it works)
-def opt_esc_handler(text, tws):
+def opt_esc_handler(self, text):
     """
     Handles text passed from the special optional escape sequance handler.  We
     use it to tell ssh.js what the SSH connection string is so it can use that
@@ -1019,9 +1047,9 @@ def opt_esc_handler(text, tws):
     .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`
     """
     message = {'sshjs_connect': text}
-    tws.write_message(message)
+    self.write_message(message)
 
-def create_user_ssh_dir(tws, current_user, settings):
+def create_user_ssh_dir(self, current_user, settings):
     """
     To be called by the 'Auth' hook that gets called after the user is done
     authenticating, ensures that the `<user's dir>/ssh` directory exists.
@@ -1033,6 +1061,37 @@ def create_user_ssh_dir(tws, current_user, settings):
         mkdir_p(ssh_dir)
     except OSError as e:
         logging.error(_("Error creating user's ssh directory: %s\n" % e))
+
+def send_css_template(self):
+    """
+    Sends our ssh.css template to the client using the 'load_style' WebSocket
+    action.  Uses :attr:`ApplicationWebSocket.persist` to store a reference to
+    the rendered CSS template to ensure we only ever have to render it once.
+    """
+    # Here we use the 'persist' dict to keep track of our rendered CSS template
+    if 'ssh_css' not in self.ws.persist:
+        import tempfile
+        temp = tempfile.NamedTemporaryFile(prefix='go_ssh_css')
+        css_path = os.path.join(PLUGIN_PATH, 'templates', 'ssh.css')
+        with open(css_path) as f:
+            css_template = tornado.template.Template(f.read())
+        rendered = css_template.generate(
+            container=self.ws.container,
+            prefix=self.ws.prefix
+        )
+        temp.write(rendered)
+        temp.flush()
+        # Save the rendered template to our persistent store so we don't have to
+        # process it with every page load.
+        self.ws.persist['ssh_css'] = temp
+    self.ws.send_css(self.ws.persist['ssh_css'])
+
+def initialize(self):
+    """
+    Called inside of :meth:`TerminalApplication.initialize` shortly after the
+    WebSocket is instantiated.
+    """
+    pass
 
 hooks = {
     'Web': [(r"/ssh", KnownHostsHandler)],
@@ -1049,7 +1108,10 @@ hooks = {
         'ssh_set_default_identities': set_default_identities
     },
     'Escape': opt_esc_handler,
-    'Auth': create_user_ssh_dir
+    'Auth': create_user_ssh_dir,
+    'Events': {
+        'terminal:authenticate': send_css_template
+    }
 }
 
 # Certificate information (as output by ssh-keygen) for reference:

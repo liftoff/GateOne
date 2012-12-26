@@ -53,8 +53,6 @@
     width: 100%;
     height: 50%;
     border: 1px #000 solid;
-/*     background-color: white; */
-/*     opacity: 0.3; */
 }
 /* Effects */
 #{{container}} div[name="{{prefix}}logitem"]:hover {

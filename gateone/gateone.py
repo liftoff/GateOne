@@ -202,7 +202,7 @@ Gate One includes support for any combination of the following types of plugins:
 Python plugins can integrate with Gate One in three ways:
 
  * Adding or overriding tornado.web.RequestHandlers (with a given regex).
- * Adding or overriding methods (aka "commands") in TerminalWebSocket.
+ * Adding or overriding methods (aka "commands") in ApplicationWebSocket.
  * Adding special plugin-specific escape sequence handlers (see the plugin development documentation for details on what/how these are/work).
 
 JavaScript plugins will be added to the <body> tag of Gate One's base index.html
@@ -251,10 +251,8 @@ import logging
 import time
 import socket
 import pty
-import pwd, grp
 import atexit
 import ssl
-import mimetypes
 import hashlib
 from functools import partial, wraps
 from datetime import datetime, timedelta
@@ -290,18 +288,16 @@ if tornado_version_info[0] < 2 and tornado_version_info[1] < 2:
 tornado.options.enable_pretty_logging()
 
 # Our own modules
-import termio, terminal
 from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
 from auth import APIAuthHandler, SSLAuthHandler, PAMAuthHandler
 from auth import require, authenticated
-from utils import str2bool, generate_session_id, cmd_var_swap, mkdir_p
-from utils import gen_self_signed_ssl, killall, get_plugins, load_plugins
-from utils import merge_handlers, none_fix, short_hash, convert_to_timedelta
-from utils import kill_dtached_proc, FACILITIES, which, process_opt_esc_sequence
-from utils import create_data_uri, MimeTypeFail, string_to_syslog_facility
-from utils import fallback_bell, json_encode, recursive_chown, ChownError
-from utils import write_pid, read_pid, remove_pid, drop_privileges
-from utils import check_write_permissions
+from utils import generate_session_id, mkdir_p
+from utils import gen_self_signed_ssl, killall, get_plugins, load_modules
+from utils import merge_handlers, none_fix, convert_to_timedelta
+from utils import kill_dtached_proc, FACILITIES, which
+from utils import json_encode, recursive_chown, ChownError
+from utils import write_pid, read_pid, remove_pid, drop_privileges, minify
+from utils import check_write_permissions, get_applications, get_settings
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -324,9 +320,13 @@ TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
 WATCHER = None # Holds the reference to our timeout_sessions periodic callback
 CLEANER = None # The reference to our session logs cleanup periodic callback
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
-APPLICATIONS = [] # Not used yet (will be cool though when it is!)
+FILE_CACHE = {}
+# PERSIST is a generic place for applications and plugins to store stuff in a
+# way that lasts between page loads.  USE RESPONSIBLY.
+PERSIST = {}
+APPLICATIONS = get_applications(os.path.join(GATEONE_DIR, 'applications'))
 PLUGINS = get_plugins(os.path.join(GATEONE_DIR, 'plugins'))
-PLUGIN_WS_CMDS = {} # Gives plugins the ability to extend/enhance TerminalWebSocket
+PLUGIN_WS_CMDS = {} # Gives plugins the ability to extend/enhance ApplicationWebSocket
 PLUGIN_HOOKS = {} # Gives plugins the ability to hook into various things.
 PLUGIN_AUTH_HOOKS = [] # For plugins to register functions to be called after a
                        # user successfully authenticates
@@ -346,17 +346,17 @@ PLUGIN_ESC_HANDLERS = {}
 # adding to the terminal emulator's CALLBACK_* capability.  For modifying the
 # terminal emulator instance directly see PLUGIN_NEW_TERM_HOOKS.
 PLUGIN_TERM_HOOKS = {}
-# The NEW_TERM hooks are called at the end of TerminalWebSocket.new_terminal()
+# The NEW_TERM hooks are called at the end of ApplicationWebSocket.new_terminal()
 # with 'self' and the new instance of the terminal emulator as the only
 # arguments.  It's a more DIY/generic version of PLUGIN_TERM_HOOKS.
 PLUGIN_NEW_TERM_HOOKS = []
 # 'Command' hooks get called before a new Multiplex instance is created inside
-# of TerminalWebSocket.new_multiplex().  They are passed the 'command' and must
+# of ApplicationWebSocket.new_multiplex().  They are passed the 'command' and must
 # return a string that will be used as the replacement 'command'.  This allows
 # plugin authors to modify the configured 'command' before it is executed
 PLUGIN_COMMAND_HOOKS = []
-# 'Multiplex' hooks get called at the end of TerminalWebSocket.new_multiplex()
-# with the instance of TerminalWebSocket and the new instance of Multiplex as
+# 'Multiplex' hooks get called at the end of ApplicationWebSocket.new_multiplex()
+# with the instance of ApplicationWebSocket and the new instance of Multiplex as
 # the only arguments, respectively.
 PLUGIN_NEW_MULTIPLEX_HOOKS = []
 
@@ -635,7 +635,7 @@ COLORS_256 = {
 def require_auth(method):
     """
     An equivalent to tornado.web.authenticated for WebSockets
-    (TerminalWebSocket, specifically).
+    (ApplicationWebSocket, specifically).
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
@@ -805,7 +805,7 @@ class DownloadHandler(BaseHandler):
             return
         if not os.path.isfile(abspath):
             raise tornado.web.HTTPError(403, "%s is not a file", path)
-        import stat
+        import stat, mimetypes
         stat_result = os.stat(abspath)
         modified = datetime.fromtimestamp(stat_result[stat.ST_MTIME])
         self.set_header("Last-Modified", modified)
@@ -924,7 +924,6 @@ class PluginCSSTemplateHandler(BaseHandler):
         container = self.get_argument("container")
         prefix = self.get_argument("prefix")
         plugin = self.get_argument("plugin")
-        template = self.get_argument("template")
         templates_path = os.path.join(GATEONE_DIR, 'templates')
         plugin_templates_path = os.path.join(templates_path, plugin)
         plugin_template = os.path.join(plugin_templates_path, "%s.css" % plugin)
@@ -940,83 +939,71 @@ class PluginCSSTemplateHandler(BaseHandler):
             # The provided plugin/template combination was not found
             logging.error(_("%s.css was not found" % plugin_template))
 
-class JSPluginsHandler(BaseHandler):
+class GOApplication(object):
     """
-    Combines all JavaScript plugins into a single file to keep things simple and
-    speedy.
+    The base from which all Gate One Applications will inherit.
     """
-    # No auth for this...  Not really necessary (just serves up a static file).
-    def get(self):
-        self.set_header('Content-Type', 'application/javascript')
-        # This is so we can load combined_plugins in a <script> tag without
-        # having to accept the SSL certificate:
-        self.set_header('Access-Control-Allow-Origin', '*')
-        session_dir = self.settings['session_dir']
-        combined_plugins = os.path.join(session_dir, "combined_plugins.js")
-        if os.path.exists(combined_plugins):
-            with open(combined_plugins) as f:
-                js_data = f.read()
-                if len(js_data) < 200: # Needs to be created
-                    self.write(self._combine_plugins())
-                    return
-                else: # It hasn't changed, send it as-is
-                    self.write(js_data)
-        else: # File doesn't exist, create it and send it to the client
-            self.write(self._combine_plugins())
+    def __init__(self, ws):
+        self.ws = ws # WebSocket instance
+        # Setup some shortcuts to make things more convenient
+        self.write_message = ws.write_message
+        self.close = ws.close
+        self.get_current_user = ws.get_current_user
+        self.current_user = ws.current_user
+        self.request = ws.request
+        self.settings = ws.settings
+        self.trigger = self.ws.trigger
+        self.on = self.ws.on
+        self.off = self.ws.off
 
-    def _combine_plugins(self):
-        """
-        Combines all plugin .js files into one (combined_plugins.js)
-        """
-        plugins_path = os.path.join(GATEONE_DIR, "plugins")
-        plugins_conf_path = os.path.join(GATEONE_DIR, 'plugins.conf')
-        try:
-            enabled_plugins = open(plugins_conf_path).read().split()
-            if not enabled_plugins or "*" in enabled_plugins:
-                logging.debug(_('JSPluginsHandler: Loading all plugins'))
-                enabled_plugins = None
-        except IOError:
-            logging.debug(_(
-                'JSPluginsHandler: plugins.conf file not found, loading all '
-                'plugins'))
-            enabled_plugins = None
-        plugins = [
-            os.path.join(plugins_path, p) for p in os.listdir(plugins_path)]
-        if enabled_plugins: # Filter out plugins that aren't in plugins.conf
-            for plugin in list(plugins):
-                plugin_name = os.path.split(plugin)[1]
-                if plugin_name not in enabled_plugins:
-                    plugins.remove(plugin)
-        plugins.sort()
-        session_dir = self.settings['session_dir']
-        combined_plugins = os.path.join(session_dir, "combined_plugins.js")
-        out = ""
-        for plugin_path in plugins:
-            plugin_static_path = os.path.join(plugin_path, 'static')
-            if os.path.exists(plugin_static_path):
-                static_files = os.listdir(plugin_static_path)
-                static_files.sort()
-                for filename in static_files:
-                    if filename.endswith('.js'):
-                        js_path = os.path.join(plugin_static_path, filename)
-                        with open(js_path) as f:
-                            out += f.read() + "\n/* spacer */\n"
-        with open(combined_plugins, 'w') as f:
-            f.write(out)
-        return out
+    def __repr__(self):
+        return "GOApplication: %s" % self.__class__
 
-class TestApp(object):
-    """
-    Testing stuff:  This class should get assigned to TerminalWebSocket.apps
-    when it is instantiated.  Also, it should have its initialize() function
-    called.  Furthermore, `self` should actually refer to the current instance
-    of TerminalWebSocket.
-    """
     def initialize(self):
-        logging.debug("TestApp initialized!")
-        logging.debug("self: %s" % self)
+        """
+        Called by :meth:`ApplicationWebSocket.open` after __init__().
+        GOApplications can override this function to perform their own actions
+        when the WebSocket is initialized.
+        """
+        pass
 
-class TerminalWebSocket(WebSocketHandler):
+    def open(self):
+        """
+        Called by :meth:`ApplicationWebSocket.open` after the WebSocket is
+        opened.  GOApplications can override this function to perform their own
+        actions when the WebSocket is opened.
+        """
+        pass
+
+    def on_close(self):
+        """
+        Called by :meth:`ApplicationWebSocket.on_close` after the WebSocket is
+        closed.  GOApplications can override this function to perform their own
+        actions when the WebSocket is closed.
+        """
+        pass
+
+    def add_handler(self, pattern, handler, **kwargs):
+        """
+        Adds the given *handler* (`tornado.web.RequestHandler`) to the Tornado
+        Application (`self.ws.application`) to handle URLs matching *pattern*.
+        If given, *kwargs* will be added to the `tornado.web.URLSpec` when the
+        complete handler is assembled.
+
+        .. note:: If the *pattern* does not start with the configured `url_prefix` it will be automatically prepended.
+        """
+        logging.debug("Adding handler: (%s, %s)" % (pattern, handler))
+        url_prefix = self.ws.settings['url_prefix']
+        if not pattern.startswith(url_prefix):
+            if pattern.startswith('/'):
+                # Get rid of the / (it will be in the url_prefix)
+                pattern = pattern.lstrip('/')
+        spec = tornado.web.URLSpec(pattern, handler, kwargs)
+        # Why the Tornado devs didn't give us a simple way to do this is beyond
+        # me.
+        self.ws.application.handlers[0][1].append(spec)
+
+class ApplicationWebSocket(WebSocketHandler):
     """
     The main WebSocket interface for Gate One, this class is setup to call
     'commands' which are methods registered in self.commands.  Methods that are
@@ -1030,24 +1017,25 @@ class TerminalWebSocket(WebSocketHandler):
         self.commands.update({
             'ping': self.pong,
             'authenticate': self.authenticate,
-            'new_terminal': self.new_terminal,
-            'set_terminal': self.set_terminal,
-            'move_terminal': self.move_terminal,
-            'kill_terminal': self.kill_terminal,
-            'c': self.char_handler, # Just 'c' to keep the bandwidth down
-            'write_chars': self.write_chars,
-            'refresh': self.refresh_screen,
-            'full_refresh': self.full_refresh,
-            'resize': self.resize,
-            'get_bell': self.get_bell,
-            'get_webworker': self.get_webworker,
+            #'new_terminal': self.new_terminal,
+            #'set_terminal': self.set_terminal,
+            #'move_terminal': self.move_terminal,
+            #'kill_terminal': self.kill_terminal,
+            #'c': self.char_handler, # Just 'c' to keep the bandwidth down
+            #'write_chars': self.write_chars,
+            #'refresh': self.refresh_screen,
+            #'full_refresh': self.full_refresh,
+            #'resize': self.resize,
+            #'get_bell': self.get_bell,
+            #'get_webworker': self.get_webworker,
             'get_style': self.get_style,
             'get_js': self.get_js,
             'enumerate_themes': self.enumerate_themes,
-            'manual_title': self.manual_title,
-            'reset_terminal': self.reset_terminal,
-            'debug_terminal': self.debug_terminal
+            #'manual_title': self.manual_title,
+            #'reset_terminal': self.reset_terminal,
+            #'debug_terminal': self.debug_terminal
         })
+        self._events = {}
         self.terms = {}
         # So we can keep track and avoid sending unnecessary messages:
         self.titles = {}
@@ -1057,28 +1045,94 @@ class TerminalWebSocket(WebSocketHandler):
         # we can prevent replay attacks.
         self.prev_signatures = []
         self.origin_denied = True # Only allow valid origins
-        self.apps = {} # Gets filled up by self.initialize()
+        self.file_cache = FILE_CACHE # So applications and plugins can reference
+        self.persist = PERSIST # So applications and plugins can reference
+        self.apps = [] # Gets filled up by self.initialize()
+        self.security = {} # Stores applications' various policy functions
         self.initialize(**kwargs)
 
-    def initialize(self, apps=None):
+    def initialize(self, apps=None, **kwargs):
         """
-        This gets called by the Tornado framework when TerminalWebSocket is
+        This gets called by the Tornado framework when ApplicationWebSocket is
         instantiated.  It will be passed the list of *apps* (Gate One
         applications) that are assigned inside the :class:`Application` object.
         These *apps* will be mutated in-place so that `self` will refer to the
-        current instance of :class:`TerminalWebSocket`.  Kind of like a dynamic
-        mixin.
+        current instance of :class:`ApplicationWebSocket`.  Kind of like a
+        dynamic mixin.
         """
         if not apps:
             return
-        #for app in apps:
-            #app.__bases__ = (self, object)
-            #mutated = app
-            ##mutated = type('Mutated%s' % app.__name__, (self, app), {})
-            #self.apps.update({mutated.__name__, mutated})
-            #logging.debug("Initializing app: %s" % mutated.__name__)
-            #if hasattr(app, 'initialize'):
-                #mutated.initialize()
+        for app in apps:
+            instance = app(self)
+            self.apps.append(instance)
+            logging.debug("Initializing app: %s" % instance)
+            if hasattr(instance, 'initialize'):
+                instance.initialize()
+
+    def on(self, events, callback, times=None):
+        """
+        Registers the given *callback* with the given *events* (string or list
+        of strings) that will get called whenever the given *event* is triggered
+        (using :meth:`ApplicationWebSocket.trigger`).  It works similarly to
+        :js:meth:`GateOne.Events.on` in gateone.js.
+
+        If *times* is given the *callback* will only be fired that many times
+        before it is automatically removed from
+        :attr:`ApplicationWebSocket._events`.
+        """
+        if isinstance(events, basestring):
+            events = [events]
+        callback_obj = {
+            'callback': callback,
+            'times': times,
+            'calls': 0
+        }
+        for event in events:
+            if event not in self._events:
+                self._events.update({event: [callback_obj.copy()]})
+            else:
+                self._events[event].append(callback_obj.copy())
+
+    def off(self, events, callback):
+        """
+        Removes the given *callback* from the given *events* (string or list of
+        strings).
+        """
+        if isinstance(events, basestring):
+            events = [events]
+        for event in events:
+            for callback_obj in self._events[event]:
+                if callback_obj['callback'] == callback:
+                    try:
+                        del self._events[event]
+                    except KeyError:
+                        pass # Nothing to do
+
+    def once(self, events, callback):
+        """
+        A shortcut for :meth:`ApplicationWebSocket.on(events, callback, 1)`
+        """
+        self.on(events, callback, 1)
+
+    def trigger(self, events, *args, **kwargs):
+        """
+        Fires the given *events* (string or list of strings).  All callbacks
+        associated with these *events* will be called and if their respective
+        objects have a *times* value set it will be used to determine when to
+        remove the associated callback from the event.
+
+        If given, callbacks associated with the given *events* will be called
+        with *args* and *kwargs*.
+        """
+        if isinstance(events, basestring):
+            events = [events]
+        for event in events:
+            if event in self._events:
+                for callback_obj in self._events[event]:
+                    callback_obj['callback'](*args, **kwargs)
+                    callback_obj['calls'] += 1
+                    if callback_obj['calls'] == callback_obj['times']:
+                        off(event, callback_obj['callback'])
 
     def allow_draft76(self):
         """
@@ -1113,7 +1167,7 @@ class TerminalWebSocket(WebSocketHandler):
         Called when a new WebSocket is opened.  Will deny access to any
         origin that is not defined in self.settings['origin'].
         """
-        cls = TerminalWebSocket
+        cls = ApplicationWebSocket
         cls.instances.add(self)
         valid_origins = self.settings['origins']
         if 'Origin' in self.request.headers:
@@ -1141,8 +1195,6 @@ class TerminalWebSocket(WebSocketHandler):
         # the future once more stuff is running over WebSockets.
         self.client_id = generate_session_id()
         client_address = self.request.connection.address[0]
-        self.callback_id = callback_id = "%s;%s;%s" % (
-            self.client_id, self.request.host, self.request.remote_ip)
         user = self.current_user
         # NOTE: self.current_user will call self.get_current_user() the first
         # time it is used.
@@ -1159,6 +1211,21 @@ class TerminalWebSocket(WebSocketHandler):
             message = {'reauthenticate': True}
             self.write_message(json_encode(message))
             self.close() # Close the WebSocket
+        # Make sure we have all policies ready for checking
+        self.policies = get_settings(os.path.join(GATEONE_DIR, 'settings'))
+        # NOTE: The above will eventually be rolled into self.settings once the
+        #       conversion of all settings to the new JSON format is completed.
+        # NOTE: By getting the policies with each call to open() we're enabling
+        #       the ability to make changes inside the settings dir without
+        #       having to restart Gate One (just need to wait for users to
+        #       eventually re-connect).
+        # Call applications' open() functions (if any)
+        for app in self.apps:
+            if hasattr(app, 'open'):
+                app.open()
+        # TODO: Remove this once terminal is its own app
+        #self.callback_id = "%s;%s;%s" % (
+            #self.client_id, self.request.host, self.request.remote_ip)
 
     def on_message(self, message):
         """Called when we receive a message from the client."""
@@ -1180,7 +1247,7 @@ class TerminalWebSocket(WebSocketHandler):
             for key, value in message_obj.items():
                 if key in PLUGIN_WS_CMDS:
                     try: # Plugins first so they can override behavior if they wish
-                        PLUGIN_WS_CMDS[key](value, tws=self)# tws==TerminalWebSocket
+                        PLUGIN_WS_CMDS[key](value, tws=self)# tws==ApplicationWebSocket
                     except (KeyError, TypeError, AttributeError) as e:
                         logging.error(_(
                             "Error running plugin WebSocket action: %s" % key))
@@ -1206,39 +1273,43 @@ class TerminalWebSocket(WebSocketHandler):
         .. note:: Normally self.refresh_screen() catches the disconnect first and this method won't end up being called.
         """
         logging.debug("on_close()")
-        cls = TerminalWebSocket
+        cls = ApplicationWebSocket
         cls.instances.discard(self)
         user = self.current_user
         client_address = self.request.connection.address[0]
         if user and user['session'] in SESSIONS:
             # Update 'last_seen' with a datetime object for accuracy
             SESSIONS[user['session']]['last_seen'] = datetime.now()
-            # Remove all attached callbacks so we're not wasting memory/CPU on
-            # disconnected clients
-            for term in SESSIONS[user['session']][self.location]:
-                if isinstance(term, int):
-                    term_obj = SESSIONS[user['session']][self.location][term]
-                    try:
-                        multiplex = term_obj['multiplex']
-                        multiplex.remove_all_callbacks(self.callback_id)
-                        client_dict = term_obj[self.client_id]
-                        term_emulator = multiplex.term
-                        term_emulator.remove_all_callbacks(self.callback_id)
-                        # Remove anything associated with the client_id
-                        multiplex.io_loop.remove_timeout(
-                            client_dict['refresh_timeout'])
-                        del SESSIONS[user['session']][self.location][
-                            term][self.client_id]
-                    except AttributeError:
-                        # User never completed opening a terminal so
-                        # self.callback_id is missing.  Nothing to worry about
-                        if self.client_id in term_obj:
-                            del term_obj[self.client_id]
+            ## Remove all attached callbacks so we're not wasting memory/CPU on
+            ## disconnected clients
+            #for term in SESSIONS[user['session']][self.location]:
+                #if isinstance(term, int):
+                    #term_obj = SESSIONS[user['session']][self.location][term]
+                    #try:
+                        #multiplex = term_obj['multiplex']
+                        #multiplex.remove_all_callbacks(self.callback_id)
+                        #client_dict = term_obj[self.client_id]
+                        #term_emulator = multiplex.term
+                        #term_emulator.remove_all_callbacks(self.callback_id)
+                        ## Remove anything associated with the client_id
+                        #multiplex.io_loop.remove_timeout(
+                            #client_dict['refresh_timeout'])
+                        #del SESSIONS[user['session']][self.location][
+                            #term][self.client_id]
+                    #except AttributeError:
+                        ## User never completed opening a terminal so
+                        ## self.callback_id is missing.  Nothing to worry about
+                        #if self.client_id in term_obj:
+                            #del term_obj[self.client_id]
         if user and 'upn' in user:
             logging.info(
                 _("WebSocket closed (%s %s).") % (user['upn'], client_address))
         else:
             logging.info(_("WebSocket closed (unknown user)."))
+        # Call applications' on_close() functions (if any)
+        for app in self.apps:
+            if hasattr(app, 'on_close'):
+                app.on_close()
 
     def pong(self, timestamp):
         """
@@ -1531,33 +1602,14 @@ class TerminalWebSocket(WebSocketHandler):
             SESSIONS[self.session]['last_seen'] = 'connected'
             if self.location not in SESSIONS[self.session]:
                 SESSIONS[self.session][self.location] = {}
-        # TODO: Take the terminal-specific stuff out of this function
-        #       ...need an 'application hooks' call here that would execute the
-        #       terminal-specific stuff.
-        terminals = []
-        for term in list(SESSIONS[self.session][self.location].keys()):
-            if isinstance(term, int): # Only terminals are integers in the dict
-                terminals.append(term)
-        # Check for any dtach'd terminals we might have missed
-        if self.settings['dtach']:
-            session_dir = self.settings['session_dir']
-            session_dir = os.path.join(session_dir, self.session)
-            if not os.path.exists(session_dir):
-                mkdir_p(session_dir)
-                os.chmod(session_dir, 0o770)
-            for item in os.listdir(session_dir):
-                if item.startswith('dtach_'):
-                    term = int(item.split('_')[1])
-                    if term not in terminals:
-                        terminals.append(term)
-        terminals.sort() # Put them in order so folks don't get confused
-        message = {
-            'terminals': terminals,
+        # Send our plugin .js and .css files to the client
+        self.send_static_files(os.path.join(GATEONE_DIR, 'plugins'))
+        # Call applications' authenticate() functions (if any)
+        for app in self.apps:
+            if hasattr(app, 'authenticate'):
+                app.authenticate()
         # This is just so the client has a human-readable point of reference:
-            'set_username': self.current_user['upn']
-        }
-        # TODO: Add a hook here for plugins to send their own messages when a
-        #       given terminal is reconnected.
+        message = {'set_username': self.current_user['upn']}
         self.write_message(json_encode(message))
         # Startup the watcher if it isn't already running
         global WATCHER
@@ -1566,722 +1618,6 @@ class TerminalWebSocket(WebSocketHandler):
             watcher = partial(timeout_sessions, options.dtach)
             WATCHER = tornado.ioloop.PeriodicCallback(watcher, interval)
             WATCHER.start()
-
-    def new_multiplex(self, cmd, term_id, logging=True):
-        """
-        Returns a new instance of :py:class:`termio.Multiplex` with the proper
-        global and client-specific settings.
-
-            * *cmd* - The command to execute inside of Multiplex.
-            * *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).
-            * *logging* - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).
-        """
-        user_dir = self.settings['user_dir']
-        try:
-            user = self.current_user['upn']
-        except:
-            # No auth, use ANONYMOUS (% is there to prevent conflicts)
-            user = r'ANONYMOUS' # Don't get on this guy's bad side
-        session_dir = self.settings['session_dir']
-        session_dir = os.path.join(session_dir, self.session)
-        log_path = None
-        syslog_logging = False
-        if logging:
-            syslog_logging = self.settings['syslog_session_logging']
-            if self.settings['session_logging']:
-                log_dir = os.path.join(user_dir, user)
-                log_dir = os.path.join(log_dir, 'logs')
-                # Create the log dir if not already present
-                if not os.path.exists(log_dir):
-                    mkdir_p(log_dir)
-                log_name = datetime.now().strftime('%Y%m%d%H%M%S%f.golog')
-                log_path = os.path.join(log_dir, log_name)
-        facility = string_to_syslog_facility(self.settings['syslog_facility'])
-        # This allows plugins to transform the command however they like
-        if PLUGIN_COMMAND_HOOKS:
-            for func in PLUGIN_COMMAND_HOOKS:
-                cmd = func(cmd)
-        m = termio.Multiplex(
-            cmd,
-            log_path=log_path,
-            user=user,
-            term_id=term_id,
-            syslog=syslog_logging,
-            syslog_facility=facility,
-            syslog_host=self.settings['syslog_host']
-        )
-        if PLUGIN_NEW_MULTIPLEX_HOOKS:
-            for func in PLUGIN_NEW_MULTIPLEX_HOOKS:
-                func(self, m)
-        return m
-
-    def term_ended(self, term):
-        """
-        Sends the 'term_ended' message to the client letting it know that the
-        given *term* is no more.
-        """
-        message = {'term_ended': term}
-        self.write_message(json_encode(message))
-
-    def add_terminal_callbacks(self, term, multiplex, callback_id):
-        """
-        Sets up all the callbacks associated with the given *term*, *multiplex*
-        instance and *callback_id*.
-        """
-        refresh = partial(self.refresh_screen, term)
-        multiplex.add_callback(multiplex.CALLBACK_UPDATE, refresh, callback_id)
-        ended = partial(self.term_ended, term)
-        multiplex.add_callback(multiplex.CALLBACK_EXIT, ended, callback_id)
-        # Setup the terminal emulator callbacks
-        term_emulator = multiplex.term
-        set_title = partial(self.set_title, term)
-        term_emulator.add_callback(
-            terminal.CALLBACK_TITLE, set_title, callback_id)
-        set_title() # Set initial title
-        bell = partial(self.bell, term)
-        term_emulator.add_callback(
-            terminal.CALLBACK_BELL, bell, callback_id)
-        term_emulator.add_callback(
-            terminal.CALLBACK_OPT, self.esc_opt_handler, callback_id)
-        mode_handler = partial(self.mode_handler, term)
-        term_emulator.add_callback(
-            terminal.CALLBACK_MODE, mode_handler, callback_id)
-        reset_term = partial(self.reset_client_terminal, term)
-        term_emulator.add_callback(
-            terminal.CALLBACK_RESET, reset_term, callback_id)
-        dsr = partial(self.dsr, term)
-        term_emulator.add_callback(
-            terminal.CALLBACK_DSR, dsr, callback_id)
-        term_emulator.add_callback(
-            terminal.CALLBACK_MESSAGE, self.send_message, callback_id)
-        # Call any registered plugin Terminal hooks
-        if PLUGIN_TERM_HOOKS:
-            for hook, func in PLUGIN_TERM_HOOKS.items():
-                term_emulator.add_callback(hook, func(self))
-        if PLUGIN_NEW_TERM_HOOKS:
-            for func in PLUGIN_NEW_TERM_HOOKS:
-                func(self, term_emulator)
-
-    def remove_terminal_callbacks(self, multiplex, callback_id):
-        """
-        Removes all the Multiplex and terminal emulator callbacks attached to
-        the given *multiplex* instance and *callback_id*.
-        """
-        multiplex.remove_callback(multiplex.CALLBACK_UPDATE, callback_id)
-        multiplex.remove_callback(multiplex.CALLBACK_EXIT, callback_id)
-        term_emulator = multiplex.term
-        term_emulator.remove_callback(terminal.CALLBACK_TITLE, callback_id)
-        term_emulator.remove_callback(
-            terminal.CALLBACK_MESSAGE, callback_id)
-        term_emulator.remove_callback(terminal.CALLBACK_DSR, callback_id)
-        term_emulator.remove_callback(terminal.CALLBACK_RESET, callback_id)
-        term_emulator.remove_callback(terminal.CALLBACK_MODE, callback_id)
-        term_emulator.remove_callback(terminal.CALLBACK_OPT, callback_id)
-        term_emulator.remove_callback(terminal.CALLBACK_BELL, callback_id)
-
-    @require(authenticated())
-    def new_terminal(self, settings):
-        """
-        Starts up a new terminal associated with the user's session using
-        *settings* as the parameters.  If a terminal already exists with the
-        same number as *settings[term]*, self.set_terminal() will be called
-        instead of starting a new terminal (so clients can resume their session
-        without having to worry about figuring out if a new terminal already
-        exists or not).
-        """
-        logging.debug("%s new_terminal(): %s" % (
-            self.current_user['upn'], settings))
-        if self.session not in SESSIONS:
-            # This happens when timeout_sessions() times out a session
-            # Tell the client it timed out:
-            message = {'timeout': None}
-            self.write_message(json_encode(message))
-            return
-        self.current_term = term = settings['term']
-        self.rows = rows = settings['rows']
-        self.cols = cols = settings['cols']
-        if 'em_dimensions' in settings:
-            self.em_dimensions = {
-                'height': settings['em_dimensions']['h'],
-                'width': settings['em_dimensions']['w']
-            }
-        user_dir = self.settings['user_dir']
-        needs_full_refresh = False
-        if term not in SESSIONS[self.session][self.location]:
-            # Setup the requisite dict
-            SESSIONS[self.session][self.location][term] = {
-                'last_activity': datetime.now(),
-                'title': 'Gate One',
-                'manual_title': False
-            }
-        term_obj = SESSIONS[self.session][self.location][term]
-        if self.client_id not in term_obj:
-            term_obj[self.client_id] = {
-                # Used by refresh_screen()
-                'refresh_timeout': None
-            }
-        if 'multiplex' not in term_obj:
-            # Start up a new terminal
-            term_obj['created'] = datetime.now()
-            # NOTE: Not doing anything with 'created'...  yet!
-            now = int(round(time.time() * 1000))
-            try:
-                user = self.current_user['upn']
-            except:
-                # No auth, use ANONYMOUS (% is there to prevent conflicts)
-                user = 'ANONYMOUS' # Don't get on this guy's bad side
-            cmd = cmd_var_swap(CMD,   # Swap out variables like %USER% in CMD
-                session=self.session, # with their real-world values.
-                session_hash=short_hash(self.session),
-                user_dir=user_dir,
-                user=user,
-                time=now
-            )
-            resumed_dtach = False
-            session_dir = self.settings['session_dir']
-            session_dir = os.path.join(session_dir, self.session)
-            # Create the session dir if not already present
-            if not os.path.exists(session_dir):
-                mkdir_p(session_dir)
-                os.chmod(session_dir, 0o770)
-            if self.settings['dtach']: # Wrap in dtach (love this tool!)
-                dtach_path = "%s/dtach_%s" % (session_dir, term)
-                if os.path.exists(dtach_path):
-                    # Using 'none' for the refresh because the EVIL termio
-                    # likes to manage things like that on his own...
-                    cmd = "dtach -a %s -E -z -r none" % dtach_path
-                    resumed_dtach = True
-                else: # No existing dtach session...  Make a new one
-                    cmd = "dtach -c %s -E -z -r none %s" % (dtach_path, cmd)
-            m = term_obj['multiplex'] = self.new_multiplex(cmd, term)
-            # Set some environment variables so the programs we execute can use
-            # them (very handy).  Allows for "tight integration" and "synergy"!
-            env = {
-                'GO_USER_DIR': user_dir,
-                'GO_USER': user,
-                'GO_TERM': str(term),
-                'GO_SESSION': self.session,
-                'GO_SESSION_DIR': session_dir
-            }
-            if PLUGIN_ENV_HOOKS:
-                # This allows plugins to add/override environment variables
-                env.update(PLUGIN_ENV_HOOKS)
-            m.spawn(rows, cols, env=env, em_dimensions=self.em_dimensions)
-            # Give the terminal emulator a path to store temporary files
-            m.term.temppath = os.path.join(session_dir, 'downloads')
-            if not os.path.exists(m.term.temppath):
-                os.mkdir(m.term.temppath)
-            # Tell it how to serve them up
-            m.term.linkpath = "%sdownloads" % self.settings['url_prefix']
-            # Make sure it can generate pretty icons for file downloads
-            m.term.icondir = os.path.join(GATEONE_DIR, 'static', 'icons')
-            if resumed_dtach:
-                # Send an extra Ctrl-L to refresh the screen and fix the sizing
-                # after it has been reattached.
-                resize = partial(m.resize, rows, cols, ctrl_l=True,
-                                    em_dimensions=self.em_dimensions)
-                m.io_loop.add_timeout(
-                    timedelta(seconds=2), resize)
-        else:
-            # Terminal already exists
-            multiplex = term_obj['multiplex']
-            if multiplex.isalive():
-                # It's ALIVE!!!
-                multiplex.resize(
-                    rows, cols, ctrl_l=False, em_dimensions=self.em_dimensions)
-                message = {'term_exists': term}
-                self.write_message(json_encode(message))
-                # This resets the screen diff
-                multiplex.prev_output[self.client_id] = [
-                    None for a in xrange(rows-1)]
-                # Remind the client about this terminal's title
-                self.set_title(term, force=True)
-            else:
-                # Tell the client this terminal is no more
-                self.term_ended(term)
-                return
-        # Setup callbacks so that everything gets called when it should
-        self.add_terminal_callbacks(
-            term, term_obj['multiplex'], self.callback_id)
-        # NOTE: refresh_screen will also take care of cleaning things up if
-        #       term_obj['multiplex'].isalive() is False
-        self.refresh_screen(term, True) # Send a fresh screen to the client
-        # Restore application cursor keys mode if set
-        if 'application_mode' in term_obj:
-            current_setting = term_obj['application_mode']
-            self.mode_handler(term, '1', current_setting)
-        if self.settings['logging'] == 'debug':
-            self.send_message(_(
-                "WARNING: Logging is set to DEBUG.  All keystrokes will be "
-                "logged!"))
-
-    @require(authenticated())
-    def move_terminal(self, settings):
-        """
-        Moves *settings['term']* (terminal number) to
-        *SESSIONS[self.session][[settings['location']]*.  In other words, it
-        moves the given terminal to the given location in the *SESSIONS* dict.
-
-        If the given location dict doesn't exist (yet) it will be created.
-        """
-        logging.debug("move_terminal(%s)" % settings)
-        new_location_exists = True
-        term = existing_term = int(settings['term'])
-        new_location = settings['location']
-        session_obj = SESSIONS[self.session]
-        existing_term_obj = session_obj[self.location][term]
-        if new_location not in session_obj:
-            term = 1 # Starting anew in the new location
-            session_obj[new_location] = {term: existing_term_obj}
-            new_location_exists = False
-        else:
-            existing_terms = [a for a in session_obj[new_location].keys()
-                                if isinstance(a, int)]
-            existing_terms.sort()
-            term = existing_terms[-1] + 1
-            session_obj[new_location][term] = existing_term_obj
-        multiplex = existing_term_obj['multiplex']
-        # Remove the existing object's callbacks so we don't end up sending
-        # things like screen updates to the wrong place.
-        try:
-            self.remove_terminal_callbacks(multiplex, self.callback_id)
-        except KeyError:
-            pass # Already removed callbacks--no biggie
-        em_dimensions = {
-            'h': multiplex.em_dimensions['height'],
-            'w': multiplex.em_dimensions['width']
-        }
-        if new_location_exists:
-            # Already an open window using this 'location'...  Tell it to open
-            # a new terminal for the user.
-            new_location_instance = None
-            for instance in self.instances:
-                if instance.location == new_location:
-                    new_location_instance = instance
-                    break
-            new_location_instance.new_terminal({
-                'term': term,
-                'rows': multiplex.rows,
-                'cols': multiplex.cols,
-                'em_dimensions': em_dimensions
-            })
-        #else:
-            # Make sure the new location dict is setup properly
-            #self.add_terminal_callbacks(term, multiplex, callback_id)
-        del session_obj[self.location][existing_term] # Remove old location
-        details = {
-            'term': term,
-            'location': new_location
-        }
-        message = {
-            'term_moved': details, # Closes the term in the current window/tab
-        }
-        self.write_message(json_encode(message))
-
-    @require(authenticated())
-    def kill_terminal(self, term):
-        """
-        Kills *term* and any associated processes.
-        """
-        logging.debug("killing terminal: %s" % term)
-        term = int(term)
-        if term not in SESSIONS[self.session][self.location]:
-            return # Nothing to do
-        multiplex = SESSIONS[self.session][self.location][term]['multiplex']
-        # Remove the EXIT callback so the terminal doesn't restart itself
-        multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
-        try:
-            if self.settings['dtach']: # dtach needs special love
-                kill_dtached_proc(self.session, term)
-            if multiplex.isalive():
-                multiplex.terminate()
-        except KeyError as e:
-            pass # The EVIL termio has killed my child!  Wait, that's good...
-                 # Because now I don't have to worry about it!
-        finally:
-            del SESSIONS[self.session][self.location][term]
-
-    @require(authenticated())
-    def set_terminal(self, term):
-        """
-        Sets `self.current_term = *term*` so we can determine where to send
-        keystrokes.
-        """
-        self.current_term = term
-
-    def reset_client_terminal(self, term):
-        """
-        Tells the client to reset the terminal (clear the screen and remove
-        scrollback).
-        """
-        message = {'reset_client_terminal': term}
-        self.write_message(json_encode(message))
-
-    @require(authenticated())
-    def reset_terminal(self, term):
-        """
-        Performs the equivalent of the 'reset' command which resets the terminal
-        emulator (among other things) to return the terminal to a sane state in
-        the event that something went wrong (bad escape sequence).
-        """
-        logging.debug('reset_terminal(%s)' % term)
-        term = int(term)
-        # This re-creates all the tabstops:
-        tabs = u'\x1bH        ' * 22
-        reset_sequence = (
-            '\r\x1b[3g        %sr\x1bc\x1b[!p\x1b[?3;4l\x1b[4l\x1b>\r' % tabs)
-        multiplex = SESSIONS[self.session][self.location][term]['multiplex']
-        multiplex.term.write(reset_sequence)
-        multiplex.write(u'\x0c') # ctrl-l
-        #self.reset_client_terminal(term)
-        self.full_refresh(term)
-
-    @require(authenticated())
-    def set_title(self, term, force=False):
-        """
-        Sends a message to the client telling it to set the window title of
-        *term* to whatever comes out of::
-
-            SESSIONS[self.session][self.location][term]['multiplex'].term.get_title() # Whew! Say that three times fast!
-
-        Example message::
-
-            {'set_title': {'term': 1, 'title': "user@host"}}
-
-        If *force* resolves to True the title will be sent to the cleint even if
-        it matches the previously-set title.
-
-        .. note:: Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.
-        """
-        logging.debug("set_title(%s, %s)" % (term, force))
-        term_obj = SESSIONS[self.session][self.location][term]
-        if term_obj['manual_title']:
-            if force:
-                title = term_obj['title']
-                title_message = {'set_title': {'term': term, 'title': title}}
-                self.write_message(json_encode(title_message))
-            return
-        title = term_obj['multiplex'].term.get_title()
-        # Only send a title update if it actually changed
-        if title != term_obj['title'] or force:
-            term_obj['title'] = title
-            title_message = {'set_title': {'term': term, 'title': title}}
-            self.write_message(json_encode(title_message))
-
-    @require(authenticated())
-    def manual_title(self, settings):
-        """
-        Sets the title of *settings['term']* to *settings['title']*.  Differs
-        from :func:`set_title` in that this is an action that gets called by the
-        client when the user sets a terminal title manually.
-        """
-        logging.debug("manual_title: %s" % settings)
-        term = int(settings['term'])
-        title = settings['title']
-        term_obj = SESSIONS[self.session][self.location][term]
-        if not title:
-            title = term_obj['multiplex'].term.get_title()
-            term_obj['manual_title'] = False
-        else:
-            term_obj['manual_title'] = True
-        term_obj['title'] = title
-        title_message = {'set_title': {'term': term, 'title': title}}
-        self.write_message(json_encode(title_message))
-
-    @require(authenticated())
-    def bell(self, term):
-        """
-        Sends a message to the client indicating that a bell was encountered in
-        the given terminal (*term*).  Example message::
-
-            {'bell': {'term': 1}}
-        """
-        bell_message = {'bell': {'term': term}}
-        self.write_message(json_encode(bell_message))
-
-    @require(authenticated())
-    def mode_handler(self, term, setting, boolean):
-        """
-        Handles mode settings that require an action on the client by pasing it
-        a message like::
-
-            {
-                'set_mode': {
-                    'mode': setting,
-                    'bool': True,
-                    'term': term
-                }
-            }
-        """
-        logging.debug(
-            "mode_handler() term: %s, setting: %s, boolean: %s" %
-            (term, setting, boolean))
-        term_obj = SESSIONS[self.session][self.location][term]
-        if setting in ['1']: # Only support this mode right now
-            # So we can restore it:
-            term_obj['application_mode'] = boolean
-            if boolean:
-                # Tell client to enable application cursor mode
-                mode_message = {'set_mode': {
-                    'mode': setting,
-                    'bool': True,
-                    'term': term
-                }}
-                self.write_message(json_encode(mode_message))
-            else:
-                # Tell client to disable application cursor mode
-                mode_message = {'set_mode': {
-                    'mode': setting,
-                    'bool': False,
-                    'term': term
-                }}
-                self.write_message(json_encode(mode_message))
-
-    def dsr(self, term, response):
-        """
-        Handles Device Status Report (DSR) calls from the underlying program
-        that get caught by the terminal emulator.  *response* is what the
-        terminal emulator returns from the CALLBACK_DSR callback.
-
-        .. note:: This also handles the CSI DSR sequence.
-        """
-        SESSIONS[self.session][self.location][term]['multiplex'].write(response)
-
-    def _send_refresh(self, term, full=False):
-        """Sends a screen update to the client."""
-        term_obj = SESSIONS[self.session][self.location][term]
-        try:
-            term_obj['last_activity'] = datetime.now()
-        except KeyError:
-            # This can happen if the user disconnected in the middle of a screen
-            # update.  Nothing to be concerned about.
-            return # Ignore
-        multiplex = term_obj['multiplex']
-        scrollback, screen = multiplex.dump_html(
-            full=full, client_id=self.client_id)
-        if [a for a in screen if a]:
-            output_dict = {
-                'termupdate': {
-                    'term': term,
-                    'scrollback': scrollback,
-                    'screen' : screen,
-                    'ratelimiter': multiplex.ratelimiter_engaged
-                }
-            }
-            try:
-                self.write_message(json_encode(output_dict))
-            except IOError: # Socket was just closed, no biggie
-                logging.info(
-                 _("WebSocket closed (%s)") % self.current_user['upn'])
-                multiplex = term_obj['multiplex']
-                multiplex.remove_callback( # Stop trying to write
-                    multiplex.CALLBACK_UPDATE, self.callback_id)
-
-    @require(authenticated())
-    def refresh_screen(self, term, full=False):
-        """
-        Writes the state of the given terminal's screen and scrollback buffer to
-        the client using `_send_refresh()`.  Also ensures that screen updates
-        don't get sent too fast to the client by instituting a rate limiter that
-        also forces a refresh every 150ms.  This keeps things smooth on the
-        client side and also reduces the bandwidth used by the application (CPU
-        too).
-
-        If *full*, send the whole screen (not just the difference).
-        """
-        # Commented this out because it was getting annoying.
-        # Note to self: add more levels of debugging beyond just "debug".
-        #logging.debug(
-            #"refresh_screen (full=%s) on %s" % (full, self.callback_id))
-        if term:
-            term = int(term)
-        else:
-            return # This just prevents an exception when the cookie is invalid
-        term_obj = SESSIONS[self.session][self.location][term]
-        try:
-            msec = timedelta(milliseconds=50) # Keeps things smooth
-            # In testing, 150 milliseconds was about as low as I could go and
-            # still remain practical.
-            force_refresh_threshold = timedelta(milliseconds=150)
-            last_activity = term_obj['last_activity']
-            timediff = datetime.now() - last_activity
-            client_dict = term_obj[self.client_id]
-            multiplex = term_obj['multiplex']
-            refresh = partial(self._send_refresh, term, full)
-            # We impose a rate limit of max one screen update every 50ms by
-            # wrapping the call to _send_refresh() in an IOLoop timeout that
-            # gets cancelled and replaced if screen updates come in faster than
-            # once every 50ms.  If screen updates are consistently faster than
-            # that (e.g. a key is held down) we also force sending the screen
-            # to the client every 150ms.  This ensures that no matter how fast
-            # screen updates are happening the user will get at least one
-            # update every 150ms.  It works out quite nice, actually.
-            if client_dict['refresh_timeout']:
-                multiplex.io_loop.remove_timeout(client_dict['refresh_timeout'])
-            if timediff > force_refresh_threshold:
-                refresh()
-            else:
-                client_dict['refresh_timeout'] = multiplex.io_loop.add_timeout(
-                    msec, refresh)
-        except KeyError as e: # Session died (i.e. command ended).
-            logging.debug(_("KeyError in refresh_screen: %s" % e))
-
-    @require(authenticated())
-    def full_refresh(self, term):
-        """Calls `self.refresh_screen(*term*, full=True)`"""
-        try:
-            term = int(term)
-        except ValueError:
-            logging.debug(_(
-                "Invalid terminal number given to full_refresh(): %s" % term))
-        self.refresh_screen(term, full=True)
-
-    @require(authenticated())
-    def resize(self, resize_obj):
-        """
-        Resize the terminal window to the rows/cols specified in *resize_obj*
-
-        Example *resize_obj*::
-
-            {'rows': 24, 'cols': 80}
-        """
-        logging.debug("resize(%s)" % repr(resize_obj))
-        term = None
-        if 'term' in resize_obj:
-            term = int(resize_obj['term'])
-        self.rows = resize_obj['rows']
-        self.cols = resize_obj['cols']
-        self.em_dimensions = {
-            'height': resize_obj['em_dimensions']['h'],
-            'width': resize_obj['em_dimensions']['w']
-        }
-        ctrl_l = False
-        if 'ctrl_l' in resize_obj:
-            ctrl_l = resize_obj['ctrl_l']
-        if self.rows < 2 or self.cols < 2:
-            # Fall back to a standard default:
-            self.rows = 24
-            self.cols = 80
-        # If the user already has a running session, set the new terminal size:
-        try:
-            if term:
-                SESSIONS[self.session][self.location][term]['multiplex'].resize(
-                    self.rows,
-                    self.cols,
-                    self.em_dimensions,
-                    ctrl_l=ctrl_l
-                )
-            else: # Resize them all
-                for term in list(SESSIONS[self.session][self.location].keys()):
-                    if isinstance(term, int): # Skip the TidyThread
-                        SESSIONS[self.session][self.location][
-                            term]['multiplex'].resize(
-                                self.rows,
-                                self.cols,
-                                self.em_dimensions
-                        )
-        except KeyError: # Session doesn't exist yet, no biggie
-            pass
-
-    @require(authenticated())
-    def char_handler(self, chars, term=None):
-        """
-        Writes *chars* (string) to *term*.  If *term* is not provided the
-        characters will be sent to the currently-selected terminal.
-        """
-        #logging.debug("char_handler(%s, %s)" % (repr(chars), repr(term)))
-        if not term:
-            term = self.current_term
-        term = int(term) # Just in case it was sent as a string
-        session = self.session
-        if session in SESSIONS and term in SESSIONS[session][self.location]:
-            multiplex = SESSIONS[session][self.location][term]['multiplex']
-            if multiplex.isalive():
-                multiplex.write(chars)
-                # Handle (gracefully) the situation where a capture is stopped
-                if u'\x03' in chars:
-                    if not multiplex.term.capture:
-                        return # Nothing to do
-                    # Make sure the call to abort_capture() comes *after* the
-                    # underlying program has itself caught the SIGINT (Ctrl-C)
-                    multiplex.io_loop.add_timeout(
-                        timedelta(milliseconds=1000),
-                        multiplex.term.abort_capture)
-                    # Also make sure the client gets a screen update
-                    refresh = partial(self.refresh_screen, term)
-                    multiplex.io_loop.add_timeout(
-                        timedelta(milliseconds=1050), refresh)
-
-    @require(authenticated())
-    def write_chars(self, message):
-        """
-        Writes *message['chars']* to *message['term']*.  If *message['term']*
-        is not present, *self.current_term* will be used.
-        """
-        #logging.debug('write_chars(%s)' % message)
-        if 'chars' not in message:
-            return # Invalid message
-        if 'term' not in message:
-            message['term'] = self.current_term
-        try:
-            self.char_handler(message['chars'], message['term'])
-        except Exception as e:
-            # Term is closed or invalid
-            logging.error(_(
-                "Got exception trying to write_chars() to terminal %s"
-                % message['term']))
-            logging.error(str(e))
-
-    @require(authenticated())
-    def esc_opt_handler(self, chars):
-        """
-        Executes whatever function is registered matching the tuple returned by
-        :func:`utils.process_opt_esc_sequence`.
-        """
-        logging.debug("esc_opt_handler(%s)" % repr(chars))
-        plugin_name, text = process_opt_esc_sequence(chars)
-        if plugin_name:
-            try:
-                PLUGIN_ESC_HANDLERS[plugin_name](text, tws=self)
-            except Exception as e:
-                logging.error(_(
-                    "Got exception trying to execute plugin's optional ESC "
-                    "sequence handler..."))
-                logging.error(str(e))
-
-    def get_bell(self):
-        """
-        Sends the bell sound data to the client in in the form of a data::URI.
-        """
-        bell_path = os.path.join(GATEONE_DIR, 'static')
-        bell_path = os.path.join(bell_path, 'bell.ogg')
-        if os.path.exists(bell_path):
-            try:
-                bell_data_uri = create_data_uri(bell_path)
-            except MimeTypeFail:
-                bell_data_uri = fallback_bell
-        else: # There's always the fallback
-            bell_data_uri = fallback_bell
-        mimetype = bell_data_uri.split(';')[0].split(':')[1]
-        message = {
-            'load_bell': {
-                'data_uri': bell_data_uri, 'mimetype': mimetype
-            }
-        }
-        self.write_message(json_encode(message))
-
-    def get_webworker(self):
-        """
-        Sends the text of our go_process.js to the client in order to get around
-        the limitations of loading remote Web Worker URLs (for embedding Gate
-        One into other apps).
-        """
-        static_url = os.path.join(GATEONE_DIR, "static")
-        webworker_path = os.path.join(static_url, 'go_process.js')
-        with open(webworker_path) as f:
-            go_process = f.read()
-        message = {'load_webworker': go_process}
-        self.write_message(json_encode(message))
 
     def get_style(self, settings):
         """
@@ -2432,6 +1768,97 @@ class TerminalWebSocket(WebSocketHandler):
         message = {'load_js': out_dict}
         self.write_message(message)
 
+# TODO: Persistent minified file cache between restarts of gateone.py
+    def send_js_or_css(self, path_or_fileobj, kind):
+        """
+        If *kind* is 'js', reads the given JavaScript file at *path_or_fileobj*
+        and sends it to the client using the 'load_js' WebSocket action.
+        If *kind* is 'css', reads the given CSS file at *path_or_fileobj*
+        and sends it to the client using the 'load_style' WebSocket action.
+
+        .. note:: Files will be cached after being minified until a file is modified or Gate One is restarted.
+
+        If the `slimit` module is installed JavaScript files will be minified
+        before being sent to the client.
+        If the `cssmin` module is installed CSS files will be minified before
+        being sent to the client.
+        """
+        if isinstance(path_or_fileobj, basestring):
+            path = path_or_fileobj
+            filename = os.path.split(path)[1]
+            mtime = os.stat(path).st_mtime
+        else:
+            path_or_fileobj.seek(0) # Just in case
+            path = path_or_fileobj.name
+            filename = os.path.split(path_or_fileobj.name)[1]
+            mtime = os.stat(path_or_fileobj.name).st_mtime
+        logging.debug('send_js_or_css(%s)' % path)
+        if not os.path.exists(path):
+            logging.error(_("send_js_or_css(): File not found: %s" % path))
+            return
+        out_dict = {'result': 'Success', 'filename': filename, 'data': None}
+        # Check if the file has changed since last time and use the cached
+        # version if it makes sense to do so
+        if path in FILE_CACHE.keys():
+            if mtime == FILE_CACHE[path]['mtime']:
+                with open(FILE_CACHE[path]['file'].name) as f:
+                    out_dict['data'] = f.read()
+        if not out_dict['data']:
+            out_dict['data'] = minify(path_or_fileobj, kind)
+            import tempfile
+            # Keep track of our files so we don't have to re-minify them
+            temp = tempfile.NamedTemporaryFile(prefix='go_minified')
+            temp.write(out_dict['data'])
+            temp.flush()
+            FILE_CACHE[path] = {
+                'file': temp,
+                'mtime': mtime
+            }
+        if kind == 'js':
+            message = {'load_js': out_dict}
+        elif kind == 'css':
+            out_dict['css'] = True # So loadStyleAction() knows what to do
+            message = {'load_style': out_dict}
+        self.write_message(message)
+
+    def send_js(self, path):
+        """
+        A shortcut for `self.send_js_or_css(path, 'js')`
+        """
+        self.send_js_or_css(path, 'js')
+
+    def send_css(self, path):
+        """
+        A shortcut for `self.send_js_or_css(path, 'css')`
+        """
+        self.send_js_or_css(path, 'css')
+
+    def send_static_files(self, plugins_dir):
+        """
+        Sends all plugin .js and .css files to the client that exist inside
+        *plugins_dir*.
+        """
+        logging.debug('send_static_files(%s)' % plugins_dir)
+        # Build a list of plugins
+        plugins = []
+        for f in os.listdir(plugins_dir):
+            if os.path.isdir(os.path.join(plugins_dir, f)):
+                plugins.append(f)
+        # Add each found JS file to the respective dict
+        for plugin in plugins:
+            plugin_static_path = os.path.join(plugins_dir, plugin, 'static')
+            if os.path.exists(plugin_static_path):
+                static_files = os.listdir(plugin_static_path)
+                static_files.sort()
+                for f in static_files:
+                    if f.endswith('.js'):
+                        js_file_path = os.path.join(plugin_static_path, f)
+                        self.send_js(js_file_path)
+                    elif f.endswith('.css'):
+                        css_file_path = os.path.join(plugin_static_path, f)
+                        self.send_css(css_file_path)
+
+# TODO:  Separate generic Gate One css from the terminal-specific stuff.
     def enumerate_themes(self):
         """
         Returns a JSON-encoded object containing the installed themes and text
@@ -2454,50 +1881,6 @@ class TerminalWebSocket(WebSocketHandler):
         """
         message_dict = {'notice': message}
         self.write_message(message_dict)
-
-    @require(authenticated())
-    def debug_terminal(self, term=None):
-        """
-        Prints to stdout various details that are useful when debugging Gate
-        One.  If *term* is not given *self.current_term* will be used.
-
-        .. note:: Can only be called from a JavaScript console like so...
-
-        .. code-block:: javascript
-
-            GateOne.ws.send(JSON.stringify({'debug_terminal': *term*}));
-        """
-        if not term:
-            term = self.current_term
-        logging.info("TerminalWebSocket.debug_terminal(%s)" % term)
-        print("self.current_user: %s" % self.current_user)
-        term_obj = SESSIONS[self.session][self.location][term]['multiplex'].term
-        screen = term_obj.screen
-        renditions = term_obj.renditions
-        # Commented this out because it is rather noisy and only necessary when
-        # debugging the terminal emulator which isn't necessary for mose folks
-        # that will be using this method.
-        #for i, line in enumerate(screen):
-            ## This gets rid of images:
-            #line = [a for a in line if len(a) == 1]
-            #print("%s:%s" % (i, "".join(line)))
-            #print(renditions[i])
-        # Also check if there's anything that's uncollectable
-        import gc
-        gc.set_debug(gc.DEBUG_UNCOLLECTABLE|gc.DEBUG_OBJECTS)
-        from pprint import pprint
-        pprint(gc.garbage)
-        print("gc.collect(): %s" % gc.collect())
-        pprint(gc.garbage)
-        print("SESSIONS...")
-        pprint(SESSIONS)
-        try:
-            from pympler import asizeof
-            print("screen size: %s" % asizeof.asizeof(screen))
-            print("renditions size: %s" % asizeof.asizeof(renditions))
-            print("Total term object size: %s" % asizeof.asizeof(term_obj))
-        except ImportError:
-            pass # No biggie
 
 class ErrorHandler(tornado.web.RequestHandler):
     """
@@ -2533,17 +1916,14 @@ class Application(tornado.web.Application):
         Setup our Tornado application...  Everything in *settings* will wind up
         in the Tornado settings dict so as to be accessible under self.settings.
         """
-        global APPLICATIONS
         global PLUGIN_WS_CMDS
         global PLUGIN_COMMAND_HOOKS
-        global PLUGIN_HOOKS
         global PLUGIN_ESC_HANDLERS
         global PLUGIN_AUTH_HOOKS
         global PLUGIN_TERM_HOOKS
         global PLUGIN_NEW_TERM_HOOKS
         global PLUGIN_NEW_MULTIPLEX_HOOKS
         global PLUGIN_ENV_HOOKS
-        apps = [TestApp]
         # Base settings for our Tornado app
         static_url = os.path.join(GATEONE_DIR, "static")
         tornado_settings = dict(
@@ -2587,11 +1967,10 @@ class Application(tornado.web.Application):
         # Setup our URL handlers
         handlers = [
             (index_regex, MainHandler),
-            (r"%sws" % url_prefix, TerminalWebSocket, {'apps': apps}),
+            (r"%sws" % url_prefix, ApplicationWebSocket, {'apps':APPLICATIONS}),
             (r"%sauth" % url_prefix, AuthHandler),
             (r"%sdownloads/(.*)" % url_prefix, DownloadHandler),
             (r"%scssrender" % url_prefix, PluginCSSTemplateHandler),
-            (r"%scombined_js" % url_prefix, JSPluginsHandler),
             (r"%sdocs/(.*)" % url_prefix, tornado.web.StaticFileHandler, {
                 "path": docs_path,
                 "default_filename": "index.html"
@@ -2728,12 +2107,18 @@ def main():
                 default_origins.append('https://%s' % _host)
     default_origins = ";".join(default_origins)
     config_default = os.path.join(GATEONE_DIR, "server.conf")
-    # TODO:  These configuration options are getting a bit unwiedly.  Move them into a separate file or something.  Might want to switch over to using optparse and/or ConfigParser as well.
+    # NOTE: --settings_dir deprecates --config
+    settings_default = os.path.join(GATEONE_DIR, "settings")
     define("config",
         default=config_default,
+        help=_("DEPRECATED.  Use --settings_dir."),
+        type=basestring
+    )
+    define("settings_dir",
+        default=settings_default,
         help=_(
-            "Path to the config file.  Default: %s" % config_default),
-        type=str
+            "Path to the settings directory.  Default: %s" % settings_default),
+        type=basestring
     )
     define(
         "debug",
@@ -2744,23 +2129,23 @@ def main():
     define("cookie_secret", # 45 chars is, "Good enough for me" (cookie joke =)
         default=None,
         help=_("Use the given 45-character string for cookie encryption."),
-        type=str
+        type=basestring
     )
     define("command",
         # The default command assumes the SSH plugin is enabled
         default=(GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
             r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp "
-            r"-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/ssh/known_hosts\"'"),
+            r"-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/.ssh/known_hosts\"'"),
         help=_("Run the given command when a user connects (e.g. '/bin/login')."
                ),
-        type=str
+        type=basestring
     )
     define("address",
         default="",
         help=_("Run on the given address.  Default is all addresses (IPv6 "
                "included).  Multiple address can be specified using a semicolon"
                " as a separator (e.g. '127.0.0.1;::1;10.1.1.100')."),
-        type=str)
+        type=basestring)
     define("port", default=443, help=_("Run on the given port."), type=int)
     define(
         "enable_unix_socket",
@@ -2771,7 +2156,7 @@ def main():
         "unix_socket_path",
         default="/tmp/gateone.sock",
         help=_("Path to the Unix socket (if --enable_unix_socket=True)."),
-        type=str)
+        type=basestring)
     # Please only use this if Gate One is running behind something with SSL:
     define(
         "disable_ssl",
@@ -2784,14 +2169,14 @@ def main():
         default="certificate.pem",
         help=_("Path to the SSL certificate.  Will be auto-generated if none is"
                " provided."),
-        type=str
+        type=basestring
     )
     define(
         "keyfile",
         default="keyfile.pem",
         help=_("Path to the SSL keyfile.  Will be auto-generated if none is"
                " provided."),
-        type=str
+        type=basestring
     )
     define(
         "ca_certs",
@@ -2800,7 +2185,7 @@ def main():
                "certificates in PEM format.  They will be used to authenticate "
                "clients if the 'ssl_auth' option is set to 'optional' or "
                "'required'."),
-        type=str
+        type=basestring
     )
     define(
         "ssl_auth",
@@ -2810,20 +2195,20 @@ def main():
                "will come after SSL auth).  May be one of 'none', 'optional', "
                "or 'required'.  NOTE: Only works if the 'ca_certs' option is "
                "configured."),
-        type=str
+        type=basestring
     )
     define(
         "user_dir",
         default=os.path.join(GATEONE_DIR, "users"),
         help=_("Path to the location where user files will be stored."),
-        type=str
+        type=basestring
     )
     define(
         "session_dir",
         default="/tmp/gateone",
         help=_(
             "Path to the location where session information will be stored."),
-        type=str
+        type=basestring
     )
     define(
         "session_logging",
@@ -2842,7 +2227,7 @@ def main():
         help=_("Syslog facility to use when logging to syslog (if "
                "syslog_session_logging is enabled).  Must be one of: %s."
                "  Default: daemon" % ", ".join(facilities)),
-        type=str
+        type=basestring
     )
     define(
         "syslog_host",
@@ -2851,7 +2236,7 @@ def main():
                "enabled.  Default: None (log to the local syslog daemon "
                "directly).  NOTE:  This setting is required on platforms that "
                "don't include Python's syslog module."),
-        type=str
+        type=basestring
     )
     define(
         "session_timeout",
@@ -2859,7 +2244,7 @@ def main():
         help=_("Amount of time that a session is allowed to idle before it is "
         "killed.  Accepts <num>X where X could be one of s, m, h, or d for "
         "seconds, minutes, hours, and days.  Default is '5d' (5 days)."),
-        type=str
+        type=basestring
     )
     define(
         "new_api_key",
@@ -2871,7 +2256,7 @@ def main():
         "auth",
         default="none",
         help=_("Authentication method to use.  Valid options are: %s" % auths),
-        type=str
+        type=basestring
     )
     # This is to prevent replay attacks.  Gate One only keeps a "working memory"
     # of API auth objects for this amount of time.  So if the Gate One server is
@@ -2883,21 +2268,21 @@ def main():
         help=_(
             "How long before an API authentication object becomes invalid.  "
             "Default is '30s' (30 seconds)."),
-        type=str
+        type=basestring
     )
     define(
         "sso_realm",
         default=None,
         help=_("Kerberos REALM (aka DOMAIN) to use when authenticating clients."
                " Only relevant if Kerberos authentication is enabled."),
-        type=str
+        type=basestring
     )
     define(
         "sso_service",
         default='HTTP',
         help=_("Kerberos service (aka application) to use. Defaults to HTTP. "
                "Only relevant if Kerberos authentication is enabled."),
-        type=str
+        type=basestring
     )
     define(
         "pam_realm",
@@ -2907,14 +2292,14 @@ def main():
         "Only relevant if PAM authentication is enabled."),
         # NOTE: This is only used to show the user a REALM at the basic auth
         #       prompt and as the name in the GATEONE_DIR+'/users' directory
-        type=str
+        type=basestring
     )
     define(
         "pam_service",
         default='login',
         help=_("PAM service to use.  Defaults to 'login'. "
                "Only relevant if PAM authentication is enabled."),
-        type=str
+        type=basestring
     )
     define(
         "embedded",
@@ -2940,7 +2325,7 @@ def main():
              "  If not provided, will default to $LANG (which is '%s' in your "
              "current shell), or en_US if not set."
              % os.environ.get('LANG', 'not set').split('.')[0]),
-        type=str
+        type=basestring
     )
     define("js_init",
         default="",
@@ -2948,7 +2333,7 @@ def main():
                "GateOne.init() inside index.html.  "
                "Example: --js_init=\"{scheme: 'white'}\" would result in "
                "GateOne.init({scheme: 'white'})"),
-        type=str
+        type=basestring
     )
     define(
         "https_redirect",
@@ -2963,7 +2348,7 @@ def main():
                "'/gateone/'.  Use this if Gate One will be running behind a "
                "reverse proxy where you want it to be located at some sub-"
                "URL path."),
-        type=str
+        type=basestring
     )
     define(
         "origins",
@@ -2976,68 +2361,231 @@ def main():
                " embedding Gate One. Here's the default on your system: '%s'. "
                "Alternatively, '*' may be  specified to allow access from "
                "anywhere." % default_origins),
-        type=str
+        type=basestring
     )
     define(
         "pid_file",
         default="/tmp/gateone.pid",
         help=_(
             "Define the path to the pid file.  Default: /tmp/gateone.pid"),
-        type=str
+        type=basestring
     )
     define(
         "uid",
         default=str(os.getuid()),
         help=_(
             "Drop privileges and run Gate One as this user/uid."),
-        type=str
+        type=basestring
     )
     define(
         "gid",
         default=str(os.getgid()),
         help=_(
             "Drop privileges and run Gate One as this group/gid."),
-        type=str
+        type=basestring
     )
     define(
         "session_logs_max_age",
         default="30d",
         help=_("Maximum amount of length of time to keep any given session log "
                "before it is removed."),
-        type=str
+        type=basestring
     )
     define(
         "api_keys",
         default="",
         help=_("The 'key:secret,...' API key pairs you wish to use (only "
                "applies if using API authentication)"),
-        type=str
+        type=basestring
     )
     # Before we do anythong else, load plugins and assign their hooks.  This
     # allows plugins to add their own define() statements/options.
-    imported = load_plugins(PLUGINS['py'])
-    new_conf = False # Used below to tell the user that a server.conf was
-                     # generated in their chosen language.
+    imported = load_modules(PLUGINS['py'])
     for plugin in imported:
         try:
             PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
         except AttributeError:
             pass # No hooks--probably just a supporting .py file.
+    # Do the same for Gate One Applications
+    global APPLICATIONS
+    app_modules = load_modules(APPLICATIONS)
+    APPLICATIONS = [] # Replace it with a list of actual class instances
+    for module in app_modules:
+        module.SESSIONS = SESSIONS
+        try:
+            APPLICATIONS.extend(module.apps)
+            if hasattr(module, 'init'):
+                module.init()
+        except AttributeError:
+            pass # No apps--probably just a supporting .py file.
+    logging.debug("Imported applications: %s" % APPLICATIONS)
     # We have to parse the command line options so we can check for a config to
     # load.  The config will then be loaded--overriding command line options but
     # this won't be a problem since we'll re-parse the command line options
     # further down which will subsequently override the config.
     tornado.options.parse_command_line()
+    if not os.path.exists(options.settings_dir):
+        # Try to create it
+        try:
+            mkdir_p(options.settings_dir)
+        except:
+            logging.error(_(
+                "Could not find/create settings directory at %s" %
+                options.settings_dir))
+            sys.exit(1)
+    # Convert the old server.conf to the new settings file format and save it
+    # as a number of distinct .conf files to keep things better organized.
+    # NOTE: This logic will go away some day as it only applies when moving from
+    #       Gate One 1.1 (or older) to newer versions.
     if os.path.exists(options.config):
-        tornado.options.parse_config_file(options.config)
+        from utils import settings_template, RUDict
+        settings = {}
+        auth_settings = {}
+        terminal_settings = {}
+        api_keys = RUDict({"*": {"gateone": {"api_keys": {}}}})
+        with open(options.config) as f:
+            # Regular server-wide settings will go in 10server.conf by default.
+            # These settings can actually be spread out into any number of .conf
+            # files in the settings directory using whatever naming convention
+            # you want.
+            settings_path = os.path.join(GATEONE_DIR, 'settings')
+            server_conf_path = os.path.join(settings_path, '10server.conf')
+            auth_conf_path = os.path.join(
+                settings_path, '20authentication.conf')
+            terminal_conf_path = os.path.join(
+                settings_path, '50terminal.conf')
+            api_keys_conf = os.path.join(
+                settings_path, '20api_keys.conf')
+            # Using 20authentication.conf for authentication settings
+            # NOTE: Using a separate file for authentication stuff for no other
+            #       reason than it seems like a good idea.  Don't want one
+            #       gigantic config file for everything (by default, anyway).
+            authentication_conf_path = os.path.join(
+                GATEONE_DIR, 'settings', '20authentication.conf')
+            logging.info(_(
+                "Old server.conf file found.  Converting to the new format as "
+                "%s, %s, and %s" % (
+                    server_conf_path, auth_conf_path, terminal_conf_path)))
+            authentication_options = [
+                # These are here only for logical separation in the .conf files
+                'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
+                'sso_realm', 'sso_service'
+            ]
+            terminal_options = [ # These are now terminal-app-specific setttings
+                'command', 'dtach', 'session_logging', 'session_logs_max_age',
+                'syslog_session_logging'
+            ]
+            for line in f:
+                if line.startswith('#'):
+                    continue
+                key = line.split('=', 1)[0].strip()
+                value = eval(line.split('=', 1)[1].strip())
+                if key in terminal_options:
+                    if key == 'command':
+                        # Fix the path to ssh_connect.py if present
+                        if 'ssh_connect.py' in value:
+                            value = value.replace(
+                                '/plugins/', '/applications/terminal/plugins/')
+                    terminal_settings.update({key: value})
+                elif key in authentication_options:
+                    auth_settings.update({key: value})
+                elif key == 'origins':
+                    # Convert to the new format (a list with no http://)
+                    origins = value.split(';')
+                    converted_origins = []
+                    for origin in origins:
+                        # The new format doesn't bother with http:// or https://
+                        origin = origin.split('://')[1]
+                        if origin not in converted_origins:
+                            converted_origins.append(origin)
+                    settings.update({key: converted_origins})
+                elif key == 'api_keys':
+                    # Move these to the new location/format (20api_keys.conf)
+                    for pair in value.split(','):
+                        api_key, secret = pair.split(':')
+                        if bytes == str:
+                            api_key = api_key.decode('UTF-8')
+                            secret = secret.decode('UTF-8')
+                        api_keys['*']['gateone']['api_keys'].update(
+                            {api_key: secret})
+                    # API keys can be written right away
+                    with open(api_keys_conf, 'w') as conf:
+                        msg = _(
+                            "// This file contains the key and secret pairs "
+                            "used by Gate One's API authentication method.\n")
+                        conf.write(msg)
+                        conf.write(str(api_keys))
+                else:
+                    settings.update({key: value})
+            template_path = os.path.join(
+                GATEONE_DIR, 'templates', 'settings', '10server.conf')
+            new_settings = settings_template(template_path, settings=settings)
+            if not os.path.exists(server_conf_path):
+                with open(server_conf_path, 'w') as s:
+                    s.write(_("// This is Gate One's main settings file.\n"))
+                    s.write(new_settings)
+            new_auth_settings = settings_template(
+                template_path, settings=auth_settings)
+            if not os.path.exists(auth_conf_path):
+                with open(auth_conf_path, 'w') as s:
+                    s.write(_(
+                       "// This is Gate One's authentication settings file.\n"))
+                    s.write(new_auth_settings)
+            # Terminal uses a slightly different template; it converts 'command'
+            # to the new 'commands' format.
+            template_path = os.path.join(
+                GATEONE_DIR, 'templates', 'settings', '50terminal.conf')
+            new_term_settings = settings_template(
+                template_path, settings=terminal_settings)
+            if not os.path.exists(terminal_conf_path):
+                with open(terminal_conf_path, 'w') as s:
+                    s.write(_(
+                        "// This is Gate One's Terminal application settings "
+                        "file.\n"))
+                    s.write(new_term_settings)
+    all_settings = get_settings(options.settings_dir)
+    if 'gateone' not in all_settings['*']:
+        # User has yet to create a 10server.conf (or equivalent)
+        all_settings['*']['gateone'] = {} # Will be filled out below
+    # Double check that we have all the necessary settings
+    go_settings = all_settings['*']['gateone']
+    # Update Tornado's options from our settings
+    for key, value in list(go_settings.items()):
+        if key in ['uid', 'gid']:
+            value = str(value) # So the user doesn't have to worry about quotes
+        elif key in ['logging', 'log_file_prefix']:
+            # Have to convert unicode to str or Tornado will complain and exit
+            value = str(value)
+        elif key == 'api_keys':
+            # The new configuration file format (.conf files) stores api keys as
+            # dicts so we need to convert that back to the old format in order
+            # to support overriding api_keys via the command line.
+            if not value: # Empty string
+                options[key].set(str(value))
+                continue
+            out = ""
+            for api_key, secret in value.items():
+                out += "%s:%s;" % (api_key, secret)
+            value = out
+            # NOTE: api_keys settings/CLI logic will be changing soon.
+        elif key == 'origins':
+            # The new configuration file format (.conf files) stores origins as
+            # a list so we need to convert that back to the old format in order
+            # to support overriding api_keys via the command line.
+            if not value: # Empty string
+                options[key].set(str(value))
+                continue
+            value = ";".join(value)
+            # NOTE: origins settings/CLI logic will be changing soon.
+        options[key].set(value)
     # If you want any missing config file entries re-generated just delete the
     # cookie_secret line...
     if not options.cookie_secret:
-        # Generate a default server.conf with a random cookie secret
-        # NOTE: This will also generate a new server.conf if it is missing.
+        # Generate a default 10server.conf with a random cookie secret
+        # NOTE: This will also generate a new 10server.conf if it is missing.
         logging.info(_(
-          "%s not found or missing cookie_secret.  A new one will be generated."
-          % options.config))
+          "Gate One settings are incomplete.  A new settings/10server.conf"
+          " will be generated."))
         config_defaults = {}
         for key, value in options.items():
             if value._value != None:
@@ -3049,6 +2597,7 @@ def main():
         del config_defaults['help'] # Neither should this
         del config_defaults['new_api_key'] # Ditto
         del config_defaults['config'] # Re-ditto
+        del config_defaults['settings_dir'] # Ditto again
         config_defaults.update({'cookie_secret': generate_session_id()})
         # NOTE: The next four options are specific to the Tornado framework
         config_defaults.update({'log_file_max_size': 100 * 1024 * 1024}) # 100MB
@@ -3064,16 +2613,33 @@ def main():
             mkdir_p(web_log_path)
         if not os.path.exists(config_defaults['log_file_prefix']):
             open(config_defaults['log_file_prefix'], 'w').write('')
-        config = open(options.config, "w")
-        config.write('# -*- coding: utf-8 -*-\n') # Start with the encoding line
-        for key, value in config_defaults.items():
-            if isinstance(value, basestring):
-                config.write('%s = "%s"\n' % (key, value))
-            else:
-                config.write('%s = %s\n' % (key, value))
-        config.close()
-        tornado.options.parse_config_file(options.config)
+        server_conf_path = os.path.join(
+            GATEONE_DIR, 'settings', '10server.conf')
+        template_path = os.path.join(
+            GATEONE_DIR, 'templates', 'settings', '10server.conf')
+        from utils import settings_template
+        new_settings = settings_template(
+            template_path, settings=config_defaults)
+        if not os.path.exists(server_conf_path):
+            with open(server_conf_path, 'w') as s:
+                s.write(new_settings)
+        all_settings = get_settings(options.settings_dir)
+        go_settings = all_settings['*']['gateone']
+        # Update Tornado's options from our settings (one more time)
+        for key, value in list(go_settings.items()):
+            if key in ['uid', 'gid', 'logging', 'log_file_prefix']:
+                value = str(value)
+            options[key].set(value)
+    # Now that setting loading/generation is out of the way, re-parse the
+    # command line options so the user can override any setting at run time.
     tornado.options.parse_command_line()
+    # Fix the path to known_hosts if using the default command
+    if '\"%USERDIR%/%USER%/ssh/known_hosts\"' in options.command:
+        logging.warning(_(
+            "The default path to known_hosts has been changed.  Please update"
+            " your config file to use '/.ssh/known_hosts' instead of "
+            "'/ssh/known_hosts'.  Applying a termporary fix..."))
+        options.command = options.command.replace('/ssh/', '/.ssh/')
     # Change the uid/gid strings into integers
     try:
         uid = int(options.uid)
@@ -3084,6 +2650,7 @@ def main():
     try:
         gid = int(options.gid)
     except ValueError:
+        import grp
         # Assume it's a group name and grab its gid
         gid = grp.getgrnam(options.gid).gr_gid
     if not os.path.exists(options.user_dir): # Make our user_dir
@@ -3161,23 +2728,24 @@ def main():
         shutil.rmtree(options.session_dir, ignore_errors=True)
         sys.exit(0)
     if options.new_api_key:
-        # Generate a new API key for an application to use
+        # Generate a new API key for an application to use and save it to
+        # settings/20api_keys.conf.
+        from utils import RUDict
         api_key = generate_session_id()
         # Generate a new secret
         secret = generate_session_id()
-        # Save it
-        server_conf = ""
-        with open(options.config) as f:
-            existing = ""
-            for line in f.readlines():
-                if line.startswith("api_keys"):
-                    existing = line.split('=')[1].strip().strip('"').strip("'")
-                    existing += ",%s:%s" % (api_key, secret)
-                    line = 'api_keys = "%s"\n' % existing
-                server_conf += line
-            if not existing:
-                server_conf += 'api_keys = "%s:%s"\n' % (api_key, secret)
-        open(os.path.join(options.config), 'w').write(server_conf)
+        api_keys_conf = os.path.join(GATEONE_DIR, 'settings', '20api_keys.conf')
+        new_keys = {api_key: secret}
+        api_keys = RUDict({"*": {"gateone": {"api_keys": {}}}})
+        if os.path.exists(api_keys_conf):
+            api_keys = get_settings(api_keys_conf)
+        api_keys.update({"*": {"gateone": {"api_keys": new_keys}}})
+        with open(api_keys_conf, 'w') as conf:
+            msg = _(
+                "// This file contains the key and secret pairs used by Gate "
+                "One's API authentication method.\n")
+            conf.write(msg)
+            conf.write(str(api_keys))
         logging.info(_("A new API key has been generated: %s" % api_key))
         logging.info(_("This key can now be used to embed Gate One into other "
                 "applications."))
@@ -3217,7 +2785,7 @@ def main():
                  " origins: '%s'" % " ".join(real_origins))
     # Define our Application settings
     api_timestamp_window = convert_to_timedelta(options.api_timestamp_window)
-    app_settings = {
+    go_settings = {
         'gateone_dir': GATEONE_DIR, # Only here so plugins can reference it
         'debug': options.debug,
         'command': options.command,
@@ -3277,8 +2845,6 @@ def main():
                 "directory.  Or just make sure that the static/<plugin> "
                 "symbolic links are created and ignore this message." % (
                 static_dir, pwd.getpwuid(os.geteuid())[0])))
-    plugin_dir = os.path.join(GATEONE_DIR, "plugins")
-    templates_dir = os.path.join(GATEONE_DIR, "templates")
     combined_plugins_path = os.path.join(
         options.session_dir, 'combined_plugins.js')
     # Remove the combined_plugins.js (it will get auto-recreated)
@@ -3310,7 +2876,7 @@ def main():
     else:
         proto = "https://"
     https_server = tornado.httpserver.HTTPServer(
-        Application(settings=app_settings), ssl_options=ssl_options)
+        Application(settings=go_settings), ssl_options=ssl_options)
     https_redirect = tornado.web.Application(
         [(r".*", HTTPSRedirectHandler),],
         port=options.port,

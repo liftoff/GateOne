@@ -47,7 +47,7 @@ import tornado.web
 
 # Globals
 # This is in case we have relative imports, templates, or whatever:
-plugin_path = os.path.split(__file__)[0] # Path to our plugin's directory
+PLUGIN_PATH = os.path.split(__file__)[0] # Path to our plugin's directory
 
 # Traditional web handler
 class ExampleHandler(BaseHandler):
@@ -86,7 +86,7 @@ class ExampleHandler(BaseHandler):
         # NOTE: I highly recommend using os.path.join() instead of just using
         # '/' everywhere...  You never know; Gate One might run on Windows one
         # day!
-        templates_path = os.path.join(plugin_path, "templates")
+        templates_path = os.path.join(PLUGIN_PATH, "templates")
         example_template =  os.path.join(templates_path, "example_template.html")
         bygolly = "By golly"
         # The get_current_user() function returns a whole dict of information.
@@ -127,7 +127,7 @@ class ExampleHandler(BaseHandler):
         # asynchronous decorator.
 
 # WebSocket actions (aka commands or "functions that are exposed")
-def example_websocket_action(message, tws=None):
+def example_websocket_action(self, message):
     """
     This `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_
     action gets exposed to the client automatically by way of the 'WebSocket'
@@ -155,23 +155,8 @@ def example_websocket_action(message, tws=None):
     argument to your function (assuming it is a :class:`dict`) or 100% keyword
     arguments.
 
-    The *tws* keyword argument must always be present in WebSocket actions.  It
-    represents the user's current instance of Gate One's :class:`~gateone.TerminalWebSocket`
-    class. Think of it as the equivalent of, "self" inside of any given
-    :class:`~gateone.TerminalWebSocket` function.  For example, the following
-    function inside of :class:`~gateone.TerminalWebSocket` (inside of gateone.py)::
-
-        def pong(self, timestamp): # Docstring removed to save space
-            message = {'pong': timestamp}
-            self.write_message(json_encode(message))
-
-    ...could be written inside of a plugin like so::
-
-        def pong(timestamp, tws=None):
-            message = {'pong': timestamp}
-            tws.write_message(json_encode(message))
-
-    .. note:: Notice that the ussage of *self* has become *tws*.
+    The *self* argument here is automatically assigned by
+    :class:`TerminalApplication` using the `utils.bind` method.
 
     The typical naming convention for `WebSocket <https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket>`_
     actions is: `<plugin name>_<action>`.  Whether or not your action names
@@ -185,19 +170,19 @@ def example_websocket_action(message, tws=None):
     plugin's 'static' dir).
     """
     message = {'example_pong': timestamp}
-    tws.write_message(json_encode(message))
+    self.write_message(json_encode(message))
     # WebSockets are asynchronous so you can send as many messages as you want
     message2 = {'notice': 'You just executed the "example_action" action.'}
-    tws.write_message(json_encode(message2))
+    self.write_message(json_encode(message2))
     # Alternatively, you can combine multiple messages/actions into one message:
     combined = {
         'notice': 'Hurray!',
-        'bell': {'term': tws.current_term}
+        'bell': {'term': self.current_term}
     }
-    tws.write_message(json_encode(combined))
+    self.write_message(json_encode(combined))
 
 # Now for some special sauce...  The Special Optional Escape Sequence Handler!
-def example_opt_esc_handler(message, tws):
+def example_opt_esc_handler(self, message):
     """
     Gate One includes a mechanism for plugins to send messages from terminal
     programs directly to plugins written in Python.  It's called the "Special
@@ -209,7 +194,7 @@ def example_opt_esc_handler(message, tws):
     """
     message = {'notice':
      "You just executed the Example plugin's optional escape sequence handler!"}
-    tws.write_message(message)
+    self.write_message(message)
 
 def example_command_hook(command):
     """

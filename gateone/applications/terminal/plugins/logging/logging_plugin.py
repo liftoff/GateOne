@@ -7,7 +7,6 @@
 # TODO: Fix the flat log viewing format.  Doesn't look quite right.
 # TODO: Write search functions.
 # TODO: Add some search indexing capabilities so that search will be fast.
-# TODO: Add a background process that cleans up old logs.
 # TODO: Write a handler that displays a page where users can drag & drop .golog files to have them played back in their browser.
 
 __doc__ = """\
@@ -45,9 +44,8 @@ import re
 from multiprocessing import Process, Queue
 
 # Our stuff
-from gateone import BaseHandler, PLUGINS
 from logviewer import flatten_log, get_frames
-from termio import retrieve_first_frame, retrieve_last_frame
+from termio import retrieve_first_frame
 from termio import get_or_update_metadata
 from utils import get_translation, json_encode
 
@@ -56,7 +54,6 @@ _ = get_translation()
 # Tornado stuff
 import tornado.template
 import tornado.ioloop
-from tornado.escape import json_decode
 
 # TODO: Make the log retrieval functions work incrementally as logs are read so they don't have to be stored entirely in memory before being sent to the client.
 
@@ -106,26 +103,26 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
 # Handlers
 
 # WebSocket commands (not the same as handlers)
-def enumerate_logs(limit=None, tws=None):
+def enumerate_logs(self, limit=None):
     """
     Calls _enumerate_logs() via a :py:class:`multiprocessing.Process` so it
     doesn't cause the :py:class:`~tornado.ioloop.IOLoop` to block.
 
     Log objects will be returned to the client one at a time by sending
-    'logging_log' actions to the client over the WebSocket (*tws*).
+    'logging_log' actions to the client over the WebSocket (*self*).
     """
     # Sometimes IOLoop detects multiple events on the fd before we've finished
     # doing a get() from the queue.  This variable is used to ensure we don't
     # send the client duplicates:
     results = []
-    if tws.settings['session_logging'] == False:
+    if self.settings['session_logging'] == False:
         message = {'notice': _(
             "NOTE: User session logging is disabled.  To enable it, set "
             "'session_logging = True' in your server.conf.")}
         tws.write_message(message)
         return # Nothing left to do
-    user = tws.get_current_user()['upn']
-    users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
+    user = self.get_current_user()['upn']
+    users_dir = os.path.join(self.ws.settings['user_dir'], user) # "User's dir"
     io_loop = tornado.ioloop.IOLoop.instance()
     global PROCS
     if user not in PROCS:
@@ -165,7 +162,7 @@ def enumerate_logs(limit=None, tws=None):
             }
             # This signals to the client that we're done
             message = {'logging_logs_complete': out_dict}
-            tws.write_message(message)
+            self.write_message(message)
             return
         message = json_encode(message)
         if message not in results:
@@ -173,7 +170,7 @@ def enumerate_logs(limit=None, tws=None):
             if results:
                 results.pop() # No need to keep old stuff hanging around
             results.append(message)
-            tws.write_message(message)
+            self.write_message(message)
     # This is kind of neat:  multiprocessing.Queue() instances have an
     # underlying fd that you can access via the _reader:
     io_loop.add_handler(q._reader.fileno(), send_message, io_loop.READ)
@@ -211,7 +208,7 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
         time.sleep(0.01)
     queue.put('complete')
 
-def retrieve_log_flat(settings, tws=None):
+def retrieve_log_flat(self, settings):
     """
     Calls :func:`_retrieve_log_flat` via a :py:class:`multiprocessing.Process`
     so it doesn't cause the :py:class:`~tornado.ioloop.IOLoop` to block.
@@ -226,11 +223,11 @@ def retrieve_log_flat(settings, tws=None):
     :arg settings['theme']: The CSS theme to use when generating output.
     :arg settings['where']: Whether or not the result should go into a new window or an iframe.
     """
-    settings['container'] = tws.container
-    settings['prefix'] = tws.prefix
-    settings['user'] = user = tws.get_current_user()['upn']
-    settings['users_dir'] = os.path.join(tws.settings['user_dir'], user)
-    settings['gateone_dir'] = tws.settings['gateone_dir']
+    settings['container'] = self.ws.container
+    settings['prefix'] = self.ws.prefix
+    settings['user'] = user = self.get_current_user()['upn']
+    settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
+    settings['gateone_dir'] = self.ws.settings['gateone_dir']
     io_loop = tornado.ioloop.IOLoop.instance()
     global PROCS
     if user not in PROCS:
@@ -256,7 +253,7 @@ def retrieve_log_flat(settings, tws=None):
         """
         io_loop.remove_handler(fd)
         message = q.get()
-        tws.write_message(message)
+        self.write_message(message)
     # This is kind of neat:  multiprocessing.Queue() instances have an
     # underlying fd that you can access via the _reader:
     io_loop.add_handler(q._reader.fileno(), send_message, io_loop.READ)
@@ -318,18 +315,18 @@ def _retrieve_log_flat(queue, settings):
     message = {'logging_log_flat': out_dict}
     queue.put(message)
 
-def retrieve_log_playback(settings, tws=None):
+def retrieve_log_playback(self, settings):
     """
     Calls :func:`_retrieve_log_playback` via a
     :py:class:`multiprocessing.Process` so it doesn't cause the
     :py:class:`~tornado.ioloop.IOLoop` to block.
     """
-    settings['container'] = tws.container
-    settings['prefix'] = tws.prefix
-    settings['user'] = user = tws.get_current_user()['upn']
-    settings['users_dir'] = os.path.join(tws.settings['user_dir'], user)
-    settings['gateone_dir'] = tws.settings['gateone_dir']
-    settings['url_prefix'] = tws.settings['url_prefix']
+    settings['container'] = self.ws.container
+    settings['prefix'] = self.ws.prefix
+    settings['user'] = user = self.ws.get_current_user()['upn']
+    settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
+    settings['gateone_dir'] = self.ws.settings['gateone_dir']
+    settings['url_prefix'] = self.ws.settings['url_prefix']
     io_loop = tornado.ioloop.IOLoop.instance()
     global PROCS
     if user not in PROCS:
@@ -355,7 +352,7 @@ def retrieve_log_playback(settings, tws=None):
         """
         io_loop.remove_handler(fd)
         message = q.get()
-        tws.write_message(message)
+        self.write_message(message)
     # This is kind of neat:  multiprocessing.Queue() instances have an
     # underlying fd that you can access via the _reader:
     io_loop.add_handler(q._reader.fileno(), send_message, io_loop.READ)
@@ -494,17 +491,17 @@ def _retrieve_log_playback(queue, settings):
     message = {'logging_log_playback': out_dict}
     queue.put(message)
 
-def save_log_playback(settings, tws=None):
+def save_log_playback(self, settings):
     """
     Calls :func:`_save_log_playback` via a :py:class:`multiprocessing.Process`
     so it doesn't cause the :py:class:`~tornado.ioloop.IOLoop` to block.
     """
-    settings['container'] = tws.container
-    settings['prefix'] = tws.prefix
-    settings['user'] = user = tws.get_current_user()['upn']
-    settings['users_dir'] = os.path.join(tws.settings['user_dir'], user)
-    settings['gateone_dir'] = tws.settings['gateone_dir']
-    settings['url_prefix'] = tws.settings['url_prefix']
+    settings['container'] = self.ws.container
+    settings['prefix'] = self.ws.prefix
+    settings['user'] = user = self.ws.get_current_user()['upn']
+    settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
+    settings['gateone_dir'] = self.ws.settings['gateone_dir']
+    settings['url_prefix'] = self.ws.settings['url_prefix']
     q = Queue()
     global PROC
     PROC = Process(target=_save_log_playback, args=(q, settings))
@@ -518,7 +515,7 @@ def save_log_playback(settings, tws=None):
         """
         io_loop.remove_handler(fd)
         message = q.get()
-        tws.write_message(message)
+        self.write_message(message)
     # This is kind of neat:  multiprocessing.Queue() instances have an
     # underlying fd that you can access via the _reader:
     io_loop.add_handler(q._reader.fileno(), send_message, io_loop.READ)
@@ -650,14 +647,14 @@ def _save_log_playback(queue, settings):
 
 # Temporarily disabled while I work around the problem of gzip files not being
 # downloadable over the websocket.
-#def get_log_file(log_filename, tws):
+#def get_log_file(self, log_filename):
     #"""
     #Returns the given *log_filename* (as a regular file) so the user can save it
     #to disk.
     #"""
-    #user = tws.get_current_user()['upn']
+    #user = self.get_current_user()['upn']
     #logging.debug("%s: get_log_file(%s)" % (user, log_filename))
-    #users_dir = os.path.join(tws.settings['user_dir'], user) # "User's dir"
+    #users_dir = os.path.join(self.ws.settings['user_dir'], user) # "User's dir"
     #users_log_dir = os.path.join(users_dir, 'logs')
     #log_path = os.path.join(users_log_dir, log_filename)
     #out_dict = {'result': 'Success'}
@@ -668,7 +665,7 @@ def _save_log_playback(queue, settings):
         #out_dict['result'] = _(
             #'SSH Plugin Error: Log not found at %s' % log_path)
     #message = {'save_file': out_dict}
-    #tws.write_message(message)
+    #self.write_message(message)
 
 hooks = {
     'WebSocket': {

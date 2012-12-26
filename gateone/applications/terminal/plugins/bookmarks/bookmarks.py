@@ -48,8 +48,8 @@ from tornado.escape import json_decode
 
 # 3rd party stuff
 # The following two lines let us import modules in the "dependencies" dir
-plugin_path = os.path.split(__file__)[0]
-sys.path.append(os.path.join(plugin_path, "dependencies"))
+PLUGIN_PATH = os.path.split(__file__)[0]
+sys.path.append(os.path.join(PLUGIN_PATH, "dependencies"))
 
 # Globals
 boolean_fix = {
@@ -621,12 +621,12 @@ class ExportHandler(tornado.web.RequestHandler):
         self.set_header("Content-Type", "text/html")
         self.set_header(
             "Content-Disposition", 'attachment; filename="bookmarks.html"')
-        templates_path = os.path.join(plugin_path, "templates")
+        templates_path = os.path.join(PLUGIN_PATH, "templates")
         bookmarks_html =  os.path.join(templates_path, "bookmarks.html")
         self.render(bookmarks_html, bookmarks=bookmarks)
 
 # WebSocket commands (not the same as handlers)
-def save_bookmarks(bookmarks, tws):
+def save_bookmarks(self, bookmarks):
     """
     Handles saving *bookmarks* for clients.
     """
@@ -636,8 +636,8 @@ def save_bookmarks(bookmarks, tws):
         'errors': []
     }
     try:
-        user = tws.get_current_user()['upn']
-        bookmarks_db = BookmarksDB(tws.settings['user_dir'], user)
+        user = self.get_current_user()['upn']
+        bookmarks_db = BookmarksDB(self.ws.settings['user_dir'], user)
         updates = bookmarks_db.sync_bookmarks(bookmarks)
         out_dict.update({
             'updates': updates,
@@ -654,9 +654,9 @@ def save_bookmarks(bookmarks, tws):
     else:
         out_dict['result'] = "Upload successful"
     message = {'bookmarks_save_result': out_dict}
-    tws.write_message(json_encode(message))
+    self.write_message(json_encode(message))
 
-def get_bookmarks(updateSequenceNum, tws):
+def get_bookmarks(self, updateSequenceNum):
     """
     Returns a JSON-encoded list of bookmarks updated since the last
     *updateSequenceNum*.
@@ -664,22 +664,22 @@ def get_bookmarks(updateSequenceNum, tws):
     If *updateSequenceNum* resolves to False, all bookmarks will be sent to
     the client.
     """
-    user = tws.get_current_user()['upn']
-    bookmarks_db = BookmarksDB(tws.settings['user_dir'], user)
+    user = self.get_current_user()['upn']
+    bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
     if updateSequenceNum:
         updateSequenceNum = int(updateSequenceNum)
     else: # This will force a full download
         updateSequenceNum = 0
     updated_bookmarks = bookmarks_db.get_bookmarks(updateSequenceNum)
     message = {'bookmarks_updated': updated_bookmarks}
-    tws.write_message(json_encode(message))
+    self.write_message(json_encode(message))
 
-def delete_bookmarks(deleted_bookmarks, tws):
+def delete_bookmarks(self, deleted_bookmarks):
     """
     Handles deleting bookmars given a *deleted_bookmarks* list.
     """
-    user = tws.get_current_user()['upn']
-    bookmarks_db = BookmarksDB(tws.settings['user_dir'], user)
+    user = self.get_current_user()['upn']
+    bookmarks_db = BookmarksDB(self.ws.settings['user_dir'], user)
     out_dict = {
         'result': "",
         'count': 0,
@@ -697,14 +697,14 @@ def delete_bookmarks(deleted_bookmarks, tws):
         out_dict['result'] = "Errors"
         out_dict['errors'].append(str(e))
     message = {'bookmarks_delete_result': out_dict}
-    tws.write_message(json_encode(message))
+    self.write_message(json_encode(message))
 
-def rename_tags(renamed_tags, tws):
+def rename_tags(self, renamed_tags):
     """
     Handles renaming tags.
     """
-    user = tws.get_current_user()['upn']
-    bookmarks_db = BookmarksDB(tws.settings['user_dir'], user)
+    user = self.get_current_user()['upn']
+    bookmarks_db = BookmarksDB(self.ws.settings['user_dir'], user)
     out_dict = {
         'result': "",
         'count': 0,
@@ -716,7 +716,33 @@ def rename_tags(renamed_tags, tws):
         bookmarks_db.rename_tag(old_name, new_name)
         out_dict['count'] += 1
     message = {'bookmarks_renamed_tags': out_dict}
-    tws.write_message(json_encode(message))
+    self.write_message(json_encode(message))
+
+def send_css_template(self):
+    """
+    Sends our bookmarks.css template to the client using the 'load_style'
+    WebSocket action.  Uses :attr:`ApplicationWebSocket.persist` to store a
+    reference to the rendered CSS template to ensure we only ever have to render
+    it once.
+    """
+    # Here we use the 'persist' dict to keep track of our rendered CSS template
+    if 'bookmarks_css' not in self.ws.persist:
+        import tempfile
+        temp = tempfile.NamedTemporaryFile(prefix='go_bookmarks_css')
+        css_path = os.path.join(PLUGIN_PATH, 'templates', 'bookmarks.css')
+        with open(css_path) as f:
+            css_template = tornado.template.Template(f.read())
+        rendered = css_template.generate(
+            container=self.ws.container,
+            prefix=self.ws.prefix,
+            url_prefix=self.ws.settings['url_prefix']
+        )
+        temp.write(rendered)
+        temp.flush()
+        # Save the rendered template to our persistent store so we don't have to
+        # process it with every page load.
+        self.ws.persist['bookmarks_css'] = temp
+    self.ws.send_css(self.ws.persist['bookmarks_css'])
 
 hooks = {
     'Web': [
@@ -729,5 +755,8 @@ hooks = {
         'bookmarks_get': get_bookmarks,
         'bookmarks_deleted': delete_bookmarks,
         'bookmarks_rename_tags': rename_tags,
+    },
+    'Events': {
+        'terminal:authenticate': send_css_template
     }
 }

@@ -86,6 +86,7 @@ var seed1 = null, seed2 = null; // NOTE: Not used yet.
 //      Other functions copied from MochiKit are indicated individually throughout this file
 GateOne.Base = GateOne.Base || {}; // "Base" contains the basic functions used to create/update Gate One modules/plugins
 GateOne.loadedModules = [];
+GateOne.initializedModules = []; // So we don't accidentally call a plugin's init() or postInit() functions twice
 /**
  * Creates a new module in a parent namespace. This function will
  * create a new empty module object with "NAME", "VERSION",
@@ -364,7 +365,7 @@ var go = GateOne.Base.update(GateOne, {
         var combined_js = go.prefs.url + 'combined_js',
             authCheck = go.prefs.url + 'auth?check=True';
         // Load our JS Plugins
-        u.loadScript(combined_js, function() {
+//         u.loadScript(combined_js, function() {
             if (go.prefs.auth) {
                 // API authentication doesn't need to use the /auth URL.
                 logDebug("Using API authentiation object: " + go.prefs.auth);
@@ -373,7 +374,7 @@ var go = GateOne.Base.update(GateOne, {
                 // Check if we're authenticated after all the scripts are done loading
                 u.xhrGet(authCheck, parseResponse);
             }
-        });
+//         });
         // Empty out anything that might be already-existing in goDiv
         u.getNode(go.prefs.goDiv).innerHTML = '';
     },
@@ -1119,30 +1120,28 @@ GateOne.Base.update(GateOne.Utils, {
         // Called after all the plugins have been loaded.
         // NOTE: Probably don't need a preInit() since modules can just put stuff inside their main .js for that.  If you can think of a use case let me know and I'll add it.
         // Go through all our loaded modules and run their init functions (if any)
+        logDebug("Running runPostInit()");
         go.loadedModules.forEach(function(module) {
             var moduleObj = eval(module);
-            logDebug('Running: ' + moduleObj.NAME + '.init()');
-            if (typeof(moduleObj.init) == "function") {
-                moduleObj.init();
+            if (go.initializedModules.indexOf(moduleObj.NAME) == -1) {
+                logDebug('Running: ' + moduleObj.NAME + '.init()');
+                if (typeof(moduleObj.init) == "function") {
+                    moduleObj.init();
+                }
+                go.initializedModules.push(moduleObj.NAME)
             }
         });
         // Go through all our loaded modules and run their postInit functions (if any)
         go.loadedModules.forEach(function(module) {
             var moduleObj = eval(module);
-            // TODO:  Remove postOnLoad support in a future release.
-            logDebug('Running: ' + moduleObj.NAME + '.postOnLoad()');
-            if (typeof(moduleObj.postOnLoad) == "function") {
-                go.Visual.displayMessage('WARNING: Deprecated postOnLoad() function found in ' + moduleObj.NAME + '. "postOnLoad" has been renamed "postInit" and support for the older naming will be removed in a future version of Gate One.');
-                moduleObj.postOnLoad();
+            if (go.initializedModules.indexOf(moduleObj.NAME) == -1) {
+                logDebug('Running: ' + moduleObj.NAME + '.postInit()');
+                if (typeof(moduleObj.postInit) == "function") {
+                    moduleObj.postInit();
+                }
             }
-            logDebug('Running: ' + moduleObj.NAME + '.postInit()');
-            if (typeof(moduleObj.postInit) == "function") {
-                moduleObj.postInit();
-            }
-
         });
     },
-    // This may be used in the future to load JavaScript files via the WebSocket...
     loadJSAction: function(message) {
         /**GateOne.Utils.loadJSAction(message)
 
@@ -1152,6 +1151,7 @@ GateOne.Base.update(GateOne.Utils, {
             >>> // NOTE: some_script.js can reside in Gate One's /static directory or any plugin's /static directory.
             >>> // Plugin .js files take precedence.
         */
+        logDebug('loadJSAction()');
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
@@ -1166,6 +1166,8 @@ GateOne.Base.update(GateOne.Utils, {
             } else {
                 goDiv.appendChild(s);
             }
+            u.runPostInit(); // Calls any init() and postInit() functions in the loaded JS.
+            // NOTE:  runPostInit() will *not* re-run init() and postInit() functions if they've already been run once.  Even if the script is being replaced/updated.
         }
     },
     loadStyleAction: function(message) {
@@ -1210,6 +1212,20 @@ GateOne.Base.update(GateOne.Utils, {
                     stylesheet.textContent = message['plugins'][plugin];
                     if (existing) {
                         existing.textContent = message['plugins'][plugin];
+                    } else {
+                        u.getNode("head").insertBefore(stylesheet, themeStyle);
+                    }
+                }
+            }
+            // This is for handling any given CSS file
+            if (message['css']) {
+                if (message['data'].length) {
+                    var existing = u.getNode('#'+prefix+message['filename']+"_css"),
+                        stylesheet = u.createElement('style', {'id': message['filename']+"_css", 'rel': 'stylesheet', 'type': 'text/css', 'media': 'screen'}),
+                        themeStyle = u.getNode('#'+prefix+'theme'); // Theme should always be last so it can override defaults and plugins
+                    stylesheet.textContent = message['data'];
+                    if (existing) {
+                        existing.textContent = message['data'];
                     } else {
                         u.getNode("head").insertBefore(stylesheet, themeStyle);
                     }
@@ -1315,7 +1331,7 @@ GateOne.Base.update(GateOne.Utils, {
         }
         document.body.appendChild(tag);
         setTimeout(function() {
-            // If combined_js doesn't load within 5 seconds assume it is an SSL certificate issue
+            // If the URL doesn't load within 5 seconds assume it is an SSL certificate issue
             u.loadScriptError(tag, url, callback);
         }, 5000);
     },

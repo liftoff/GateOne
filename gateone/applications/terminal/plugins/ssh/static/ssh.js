@@ -974,7 +974,7 @@ GateOne.Base.update(GateOne.SSH, {
             connectString = GateOne.terminals[term]['sshConnectString'],
             connectFunc = function(term) {
                 // This gets attached to the "new_terminal" event
-                GateOne.Net.sendString('ssh://' + connectString + '\n');
+                GateOne.Net.sendString('ssh://' + connectString + '\n', term);
             }
         if (!connectString.length) {
             return; // Can't do anything without a connection string!

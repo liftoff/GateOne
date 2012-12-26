@@ -305,36 +305,36 @@ def handle_special(e):
     with their Unicode equivalents.
     """
     # TODO: Get this using curses special characters when appropriate
-    curses_specials = {
-        # NOTE: When $TERM is set to "Linux" these end up getting used by things
-        #       like ncurses-based apps.  In other words, it makes a whole lot
-        #       of ugly look pretty again.
-        0xda: u'┌', # ACS_ULCORNER
-        0xc0: u'└', # ACS_LLCORNER
-        0xbf: u'┐', # ACS_URCORNER
-        0xd9: u'┘', # ACS_LRCORNER
-        0xb4: u'├', # ACS_RTEE
-        0xc3: u'┤', # ACS_LTEE
-        0xc1: u'┴', # ACS_BTEE
-        0xc2: u'┬', # ACS_TTEE
-        0xc4: u'─', # ACS_HLINE
-        0xb3: u'│', # ACS_VLINE
-        0xc5: u'┼', # ACS_PLUS
-        0x2d: u'', # ACS_S1
-        0x5f: u'', # ACS_S9
-        0x60: u'◆', # ACS_DIAMOND
-        0xb2: u'▒', # ACS_CKBOARD
-        0xf8: u'°', # ACS_DEGREE
-        0xf1: u'±', # ACS_PLMINUS
-        0xf9: u'•', # ACS_BULLET
-        0x3c: u'←', # ACS_LARROW
-        0x3e: u'→', # ACS_RARROW
-        0x76: u'↓', # ACS_DARROW
-        0x5e: u'↑', # ACS_UARROW
-        0xb0: u'⊞', # ACS_BOARD
-        0x0f: u'⨂', # ACS_LANTERN
-        0xdb: u'█', # ACS_BLOCK
-    }
+    #curses_specials = {
+        ## NOTE: When $TERM is set to "Linux" these end up getting used by things
+        ##       like ncurses-based apps.  In other words, it makes a whole lot
+        ##       of ugly look pretty again.
+        #0xda: u'┌', # ACS_ULCORNER
+        #0xc0: u'└', # ACS_LLCORNER
+        #0xbf: u'┐', # ACS_URCORNER
+        #0xd9: u'┘', # ACS_LRCORNER
+        #0xb4: u'├', # ACS_RTEE
+        #0xc3: u'┤', # ACS_LTEE
+        #0xc1: u'┴', # ACS_BTEE
+        #0xc2: u'┬', # ACS_TTEE
+        #0xc4: u'─', # ACS_HLINE
+        #0xb3: u'│', # ACS_VLINE
+        #0xc5: u'┼', # ACS_PLUS
+        #0x2d: u'', # ACS_S1
+        #0x5f: u'', # ACS_S9
+        #0x60: u'◆', # ACS_DIAMOND
+        #0xb2: u'▒', # ACS_CKBOARD
+        #0xf8: u'°', # ACS_DEGREE
+        #0xf1: u'±', # ACS_PLMINUS
+        #0xf9: u'•', # ACS_BULLET
+        #0x3c: u'←', # ACS_LARROW
+        #0x3e: u'→', # ACS_RARROW
+        #0x76: u'↓', # ACS_DARROW
+        #0x5e: u'↑', # ACS_UARROW
+        #0xb0: u'⊞', # ACS_BOARD
+        #0x0f: u'⨂', # ACS_LANTERN
+        #0xdb: u'█', # ACS_BLOCK
+    #}
     specials = {
 # Note to self:  Why did I bother with these overly descriptive comments?  Ugh
 # I've been staring at obscure symbols far too much lately ⨀_⨀
@@ -511,7 +511,7 @@ def _reduce_renditions(renditions):
     out_renditions = []
     foreground = None
     background = None
-    for i, rend in enumerate(renditions):
+    for rend in renditions:
         if rend < 29:
             if rend not in out_renditions:
                 out_renditions.append(rend)

@@ -31,14 +31,14 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
 import os
-from utils import get_translation, json_encode
+from utils import get_translation
 
 _ = get_translation()
 
 # Globals
-plugin_path = os.path.split(__file__)[0]
+PLUGIN_PATH = os.path.split(__file__)[0]
 
-def save_recording(settings, tws):
+def save_recording(self, settings):
     """
     Handles uploads of session recordings and returns them to the client in a
     self-contained HTML file that will auto-start playback.
@@ -60,10 +60,7 @@ def save_recording(settings, tws):
     prefix = settings["prefix"]
     theme = settings["theme"]
     colors = settings["colors"]
-    gateone_dir = tws.settings['gateone_dir']
-    plugins_path = os.path.join(gateone_dir, 'plugins')
-    #playback_plugin_path = os.path.join(plugins_path, 'playback')
-    template_path = os.path.join(gateone_dir, 'templates')
+    template_path = os.path.join(PLUGIN_PATH, 'templates')
     colors_templates_path = os.path.join(template_path, 'term_colors')
     colors_css_path = os.path.join(colors_templates_path, '%s.css' % colors)
     with open(colors_css_path) as f:
@@ -88,7 +85,7 @@ def save_recording(settings, tws):
         container=container,
         prefix=prefix,
         colors_256=colors_256,
-        url_prefix=tws.settings['url_prefix']
+        url_prefix=self.ws.settings['url_prefix']
     )
     templates_path = os.path.join(plugin_path, "templates")
     recording_template_path = os.path.join(
@@ -105,7 +102,7 @@ def save_recording(settings, tws):
     )
     out_dict['data'] = rendered_recording
     message = {'save_file': out_dict}
-    tws.write_message(message)
+    self.write_message(message)
 
 hooks = {
     'WebSocket': {

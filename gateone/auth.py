@@ -75,7 +75,7 @@ Docstrings
 import os, logging, re
 
 # Import our own stuff
-from utils import mkdir_p, generate_session_id, noop, RUDict, json_decode
+from utils import mkdir_p, generate_session_id, noop, RUDict
 from utils import get_translation
 
 # 3rd party imports
@@ -87,72 +87,44 @@ import tornado.escape
 _ = get_translation()
 
 # Globals
-RE_COMMENT = re.compile( # This removes JavaScript-style comments
-    '(^)?[^\S\n]*/(?:\*(.*?)\*/[^\S\n]*|/[^\n]*)($)?',
-    re.DOTALL | re.MULTILINE
-)
-BLANKS = re.compile(r'^\s*$')
-# NOTE about the above:
-#   * I MAY CHANGE ALL OF IT!  Still a work in progress ;)
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 # The security stuff below is a work-in-progress.  Likely to change all around.
-SECURITY_DIR = os.path.join(GATEONE_DIR, 'security')
-# The default for security is 'allow everything'
-SECURITY = RUDict({
-    '*': {}
-}) # Using an RUDict so that subsequent .conf files can safely override settings
-   # way down the chain without clobbering parent keys/dicts.
-# Combine all .conf files in the 'security' dir into a single dict
-#_security_files = [a for a in os.listdir(SECURITY_DIR) if a.endswith('.conf')]
-#_security_files.sort()
-#for fname in _security_files:
-    ## Use this file to update SECURITY
-    #with open(os.path.join(SECURITY_DIR, fname)) as f:
-        #no_comments = RE_COMMENT.sub('', f.read())
-        ## Remove empty lines so the json parser doesn't complain
-        #proper_json = filter(lambda x: not re.match(BLANKS, x), no_comments)
-        #SECURITY.update(json_decode(proper_json))
-#del _security_files
 
 # Authorization stuff
-def applicable_policies(application, user):
+# TODO: Get this memoizing or caching or something like that
+def applicable_policies(application, user, policies):
     """
-    Given an *application* and a *user* object, returns the applicable policies
-    from the SECURITY dict.
+    Given an *application* and a *user* object, returns the merged/resolved
+    policies from the given *policies* :class:`RUDict`.
+
+    .. note:: Policy settings always start with '*', 'user', or 'group'.
     """
-    # Iterate over all the policies in the SECURITY dict and determine which
-    # would apply to this user (in order).
-    # Need to check for:
-    #   * Direct matches (key == user['upn'])
-    #   * Wildcard matches (re.)
-
-def terminal_policies(instance, function):
-    """
-    This function gets registered under the 'terminal' application and is called
-    by the :class:`policies` class as part of the :func:`require` decorator.
-    It returns True or False depending on what is defined in security.conf and
-    what function is being called.
-
-    This function will keep track of the following pieces of information:
-
-        * The number of open terminals.
-        * The number of shared terminals.
-        * How many users are connected to a shared terminal.
-        * How many locations a user is currently using.
-        * The number of terminals in each location.
-
-    If no 'terminal' policies are defined this function will always return True.
-    """
+    # Start with the default policy
     try:
-        security = SECURITY['terminal']
-    except:
-        return True
-    user = instance.current_user
-    #if user['upn'] in security:
-        #if 'login' in security[user['upn']]:
-
-    if function.__name__ == 'new_terminal':
-        max_terms = restrictions
+        policy = RUDict(policies['*'][application])
+    except KeyError:
+        # No default policy--not good but not mandatory
+        policy = RUDict()
+    for key, value in policies.items():
+        if key == '*':
+            continue # Default policy was already handled
+        if application not in value:
+            continue # No sense processing inapplicable stuff
+        # Handle users and their properties first
+        if key.startswith('user=') or key.startswith('user.upn='):
+            # UPNs are very straightforward
+            upn = key.split('=', 1)[1]
+            if re.match(upn, user['upn']):
+                policy.update(value[application])
+        elif key.startswith('user.'):
+            # An attribute check (e.g. 'user.ip_address=10.1.1.1')
+            attribute = key.split('.', 1)[1] # Get rid of the 'user.' part
+            attribute, must_match = attribute.split('=', 1)
+            if attribute in user:
+                if re.match(must_match, user[attribute]):
+                    policy.update(value[application])
+        # TODO: Group stuff here (need attribute repo stuff first)
+    return policy
 
 class require(object):
     """
@@ -184,7 +156,7 @@ class require(object):
                 # This lets the condition know what it is being applied to:
                 condition.function = f
                 if not condition.check():
-                    if hasattr(self, 'current_user'):
+                    if hasattr(self, 'current_user') and self.current_user:
                         if ['upn'] in self.current_user:
                             logging.error(_(
                                 "%s -> %s failed requirement: %s" % (
@@ -194,8 +166,11 @@ class require(object):
                         logging.error(_(
                             "unknown user -> %s failed requirement: %s" % (
                             f.__name__, str(condition))))
-                    self.send_message(_(
-                        "ERROR: %s (%s)" % (condition.error, f.__name__)))
+                    msg = _("ERROR: %s (%s)" % (condition.error, f.__name__))
+                    if hasattr(self, 'send_message'):
+                        self.send_message(msg)
+                    elif hasattr(self, 'ws'):
+                        self.ws.send_message(msg)
                     return noop
             return f(self, *args, **kwargs)
         return wrapped_f
@@ -271,6 +246,8 @@ class policies(object):
     def check(self):
         security = self.instance.security
         if self.app in security:
+            # Let the application's registered 'security' function make its own
+            # determination.
             return security[self.app](self.instance, self.function)
         return True # Nothing is registered for this application so it's OK
 

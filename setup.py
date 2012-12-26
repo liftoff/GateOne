@@ -35,6 +35,7 @@ if not os.path.exists(build_dir):
     os.mkdir(build_dir)
 static_dir = os.path.join(setup_dir, 'gateone', 'static')
 plugins_dir = os.path.join(setup_dir, 'gateone', 'plugins')
+applications_dir = os.path.join(setup_dir, 'gateone', 'applications')
 templates_dir = os.path.join(setup_dir, 'gateone', 'templates')
 docs_dir = os.path.join(setup_dir, 'gateone', 'docs')
 tests_dir = os.path.join(setup_dir, 'gateone', 'tests')
@@ -44,11 +45,11 @@ if POSIX:
     prefix = '/opt'
 else: # FUTURE
     prefix = os.environ['PROGRAMFILES']
-print("Gate One will be installed in %s" % prefix)
 
 for arg in sys.argv:
     if arg.startswith('--prefix') or arg.startswith('--home'):
         prefix = arg.split('=')[1]
+print("Gate One will be installed in %s" % prefix)
 
 def walk_data_files(path, install_path=prefix):
     """
@@ -97,6 +98,7 @@ static_files = walk_data_files(static_dir)
 template_files = walk_data_files(templates_dir)
 docs_files = walk_data_files(docs_dir)
 plugin_files = walk_data_files(plugins_dir)
+application_files = walk_data_files(applications_dir)
 test_files = walk_data_files(tests_dir)
 i18n_files = walk_data_files(i18n_dir)
 
@@ -130,11 +132,39 @@ data_files = (
     template_files +
     docs_files +
     plugin_files +
+    application_files +
     test_files +
     i18n_files +
     init_script +
     conf_file
 )
+
+# In the newer version of Gate One these plugins were moved under the terminal
+# application's own plugin directory...
+relocate_plugins = [
+    'bookmarks',
+    'convenience',
+    'example',
+    'help',
+    'logging',
+    'mobile',
+    'notice',
+    'playback',
+    'ssh'
+]
+# NOTE:  Eventually this logic will go away.
+for plugin in relocate_plugins:
+    old_plugin_loc = os.path.join(prefix, 'gateone', 'plugins', plugin)
+    new_plugin_loc = os.path.join(prefix,
+                        'gateone', 'applications', 'terminal', 'plugins')
+    if os.path.exists(old_plugin_loc):
+        try:
+            print("Relocating Terminal-specific plugin %s to %s" % (
+                plugin, new_plugin_loc))
+            shutil.move(old_plugin_loc, new_plugin_loc)
+        except:
+            print("Error moving %s to %s.  You'll have to DIY." % (
+                old_plugin_loc, new_plugin_loc))
 
 setup(
     name = 'gateone',

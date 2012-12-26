@@ -31,7 +31,7 @@
     position: absolute;
     outline: none;
     overflow: hidden;
-    background-color: transparent;
+    background-color: #000;
     top: 0;
     bottom: 0;
     left: 0;
@@ -969,17 +969,17 @@
     width: 50%; /* Ensures things are centered */
 }
 /* SVG Styling */
-.svgtext { letter-spacing:0px; text-anchor:middle; word-spacing:0px; text-align:center; color: #FFF; fill: #fff; }
-.svgplugin { fill: #FFF; }
-.svgplain { fill: #2A5BA6; }
-.stop1 { stop-color: #FFF; }
-.stop2 { stop-color: #E1E2E3; }
-.stop3 { stop-color: #D3D4D6; }
-.stop4 { stop-color: #CACBCD; }
-.panelstop1 { stop-color: #2A5BA6; } /* Note: Same by default in both black and white */
-.panelstop2 { stop-color: #2D61B4; }
-.panelstop3 { stop-color: #2E63B9; }
-.panelstop4 { stop-color: #1F5470; }
+#{{container}} .svgtext { letter-spacing:0px; text-anchor:middle; word-spacing:0px; text-align:center; color: #FFF; fill: #fff; }
+#{{container}} .svgplugin { fill: #FFF; }
+#{{container}} .svgplain { fill: #2A5BA6; }
+#{{container}} .stop1 { stop-color: #FFF; }
+#{{container}} .stop2 { stop-color: #E1E2E3; }
+#{{container}} .stop3 { stop-color: #D3D4D6; }
+#{{container}} .stop4 { stop-color: #CACBCD; }
+#{{container}} .panelstop1 { stop-color: #2A5BA6; } /* Note: Same by default in both black and white */
+#{{container}} .panelstop2 { stop-color: #2D61B4; }
+#{{container}} .panelstop3 { stop-color: #2E63B9; }
+#{{container}} .panelstop4 { stop-color: #1F5470; }
 /* Change the styling of the SVG close icon so it is white when inside dialogs */
 #{{prefix}}dialogtitle .svgplain { fill: #FFFFFF; }
 /* Ditto for widgets */

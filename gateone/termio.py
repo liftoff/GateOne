@@ -97,7 +97,6 @@ Module Functions and Classes
 
 # Stdlib imports
 import os, sys, time, struct, io, gzip, re, logging, signal
-from copy import copy
 from datetime import timedelta, datetime
 from functools import partial
 from itertools import izip
@@ -427,6 +426,7 @@ class BaseMultiplex(object):
         # Configure syslog logging
         self.user = user
         self.term_id = term_id
+        self.syslog_host = syslog_host
         self.syslog_buffer = ''
         if self.syslog and not self.syslog_host:
             try:

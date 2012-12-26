@@ -24,18 +24,13 @@ import errno
 import uuid
 import logging
 import mimetypes
-import gzip
 import fcntl
 from datetime import timedelta
 
 # Import 3rd party stuff
 from tornado import locale
-try:
-    from tornado.escape import json_encode as _json_encode
-    from tornado.escape import json_decode
-except ImportError: # Tornado isn't available
-    from json import dumps as _json_encode
-    from json import loads as json_encode
+from tornado.escape import json_encode as _json_encode
+from tornado.escape import json_decode
 from tornado.escape import to_unicode, utf8
 
 # Globals
@@ -140,7 +135,7 @@ class RUDict(dict):
     A dict that will recursively update keys and values in a safe manner so that
     sub-dicts will be merged without one clobbering the other.
 
-    .. note:: This class taken from `here <http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python>`_
+    .. note:: This class (mostly) taken from `here <http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python>`_
     """
     def __init__(self, *args, **kw):
         super(RUDict,self).__init__(*args, **kw)
@@ -149,9 +144,9 @@ class RUDict(dict):
         if E is not None:
             if 'keys' in dir(E) and callable(getattr(E, 'keys')):
                 for k in E:
-                    if k in self:  # existing ...must recurse into both sides
+                    if k in self:  # Existing ...must recurse into both sides
                         self.r_update(k, E)
-                    else: # doesn't currently exist, just update
+                    else: # Doesn't currently exist, just update
                         self[k] = E[k]
             else:
                 for (k, v) in E:
@@ -169,10 +164,85 @@ class RUDict(dict):
         else:
             self[key] = other_dict[key]
 
+    def __repr__(self):
+        """
+        Returns the `RUDict` as indented json to better resemble how it looks in
+        a .conf file.
+        """
+        import json # Tornado's json_encode doesn't do indentation
+        return json.dumps(self, indent=4)
+
+    def __str__(self):
+        """
+        Just returns `self.__repr__()` with an extra newline at the end.
+        """
+        return self.__repr__() + "\n"
+
 # Functions
 def noop(*args, **kwargs):
     """Do nothing (i.e. "No Operation")"""
     pass
+
+def get_settings(path):
+    """
+    Reads any and all *.conf files containing JSON (JS-style comments are OK)
+    inside *path* and returns them as an :class:`RUDict`.  Optionally, *path*
+    may be a specific file (as opposed to just a directory).
+    """
+    re_comment = re.compile( # This removes JavaScript-style comments
+        r'(^)?[^\S\n]*/(?:\*(.*?)\*/[^\S\n]*|/[^\n]*)($)?',
+        re.DOTALL | re.MULTILINE
+    )
+    settings = RUDict({
+        '*': {}
+    })
+    # Using an RUDict so that subsequent .conf files can safely override
+    # settings way down the chain without clobbering parent keys/dicts.
+    if os.path.isdir(path):
+        settings_files = [a for a in os.listdir(path) if a.endswith('.conf')]
+        settings_files.sort()
+    else:
+        if not os.path.exists(path):
+            raise IOError(_("%s does not exist" % path))
+        settings_files = [path]
+    for fname in settings_files:
+        # Use this file to update settings
+        if os.path.isdir(path):
+            filepath = os.path.join(path, fname)
+        else:
+            filepath = path
+        with open(filepath) as f:
+            # Remove comments
+            proper_json = re_comment.sub('', f.read())
+            # Remove blank/empty lines
+            proper_json = os.linesep.join([
+                s for s in proper_json.splitlines() if s.strip()])
+            try:
+                settings.update(json_decode(proper_json))
+            except ValueError as e:
+                # Something was wrong with the JSON (syntax error, usually)
+                logging.error(_(
+                    "Error decoding JSON in %s" % os.path.join(path, fname)))
+                logging.error(e)
+                # Let's try to be as user-friendly as possible by pointing out
+                # *precisely* where the error occurred (if possible)...
+                try:
+                    line_no = int(e.message.split(': line ', 1)[1].split()[0])
+                    column = int(e.message.split(': line ', 1)[1].split()[2])
+                    for i, line in enumerate(proper_json.splitlines()):
+                        if i == line_no-1:
+                            print(
+                                line[:column] +
+                                _(" <-- Something went wrong right here (or "
+                                  "right above it)")
+                            )
+                            break
+                        else:
+                            print(line)
+                except ValueError:
+                    # Couldn't parse the exception message for line/column info
+                    pass # No big deal; the user will figure it out eventually
+    return settings
 
 def write_pid(path):
     """Writes our PID to *path*."""
@@ -202,7 +272,6 @@ def remove_pid(path):
         os.remove(path)
     except:
         pass
-
 
 def shell_command(cmd, timeout_duration=5):
     """
@@ -673,6 +742,44 @@ def killall_macos(session_dir):
         )
         exitstatus, output = shell_command(cmd)
 
+def get_applications(application_dir):
+    """
+    Adds applications' Python files to `sys.path` and returns a list containing
+    the name of each application.
+    """
+    out_list = []
+    applications_conf_path = application_dir + '.conf'
+    try:
+        enabled_applications = open(applications_conf_path).read().split()
+        if not enabled_applications or "*" in enabled_applications:
+            logging.debug(_('Loading all applications'))
+            enabled_applications = None
+    except IOError:
+        logging.debug(_(
+            'applications.conf file not found, loading all applications.'))
+        enabled_applications = None
+    for directory in os.listdir(application_dir):
+        if enabled_applications and directory not in enabled_applications:
+            continue
+        application = directory
+        directory = os.path.join(application_dir, directory) # Make absolute
+        application_files = os.listdir(directory)
+        if "__init__.py" in application_files:
+            out_list.append(application) # Just need the base
+            sys.path.insert(0, directory)
+        else: # Look for .py files
+            for app_file in application_files:
+                if app_file.endswith('.py'):
+                    app_path = os.path.join(directory, app_file)
+                    sys.path.insert(0, directory)
+                    (basename, ext) = os.path.splitext(app_path)
+                    basename = basename.split('/')[-1]
+                    out_list.append(basename)
+    # Sort alphabetically so the order in which they're applied can
+    # be controlled somewhat predictably
+    out_list.sort()
+    return out_list
+
 def get_plugins(plugin_dir):
     """
     Adds plugins' Python files to `sys.path` and returns a dictionary of
@@ -756,15 +863,15 @@ def get_plugins(plugin_dir):
     out_dict['css'].sort()
     return out_dict
 
-def load_plugins(plugins):
+def load_modules(modules):
     """
-    Given a list of *plugins*, imports them.
+    Given a list of Python *modules*, imports them.
 
     .. note::  Assumes they're all in `sys.path`.
     """
     out_list = []
-    for plugin in plugins:
-        imported = __import__(plugin, None, None, [''])
+    for module in modules:
+        imported = __import__(module, None, None, [''])
         out_list.append(imported)
     return out_list
 
@@ -1134,6 +1241,65 @@ def check_write_permissions(user, path):
         return True # User belongs to a group that can write to the file
     return False
 
+def bind(function, self):
+    """
+    Will return *function* with *self* bound as the first argument.  Allows one
+    to write functions like this::
+
+        def foo(self, whatever):
+            return whatever
+
+    ...outside of the construct of a class.
+    """
+    from functools import partial
+    return partial(function, self)
+
+def minify(path_or_fileobj, kind):
+    """
+    Returns *path_or_fileobj* as a minified string.  *kind* should be one of
+    'js' or 'css'.  Works with JavaScript and CSS files using `slimit` and
+    `cssmin`, respectively.
+    """
+    out = None
+    # Optional:  If slimit is installed Gate One will use it to minify JS and CSS
+    try:
+        import slimit
+    except ImportError:
+        slimit = None
+        logging.warning(_(
+            "slimit module not found.  JavaScript will not be minified."))
+        logging.info(_("To install slimit:  sudo pip install slimit"))
+    try:
+        import cssmin
+    except ImportError:
+        cssmin = None
+        logging.warning(_(
+            "cssmin module not found.  CSS will not be minified."))
+        logging.info(_("To install slimit:  sudo pip install cssmin"))
+    if isinstance(path_or_fileobj, basestring):
+        filename = os.path.split(path_or_fileobj)[1]
+        with open(path_or_fileobj) as f:
+            data = f.read()
+    else:
+        filename = os.path.split(path_or_fileobj.name)[1]
+        data = path_or_fileobj.read()
+    out = data
+    if slimit and kind == 'js':
+        out = slimit.minify(data)
+        logging.debug(_(
+            "(saved ~%s bytes minifying %s)" % (
+                (len(data) - len(out), filename)
+            )
+        ))
+    elif cssmin and kind == 'css':
+        out = cssmin.cssmin(data)
+        logging.debug(_(
+            "(saved ~%s bytes minifying %s)" % (
+                (len(data) - len(out), filename)
+            )
+        ))
+    return out
+
 def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
     """
     Drop privileges by changing the current process owner/group to
@@ -1193,6 +1359,19 @@ def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
         ' %s' % (pwd.getpwuid(final_uid)[0], grp.getgrgid(final_gid)[0],
                  ",".join(human_supl_groups))
     ))
+
+def settings_template(path, **kwargs):
+    """
+    Renders and returns the Tornado template at *path* using the given *kwargs*.
+
+    .. note:: Any blank lines in the rendered template will be removed.
+    """
+    from tornado.template import Template
+    with open(path) as f:
+        template_data = f.read()
+    t = Template(template_data)
+    rendered = t.generate(**kwargs)
+    return "\n".join([a for a in rendered.splitlines() if a.strip()])
 
 # Misc
 _ = get_translation()

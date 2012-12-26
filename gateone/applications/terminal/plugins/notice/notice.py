@@ -35,7 +35,7 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Special optional escape sequence handler (see docs on how it works)
-def notice_esc_seq_handler(message, tws):
+def notice_esc_seq_handler(self, message):
     """
     Handles text passed from the special optional escape sequance handler to
     display a *message* to the connected client (browser).
@@ -43,7 +43,7 @@ def notice_esc_seq_handler(message, tws):
     .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`
     """
     message = {'notice': message}
-    tws.write_message(message)
+    self.write_message(message)
 
 hooks = {
     'Escape': notice_esc_seq_handler,
