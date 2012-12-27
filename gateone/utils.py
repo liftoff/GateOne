@@ -813,6 +813,8 @@ def get_plugins(plugin_dir):
     \*.css files will get imported automatically by GateOne.init()
     """
     out_dict = {'js': [], 'css': [], 'py': []}
+    if not os.path.exists(plugin_dir):
+        return out_dict
     plugins_conf_path = plugin_dir + '.conf'
     try:
         enabled_plugins = open(plugins_conf_path).read().split()
