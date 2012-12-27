@@ -40,6 +40,7 @@ templates_dir = os.path.join(setup_dir, 'gateone', 'templates')
 docs_dir = os.path.join(setup_dir, 'gateone', 'docs')
 tests_dir = os.path.join(setup_dir, 'gateone', 'tests')
 i18n_dir = os.path.join(setup_dir, 'gateone', 'i18n')
+settings_dir = os.path.join(setup_dir, 'gateone', 'settings')
 
 if POSIX:
     prefix = '/opt'
@@ -101,6 +102,7 @@ plugin_files = walk_data_files(plugins_dir)
 application_files = walk_data_files(applications_dir)
 test_files = walk_data_files(tests_dir)
 i18n_files = walk_data_files(i18n_dir)
+settings_files = walk_data_files(settings_dir)
 
 # Detect appropriate init script and make sure it is put in the right place
 init_script = []
@@ -135,6 +137,7 @@ data_files = (
     application_files +
     test_files +
     i18n_files +
+    settings_files +
     init_script +
     conf_file
 )
