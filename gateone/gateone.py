@@ -6,10 +6,6 @@
 # For license information see LICENSE.txt
 
 # TODO:
-# * Write init scripts to stop/start/restart Gate One safely.  Also make sure that .deb and .rpm packages safely restart Gate One without impacting running sessions.  The setup.py should also attempt to minify the .css and .js files.
-# * Write a permissions check function so we don't have to repeat ourselves all over the place inside of main()
-# * Make it so that the session_dir gets cleaned up.  Will require some logic in regards dtach detection.
-# * Add some logic to remove bad symbolic links in /opt/gateone/static
 
 # Meta
 __version__ = '1.1.0'
@@ -1223,9 +1219,6 @@ class ApplicationWebSocket(WebSocketHandler):
         for app in self.apps:
             if hasattr(app, 'open'):
                 app.open()
-        # TODO: Remove this once terminal is its own app
-        #self.callback_id = "%s;%s;%s" % (
-            #self.client_id, self.request.host, self.request.remote_ip)
 
     def on_message(self, message):
         """Called when we receive a message from the client."""
@@ -1332,7 +1325,6 @@ class ApplicationWebSocket(WebSocketHandler):
         terminals will be treated separately from the usual terminals so they
         can exist in a different browser tab/window.
         """
-        # TODO: Add a mechanism to move terminals between locations.
         logging.debug("authenticate(): %s" % settings)
         if 'Origin' in self.request.headers:
             origin_header = self.request.headers['Origin']
