@@ -1,0 +1,58 @@
+// This is an example access.conf file.  You'll need to create your own.
+// The access.conf file controls who can use what application or feature.
+{
+    // "*" for default (all users)
+    "*": {
+        "terminal": { // This is the "application" i.e. whatever is passed to @require(security("<application>"))
+            "allow": false // Default deny for all users
+            // NOTE: You could make it "default allow" and deny certain users (aka the opposite)
+            //       Later rules take precedence.
+        }
+    },
+    // This is how you define user-based controls (note the regular expression, '.*')
+    "user=bob.*": { // NOTE: "user=" really means "user.upn="
+    // NOTE: You don't *need* a regex.  "user=bob" or "user=bob@company.com" would work too
+        "terminal": {
+            "allow": true // All Bobs can use the 'terminal' application
+        }
+    },
+    // Because the value after the '=' is a regular expression you can define multiple users like this:
+    "user=(?i)(bob.*|robert.*)": { // NOTE: The (?i) here means the regex is case insensitive
+        "terminal": {
+            "allow": true // Let Roberts in as well as Bobs
+        }
+    },
+    // This is how you define group-based controls:
+    "group=gateone_users": {
+        "terminal": {
+            "allow": true // Everyone in the 'gateone_users' group
+        }
+    },
+    // NOTE: Groups only work if you have configured an attribute repository (and said repository supports groups)
+    // You can also use group attributes:
+    "group.whatever=.*": { // Match all groups with the 'whatever' attribute
+        "terminal": {
+            "allow": true
+        }
+    },
+    // You can also use user attributes if the user or group has them...
+    "user.email=.*liftoffsoftware.com": {
+        "terminal": {
+            "allow": true // Allow everyone from liftoffsoftware.com
+        }
+    },
+    // Here's an example IP-based restrictions...
+    "user.ip_address=10\\.1\\.1\\..*": { // Users connecting from 10.1.1.X
+        "terminal": {
+            "allow": true // 10.1.1.X folks will be allowed to use "terminal"
+        }
+    },
+    // ...and this is me (the Gate One developer) using my imagination:
+    "user.coordinates=30°20′13\\″N 81°39′41\\″W": { // Users in Jacksonville, FL
+        "terminal": {
+            "allow": true // How cool would this be? (⌐■_■)
+        }
+    /* Someone needs to write an app that updates a server somewhere with
+       authenticated GPS coordinates */
+    }
+}

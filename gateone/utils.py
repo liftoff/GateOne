@@ -742,25 +742,28 @@ def killall_macos(session_dir):
         )
         exitstatus, output = shell_command(cmd)
 
-def get_applications(application_dir):
+def get_applications(application_dir, settings_dir):
     """
     Adds applications' Python files to `sys.path` and returns a list containing
-    the name of each application.
+    the name of each application.  In order to ensure that only enabled apps
+    are listed the *settings_dir* argument must be given so only enabled
+    apps are returned.
     """
     out_list = []
-    applications_conf_path = application_dir + '.conf'
-    try:
-        enabled_applications = open(applications_conf_path).read().split()
-        if not enabled_applications or "*" in enabled_applications:
-            logging.debug(_('Loading all applications'))
-            enabled_applications = None
-    except IOError:
-        logging.debug(_(
-            'applications.conf file not found, loading all applications.'))
-        enabled_applications = None
+    settings_dir = os.path.abspath(settings_dir)
+    settings = get_settings(settings_dir)
+    enabled_applications = []
+    if 'applications' in settings['*']:
+        for app_name, enabled in settings['*']['applications']:
+            app_name = app_name.lower() # Just in case
+            if enabled:
+                enabled_applications.append(app_name)
+    else:
+        logging.debug(_('Loading all applications'))
     for directory in os.listdir(application_dir):
-        if enabled_applications and directory not in enabled_applications:
-            continue
+        if enabled_applications:
+            if directory.lower() not in enabled_applications:
+                continue
         application = directory
         directory = os.path.join(application_dir, directory) # Make absolute
         application_files = os.listdir(directory)

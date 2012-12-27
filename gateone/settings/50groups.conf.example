@@ -1,0 +1,14 @@
+// This is an example of a groups.conf file.  It can be used to create arbitrary
+// groups of users.  If you have an attribute repository configured you
+// probably don't need to use this file (they usually contain groups).
+{
+    "group=gateone_users": {
+        "members": [ // These will match a user's UPN (i.e. user.upn=<name>)
+            "bobsmith",
+            "johndoe",
+            "jjones@company.com" // NOTE: Not an email address; this is a UPN
+        ],
+        // If you want to attach attributes to a group you can do so:
+        "someattribute": "whatever you want"
+    }
+}

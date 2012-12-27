@@ -320,7 +320,7 @@ FILE_CACHE = {}
 # PERSIST is a generic place for applications and plugins to store stuff in a
 # way that lasts between page loads.  USE RESPONSIBLY.
 PERSIST = {}
-APPLICATIONS = get_applications(os.path.join(GATEONE_DIR, 'applications'))
+APPLICATIONS = {}
 PLUGINS = get_plugins(os.path.join(GATEONE_DIR, 'plugins'))
 PLUGIN_WS_CMDS = {} # Gives plugins the ability to extend/enhance ApplicationWebSocket
 PLUGIN_HOOKS = {} # Gives plugins the ability to hook into various things.
@@ -2399,7 +2399,16 @@ def main():
         except AttributeError:
             pass # No hooks--probably just a supporting .py file.
     # Do the same for Gate One Applications
+    # Before we do anything else we need the get the settings_dir argument (if
+    # given) so we can make sure we're handling things accordingly.
+    settings_dir = os.path.join(GATEONE_DIR, 'settings')
+    for arg in sys.argv:
+        if arg.startswith('--settings_dir'):
+            settings_dir = arg.split('=', 1)[1]
     global APPLICATIONS
+    APPLICATIONS = get_applications(
+        os.path.join(GATEONE_DIR, 'applications'), settings_dir)
+    del settings_dir # This is replaced with options.settings_dir below
     app_modules = load_modules(APPLICATIONS)
     APPLICATIONS = [] # Replace it with a list of actual class instances
     for module in app_modules:

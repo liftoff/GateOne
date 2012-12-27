@@ -1,0 +1,13 @@
+// This file defines what applications will be available to users.  It is just
+// an example; you'll need to make your own.
+// If no 'applications' setting is defined all applications will be available.
+// NOTE:  Each application may still define its own access controls so even if
+//        all applications are available to all users doesn't mean that all
+//        users will actually be able to use them.
+{
+    "*": { // This applies to all users
+        "applications": {
+            "terminal": true
+        }
+    }
+}
