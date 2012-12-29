@@ -48,6 +48,9 @@ SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
 # This is in case we have relative imports, templates, or whatever:
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 REGISTERED_HANDLERS = [] # So we don't accidentally re-add handlers
+# This will be replaced with a tornado.ioloop.PeriodicCallback that watches for
+# sessions that have timed out and takes care of cleaning them up.
+WATCHER = None
 # A HUGE thank you to Micah Elliott (http://MicahElliott.com) for posting these
 # values here: https://gist.github.com/719710
 # This gets used by StyleHandler to generate the CSS that supports 256-colors:
@@ -501,8 +504,10 @@ class TerminalApplication(GOApplication):
         for term in list(SESSIONS[self.ws.session][self.ws.location].keys()):
             if isinstance(term, int): # Only terminals are integers in the dict
                 terminals.append(term)
+        policies = applicable_policies(
+            'terminal', self.current_user, self.ws.policies)
         # Check for any dtach'd terminals we might have missed
-        if self.ws.settings['dtach']:
+        if policies['dtach']:
             session_dir = self.ws.settings['session_dir']
             session_dir = os.path.join(session_dir, self.ws.session)
             if not os.path.exists(session_dir):
@@ -516,12 +521,22 @@ class TerminalApplication(GOApplication):
         terminals.sort() # Put them in order so folks don't get confused
         message = {'terminals': terminals}
         self.write_message(json_encode(message))
+        # TODO: Add some better logic for killing sessions to replace this...
+        # Startup the watcher if it isn't already running
+        #global WATCHER
+        #if not WATCHER:
+            #interval = 30*1000 # Check every 30 seconds
+            #watcher = partial(timeout_sessions, self.settings['dtach'])
+            #WATCHER = tornado.ioloop.PeriodicCallback(watcher, interval)
+            #WATCHER.start()
         self.trigger("terminal:authenticate")
 
     def on_close(self):
         # Remove all attached callbacks so we're not wasting memory/CPU on
         # disconnected clients
         user = self.current_user
+        if not hasattr(self.ws, 'location'):
+            return # Connection closed before authentication completed
         if self.ws.location in SESSIONS[user['session']]:
             for term in SESSIONS[user['session']][self.ws.location]:
                 if isinstance(term, int):
@@ -615,6 +630,8 @@ class TerminalApplication(GOApplication):
             * *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).
             * *logging* - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).
         """
+        policies = applicable_policies(
+            'terminal', self.current_user, self.ws.policies)
         user_dir = self.settings['user_dir']
         try:
             user = self.current_user['upn']
@@ -626,8 +643,8 @@ class TerminalApplication(GOApplication):
         log_path = None
         syslog_logging = False
         if logging:
-            syslog_logging = self.settings['syslog_session_logging']
-            if self.settings['session_logging']:
+            syslog_logging = policies['syslog_session_logging']
+            if policies['session_logging']:
                 log_dir = os.path.join(user_dir, user)
                 log_dir = os.path.join(log_dir, 'logs')
                 # Create the log dir if not already present
@@ -688,7 +705,9 @@ class TerminalApplication(GOApplication):
                 command = policies['default_command']
             except KeyError:
                 logging.error(_(
-                   "You are missing a 'default_command' in your commands.conf"))
+                   "You are missing a 'default_command' in your terminal "
+                   "settings (usually 50terminal.conf in %s)"
+                   % self.ws.settings['settings_dir']))
                 return
         # Get the full command
         try:
@@ -744,7 +763,7 @@ class TerminalApplication(GOApplication):
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
                 os.chmod(session_dir, 0o770)
-            if self.settings['dtach']: # Wrap in dtach (love this tool!)
+            if policies['dtach']: # Wrap in dtach (love this tool!)
                 dtach_path = "%s/dtach_%s" % (session_dir, term)
                 if os.path.exists(dtach_path):
                     # Using 'none' for the refresh because the EVIL termio
@@ -893,8 +912,11 @@ class TerminalApplication(GOApplication):
         multiplex = SESSIONS[self.ws.session][self.ws.location][term]['multiplex']
         # Remove the EXIT callback so the terminal doesn't restart itself
         multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
+        policies = applicable_policies(
+            'terminal', self.current_user, self.ws.policies)
         try:
-            if self.settings['dtach']: # dtach needs special love
+            if policies['dtach']: # dtach needs special love
+                from utils import kill_dtached_proc
                 kill_dtached_proc(self.ws.session, term)
             if multiplex.isalive():
                 multiplex.terminate()
@@ -1336,6 +1358,79 @@ class TerminalApplication(GOApplication):
             print("Total term object size: %s" % asizeof.asizeof(term_obj))
         except ImportError:
             pass # No biggie
+
+def init(settings):
+    """
+    Checks to make sure 50terminal.conf is created if terminal-specific settings
+    are not found in the settings directory.
+    """
+    from tornado.options import options, define
+    if os.path.exists(options.config):
+        # Get the old settings from the old config file and use them to generate
+        # a new 50terminal.conf
+        terminal_options = [ # These are now terminal-app-specific setttings
+            'command', 'dtach', 'session_logging', 'session_logs_max_age',
+            'syslog_session_logging'
+        ]
+        with open(options.config) as f:
+            for line in f:
+                if line.startswith('#'):
+                    continue
+                if key not in terminal_options:
+                    continue
+                key = line.split('=', 1)[0].strip()
+                value = eval(line.split('=', 1)[1].strip())
+                if key == 'command':
+                    # Fix the path to ssh_connect.py if present
+                    if 'ssh_connect.py' in value:
+                        value = value.replace(
+                            '/plugins/', '/applications/terminal/plugins/')
+                    key = 'commands' # Convert to new name
+                    value = {'SSH': value}
+                settings['*']['terminal'].update({key: value})
+    if 'terminal' not in settings['*']:
+        # Create some defaults and save the config as 50terminal.conf
+        from utils import settings_template
+        settings_path = os.path.join(GATEONE_DIR, 'settings')
+        terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
+        # TODO: Think about moving the 50terminal.conf template into the terminal
+        # application's directory.
+        template_path = os.path.join(
+            GATEONE_DIR, 'templates', 'settings', '50terminal.conf')
+        settings['*']['terminal'] = {}
+        # Update the settings with defaults
+        default_command = (
+            GATEONE_DIR +
+            "/applications/terminal/plugins/ssh/scripts/ssh_connect.py -S "
+            r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp "
+            r"-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/.ssh/known_hosts\"'")
+        settings['*']['terminal'].update({
+            'dtach': True,
+            'session_logging': True,
+            'session_logs_max_age': "30d",
+            'syslog_session_logging': False,
+            'commands': {
+                'SSH': default_command
+            },
+            'default_command': 'SSH'
+        })
+        new_term_settings = settings_template(
+            template_path, settings=settings['*']['terminal'])
+        with open(terminal_conf_path, 'w') as s:
+            s.write(_(
+                "// This is Gate One's Terminal application settings "
+                "file.\n"))
+            s.write(new_term_settings)
+    # Fix the path to known_hosts if using the default command
+    for name, command in settings['*']['terminal']['commands'].items():
+        if '\"%USERDIR%/%USER%/ssh/known_hosts\"' in command:
+            logging.warning(_(
+                "The default path to known_hosts has been changed.  Please update"
+                " your settings to use '/.ssh/known_hosts' instead of "
+                "'/ssh/known_hosts'.  Applying a termporary fix..."))
+            settings['*']['terminal']['commands'][name] = command.replace(
+                                                            '/ssh/', '/.ssh/')
+
 
 # Tell Gate One which classes are applications
 apps = [TerminalApplication]

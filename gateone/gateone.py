@@ -313,7 +313,6 @@ def _(string):
 SESSIONS = {} # We store the crux of most session info here
 CMD = None # Will be overwritten by options.command
 TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
-WATCHER = None # Holds the reference to our timeout_sessions periodic callback
 CLEANER = None # The reference to our session logs cleanup periodic callback
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_CACHE = {}
@@ -1061,7 +1060,7 @@ class ApplicationWebSocket(WebSocketHandler):
         for app in apps:
             instance = app(self)
             self.apps.append(instance)
-            logging.debug("Initializing app: %s" % instance)
+            logging.debug("Initializing %s" % instance)
             if hasattr(instance, 'initialize'):
                 instance.initialize()
 
@@ -1171,6 +1170,7 @@ class ApplicationWebSocket(WebSocketHandler):
         elif 'Sec-Websocket-Origin' in self.request.headers: # Old version
             origin_header = self.request.headers['Sec-Websocket-Origin']
         origin_header = origin_header.lower() # hostnames are case-insensitive
+        origin_header = origin_header.split('://', 1)[1]
         if '*' not in valid_origins:
             if origin_header not in valid_origins:
                 self.origin_denied = True
@@ -1603,13 +1603,6 @@ class ApplicationWebSocket(WebSocketHandler):
         # This is just so the client has a human-readable point of reference:
         message = {'set_username': self.current_user['upn']}
         self.write_message(json_encode(message))
-        # Startup the watcher if it isn't already running
-        global WATCHER
-        if not WATCHER:
-            interval = 30*1000 # Check every 30 seconds
-            watcher = partial(timeout_sessions, options.dtach)
-            WATCHER = tornado.ioloop.PeriodicCallback(watcher, interval)
-            WATCHER.start()
 
     def get_style(self, settings):
         """
@@ -2059,8 +2052,13 @@ class Application(tornado.web.Application):
         logging.info(_("Loaded plugins: %s" % ", ".join(plugin_list)))
         tornado.web.Application.__init__(self, handlers, **tornado_settings)
 
-def main():
-    global _
+def define_options():
+    """
+    Calls `tornado.options.define` for all of Gate One's command-line options.
+    """
+    # NOTE: To test this function interactively you must import tornado.options
+    # and call tornado.options.parse_config_file(*some_config_path*).  After you
+    # do that the options will wind up in tornado.options.options
     global user_locale
     # Default to using the shell's LANG variable as the locale
     try:
@@ -2080,10 +2078,8 @@ def main():
     facilities.sort()
     # Figure out the default origins
     default_origins = [
-        'http://localhost',
-        'https://localhost',
-        'http://127.0.0.1',
-        'https://127.0.0.1'
+        'localhost',
+        '127.0.0.1',
     ]
     # Used both http and https above to demonstrate that both are acceptable
     try:
@@ -2093,10 +2089,10 @@ def main():
         additional_origins = []
     for host in additional_origins:
         if isinstance(host, str):
-            default_origins.append('https://%s' % host)
+            default_origins.append('%s' % host)
         else: # It's a list
             for _host in host:
-                default_origins.append('https://%s' % _host)
+                default_origins.append('%s' % _host)
     default_origins = ";".join(default_origins)
     config_default = os.path.join(GATEONE_DIR, "server.conf")
     # NOTE: --settings_dir deprecates --config
@@ -2347,10 +2343,10 @@ def main():
         default=default_origins,
         help=_("A semicolon-separated list of origins you wish to allow access "
                "to your Gate One server over the WebSocket.  This value must "
-               "contain the hostnames and FQDNs (e.g. https://foo;"
-               "https://foo.bar;) users will use to connect to your Gate One "
-               "server as well as the hostnames/FQDNs of any sites that will be"
-               " embedding Gate One. Here's the default on your system: '%s'. "
+               "contain the hostnames and FQDNs (e.g. foo;foo.bar;) users will"
+               " use to connect to your Gate One server as well as the "
+               "hostnames/FQDNs of any sites that will be embedding Gate One. "
+               "Here's the default on your system: '%s'. "
                "Alternatively, '*' may be  specified to allow access from "
                "anywhere." % default_origins),
         type=basestring
@@ -2390,6 +2386,11 @@ def main():
                "applies if using API authentication)"),
         type=basestring
     )
+
+def main():
+    global _
+    global APPLICATIONS
+    define_options()
     # Before we do anythong else, load plugins and assign their hooks.  This
     # allows plugins to add their own define() statements/options.
     imported = load_modules(PLUGINS['py'])
@@ -2398,51 +2399,66 @@ def main():
             PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
         except AttributeError:
             pass # No hooks--probably just a supporting .py file.
-    # Do the same for Gate One Applications
     # Before we do anything else we need the get the settings_dir argument (if
     # given) so we can make sure we're handling things accordingly.
     settings_dir = os.path.join(GATEONE_DIR, 'settings')
     for arg in sys.argv:
         if arg.startswith('--settings_dir'):
             settings_dir = arg.split('=', 1)[1]
-    global APPLICATIONS
+    if not os.path.exists(settings_dir):
+        # Try to create it
+        try:
+            mkdir_p(settings_dir)
+        except:
+            logging.error(_(
+               "Could not find/create settings directory at %s" % settings_dir))
+            sys.exit(1)
+    all_settings = get_settings(settings_dir)
     APPLICATIONS = get_applications(
         os.path.join(GATEONE_DIR, 'applications'), settings_dir)
-    del settings_dir # This is replaced with options.settings_dir below
     app_modules = load_modules(APPLICATIONS)
+    # Having parse_command_line() after loading applications in case an
+    # application has additional calls to define().
+    tornado.options.parse_command_line()
     APPLICATIONS = [] # Replace it with a list of actual class instances
     for module in app_modules:
         module.SESSIONS = SESSIONS
         try:
             APPLICATIONS.extend(module.apps)
             if hasattr(module, 'init'):
-                module.init()
+                module.init(all_settings)
         except AttributeError:
             pass # No apps--probably just a supporting .py file.
-    logging.debug("Imported applications: %s" % APPLICATIONS)
-    # We have to parse the command line options so we can check for a config to
-    # load.  The config will then be loaded--overriding command line options but
-    # this won't be a problem since we'll re-parse the command line options
-    # further down which will subsequently override the config.
-    tornado.options.parse_command_line()
-    if not os.path.exists(options.settings_dir):
-        # Try to create it
-        try:
-            mkdir_p(options.settings_dir)
-        except:
-            logging.error(_(
-                "Could not find/create settings directory at %s" %
-                options.settings_dir))
-            sys.exit(1)
+    logging.debug(_("Imported applications: %s" % APPLICATIONS))
+    # Figure out which options are being overridden on the command line
+    arguments = []
+    for arg in list(sys.argv):
+        if not arg.startswith('-'):
+            break
+        else:
+            arguments.append(arg.lstrip('-').split('=', 1)[0])
+    authentication_options = [
+        # These are here only for logical separation in the .conf files
+        'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
+        'sso_realm', 'sso_service'
+    ]
+    terminal_options = [ # These are now terminal-app-specific setttings
+        'command', 'dtach', 'session_logging', 'session_logs_max_age',
+        'syslog_session_logging'
+    ]
+    non_options = [
+        # These are things that don't really belong in settings
+        'new_api_key', 'help', 'kill', 'config'
+    ]
     # Convert the old server.conf to the new settings file format and save it
     # as a number of distinct .conf files to keep things better organized.
     # NOTE: This logic will go away some day as it only applies when moving from
     #       Gate One 1.1 (or older) to newer versions.
     if os.path.exists(options.config):
         from utils import settings_template, RUDict
-        settings = {}
-        auth_settings = {}
-        terminal_settings = {}
+        settings = RUDict()
+        auth_settings = RUDict()
+        terminal_settings = RUDict()
         api_keys = RUDict({"*": {"gateone": {"api_keys": {}}}})
         with open(options.config) as f:
             # Regular server-wide settings will go in 10server.conf by default.
@@ -2453,10 +2469,8 @@ def main():
             server_conf_path = os.path.join(settings_path, '10server.conf')
             auth_conf_path = os.path.join(
                 settings_path, '20authentication.conf')
-            terminal_conf_path = os.path.join(
-                settings_path, '50terminal.conf')
-            api_keys_conf = os.path.join(
-                settings_path, '20api_keys.conf')
+            terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
+            api_keys_conf = os.path.join(settings_path, '20api_keys.conf')
             # Using 20authentication.conf for authentication settings
             # NOTE: Using a separate file for authentication stuff for no other
             #       reason than it seems like a good idea.  Don't want one
@@ -2467,15 +2481,6 @@ def main():
                 "Old server.conf file found.  Converting to the new format as "
                 "%s, %s, and %s" % (
                     server_conf_path, auth_conf_path, terminal_conf_path)))
-            authentication_options = [
-                # These are here only for logical separation in the .conf files
-                'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
-                'sso_realm', 'sso_service'
-            ]
-            terminal_options = [ # These are now terminal-app-specific setttings
-                'command', 'dtach', 'session_logging', 'session_logs_max_age',
-                'syslog_session_logging'
-            ]
             for line in f:
                 if line.startswith('#'):
                     continue
@@ -2544,171 +2549,169 @@ def main():
                         "// This is Gate One's Terminal application settings "
                         "file.\n"))
                     s.write(new_term_settings)
-    all_settings = get_settings(options.settings_dir)
+    all_settings = get_settings(settings_dir)
     if 'gateone' not in all_settings['*']:
         # User has yet to create a 10server.conf (or equivalent)
         all_settings['*']['gateone'] = {} # Will be filled out below
     # Double check that we have all the necessary settings
     go_settings = all_settings['*']['gateone']
-    # Update Tornado's options from our settings
-    for key, value in list(go_settings.items()):
-        if key in ['uid', 'gid']:
-            value = str(value) # So the user doesn't have to worry about quotes
-        elif key in ['logging', 'log_file_prefix']:
-            # Have to convert unicode to str or Tornado will complain and exit
-            value = str(value)
-        elif key == 'api_keys':
-            # The new configuration file format (.conf files) stores api keys as
-            # dicts so we need to convert that back to the old format in order
-            # to support overriding api_keys via the command line.
-            if not value: # Empty string
-                options[key].set(str(value))
-                continue
-            out = ""
-            for api_key, secret in value.items():
-                out += "%s:%s;" % (api_key, secret)
-            value = out
-            # NOTE: api_keys settings/CLI logic will be changing soon.
-        elif key == 'origins':
-            # The new configuration file format (.conf files) stores origins as
-            # a list so we need to convert that back to the old format in order
-            # to support overriding api_keys via the command line.
-            if not value: # Empty string
-                options[key].set(str(value))
-                continue
-            value = ";".join(value)
-            # NOTE: origins settings/CLI logic will be changing soon.
-        options[key].set(value)
     # If you want any missing config file entries re-generated just delete the
     # cookie_secret line...
-    if not options.cookie_secret:
+    if 'cookie_secret' not in go_settings or not go_settings['cookie_secret']:
         # Generate a default 10server.conf with a random cookie secret
         # NOTE: This will also generate a new 10server.conf if it is missing.
         logging.info(_(
-          "Gate One settings are incomplete.  A new settings/10server.conf"
-          " will be generated."))
-        config_defaults = {}
-        for key, value in options.items():
-            if value._value != None:
-                config_defaults.update({key: value._value})
-            else:
-                config_defaults.update({key: value.default})
-        # A few config defaults need special handling
-        del config_defaults['kill'] # This shouldn't be in server.conf
-        del config_defaults['help'] # Neither should this
-        del config_defaults['new_api_key'] # Ditto
-        del config_defaults['config'] # Re-ditto
-        del config_defaults['settings_dir'] # Ditto again
-        config_defaults.update({'cookie_secret': generate_session_id()})
-        # NOTE: The next four options are specific to the Tornado framework
-        config_defaults.update({'log_file_max_size': 100 * 1024 * 1024}) # 100MB
-        config_defaults.update({'log_file_num_backups': 10})
-        config_defaults.update({'log_to_stderr': False})
-        if options.log_file_prefix == None:
-            web_log_path = os.path.join(GATEONE_DIR, 'logs')
-            config_defaults.update({
-                'log_file_prefix': os.path.join(web_log_path, 'webserver.log')})
+            "Gate One settings are incomplete.  A new settings/10server.conf"
+            " will be generated."))
+        from utils import options_to_settings
+        auth_settings = {} # Auth stuff goes in 20authentication.conf
+        all_setttings = options_to_settings(options)
+        config_defaults = all_setttings['*']['gateone']
+        # Don't need this in the actual settings file:
+        del config_defaults['settings_dir']
+        # Generate a new cookie_secret
+        config_defaults['cookie_secret'] = generate_session_id()
+        # Separate out the authentication settings
+        for key, value in config_defaults.items():
+            if key in authentication_options:
+                auth_settings.update({key: value})
+                del config_defaults[key]
+        # Make sure we have a valid log_file_prefix
+        if config_defaults['log_file_prefix'] == None:
+            web_log_dir = os.path.join(GATEONE_DIR, 'logs')
+            web_log_path = os.path.join(web_log_dir, 'webserver.log')
+            config_defaults['log_file_prefix'] = web_log_path
         else:
-            web_log_path = os.path.split(options.log_file_prefix)[0]
-        if not os.path.exists(web_log_path):
-            mkdir_p(web_log_path)
+            web_log_dir = os.path.split(config_defaults['log_file_prefix'])[0]
+        if not os.path.exists(web_log_dir):
+            # Make sure the directory exists
+            mkdir_p(web_log_dir)
         if not os.path.exists(config_defaults['log_file_prefix']):
+            # Make sure the file is present
             open(config_defaults['log_file_prefix'], 'w').write('')
-        server_conf_path = os.path.join(
-            GATEONE_DIR, 'settings', '10server.conf')
+        settings_path = os.path.join(GATEONE_DIR, 'settings')
+        server_conf_path = os.path.join(settings_path, '10server.conf')
+        auth_conf_path = os.path.join(settings_path, '20authentication.conf')
         template_path = os.path.join(
             GATEONE_DIR, 'templates', 'settings', '10server.conf')
         from utils import settings_template
         new_settings = settings_template(
             template_path, settings=config_defaults)
-        if not os.path.exists(server_conf_path):
-            with open(server_conf_path, 'w') as s:
-                s.write(new_settings)
+        template_path = os.path.join(
+            GATEONE_DIR, 'templates', 'settings', '10server.conf')
+        with open(server_conf_path, 'w') as s:
+            s.write(_("// This is Gate One's main settings file.\n"))
+            s.write(new_settings)
+        new_auth_settings = settings_template(
+            template_path, settings=auth_settings)
+        with open(auth_conf_path, 'w') as s:
+            s.write(_("// This is Gate One's authentication settings file.\n"))
+            s.write(new_auth_settings)
+        # Make sure these values get updated
         all_settings = get_settings(options.settings_dir)
         go_settings = all_settings['*']['gateone']
-        # Update Tornado's options from our settings (one more time)
-        for key, value in list(go_settings.items()):
-            if key in ['uid', 'gid', 'logging', 'log_file_prefix']:
-                value = str(value)
-            options[key].set(value)
+    # TODO: Make sure that go_settings gets updated with command line arguments
+    for argument in arguments:
+        if argument in non_options:
+            continue
+        elif argument in options:
+            go_settings[argument] = options[argument]
+    # Update Tornado's options from our settings
+    options['cookie_secret'].set(go_settings['cookie_secret'])
+    options['logging'].set(str(go_settings['logging']))
+    options['log_file_prefix'].set(str(go_settings['log_file_prefix']))
+    #for key, value in list(go_settings.items()):
+        #if key in ['uid', 'gid']:
+            #value = str(value) # So the user doesn't have to worry about quotes
+        #elif key in ['logging', 'log_file_prefix']:
+            ## Have to convert unicode to str or Tornado will complain and exit
+            #value = str(value)
+        #elif key == 'api_keys':
+            ## The new configuration file format (.conf files) stores api keys as
+            ## dicts so we need to convert that back to the old format in order
+            ## to support overriding api_keys via the command line.
+            #if not value: # Empty string
+                #options[key].set(str(value))
+                #continue
+            #out = ""
+            #for api_key, secret in value.items():
+                #out += "%s:%s," % (api_key, secret)
+            #value = out
+            ## NOTE: api_keys settings/CLI logic will be changing soon.
+        #options[key].set(value)
     # Now that setting loading/generation is out of the way, re-parse the
     # command line options so the user can override any setting at run time.
-    tornado.options.parse_command_line()
-    # Fix the path to known_hosts if using the default command
-    if '\"%USERDIR%/%USER%/ssh/known_hosts\"' in options.command:
-        logging.warning(_(
-            "The default path to known_hosts has been changed.  Please update"
-            " your config file to use '/.ssh/known_hosts' instead of "
-            "'/ssh/known_hosts'.  Applying a termporary fix..."))
-        options.command = options.command.replace('/ssh/', '/.ssh/')
+    #tornado.options.parse_command_line()
     # Change the uid/gid strings into integers
     try:
-        uid = int(options.uid)
+        uid = int(go_settings['uid'])
     except ValueError:
         import pwd
         # Assume it's a username and grab its uid
-        uid = pwd.getpwnam(options.uid).pw_uid
+        uid = pwd.getpwnam(go_settings['uid']).pw_uid
     try:
-        gid = int(options.gid)
+        gid = int(go_settings['gid'])
     except ValueError:
         import grp
         # Assume it's a group name and grab its gid
-        gid = grp.getgrnam(options.gid).gr_gid
-    if not os.path.exists(options.user_dir): # Make our user_dir
+        gid = grp.getgrnam(go_settings['gid']).gr_gid
+    if not os.path.exists(go_settings['user_dir']): # Make our user_dir
         try:
-            mkdir_p(options.user_dir)
+            mkdir_p(go_settings['user_dir'])
         except OSError:
             import pwd
             logging.error(_(
                 "Error: Gate One could not create %s.  Please ensure that user,"
                 " %s has permission to create this directory or create it "
-                "yourself and make user, %s its owner." % (options.user_dir,
+                "yourself and make user, %s its owner." % (go_settings['user_dir'],
                 repr(pwd.getpwuid(os.geteuid())[0]),
                 repr(pwd.getpwuid(os.geteuid())[0]))))
             sys.exit(1)
         # If we could create it we should be able to adjust its permissions:
-        os.chmod(options.user_dir, 0o770)
-    if not check_write_permissions(uid, options.user_dir):
+        os.chmod(go_settings['user_dir'], 0o770)
+    if not check_write_permissions(uid, go_settings['user_dir']):
         # Try correcting this first
         try:
-            recursive_chown(options.user_dir, uid, gid)
+            recursive_chown(go_settings['user_dir'], uid, gid)
         except (ChownError, OSError) as e:
             logging.error("user_dir: %s, uid: %s, gid: %s" % (
-                options.user_dir, uid, gid))
+                go_settings['user_dir'], uid, gid))
             logging.error(e)
             sys.exit(1)
-    if not os.path.exists(options.session_dir): # Make our session_dir
+    if not os.path.exists(go_settings['session_dir']): # Make our session_dir
         try:
-            mkdir_p(options.session_dir)
+            mkdir_p(go_settings['session_dir'])
         except OSError:
             logging.error(_(
                 "Error: Gate One could not create %s.  Please ensure that user,"
                 " %s has permission to create this directory or create it "
-                "yourself and make user, %s its owner." % (options.session_dir,
+                "yourself and make user, %s its owner." % (
+                go_settings['session_dir'],
                 repr(pwd.getpwuid(os.geteuid())[0]),
                 repr(pwd.getpwuid(os.geteuid())[0]))))
             sys.exit(1)
-        os.chmod(options.session_dir, 0o770)
-    if not check_write_permissions(uid, options.session_dir):
+        os.chmod(go_settings['session_dir'], 0o770)
+    if not check_write_permissions(uid, go_settings['session_dir']):
         # Try correcting it
         try:
-            recursive_chown(options.session_dir, uid, gid)
+            recursive_chown(go_settings['session_dir'], uid, gid)
         except (ChownError, OSError) as e:
             logging.error("session_dir: %s, uid: %s, gid: %s" % (
-                options.session_dir, uid, gid))
+                go_settings['session_dir'], uid, gid))
             logging.error(e)
             sys.exit(1)
     # Re-do the locale in case the user supplied something as --locale
-    user_locale = locale.get(options.locale)
+    user_locale = locale.get(go_settings['locale'])
     _ = user_locale.translate # Also replaces our wrapper so no more .encode()
     # Create the log dir if not already present (NOTE: Assumes we're root)
-    log_dir = os.path.split(options.log_file_prefix)[0]
+    log_dir = os.path.split(go_settings['log_file_prefix'])[0]
     if not os.path.exists(log_dir):
         try:
             mkdir_p(log_dir)
         except OSError:
             logging.error(_("\x1b[1;31mERROR:\x1b[0m Could not create %s for "
-                  "log_file_prefix: %s" % (log_dir, options.log_file_prefix)))
+                "log_file_prefix: %s" % (log_dir, go_settings['log_file_prefix']
+            )))
             logging.error(_("You probably want to change this option, run Gate "
                   "One as root, or create that directory and give the proper "
                   "user ownership of it."))
@@ -2723,10 +2726,10 @@ def main():
             sys.exit(1)
     if options.kill:
         # Kill all running dtach sessions (associated with Gate One anyway)
-        killall(options.session_dir, options.pid_file)
+        killall(go_settings['session_dir'], go_settings['pid_file'])
         # Cleanup the session_dir (it is supposed to only contain temp stuff)
         import shutil
-        shutil.rmtree(options.session_dir, ignore_errors=True)
+        shutil.rmtree(go_settings['session_dir'], ignore_errors=True)
         sys.exit(0)
     if options.new_api_key:
         # Generate a new API key for an application to use and save it to
@@ -2754,81 +2757,90 @@ def main():
     # Display the version in case someone sends in a log for for support
     logging.info(_("Gate One %s" % __version__))
     logging.info(_("Tornado version %s" % tornado_version))
-    # Set our CMD variable to tell the multiplexer which command to execute
-    global CMD
-    CMD = options.command
     # Set our global session timeout
     global TIMEOUT
-    TIMEOUT = convert_to_timedelta(options.session_timeout)
+    TIMEOUT = convert_to_timedelta(go_settings['session_timeout'])
+    # TODO: Move this dtach stuff to app_terminal
     # Make sure dtach is available and if not, set dtach=False
     if not which('dtach'):
         logging.warning(
             _("dtach command not found.  dtach support has been disabled."))
-        options.dtach = False
-    # Turn our API keys into a dict
+        go_settings['dtach'] = False
+    # Turn any API keys provided on the command line into a dict
     api_keys = {}
-    if options.api_keys:
-        for pair in options.api_keys.split(','):
-            api_key, secret = pair.split(':')
-            if bytes == str:
-                api_key = api_key.decode('UTF-8')
-                secret = secret.decode('UTF-8')
-            api_keys.update({api_key: secret})
+    if 'api_keys' in arguments:
+        if options.api_keys:
+            for pair in options.api_keys.value().split(','):
+                api_key, secret = pair.split(':')
+                if bytes == str:
+                    api_key = api_key.decode('UTF-8')
+                    secret = secret.decode('UTF-8')
+                api_keys.update({api_key: secret})
+        go_settings['api_keys'] = api_keys
     # Fix the url_prefix if the user forgot the trailing slash
-    if not options.url_prefix.endswith('/'):
-        options.url_prefix += '/'
-    # Convert the origins into a list of http:// or https:// origins
-    origins = options.origins.lower() # Origins are case-insensitive
-    real_origins = origins.split(';')
-    if options.origins == '*':
-        real_origins = ['*']
+    if not go_settings['url_prefix'].endswith('/'):
+        go_settings['url_prefix'] += '/'
+    # Convert the origins into a list if overridden via the command line
+    if 'origins' in arguments:
+        if ';' in options.origins:
+            origins = options.origins.value().lower().split(';')
+            real_origins = []
+            for origin in origins:
+                if '://' in origin:
+                    origin = origin.split('://')[1]
+                if origin not in real_origins:
+                    real_origins.append(origin)
+            go_settings['origins'] = real_origins
     logging.info("Connections to this server will be allowed from the following"
-                 " origins: '%s'" % " ".join(real_origins))
-    # Define our Application settings
-    api_timestamp_window = convert_to_timedelta(options.api_timestamp_window)
-    go_settings = {
-        'gateone_dir': GATEONE_DIR, # Only here so plugins can reference it
-        'debug': options.debug,
-        'command': options.command,
-        'cookie_secret': options.cookie_secret,
-        'auth': none_fix(options.auth),
-        'api_timestamp_window': api_timestamp_window,
-        'embedded': options.embedded,
-        'js_init': options.js_init,
-        'user_dir': options.user_dir,
-        'logging': options.logging, # For reference, really
-        'session_dir': options.session_dir,
-        'session_logging': options.session_logging,
-        'syslog_session_logging': options.syslog_session_logging,
-        'syslog_facility': options.syslog_facility,
-        'syslog_host': options.syslog_host,
-        'dtach': options.dtach,
-        'sso_realm': options.sso_realm,
-        'sso_service': options.sso_service,
-        'pam_realm': options.pam_realm,
-        'pam_service': options.pam_service,
-        'locale': options.locale,
-        'api_keys': api_keys,
-        'url_prefix': options.url_prefix,
-        'origins': real_origins,
-        'pid_file': options.pid_file,
-        'ca_certs': options.ca_certs,
-        'ssl_auth': options.ssl_auth
-    }
+                 " origins: '%s'" % " ".join(go_settings['origins']))
+    # Normalize settings
+    api_timestamp_window = convert_to_timedelta(
+        go_settings['api_timestamp_window'])
+    go_settings['auth'] = none_fix(go_settings['auth'])
+    go_settings['settings_dir'] = settings_dir
+    #go_settings = {
+        #'gateone_dir': GATEONE_DIR, # Only here so plugins can reference it
+        #'debug': options.debug,
+        #'command': options.command,
+        #'cookie_secret': options.cookie_secret,
+        #'auth': none_fix(options.auth),
+        #'api_timestamp_window': api_timestamp_window,
+        #'embedded': options.embedded,
+        #'js_init': options.js_init,
+        #'user_dir': options.user_dir,
+        #'logging': options.logging, # For reference, really
+        #'session_dir': options.session_dir,
+        #'session_logging': options.session_logging,
+        #'syslog_session_logging': options.syslog_session_logging,
+        #'syslog_facility': options.syslog_facility,
+        #'syslog_host': options.syslog_host,
+        #'dtach': options.dtach,
+        #'sso_realm': options.sso_realm,
+        #'sso_service': options.sso_service,
+        #'pam_realm': options.pam_realm,
+        #'pam_service': options.pam_service,
+        #'locale': options.locale,
+        #'api_keys': api_keys,
+        #'url_prefix': options.url_prefix,
+        #'origins': real_origins,
+        #'pid_file': options.pid_file,
+        #'ca_certs': options.ca_certs,
+        #'ssl_auth': options.ssl_auth
+    #}
     # Check to make sure we have a certificate and keyfile and generate fresh
     # ones if not.
-    if options.keyfile == "keyfile.pem":
+    if go_settings['keyfile'] == "keyfile.pem":
         # If set to the default we'll assume they want to use the one in the
         # gateone_dir
-        options.keyfile = "%s/keyfile.pem" % GATEONE_DIR
-    if options.certificate == "certificate.pem":
+        go_settings['keyfile'] = "%s/keyfile.pem" % GATEONE_DIR
+    if go_settings['certificate'] == "certificate.pem":
         # Just like the keyfile, assume they want to use the one in the
         # gateone_dir
-        options.certificate = "%s/certificate.pem" % GATEONE_DIR
-    if not os.path.exists(options.keyfile):
+        go_settings['certificate'] = "%s/certificate.pem" % GATEONE_DIR
+    if not os.path.exists(go_settings['keyfile']):
         logging.info(_("No SSL private key found.  One will be generated."))
         gen_self_signed_ssl(path=GATEONE_DIR)
-    if not os.path.exists(options.certificate):
+    if not os.path.exists(go_settings['certificate']):
         logging.info(_("No SSL certificate found.  One will be generated."))
         gen_self_signed_ssl(path=GATEONE_DIR)
     # Setup static file links for plugins (if any)
@@ -2846,32 +2858,32 @@ def main():
                 "directory.  Or just make sure that the static/<plugin> "
                 "symbolic links are created and ignore this message." % (
                 static_dir, pwd.getpwuid(os.geteuid())[0])))
-    combined_plugins_path = os.path.join(
-        options.session_dir, 'combined_plugins.js')
-    # Remove the combined_plugins.js (it will get auto-recreated)
-    if os.path.exists(combined_plugins_path):
-        os.remove(combined_plugins_path)
-    # When options.logging=="debug" it will display all user's keystrokes so
-    # make sure we warn about this.
-    if options.logging == "debug":
+    #combined_plugins_path = os.path.join(
+        #go_settings['session_dir'], 'combined_plugins.js')
+    ## Remove the combined_plugins.js (it will get auto-recreated)
+    #if os.path.exists(combined_plugins_path):
+        #os.remove(combined_plugins_path)
+    # When logging=="debug" it will display all user's keystrokes so make sure
+    # we warn about this.
+    if go_settings['logging'] == "debug":
         logging.warning(_(
             "Logging is set to DEBUG.  Be aware that this will record the "
             "keystrokes of all users.  Don't be evil!"))
-    if options.ssl_auth.lower() == 'required':
+    if go_settings['ssl_auth'].lower() == 'required':
         # Convert to an integer using the ssl module
         cert_reqs = ssl.CERT_REQUIRED
-    elif options.ssl_auth.lower() == 'optional':
+    elif go_settings['ssl_auth'].lower() == 'optional':
         cert_reqs = ssl.CERT_OPTIONAL
     else:
         cert_reqs = ssl.CERT_NONE
     # Instantiate our Tornado web server
     ssl_options = {
-        "certfile": options.certificate,
-        "keyfile": options.keyfile,
-        "ca_certs": options.ca_certs,
+        "certfile": go_settings['certificate'],
+        "keyfile": go_settings['keyfile'],
+        "ca_certs": go_settings['ca_certs'],
         "cert_reqs": cert_reqs
     }
-    if options.disable_ssl:
+    if go_settings['disable_ssl']:
         proto = "http://"
         ssl_options = None
     else:
@@ -2880,11 +2892,11 @@ def main():
         Application(settings=go_settings), ssl_options=ssl_options)
     https_redirect = tornado.web.Application(
         [(r".*", HTTPSRedirectHandler),],
-        port=options.port,
-        url_prefix=options.url_prefix
+        port=go_settings['port'],
+        url_prefix=go_settings['url_prefix']
     )
     tornado.web.ErrorHandler = ErrorHandler
-    if options.auth == 'pam':
+    if go_settings['auth'] == 'pam':
         if uid != 0 or os.getuid() != 0:
             logging.warning(_(
                 "PAM authentication is configured but you are not running Gate"
@@ -2893,19 +2905,20 @@ def main():
                 "against /etc/passwd and /etc/shadow) Gate One will not be able"
                 " to authenticate all users.  It will only be able to "
                 "authenticate the user that owns the gateone.py process." %
-                options.pam_service))
+                go_settings['pam_service']))
     try: # Start your engines!
-        if options.enable_unix_socket:
+        if go_settings['enable_unix_socket']:
             https_server.add_socket(
-                tornado.netutil.bind_unix_socket(options.unix_socket_path))
+                tornado.netutil.bind_unix_socket(
+                    go_settings['unix_socket_path']))
             logging.info(_("Listening on Unix socket '{socketpath}'".format(
-                socketpath=options.unix_socket_path)))
-        address = none_fix(options.address)
+                socketpath=go_settings['unix_socket_path'])))
+        address = none_fix(go_settings['address'])
         if address:
             for addr in address.split(';'):
                 if addr: # Listen on all given addresses
-                    if options.https_redirect:
-                        if options.disable_ssl:
+                    if go_settings['https_redirect']:
+                        if go_settings['disable_ssl']:
                             logging.error(_(
                             "You have https_redirect *and* disable_ssl enabled."
                             "  Please pick one or the other."))
@@ -2917,13 +2930,13 @@ def main():
                         https_redirect.listen(port=80, address=addr)
                     logging.info(_(
                         "Listening on {proto}{address}:{port}/".format(
-                            proto=proto, address=addr, port=options.port)
+                            proto=proto, address=addr, port=go_settings['port'])
                     ))
-                    https_server.listen(port=options.port, address=addr)
+                    https_server.listen(port=go_settings['port'], address=addr)
         elif address == '':
             # Listen on all addresses (including IPv6)
-            if options.https_redirect:
-                if options.disable_ssl:
+            if go_settings['https_redirect']:
+                if go_settings['disable_ssl']:
                     logging.error(_(
                         "You have https_redirect *and* disable_ssl enabled."
                         "  Please pick one or the other."))
@@ -2932,12 +2945,12 @@ def main():
                 https_redirect.listen(port=80, address="")
             logging.info(_(
                 "Listening on {proto}*:{port}/".format(
-                    proto=proto, port=options.port)))
-            https_server.listen(port=options.port, address="")
+                    proto=proto, port=go_settings['port'])))
+            https_server.listen(port=go_settings['port'], address="")
         # NOTE:  To have Gate One *not* listen on a TCP/IP address you may set
         #        address=None
-        write_pid(options.pid_file)
-        pid = read_pid(options.pid_file)
+        write_pid(go_settings['pid_file'])
+        pid = read_pid(go_settings['pid_file'])
         logging.info(_("Process running with pid " + pid))
         # Check to see what group owns /dev/pts and use that for supl_groups
         # First we have to make sure there's at least one pty present
@@ -2949,14 +2962,16 @@ def main():
         os.close(tempfd2)
         if uid != os.getuid():
             drop_privileges(uid, gid, [tty_gid])
+        # TODO: Move the CLEANER to app_terminal.py
         # Make sure that old logs get cleaned up
         global CLEANER
         if not CLEANER:
             interval = 5*60*1000 # Check every 5 minutes
-            max_age = convert_to_timedelta(options.session_logs_max_age)
+            max_age = convert_to_timedelta(
+                all_settings['*']['terminal']['session_logs_max_age'])
             cleaner = partial(
                 cleanup_session_logs,
-                options.user_dir,
+                go_settings['user_dir'],
                 max_age)
             CLEANER = tornado.ioloop.PeriodicCallback(cleaner, interval)
             CLEANER.start()
@@ -2965,21 +2980,19 @@ def main():
         logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
     finally:
         tornado.ioloop.IOLoop.instance().stop()
-        remove_pid(options.pid_file)
+        remove_pid(go_settings['pid_file'])
         logging.info(_("pid file removed."))
-        # Remove the combined_plugins.js in case the plugins change
-        if os.path.exists(combined_plugins_path):
-            os.remove(combined_plugins_path)
-        if not options.dtach:
+        # TODO: Move this dtach stuff to app_terminal.py
+        if not all_settings['*']['terminal']['dtach']:
             # If we're not using dtach play it safe by cleaning up any leftover
             # processes.  When passwords are used with the ssh_conenct.py script
             # it runs os.setsid() on the child process which means it won't die
             # when Gate One is closed.  This is primarily to handle that
             # specific situation.
-            killall(options.session_dir, options.pid_file)
+            killall(go_settings['session_dir'], go_settings['pid_file'])
             # Cleanup the session_dir (it's supposed to only contain temp stuff)
             import shutil
-            shutil.rmtree(options.session_dir, ignore_errors=True)
+            shutil.rmtree(go_settings['session_dir'], ignore_errors=True)
 
 if __name__ == "__main__":
     main()

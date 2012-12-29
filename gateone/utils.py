@@ -244,6 +244,60 @@ def get_settings(path):
                     pass # No big deal; the user will figure it out eventually
     return settings
 
+def options_to_settings(options):
+    """
+    Converts the given Tornado-style *options* to new-style settings.  Returns
+    an :class:`RUDict` containing all the settings.
+    """
+    settings = RUDict({'*': {'gateone': {}, 'terminal': {}}})
+    # In the new settings format some options have moved to the terminal app.
+    # These settings are below and will be placed in the 'terminal' sub-dict.
+    terminal_options = [
+        'command', 'dtach', 'session_logging', 'session_logs_max_age',
+        'syslog_session_logging'
+    ]
+    non_options = [
+        # These are things that don't really belong in settings
+        'new_api_key', 'help', 'kill', 'config'
+    ]
+    for key, value in options.items():
+        value = value.value() # These are of type, tornado.options._Option
+        if key in terminal_options:
+            settings['*']['terminal'].update({key: value})
+        elif key in non_options:
+            continue
+        else:
+            if key == 'origins':
+                #if value == '*':
+                    #continue
+                # Convert to the new format (a list with no http://)
+                origins = value.split(';')
+                converted_origins = []
+                for origin in origins:
+                    if '://' in origin:
+                        # The new format doesn't bother with http:// or https://
+                        origin = origin.split('://')[1]
+                        if origin not in converted_origins:
+                            converted_origins.append(origin)
+                    elif origin not in converted_origins:
+                        converted_origins.append(origin)
+                settings['*']['gateone'].update({key: converted_origins})
+            elif key == 'api_keys':
+                if not value:
+                    continue
+                # API keys/secrets are now a dict instead of a string
+                settings['*']['gateone']['api_keys'] = {}
+                for pair in value.split(','):
+                    api_key, secret = pair.split(':', 1)
+                    if bytes == str: # Python 3
+                        api_key = api_key.decode('UTF-8')
+                        secret = secret.decode('UTF-8')
+                    settings['*']['gateone']['api_keys'].update(
+                        {api_key: secret})
+            else:
+                settings['*']['gateone'].update({key: value})
+    return settings
+
 def write_pid(path):
     """Writes our PID to *path*."""
     try:
