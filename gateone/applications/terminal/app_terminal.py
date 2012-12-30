@@ -1511,10 +1511,10 @@ def init(settings):
                 "// This is Gate One's Terminal application settings "
                 "file.\n"))
             s.write(new_term_settings)
-    go_settings = settings['*']['gateone']
     term_settings = settings['*']['terminal']
     if options.kill:
         from utils import killall
+        go_settings = settings['*']['gateone']
         # Kill all running dtach sessions (associated with Gate One anyway)
         killall(go_settings['session_dir'], go_settings['pid_file'])
         # Cleanup the session_dir (it is supposed to only contain temp stuff)
@@ -1525,7 +1525,7 @@ def init(settings):
     if not which('dtach'):
         logging.warning(
             _("dtach command not found.  dtach support has been disabled."))
-        go_settings['dtach'] = False
+        term_settings['dtach'] = False
     # Fix the path to known_hosts if using the old default command
     for name, command in term_settings['commands'].items():
         if '\"%USERDIR%/%USER%/ssh/known_hosts\"' in command:
