@@ -28,7 +28,7 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # I like to start my files with imports from Python's standard library...
-import os, logging, time
+import os, sys, logging, time
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -39,11 +39,12 @@ from auth import require, authenticated, applicable_policies
 from utils import cmd_var_swap, RUDict, json_encode, get_settings, short_hash
 from utils import mkdir_p, string_to_syslog_facility, get_plugins, load_modules
 from utils import process_opt_esc_sequence, bind, MimeTypeFail, create_data_uri
-from utils import convert_to_timedelta, kill_dtached_proc
+from utils import convert_to_timedelta, kill_dtached_proc, which
 
 # 3rd party imports
 from tornado.escape import json_decode
 from tornado.ioloop import PeriodicCallback
+from tornado.options import options, define
 
 # Globals
 SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
@@ -317,6 +318,39 @@ COLORS_256 = {
     255: "eeeeee"
 }
 
+# Terminal-specific command line options.  These become options you can pass to
+# gateone.py (e.g. --session_logging)
+define(
+    "session_logging",
+    default=True,
+    help=_("If enabled, logs of user sessions will be saved in "
+            "<user_dir>/<user>/logs.  Default: Enabled")
+)
+define( # This is an easy way to support cetralized logging
+    "syslog_session_logging",
+    default=False,
+    help=_("If enabled, logs of user sessions will be written to syslog.")
+)
+define(
+    "dtach",
+    default=True,
+    help=_("Wrap terminals with dtach. Allows sessions to be resumed even "
+            "if Gate One is stopped and started (which is a sweet feature).")
+)
+define(
+    "kill",
+    default=False,
+    help=_("Kill any running Gate One terminal processes including dtach'd "
+            "processes.")
+)
+define(
+    "session_logs_max_age",
+    default="30d",
+    help=_("Maximum amount of length of time to keep any given session log "
+            "before it is removed."),
+    type=basestring
+)
+
 def kill_session(session):
     """
     Terminates all the terminal processes associated with *session*.
@@ -498,8 +532,8 @@ class TerminalApplication(GOApplication):
             if 'Escape' in hooks:
                 # Apply the plugin's Escape handler
                 self.on(
-                    "terminal:opt_esc_handler:%s" % plugin_name,
-                    hooks['Escape'])
+                    "terminal:opt_esc_handler:%s" %
+                    plugin_name, hooks['Escape'])
             if 'Auth' in hooks:
                 # Apply the plugin's post-authentication functions
                 if isinstance(hooks['Auth'], (list, tuple)):
@@ -1406,7 +1440,6 @@ def init(settings):
     Checks to make sure 50terminal.conf is created if terminal-specific settings
     are not found in the settings directory.
     """
-    from tornado.options import options, define
     if os.path.exists(options.config):
         # Get the old settings from the old config file and use them to generate
         # a new 50terminal.conf
@@ -1463,7 +1496,21 @@ def init(settings):
                 "// This is Gate One's Terminal application settings "
                 "file.\n"))
             s.write(new_term_settings)
+    go_settings = settings['*']['gateone']
     term_settings = settings['*']['terminal']
+    if options.kill:
+        from utils import killall
+        # Kill all running dtach sessions (associated with Gate One anyway)
+        killall(go_settings['session_dir'], go_settings['pid_file'])
+        # Cleanup the session_dir (it is supposed to only contain temp stuff)
+        import shutil
+        shutil.rmtree(go_settings['session_dir'], ignore_errors=True)
+        sys.exit(0)
+    # Make sure dtach is available and if not, set dtach=False
+    if not which('dtach'):
+        logging.warning(
+            _("dtach command not found.  dtach support has been disabled."))
+        go_settings['dtach'] = False
     # Fix the path to known_hosts if using the old default command
     for name, command in term_settings['commands'].items():
         if '\"%USERDIR%/%USER%/ssh/known_hosts\"' in command:

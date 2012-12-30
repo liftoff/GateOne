@@ -290,8 +290,7 @@ from auth import require, authenticated
 from utils import generate_session_id, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_modules
 from utils import merge_handlers, none_fix, convert_to_timedelta
-from utils import kill_dtached_proc, FACILITIES, which
-from utils import json_encode, recursive_chown, ChownError
+from utils import FACILITIES, json_encode, recursive_chown, ChownError
 from utils import write_pid, read_pid, remove_pid, drop_privileges, minify
 from utils import check_write_permissions, get_applications, get_settings
 
@@ -979,30 +978,12 @@ class ApplicationWebSocket(WebSocketHandler):
         self.commands.update({
             'ping': self.pong,
             'authenticate': self.authenticate,
-            #'new_terminal': self.new_terminal,
-            #'set_terminal': self.set_terminal,
-            #'move_terminal': self.move_terminal,
-            #'kill_terminal': self.kill_terminal,
-            #'c': self.char_handler, # Just 'c' to keep the bandwidth down
-            #'write_chars': self.write_chars,
-            #'refresh': self.refresh_screen,
-            #'full_refresh': self.full_refresh,
-            #'resize': self.resize,
-            #'get_bell': self.get_bell,
-            #'get_webworker': self.get_webworker,
             'get_style': self.get_style,
             'get_js': self.get_js,
             'enumerate_themes': self.enumerate_themes,
-            #'manual_title': self.manual_title,
-            #'reset_terminal': self.reset_terminal,
-            #'debug_terminal': self.debug_terminal
         })
         self._events = {}
-        self.terms = {}
-        # So we can keep track and avoid sending unnecessary messages:
-        self.titles = {}
         self.user = None
-        self.em_dimensions = None
         # This is used to keep track of used API authentication signatures so
         # we can prevent replay attacks.
         self.prev_signatures = []
@@ -1207,7 +1188,8 @@ class ApplicationWebSocket(WebSocketHandler):
             for key, value in message_obj.items():
                 if key in PLUGIN_WS_CMDS:
                     try: # Plugins first so they can override behavior if they wish
-                        PLUGIN_WS_CMDS[key](value, tws=self)# tws==ApplicationWebSocket
+                        PLUGIN_WS_CMDS[key](value, tws=self)
+                        # tws==ApplicationWebSocket
                     except (KeyError, TypeError, AttributeError) as e:
                         logging.error(_(
                             "Error running plugin WebSocket action: %s" % key))
@@ -1520,7 +1502,6 @@ class ApplicationWebSocket(WebSocketHandler):
         except Exception as e:
             logging.error(_("Exception in registered Auth hook: %s" % e))
         # Apply the container/prefix settings (if present)
-        # NOTE:  Currently these are only used by the logging plugin
         if 'container' in settings:
             self.container = settings['container']
         if 'prefix' in settings:
@@ -1535,6 +1516,9 @@ class ApplicationWebSocket(WebSocketHandler):
             SESSIONS[self.session] = {
                 'last_seen': 'connected',
                 'timeout_callbacks': [],
+                # Locations are virtual containers that indirectly correlate
+                # with browser windows/tabs.  The point is to allow things like
+                # opening/moving applications/terminals in/to new windows/tabs.
                 'locations': {self.location: {}}
             }
         else:
@@ -1664,7 +1648,6 @@ class ApplicationWebSocket(WebSocketHandler):
             out_dict['print'] = print_css
         self.write_message(json_encode({'load_style': out_dict}))
 
-    # NOTE: This is a work-in-progress...
     @require(authenticated())
     def get_js(self, filename):
         """
@@ -2073,12 +2056,9 @@ def define_options():
         type=basestring
     )
     define("command",
-        # The default command assumes the SSH plugin is enabled
-        default=(GATEONE_DIR + "/plugins/ssh/scripts/ssh_connect.py -S "
-            r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp "
-            r"-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/.ssh/known_hosts\"'"),
-        help=_("Run the given command when a user connects (e.g. '/bin/login')."
-               ),
+        default=None,
+        help=_(
+            "DEPRECATED: Use the 'commands' option in the terminal settings."),
         type=basestring
     )
     define("address",
@@ -2150,17 +2130,6 @@ def define_options():
         help=_(
             "Path to the location where session information will be stored."),
         type=basestring
-    )
-    define(
-        "session_logging",
-        default=True,
-        help=_("If enabled, logs of user sessions will be saved in "
-               "<user_dir>/<user>/logs.  Default: Enabled")
-    )
-    define( # This is an easy way to support cetralized logging
-        "syslog_session_logging",
-        default=False,
-        help=_("If enabled, logs of user sessions will be written to syslog.")
     )
     define(
         "syslog_facility",
@@ -2248,18 +2217,6 @@ def define_options():
         help=_("Doesn't do anything (yet).")
     )
     define(
-        "dtach",
-        default=True,
-        help=_("Wrap terminals with dtach. Allows sessions to be resumed even "
-               "if Gate One is stopped and started (which is a sweet feature).")
-    )
-    define(
-        "kill",
-        default=False,
-        help=_("Kill any running Gate One terminal processes including dtach'd "
-               "processes.")
-    )
-    define(
         "locale",
         default=default_locale,
         help=_("The locale (e.g. pt_PT) Gate One should use for translations."
@@ -2323,13 +2280,6 @@ def define_options():
         default=str(os.getgid()),
         help=_(
             "Drop privileges and run Gate One as this group/gid."),
-        type=basestring
-    )
-    define(
-        "session_logs_max_age",
-        default="30d",
-        help=_("Maximum amount of length of time to keep any given session log "
-               "before it is removed."),
         type=basestring
     )
     define(
@@ -2677,13 +2627,6 @@ def main():
             logging.error("log_dir: %s, uid: %s, gid: %s" % (log_dir, uid, gid))
             logging.error(e)
             sys.exit(1)
-    if options.kill:
-        # Kill all running dtach sessions (associated with Gate One anyway)
-        killall(go_settings['session_dir'], go_settings['pid_file'])
-        # Cleanup the session_dir (it is supposed to only contain temp stuff)
-        import shutil
-        shutil.rmtree(go_settings['session_dir'], ignore_errors=True)
-        sys.exit(0)
     if options.new_api_key:
         # Generate a new API key for an application to use and save it to
         # settings/20api_keys.conf.
@@ -2713,12 +2656,6 @@ def main():
     # Set our global session timeout
     global TIMEOUT
     TIMEOUT = convert_to_timedelta(go_settings['session_timeout'])
-    # TODO: Move this dtach stuff to app_terminal
-    # Make sure dtach is available and if not, set dtach=False
-    if not which('dtach'):
-        logging.warning(
-            _("dtach command not found.  dtach support has been disabled."))
-        go_settings['dtach'] = False
     # Turn any API keys provided on the command line into a dict
     api_keys = {}
     if 'api_keys' in arguments:
@@ -2751,35 +2688,6 @@ def main():
         go_settings['api_timestamp_window'])
     go_settings['auth'] = none_fix(go_settings['auth'])
     go_settings['settings_dir'] = settings_dir
-    #go_settings = {
-        #'gateone_dir': GATEONE_DIR, # Only here so plugins can reference it
-        #'debug': options.debug,
-        #'command': options.command,
-        #'cookie_secret': options.cookie_secret,
-        #'auth': none_fix(options.auth),
-        #'api_timestamp_window': api_timestamp_window,
-        #'embedded': options.embedded,
-        #'js_init': options.js_init,
-        #'user_dir': options.user_dir,
-        #'logging': options.logging, # For reference, really
-        #'session_dir': options.session_dir,
-        #'session_logging': options.session_logging,
-        #'syslog_session_logging': options.syslog_session_logging,
-        #'syslog_facility': options.syslog_facility,
-        #'syslog_host': options.syslog_host,
-        #'dtach': options.dtach,
-        #'sso_realm': options.sso_realm,
-        #'sso_service': options.sso_service,
-        #'pam_realm': options.pam_realm,
-        #'pam_service': options.pam_service,
-        #'locale': options.locale,
-        #'api_keys': api_keys,
-        #'url_prefix': options.url_prefix,
-        #'origins': real_origins,
-        #'pid_file': options.pid_file,
-        #'ca_certs': options.ca_certs,
-        #'ssl_auth': options.ssl_auth
-    #}
     # Check to make sure we have a certificate and keyfile and generate fresh
     # ones if not.
     if go_settings['keyfile'] == "keyfile.pem":
@@ -2796,26 +2704,6 @@ def main():
     if not os.path.exists(go_settings['certificate']):
         logging.info(_("No SSL certificate found.  One will be generated."))
         gen_self_signed_ssl(path=GATEONE_DIR)
-    # Setup static file links for plugins (if any)
-    static_dir = os.path.join(GATEONE_DIR, "static")
-    # Verify static_dir's permissions
-    if os.stat(static_dir).st_uid != uid:
-        # Try correcting it
-        try: # Just os.chown on this one (recursive could be bad)
-            os.chown(static_dir, uid, gid)
-        except OSError:
-            import pwd
-            logging.warning(_(
-                "Warning: Gate One does not have permission to write to %s.  "
-                "Please ensure that user, %s has write permission to the "
-                "directory.  Or just make sure that the static/<plugin> "
-                "symbolic links are created and ignore this message." % (
-                static_dir, pwd.getpwuid(os.geteuid())[0])))
-    #combined_plugins_path = os.path.join(
-        #go_settings['session_dir'], 'combined_plugins.js')
-    ## Remove the combined_plugins.js (it will get auto-recreated)
-    #if os.path.exists(combined_plugins_path):
-        #os.remove(combined_plugins_path)
     # When logging=="debug" it will display all user's keystrokes so make sure
     # we warn about this.
     if go_settings['logging'] == "debug":
