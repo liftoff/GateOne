@@ -882,10 +882,11 @@ def get_plugins(plugin_dir):
     for directory in os.listdir(plugin_dir):
         if enabled_plugins and directory not in enabled_plugins:
             continue
-
         plugin = directory
         http_static_path = '/static/%s' % plugin
         directory = os.path.join(plugin_dir, directory) # Make absolute
+        if not os.path.isdir(directory):
+            continue # This is not a plugin
         plugin_files = os.listdir(directory)
         if "__init__.py" in plugin_files:
             out_dict['py'].append(plugin) # Just need the base
