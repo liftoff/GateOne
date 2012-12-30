@@ -313,7 +313,9 @@ def _(string):
 SESSIONS = {} # We store the crux of most session info here
 CMD = None # Will be overwritten by options.command
 TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
-CLEANER = None # The reference to our session logs cleanup periodic callback
+# WATCHER be replaced with a tornado.ioloop.PeriodicCallback that watches for
+# sessions that have timed out and takes care of cleaning them up.
+WATCHER = None
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_CACHE = {}
 # PERSIST is a generic place for applications and plugins to store stuff in a
@@ -640,41 +642,27 @@ def require_auth(method):
         return method(self, *args, **kwargs)
     return wrapper
 
-def kill_session(session, kill_dtach=False):
-    """
-    Terminates all the processes associated with *session* and then removes
-    *session* from the global SESSIONS dict.  If *kill_dtach* is True, will
-    also call kill_dtached_proc() on the terminal processes.
-    """
-    for location in list(SESSIONS[session].keys()):
-        for term in location:
-            if isinstance(term, int) and term in SESSIONS[session][location]:
-                if SESSIONS[session][location][term]['multiplex'].isalive():
-                    SESSIONS[session][location][term]['multiplex'].terminate()
-                if kill_dtach:
-                    kill_dtached_proc(session, term)
-    del SESSIONS[session]
-
 @atexit.register # I love this feature!
-def kill_all_sessions(kill_dtach=False):
+def kill_all_sessions():
     """
-    Calls kill_session() on all sessions in the SESSIONS dict.
+    Calls all 'timeout_callbacks' attached to all `SESSIONS`.
     """
     for session in SESSIONS.keys():
-        kill_session(session, kill_dtach)
+        if "timeout_callbacks" in SESSIONS[session]:
+            if SESSIONS[session]["timeout_callbacks"]:
+                for callback in SESSIONS[session]["timeout_callbacks"]:
+                    callback(session)
 
-def timeout_sessions(kill_dtach=False):
+def timeout_sessions():
     """
     Loops over the SESSIONS dict killing any sessions that haven't been used
     for the length of time specified in *TIMEOUT* (global).  The value of
     *TIMEOUT* can be set in server.conf or specified on the command line via the
     *session_timeout* value.  Arguments:
 
-     * *kill_dtach* - If True, will call kill_dtached_proc() on each terminal to ensure it dies.
-
-    .. note:: This function is meant to be called via Tornado's ioloop.PeriodicCallback().
+    .. note:: This function is meant to be called via Tornado's :meth:`~tornado.ioloop.PeriodicCallback`.
     """
-    #logging.debug("timeout_sessions() TIMEOUT: %s" % TIMEOUT)
+    logging.debug("timeout_sessions() TIMEOUT: %s" % TIMEOUT)
     try:
         if not SESSIONS: # Last client has timed out
             logging.info(_("All user sessions have terminated."))
@@ -693,7 +681,11 @@ def timeout_sessions(kill_dtach=False):
             if datetime.now() > SESSIONS[session]["last_seen"] + TIMEOUT:
                 # Kill the session
                 logging.info(_("{session} timeout.".format(session=session)))
-                kill_session(session, kill_dtach)
+                if "timeout_callbacks" in SESSIONS[session]:
+                    if SESSIONS[session]["timeout_callbacks"]:
+                        for callback in SESSIONS[session]["timeout_callbacks"]:
+                            callback(session)
+                del SESSIONS[session]
     except Exception as e:
         logging.info(_(
             "Exception encountered in timeout_sessions(): {exception}".format(
@@ -701,31 +693,6 @@ def timeout_sessions(kill_dtach=False):
         ))
         import traceback
         traceback.print_exc(file=sys.stdout)
-
-def cleanup_session_logs(users_dir, max_age):
-    """
-    Cleans up all user's session logs (*.golog files) older than *max_age*
-    (timedelta) given the *users_dir* (string).  The session log directory is
-    assumed to be:
-
-        *users_dir*/<user>/logs
-    """
-    logging.debug("cleanup_session_logs()")
-    for user in os.listdir(users_dir):
-        logs_path = os.path.join(users_dir, user, 'logs')
-        if not os.path.exists(logs_path):
-            # Nothing to do
-            continue
-        for log_name in os.listdir(logs_path):
-            log_path = os.path.join(logs_path, log_name)
-            if not log_path.endswith('.golog'):
-                continue
-            mtime = time.localtime(os.stat(log_path).st_mtime)
-            # Convert to a datetime object for easier comparison
-            mtime = datetime.fromtimestamp(time.mktime(mtime))
-            if datetime.now() - mtime > max_age:
-                # The log is older than max_age, remove it
-                os.remove(log_path)
 
 # Classes
 class HTTPSRedirectHandler(tornado.web.RequestHandler):
@@ -1273,27 +1240,6 @@ class ApplicationWebSocket(WebSocketHandler):
         if user and user['session'] in SESSIONS:
             # Update 'last_seen' with a datetime object for accuracy
             SESSIONS[user['session']]['last_seen'] = datetime.now()
-            ## Remove all attached callbacks so we're not wasting memory/CPU on
-            ## disconnected clients
-            #for term in SESSIONS[user['session']][self.location]:
-                #if isinstance(term, int):
-                    #term_obj = SESSIONS[user['session']][self.location][term]
-                    #try:
-                        #multiplex = term_obj['multiplex']
-                        #multiplex.remove_all_callbacks(self.callback_id)
-                        #client_dict = term_obj[self.client_id]
-                        #term_emulator = multiplex.term
-                        #term_emulator.remove_all_callbacks(self.callback_id)
-                        ## Remove anything associated with the client_id
-                        #multiplex.io_loop.remove_timeout(
-                            #client_dict['refresh_timeout'])
-                        #del SESSIONS[user['session']][self.location][
-                            #term][self.client_id]
-                    #except AttributeError:
-                        ## User never completed opening a terminal so
-                        ## self.callback_id is missing.  Nothing to worry about
-                        #if self.client_id in term_obj:
-                            #del term_obj[self.client_id]
         if user and 'upn' in user:
             logging.info(
                 _("WebSocket closed (%s %s).") % (user['upn'], client_address))
@@ -1588,12 +1534,13 @@ class ApplicationWebSocket(WebSocketHandler):
             # Old session is no good, start a new one:
             SESSIONS[self.session] = {
                 'last_seen': 'connected',
-                self.location: {}
+                'timeout_callbacks': [],
+                'locations': {self.location: {}}
             }
         else:
             SESSIONS[self.session]['last_seen'] = 'connected'
-            if self.location not in SESSIONS[self.session]:
-                SESSIONS[self.session][self.location] = {}
+            if self.location not in SESSIONS[self.session]['locations']:
+                SESSIONS[self.session]['locations'][self.location] = {}
         # Send our plugin .js and .css files to the client
         self.send_static_files(os.path.join(GATEONE_DIR, 'plugins'))
         # Call applications' authenticate() functions (if any)
@@ -1603,6 +1550,12 @@ class ApplicationWebSocket(WebSocketHandler):
         # This is just so the client has a human-readable point of reference:
         message = {'set_username': self.current_user['upn']}
         self.write_message(json_encode(message))
+        # Startup the watcher if it isn't already running
+        global WATCHER
+        if not WATCHER:
+            interval = 30*1000 # Check every 30 seconds
+            WATCHER = tornado.ioloop.PeriodicCallback(timeout_sessions,interval)
+            WATCHER.start()
 
     def get_style(self, settings):
         """
@@ -2962,19 +2915,6 @@ def main():
         os.close(tempfd2)
         if uid != os.getuid():
             drop_privileges(uid, gid, [tty_gid])
-        # TODO: Move the CLEANER to app_terminal.py
-        # Make sure that old logs get cleaned up
-        global CLEANER
-        if not CLEANER:
-            interval = 5*60*1000 # Check every 5 minutes
-            max_age = convert_to_timedelta(
-                all_settings['*']['terminal']['session_logs_max_age'])
-            cleaner = partial(
-                cleanup_session_logs,
-                go_settings['user_dir'],
-                max_age)
-            CLEANER = tornado.ioloop.PeriodicCallback(cleaner, interval)
-            CLEANER.start()
         tornado.ioloop.IOLoop.instance().start()
     except KeyboardInterrupt: # ctrl-c
         logging.info(_("Caught KeyboardInterrupt.  Killing sessions..."))
