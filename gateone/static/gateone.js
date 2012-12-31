@@ -5316,8 +5316,10 @@ go.Base.update(GateOne.Terminal, {
                 callback(term);
             });
         }
-        // Fire our new_terminal event
-        GateOne.Events.trigger("new_terminal", term);
+        // Fire our new_terminal event if everything was successful
+        if (go.terminals[term]) {
+            go.Events.trigger("new_terminal", term);
+        }
         return term; // So you can call it from your own code and know what terminal number you wound up with
     },
     closeTerminal: function(term, /*opt*/noCleanup, /*opt*/message) {

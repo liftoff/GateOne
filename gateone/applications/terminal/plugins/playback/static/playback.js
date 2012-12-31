@@ -67,7 +67,7 @@ go.Base.update(GateOne.Playback, {
         go.Events.on("save_prefs", p.savePrefsCallback)
     },
     newTerminalCallback: function(term, calledTwice) {
-        // This gets added to GateOne.Terminal.newTermCallbacks to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls
+        // This gets added to the new_terminal event to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls
         // It also calls addPlaybackControls() to make sure they're present only after a new terminal is open
         var go = GateOne,
             u = go.Utils,
@@ -75,9 +75,14 @@ go.Base.update(GateOne.Playback, {
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
             termPre = u.getNode('#'+prefix+'term'+term+'_pre'),
-            screenSpan = go.terminals[term]['screenNode'],
+            screenSpan = null,
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             extraSpace = u.createElement('span'); // This goes at the bottom of terminals to fill the space where the playback controls go
+        if (go.terminals[term]) {
+            screenSpan = go.terminals[term]['screenNode'];
+        } else {
+            return; // Terminal was closed before the new_terminal event finished firing
+        }
         if (go.prefs.showPlaybackControls) {
             extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
             if (termPre) {

@@ -911,6 +911,7 @@ class GOApplication(object):
         self.close = ws.close
         self.get_current_user = ws.get_current_user
         self.current_user = ws.current_user
+        self.security = ws.security
         self.request = ws.request
         self.settings = ws.settings
         self.trigger = self.ws.trigger
@@ -1201,7 +1202,8 @@ class ApplicationWebSocket(WebSocketHandler):
                             # Try, try again
                             self.commands[key]()
                     except (KeyError, TypeError, AttributeError) as e:
-                        logging.debug("Error with WebSocket action: %s" % e)
+                        logging.debug(_(
+                            "Error with WebSocket action, %s: %s" % (key, e)))
                         logging.debug("Printing traceback...")
                         if self.settings['logging'] == "debug":
                             import traceback
@@ -1725,7 +1727,16 @@ class ApplicationWebSocket(WebSocketHandler):
                 with open(FILE_CACHE[path]['file'].name) as f:
                     out_dict['data'] = f.read()
         if not out_dict['data']:
-            out_dict['data'] = minify(path_or_fileobj, kind)
+            if self.settings['debug']:
+                if isinstance(path_or_fileobj, basestring):
+                    filename = os.path.split(path_or_fileobj)[1]
+                    with open(path_or_fileobj) as f:
+                        out_dict['data'] = f.read()
+                else:
+                    filename = os.path.split(path_or_fileobj.name)[1]
+                    out_dict['data'] = path_or_fileobj.read()
+            else:
+                out_dict['data'] = minify(path_or_fileobj, kind)
             import tempfile
             # Keep track of our files so we don't have to re-minify them
             temp = tempfile.NamedTemporaryFile(prefix='go_minified')
@@ -2335,7 +2346,7 @@ def main():
     logging.debug(_("Imported applications: %s" % APPLICATIONS))
     # Figure out which options are being overridden on the command line
     arguments = []
-    for arg in list(sys.argv):
+    for arg in list(sys.argv)[1:]:
         if not arg.startswith('-'):
             break
         else:
@@ -2513,38 +2524,15 @@ def main():
         # Make sure these values get updated
         all_settings = get_settings(options.settings_dir)
         go_settings = all_settings['*']['gateone']
-    # TODO: Make sure that go_settings gets updated with command line arguments
     for argument in arguments:
         if argument in non_options:
             continue
-        elif argument in options:
+        elif argument in options.keys():
             go_settings[argument] = options[argument]
     # Update Tornado's options from our settings
     options['cookie_secret'].set(go_settings['cookie_secret'])
     options['logging'].set(str(go_settings['logging']))
     options['log_file_prefix'].set(str(go_settings['log_file_prefix']))
-    #for key, value in list(go_settings.items()):
-        #if key in ['uid', 'gid']:
-            #value = str(value) # So the user doesn't have to worry about quotes
-        #elif key in ['logging', 'log_file_prefix']:
-            ## Have to convert unicode to str or Tornado will complain and exit
-            #value = str(value)
-        #elif key == 'api_keys':
-            ## The new configuration file format (.conf files) stores api keys as
-            ## dicts so we need to convert that back to the old format in order
-            ## to support overriding api_keys via the command line.
-            #if not value: # Empty string
-                #options[key].set(str(value))
-                #continue
-            #out = ""
-            #for api_key, secret in value.items():
-                #out += "%s:%s," % (api_key, secret)
-            #value = out
-            ## NOTE: api_keys settings/CLI logic will be changing soon.
-        #options[key].set(value)
-    # Now that setting loading/generation is out of the way, re-parse the
-    # command line options so the user can override any setting at run time.
-    #tornado.options.parse_command_line()
     # Change the uid/gid strings into integers
     try:
         uid = int(go_settings['uid'])

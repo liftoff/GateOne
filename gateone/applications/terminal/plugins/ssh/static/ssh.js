@@ -938,9 +938,11 @@ GateOne.Base.update(GateOne.SSH, {
         var go = GateOne,
             dict = JSON.parse(jsonDoc);
         for (var term in dict) {
-            go.terminals[term]['sshConnectString'] = dict[term];
-            // Also fix the title while we're at it
-//             go.Visual.setTitleAction({'term': term, 'title': dict[term]});
+            try {
+                go.terminals[term]['sshConnectString'] = dict[term];
+            } catch (e) {
+                logError("GateOne.SSH.handleReconnect() encountered an exception: " + e);
+            }
         }
     },
     keygenComplete: function(message) {

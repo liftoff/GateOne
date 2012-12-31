@@ -155,9 +155,11 @@ class require(object):
                 condition.instance = self
                 # This lets the condition know what it is being applied to:
                 condition.function = f
+                condition.f_args = args
+                condition.f_kwargs = kwargs
                 if not condition.check():
                     if hasattr(self, 'current_user') and self.current_user:
-                        if ['upn'] in self.current_user:
+                        if 'upn' in self.current_user:
                             logging.error(_(
                                 "%s -> %s failed requirement: %s" % (
                                 self.current_user['upn'],
@@ -190,6 +192,8 @@ class authenticated(object):
         # These are just here as reminders that (they will be set when called)
         self.instance = None
         self.function = None
+        self.f_args = None
+        self.f_kwargs = None
 
     def check(self):
         if not self.instance.current_user:
@@ -210,6 +214,8 @@ class is_user(object):
         self.upn = upn
         self.instance = None
         self.function = None
+        self.f_args = None
+        self.f_kwargs = None
 
     def check(self):
         user = self.instance.current_user
@@ -242,13 +248,15 @@ class policies(object):
         self.app = app
         self.instance = None
         self.function = None
+        self.f_args = None
+        self.f_kwargs = None
 
     def check(self):
         security = self.instance.security
         if self.app in security:
             # Let the application's registered 'security' function make its own
             # determination.
-            return security[self.app](self.instance, self.function)
+            return security[self.app](self)
         return True # Nothing is registered for this application so it's OK
 
 # Authentication stuff

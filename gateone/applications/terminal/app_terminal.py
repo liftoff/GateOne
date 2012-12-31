@@ -35,19 +35,20 @@ from functools import partial
 # Gate One imports
 import termio
 from gateone import GATEONE_DIR, BaseHandler, GOApplication
-from auth import require, authenticated, applicable_policies
+from auth import require, authenticated, applicable_policies, policies
 from utils import cmd_var_swap, RUDict, json_encode, get_settings, short_hash
 from utils import mkdir_p, string_to_syslog_facility, get_plugins, load_modules
 from utils import process_opt_esc_sequence, bind, MimeTypeFail, create_data_uri
 from utils import convert_to_timedelta, kill_dtached_proc, which
 
 # 3rd party imports
+import tornado.ioloop
 from tornado.escape import json_decode
-from tornado.ioloop import PeriodicCallback
 from tornado.options import options, define
 
 # Globals
 SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
+SHARED = {} # Used to store shared terminals, callbacks, and whatnot
 # This is in case we have relative imports, templates, or whatever:
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 REGISTERED_HANDLERS = [] # So we don't accidentally re-add handlers
@@ -400,27 +401,63 @@ def cleanup_session_logs():
                 # The log is older than max_age, remove it
                 os.remove(log_path)
 
-def policy_new_terminal(instance, function):
+def policy_new_terminal(cls, policy):
     """
-    Called by :func:`terminal_policies`, returns True if the user is authorized
-    to execute :func:`new_terminal`.  Specifically, checks to make sure the user
-    is not in violation of their applicable 'max_terms' policy.
+    Called by :func:`terminal_policies`, returns True if the *user* is
+    authorized to execute :func:`new_terminal`.  Specifically, checks to make
+    sure the user is not in violation of their applicable policies (e.g.
+    max_terms).
     """
-    policies = applicable_policies('terminal', user, instance.policies)
-    if not hasattr(instance, 'open_terminals'):
+    instance = cls.instance
+    try:
+        term = cls.f_args[0]['term']
+    except KeyError:
+        # new_terminal got bad *settings*.  Deny
+        return False
+    user = instance.current_user
+    sess_term_store = SESSIONS[instance.ws.session]["terminal"]
+    if "open_terminals" not in sess_term_store:
         # Make an attribute we can use to count open terminals
-        instance.open_terminals = 0
+        sess_term_store["open_terminals"] = 0
+        # Add an event that reduces open_terminals when they're closed
+        def one_less(term):
+            sess_term_store["open_terminals"] -= 1
+        instance.on("terminal:kill_terminal", one_less)
     # Start by determining the limits
     max_terms = 0 # No limit
-    if 'max_terms' in policies:
-        max_terms = policies['max_terms']
+    if 'max_terms' in policy:
+        max_terms = policy['max_terms']
+    max_cols = 0
+    max_rows = 0
+    if 'max_dimensions' in policy:
+        max_cols = policy['max_dimensions']['cols']
+        max_rows = policy['max_dimensions']['rows']
     if max_terms:
-        if instance.open_terminals >= max_terms:
+        if sess_term_store["open_terminals"] >= max_terms:
+            logging.error(_(
+                "%s denied opening new terminal.  The 'max_terms' policy limit "
+                "(%s) has been reached for this user." % (
+                user['upn'], max_terms)))
+            # Let the client know this term is no more (after a timeout so the
+            # can complete its newTerminal stuff beforehand).
+            ioloop = tornado.ioloop.IOLoop.instance()
+            term_ended = partial(instance.term_ended, term)
+            ioloop.add_timeout(
+                timedelta(milliseconds=500), term_ended)
+            instance.ws.send_message(_(
+                "Server policy dictates that you may only open %s terminal(s) "
+                % max_terms))
             return False
-    instance.open_terminals += 1
+    if max_cols:
+        if int(cls.f_args['cols']) > max_cols:
+            cls.f_args['cols'] = max_cols # Reduce to max size
+    if max_rows:
+        if int(cls.f_args['rows']) > max_rows:
+            cls.f_args['rows'] = max_rows # Reduce to max size
+    sess_term_store["open_terminals"] += 1
     return True
 
-def terminal_policies(instance, function):
+def terminal_policies(cls):
     """
     This function gets registered under 'terminal' in the
     :attr:`GOApplication.security` dict and is called by the :func:`require`
@@ -438,22 +475,26 @@ def terminal_policies(instance, function):
 
     If no 'terminal' policies are defined this function will always return True.
     """
+    instance = cls.instance # ApplicationWebSocket instance
+    function = cls.function # Wrapped function
+    f_args = cls.f_args     # Wrapped function's arguments
+    f_kwargs = cls.f_kwargs # Wrapped function's keyword arguments
     policy_functions = {
         'new_terminal': policy_new_terminal
     }
     user = instance.current_user
-    policies = applicable_policies('terminal', user, instance.policies)
-    if not policies: # Empty RUDict
+    policy = applicable_policies('terminal', user, instance.ws.policies)
+    if not policy: # Empty RUDict
         return True # A world without limits!
     # Start by determining if the user can even login to the terminal app
-    if 'allow' in policies:
-        if not policies['allow']:
+    if 'allow' in policy:
+        if not policy['allow']:
             logging.error(_(
                 "%s denied access to the Terminal application by policy."
                 % user['upn']))
             return False
     if function.__name__ in policy_functions:
-        return policy_functions[function.__name__](instance, function)
+        return policy_functions[function.__name__](cls, policy)
     return True # Default to permissive if we made it this far
 
 class TerminalApplication(GOApplication):
@@ -480,7 +521,7 @@ class TerminalApplication(GOApplication):
             'get_webworker': self.get_webworker,
             'debug_terminal': self.debug_terminal
         })
-        self.terminal_policies = {} # Gets set in authenticate() below
+        self.policy = {} # Gets set in authenticate() below
         self.terms = {}
         # So we can keep track and avoid sending unnecessary messages:
         self.titles = {}
@@ -582,16 +623,17 @@ class TerminalApplication(GOApplication):
         Sends all plugin JavaScript files to the client and triggers the
         'terminal:authenticate' event.
         """
+        logging.debug('authenticate()')
         self.ws.send_static_files(os.path.join(APPLICATION_PATH, 'plugins'))
         terminals = []
         for term in list(SESSIONS[self.ws.session][
                 'locations'][self.ws.location].keys()):
             if isinstance(term, int): # Only terminals are integers in the dict
                 terminals.append(term)
-        policies = applicable_policies(
+        self.policy = applicable_policies(
             'terminal', self.current_user, self.ws.policies)
         # Check for any dtach'd terminals we might have missed
-        if policies['dtach']:
+        if self.policy['dtach']:
             session_dir = self.ws.settings['session_dir']
             session_dir = os.path.join(session_dir, self.ws.session)
             if not os.path.exists(session_dir):
@@ -605,8 +647,13 @@ class TerminalApplication(GOApplication):
         terminals.sort() # Put them in order so folks don't get confused
         message = {'terminals': terminals}
         self.write_message(json_encode(message))
-        if "timeout_callbacks" in SESSIONS[self.ws.session]:
-            SESSIONS[self.ws.session]["timeout_callbacks"].append(kill_session)
+        sess = SESSIONS[self.ws.session]
+        # Create a place to store app-specific stuff related to this session
+        if "terminal" not in sess:
+            sess['terminal'] = {}
+        if "timeout_callbacks" in sess:
+            if kill_session not in sess["timeout_callbacks"]:
+                sess["timeout_callbacks"].append(kill_session)
         self.trigger("terminal:authenticate")
 
     def on_close(self):
@@ -750,7 +797,7 @@ class TerminalApplication(GOApplication):
         self.trigger("terminal:new_multiplex", m)
         return m
 
-    @require(authenticated())
+    @require(authenticated(), policies('terminal'))
     def new_terminal(self, settings):
         """
         Starts up a new terminal associated with the user's session using
@@ -772,15 +819,13 @@ class TerminalApplication(GOApplication):
         term = settings['term']
         self.rows = rows = settings['rows']
         self.cols = cols = settings['cols']
-        policies = applicable_policies(
-            'terminal', self.current_user, self.ws.policies)
         # NOTE: 'command' here is actually just the short name of the command.
         #       ...which maps to what's configured in commands.conf
         if 'command' in settings:
             command = settings['command']
         else:
             try:
-                command = policies['default_command']
+                command = self.policy['default_command']
             except KeyError:
                 logging.error(_(
                    "You are missing a 'default_command' in your terminal "
@@ -789,7 +834,7 @@ class TerminalApplication(GOApplication):
                 return
         # Get the full command
         try:
-            full_command = policies['commands'][command]
+            full_command = self.policy['commands'][command]
         except KeyError:
             # The given command isn't an option
             logging.error(_("%s: Attempted to execute invalid command (%s)." % (
@@ -842,7 +887,7 @@ class TerminalApplication(GOApplication):
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
                 os.chmod(session_dir, 0o770)
-            if policies['dtach']: # Wrap in dtach (love this tool!)
+            if self.policy['dtach']: # Wrap in dtach (love this tool!)
                 dtach_path = "%s/dtach_%s" % (session_dir, term)
                 if os.path.exists(dtach_path):
                     # Using 'none' for the refresh because the EVIL termio
@@ -994,10 +1039,8 @@ class TerminalApplication(GOApplication):
         multiplex = loc[term]['multiplex']
         # Remove the EXIT callback so the terminal doesn't restart itself
         multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
-        policies = applicable_policies(
-            'terminal', self.current_user, self.ws.policies)
         try:
-            if policies['dtach']: # dtach needs special love
+            if self.policy['dtach']: # dtach needs special love
                 from utils import kill_dtached_proc
                 kill_dtached_proc(self.ws.session, term)
             if multiplex.isalive():
@@ -1260,7 +1303,7 @@ class TerminalApplication(GOApplication):
         self.refresh_screen(term, full=True)
         self.trigger("terminal:full_refresh", term)
 
-    @require(authenticated())
+    @require(authenticated(), policies('terminal'))
     def resize(self, resize_obj):
         """
         Resize the terminal window to the rows/cols specified in *resize_obj*
@@ -1411,6 +1454,54 @@ class TerminalApplication(GOApplication):
         message = {'load_webworker': go_process}
         self.write_message(json_encode(message))
 
+# Terminal sharing TODO (not in any particular order or priority):
+#   * GUI elements that allow a user to share a terminal:
+#       - Share this terminal:
+#           > Allow anyone with the right URL to view (requires authorization-on-connect).
+#           > Allow only authenticated users.
+#           > Allow only specified users.
+#       - Sharing controls widget (pause/resume sharing, primarily).
+#       - Chat widget (or similar--maybe with audio/video via WebRTC).
+#       - A mechanism to invite people (send an email/alert).
+#       - A mechanism to approve inbound viewers.
+#   * A server-side API to control sharing:
+#       - Share X with authorization options (allow anon w/URL and/or password, authenticated users, or a specific list)
+#       - Stop sharing terminal X.
+#       - Pause sharing of terminal X.
+#       - Generate sharing URL for terminal X.
+#       - Send invitation to view terminal X.  Connected user(s), email, and possibly other mechanisms (Jabber/Google Talk, SMS, etc)
+#       - Approve inbound viewer.
+#       - Allow viewer(s) to control terminal X.
+#       - A completely separate chat/communications API.
+#       - List shared terminals.
+#       - Must @require()
+#   * A client-side API to control sharing:
+#       - Notify user of connected viewers.
+#       - Notify user of access/control grants.
+#       - Control playback history via server-side events (in case a viewer wants to point something out that just happened).
+#   * A RequestHandler to handle anonymous connections to shared terminals.  Needs to serve up something specific (not index.html)
+#   * A mechanism to generate anonymous sharing URLs.
+#   * A way for users to communicate with each other (chat, audio, video).
+#   * A mechansim for password-protecting shared terminals.
+#   * Logic to detect the optimum terminal size for all viewers.
+#   * A data structure of some sort to keep track of shared terminals and who is currently connected to them.
+#   * A way to view multiple shared terminals on a single page with the option to break them out into individual windows/tabs.
+    @require(authenticated(), policies('terminal'))
+    def share_terminal(self, settings):
+        """
+        Shares the given *settings['term']* using the given *settings*.
+        """
+        logging.debug("share_terminal(%s)" % settings)
+        from utils import generate_session_id
+        term = settings['term'] # Term number at the current location
+        whom = settings['whom'] # List of who to share with.  Options are:
+        # ANONYMOUS (auto-gen URL), user.attr=(regex), and "AUTHENTICATED"
+        password = settings['password'] # If None and whom==ANONYMOUS, auto-gen
+        url_prefix = self.ws.settings['url_prefix']
+        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
+        term_obj = loc[term]
+        url = "%s/terminal/shared/%s" % (url_prefix, generate_session_id())
+
     @require(authenticated())
     def debug_terminal(self, term):
         """
@@ -1542,7 +1633,7 @@ def init(settings):
         except KeyError:
             interval = 5*60*1000 # Check every 5 minutes
         max_age = convert_to_timedelta(term_settings['session_logs_max_age'])
-        CLEANER = PeriodicCallback(cleanup_session_logs, interval)
+        CLEANER = tornado.ioloop.PeriodicCallback(cleanup_session_logs,interval)
         CLEANER.start()
 
 # Tell Gate One which classes are applications
