@@ -44,6 +44,7 @@ import re
 from multiprocessing import Process, Queue
 
 # Our stuff
+from gateone import GATEONE_DIR
 from logviewer import flatten_log, get_frames
 from termio import retrieve_first_frame
 from termio import get_or_update_metadata
@@ -58,6 +59,7 @@ import tornado.ioloop
 # TODO: Make the log retrieval functions work incrementally as logs are read so they don't have to be stored entirely in memory before being sent to the client.
 
 # Globals
+PLUGIN_PATH = os.path.split(__file__)[0] # Path to this plugin's directory
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
 PROCS = {} # For tracking/cancelling background processes
 # Matches Gate One's special optional escape sequence (ssh plugin only)
@@ -111,11 +113,13 @@ def enumerate_logs(self, limit=None):
     Log objects will be returned to the client one at a time by sending
     'logging_log' actions to the client over the WebSocket (*self*).
     """
+    logging.debug("enumerate_logs(%s, %s)" % (self, limit))
     # Sometimes IOLoop detects multiple events on the fd before we've finished
     # doing a get() from the queue.  This variable is used to ensure we don't
     # send the client duplicates:
     results = []
-    if self.settings['session_logging'] == False:
+    # NOTE: self.policy represents the user's specific settings
+    if self.policy['session_logging'] == False:
         message = {'notice': _(
             "NOTE: User session logging is disabled.  To enable it, set "
             "'session_logging = True' in your server.conf.")}
@@ -227,7 +231,7 @@ def retrieve_log_flat(self, settings):
     settings['prefix'] = self.ws.prefix
     settings['user'] = user = self.get_current_user()['upn']
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
-    settings['gateone_dir'] = self.ws.settings['gateone_dir']
+    settings['gateone_dir'] = GATEONE_DIR
     io_loop = tornado.ioloop.IOLoop.instance()
     global PROCS
     if user not in PROCS:
@@ -325,7 +329,7 @@ def retrieve_log_playback(self, settings):
     settings['prefix'] = self.ws.prefix
     settings['user'] = user = self.ws.get_current_user()['upn']
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
-    settings['gateone_dir'] = self.ws.settings['gateone_dir']
+    settings['gateone_dir'] = GATEONE_DIR
     settings['url_prefix'] = self.ws.settings['url_prefix']
     io_loop = tornado.ioloop.IOLoop.instance()
     global PROCS
@@ -411,9 +415,7 @@ def _retrieve_log_playback(queue, settings):
     templates_path = os.path.join(gateone_dir, 'templates')
     colors_path = os.path.join(templates_path, 'term_colors')
     themes_path = os.path.join(templates_path, 'themes')
-    plugins_path = os.path.join(gateone_dir, 'plugins')
-    logging_plugin_path = os.path.join(plugins_path, 'logging')
-    template_path = os.path.join(logging_plugin_path, 'templates')
+    template_path = os.path.join(PLUGIN_PATH, 'templates')
     # recording format:
     # {"screen": [log lines], "time":"2011-12-20T18:00:01.033Z"}
     # Actual method logic
@@ -500,7 +502,7 @@ def save_log_playback(self, settings):
     settings['prefix'] = self.ws.prefix
     settings['user'] = user = self.ws.get_current_user()['upn']
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
-    settings['gateone_dir'] = self.ws.settings['gateone_dir']
+    settings['gateone_dir'] = GATEONE_DIR
     settings['url_prefix'] = self.ws.settings['url_prefix']
     q = Queue()
     global PROC
@@ -576,9 +578,7 @@ def _save_log_playback(queue, settings):
     templates_path = os.path.join(gateone_dir, 'templates')
     colors_path = os.path.join(templates_path, 'term_colors')
     themes_path = os.path.join(templates_path, 'themes')
-    plugins_path = os.path.join(gateone_dir, 'plugins')
-    logging_plugin_path = os.path.join(plugins_path, 'logging')
-    template_path = os.path.join(logging_plugin_path, 'templates')
+    template_path = os.path.join(PLUGIN_PATH, 'templates')
     # recording format:
     # {"screen": [log lines], "time":"2011-12-20T18:00:01.033Z"}
     # Actual method logic
@@ -667,11 +667,40 @@ def _save_log_playback(queue, settings):
     #message = {'save_file': out_dict}
     #self.write_message(message)
 
+def send_css_template(self):
+    """
+    Sends our logging.css template to the client using the 'load_style'
+    WebSocket action.  Uses :attr:`ApplicationWebSocket.persist` to store a
+    reference to the rendered CSS template to ensure we only ever have to render
+    it once.
+    """
+    # Here we use the 'persist' dict to keep track of our rendered CSS template
+    if 'logging_css' not in self.ws.persist:
+        import tornado.template
+        import tempfile
+        temp = tempfile.NamedTemporaryFile(prefix='go_logging_css')
+        css_path = os.path.join(PLUGIN_PATH, 'templates', 'logging.css')
+        with open(css_path) as f:
+            css_template = tornado.template.Template(f.read())
+        rendered = css_template.generate(
+            container=self.ws.container,
+            prefix=self.ws.prefix
+        )
+        temp.write(rendered)
+        temp.flush()
+        # Save the rendered template to our persistent store so we don't have to
+        # process it with every page load.
+        self.ws.persist['logging_css'] = temp
+    self.ws.send_css(self.ws.persist['logging_css'])
+
 hooks = {
     'WebSocket': {
         'logging_get_logs': enumerate_logs,
         'logging_get_log_flat': retrieve_log_flat,
         'logging_get_log_playback': retrieve_log_playback,
         'logging_get_log_file': save_log_playback,
+    },
+    'Events': {
+        'terminal:authenticate': send_css_template
     }
 }
