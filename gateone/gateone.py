@@ -1164,7 +1164,7 @@ class ApplicationWebSocket(WebSocketHandler):
                 self.write_message(denied_msg)
                 self.write_message(_(
                     "If you feel this is incorrect you just have to add '%s' to"
-                    " the 'origin' option in your server.conf.  See the docs "
+                    " the 'origin' option in your settings.  See the docs "
                     "for details." % short_origin
                 ))
                 self.close()
@@ -1493,12 +1493,12 @@ class ApplicationWebSocket(WebSocketHandler):
                     logging.error(_(
                         "Client tried to use API-based authentication but this "
                         "server is configured with 'auth = \"%s\".  Did you "
-                        "forget to set 'auth = \"api\" in your server.conf?" %
+                        "forget to set 'auth = \"api\" in your settings?" %
                         self.settings['auth']))
                     message = {'notice': _(
                         "AUTHENTICATION ERROR: Server is not configured to "
                         "perform API-based authentication.  Did someone forget "
-                        "to set 'auth = \"api\" in the server.conf?")}
+                        "to set 'auth = \"api\" in the settings?")}
                     self.write_message(json_encode(message))
                     return
                 if cookie_data:
@@ -2497,6 +2497,8 @@ def main():
                         "// This is Gate One's Terminal application settings "
                         "file.\n"))
                     s.write(new_term_settings)
+        # Rename the old server.conf so this logic doesn't happen again
+        os.rename(options.config, "%s.old" % options.config)
     all_settings = get_settings(settings_dir)
     if 'gateone' not in all_settings['*']:
         # User has yet to create a 10server.conf (or equivalent)

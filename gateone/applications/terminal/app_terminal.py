@@ -809,18 +809,12 @@ class TerminalApplication(GOApplication):
         """
         logging.debug("%s new_terminal(): %s" % (
             self.current_user['upn'], settings))
-        # TODO: Move this logic back into gateone.py somewhere
-        #if self.ws.session not in SESSIONS:
-            ## This happens when timeout_sessions() times out a session
-            ## Tell the client it timed out:
-            #message = {'timeout': None}
-            #self.write_message(json_encode(message))
-            #return
         term = settings['term']
         self.rows = rows = settings['rows']
         self.cols = cols = settings['cols']
         # NOTE: 'command' here is actually just the short name of the command.
-        #       ...which maps to what's configured in commands.conf
+        #       ...which maps to what's configured the 'commands' part of your
+        #       terminal settings.
         if 'command' in settings:
             command = settings['command']
         else:
@@ -1553,14 +1547,16 @@ def init(settings):
             'command', 'dtach', 'session_logging', 'session_logs_max_age',
             'syslog_session_logging'
         ]
+        if 'terminal' not in settings['*']:
+            settings['*']['terminal'] = {}
         with open(options.config) as f:
             for line in f:
                 if line.startswith('#'):
                     continue
-                if key not in terminal_options:
-                    continue
                 key = line.split('=', 1)[0].strip()
                 value = eval(line.split('=', 1)[1].strip())
+                if key not in terminal_options:
+                    continue
                 if key == 'command':
                     # Fix the path to ssh_connect.py if present
                     if 'ssh_connect.py' in value:

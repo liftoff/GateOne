@@ -50,7 +50,7 @@ else: # FUTURE
 for arg in sys.argv:
     if arg.startswith('--prefix') or arg.startswith('--home'):
         prefix = arg.split('=')[1]
-print("Gate One will be installed in %s" % prefix)
+print("Gate One will be installed in %s/gateone" % prefix)
 
 def walk_data_files(path, install_path=prefix):
     """
