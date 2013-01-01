@@ -22,7 +22,13 @@ GateOne.Example.graphUpdateTimer = null; // Used to track the setTimout() that u
 GateOne.Example.topUpdateTimer = null; // Used to track the setTimeout() that updates the topTop output
 
 GateOne.Base.update(GateOne.Example, { // Everything that we want to be available under GateOne.Example goes in here
-    init: function() { // The init() function of every JavaScript plugin attached to GateOne gets called automatically after the page loads
+    init: function() {
+        /**:GateOne.Example.init()
+
+        The init() function of every JavaScript plugin gets called automatically after the WebSocket is connected is authenticated.
+
+        The Example plugin's `init()` function sets up some internal variables, keyboard shortcuts (:kbd:`Control-Alt-L` to open the load graph), and adds some buttons to the Info & Tools menu.
+        */
         var go = GateOne, // Adding a shortcut like this at the top of your plugin saves a lot of typing
             u = go.Utils, // Ditto
             prefix = go.prefs.prefix, // Ditto again
@@ -75,14 +81,20 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         );
     },
     stopGraph: function(result) {
-        // Clears the GateOne.Example.graphUpdateTimer, removes the canvas element, and stops the smoothie streaming.
+        /**:GateOne.Example.stopGraph(result)
+
+        Clears the `GateOne.Example.graphUpdateTimer`, removes the canvas element, and stops the smoothie graph streaming.  *result* is unused.
+        */
         clearInterval(GateOne.Example.graphUpdateTimer);
         GateOne.Example.graphUpdateTimer = null;
         GateOne.Example.loadGraph.stop();
         GateOne.Utils.removeElement(GateOne.Example.canvas);
     },
     updateGraph: function(output) {
-        // Updates GateOne.Example.line1 through line3 by parsing the output of the 'uptime' command
+        /**:GateOne.Example.updateGraph(output)
+
+        Updates GateOne.Example.line1 through line3 by parsing the *output* of the 'uptime' command.
+        */
         // ' 16:23:07 up 13 days, 23:22, 10 users,  load average: 1.47, 0.56, 0.38'
         var fivemin = parseFloat(output.split('average:')[1].split(',')[0].trim()),
             tenmin = parseFloat(output.split('average:')[1].split(',')[1].trim()),
@@ -93,7 +105,10 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         GateOne.Example.line3.append(new Date().getTime(), fifteenmin);
     },
     toggleLoadGraph: function(term) {
-        // Displays a real-time load graph of the given terminal (inside of it as a widget)
+        /**:GateOne.Example.toggleLoadGraph(term)
+
+        Displays a real-time load graph of the given terminal (inside of it as a :js:meth:`GateOne.Visual.widget`).
+        */
         if (!term) {
             term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
@@ -135,22 +150,28 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         go.Visual.displayMessage("Green: 5 minute, Blue: 10 minute, Red: 15 minute", 5000);
     },
     updateTop: function(output) {
-        // Updates the topTop() output on the screen when we receive output from the Gate One server
-        // Here's what the output should look like:
-        //   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
-        //     1 root      20   0 24052 2132 1316 S  0.0  0.4   0:00.35 /sbin/init
-        //     2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 [kthreadd]
-        //     3 root      20   0     0    0    0 S  0.0  0.0   0:00.08 [ksoftirqd/0]
+        /**:GateOne.Example.updateTop(output)
+
+        Updates the :js:meth:`GateOne.Example.topTop` output on the screen when we receive *output* from the Gate One server. Here's what the output should look like::
+
+            PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
+              1 root      20   0 24052 2132 1316 S  0.0  0.4   0:00.35 /sbin/init
+              2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 [kthreadd]
+              3 root      20   0     0    0    0 S  0.0  0.0   0:00.08 [ksoftirqd/0]
+        */
         GateOne.Example.toptop.innerHTML = output;
     },
     stopTop: function(result) {
-        // Clears the GateOne.Example.topUpdateTimer and removes the 'toptop' element
+        /**:GateOne.Example.stopTop(result)
+
+        Clears the `GateOne.Example.topUpdateTimer` and removes the 'toptop' element.  *result* is unused.
+        */
         clearInterval(GateOne.Example.topUpdateTimer);
         GateOne.Example.topUpdateTimer = null;
         GateOne.Utils.removeElement(GateOne.Example.toptop);
     },
     topTop: function(term) {
-        /**GateOne.Exampe.topTop(term)
+        /**GateOne.Example.topTop(term)
 
         Displays the top three CPU-hogging processes on the server in real-time (updating every three seconds just like top).
         */

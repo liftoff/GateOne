@@ -19,7 +19,10 @@ var logDebug = noop;
 GateOne.Base.module(GateOne, "Help", "1.1", ['Base']);
 GateOne.Base.update(GateOne.Help, {
     init: function() {
-        // Setup the help panel
+        /**:GateOne.Help.init()
+
+        Creates the help panel and registers the :kbd:`Shift-F1` (show help) and :kbd:`Ctrl-S` (displays helpful message about suspended terminal output) keyboard shortcuts.
+        */
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
@@ -85,7 +88,11 @@ GateOne.Base.update(GateOne.Help, {
             go.Input.registerShortcut('KEY_S', {'modifiers': {'ctrl': true, 'alt': false, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.displayMessage("Terminal output has been suspended (Ctrl-S). Type Ctrl-Q to resume."); GateOne.Input.queue(String.fromCharCode(19)); GateOne.Net.sendChars();'});
         }
     },
-    aboutGateOne: function() { // Displays our version/credits
+    aboutGateOne: function() { //
+        /**:GateOne.Help.aboutGateOne()
+
+        Displays the Gate One version/credits.
+        */
         // First we create our settings object to pass to showHelpSection()
         var go = GateOne,
             u = go.Utils,
@@ -99,8 +106,14 @@ GateOne.Base.update(GateOne.Help, {
             u.getNode('#gateone_version').innerHTML = "<b>Version:</b> " + go.VERSION;
         }, 2000);
     },
+    // TODO: Finish this...
     showFirstTimeDialog: function() {
-        // Pops up a dialog for first-time users that shows them the basics of Gate One
+        /**:GateOne.Help.showFirstTimeDialog()
+
+        Pops up a dialog for first-time users that shows them the basics of Gate One.
+
+        .. note:  Not implemented yet.
+        */
         var go = GateOne,
             u = go.Utils,
             firstTimeDiv = u.createElement('div', {'id': 'help_firsttime'}),
@@ -112,11 +125,17 @@ GateOne.Base.update(GateOne.Help, {
         dismiss.onclick = closeDialog;
     },
     showHelp: function() {
-        // Just displays the help panel
+        /**:GateOne.Help.showHelp()
+
+        Displays the help panel.
+        */
         GateOne.Visual.togglePanel('#'+GateOne.prefs.prefix+'panel_help');
     },
     showHelpSection: function(sectionObj) {
-        // Shows the given help information by sliding out whatever is in the help panel and sliding in the new help text
+        /**:GateOne.Help.showHelpSection(sectionObj)
+
+        Shows the given help information (*sectionObj*) by sliding out whatever is in the help panel and sliding in the new help text.
+        */
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,

@@ -60,13 +60,200 @@
             
   <div class="section" id="the-logging-plugin">
 <h1>The Logging Plugin<a class="headerlink" href="#the-logging-plugin" title="Permalink to this headline">¶</a></h1>
-<div class="admonition-todo admonition" id="index-0">
-<p class="first admonition-title">Todo</p>
-<p class="last">Write documentation on logging.js.</p>
+<div class="section" id="javascript">
+<h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
+<p>logging.js - The client-side portion of Gate One's Logging plugin.</p>
+<dl class="function">
+<dt id="GateOne.Logging.addDestination">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">addDestination</tt><big>(</big><em>name</em>, <em>dest</em><big>)</big><a class="headerlink" href="#GateOne.Logging.addDestination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new log destination named, <em>name</em> that calls function <em>dest</em> like so:</p>
+<div class="highlight-js"><div class="highlight"><pre><span class="nx">dest</span><span class="p">(</span><span class="o">&lt;</span><span class="nx">log</span> <span class="nx">message</span><span class="o">&gt;</span><span class="p">);</span>
+</pre></div>
 </div>
-<span class="target" id="module-logging_plugin"></span><p>logging.py - A plugin for Gate One that provides logging-related functionality.</p>
+<p>Example usage:</p>
+<div class="highlight-js"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">addDestination</span><span class="p">(</span><span class="s1">&#39;screen&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Visual</span><span class="p">.</span><span class="nx">displayMessage</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The above example is kind of fun.  Try it in your JavaScript console!</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.createLogItem">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">createLogItem</tt><big>(</big><em>container</em>, <em>logObj</em>, <em>delay</em><big>)</big><a class="headerlink" href="#GateOne.Logging.createLogItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a logItem element using <em>logObj</em> and places it in <em>container</em>.</p>
+<p><em>delay</em> controls how long it will wait before using a CSS3 effect to move it into view.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.createPanel">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">createPanel</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Logging.createPanel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the logging panel (just the empty shell of it).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.dateFormatter">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">dateFormatter</tt><big>(</big><em>dateObj</em><big>)</big><a class="headerlink" href="#GateOne.Logging.dateFormatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a Date() object into string suitable for logging.  e.g. 2011-05-29 13:24:03</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.displayFlatLogAction">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">displayFlatLogAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Logging.displayFlatLogAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a new window displaying the (flat) log contained within <em>message</em> if there are no errors reported.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.displayMetadata">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">displayMetadata</tt><big>(</big><em>logFile</em><big>)</big><a class="headerlink" href="#GateOne.Logging.displayMetadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays the information about the log file, <em>logFile</em> in the metadata area of the log viewer.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.displayPlaybackLogAction">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">displayPlaybackLogAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Logging.displayPlaybackLogAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a new window playing back the log contained within <em>message</em> if there are no errors reported.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.getMaxLogItems">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">getMaxLogItems</tt><big>(</big><em>elem</em><big>)</big><a class="headerlink" href="#GateOne.Logging.getMaxLogItems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates and returns the number of log items that will fit in the given element (<em>elem</em>).  <em>elem</em> may be a DOM node or an element ID (string).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.incomingLogAction">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">incomingLogAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Logging.incomingLogAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds <em>message['log']</em> to <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Logging.serverLogs</span></tt> and places it into the view.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.incomingLogsCompleteAction">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">incomingLogsCompleteAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Logging.incomingLogsCompleteAction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the header of the log viewer and displays a message to indicate we're done loading.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.init">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Logging.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the log viewer panel and registers the following WebSocket actions:</p>
+<div class="highlight-js"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;logging_log&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">incomingLogAction</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;logging_logs_complete&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">incomingLogsCompleteAction</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;logging_log_flat&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">displayFlatLogAction</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;logging_log_playback&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">displayPlaybackLogAction</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.loadLogs">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">loadLogs</tt><big>(</big><em>forceUpdate</em><big>)</big><a class="headerlink" href="#GateOne.Logging.loadLogs" title="Permalink to this definition">¶</a></dt>
+<dd><p>After <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Logging.serverLogs</span></tt> has been populated this function will redraw the view depending on sort and pagination values.</p>
+<p>If <em>forceUpdate</em> empty out <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Logging.serverLogs</span></tt> and tell the server to send us a new list.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.loadPagination">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">loadPagination</tt><big>(</big><em>logItems</em><span class="optional">[</span>, <em>page</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Logging.loadPagination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up the pagination for the given array of <em>logItems</em> and returns the pagination node.</p>
+<p>If <em>page</em> is given, the pagination will highlight the given page number and adjust prev/next accordingly.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.log">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">log</tt><big>(</big><em>msg</em>, <em>level</em>, <em>destination</em><big>)</big><a class="headerlink" href="#GateOne.Logging.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs the given <em>msg</em> using all of the functions in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Logging.destinations</span></tt> after being prepended with the date and a string indicating the log level (e.g. &quot;692011-10-25 10:04:28 INFO &lt;msg&gt;&quot;) if <em>level</em> is determined to be greater than the value of <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Logging.level</span></tt>.  If the given <em>level</em> is not greater than <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Logging.level</span></tt> <em>msg</em> will be discarded (noop).</p>
+<p><em>level</em> can be provided as a string, an integer, null, or be left undefined:</p>
+<blockquote>
+<div>If an integer, an attempt will be made to convert it to a string using GateOne.Logging.levels but if this fails it will use &quot;lvl:&lt;integer&gt;&quot; as the level string.
+If a string, an attempt will be made to obtain an integer value using GateOne.Logging.levels otherwise GateOne.Logging.level will be used (to determine whether or not the message should actually be logged).
+If undefined, the level will be set to GateOne.Logging.level.
+If null (as opposed to undefined), level info will not be included in the log message.</div></blockquote>
+<p>If <em>destination</em> is given (must be a function) it will be used to log messages like so: <tt class="xref py py-obj docutils literal"><span class="pre">destination(message,</span> <span class="pre">levelStr)</span></tt>.  The usual conversion of <em>msg</em> to <em>message</em> will apply.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.logToConsole">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">logToConsole</tt><big>(</big><em>msg</em>, <em>level</em><big>)</big><a class="headerlink" href="#GateOne.Logging.logToConsole" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logs the given <em>msg</em> to the browser's JavaScript console.  If <em>level</em> is provided it will attempt to use the appropriate console logger (e.g. console.warn()).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Original version of this function is from: <tt class="xref py py-obj docutils literal"><span class="pre">MochiKit.Logging.Logger.prototype.logToConsole</span></tt>.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.openLogFlat">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">openLogFlat</tt><big>(</big><em>logFile</em><big>)</big><a class="headerlink" href="#GateOne.Logging.openLogFlat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the server to open <em>logFile</em> for playback via the 'logging_get_log_flat' server-side WebSocket action (will end up calling <a class="reference internal" href="#GateOne.Logging.displayFlatLogAction" title="GateOne.Logging.displayFlatLogAction"><tt class="xref js js-meth docutils literal"><span class="pre">displayFlatLogAction()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.openLogPlayback">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">openLogPlayback</tt><big>(</big><em>logFile</em><span class="optional">[</span>, <em>where</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Logging.openLogPlayback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the server to open <em>logFile</em> for playback via the 'logging_get_log_playback' server-side WebSocket action (will end up calling <a class="reference internal" href="#GateOne.Logging.displayPlaybackLogAction" title="GateOne.Logging.displayPlaybackLogAction"><tt class="xref js js-meth docutils literal"><span class="pre">displayPlaybackLogAction()</span></tt></a>.</p>
+<p>If <em>where</em> is given and it is set to 'preview' the playback will happen in the log_preview iframe.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.removeDestination">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">removeDestination</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#GateOne.Logging.removeDestination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the given log destination (<em>name</em>) from <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Logging.destinations</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.saveRenderedLog">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">saveRenderedLog</tt><big>(</big><em>logFile</em><big>)</big><a class="headerlink" href="#GateOne.Logging.saveRenderedLog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the server to open <em>logFile</em> rendered as a self-contained recording (via the 'logging_get_log_file' WebSocket action) and send it back to the browser for saving (using the 'save_file' WebSocket action).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.setLevel">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">setLevel</tt><big>(</big><em>level</em><big>)</big><a class="headerlink" href="#GateOne.Logging.setLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the log <em>level</em> to an integer if the given a string (e.g. &quot;DEBUG&quot;).  Sets it as-is if it's already a number.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="GateOne.Logging.sortFunctions">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">sortFunctions</tt><a class="headerlink" href="#GateOne.Logging.sortFunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>An associative array of functions that are used to sort logs.  When the user clicks on one of the sorting options it assigns one of these functions to <tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Logging.sortfunc()</span></tt> which is then applied like so:</p>
+<div class="highlight-js"><div class="highlight"><pre><span class="nx">logs</span><span class="p">.</span><span class="nx">sort</span><span class="p">(</span><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Logging</span><span class="p">.</span><span class="nx">sortfunc</span><span class="p">);</span>
+</pre></div>
+</div>
+<dl class="staticmethod">
+<dt id="alphabetical">
+<em class="property">static </em><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#alphabetical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorts logs alphabetically using the title (connect_string).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt>
+<em class="property">static </em><tt class="descname">alphabetical</tt><big>(</big><em>a</em>, <em>b</em><big>)</big></dt>
+<dd><p>Sorts logs according to their size.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="date">
+<em class="property">static </em><tt class="descname">date</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorts logs by date (start_date) followed by alphabetical order of the title (connect_string).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Logging.toggleSortOrder">
+<tt class="descclassname">GateOne.Logging.</tt><tt class="descname">toggleSortOrder</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Logging.toggleSortOrder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverses the order of the logs array.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-logging_plugin">
+<span id="python"></span><h2>Python<a class="headerlink" href="#module-logging_plugin" title="Permalink to this headline">¶</a></h2>
+<p>logging.py - A plugin for Gate One that provides logging-related functionality.</p>
 <div class="section" id="hooks">
-<h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
+<h3>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h3>
 <p>This Python plugin file implements the following hooks:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -80,7 +267,7 @@
 </div>
 </div>
 <div class="section" id="docstrings">
-<h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
+<h3>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="logging_plugin.retrieve_log_frames">
 <tt class="descclassname">logging_plugin.</tt><tt class="descname">retrieve_log_frames</tt><big>(</big><em>golog_path</em>, <em>rows</em>, <em>cols</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#retrieve_log_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.retrieve_log_frames" title="Permalink to this definition">¶</a></dt>
@@ -91,11 +278,11 @@ playback_log.html template.</p>
 
 <dl class="function">
 <dt id="logging_plugin.enumerate_logs">
-<tt class="descclassname">logging_plugin.</tt><tt class="descname">enumerate_logs</tt><big>(</big><em>limit=None</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#enumerate_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.enumerate_logs" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">enumerate_logs</tt><big>(</big><em>self</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#enumerate_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.enumerate_logs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls _enumerate_logs() via a <a class="reference external" href="http://docs.python.org/2.7/library/multiprocessing.html#multiprocessing.Process" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">multiprocessing.Process</span></tt></a> so it
-doesn't cause the <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
+doesn't cause the <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
 <p>Log objects will be returned to the client one at a time by sending
-'logging_log' actions to the client over the WebSocket (<em>tws</em>).</p>
+'logging_log' actions to the client over the WebSocket (<em>self</em>).</p>
 </dd></dl>
 
 <dl class="function">
@@ -110,16 +297,16 @@ logs 5-10.</p>
 
 <dl class="function">
 <dt id="logging_plugin.retrieve_log_flat">
-<tt class="descclassname">logging_plugin.</tt><tt class="descname">retrieve_log_flat</tt><big>(</big><em>settings</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#retrieve_log_flat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.retrieve_log_flat" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">retrieve_log_flat</tt><big>(</big><em>self</em>, <em>settings</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#retrieve_log_flat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.retrieve_log_flat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls <a class="reference internal" href="#logging_plugin._retrieve_log_flat" title="logging_plugin._retrieve_log_flat"><tt class="xref py py-func docutils literal"><span class="pre">_retrieve_log_flat()</span></tt></a> via a <a class="reference external" href="http://docs.python.org/2.7/library/multiprocessing.html#multiprocessing.Process" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">multiprocessing.Process</span></tt></a>
-so it doesn't cause the <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
+so it doesn't cause the <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>settings</strong> (<a class="reference external" href="http://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) -- A dict containing the <em>log_filename</em>, <em>colors</em>, and <em>theme</em> to use when generating the HTML output.</li>
-<li><strong>tws</strong> (<em>instance</em>) -- The current <a class="reference internal" href="gateone.html#gateone.TerminalWebSocket" title="gateone.TerminalWebSocket"><tt class="xref py py-class docutils literal"><span class="pre">gateone.TerminalWebSocket</span></tt></a> instance (connected).</li>
+<li><strong>tws</strong> (<em>instance</em>) -- The current <tt class="xref py py-class docutils literal"><span class="pre">gateone.TerminalWebSocket</span></tt> instance (connected).</li>
 </ul>
 </td>
 </tr>
@@ -154,10 +341,10 @@ use when generating the HTML output.</p>
 
 <dl class="function">
 <dt id="logging_plugin.retrieve_log_playback">
-<tt class="descclassname">logging_plugin.</tt><tt class="descname">retrieve_log_playback</tt><big>(</big><em>settings</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#retrieve_log_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.retrieve_log_playback" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">retrieve_log_playback</tt><big>(</big><em>self</em>, <em>settings</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#retrieve_log_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.retrieve_log_playback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls <a class="reference internal" href="#logging_plugin._retrieve_log_playback" title="logging_plugin._retrieve_log_playback"><tt class="xref py py-func docutils literal"><span class="pre">_retrieve_log_playback()</span></tt></a> via a
 <a class="reference external" href="http://docs.python.org/2.7/library/multiprocessing.html#multiprocessing.Process" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">multiprocessing.Process</span></tt></a> so it doesn't cause the
-<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
+<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
 </dd></dl>
 
 <dl class="function">
@@ -196,9 +383,9 @@ this method.</p>
 
 <dl class="function">
 <dt id="logging_plugin.save_log_playback">
-<tt class="descclassname">logging_plugin.</tt><tt class="descname">save_log_playback</tt><big>(</big><em>settings</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#save_log_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.save_log_playback" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">logging_plugin.</tt><tt class="descname">save_log_playback</tt><big>(</big><em>self</em>, <em>settings</em><big>)</big><a class="reference internal" href="../_modules/logging_plugin.html#save_log_playback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#logging_plugin.save_log_playback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls <a class="reference internal" href="#logging_plugin._save_log_playback" title="logging_plugin._save_log_playback"><tt class="xref py py-func docutils literal"><span class="pre">_save_log_playback()</span></tt></a> via a <a class="reference external" href="http://docs.python.org/2.7/library/multiprocessing.html#multiprocessing.Process" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">multiprocessing.Process</span></tt></a>
-so it doesn't cause the <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
+so it doesn't cause the <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">IOLoop</span></tt></a> to block.</p>
 </dd></dl>
 
 <dl class="function">
@@ -239,6 +426,7 @@ this method.</p>
 
 </div>
 </div>
+</div>
 
 
           </div>
@@ -252,8 +440,12 @@ this method.</p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">The Logging Plugin</a><ul>
+<li><a class="reference internal" href="#javascript">JavaScript</a></li>
+<li><a class="reference internal" href="#module-logging_plugin">Python</a><ul>
 <li><a class="reference internal" href="#hooks">Hooks</a></li>
 <li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

@@ -36,8 +36,26 @@ var logFatal = noop,
 // TODO: Add hooks that allow other plugins to attach actions to be called before and after bookmarks are executed.
 
 // GateOne.Bookmarks (bookmark management functions)
-go.Base.module(GateOne, "Bookmarks", "1.0", ['Base']);
+go.Base.module(GateOne, "Bookmarks", "1.1", ['Base']);
 go.Bookmarks.bookmarks = [];
+/**:GateOne.Bookmarks.bookmarks
+
+All the user's bookmarks are stored in this array which is stored/loaded from `localStorage[GateOne.prefs.prefix+'bookmarks']`.  Each bookmark consists of the following data structure::
+
+    {
+        created: 1356974567922,
+        images: {favicon: "data:image/x-icon;base64,<gobbledygook>"},
+        name: "localhost",
+        notes: "Login to the Gate One server itself",
+        tags: ["Linux", "Ubuntu", "Production", "Gate One"],
+        updateSequenceNum: 11,
+        updated: 1356974567922,
+        url: "ssh://localhost",
+        visits: 0
+    }
+
+Most of that should be self-explanatory except the `updateSequenceNum` (aka USN).  The USN value is used to determine when this bookmark was last changed in comparison to the highest USN stored on the server.  By comparing the highest client-side USN against the highest server-side USN we can determine what (if anything) has changed since the last synchronization.  It is much more efficient than enumerating all bookmarks on both the client and server in order to figure out what's different.
+*/
 go.Bookmarks.tags = [];
 go.Bookmarks.sortToggle = false;
 go.Bookmarks.searchFilter = null;
@@ -49,6 +67,15 @@ go.Bookmarks.loginSync = true; // Makes sure we don't display "Synchronization C
 go.Bookmarks.temp = ""; // Just a temporary holding space for things like drag & drop
 go.Base.update(GateOne.Bookmarks, {
     init: function() {
+        /**:GateOne.Bookmarks.init()
+
+        Creates the bookmarks panel, initializes some important variables, registers the :kbd:`Control-Alt-b` keyboard shortcut, and registers the following WebSocket actions::
+
+            GateOne.Net.addAction('bookmarks_updated', GateOne.Bookmarks.syncBookmarks);
+            GateOne.Net.addAction('bookmarks_save_result', GateOne.Bookmarks.syncComplete);
+            GateOne.Net.addAction('bookmarks_delete_result', GateOne.Bookmarks.deletedBookmarksSyncComplete);
+            GateOne.Net.addAction('bookmarks_renamed_tags', GateOne.Bookmarks.tagRenameComplete);
+        */
         var b = go.Bookmarks,
             goDiv = u.getNode(go.prefs.goDiv),
             toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': 'toolbar', 'title': "Bookmarks"}),
@@ -125,7 +152,7 @@ go.Base.update(GateOne.Bookmarks, {
         go.Events.on("user_login", b.userLoginSync);
     },
     panelToggleIn: function(panel) {
-        /**GateOne.Bookmarks.panelToggleIn(panel)
+        /**:GateOne.Bookmarks.panelToggleIn(panel)
 
         Called when 'panel_toggle:in' event is triggered, calls :js:meth:`GateOne.Bookmarks.createPanel` if *panel* is the Bookmarks panel.
         */
@@ -134,12 +161,26 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     userLoginSync: function(username) {
+        /**:GateOne.Bookmarks.userLoginSync(username)
+
+        This gets attached to the "user_login" event.  Calls the server-side 'bookmarks_get' WebSocket action with the current USN (Update Sequence Number) to ensure the user's bookmarks are in sync with what's on the server.
+        */
         var USN = localStorage[prefix+'USN'] || 0;
         go.ws.send(JSON.stringify({'bookmarks_get': USN}));
     },
     sortFunctions: {
+        /**:GateOne.Bookmarks.sortFunctions
+
+        An associative array of functions that are used to sort bookmarks.  When the user clicks on one of the sorting options it assigns one of these functions to :js:meth:`GateOne.Bookmarks.sortfunc` which is then applied like so::
+
+            bookmarks.sort(GateOne.Bookmarks.sortfunc);
+
+        */
         visits: function(a,b) {
-            // Sorts bookmarks according to the number of visits followed by alphabetical
+            /**:GateOne.Bookmarks.sortFunctions.visits(a, b)
+
+            Sorts bookmarks according to the number of visits followed by alphabetical.
+            */
             if (a.visits === b.visits) {
                 var x = a.name.toLowerCase(), y = b.name.toLowerCase();
                 return x < y ? -1 : x > y ? 1 : 0;
@@ -152,7 +193,10 @@ go.Base.update(GateOne.Bookmarks, {
             }
         },
         created: function(a,b) {
-            // Sorts bookmarks by date modified followed by alphabetical
+            /**:GateOne.Bookmarks.sortFunctions.created(a, b)
+
+            Sorts bookmarks by date modified followed by alphabetical.
+            */
             if (a.created === b.created) {
                 var x = a.name.toLowerCase(), y = b.name.toLowerCase();
                 return x < y ? -1 : x > y ? 1 : 0;
@@ -165,14 +209,23 @@ go.Base.update(GateOne.Bookmarks, {
             }
         },
         alphabetical: function(a,b) {
+            /**:GateOne.Bookmarks.sortFunctions.alphabetical(a, b)
+
+            Sorts bookmarks alphabetically.
+            */
             var x = a.name.toLowerCase(), y = b.name.toLowerCase();
             return x < y ? -1 : x > y ? 1 : 0;
         }
     },
     storeBookmarks: function(bookmarks, /*opt*/recreatePanel, skipTags) {
-        // Takes an array of bookmarks and stores them in GateOne.Bookmarks.bookmarks
-        // If *recreatePanel* is true, the panel will be re-drawn after bookmarks are stored.
-        // If *skipTags* is true, bookmark tags will be ignored when saving the bookmark object.
+        /**:GateOne.Bookmarks.storeBookmarks(bookmarks[, recreatePanel[, skipTags ] ])
+
+        Takes an array of *bookmarks* and stores them in `GateOne.Bookmarks.bookmarks`.
+
+        If *recreatePanel* is true, the panel will be re-drawn after bookmarks are stored.
+
+        If *skipTags* is true, bookmark tags will be ignored when saving the bookmark object.
+        */
         var go = GateOne,
             prefix = go.prefs.prefix,
             b = go.Bookmarks,
@@ -246,7 +299,10 @@ go.Base.update(GateOne.Bookmarks, {
         return count;
     },
     syncComplete: function(response) {
-        // Called when the initial sync (download) is completed, uploads any pending changes.
+        /**:GateOne.Bookmarks.syncComplete(response)
+
+        Called when the sync (download) is completed.  Stores the current highest `updateSequenceNum` in localStorage, and notifies the user of any errors that occurred during synchronization.
+        */
         logDebug('syncComplete()');
         var go = GateOne,
             b = go.Bookmarks,
@@ -278,6 +334,10 @@ go.Base.update(GateOne.Bookmarks, {
         b.toUpload = []; // Reset it
     },
     syncBookmarks: function(response) {
+        /**:GateOne.Bookmarks.syncBookmarks(response)
+
+        Called when the 'bookmarks_updated' WebSocket action is received from the server.  Removes bookmarks marked as deleted on the server, uploads new bookmarks that are not on the server (yet), and processes any tags that have been renamed.
+        */
         logDebug('syncBookmarks() response: ' + response + ', response.length: ' + response.length);
         var go = GateOne,
             u = go.Utils,
@@ -406,6 +466,10 @@ go.Base.update(GateOne.Bookmarks, {
         }, 200);
     },
     tagRenameComplete: function(result) {
+        /**:GateOne.Bookmarks.tagRenameComplete(result)
+
+        Called when the 'bookmarks_renamed_tags' WebSocket action is received from the server.  Deletes `localStorage[GateOne.prefs.prefix+'renamedTags']` (which stores tags that have been renamed and are awaiting sync) and displays a message to the user indicating that tags were renamed successfully.
+        */
         var go = GateOne,
             b = go.Bookmarks,
             prefix = go.prefs.prefix;
@@ -415,7 +479,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     deletedBookmarksSyncComplete: function(message) {
-        // Handles the response from the server after we've sent the bookmarks_deleted command
+        /**:GateOne.Bookmarks.deletedBookmarksSyncComplete(message)
+
+        Handles the response from the server after we've sent the 'bookmarks_deleted' WebSocket action.  Resets `localStorage[GateOne.prefs.prefix+'deletedBookmarks']` and displays a message to the user indicating how many bookmarks were just deleted.
+        */
         var go = GateOne,
             v = go.Visual,
             prefix = go.prefs.prefix;
@@ -425,10 +492,12 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     loadBookmarks: function(/*opt*/delay) {
-        // Loads the user's bookmarks
-        // Optionally, a sort function may be supplied that sorts the bookmarks before placing them in the panel.
-        // If *ad* is true, an advertisement will be the first item in the bookmarks list
-        // If *delay* is given, that will be used to set the delay
+        /**:GateOne.Bookmarks.loadBookmarks([delay])
+
+        Filters/sorts/displays bookmarks and updates the bookmarks panel to reflect the current state of things (draws the tag cloud and ensures the pagination is correct).
+
+        If *delay* (milliseconds) is given, loading of bookmarks will be delayed by that amount before they're drawn (for animation purposes).
+        */
         logDebug("loadBookmarks()");
         var go = GateOne,
             b = go.Bookmarks,
@@ -684,8 +753,12 @@ go.Base.update(GateOne.Bookmarks, {
         });
     },
     flushIconQueue: function() {
-        // Goes through the iconQueue fetching icons until it is empty.
-        // If we're already processing the queue, don't do anything when called.
+        /**:GateOne.Bookmarks.flushIconQueue()
+
+        Loops over `localStorage[GateOne.prefs.prefix+'iconQueue']` fetching icons until it is empty.
+
+        If the queue is currently being processed this function won't do anything when called.
+        */
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
@@ -743,7 +816,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     updateIcon: function(bookmark) {
-        // Grabs and stores (as a data: URI) the favicon associated with the given bookmark (if any)
+        /**:GateOne.Bookmarks.updateIcon(bookmark)
+
+        Makes an AJAX call to `<Gate One URL>/bookmarks/fetchicon` to retrieve a favicon for the given *bookmark* and calls :js:meth:`~GateOne.Bookmarks.storeFavicon` if an icon was able to be retrieved.
+        */
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils;
@@ -788,6 +864,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     storeFavicon: function(bookmark, dataURI) {
+        /**:GateOne.Bookmarks.storeFavicon(bookmark, dataURI)
+
+        Stores the given *dataURI* as the 'favicon' image for the given *bookmark*.
+        */
         // *dataURI* should be pre-encoded data:URI
         var go = GateOne,
             u = go.Utils,
@@ -820,8 +900,12 @@ go.Base.update(GateOne.Bookmarks, {
         // Ignore anything else
     },
     updateIcons: function(urls) {
-        // Loops over *urls* attempting to fetch and store their respective favicons
-        // NOTE: Only used in debugging (not called from anywhere)
+        /**:GateOne.Bookmarks.updateIcons(urls)
+
+        Loops over the given *urls* attempting to fetch and store their respective favicons.
+
+        .. note:: This function is only used when debugging.  It is called by no other functions.
+        */
         var go = GateOne,
             b = go.Bookmarks;
         urls.forEach(function(url) {
@@ -833,10 +917,14 @@ go.Base.update(GateOne.Bookmarks, {
         });
     },
     createBookmark: function(bmContainer, bookmark, delay, /*opt*/ad) {
-        // Creates a new bookmark element and places it in  in bmContainer.  Also returns the bookmark element.
-        // *bmContainer* is the node we're going to be placing bookmarks
-        // *bookmark* is expected to be a bookmark object
-        // *delay* is the amount of milliseconds to wait before translating the bookmark into view
+        /**:GateOne.Bookmarks.createBookmark(bmContainer, bookmark, delay)
+
+        Creates a new bookmark element and places it in *bmContainer*.  Also returns the bookmark element.
+
+        :param DOM_node bmContainer: The DOM node we're going to be placing the bookmark.
+        :param object bookmark: A bookmark object (presumably taken from :js:attr:`GateOne.Bookmarks.bookmarks`)
+        :param number delay: The amount of milliseconds to wait before translating (sliding) the bookmark into view.
+        */
         // Optional: if *ad* is true, will not bother adding tags or edit/delete/share links
         logDebug('createBookmark() bookmark: ' + bookmark.url);
         var go = GateOne,
@@ -972,7 +1060,10 @@ go.Base.update(GateOne.Bookmarks, {
         return bmElement;
     },
     createSortOpts: function() {
-        // Returns a div containing bm_display_opts representing the user's current settings.
+        /**:GateOne.Bookmarks.createSortOpts()
+
+        Returns a span representing the current sort direction and "sort by" type.
+        */
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
@@ -1028,9 +1119,12 @@ go.Base.update(GateOne.Bookmarks, {
         return bmSortOpts;
     },
     createPanel: function(/*opt*/embedded) {
-        // Creates the bookmarks panel.  If *ad* is true, shows an ad as the first bookmark
-        // If the bookmarks panel already exists, re-create the bookmarks container and reset pagination
-        // If *embedded* is true then we'll just load the header (without search).
+        /**:GateOne.Bookmarks.createPanel([embedded])
+
+        Creates the bookmarks panel.  If the bookmarks panel already exists it will be destroyed and re-created, resetting the pagination.
+
+        If *embedded* is true then we'll just load the header (without search).
+        */
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
@@ -1159,7 +1253,11 @@ go.Base.update(GateOne.Bookmarks, {
         }, 1000);
     },
     loadTagCloud: function(active) {
-        // Loads the tag cloud.  If *active* is given it must be one of 'tags' or 'autotags'.  It will mark the appropriate header as inactive and load the respective tags.
+        /**:GateOne.Bookmarks.loadTagCloud([active])
+
+        Loads the tag cloud.  If *active* is given it must be one of 'tags' or 'autotags'.  It will mark the appropriate header as inactive and load the respective tags.
+
+        */
         var go = GateOne,
             u = go.Utils,
             b = go.Bookmarks,
@@ -1309,8 +1407,14 @@ go.Base.update(GateOne.Bookmarks, {
         }, 800);
     },
     openBookmark: function(URL) {
-        // If the current terminal is in a disconnected state, connects to *URL* in the current terminal.
-        // If the current terminal is already connected, opens a new terminal and uses that.
+        /**:GateOne.Bookmarks.openBookmark(URL)
+
+        If the current terminal is in a disconnected state, connects to the given *URL* in the current terminal.
+
+        If the current terminal is already connected, opens a new terminal before opening the given *URL*.
+
+        If the given *URL* does not start with 'ssh://' it will be opened in a new browser tab/window.
+        */
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
@@ -1347,7 +1451,10 @@ go.Base.update(GateOne.Bookmarks, {
         go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
     },
     toggleSortOrder: function() {
-        // Reverses the order of the bookmarks list
+        /**:GateOne.Bookmarks.toggleSortOrder()
+
+        Reverses the order of the bookmarks list
+        */
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
@@ -1364,7 +1471,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     filterBookmarksBySearchString: function(str) {
-        // Filters bookmarks to those matching *str*
+        /**:GateOne.Bookmarks.filterBookmarksBySearchString(str)
+
+        Filters bookmarks to those matching *str* (used by the search function).
+        */
         // Set the global search filter so we can use it within other functions
         var go = GateOne,
             b = go.Bookmarks;
@@ -1372,7 +1482,10 @@ go.Base.update(GateOne.Bookmarks, {
         b.loadBookmarks();
     },
     addFilterTag: function(bookmarks, tag) {
-        // Adds the given tag to the filter list
+        /**:GateOne.Bookmarks.addFilterTag(bookmarks, tag)
+
+        Adds the given *tag* to the filter list.  *bookmarks* is unused.
+        */
         var go = GateOne,
             b = go.Bookmarks;
         for (var i in b.tags) {
@@ -1392,7 +1505,10 @@ go.Base.update(GateOne.Bookmarks, {
         b.loadBookmarks();
     },
     removeFilterTag: function(bookmarks, tag) {
-        // Removes the given tag from the filter list
+        /**:GateOne.Bookmarks.removeFilterTag(bookmarks, tag)
+
+        Removes the given *tag* from the filter list.  *bookmarks* is unused.
+        */
         logDebug('removeFilterTag tag: ' + tag);
         var go = GateOne,
             b = go.Bookmarks;
@@ -1413,68 +1529,84 @@ go.Base.update(GateOne.Bookmarks, {
         b.page = 0;
         b.loadBookmarks();
     },
-    addFilterDateTag: function(bookmarks, tag) {
-        // Adds the given dateTag to the filter list
-        logDebug('addFilterDateTag: ' + tag);
+    addFilterDateTag: function(bookmarks, dateTag) {
+        /**:GateOne.Bookmarks.addFilterDateTag(bookmarks, dateTag)
+
+        Adds the given *dateTag* to the filter list.  *bookmarks* is unused.
+        */
+        logDebug('addFilterDateTag: ' + dateTag);
         var go = GateOne,
             b = go.Bookmarks;
         for (var i in b.dateTags) {
-            if (b.dateTags[i] == tag) {
+            if (b.dateTags[i] == dateTag) {
                 // Tag already exists, ignore.
                 return;
             }
         }
-        b.dateTags.push(tag);
+        b.dateTags.push(dateTag);
         // Reset the pagination since our bookmark list will change
         b.page = 0;
         b.loadBookmarks();
     },
-    removeFilterDateTag: function(bookmarks, tag) {
-        // Removes the given dateTag from the filter list
-        logDebug("removeFilterDateTag: " + tag);
+    removeFilterDateTag: function(bookmarks, dateTag) {
+        /**:GateOne.Bookmarks.removeFilterDateTag(bookmarks, dateTag)
+
+        Removes the given *dateTag* from the filter list.  *bookmarks* is unused.
+        */
+        logDebug("removeFilterDateTag: " + dateTag);
         var go = GateOne,
             b = go.Bookmarks;
         // Change the &lt; and &gt; back into < and >
-        tag = tag.replace('&lt;', '<');
-        tag = tag.replace('&gt;', '>');
+        dateTag = dateTag.replace('&lt;', '<');
+        dateTag = dateTag.replace('&gt;', '>');
         for (var i in b.dateTags) {
-            if (b.dateTags[i] == tag) {
+            if (b.dateTags[i] == dateTag) {
                 b.dateTags.splice(i, 1);
             }
         }
         b.loadBookmarks();
     },
-    addFilterURLTypeTag: function(bookmarks, tag) {
-        // Adds the given dateTag to the filter list
-        logDebug('addFilterURLTypeTag: ' + tag);
+    addFilterURLTypeTag: function(bookmarks, typeTag) {
+        /**:GateOne.Bookmarks.addFilterURLTypeTag(bookmarks, typeTag)
+
+        Adds the given *typeTag* to the filter list.  *bookmarks* is unused.
+        */
+        logDebug('addFilterURLTypeTag: ' + typeTag);
         var go = GateOne,
             b = go.Bookmarks;
         for (var i in b.URLTypeTags) {
-            if (b.URLTypeTags[i] == tag) {
+            if (b.URLTypeTags[i] == typeTag) {
                 // Tag already exists, ignore.
                 return;
             }
         }
-        b.URLTypeTags.push(tag);
+        b.URLTypeTags.push(typeTag);
         // Reset the pagination since our bookmark list will change
         b.page = 0;
         b.loadBookmarks();
     },
-    removeFilterURLTypeTag: function(bookmarks, tag) {
-        // Removes the given dateTag from the filter list
-        logDebug("removeFilterURLTypeTag: " + tag);
+    removeFilterURLTypeTag: function(bookmarks, typeTag) {
+        /**:GateOne.Bookmarks.removeFilterURLTypeTag(bookmarks, typeTag)
+
+        Removes the given *typeTag* from the filter list.  *bookmarks* is unused.
+        */
+        logDebug("removeFilterURLTypeTag: " + typeTag);
         var go = GateOne,
             b = go.Bookmarks;
         for (var i in b.URLTypeTags) {
-            if (b.URLTypeTags[i] == tag) {
+            if (b.URLTypeTags[i] == typeTag) {
                 b.URLTypeTags.splice(i, 1);
             }
         }
         b.loadBookmarks();
     },
     getTags: function(/*opt*/bookmarks) {
-        // Returns an array of all the tags in Bookmarks.bookmarks or *bookmarks* if given.
-        // NOTE: Ordered alphabetically
+        /**:GateOne.Bookmarks.getTags([bookmarks])
+
+        Returns an array of all the tags in `GateOne.Bookmarks.bookmarks` or *bookmarks* if given.
+
+        .. note:: Ordered alphabetically
+        */
         var go = GateOne,
             b = go.Bookmarks,
             tagList = [];
@@ -1496,8 +1628,12 @@ go.Base.update(GateOne.Bookmarks, {
         return tagList;
     },
     getAutotags: function(/*opt*/bookmarks) {
-        // Returns an array of all the autotags in Bookmarks.bookmarks or *bookmarks* if given.
-        // NOTE: Ordered alphabetically with the URL types coming before date tags
+        /**:GateOne.Bookmarks.getAutotags([bookmarks])
+
+        Returns an array of all the autotags in `GateOne.Bookmarks.bookmarks` or *bookmarks* if given.
+
+        .. note:: Ordered alphabetically with the URL types coming before date tags.
+        */
         var go = GateOne,
             b = go.Bookmarks,
             autoTagList = [],
@@ -1521,8 +1657,12 @@ go.Base.update(GateOne.Bookmarks, {
         return autoTagList.concat(dateTagList);
     },
     openImportDialog: function() {
-        // Displays the form where a user can create or edit a bookmark.
-        // If *URL* is given, pre-fill the form with the associated bookmark for editing.
+        /**:GateOne.Bookmarks.openImportDialog()
+
+        Displays the form where a user can create or edit a bookmark.
+
+        If *URL* is given, pre-fill the form with the associated bookmark for editing.
+        */
         var go = GateOne,
             prefix = go.prefs.prefix,
             u = go.Utils,
@@ -1579,9 +1719,14 @@ go.Base.update(GateOne.Bookmarks, {
         }
         bmCancel.onclick = closeDialog;
     },
+    // TODO: Convert this to save the bookmarks locally instead of having to submit them to the server for conversion.
     exportBookmarks: function(/*opt*/bookmarks) {
-        // Allows the user to save their bookmarks as a Netscape-style HTML file.
-        // If *bookmarks* is given, that list will be what is exported.  Otherwise the complete bookmark list will be exported.
+        /**:GateOne.Bookmarks.exportBookmarks([bookmarks])
+
+        Allows the user to save their bookmarks as a Netscape-style HTML file.  Immediately starts the download.
+
+        If *bookmarks* is given, that array will be what is exported.  Otherwise the complete `GateOne.Bookmarks.bookmarks` array will be exported.
+        */
         var go = GateOne,
             u = go.Utils,
             b = go.Bookmarks,
@@ -1603,7 +1748,10 @@ go.Base.update(GateOne.Bookmarks, {
         }, 1000);
     },
     getDateTag: function(dateObj) {
-        // Given a Date() object, returns a string such as "<7 days".  Suitable for use as an autotag.
+        /**:GateOne.Bookmarks.getDateTag(dateObj)
+
+        Given a `Date` object, returns a string such as "<7 days".  Suitable for use as an autotag.
+        */
         var dt = new Date();
         // Substract 7 days from today's date
         dt.setDate(parseInt(dt.getDate())-1);
@@ -1633,8 +1781,10 @@ go.Base.update(GateOne.Bookmarks, {
         return ">1 year";
     },
     allTags: function() {
-        // Returns an array of all the tags in localStorage['bookmarks']
-        // ordered alphabetically
+        /**:GateOne.Bookmarks.allTags()
+
+        Returns an array of all the tags in `localStorage[GateOne.prefs.prefix+'bookmarks']` ordered alphabetically.
+        */
         var tagList = [],
             bookmarks = JSON.parse(localStorage[prefix+'bookmarks']);
         bookmarks.forEach(function(bookmark) {
@@ -1649,8 +1799,12 @@ go.Base.update(GateOne.Bookmarks, {
     },
     // TODO: Get this providing the option to use a specific SSH identity
     openNewBookmarkForm: function(/*Opt*/URL) {
-        // Displays the form where a user can create or edit a bookmark.
-        // If *URL* is given, pre-fill the form with the associated bookmark for editing.
+        /**:GateOne.Bookmarks.openNewBookmarkForm([URL])
+
+        Displays the form where a user can create or edit a bookmark.
+
+        If *URL* is given, pre-fill the form with the associated bookmark for editing.
+        */
         var go = GateOne,
             u = go.Utils,
             b = go.Bookmarks,
@@ -1799,13 +1953,15 @@ go.Base.update(GateOne.Bookmarks, {
         bmCancel.onclick = closeDialog;
         return true;
     },
-    incrementVisits: function(url) {
-        // Increments the given bookmark by 1
+    incrementVisits: function(URL) {
+        /**:GateOne.Bookmarks.incrementVisits(URL)
+
+        Increments by 1 the 'visits' value of the bookmark object associated with the given *URL*.
+        */
         var go = GateOne,
             b = go.Bookmarks;
-        // Increments the given bookmark by 1
         b.bookmarks.forEach(function(bookmark) {
-            if (bookmark.url == url) {
+            if (bookmark.url == URL) {
                 bookmark.visits += 1;
                 bookmark.updated = new Date().getTime(); // So it will sync
                 bookmark.updateSequenceNum = 0;
@@ -1815,14 +1971,21 @@ go.Base.update(GateOne.Bookmarks, {
         b.loadBookmarks(b.sort);
     },
     editBookmark: function(obj) {
-        // Slides the bookmark editor form into view
-        // Note: Only meant to be called with a bm_edit anchor as *obj*
+        /**:GateOne.Bookmarks.editBookmark(obj)
+
+        Opens the bookmark editor for the given *obj* (the bookmark element on the page).
+
+        .. note:: Only meant to be called from a 'bm_edit' anchor tag (as the *obj*).
+        */
         var go = GateOne,
             url = obj.parentNode.parentNode.getElementsByClassName("bm_url")[0].href;
         go.Bookmarks.openNewBookmarkForm(url);
     },
     highestUSN: function() {
-        // Returns the highest updateSequenceNum in all the bookmarks
+        /**:GateOne.Bookmarks.highestUSN()
+
+        Returns the highest `updateSequenceNum` that exists in all bookmarks.
+        */
         var b = GateOne.Bookmarks,
             highest = 0;
         b.bookmarks.forEach(function(bookmark) {
@@ -1833,8 +1996,14 @@ go.Base.update(GateOne.Bookmarks, {
         return highest;
     },
     removeBookmark: function(url, callback) {
-        // Removes the bookmark matching *url* from GateOne.Bookmarks.bookmarks and saves the change to localStorage
-        // If *callback* is given, it will be called after the bookmark has been deleted
+        /**:GateOne.Bookmarks.removeBookmark(url[, callback])
+
+        Removes the bookmark matching *url* from `GateOne.Bookmarks.bookmarks` and saves the change to localStorage.
+
+        If *callback* is given it will be called after the bookmark has been deleted.
+
+        .. note:: Not the same thing as :js:meth:`GateOne.Bookmarks.deleteBookmark`.
+        */
         var go = GateOne,
             u = go.Utils,
             b = go.Bookmarks,
@@ -1852,8 +2021,14 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     deleteBookmark: function(obj) {
-        // Asks the user for confirmation then deletes the chosen bookmark...
-        // *obj* can either be a URL (string) or the "go_bm_delete" anchor tag.
+        /**:GateOne.Bookmarks.deleteBookmark(obj)
+
+        Asks the user for confirmation then deletes the chosen bookmark...
+
+        *obj* can either be a URL (string) or the "go_bm_delete" anchor tag.
+
+        .. note:: Not the same thing as :js:meth:`GateOne.Bookmarks.removeBookmark`.
+        */
         var go = GateOne,
             u = go.Utils,
             b = go.Bookmarks,
@@ -1919,7 +2094,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     updateUSN: function(obj) {
-        // Updates the USN of the bookmark matching *obj* in GateOne.Bookmarks.bookmarks (and on disk).
+        /**:GateOne.Bookmarks.updateUSN(obj)
+
+        Updates the `updateSequenceNum` of the bookmark matching *obj* in `GateOne.Bookmarks.bookmarks` (and in localStorage via :js:meth:`~GateOne.Bookmarks.storeBookmark`).
+        */
         var go = GateOne,
             b = go.Bookmarks,
             matched = null;
@@ -1938,7 +2116,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     createOrUpdateBookmark: function(obj) {
-        // Creates or updates a bookmark (in Bookmarks.bookmarks and storage) using *obj*
+        /**:GateOne.Bookmarks.createOrUpdateBookmark(obj)
+
+        Creates or updates a bookmark (in `GateOne.Bookmarks.bookmarks` and localStorage) using the given bookmark *obj*.
+        */
         var go = GateOne,
             u = go.Utils,
             b = go.Bookmarks,
@@ -1978,7 +2159,10 @@ go.Base.update(GateOne.Bookmarks, {
         localStorage[prefix+'iconQueue'] += obj.url + '\n';
     },
     getMaxBookmarks: function(elem) {
-    // Calculates and returns the number of bookmarks that will fit in the given element ID (elem).
+        /**:GateOne.Bookmarks.getMaxBookmarks(elem)
+
+        Calculates and returns the number of bookmarks that will fit in the given element (*elem*).  *elem* may be an element ID or a DOM node object.
+        */
         try {
             var go = GateOne,
                 b = go.Bookmarks,
@@ -2013,8 +2197,12 @@ go.Base.update(GateOne.Bookmarks, {
         return max;
     },
     loadPagination: function(bookmarks, /*opt*/page) {
-        // Sets up the pagination for the given array of bookmarks and returns the pagination node.
-        // If *page* is given, the pagination will highlight the given page number and adjust prev/next accordingly
+        /**:GateOne.Bookmarks.loadPagination(bookmarks[, page])
+
+        Sets up the pagination for the given array of bookmarks and returns the pagination node.
+
+        If *page* is given the pagination will highlight the given page number and adjust the prev/next links accordingly.
+        */
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
@@ -2075,7 +2263,10 @@ go.Base.update(GateOne.Bookmarks, {
         return bmPaginationUL;
     },
     getBookmarkObj: function(URL) {
-        // Returns the bookmark object with the given *URL*
+        /**:GateOne.Bookmarks.getBookmarkObj(URL)
+
+        Returns the bookmark object associated with the given *URL*.
+        */
         var go = GateOne,
             b = go.Bookmarks;
         for (var i in b.bookmarks) {
@@ -2085,7 +2276,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     addTagToBookmark: function(URL, tag) {
-        // Adds the given *tag* to the bookmark object associated with *URL*
+        /**:GateOne.Bookmarks.addTagToBookmark(URL, tag)
+
+        Adds the given *tag* to the bookmark object associated with *URL*.
+        */
         logDebug('addTagToBookmark tag: ' + tag);
         var go = GateOne,
             b = go.Bookmarks,
@@ -2126,8 +2320,12 @@ go.Base.update(GateOne.Bookmarks, {
         });
     },
     storeBookmark: function(bookmarkObj, /*opt*/callback) {
-        // Stores the given *bookmarkObj* in the DB
-        // if *callback* is given, will be executed after the bookmark is stored with the bookmarkObj as the only argument
+        /**:GateOne.Bookmarks.storeBookmark(bookmarkObj[, callback])
+
+        Stores the given *bookmarkObj* in localStorage.
+
+        if *callback* is given it will be executed after the bookmark is stored with the *bookmarkObj* as the only argument.
+        */
         // Assume Bookmarks.bookmarks has already been updated and stringify them to localStorage['bookmarks']
         localStorage[GateOne.prefs.prefix+'bookmarks'] = JSON.stringify(GateOne.Bookmarks.bookmarks);
         if (callback) {
@@ -2135,7 +2333,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     renameTag: function(oldName, newName) {
-        // Renames the tag with *oldName* to be *newName* for all notes that have it attached.
+        /**:GateOne.Bookmarks.renameTag(oldName, newName)
+
+        Renames the tag matching *oldName* to be *newName* for all bookmarks that have it.
+        */
         var go = GateOne,
             prefix = go.prefs.prefix,
             u = go.Utils,
@@ -2164,19 +2365,22 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     tagContextMenu: function(elem) {
-        // Called when we right-click on a tag
-        // Close any existing context menu before we do anything else
+        /**:GateOne.Bookmarks.tagContextMenu(elem)
+
+        Called when we right-click on a tag *elem*.  Gives the user the option to rename the tag or cancel the context menu.
+        */
         var go = GateOne,
             prefix = go.prefs.prefix,
             u = go.Utils,
             b = go.Bookmarks,
             existing = u.getNode('#'+prefix+'bm_context'),
-            offset = b.getOffset(elem),
+            offset = u.getOffset(elem),
             bmPanel = u.getNode('#'+prefix+'panel_bookmarks'),
             bmPanelWidth = bmPanel.offsetWidth,
             rename = u.createElement('a', {'id': 'bm_context_rename', 'class': 'pointer'}),
             cancel = u.createElement('a', {'id': 'bm_context_cancel', 'class': 'pointer'}),
             menu = u.createElement('div', {'id': 'bm_context', 'class': 'quartersectrans'});
+        // Close any existing context menu before we do anything else
         if (existing) {
             existing.style.opacity = 0;
             setTimeout(function() {
@@ -2213,7 +2417,10 @@ go.Base.update(GateOne.Bookmarks, {
         }, 250);
     },
     openRenameDialog: function(tagName) {
-        // Creates a dialog where the user can rename the given *tagName*
+        /**:GateOne.Bookmarks.openRenameDialog(tagName)
+
+        Creates a dialog where the user can rename the given *tagName*.
+        */
         var go = GateOne,
             prefix = go.prefs.prefix,
             u = go.Utils,
@@ -2237,7 +2444,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     openExportDialog: function() {
-        // Creates a dialog where the user can select some options and export their bookmarks
+        /**:GateOne.Bookmarks.openExportDialog()
+
+        Creates a dialog where the user can select some options and export their bookmarks.
+        */
         var go = GateOne,
             prefix = go.prefs.prefix,
             u = go.Utils,
@@ -2269,8 +2479,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     openSearchDialog: function(URL, title) {
-        // Creates a dialog where the user can utilize a keyword search *URL*
-        // *title* will be used to create the dialog title like this:  "Keyword Search: *title*"
+        /**:GateOne.Bookmarks.openSearchDialog(URL, title)
+
+        Creates a dialog where the user can utilize a keyword search *URL*.  *title* will be used to create the dialog title like this:  "Keyword Search: *title*".
+        */
         var go = GateOne,
             b = go.Bookmarks,
             u = go.Utils,
@@ -2295,7 +2507,10 @@ go.Base.update(GateOne.Bookmarks, {
         }
     },
     generateTip: function() {
-        // Returns a string with a tip
+        /**:GateOne.Bookmarks.generateTip()
+
+        Returns a random, helpful tip for using bookmarks (as a string).
+        */
         var tips = [
             "You can right-click on a tag to rename it.",
             "You can drag & drop a tag onto a bookmark to tag it.",
@@ -2305,8 +2520,12 @@ go.Base.update(GateOne.Bookmarks, {
         return tips[Math.floor(Math.random()*tips.length)];
     },
     updateProgress: function(name, total, num, /*opt*/desc) {
-        // Creates/updates a progress bar given a *name*, a *total*, and *num* representing the current state.
-        // Optionally, a description (*desc*) may be provided that will be placed above the progress bar
+        /**:GateOne.Bookmarks.updateProgress(name, total, num[, desc])
+
+        Creates/updates a progress bar given a *name*, a *total*, and *num* representing the current state of an action.
+
+        Optionally, a description (*desc*) may be provided that will be placed above the progress bar.
+        */
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
@@ -2336,16 +2555,6 @@ go.Base.update(GateOne.Bookmarks, {
                 }, 5000);
             }, 1000);
         }
-    },
-    getOffset: function(el) {
-        var _x = 0;
-        var _y = 0;
-        while( el && !isNaN( el.offsetLeft ) && !isNaN( el.offsetTop ) ) {
-            _x += el.offsetLeft - el.scrollLeft;
-            _y += el.offsetTop - el.scrollTop;
-            el = el.offsetParent;
-        }
-        return { top: _y, left: _x };
     },
     handleDragStart: function(e) {
         // Target (this) element is the source node.

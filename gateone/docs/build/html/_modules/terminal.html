@@ -231,8 +231,12 @@
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">Image</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
-        <span class="s">&quot;Could not import the Python Imaging Library (PIL) &quot;</span>
-        <span class="s">&quot;so images will not be displayed in the terminal&quot;</span><span class="p">))</span>
+        <span class="s">&quot;Could not import the Python Imaging Library (PIL).  &quot;</span>
+        <span class="s">&quot;Images will not be displayed in the terminal.&quot;</span><span class="p">))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+        <span class="s">&quot;TIP: Pillow is a &#39;friendly fork&#39; of PIL that has been updated to work &quot;</span>
+        <span class="s">&quot;with Python 3 (also works in Python 2.X).  You can install it with &quot;</span>
+        <span class="s">&quot;&#39;pip install --upgrade Pillow&#39;.&quot;</span><span class="p">))</span>
 
 <span class="c"># Globals</span>
 <span class="n">CALLBACK_SCROLL_UP</span> <span class="o">=</span> <span class="mi">1</span>    <span class="c"># Called after a scroll up event (new line)</span>
@@ -354,36 +358,36 @@
 <span class="sd">    with their Unicode equivalents.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: Get this using curses special characters when appropriate</span>
-    <span class="n">curses_specials</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="c"># NOTE: When $TERM is set to &quot;Linux&quot; these end up getting used by things</span>
-        <span class="c">#       like ncurses-based apps.  In other words, it makes a whole lot</span>
-        <span class="c">#       of ugly look pretty again.</span>
-        <span class="mh">0xda</span><span class="p">:</span> <span class="s">u&#39;┌&#39;</span><span class="p">,</span> <span class="c"># ACS_ULCORNER</span>
-        <span class="mh">0xc0</span><span class="p">:</span> <span class="s">u&#39;└&#39;</span><span class="p">,</span> <span class="c"># ACS_LLCORNER</span>
-        <span class="mh">0xbf</span><span class="p">:</span> <span class="s">u&#39;┐&#39;</span><span class="p">,</span> <span class="c"># ACS_URCORNER</span>
-        <span class="mh">0xd9</span><span class="p">:</span> <span class="s">u&#39;┘&#39;</span><span class="p">,</span> <span class="c"># ACS_LRCORNER</span>
-        <span class="mh">0xb4</span><span class="p">:</span> <span class="s">u&#39;├&#39;</span><span class="p">,</span> <span class="c"># ACS_RTEE</span>
-        <span class="mh">0xc3</span><span class="p">:</span> <span class="s">u&#39;┤&#39;</span><span class="p">,</span> <span class="c"># ACS_LTEE</span>
-        <span class="mh">0xc1</span><span class="p">:</span> <span class="s">u&#39;┴&#39;</span><span class="p">,</span> <span class="c"># ACS_BTEE</span>
-        <span class="mh">0xc2</span><span class="p">:</span> <span class="s">u&#39;┬&#39;</span><span class="p">,</span> <span class="c"># ACS_TTEE</span>
-        <span class="mh">0xc4</span><span class="p">:</span> <span class="s">u&#39;─&#39;</span><span class="p">,</span> <span class="c"># ACS_HLINE</span>
-        <span class="mh">0xb3</span><span class="p">:</span> <span class="s">u&#39;│&#39;</span><span class="p">,</span> <span class="c"># ACS_VLINE</span>
-        <span class="mh">0xc5</span><span class="p">:</span> <span class="s">u&#39;┼&#39;</span><span class="p">,</span> <span class="c"># ACS_PLUS</span>
-        <span class="mh">0x2d</span><span class="p">:</span> <span class="s">u&#39;&#39;</span><span class="p">,</span> <span class="c"># ACS_S1</span>
-        <span class="mh">0x5f</span><span class="p">:</span> <span class="s">u&#39;&#39;</span><span class="p">,</span> <span class="c"># ACS_S9</span>
-        <span class="mh">0x60</span><span class="p">:</span> <span class="s">u&#39;◆&#39;</span><span class="p">,</span> <span class="c"># ACS_DIAMOND</span>
-        <span class="mh">0xb2</span><span class="p">:</span> <span class="s">u&#39;▒&#39;</span><span class="p">,</span> <span class="c"># ACS_CKBOARD</span>
-        <span class="mh">0xf8</span><span class="p">:</span> <span class="s">u&#39;°&#39;</span><span class="p">,</span> <span class="c"># ACS_DEGREE</span>
-        <span class="mh">0xf1</span><span class="p">:</span> <span class="s">u&#39;±&#39;</span><span class="p">,</span> <span class="c"># ACS_PLMINUS</span>
-        <span class="mh">0xf9</span><span class="p">:</span> <span class="s">u&#39;•&#39;</span><span class="p">,</span> <span class="c"># ACS_BULLET</span>
-        <span class="mh">0x3c</span><span class="p">:</span> <span class="s">u&#39;←&#39;</span><span class="p">,</span> <span class="c"># ACS_LARROW</span>
-        <span class="mh">0x3e</span><span class="p">:</span> <span class="s">u&#39;→&#39;</span><span class="p">,</span> <span class="c"># ACS_RARROW</span>
-        <span class="mh">0x76</span><span class="p">:</span> <span class="s">u&#39;↓&#39;</span><span class="p">,</span> <span class="c"># ACS_DARROW</span>
-        <span class="mh">0x5e</span><span class="p">:</span> <span class="s">u&#39;↑&#39;</span><span class="p">,</span> <span class="c"># ACS_UARROW</span>
-        <span class="mh">0xb0</span><span class="p">:</span> <span class="s">u&#39;⊞&#39;</span><span class="p">,</span> <span class="c"># ACS_BOARD</span>
-        <span class="mh">0x0f</span><span class="p">:</span> <span class="s">u&#39;⨂&#39;</span><span class="p">,</span> <span class="c"># ACS_LANTERN</span>
-        <span class="mh">0xdb</span><span class="p">:</span> <span class="s">u&#39;█&#39;</span><span class="p">,</span> <span class="c"># ACS_BLOCK</span>
-    <span class="p">}</span>
+    <span class="c">#curses_specials = {</span>
+        <span class="c">## NOTE: When $TERM is set to &quot;Linux&quot; these end up getting used by things</span>
+        <span class="c">##       like ncurses-based apps.  In other words, it makes a whole lot</span>
+        <span class="c">##       of ugly look pretty again.</span>
+        <span class="c">#0xda: u&#39;┌&#39;, # ACS_ULCORNER</span>
+        <span class="c">#0xc0: u&#39;└&#39;, # ACS_LLCORNER</span>
+        <span class="c">#0xbf: u&#39;┐&#39;, # ACS_URCORNER</span>
+        <span class="c">#0xd9: u&#39;┘&#39;, # ACS_LRCORNER</span>
+        <span class="c">#0xb4: u&#39;├&#39;, # ACS_RTEE</span>
+        <span class="c">#0xc3: u&#39;┤&#39;, # ACS_LTEE</span>
+        <span class="c">#0xc1: u&#39;┴&#39;, # ACS_BTEE</span>
+        <span class="c">#0xc2: u&#39;┬&#39;, # ACS_TTEE</span>
+        <span class="c">#0xc4: u&#39;─&#39;, # ACS_HLINE</span>
+        <span class="c">#0xb3: u&#39;│&#39;, # ACS_VLINE</span>
+        <span class="c">#0xc5: u&#39;┼&#39;, # ACS_PLUS</span>
+        <span class="c">#0x2d: u&#39;&#39;, # ACS_S1</span>
+        <span class="c">#0x5f: u&#39;&#39;, # ACS_S9</span>
+        <span class="c">#0x60: u&#39;◆&#39;, # ACS_DIAMOND</span>
+        <span class="c">#0xb2: u&#39;▒&#39;, # ACS_CKBOARD</span>
+        <span class="c">#0xf8: u&#39;°&#39;, # ACS_DEGREE</span>
+        <span class="c">#0xf1: u&#39;±&#39;, # ACS_PLMINUS</span>
+        <span class="c">#0xf9: u&#39;•&#39;, # ACS_BULLET</span>
+        <span class="c">#0x3c: u&#39;←&#39;, # ACS_LARROW</span>
+        <span class="c">#0x3e: u&#39;→&#39;, # ACS_RARROW</span>
+        <span class="c">#0x76: u&#39;↓&#39;, # ACS_DARROW</span>
+        <span class="c">#0x5e: u&#39;↑&#39;, # ACS_UARROW</span>
+        <span class="c">#0xb0: u&#39;⊞&#39;, # ACS_BOARD</span>
+        <span class="c">#0x0f: u&#39;⨂&#39;, # ACS_LANTERN</span>
+        <span class="c">#0xdb: u&#39;█&#39;, # ACS_BLOCK</span>
+    <span class="c">#}</span>
     <span class="n">specials</span> <span class="o">=</span> <span class="p">{</span>
 <span class="c"># Note to self:  Why did I bother with these overly descriptive comments?  Ugh</span>
 <span class="c"># I&#39;ve been staring at obscure symbols far too much lately ⨀_⨀</span>
@@ -560,7 +564,7 @@
     <span class="n">out_renditions</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">foreground</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">background</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">rend</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">renditions</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">rend</span> <span class="ow">in</span> <span class="n">renditions</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">rend</span> <span class="o">&lt;</span> <span class="mi">29</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">rend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">out_renditions</span><span class="p">:</span>
                 <span class="n">out_renditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rend</span><span class="p">)</span>
@@ -831,7 +835,8 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;PIL is missing support for this image type (</span><span class="si">%s</span><span class="s">).  You probably&quot;</span>
                 <span class="s">&quot; need to install zlib-devel and libjpeg-devel then re-install &quot;</span>
-                <span class="s">&quot;it with &#39;pip install --upgrade PIL&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="s">&quot;it with &#39;pip install --upgrade PIL&#39; or &#39;pip install &quot;</span>
+                <span class="s">&quot;--upgrade Pillow&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">file_obj</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c"># Can&#39;t do anything with it</span>
             <span class="k">return</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file_obj</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>

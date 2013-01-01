@@ -32,6 +32,17 @@ go.Playback.frameInterval = Math.round(1000/go.Playback.frameRate); // Needs to 
 go.Playback.frameObj = {'screen': null, 'time': null}; // Used to prevent garbage from building up
 go.Base.update(GateOne.Playback, {
     init: function() {
+        /**:GateOne.Playback.init()
+
+        Adds the playback controls to Gate One and adds some GUI elements to the Tools & Info panel.  Also attaches the following events/functions::
+
+            // Add our callback that adds an extra newline to all terminals
+            GateOne.Events.on("new_terminal", GateOne.Playback.newTerminalCallback);
+            // This makes sure our playback frames get added to the terminal object whenever the screen is updated
+            GateOne.Events.on("term_updated", GateOne.Playback.pushPlaybackFrame);
+            // This makes sure our prefs get saved along with everything else
+            GateOne.Events.on("save_prefs", GateOne.Playback.savePrefsCallback)
+        */
         var go = GateOne,
             u = go.Utils,
             p = go.Playback,
@@ -67,8 +78,12 @@ go.Base.update(GateOne.Playback, {
         go.Events.on("save_prefs", p.savePrefsCallback)
     },
     newTerminalCallback: function(term, calledTwice) {
-        // This gets added to the new_terminal event to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls
-        // It also calls addPlaybackControls() to make sure they're present only after a new terminal is open
+        /**:GateOne.Playback.newTerminalCallback(term, calledTwice)
+
+        This gets added to the 'new_terminal' event to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls.
+
+        It also calls :js:meth:`GateOne.Playback.addPlaybackControls` to make sure they're present only after a new terminal is open.
+        */
         var go = GateOne,
             u = go.Utils,
             p = go.Playback,
@@ -115,7 +130,10 @@ go.Base.update(GateOne.Playback, {
         }
     },
     pushPlaybackFrame: function(term) {
-        // Adds the current screen in *term* to GateOne.terminals[term]['playbackFrames']
+        /**:GateOne.Playback.pushPlaybackFrame(term)
+
+        Adds the current screen of *term* to `GateOne.terminals[term]['playbackFrames']`.
+        */
         var prefix = GateOne.prefs.prefix,
             playbackFrames = null;
         if (!GateOne.Playback.progressBarElement) {
@@ -147,7 +165,10 @@ go.Base.update(GateOne.Playback, {
         }
     },
     savePrefsCallback: function() {
-        // Called when the user clicks the "Save" button in the prefs panel
+        /**:GateOne.Playback.savePrefsCallback()
+
+        Called when the user clicks the "Save" button in the prefs panel.  Makes sure the 'playbackFrames' setting gets updated according to what the user entered into the form.
+        */
         var prefix = GateOne.prefs.prefix,
             playbackValue = GateOne.Utils.getNode('#'+prefix+'prefs_playback').value;
         // Reset playbackFrames in case the user increased or decreased the value
@@ -163,11 +184,15 @@ go.Base.update(GateOne.Playback, {
         }
     },
     updateClock: function(/*opt:*/dateObj) {
-        // Updates the clock with the time in the given *dateObj*.
+        /**:GateOne.Playback.updateClock([dateObj])
+
+        Updates the clock with the time in the given *dateObj*.
+
+        If no *dateObj* is given, the clock will be updated with the current local time.
+        */
         var go = GateOne,
             u = go.Utils
             p = go.Playback;
-        // If no *dateObj* is given, the clock will be updated with the current local time
         if (!dateObj) { dateObj = new Date() }
         if (!p.clockElement) {
             p.clockElement = u.getNode('#'+go.prefs.prefix+'clock');
@@ -175,7 +200,10 @@ go.Base.update(GateOne.Playback, {
         p.clockElement.innerHTML = dateObj.toLocaleTimeString();
     },
     startPlayback: function(term) {
-        // Plays back the given terminal's session in real-time
+        /**:GateOne.Playback.startPlayback(term)
+
+        Plays back the given terminal's session in real-time.
+        */
         if (GateOne.Playback.clockUpdater) { // Get the clock updating
             clearInterval(GateOne.Playback.clockUpdater);
             GateOne.Playback.clockUpdater = null;
@@ -183,7 +211,10 @@ go.Base.update(GateOne.Playback, {
         GateOne.Playback.frameUpdater = setInterval('GateOne.Playback.playbackRealtime('+term+')', GateOne.Playback.frameInterval);
     },
     selectFrame: function(term, ms) {
-        // For the given terminal, returns the last frame # with a 'time' less than (first frame's time + *ms*)
+        /**:GateOne.Playback.selectFrame(term, ms)
+
+        For the given *term*, returns the last frame # with a 'time' less than the first frame's time + *ms*.
+        */
         var go = GateOne,
             firstFrameObj = go.terminals[term]['playbackFrames'][0],
             // Get a Date() that reflects the current position:
@@ -204,7 +235,10 @@ go.Base.update(GateOne.Playback, {
         return frame - 1;
     },
     playbackRealtime: function(term) {
-        // Plays back the given terminal's session one frame at a time.  Meant to be used inside of an interval timer.
+        /**:GateOne.Playback.playbackRealtime(term)
+
+        Plays back the given terminal's session one frame at a time.  Meant to be used inside of an interval timer.
+        */
         var go = GateOne,
             u = go.Utils,
             p = go.Playback,
@@ -245,6 +279,10 @@ go.Base.update(GateOne.Playback, {
     },
     // TODO: Figure out why this is breaking sometimes
     playPauseControl: function(e) {
+        /**:GateOne.Playback.playPauseControl(e)
+
+        Toggles play/pause inside the current terminal.  Meant to be attached to the Play/Pause icon's onclick event.
+        */
         var go = GateOne,
             u = go.Utils,
             p = go.Playback,
@@ -263,7 +301,10 @@ go.Base.update(GateOne.Playback, {
         }
     },
     addPlaybackControls: function() {
-        // Add the session playback controls to Gate One
+        /**:GateOne.Playback.addPlaybackControls()
+
+        Adds the session playback controls to Gate One.
+        */
         var go = GateOne,
             u = go.Utils,
             p = go.Playback,
@@ -414,8 +455,12 @@ go.Base.update(GateOne.Playback, {
         goDiv.addEventListener(mousewheelevt, wheelFunc, true);
     },
     saveRecording: function(term) {
-        // Saves the session playback recording by sending the playbackFrames to the server to have them rendered.
-        // When the server is done rendering the recording it will be sent back to the client via the save_file action.
+        /**:GateOne.Playback.saveRecording(term)
+
+        Saves the session playback recording by sending the given *term*'s 'playbackFrames' to the server to have them rendered.
+
+        When the server is done rendering the recording it will be sent back to the client via the 'save_file' WebSocket action.
+        */
         var go = GateOne,
             u = go.Utils,
             recording = JSON.stringify(go.terminals[term]['playbackFrames']),

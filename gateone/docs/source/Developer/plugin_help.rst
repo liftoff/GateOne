@@ -1,4 +1,10 @@
 The Help Plugin
 ===============
 
-.. todo:: Write documentation on the Help plugin.
+.. moduleauthor:: Dan McDougall <daniel.mcdougall@liftoffsoftware.com>
+
+JavaScript
+----------
+
+.. autojs:: ../applications/terminal/plugins/help/static/help.js
+    :members:

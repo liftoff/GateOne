@@ -101,8 +101,8 @@
 
 <span class="c"># 3rd party stuff</span>
 <span class="c"># The following two lines let us import modules in the &quot;dependencies&quot; dir</span>
-<span class="n">plugin_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_path</span><span class="p">,</span> <span class="s">&quot;dependencies&quot;</span><span class="p">))</span>
+<span class="n">PLUGIN_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&quot;dependencies&quot;</span><span class="p">))</span>
 
 <span class="c"># Globals</span>
 <span class="n">boolean_fix</span> <span class="o">=</span> <span class="p">{</span>
@@ -674,12 +674,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s">&quot;text/html&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span>
             <span class="s">&quot;Content-Disposition&quot;</span><span class="p">,</span> <span class="s">&#39;attachment; filename=&quot;bookmarks.html&quot;&#39;</span><span class="p">)</span>
-        <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_path</span><span class="p">,</span> <span class="s">&quot;templates&quot;</span><span class="p">)</span>
+        <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&quot;templates&quot;</span><span class="p">)</span>
         <span class="n">bookmarks_html</span> <span class="o">=</span>  <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s">&quot;bookmarks.html&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">bookmarks_html</span><span class="p">,</span> <span class="n">bookmarks</span><span class="o">=</span><span class="n">bookmarks</span><span class="p">)</span>
 
 <span class="c"># WebSocket commands (not the same as handlers)</span></div>
-<div class="viewcode-block" id="save_bookmarks"><a class="viewcode-back" href="../Developer/plugin_bookmarks.html#bookmarks.save_bookmarks">[docs]</a><span class="k">def</span> <span class="nf">save_bookmarks</span><span class="p">(</span><span class="n">bookmarks</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
+<div class="viewcode-block" id="save_bookmarks"><a class="viewcode-back" href="../Developer/plugin_bookmarks.html#bookmarks.save_bookmarks">[docs]</a><span class="k">def</span> <span class="nf">save_bookmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bookmarks</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles saving *bookmarks* for clients.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -689,8 +689,8 @@
         <span class="s">&#39;errors&#39;</span><span class="p">:</span> <span class="p">[]</span>
     <span class="p">}</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-        <span class="n">bookmarks_db</span> <span class="o">=</span> <span class="n">BookmarksDB</span><span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+        <span class="n">bookmarks_db</span> <span class="o">=</span> <span class="n">BookmarksDB</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
         <span class="n">updates</span> <span class="o">=</span> <span class="n">bookmarks_db</span><span class="o">.</span><span class="n">sync_bookmarks</span><span class="p">(</span><span class="n">bookmarks</span><span class="p">)</span>
         <span class="n">out_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
             <span class="s">&#39;updates&#39;</span><span class="p">:</span> <span class="n">updates</span><span class="p">,</span>
@@ -707,9 +707,9 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Upload successful&quot;</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;bookmarks_save_result&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
-    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
 </div>
-<div class="viewcode-block" id="get_bookmarks"><a class="viewcode-back" href="../Developer/plugin_bookmarks.html#bookmarks.get_bookmarks">[docs]</a><span class="k">def</span> <span class="nf">get_bookmarks</span><span class="p">(</span><span class="n">updateSequenceNum</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
+<div class="viewcode-block" id="get_bookmarks"><a class="viewcode-back" href="../Developer/plugin_bookmarks.html#bookmarks.get_bookmarks">[docs]</a><span class="k">def</span> <span class="nf">get_bookmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">updateSequenceNum</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a JSON-encoded list of bookmarks updated since the last</span>
 <span class="sd">    *updateSequenceNum*.</span>
@@ -717,22 +717,22 @@
 <span class="sd">    If *updateSequenceNum* resolves to False, all bookmarks will be sent to</span>
 <span class="sd">    the client.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">bookmarks_db</span> <span class="o">=</span> <span class="n">BookmarksDB</span><span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">bookmarks_db</span> <span class="o">=</span> <span class="n">BookmarksDB</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">updateSequenceNum</span><span class="p">:</span>
         <span class="n">updateSequenceNum</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">updateSequenceNum</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span> <span class="c"># This will force a full download</span>
         <span class="n">updateSequenceNum</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">updated_bookmarks</span> <span class="o">=</span> <span class="n">bookmarks_db</span><span class="o">.</span><span class="n">get_bookmarks</span><span class="p">(</span><span class="n">updateSequenceNum</span><span class="p">)</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;bookmarks_updated&#39;</span><span class="p">:</span> <span class="n">updated_bookmarks</span><span class="p">}</span>
-    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
 </div>
-<div class="viewcode-block" id="delete_bookmarks"><a class="viewcode-back" href="../Developer/plugin_bookmarks.html#bookmarks.delete_bookmarks">[docs]</a><span class="k">def</span> <span class="nf">delete_bookmarks</span><span class="p">(</span><span class="n">deleted_bookmarks</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
+<div class="viewcode-block" id="delete_bookmarks"><a class="viewcode-back" href="../Developer/plugin_bookmarks.html#bookmarks.delete_bookmarks">[docs]</a><span class="k">def</span> <span class="nf">delete_bookmarks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deleted_bookmarks</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles deleting bookmars given a *deleted_bookmarks* list.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">bookmarks_db</span> <span class="o">=</span> <span class="n">BookmarksDB</span><span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">bookmarks_db</span> <span class="o">=</span> <span class="n">BookmarksDB</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
         <span class="s">&#39;count&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -750,14 +750,14 @@
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Errors&quot;</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;errors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;bookmarks_delete_result&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
-    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
 </div>
-<div class="viewcode-block" id="rename_tags"><a class="viewcode-back" href="../Developer/plugin_bookmarks.html#bookmarks.rename_tags">[docs]</a><span class="k">def</span> <span class="nf">rename_tags</span><span class="p">(</span><span class="n">renamed_tags</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
+<div class="viewcode-block" id="rename_tags"><a class="viewcode-back" href="../Developer/plugin_bookmarks.html#bookmarks.rename_tags">[docs]</a><span class="k">def</span> <span class="nf">rename_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renamed_tags</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles renaming tags.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">bookmarks_db</span> <span class="o">=</span> <span class="n">BookmarksDB</span><span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">bookmarks_db</span> <span class="o">=</span> <span class="n">BookmarksDB</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
         <span class="s">&#39;count&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -769,7 +769,33 @@
         <span class="n">bookmarks_db</span><span class="o">.</span><span class="n">rename_tag</span><span class="p">(</span><span class="n">old_name</span><span class="p">,</span> <span class="n">new_name</span><span class="p">)</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;bookmarks_renamed_tags&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
-    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="send_css_template"><a class="viewcode-back" href="../Developer/plugin_bookmarks.html#bookmarks.send_css_template">[docs]</a><span class="k">def</span> <span class="nf">send_css_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sends our bookmarks.css template to the client using the &#39;load_style&#39;</span>
+<span class="sd">    WebSocket action.  Uses :attr:`ApplicationWebSocket.persist` to store a</span>
+<span class="sd">    reference to the rendered CSS template to ensure we only ever have to render</span>
+<span class="sd">    it once.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Here we use the &#39;persist&#39; dict to keep track of our rendered CSS template</span>
+    <span class="k">if</span> <span class="s">&#39;bookmarks_css&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">tempfile</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s">&#39;go_bookmarks_css&#39;</span><span class="p">)</span>
+        <span class="n">css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;bookmarks.css&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">css_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">css_template</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="n">rendered</span> <span class="o">=</span> <span class="n">css_template</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+            <span class="n">container</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span><span class="p">,</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span>
+            <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">temp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rendered</span><span class="p">)</span>
+        <span class="n">temp</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="c"># Save the rendered template to our persistent store so we don&#39;t have to</span>
+        <span class="c"># process it with every page load.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;bookmarks_css&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;bookmarks_css&#39;</span><span class="p">])</span>
 </div>
 <span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;Web&#39;</span><span class="p">:</span> <span class="p">[</span>
@@ -782,6 +808,9 @@
         <span class="s">&#39;bookmarks_get&#39;</span><span class="p">:</span> <span class="n">get_bookmarks</span><span class="p">,</span>
         <span class="s">&#39;bookmarks_deleted&#39;</span><span class="p">:</span> <span class="n">delete_bookmarks</span><span class="p">,</span>
         <span class="s">&#39;bookmarks_rename_tags&#39;</span><span class="p">:</span> <span class="n">rename_tags</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s">&#39;Events&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;terminal:authenticate&#39;</span><span class="p">:</span> <span class="n">send_css_template</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>

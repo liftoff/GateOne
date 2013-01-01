@@ -21,6 +21,17 @@ sys.path.insert(0, os.path.abspath('../'))
 # Insert plugins too
 for plugin_dir in os.listdir(os.path.abspath('../../plugins')):
     sys.path.append(os.path.abspath('../../plugins/%s' % plugin_dir))
+# Insert application modules:
+for app in os.listdir(os.path.abspath('../../applications')):
+    app_dir = os.path.abspath('../../applications/%s' % app)
+    if not os.path.isdir(app_dir):
+        continue
+    #sys.path.append(app_dir)
+    # ...and each of the application's plugins (if it has any):
+    plugins_dir = os.path.join(app_dir, 'plugins')
+    for plugin_dir in os.listdir(plugins_dir):
+        plugin_path = os.path.join(plugins_dir, plugin_dir)
+        sys.path.append(plugin_path)
 
 import gateone # So we can grab the version
 # -- General configuration -----------------------------------------------------

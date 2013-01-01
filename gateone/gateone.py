@@ -902,11 +902,45 @@ class PluginCSSTemplateHandler(BaseHandler):
 
 class GOApplication(object):
     """
-    The base from which all Gate One Applications will inherit.
+    The base from which all Gate One Applications will inherit.  Applications
+    are expected to be written like so::
+
+        class SomeApplication(GOApplication):
+            def initialize(self):
+                "Called when the Application is instantiated."
+                initialize_stuff()
+                # Here's some good things to do in an initialize() function...
+                # Register a policy-checking function:
+                self.ws.security.update({'some_app': policy_checking_func})
+                # Register some WebSocket actions (note the app:action naming convention)
+                self.ws.commands.update({
+                    'some_app:do_stuff': self.do_stuff,
+                    'some_app:do_other_stuff': self.do_other_stuff
+                })
+            def open(self):
+                "Called when the connection is established."
+                # Setup whatever is necessary for session tracking and whatnot.
+            def authenticate(self):
+                "Called when the user *successfully* authenticates."
+                # Here's the best place to instantiate things, send the user
+                # JavaScript/CSS files, and similar post-authentication details.
+            def on_close(self):
+                "Called when the connection is closed."
+                # This is a good place to halt any background/periodic operations.
+
+    GOApplications will be automatically imported into Gate One and registered
+    appropriately as long as they follow the following conventions:
+
+        * The application and its module(s) should live inside its own directory inside the 'applications' directory.  For example, `/opt/gateone/applications/some_app/some_app.py`
+        * Subclasses of `GOApplication` must be added to an `apps` global (list) inside of the application's module(s) like so: `apps = [SomeApplication]` (usually a good idea to put that at the very bottom of the module).
+
+    .. note:: All .py modules inside of the application's main directory will be imported even if they do not contain or register a `GOApplication`.
+
+    .. tip:: You can add command line arguments to Gate One by calling :func:`tornado.options.define` anywhere in your application's global namespace.  This works because the :func:`~tornado.options.define` function registers options in Gate One's global namespace (as `tornado.options.options`) and Gate One imports application modules before it evaluates command line arguments.
     """
     def __init__(self, ws):
         self.ws = ws # WebSocket instance
-        # Setup some shortcuts to make things more convenient
+        # Setup some shortcuts to make things more natural and convenient
         self.write_message = ws.write_message
         self.close = ws.close
         self.get_current_user = ws.get_current_user
@@ -914,9 +948,9 @@ class GOApplication(object):
         self.security = ws.security
         self.request = ws.request
         self.settings = ws.settings
-        self.trigger = self.ws.trigger
-        self.on = self.ws.on
-        self.off = self.ws.off
+        self.trigger = ws.trigger
+        self.on = ws.on
+        self.off = ws.off
 
     def __repr__(self):
         return "GOApplication: %s" % self.__class__

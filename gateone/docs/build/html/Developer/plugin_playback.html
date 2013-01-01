@@ -60,18 +60,97 @@
             
   <div class="section" id="the-playback-plugin">
 <h1>The Playback Plugin<a class="headerlink" href="#the-playback-plugin" title="Permalink to this headline">¶</a></h1>
-<div class="admonition-todo admonition" id="index-0">
-<p class="first admonition-title">Todo</p>
-<p class="last">Write documentation on playback.js.</p>
+<div class="section" id="javascript">
+<h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
+<p>playback.js - The client-side portion of Gate One's Playback plugin.</p>
+<dl class="function">
+<dt id="GateOne.Playback.addPlaybackControls">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">addPlaybackControls</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Playback.addPlaybackControls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the session playback controls to Gate One.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Playback.init">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Playback.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the playback controls to Gate One and adds some GUI elements to the Tools &amp; Info panel.  Also attaches the following events/functions:</p>
+<div class="highlight-js"><div class="highlight"><pre><span class="c1">// Add our callback that adds an extra newline to all terminals</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;new_terminal&quot;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Playback</span><span class="p">.</span><span class="nx">newTerminalCallback</span><span class="p">);</span>
+<span class="c1">// This makes sure our playback frames get added to the terminal object whenever the screen is updated</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;term_updated&quot;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Playback</span><span class="p">.</span><span class="nx">pushPlaybackFrame</span><span class="p">);</span>
+<span class="c1">// This makes sure our prefs get saved along with everything else</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;save_prefs&quot;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Playback</span><span class="p">.</span><span class="nx">savePrefsCallback</span><span class="p">)</span>
+</pre></div>
 </div>
-<span class="target" id="module-playback"></span><p>playback.py - A plugin for Gate One that adds support for saving and playing
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Playback.newTerminalCallback">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">newTerminalCallback</tt><big>(</big><em>term</em>, <em>calledTwice</em><big>)</big><a class="headerlink" href="#GateOne.Playback.newTerminalCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets added to the 'new_terminal' event to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls.</p>
+<p>It also calls <a class="reference internal" href="#GateOne.Playback.addPlaybackControls" title="GateOne.Playback.addPlaybackControls"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Playback.addPlaybackControls()</span></tt></a> to make sure they're present only after a new terminal is open.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Playback.playPauseControl">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">playPauseControl</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#GateOne.Playback.playPauseControl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Toggles play/pause inside the current terminal.  Meant to be attached to the Play/Pause icon's onclick event.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Playback.playbackRealtime">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">playbackRealtime</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Playback.playbackRealtime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plays back the given terminal's session one frame at a time.  Meant to be used inside of an interval timer.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Playback.pushPlaybackFrame">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">pushPlaybackFrame</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Playback.pushPlaybackFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the current screen of <em>term</em> to <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.terminals[term]['playbackFrames']</span></tt>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Playback.savePrefsCallback">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">savePrefsCallback</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Playback.savePrefsCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the user clicks the &quot;Save&quot; button in the prefs panel.  Makes sure the 'playbackFrames' setting gets updated according to what the user entered into the form.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Playback.saveRecording">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">saveRecording</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Playback.saveRecording" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the session playback recording by sending the given <em>term</em>'s 'playbackFrames' to the server to have them rendered.</p>
+<p>When the server is done rendering the recording it will be sent back to the client via the 'save_file' WebSocket action.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Playback.selectFrame">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">selectFrame</tt><big>(</big><em>term</em>, <em>ms</em><big>)</big><a class="headerlink" href="#GateOne.Playback.selectFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>For the given <em>term</em>, returns the last frame # with a 'time' less than the first frame's time + <em>ms</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Playback.startPlayback">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">startPlayback</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Playback.startPlayback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plays back the given terminal's session in real-time.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Playback.updateClock">
+<tt class="descclassname">GateOne.Playback.</tt><tt class="descname">updateClock</tt><big>(</big><span class="optional">[</span><em>dateObj</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#GateOne.Playback.updateClock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the clock with the time in the given <em>dateObj</em>.</p>
+<p>If no <em>dateObj</em> is given, the clock will be updated with the current local time.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-playback">
+<span id="python"></span><h2>Python<a class="headerlink" href="#module-playback" title="Permalink to this headline">¶</a></h2>
+<p>playback.py - A plugin for Gate One that adds support for saving and playing
 back session recordings.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Yes this only contains one function and it is exposed to clients through a WebSocket hook.</p>
 </div>
 <div class="section" id="hooks">
-<h2>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h2>
+<h3>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h3>
 <p>This Python plugin file implements the following hooks:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -82,15 +161,16 @@ back session recordings.</p>
 </div>
 </div>
 <div class="section" id="docstrings">
-<h2>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h2>
+<h3>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="playback.save_recording">
-<tt class="descclassname">playback.</tt><tt class="descname">save_recording</tt><big>(</big><em>settings</em>, <em>tws</em><big>)</big><a class="reference internal" href="../_modules/playback.html#save_recording"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#playback.save_recording" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">playback.</tt><tt class="descname">save_recording</tt><big>(</big><em>self</em>, <em>settings</em><big>)</big><a class="reference internal" href="../_modules/playback.html#save_recording"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#playback.save_recording" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles uploads of session recordings and returns them to the client in a
 self-contained HTML file that will auto-start playback.</p>
 <p>NOTE: The real crux of the code that handles this is in the template.</p>
 </dd></dl>
 
+</div>
 </div>
 </div>
 
@@ -106,8 +186,12 @@ self-contained HTML file that will auto-start playback.</p>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">The Playback Plugin</a><ul>
+<li><a class="reference internal" href="#javascript">JavaScript</a></li>
+<li><a class="reference internal" href="#module-playback">Python</a><ul>
 <li><a class="reference internal" href="#hooks">Hooks</a></li>
 <li><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

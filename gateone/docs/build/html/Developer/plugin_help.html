@@ -60,9 +60,38 @@
             
   <div class="section" id="the-help-plugin">
 <h1>The Help Plugin<a class="headerlink" href="#the-help-plugin" title="Permalink to this headline">¶</a></h1>
-<div class="admonition-todo admonition" id="index-0">
-<p class="first admonition-title">Todo</p>
-<p class="last">Write documentation on the Help plugin.</p>
+<div class="section" id="javascript">
+<h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="GateOne.Help.aboutGateOne">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">aboutGateOne</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.aboutGateOne" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays the Gate One version/credits.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Help.init">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the help panel and registers the <tt class="kbd docutils literal"><span class="pre">Shift-F1</span></tt> (show help) and <tt class="kbd docutils literal"><span class="pre">Ctrl-S</span></tt> (displays helpful message about suspended terminal output) keyboard shortcuts.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Help.showFirstTimeDialog">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showFirstTimeDialog</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.showFirstTimeDialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pops up a dialog for first-time users that shows them the basics of Gate One.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Help.showHelp">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showHelp</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Help.showHelp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays the help panel.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="GateOne.Help.showHelpSection">
+<tt class="descclassname">GateOne.Help.</tt><tt class="descname">showHelpSection</tt><big>(</big><em>sectionObj</em><big>)</big><a class="headerlink" href="#GateOne.Help.showHelpSection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows the given help information (<em>sectionObj</em>) by sliding out whatever is in the help panel and sliding in the new help text.</p>
+</dd></dl>
+
 </div>
 </div>
 
@@ -75,6 +104,14 @@
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Help Plugin</a><ul>
+<li><a class="reference internal" href="#javascript">JavaScript</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="plugin_example.html"
                         title="previous chapter">The Example Plugin</a></p>

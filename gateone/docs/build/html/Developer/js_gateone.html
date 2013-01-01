@@ -1286,7 +1286,7 @@
 <li><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadPluginCSS</span></tt></li>
 <li><a class="reference internal" href="#GateOne.Utils.loadPrefs" title="GateOne.Utils.loadPrefs"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadPrefs</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Utils.loadScript" title="GateOne.Utils.loadScript"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadScript</span></tt></a></li>
-<li><a class="reference internal" href="#GateOne.Utils.loadStyle" title="GateOne.Utils.loadStyle"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadStyle</span></tt></a> ###</li>
+<li><a class="reference internal" href="#GateOne.Utils.loadStyleAction" title="GateOne.Utils.loadStyleAction"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadStyleAction</span></tt></a> ###</li>
 <li><a class="reference internal" href="#GateOne.Utils.loadThemeCSS" title="GateOne.Utils.loadThemeCSS"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.loadThemeCSS</span></tt></a></li>
 <li><a class="reference internal" href="#GateOne.Utils.ltrim" title="GateOne.Utils.ltrim"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.ltrim</span></tt></a> ###</li>
 <li><a class="reference internal" href="#GateOne.Utils.noop" title="GateOne.Utils.noop"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Utils.noop</span></tt></a></li>
@@ -1318,7 +1318,7 @@
 <tt class="descclassname">GateOne.Utils.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Utils.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Like all plugin init() functions this gets called from <a class="reference internal" href="#GateOne.Utils.runPostInit" title="GateOne.Utils.runPostInit"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.runPostInit()</span></tt></a> which itself is called at the end of <a class="reference internal" href="#GateOne.initialize" title="GateOne.initialize"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.initialize()</span></tt></a>.  It simply attaches a few actions like, 'save_file' to their respective functions in <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt>.  Literally:</p>
 <div class="highlight-javascript"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;save_file&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">saveAsAction</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;load_style&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">loadStyle</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;load_style&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">loadStyleAction</span><span class="p">);</span>
 <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;themes_list&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Utils</span><span class="p">.</span><span class="nx">enumerateThemes</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -2031,8 +2031,8 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="GateOne.Utils.loadStyle">
-<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadStyle</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Utils.loadStyle" title="Permalink to this definition">¶</a></dt>
+<dt id="GateOne.Utils.loadStyleAction">
+<tt class="descclassname">GateOne.Utils.</tt><tt class="descname">loadStyleAction</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.Utils.loadStyleAction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the stylesheet sent by the server via the 'load_style' <a class="reference external" href="https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket">WebSocket</a> action.</p>
 </dd></dl>
 
@@ -2596,7 +2596,7 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 <td><a class="reference internal" href="#GateOne.Visual.CSSPluginAction" title="GateOne.Visual.CSSPluginAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Visual.CSSPluginAction()</span></tt></a></td>
 </tr>
 <tr class="row-even"><td>load_style</td>
-<td><a class="reference internal" href="#GateOne.Utils.loadStyle" title="GateOne.Utils.loadStyle"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.loadStyle()</span></tt></a></td>
+<td><a class="reference internal" href="#GateOne.Utils.loadStyleAction" title="GateOne.Utils.loadStyleAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Utils.loadStyleAction()</span></tt></a></td>
 </tr>
 <tr class="row-odd"><td>load_webworker</td>
 <td><a class="reference internal" href="#GateOne.Terminal.loadWebWorkerAction" title="GateOne.Terminal.loadWebWorkerAction"><tt class="xref js js-func docutils literal"><span class="pre">GateOne.Terminal.loadWebWorkerAction()</span></tt></a></td>

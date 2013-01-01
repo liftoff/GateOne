@@ -139,6 +139,8 @@ class require(object):
             return 'Hello, Administrator!'
 
     This would only allow the user, 'administrator' access to the index page.
+    In this example the *condition* is the `is_user` function which checks that
+    the logged-in user's username (aka UPN) is 'administrator'.
     """
     def __init__(self, *conditions):
         self.conditions = conditions
@@ -210,7 +212,7 @@ class is_user(object):
     def __str__(self):
         return "is_user: %s" % self.upn
 
-    def __init__(self, upn):
+    def __init__(self, upn): # NOTE: upn is the username (aka userPrincipalName)
         self.upn = upn
         self.instance = None
         self.function = None
@@ -225,21 +227,31 @@ class is_user(object):
         else:
             return False
 
-# Still experimenting on how various security limits will be handled...  This is likely to change:
+# Still experimenting on how various security limits will be handled...  Many aspects of this function may change:
 class policies(object):
     """
     A condition class to be used with the @require decorator that returns True
-    if all the specified conditions are within the limits specified in
-    security.conf.  Here's an example::
+    if all the given conditions are within the limits specified in Gate One's
+    settings (e.g. 50limits.conf).  Here's an example::
 
         @require(authenticated(), policies('terminal'))
         def new_terminal(self, settings):
             # Actual function would be here
 
     That would apply all policies that are configured for the 'terminal'
-    application by way of whatever function is registered to handle 'terminal'
-    restriction checks.
+    application.  It works like this:
+
+        # The :class:`~app_terminal.TerminalApplication` application registers its name and policy-checking function inside of :meth:`~app_terminal.TerminalApplication.initialize` like so::
+
+            self.ws.security.update({'terminal': terminal_policies})
+
+        # Whenever a function decorated with `@require(policies('terminal'))` is called the registered policy-checking function (e.g. :func:`app_terminal.terminal_policies`) will be called, passing the current instance of :class:`policies` as the only argument.
+        # It is then up to the policy-checking function to make a determination as to whether or not the user is allowed to execute the decorated function and must return `True` if allowed.  Also note that the policy-checking function will be able to make modifications to the function and its arguments if the security policies warrant it.
+
+    .. note:: If you write your own policy-checking function (like :func:`terminal_policies`) it is often a good idea to send a notification to the user indicating why they've been denied.  You can do this with the :meth:`instance.send_message` method.
     """
+    # NOTE:  In the future if we wish to use this function with Gate One itself
+    # (as opposed to just a GOApplication) the 'app' will need to be 'gateone'.
     error = _("Your ability to perform this action has been restricted")
     def __str__(self):
         return "policies: %s" % self.app

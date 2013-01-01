@@ -58,30 +58,22 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-mobile">
-<span id="the-mobile-plugin"></span><h1>The Mobile Plugin<a class="headerlink" href="#module-mobile" title="Permalink to this headline">¶</a></h1>
-<p>mobile.py - A plugin to enable the use of Gate One on mobile devices.</p>
-<p>The Python code of this plugin only does one thing:  It adds a single line to
-the <tt class="xref py py-obj docutils literal"><span class="pre">&lt;head&gt;</span></tt> of Gate One's index.html page by way of the 'head' hook.  Quite
-literally, this is everything:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">header_hooks</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s">&#39;&lt;meta name=&quot;viewport&quot; content=&quot;target-densitydpi=device-dpi, width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=0&quot;&gt;&#39;</span><span class="p">,</span>
-<span class="p">]</span>
+  <div class="section" id="the-mobile-plugin">
+<h1>The Mobile Plugin<a class="headerlink" href="#the-mobile-plugin" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="javascript">
+<h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="GateOne.Mobile.init">
+<tt class="descclassname">GateOne.Mobile.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Mobile.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to detect whether or not the page was loaded via a mobile device and loads touch events/input elements as necessary.</p>
+</dd></dl>
 
-<span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;HTML&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;head&#39;</span><span class="p">:</span> <span class="n">header_hooks</span><span class="p">,</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference external" href="https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag">https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag</a></p>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">'head' hooks don't work in embedded mode.</p>
+<dl class="function">
+<dt id="GateOne.Mobile.sendDimensions">
+<tt class="descclassname">GateOne.Mobile.</tt><tt class="descname">sendDimensions</tt><big>(</big><em>term</em><big>)</big><a class="headerlink" href="#GateOne.Mobile.sendDimensions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same as <a class="reference internal" href="js_gateone.html#GateOne.Net.sendDimensions" title="GateOne.Net.sendDimensions"><tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Net.sendDimensions()</span></tt></a> but we don't adjust for the playback controls.</p>
+</dd></dl>
+
 </div>
 </div>
 
@@ -94,6 +86,14 @@ literally, this is everything:</p>
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Mobile Plugin</a><ul>
+<li><a class="reference internal" href="#javascript">JavaScript</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="plugin_logging.html"
                         title="previous chapter">The Logging Plugin</a></p>

@@ -33,6 +33,15 @@ GateOne.Logging.page = 0; // Used to tracking pagination
 GateOne.Logging.delay = 500;
 GateOne.Base.update(GateOne.Logging, {
     init: function() {
+        /**:GateOne.Logging.init()
+
+        Creates the log viewer panel and registers the following WebSocket actions::
+
+            GateOne.Net.addAction('logging_log', GateOne.Logging.incomingLogAction);
+            GateOne.Net.addAction('logging_logs_complete', GateOne.Logging.incomingLogsCompleteAction);
+            GateOne.Net.addAction('logging_log_flat', GateOne.Logging.displayFlatLogAction);
+            GateOne.Net.addAction('logging_log_playback', GateOne.Logging.displayPlaybackLogAction);
+        */
         var go = GateOne,
             l = go.Logging,
             u = go.Utils,
@@ -56,7 +65,10 @@ GateOne.Base.update(GateOne.Logging, {
         go.Net.addAction('logging_log_playback', l.displayPlaybackLogAction);
     },
     setLevel: function(level) {
-        // Sets the log level to an integer if the given a string (e.g. "DEBUG").  Leaves it as-is if it's already a number.
+        /**:GateOne.Logging.setLevel(level)
+
+        Sets the log *level* to an integer if the given a string (e.g. "DEBUG").  Sets it as-is if it's already a number.
+        */
         var l = GateOne.Logging;
         if (level === parseInt(level,10)) { // It's an integer, set it as-is
             l.level = level;
@@ -71,7 +83,7 @@ GateOne.Base.update(GateOne.Logging, {
 
         Logs the given *msg* to the browser's JavaScript console.  If *level* is provided it will attempt to use the appropriate console logger (e.g. console.warn()).
 
-        .. note:: Original version of this function is from: MochiKit.Logging.Logger.prototype.logToConsole.
+        .. note:: Original version of this function is from: `MochiKit.Logging.Logger.prototype.logToConsole`.
         */
         if (typeof(window) != "undefined" && window.console && window.console.log) {
             // Safari and FireBug 0.4
@@ -117,8 +129,9 @@ GateOne.Base.update(GateOne.Logging, {
         }
     },
     log: function(msg, level, destination) {
-        /*
-        Logs the given *msg* using all of the functions in GateOne.Logging.destinations after being prepended with the date and a string indicating the log level (e.g. "692011-10-25 10:04:28 INFO <msg>") *if* *level* is determined to be greater than the value of GateOne.Logging.level.  If the given *level* is not greater than GateOne.Logging.level *msg* will be discarded (noop).
+        /**:GateOne.Logging.log(msg, level, destination)
+
+        Logs the given *msg* using all of the functions in `GateOne.Logging.destinations` after being prepended with the date and a string indicating the log level (e.g. "692011-10-25 10:04:28 INFO <msg>") if *level* is determined to be greater than the value of `GateOne.Logging.level`.  If the given *level* is not greater than `GateOne.Logging.level` *msg* will be discarded (noop).
 
         *level* can be provided as a string, an integer, null, or be left undefined:
 
@@ -127,7 +140,7 @@ GateOne.Base.update(GateOne.Logging, {
              If undefined, the level will be set to GateOne.Logging.level.
              If null (as opposed to undefined), level info will not be included in the log message.
 
-        If *destination* is given (must be a function) it will be used to log messages like so: destination(message, levelStr).  The usual conversion of *msg* to *message* will apply.
+        If *destination* is given (must be a function) it will be used to log messages like so: `destination(message, levelStr)`.  The usual conversion of *msg* to *message* will apply.
         */
         var l = GateOne.Logging,
             now = new Date(),
@@ -172,16 +185,25 @@ GateOne.Base.update(GateOne.Logging, {
     logDebug: function(msg) { GateOne.Logging.log(msg, 'DEBUG') },
     deprecated: function(whatever, moreInfo) { GateOne.Logging.log(whatever + " is deprecated.  " + moreInfo, 'WARNING') },
     addDestination: function(name, dest) {
-        // Creates a new log destination named, *name* that calls function *dest* like so:
-        //     dest(<log message>)
-        //
-        // Example:
-        //     GateOne.Logging.addDestination('screen', GateOne.Visual.displayMessage);
-        // NOTE: The above example is kind of fun.  Try it!
+        /**:GateOne.Logging.addDestination(name, dest)
+
+        Creates a new log destination named, *name* that calls function *dest* like so::
+
+            dest(<log message>);
+
+        Example usage::
+
+             GateOne.Logging.addDestination('screen', GateOne.Visual.displayMessage);
+
+        .. note:: The above example is kind of fun.  Try it in your JavaScript console!
+        */
         GateOne.Logging.destinations[name] = dest;
     },
     removeDestination: function(name) {
-        // Removes the given log destination from GateOne.Logging.destinations
+        /**:GateOne.Logging.removeDestination(name)
+
+        Removes the given log destination (*name*) from `GateOne.Logging.destinations`
+        */
         if (GateOne.Logging.destinations[name]) {
             delete GateOne.Logging.destinations[name];
         } else {
@@ -189,8 +211,10 @@ GateOne.Base.update(GateOne.Logging, {
         }
     },
     dateFormatter: function(dateObj) {
-        // Converts a Date() object into string suitable for logging
-        // e.g. 2011-05-29 13:24:03
+        /**:GateOne.Logging.dateFormatter(dateObj)
+
+        Converts a Date() object into string suitable for logging.  e.g. 2011-05-29 13:24:03
+        */
         var year = dateObj.getFullYear(),
             month = dateObj.getMonth() + 1, // JS starts months at 0
             day = dateObj.getDate(),
@@ -216,7 +240,10 @@ GateOne.Base.update(GateOne.Logging, {
         return year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
     },
     createPanel: function() {
-        // Creates the logging panel (just the empty shell)
+        /**:GateOne.Logging.createPanel()
+
+        Creates the logging panel (just the empty shell of it).
+        */
         var go = GateOne,
             u = go.Utils,
             l = go.Logging,
@@ -407,8 +434,12 @@ GateOne.Base.update(GateOne.Logging, {
         });
     },
     loadLogs: function(forceUpdate) {
-        // After GateOne.Logging.serverLogs has been populated, this function will redraw the view depending on sort and pagination values
-        // If *forceUpdate*, empty out GateOne.Logging.serverLogs and tell the server to send us a new list.
+        /**:GateOne.Logging.loadLogs(forceUpdate)
+
+        After `GateOne.Logging.serverLogs` has been populated this function will redraw the view depending on sort and pagination values.
+
+        If *forceUpdate* empty out `GateOne.Logging.serverLogs` and tell the server to send us a new list.
+        */
         var go = GateOne,
             u = go.Utils,
             l = go.Logging,
@@ -485,7 +516,10 @@ GateOne.Base.update(GateOne.Logging, {
         pagination.appendChild(paginationUL);
     },
     getMaxLogItems: function(elem) {
-    // Calculates and returns the number of log items that will fit in the given element ID (elem).
+        /**:GateOne.Logging.getMaxLogItems(elem)
+
+        Calculates and returns the number of log items that will fit in the given element (*elem*).  *elem* may be a DOM node or an element ID (string).
+        */
         try {
             var go = GateOne,
                 l = go.Logging,
@@ -521,8 +555,12 @@ GateOne.Base.update(GateOne.Logging, {
         return max;
     },
     loadPagination: function(logItems, /*opt*/page) {
-        // Sets up the pagination for the given array of *logItems* and returns the pagination node.
-        // If *page* is given, the pagination will highlight the given page number and adjust prev/next accordingly
+        /**:GateOne.Logging.loadPagination(logItems[, page])
+
+        Sets up the pagination for the given array of *logItems* and returns the pagination node.
+
+        If *page* is given, the pagination will highlight the given page number and adjust prev/next accordingly.
+        */
         var go = GateOne,
             l = go.Logging,
             u = go.Utils,
@@ -584,7 +622,10 @@ GateOne.Base.update(GateOne.Logging, {
         return logPaginationUL;
     },
     displayMetadata: function(logFile) {
-        // Displays the information about the log file, *logFile* in the logview panel.
+        /**:GateOne.Logging.displayMetadata(logFile)
+
+        Displays the information about the log file, *logFile* in the metadata area of the log viewer.
+        */
         var go = GateOne,
             u = go.Utils,
             l = go.Logging,
@@ -660,8 +701,12 @@ GateOne.Base.update(GateOne.Logging, {
         }
     },
     createLogItem: function(container, logObj, delay) {
-        // Creates a logItem element using *logObj* and places it into *container*.
-        // *delay* controls how long it will wait before using a CSS3 effect to move it into view.
+        /**:GateOne.Logging.createLogItem(container, logObj, delay)
+
+        Creates a logItem element using *logObj* and places it in *container*.
+
+        *delay* controls how long it will wait before using a CSS3 effect to move it into view.
+        */
         var go = GateOne,
             u = go.Utils,
             l = go.Logging,
@@ -715,7 +760,10 @@ GateOne.Base.update(GateOne.Logging, {
         return logElem;
     },
     incomingLogAction: function(message) {
-        // Adds *message['log']* to GateOne.Logging.serverLogs and places it into the view.
+        /**:GateOne.Logging.incomingLogAction(message)
+
+        Adds *message['log']* to `GateOne.Logging.serverLogs` and places it into the view.
+        */
         var go = GateOne,
             u = go.Utils,
             l = go.Logging,
@@ -757,7 +805,10 @@ GateOne.Base.update(GateOne.Logging, {
         l.delay += 50;
     },
     incomingLogsCompleteAction: function(message) {
-        // Just sets the header to indicate we're done loading
+        /**:GateOne.Logging.incomingLogsCompleteAction(message)
+
+        Sets the header of the log viewer and displays a message to indicate we're done loading.
+        */
         var go = GateOne,
             u = go.Utils,
             l = go.Logging,
@@ -767,7 +818,10 @@ GateOne.Base.update(GateOne.Logging, {
         logViewHeader.innerHTML = 'Log Viewer';
     },
     displayFlatLogAction: function(message) {
-        // Opens a new window displaying the (flat) log contained within *message* if there are no errors reported
+        /**:GateOne.Logging.displayFlatLogAction(message)
+
+        Opens a new window displaying the (flat) log contained within *message* if there are no errors reported.
+        */
         var go = GateOne,
             u = go.Utils,
             v = go.Visual,
@@ -803,7 +857,10 @@ GateOne.Base.update(GateOne.Logging, {
         }
     },
     displayPlaybackLogAction: function(message) {
-        // Opens a new window playing back the log contained within *message* if there are no errors reported
+        /**:GateOne.Logging.displayPlaybackLogAction(message)
+
+        Opens a new window playing back the log contained within *message* if there are no errors reported.
+        */
         var go = GateOne,
             u = go.Utils,
             v = go.Visual,
@@ -833,7 +890,10 @@ GateOne.Base.update(GateOne.Logging, {
         }
     },
     openLogFlat: function(logFile) {
-        // Tells the server to open *logFile* for playback (will end up calling displayFlatLogAction())
+        /**:GateOne.Logging.openLogFlat(logFile)
+
+        Tells the server to open *logFile* for playback via the 'logging_get_log_flat' server-side WebSocket action (will end up calling :js:meth:`~GateOne.Logging.displayFlatLogAction`.
+        */
         var go = GateOne,
             message = {
                 'log_filename': logFile,
@@ -844,8 +904,12 @@ GateOne.Base.update(GateOne.Logging, {
         go.Visual.displayMessage(logFile + ' will be opened in a new window when rendering is complete.  Large logs can take some time so please be patient.');
     },
     openLogPlayback: function(logFile, /*opt*/where) {
-        // Tells the server to open *logFile* for playback (will end up calling displayPlaybackLogAction())
-        // If *where* is given and it is set to 'preview' the playback will happen in the log_preview iframe.
+        /**:GateOne.Logging.openLogPlayback(logFile[, where])
+
+        Tells the server to open *logFile* for playback via the 'logging_get_log_playback' server-side WebSocket action (will end up calling :js:meth:`~GateOne.Logging.displayPlaybackLogAction`.
+
+        If *where* is given and it is set to 'preview' the playback will happen in the log_preview iframe.
+        */
         var go = GateOne,
             message = {
                 'log_filename': logFile,
@@ -860,7 +924,10 @@ GateOne.Base.update(GateOne.Logging, {
         go.ws.send(JSON.stringify({'logging_get_log_playback': message}));
     },
     saveRenderedLog: function(logFile) {
-        // Tells the server to open *logFile*, rendere it as a self-contained recording, and send it back to the browser for saving (using the save_file action).
+        /**:GateOne.Logging.saveRenderedLog(logFile)
+
+        Tells the server to open *logFile* rendered as a self-contained recording (via the 'logging_get_log_file' WebSocket action) and send it back to the browser for saving (using the 'save_file' WebSocket action).
+        */
         var go = GateOne,
             message = {
                 'log_filename': logFile,
@@ -871,8 +938,17 @@ GateOne.Base.update(GateOne.Logging, {
         go.Visual.displayMessage(logFile + ' will be downloaded when rendering is complete.  Large logs can take some time so please be patient.');
     },
     sortFunctions: {
+        /**:GateOne.Logging.sortFunctions
+
+        An associative array of functions that are used to sort logs.  When the user clicks on one of the sorting options it assigns one of these functions to :js:meth:`GateOne.Logging.sortfunc` which is then applied like so::
+
+            logs.sort(GateOne.Logging.sortfunc);
+        */
         date: function(a,b) {
-            // Sorts by date (start_date) followed by alphabetical order of the title (connect_string)
+            /**:GateOne.Logging.sortFunctions.date(a, b)
+
+            Sorts logs by date (start_date) followed by alphabetical order of the title (connect_string).
+            */
             if (a.start_date === b.start_date) {
                 var x = a.connect_string.toLowerCase(), y = b.connect_string.toLowerCase();
                 return x < y ? -1 : x > y ? 1 : 0;
@@ -885,12 +961,18 @@ GateOne.Base.update(GateOne.Logging, {
             }
         },
         alphabetical: function(a,b) {
-            // Sorts alphabetically using the title (connect_string)
+            /**:GateOne.Logging.sortFunctions.alphabetical(a, b)
+
+            Sorts logs alphabetically using the title (connect_string).
+            */
             var x = a.connect_string.toLowerCase(), y = b.connect_string.toLowerCase();
             return x < y ? -1 : x > y ? 1 : 0;
         },
         size: function(a,b) {
-            // Sorts logs according to their size
+            /**:GateOne.Logging.sortFunctions.alphabetical(a, b)
+
+            Sorts logs according to their size.
+            */
             if (a.size === b.size) {
                 var x = a.connect_string.toLowerCase(), y = b.connect_string.toLowerCase();
                 return x < y ? -1 : x > y ? 1 : 0;
@@ -904,7 +986,10 @@ GateOne.Base.update(GateOne.Logging, {
         },
     },
     toggleSortOrder: function() {
-        // Reverses the order of the log list
+        /**:GateOne.Logging.toggleSortOrder()
+
+        Reverses the order of the logs array.
+        */
         var go = GateOne,
             l = go.Logging,
             u = go.Utils,

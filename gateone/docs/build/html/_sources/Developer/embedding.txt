@@ -10,7 +10,7 @@ This tutorial will walk you through embedding Gate One into a completely differe
     #. Basics: Embedding Gate One into any web page.
     #. Advanced: API-based authentication, "embedded mode", and customizing *everything*.
 
-We'll assume you have Gate One installed and running with the following settings (in your server.conf)::
+We'll assume you have Gate One installed and running with the following settings (in your 10server.conf)::
 
     auth = None # Anonymous authentication
     port = 443
@@ -90,27 +90,40 @@ Generate an API Key/Secret
 
 .. note:: The secret is not output to the terminal to avoid it being captured in session logs.
 
-API keys and secrets are stored in your server.conf like so::
+API keys and secrets are stored in your 20api_keys.conf like so::
 
-    api_keys = "<API Key>:<API Secret>,<API Key>:<API Secret>,..."
+    {
+        "*": {
+            "gateone": {
+                "api_keys": {
+                    "<API Key>": "<Secret>",
+                    "<API Key 2>": "<Secret 2>"
+                }
+            }
+        }
+    }
 
-You'll need to have a look at your server.conf to see what the 'secret' is:
+You'll need to have a look at your 20api_keys.conf to see what the 'secret' is:
 
 .. ansi-block::
     :string_escape:
 
-    \x1b[1;34m#\x1b[0m grep "^api_keys" server.conf
-    api_keys = "NDEzMWEwYTdlZTAzNDkxMWIwMDI4YzJmZTk4YzI4OWJjM:M2U5YTMxMGQ3OWNlNDJlMTg5NmY0NmUyOTk5MWYwYWFiN"
+    \x1b[1;34m#\x1b[0m cat settings/20api_keys.conf
+    {
+        "*": {
+            "gateone": {
+                "api_keys": {
+                    "NDEzMWEwYTdlZTAzNDkxMWIwMDI4YzJmZTk4YzI4OWJjM": "M2U5YTMxMGQ3OWNlNDJlMTg5NmY0NmUyOTk5MWYwYWFiN"
+                }
+            }
+        }
+    }
 
 In the above example our API key would be, ``"NDEzMWEwYTdlZTAzNDkxMWIwMDI4YzJmZTk4YzI4OWJjM"`` and our API secret would be, ``"M2U5YTMxMGQ3OWNlNDJlMTg5NmY0NmUyOTk5MWYwYWFiN"``.
 
-.. tip:: You can set the API Key and secret to whatever you like by editing your server.conf.  By default they're random, 45-character strings but they can be any combination of characters other than colons and commas--even `Unicode <http://en.wikipedia.org/wiki/Unicode>`_!.  The following is a perfectly valid API key and secret:
+.. tip:: You can set the API Key and secret to whatever you like by editing your 20api_keys.conf.  By default they're random, 45-character strings but they can be any combination of characters other than colons and commas--even `Unicode <http://en.wikipedia.org/wiki/Unicode>`_!.  The following is a perfectly valid API key and secret:
 
-    ``ʕ•ᴥ•ʔ ／人 ◕ ‿‿ ◕ 人＼:↑ ↑ ↓ ↓ ← → ← → Ⓑ Ⓐ ♥‿♥``
-
-.. note:: To use Unicode strings in your server.conf you must have an encoding marked at the top of the file like so::
-
-    # -*- coding: utf-8 -*-
+    ``"ʕ•ᴥ•ʔ ／人 ◕ ‿‿ ◕ 人＼": "↑ ↑ ↓ ↓ ← → ← → Ⓑ Ⓐ ♥‿♥"``
 
 Generate An Auth Object
 ^^^^^^^^^^^^^^^^^^^^^^^

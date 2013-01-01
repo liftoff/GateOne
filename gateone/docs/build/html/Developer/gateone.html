@@ -175,7 +175,7 @@ Options:
 &nbsp;&nbsp;--origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value must contain the hostnames and FQDNs (e.g. https://foo;https://foo.bar;) users will use to connect to your Gate One server as well as the hostnames/FQDNs of any sites that will be embedding Gate One. Here's the default on your system: 'https://localhost;https://yourhostname'. Alternatively, '*' may be  specified to allow access from anywhere.
 &nbsp;&nbsp;--pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
 &nbsp;&nbsp;--pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
-&nbsp;&nbsp;--pid_file                       Path of the pid file.   Default: /var/run/gateone.pid
+&nbsp;&nbsp;--pid_file                       Path of the pid file.   Default: /tmp/gateone.pid
 &nbsp;&nbsp;--port                           Run on the given port.
 &nbsp;&nbsp;--session_dir                    Path to the location where session information will be stored.
 &nbsp;&nbsp;--session_logging                If enabled, logs of user sessions will be saved in &lt;user_dir&gt;/&lt;user&gt;/logs.  Default: Enabled
@@ -185,7 +185,7 @@ Options:
 &nbsp;&nbsp;--syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
 &nbsp;&nbsp;--syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
 &nbsp;&nbsp;--syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
-&nbsp;&nbsp;--unix_socket_path               Run on the given socket file.  Default: /var/run/gateone.sock
+&nbsp;&nbsp;--unix_socket_path               Run on the given socket file.  Default: /tmp/gateone.sock
 &nbsp;&nbsp;--url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
 &nbsp;&nbsp;--user_dir                       Path to the location where user files will be stored.
 </pre>
@@ -300,7 +300,7 @@ data in the following locations (Note: Many of these are configurable):</p>
 <blockquote>
 <div><ul class="simple">
 <li>Adding or overriding tornado.web.RequestHandlers (with a given regex).</li>
-<li>Adding or overriding methods (aka &quot;commands&quot;) in TerminalWebSocket.</li>
+<li>Adding or overriding methods (aka &quot;commands&quot;) in ApplicationWebSocket.</li>
 <li>Adding special plugin-specific escape sequence handlers (see the plugin development documentation for details on what/how these are/work).</li>
 </ul>
 </div></blockquote>
@@ -353,48 +353,26 @@ function in __main__</p>
 <dt id="gateone.require_auth">
 <tt class="descclassname">gateone.</tt><tt class="descname">require_auth</tt><big>(</big><em>method</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#require_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.require_auth" title="Permalink to this definition">¶</a></dt>
 <dd><p>An equivalent to tornado.web.authenticated for WebSockets
-(TerminalWebSocket, specifically).</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.kill_session">
-<tt class="descclassname">gateone.</tt><tt class="descname">kill_session</tt><big>(</big><em>session</em>, <em>kill_dtach=False</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#kill_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.kill_session" title="Permalink to this definition">¶</a></dt>
-<dd><p>Terminates all the processes associated with <em>session</em> and then removes
-<em>session</em> from the global SESSIONS dict.  If <em>kill_dtach</em> is True, will
-also call kill_dtached_proc() on the terminal processes.</p>
+(ApplicationWebSocket, specifically).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gateone.kill_all_sessions">
-<tt class="descclassname">gateone.</tt><tt class="descname">kill_all_sessions</tt><big>(</big><em>kill_dtach=False</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#kill_all_sessions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.kill_all_sessions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls kill_session() on all sessions in the SESSIONS dict.</p>
+<tt class="descclassname">gateone.</tt><tt class="descname">kill_all_sessions</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#kill_all_sessions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.kill_all_sessions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls all 'timeout_callbacks' attached to all <tt class="xref py py-obj docutils literal"><span class="pre">SESSIONS</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gateone.timeout_sessions">
-<tt class="descclassname">gateone.</tt><tt class="descname">timeout_sessions</tt><big>(</big><em>kill_dtach=False</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#timeout_sessions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.timeout_sessions" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gateone.</tt><tt class="descname">timeout_sessions</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#timeout_sessions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.timeout_sessions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loops over the SESSIONS dict killing any sessions that haven't been used
 for the length of time specified in <em>TIMEOUT</em> (global).  The value of
 <em>TIMEOUT</em> can be set in server.conf or specified on the command line via the
 <em>session_timeout</em> value.  Arguments:</p>
-<blockquote>
-<div><ul class="simple">
-<li><em>kill_dtach</em> - If True, will call kill_dtached_proc() on each terminal to ensure it dies.</li>
-</ul>
-</div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This function is meant to be called via Tornado's ioloop.PeriodicCallback().</p>
+<p class="last">This function is meant to be called via Tornado's <tt class="xref py py-meth docutils literal"><span class="pre">PeriodicCallback()</span></tt>.</p>
 </div>
-</dd></dl>
-
-<dl class="function">
-<dt id="gateone.cleanup_session_logs">
-<tt class="descclassname">gateone.</tt><tt class="descname">cleanup_session_logs</tt><big>(</big><em>users_dir</em>, <em>max_age</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#cleanup_session_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.cleanup_session_logs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Cleans up all user's session logs older than <em>max_age</em> (timedelta) given the
-<em>users_dir</em> (string).  The session log directory is assumed to be:</p>
-<blockquote>
-<div><em>users_dir</em>/&lt;user&gt;/logs</div></blockquote>
 </dd></dl>
 
 <dl class="class">
@@ -412,7 +390,7 @@ for the length of time specified in <em>TIMEOUT</em> (global).  The value of
 <dl class="class">
 <dt id="gateone.StaticHandler">
 <em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">StaticHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#StaticHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.StaticHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>An override of <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.StaticFileHandler" title="(in Tornado v2.4)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.StaticFileHandler</span></tt></a> to ensure that the
+<dd><p>An override of <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.StaticFileHandler" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.StaticFileHandler</span></tt></a> to ensure that the
 Access-Control-Allow-Origin header gets set correctly.</p>
 <dl class="method">
 <dt id="gateone.StaticHandler.set_extra_headers">
@@ -440,7 +418,7 @@ from different origins.</p>
 <dl class="class">
 <dt id="gateone.DownloadHandler">
 <em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">DownloadHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#DownloadHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.DownloadHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>A <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.4)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a> to serve up files that wind up in a
+<dd><p>A <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a> to serve up files that wind up in a
 given user's <tt class="xref py py-obj docutils literal"><span class="pre">session_dir</span></tt> in the 'downloads' directory.  Generally speaking
 these files are generated by the terminal emulator (e.g. cat somefile.pdf)
 but it could be used by plugins as a way to serve up temporary files as
@@ -471,28 +449,146 @@ directories using this method.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="gateone.JSPluginsHandler">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">JSPluginsHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#JSPluginsHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.JSPluginsHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combines all JavaScript plugins into a single file to keep things simple and
-speedy.</p>
+<dt id="gateone.GOApplication">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">GOApplication</tt><big>(</big><em>ws</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#GOApplication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.GOApplication" title="Permalink to this definition">¶</a></dt>
+<dd><p>The base from which all Gate One Applications will inherit.  Applications
+are expected to be written like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">SomeApplication</span><span class="p">(</span><span class="n">GOApplication</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Called when the Application is instantiated.&quot;</span>
+        <span class="n">initialize_stuff</span><span class="p">()</span>
+        <span class="c"># Here&#39;s some good things to do in an initialize() function...</span>
+        <span class="c"># Register a policy-checking function:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">security</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;some_app&#39;</span><span class="p">:</span> <span class="n">policy_checking_func</span><span class="p">})</span>
+        <span class="c"># Register some WebSocket actions (note the app:action naming convention)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s">&#39;some_app:do_stuff&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_stuff</span><span class="p">,</span>
+            <span class="s">&#39;some_app:do_other_stuff&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_other_stuff</span>
+        <span class="p">})</span>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Called when the connection is established.&quot;</span>
+        <span class="c"># Setup whatever is necessary for session tracking and whatnot.</span>
+    <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Called when the user *successfully* authenticates.&quot;</span>
+        <span class="c"># Here&#39;s the best place to instantiate things, send the user</span>
+        <span class="c"># JavaScript/CSS files, and similar post-authentication details.</span>
+    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Called when the connection is closed.&quot;</span>
+        <span class="c"># This is a good place to halt any background/periodic operations.</span>
+</pre></div>
+</div>
+<p>GOApplications will be automatically imported into Gate One and registered
+appropriately as long as they follow the following conventions:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The application and its module(s) should live inside its own directory inside the 'applications' directory.  For example, <tt class="xref py py-obj docutils literal"><span class="pre">/opt/gateone/applications/some_app/some_app.py</span></tt></li>
+<li>Subclasses of <a class="reference internal" href="#gateone.GOApplication" title="gateone.GOApplication"><tt class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></tt></a> must be added to an <tt class="xref py py-obj docutils literal"><span class="pre">apps</span></tt> global (list) inside of the application's module(s) like so: <tt class="xref py py-obj docutils literal"><span class="pre">apps</span> <span class="pre">=</span> <span class="pre">[SomeApplication]</span></tt> (usually a good idea to put that at the very bottom of the module).</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All .py modules inside of the application's main directory will be imported even if they do not contain or register a <a class="reference internal" href="#gateone.GOApplication" title="gateone.GOApplication"><tt class="xref py py-obj docutils literal"><span class="pre">GOApplication</span></tt></a>.</p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">You can add command line arguments to Gate One by calling <a class="reference external" href="http://www.tornadoweb.org/documentation/options.html#tornado.options.define" title="(in Tornado v2.4.1)"><tt class="xref py py-func docutils literal"><span class="pre">tornado.options.define()</span></tt></a> anywhere in your application's global namespace.  This works because the <a class="reference external" href="http://www.tornadoweb.org/documentation/options.html#tornado.options.define" title="(in Tornado v2.4.1)"><tt class="xref py py-func docutils literal"><span class="pre">define()</span></tt></a> function registers options in Gate One's global namespace (as <a class="reference external" href="http://www.tornadoweb.org/documentation/options.html#tornado.options.options" title="(in Tornado v2.4.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.options.options</span></tt></a>) and Gate One imports application modules before it evaluates command line arguments.</p>
+</div>
 <dl class="method">
-<dt id="gateone.JSPluginsHandler._combine_plugins">
-<tt class="descname">_combine_plugins</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#JSPluginsHandler._combine_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.JSPluginsHandler._combine_plugins" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combines all plugin .js files into one (combined_plugins.js)</p>
+<dt id="gateone.GOApplication.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#GOApplication.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.GOApplication.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#gateone.ApplicationWebSocket.open" title="gateone.ApplicationWebSocket.open"><tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.open()</span></tt></a> after __init__().
+GOApplications can override this function to perform their own actions
+when the WebSocket is initialized.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.GOApplication.open">
+<tt class="descname">open</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#GOApplication.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.GOApplication.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#gateone.ApplicationWebSocket.open" title="gateone.ApplicationWebSocket.open"><tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.open()</span></tt></a> after the WebSocket is
+opened.  GOApplications can override this function to perform their own
+actions when the WebSocket is opened.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.GOApplication.on_close">
+<tt class="descname">on_close</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#GOApplication.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.GOApplication.on_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by <a class="reference internal" href="#gateone.ApplicationWebSocket.on_close" title="gateone.ApplicationWebSocket.on_close"><tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.on_close()</span></tt></a> after the WebSocket is
+closed.  GOApplications can override this function to perform their own
+actions when the WebSocket is closed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.GOApplication.add_handler">
+<tt class="descname">add_handler</tt><big>(</big><em>pattern</em>, <em>handler</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#GOApplication.add_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.GOApplication.add_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given <em>handler</em> (<a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.4.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a>) to the Tornado
+Application (<tt class="xref py py-obj docutils literal"><span class="pre">self.ws.application</span></tt>) to handle URLs matching <em>pattern</em>.
+If given, <em>kwargs</em> will be added to the <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.URLSpec" title="(in Tornado v2.4.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.web.URLSpec</span></tt></a> when the
+complete handler is assembled.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the <em>pattern</em> does not start with the configured <tt class="xref py py-obj docutils literal"><span class="pre">url_prefix</span></tt> it will be automatically prepended.</p>
+</div>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="gateone.TerminalWebSocket">
-<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">TerminalWebSocket</tt><big>(</big><em>application</em>, <em>request</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket">
+<em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">ApplicationWebSocket</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket" title="Permalink to this definition">¶</a></dt>
 <dd><p>The main WebSocket interface for Gate One, this class is setup to call
 'commands' which are methods registered in self.commands.  Methods that are
 registered this way will be exposed and directly callable over the
 WebSocket.</p>
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.allow_draft76">
-<tt class="descname">allow_draft76</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.allow_draft76"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.allow_draft76" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket.initialize">
+<tt class="descname">initialize</tt><big>(</big><em>apps=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>This gets called by the Tornado framework when ApplicationWebSocket is
+instantiated.  It will be passed the list of <em>apps</em> (Gate One
+applications) that are assigned inside the <tt class="xref py py-class docutils literal"><span class="pre">Application</span></tt> object.
+These <em>apps</em> will be mutated in-place so that <tt class="xref py py-obj docutils literal"><span class="pre">self</span></tt> will refer to the
+current instance of <a class="reference internal" href="#gateone.ApplicationWebSocket" title="gateone.ApplicationWebSocket"><tt class="xref py py-class docutils literal"><span class="pre">ApplicationWebSocket</span></tt></a>.  Kind of like a
+dynamic mixin.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.ApplicationWebSocket.on">
+<tt class="descname">on</tt><big>(</big><em>events</em>, <em>callback</em>, <em>times=None</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.on"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers the given <em>callback</em> with the given <em>events</em> (string or list
+of strings) that will get called whenever the given <em>event</em> is triggered
+(using <a class="reference internal" href="#gateone.ApplicationWebSocket.trigger" title="gateone.ApplicationWebSocket.trigger"><tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.trigger()</span></tt></a>).  It works similarly to
+<tt class="xref js js-meth docutils literal"><span class="pre">GateOne.Events.on()</span></tt> in gateone.js.</p>
+<p>If <em>times</em> is given the <em>callback</em> will only be fired that many times
+before it is automatically removed from
+<tt class="xref py py-attr docutils literal"><span class="pre">ApplicationWebSocket._events</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.ApplicationWebSocket.off">
+<tt class="descname">off</tt><big>(</big><em>events</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.off"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.off" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the given <em>callback</em> from the given <em>events</em> (string or list of
+strings).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.ApplicationWebSocket.once">
+<tt class="descname">once</tt><big>(</big><em>events</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.once"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.once" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut for <tt class="xref py py-meth docutils literal"><span class="pre">ApplicationWebSocket.on(events,</span> <span class="pre">callback,</span> <span class="pre">1)()</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.ApplicationWebSocket.trigger">
+<tt class="descname">trigger</tt><big>(</big><em>events</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.trigger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fires the given <em>events</em> (string or list of strings).  All callbacks
+associated with these <em>events</em> will be called and if their respective
+objects have a <em>times</em> value set it will be used to determine when to
+remove the associated callback from the event.</p>
+<p>If given, callbacks associated with the given <em>events</em> will be called
+with <em>args</em> and <em>kwargs</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.ApplicationWebSocket.allow_draft76">
+<tt class="descname">allow_draft76</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.allow_draft76"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.allow_draft76" title="Permalink to this definition">¶</a></dt>
 <dd><p>By overriding this function we're allowing the older version of the
 WebSockets protocol.  As long as communications happens over SSL there
 shouldn't be any security concerns with this.  This is mostly to support
@@ -500,29 +596,29 @@ iOS Safari.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.get_current_user">
-<tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.get_current_user" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket.get_current_user">
+<tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.get_current_user" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mostly identical to the function of the same name in MainHandler.  The
 difference being that when API authentication is enabled the WebSocket
 will expect and perform its own auth of the client.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.open">
-<tt class="descname">open</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.open" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket.open">
+<tt class="descname">open</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.open" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when a new WebSocket is opened.  Will deny access to any
 origin that is not defined in self.settings['origin'].</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.on_message">
-<tt class="descname">on_message</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.on_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.on_message" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket.on_message">
+<tt class="descname">on_message</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.on_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.on_message" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when we receive a message from the client.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.on_close">
-<tt class="descname">on_close</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.on_close" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket.on_close">
+<tt class="descname">on_close</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.on_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.on_close" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called when the client terminates the connection.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -531,15 +627,15 @@ origin that is not defined in self.settings['origin'].</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.pong">
-<tt class="descname">pong</tt><big>(</big><em>timestamp</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.pong"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.pong" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket.pong">
+<tt class="descname">pong</tt><big>(</big><em>timestamp</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.pong"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.pong" title="Permalink to this definition">¶</a></dt>
 <dd><p>Responds to a client 'ping' request...  Just returns the given
 timestamp back to the client so it can measure round-trip time.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.authenticate">
-<tt class="descname">authenticate</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.authenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.authenticate" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket.authenticate">
+<tt class="descname">authenticate</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.authenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.authenticate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Authenticates the client by first trying to use the 'gateone_user'
 cookie or if Gate One is configured to use API authentication it will
 use <em>settings['auth']</em>.  Additionally, it will accept
@@ -552,82 +648,8 @@ can exist in a different browser tab/window.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.new_multiplex">
-<tt class="descname">new_multiplex</tt><big>(</big><em>cmd</em>, <em>term_id</em>, <em>logging=True</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.new_multiplex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.new_multiplex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a new instance of <a class="reference internal" href="termio.html#termio.Multiplex" title="termio.Multiplex"><tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt></a> with the proper global and
-client-specific settings.</p>
-<blockquote>
-<div><ul class="simple">
-<li><em>cmd</em> - The command to execute inside of Multiplex.</li>
-<li><em>term_id</em> - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).</li>
-<li><em>logging</em> - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).</li>
-</ul>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.term_ended">
-<tt class="descname">term_ended</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.term_ended"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.term_ended" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends the 'term_ended' message to the client letting it know that the
-given <em>term</em> is no more.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.add_terminal_callbacks">
-<tt class="descname">add_terminal_callbacks</tt><big>(</big><em>term</em>, <em>multiplex</em>, <em>callback_id</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.add_terminal_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.add_terminal_callbacks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up all the callbacks associated with the given <em>term</em>, <em>multiplex</em>
-instance and <em>callback_id</em>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.remove_terminal_callbacks">
-<tt class="descname">remove_terminal_callbacks</tt><big>(</big><em>multiplex</em>, <em>callback_id</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.remove_terminal_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.remove_terminal_callbacks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes all the Multiplex and terminal emulator callbacks attached to
-the given <em>multiplex</em> instance and <em>callback_id</em>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.reset_client_terminal">
-<tt class="descname">reset_client_terminal</tt><big>(</big><em>term</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.reset_client_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.reset_client_terminal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tells the client to reset the terminal (clear the screen and remove
-scrollback).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.dsr">
-<tt class="descname">dsr</tt><big>(</big><em>term</em>, <em>response</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.dsr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.dsr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles Device Status Report (DSR) calls from the underlying program
-that get caught by the terminal emulator.  <em>response</em> is what the
-terminal emulator returns from the CALLBACK_DSR callback.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This also handles the CSI DSR sequence.</p>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket._send_refresh">
-<tt class="descname">_send_refresh</tt><big>(</big><em>term</em>, <em>full=False</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket._send_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket._send_refresh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends a screen update to the client.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.get_bell">
-<tt class="descname">get_bell</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.get_bell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.get_bell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends the bell sound data to the client in in the form of a <a class="reference external" href="data::URI">data::URI</a>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.get_webworker">
-<tt class="descname">get_webworker</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.get_webworker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.get_webworker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends the text of our go_process.js to the client in order to get around
-the limitations of loading remote Web Worker URLs (for embedding Gate
-One into other apps).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gateone.TerminalWebSocket.get_style">
-<tt class="descname">get_style</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.get_style"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.get_style" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket.get_style">
+<tt class="descname">get_style</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.get_style"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.get_style" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the CSS stylesheets matching the properties specified in
 <em>settings</em> to the client.  <em>settings</em> must contain the following:</p>
 <blockquote>
@@ -648,15 +670,51 @@ One into other apps).</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.enumerate_themes">
-<tt class="descname">enumerate_themes</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.enumerate_themes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.enumerate_themes" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket.send_js_or_css">
+<tt class="descname">send_js_or_css</tt><big>(</big><em>path_or_fileobj</em>, <em>kind</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_js_or_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_js_or_css" title="Permalink to this definition">¶</a></dt>
+<dd><p>If <em>kind</em> is 'js', reads the given JavaScript file at <em>path_or_fileobj</em>
+and sends it to the client using the 'load_js' WebSocket action.
+If <em>kind</em> is 'css', reads the given CSS file at <em>path_or_fileobj</em>
+and sends it to the client using the 'load_style' WebSocket action.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Files will be cached after being minified until a file is modified or Gate One is restarted.</p>
+</div>
+<p>If the <tt class="xref py py-obj docutils literal"><span class="pre">slimit</span></tt> module is installed JavaScript files will be minified
+before being sent to the client.
+If the <tt class="xref py py-obj docutils literal"><span class="pre">cssmin</span></tt> module is installed CSS files will be minified before
+being sent to the client.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.ApplicationWebSocket.send_js">
+<tt class="descname">send_js</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_js"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_js" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut for <tt class="xref py py-obj docutils literal"><span class="pre">self.send_js_or_css(path,</span> <span class="pre">'js')</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.ApplicationWebSocket.send_css">
+<tt class="descname">send_css</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_css" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shortcut for <tt class="xref py py-obj docutils literal"><span class="pre">self.send_js_or_css(path,</span> <span class="pre">'css')</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.ApplicationWebSocket.send_static_files">
+<tt class="descname">send_static_files</tt><big>(</big><em>plugins_dir</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_static_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_static_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends all plugin .js and .css files to the client that exist inside
+<em>plugins_dir</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gateone.ApplicationWebSocket.enumerate_themes">
+<tt class="descname">enumerate_themes</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.enumerate_themes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.enumerate_themes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a JSON-encoded object containing the installed themes and text
 color schemes.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="gateone.TerminalWebSocket.send_message">
-<tt class="descname">send_message</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#TerminalWebSocket.send_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.TerminalWebSocket.send_message" title="Permalink to this definition">¶</a></dt>
+<dt id="gateone.ApplicationWebSocket.send_message">
+<tt class="descname">send_message</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ApplicationWebSocket.send_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ApplicationWebSocket.send_message" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends the given <em>message</em> to the client using the 'notice' WebSocket
 action at the client.</p>
 </dd></dl>
@@ -667,6 +725,12 @@ action at the client.</p>
 <dt id="gateone.ErrorHandler">
 <em class="property">class </em><tt class="descclassname">gateone.</tt><tt class="descname">ErrorHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>status_code</em><big>)</big><a class="reference internal" href="../_modules/gateone.html#ErrorHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.ErrorHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates an error response with status_code for all requests.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gateone.define_options">
+<tt class="descclassname">gateone.</tt><tt class="descname">define_options</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/gateone.html#define_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gateone.define_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <a class="reference external" href="http://www.tornadoweb.org/documentation/options.html#tornado.options.define" title="(in Tornado v2.4.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.options.define</span></tt></a> for all of Gate One's command-line options.</p>
 </dd></dl>
 
 </div>

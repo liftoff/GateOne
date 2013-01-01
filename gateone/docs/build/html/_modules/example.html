@@ -73,7 +73,6 @@
 <span class="s">            &#39;example_action&#39;: example_websocket_action</span>
 <span class="s">        },</span>
 <span class="s">        &#39;Escape&#39;: example_opt_esc_handler,</span>
-<span class="s">        #&#39;Auth&#39;: create_user_ssh_dir</span>
 <span class="s">    }</span>
 
 <span class="s">Docstrings</span>
@@ -100,7 +99,7 @@
 
 <span class="c"># Globals</span>
 <span class="c"># This is in case we have relative imports, templates, or whatever:</span>
-<span class="n">plugin_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># Path to our plugin&#39;s directory</span>
+<span class="n">PLUGIN_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># Path to our plugin&#39;s directory</span>
 
 <span class="c"># Traditional web handler</span>
 <div class="viewcode-block" id="ExampleHandler"><a class="viewcode-back" href="../Developer/plugin_example.html#example.ExampleHandler">[docs]</a><span class="k">class</span> <span class="nc">ExampleHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
@@ -139,7 +138,7 @@
         <span class="c"># NOTE: I highly recommend using os.path.join() instead of just using</span>
         <span class="c"># &#39;/&#39; everywhere...  You never know; Gate One might run on Windows one</span>
         <span class="c"># day!</span>
-        <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_path</span><span class="p">,</span> <span class="s">&quot;templates&quot;</span><span class="p">)</span>
+        <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&quot;templates&quot;</span><span class="p">)</span>
         <span class="n">example_template</span> <span class="o">=</span>  <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_path</span><span class="p">,</span> <span class="s">&quot;example_template.html&quot;</span><span class="p">)</span>
         <span class="n">bygolly</span> <span class="o">=</span> <span class="s">&quot;By golly&quot;</span>
         <span class="c"># The get_current_user() function returns a whole dict of information.</span>
@@ -180,7 +179,7 @@
         <span class="c"># asynchronous decorator.</span>
 
 <span class="c"># WebSocket actions (aka commands or &quot;functions that are exposed&quot;)</span></div></div>
-<div class="viewcode-block" id="example_websocket_action"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_websocket_action">[docs]</a><span class="k">def</span> <span class="nf">example_websocket_action</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="example_websocket_action"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_websocket_action">[docs]</a><span class="k">def</span> <span class="nf">example_websocket_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This `WebSocket &lt;https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket&gt;`_</span>
 <span class="sd">    action gets exposed to the client automatically by way of the &#39;WebSocket&#39;</span>
@@ -208,23 +207,8 @@
 <span class="sd">    argument to your function (assuming it is a :class:`dict`) or 100% keyword</span>
 <span class="sd">    arguments.</span>
 
-<span class="sd">    The *tws* keyword argument must always be present in WebSocket actions.  It</span>
-<span class="sd">    represents the user&#39;s current instance of Gate One&#39;s :class:`~gateone.TerminalWebSocket`</span>
-<span class="sd">    class. Think of it as the equivalent of, &quot;self&quot; inside of any given</span>
-<span class="sd">    :class:`~gateone.TerminalWebSocket` function.  For example, the following</span>
-<span class="sd">    function inside of :class:`~gateone.TerminalWebSocket` (inside of gateone.py)::</span>
-
-<span class="sd">        def pong(self, timestamp): # Docstring removed to save space</span>
-<span class="sd">            message = {&#39;pong&#39;: timestamp}</span>
-<span class="sd">            self.write_message(json_encode(message))</span>
-
-<span class="sd">    ...could be written inside of a plugin like so::</span>
-
-<span class="sd">        def pong(timestamp, tws=None):</span>
-<span class="sd">            message = {&#39;pong&#39;: timestamp}</span>
-<span class="sd">            tws.write_message(json_encode(message))</span>
-
-<span class="sd">    .. note:: Notice that the ussage of *self* has become *tws*.</span>
+<span class="sd">    The *self* argument here is automatically assigned by</span>
+<span class="sd">    :class:`TerminalApplication` using the `utils.bind` method.</span>
 
 <span class="sd">    The typical naming convention for `WebSocket &lt;https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket&gt;`_</span>
 <span class="sd">    actions is: `&lt;plugin name&gt;_&lt;action&gt;`.  Whether or not your action names</span>
@@ -238,19 +222,19 @@
 <span class="sd">    plugin&#39;s &#39;static&#39; dir).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;example_pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
-    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
     <span class="c"># WebSockets are asynchronous so you can send as many messages as you want</span>
     <span class="n">message2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notice&#39;</span><span class="p">:</span> <span class="s">&#39;You just executed the &quot;example_action&quot; action.&#39;</span><span class="p">}</span>
-    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message2</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message2</span><span class="p">))</span>
     <span class="c"># Alternatively, you can combine multiple messages/actions into one message:</span>
     <span class="n">combined</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;notice&#39;</span><span class="p">:</span> <span class="s">&#39;Hurray!&#39;</span><span class="p">,</span>
-        <span class="s">&#39;bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">tws</span><span class="o">.</span><span class="n">current_term</span><span class="p">}</span>
+        <span class="s">&#39;bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span><span class="p">}</span>
     <span class="p">}</span>
-    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">combined</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">combined</span><span class="p">))</span>
 
 <span class="c"># Now for some special sauce...  The Special Optional Escape Sequence Handler!</span></div>
-<div class="viewcode-block" id="example_opt_esc_handler"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_opt_esc_handler">[docs]</a><span class="k">def</span> <span class="nf">example_opt_esc_handler</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
+<div class="viewcode-block" id="example_opt_esc_handler"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_opt_esc_handler">[docs]</a><span class="k">def</span> <span class="nf">example_opt_esc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gate One includes a mechanism for plugins to send messages from terminal</span>
 <span class="sd">    programs directly to plugins written in Python.  It&#39;s called the &quot;Special</span>
@@ -262,7 +246,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notice&#39;</span><span class="p">:</span>
      <span class="s">&quot;You just executed the Example plugin&#39;s optional escape sequence handler!&quot;</span><span class="p">}</span>
-    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="example_command_hook"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_command_hook">[docs]</a><span class="k">def</span> <span class="nf">example_command_hook</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This demonstrates how to modify Gate One&#39;s configured &#39;command&#39; before it is</span>
+<span class="sd">    executed.  It will replace any occurrance of %EXAMPLE% with &#39;foo&#39;.  So if</span>
+<span class="sd">    &#39;command = &quot;some_script.sh %EXAMPLE%&quot;&#39; in your server.conf it would be</span>
+<span class="sd">    transformed to &quot;some_script.sh foo&quot; before being executed when a user opens</span>
+<span class="sd">    a new terminal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">command</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">r&#39;</span><span class="si">%E</span><span class="s">XAMPLE%&#39;</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">)</span>
 
 <span class="c"># SOESH allows plugins to attach actions that will be called whenever a terminal</span>
 <span class="c"># encounters the</span>
@@ -274,8 +268,11 @@
     <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s">&#39;example_action&#39;</span><span class="p">:</span> <span class="n">example_websocket_action</span>
     <span class="p">},</span>
+    <span class="s">&#39;Command&#39;</span><span class="p">:</span> <span class="n">example_command_hook</span><span class="p">,</span>
     <span class="s">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">example_opt_esc_handler</span><span class="p">,</span>
-    <span class="c">#&#39;Auth&#39;: some_post_authentication_function</span>
+    <span class="s">&#39;Environment&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;EXAMPLE_VAR&#39;</span><span class="p">:</span> <span class="s">&#39;This was set via the Example plugin&#39;</span>
+    <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 

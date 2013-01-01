@@ -77,18 +77,13 @@
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">mimetypes</span>
-<span class="kn">import</span> <span class="nn">gzip</span>
 <span class="kn">import</span> <span class="nn">fcntl</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
 
 <span class="c"># Import 3rd party stuff</span>
 <span class="kn">from</span> <span class="nn">tornado</span> <span class="kn">import</span> <span class="n">locale</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_encode</span> <span class="k">as</span> <span class="n">_json_encode</span>
-    <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_decode</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span> <span class="c"># Tornado isn&#39;t available</span>
-    <span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">dumps</span> <span class="k">as</span> <span class="n">_json_encode</span>
-    <span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">loads</span> <span class="k">as</span> <span class="n">json_encode</span>
+<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_encode</span> <span class="k">as</span> <span class="n">_json_encode</span>
+<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_decode</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">to_unicode</span><span class="p">,</span> <span class="n">utf8</span>
 
 <span class="c"># Globals</span>
@@ -193,7 +188,7 @@
 <span class="sd">    A dict that will recursively update keys and values in a safe manner so that</span>
 <span class="sd">    sub-dicts will be merged without one clobbering the other.</span>
 
-<span class="sd">    .. note:: This class taken from `here &lt;http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python&gt;`_</span>
+<span class="sd">    .. note:: This class (mostly) taken from `here &lt;http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python&gt;`_</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">RUDict</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
@@ -202,9 +197,9 @@
         <span class="k">if</span> <span class="n">E</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="s">&#39;keys&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="s">&#39;keys&#39;</span><span class="p">)):</span>
                 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">E</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>  <span class="c"># existing ...must recurse into both sides</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>  <span class="c"># Existing ...must recurse into both sides</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">r_update</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span> <span class="c"># doesn&#39;t currently exist, just update</span>
+                    <span class="k">else</span><span class="p">:</span> <span class="c"># Doesn&#39;t currently exist, just update</span>
                         <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">E</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">E</span><span class="p">:</span>
@@ -222,10 +217,139 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">other_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the `RUDict` as indented json to better resemble how it looks in</span>
+<span class="sd">        a .conf file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">json</span> <span class="c"># Tornado&#39;s json_encode doesn&#39;t do indentation</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Just returns `self.__repr__()` with an extra newline at the end.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
 <span class="c"># Functions</span></div>
 <div class="viewcode-block" id="noop"><a class="viewcode-back" href="../Developer/utils.html#utils.noop">[docs]</a><span class="k">def</span> <span class="nf">noop</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Do nothing (i.e. &quot;No Operation&quot;)&quot;&quot;&quot;</span>
     <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="get_settings"><a class="viewcode-back" href="../Developer/utils.html#utils.get_settings">[docs]</a><span class="k">def</span> <span class="nf">get_settings</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads any and all *.conf files containing JSON (JS-style comments are OK)</span>
+<span class="sd">    inside *path* and returns them as an :class:`RUDict`.  Optionally, *path*</span>
+<span class="sd">    may be a specific file (as opposed to just a directory).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">re_comment</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span> <span class="c"># This removes JavaScript-style comments</span>
+        <span class="s">r&#39;(^)?[^\S\n]*/(?:\*(.*?)\*/[^\S\n]*|/[^\n]*)($)?&#39;</span><span class="p">,</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span>
+    <span class="p">)</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="n">RUDict</span><span class="p">({</span>
+        <span class="s">&#39;*&#39;</span><span class="p">:</span> <span class="p">{}</span>
+    <span class="p">})</span>
+    <span class="c"># Using an RUDict so that subsequent .conf files can safely override</span>
+    <span class="c"># settings way down the chain without clobbering parent keys/dicts.</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">settings_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.conf&#39;</span><span class="p">)]</span>
+        <span class="n">settings_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> does not exist&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">))</span>
+        <span class="n">settings_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">path</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">settings_files</span><span class="p">:</span>
+        <span class="c"># Use this file to update settings</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="c"># Remove comments</span>
+            <span class="n">proper_json</span> <span class="o">=</span> <span class="n">re_comment</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+            <span class="c"># Remove blank/empty lines</span>
+            <span class="n">proper_json</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+                <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">proper_json</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()])</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">settings</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">json_decode</span><span class="p">(</span><span class="n">proper_json</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c"># Something was wrong with the JSON (syntax error, usually)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+                    <span class="s">&quot;Error decoding JSON in </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fname</span><span class="p">)))</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="c"># Let&#39;s try to be as user-friendly as possible by pointing out</span>
+                <span class="c"># *precisely* where the error occurred (if possible)...</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">line_no</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;: line &#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">column</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;: line &#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">proper_json</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()):</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">line_no</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                            <span class="k">print</span><span class="p">(</span>
+                                <span class="n">line</span><span class="p">[:</span><span class="n">column</span><span class="p">]</span> <span class="o">+</span>
+                                <span class="n">_</span><span class="p">(</span><span class="s">&quot; &lt;-- Something went wrong right here (or &quot;</span>
+                                  <span class="s">&quot;right above it)&quot;</span><span class="p">)</span>
+                            <span class="p">)</span>
+                            <span class="k">break</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="c"># Couldn&#39;t parse the exception message for line/column info</span>
+                    <span class="k">pass</span> <span class="c"># No big deal; the user will figure it out eventually</span>
+    <span class="k">return</span> <span class="n">settings</span>
+</div>
+<div class="viewcode-block" id="options_to_settings"><a class="viewcode-back" href="../Developer/utils.html#utils.options_to_settings">[docs]</a><span class="k">def</span> <span class="nf">options_to_settings</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts the given Tornado-style *options* to new-style settings.  Returns</span>
+<span class="sd">    an :class:`RUDict` containing all the settings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="n">RUDict</span><span class="p">({</span><span class="s">&#39;*&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;gateone&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s">&#39;terminal&#39;</span><span class="p">:</span> <span class="p">{}}})</span>
+    <span class="c"># In the new settings format some options have moved to the terminal app.</span>
+    <span class="c"># These settings are below and will be placed in the &#39;terminal&#39; sub-dict.</span>
+    <span class="n">terminal_options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;command&#39;</span><span class="p">,</span> <span class="s">&#39;dtach&#39;</span><span class="p">,</span> <span class="s">&#39;session_logging&#39;</span><span class="p">,</span> <span class="s">&#39;session_logs_max_age&#39;</span><span class="p">,</span>
+        <span class="s">&#39;syslog_session_logging&#39;</span>
+    <span class="p">]</span>
+    <span class="n">non_options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c"># These are things that don&#39;t really belong in settings</span>
+        <span class="s">&#39;new_api_key&#39;</span><span class="p">,</span> <span class="s">&#39;help&#39;</span><span class="p">,</span> <span class="s">&#39;kill&#39;</span><span class="p">,</span> <span class="s">&#39;config&#39;</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="c"># These are of type, tornado.options._Option</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">terminal_options</span><span class="p">:</span>
+            <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;terminal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">non_options</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;origins&#39;</span><span class="p">:</span>
+                <span class="c">#if value == &#39;*&#39;:</span>
+                    <span class="c">#continue</span>
+                <span class="c"># Convert to the new format (a list with no http://)</span>
+                <span class="n">origins</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span>
+                <span class="n">converted_origins</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">origin</span> <span class="ow">in</span> <span class="n">origins</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s">&#39;://&#39;</span> <span class="ow">in</span> <span class="n">origin</span><span class="p">:</span>
+                        <span class="c"># The new format doesn&#39;t bother with http:// or https://</span>
+                        <span class="n">origin</span> <span class="o">=</span> <span class="n">origin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;://&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">origin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">converted_origins</span><span class="p">:</span>
+                            <span class="n">converted_origins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">origin</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">converted_origins</span><span class="p">:</span>
+                        <span class="n">converted_origins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
+                <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">converted_origins</span><span class="p">})</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;api_keys&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="c"># API keys/secrets are now a dict instead of a string</span>
+                <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">][</span><span class="s">&#39;api_keys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">):</span>
+                    <span class="n">api_key</span><span class="p">,</span> <span class="n">secret</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">bytes</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span> <span class="c"># Python 3</span>
+                        <span class="n">api_key</span> <span class="o">=</span> <span class="n">api_key</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+                        <span class="n">secret</span> <span class="o">=</span> <span class="n">secret</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+                    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">][</span><span class="s">&#39;api_keys&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                        <span class="p">{</span><span class="n">api_key</span><span class="p">:</span> <span class="n">secret</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;gateone&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">settings</span>
 </div>
 <div class="viewcode-block" id="write_pid"><a class="viewcode-back" href="../Developer/utils.html#utils.write_pid">[docs]</a><span class="k">def</span> <span class="nf">write_pid</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Writes our PID to *path*.&quot;&quot;&quot;</span>
@@ -255,7 +379,6 @@
         <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="k">except</span><span class="p">:</span>
         <span class="k">pass</span>
-
 </div>
 <div class="viewcode-block" id="shell_command"><a class="viewcode-back" href="../Developer/utils.html#utils.shell_command">[docs]</a><span class="k">def</span> <span class="nf">shell_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">timeout_duration</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -670,12 +793,13 @@
             <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
                 <span class="k">pass</span> <span class="c"># Process already died.  Not a problem.</span>
 </div>
-<div class="viewcode-block" id="killall"><a class="viewcode-back" href="../Developer/utils.html#utils.killall">[docs]</a><span class="k">def</span> <span class="nf">killall</span><span class="p">(</span><span class="n">session_dir</span><span class="p">):</span>
+<div class="viewcode-block" id="killall"><a class="viewcode-back" href="../Developer/utils.html#utils.killall">[docs]</a><span class="k">def</span> <span class="nf">killall</span><span class="p">(</span><span class="n">session_dir</span><span class="p">,</span> <span class="n">pid_file</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Kills all running Gate One terminal processes including any detached dtach</span>
 <span class="sd">    sessions.</span>
 
 <span class="sd">    :session_dir: The path to Gate One&#39;s session directory.</span>
+<span class="sd">    :pid_file: The path to Gate One&#39;s PID file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">sessions</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">session_dir</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s">&#39;/proc&#39;</span><span class="p">):</span>
@@ -701,12 +825,12 @@
                         <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">)</span>
                     <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
                         <span class="k">pass</span> <span class="c"># PID is already dead--great</span>
-                <span class="k">elif</span> <span class="s">&#39;python&#39;</span> <span class="ow">in</span> <span class="n">cmdline</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="s">&#39;gateone.py&#39;</span> <span class="ow">in</span> <span class="n">cmdline</span><span class="p">:</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">)</span>
-                        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                            <span class="k">pass</span> <span class="c"># PID is already dead--great</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">go_pid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">pid_file</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="s">&quot;Could not open pid_file (</span><span class="si">%s</span><span class="s">).  You may have to kill gateone.py &quot;</span>
+            <span class="s">&quot;manually.&quot;</span> <span class="o">%</span> <span class="n">pid_file</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="killall_macos"><a class="viewcode-back" href="../Developer/utils.html#utils.killall_macos">[docs]</a><span class="k">def</span> <span class="nf">killall_macos</span><span class="p">(</span><span class="n">session_dir</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -725,52 +849,46 @@
         <span class="p">)</span>
         <span class="n">exitstatus</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">shell_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="create_plugin_links"><a class="viewcode-back" href="../Developer/utils.html#utils.create_plugin_links">[docs]</a><span class="k">def</span> <span class="nf">create_plugin_links</span><span class="p">(</span><span class="n">static_dir</span><span class="p">,</span> <span class="n">templates_dir</span><span class="p">,</span> <span class="n">plugin_dir</span><span class="p">):</span>
+<div class="viewcode-block" id="get_applications"><a class="viewcode-back" href="../Developer/utils.html#utils.get_applications">[docs]</a><span class="k">def</span> <span class="nf">get_applications</span><span class="p">(</span><span class="n">application_dir</span><span class="p">,</span> <span class="n">settings_dir</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates symbolic links for all plugins in the ./static/ and ./templates/</span>
-<span class="sd">    directories.  The equivalent of:</span>
-
-<span class="sd">    .. ansi-block::</span>
-
-<span class="sd">        \x1b[1;31mroot\x1b[0m@host\x1b[1;34m:~ $\x1b[0m ln -s *plugin_dir*/&lt;plugin&gt;/static *static_dir*/&lt;plugin&gt;</span>
-<span class="sd">        \x1b[1;31mroot\x1b[0m@host\x1b[1;34m:~ $\x1b[0m ln -s *plugin_dir*/&lt;plugin&gt;/templates *templates_dir*/&lt;plugin&gt;</span>
-
-<span class="sd">    This is so plugins can reference files in these directories using the</span>
-<span class="sd">    following straightforward paths::</span>
-
-<span class="sd">        https://&lt;gate one&gt;/static/&lt;plugin name&gt;/&lt;some file&gt;</span>
-<span class="sd">        https://&lt;gate one&gt;/render/&lt;plugin name&gt;/&lt;some file&gt;</span>
-
-<span class="sd">    This function will also remove any dead links if a plugin is removed.</span>
+<span class="sd">    Adds applications&#39; Python files to `sys.path` and returns a list containing</span>
+<span class="sd">    the name of each application.  In order to ensure that only enabled apps</span>
+<span class="sd">    are listed the *settings_dir* argument must be given so only enabled</span>
+<span class="sd">    apps are returned.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Clean up dead links before we do anything else</span>
-    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">static_dir</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="n">f</span><span class="p">)):</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">templates_dir</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="n">f</span><span class="p">)):</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-    <span class="c"># Create symbolic links for each plugin&#39;s respective static directory</span>
-    <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">):</span>
-        <span class="n">plugin_name</span> <span class="o">=</span> <span class="n">directory</span>
-        <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> <span class="c"># Make absolute</span>
-        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="s">&#39;static&#39;</span><span class="p">:</span>
-                <span class="n">abs_src_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-                <span class="n">abs_dest_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">static_dir</span><span class="p">,</span> <span class="n">plugin_name</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">abs_src_path</span><span class="p">,</span> <span class="n">abs_dest_path</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                    <span class="k">pass</span> <span class="c"># Already exists</span>
-            <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="s">&#39;templates&#39;</span><span class="p">:</span>
-                <span class="n">abs_src_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-                <span class="n">abs_dest_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates_dir</span><span class="p">,</span> <span class="n">plugin_name</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">abs_src_path</span><span class="p">,</span> <span class="n">abs_dest_path</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                    <span class="k">pass</span> <span class="c"># Already exists</span>
+    <span class="n">out_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">settings_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">settings_dir</span><span class="p">)</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">(</span><span class="n">settings_dir</span><span class="p">)</span>
+    <span class="n">enabled_applications</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="s">&#39;applications&#39;</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">app_name</span><span class="p">,</span> <span class="n">enabled</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;*&#39;</span><span class="p">][</span><span class="s">&#39;applications&#39;</span><span class="p">]:</span>
+            <span class="n">app_name</span> <span class="o">=</span> <span class="n">app_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="c"># Just in case</span>
+            <span class="k">if</span> <span class="n">enabled</span><span class="p">:</span>
+                <span class="n">enabled_applications</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">app_name</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Loading all applications&#39;</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">application_dir</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">enabled_applications</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">directory</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">enabled_applications</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="n">application</span> <span class="o">=</span> <span class="n">directory</span>
+        <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">application_dir</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> <span class="c"># Make absolute</span>
+        <span class="n">application_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&quot;__init__.py&quot;</span> <span class="ow">in</span> <span class="n">application_files</span><span class="p">:</span>
+            <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">application</span><span class="p">)</span> <span class="c"># Just need the base</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c"># Look for .py files</span>
+            <span class="k">for</span> <span class="n">app_file</span> <span class="ow">in</span> <span class="n">application_files</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">app_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">):</span>
+                    <span class="n">app_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">app_file</span><span class="p">)</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+                    <span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">app_path</span><span class="p">)</span>
+                    <span class="n">basename</span> <span class="o">=</span> <span class="n">basename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span>
+    <span class="c"># Sort alphabetically so the order in which they&#39;re applied can</span>
+    <span class="c"># be controlled somewhat predictably</span>
+    <span class="n">out_list</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">out_list</span>
 </div>
 <div class="viewcode-block" id="get_plugins"><a class="viewcode-back" href="../Developer/utils.html#utils.get_plugins">[docs]</a><span class="k">def</span> <span class="nf">get_plugins</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -802,6 +920,8 @@
 <span class="sd">    \*.css files will get imported automatically by GateOne.init()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;js&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;css&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s">&#39;py&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">out_dict</span>
     <span class="n">plugins_conf_path</span> <span class="o">=</span> <span class="n">plugin_dir</span> <span class="o">+</span> <span class="s">&#39;.conf&#39;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">plugins_conf_path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
@@ -809,16 +929,17 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Loading all plugins&#39;</span><span class="p">))</span>
             <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Plugins conf file not found, loading all plugins&#39;</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;plugins.conf file not found, loading all plugins&#39;</span><span class="p">))</span>
         <span class="n">enabled_plugins</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">enabled_plugins</span> <span class="ow">and</span> <span class="n">directory</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">enabled_plugins</span><span class="p">:</span>
             <span class="k">continue</span>
-
         <span class="n">plugin</span> <span class="o">=</span> <span class="n">directory</span>
         <span class="n">http_static_path</span> <span class="o">=</span> <span class="s">&#39;/static/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">plugin</span>
         <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_dir</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> <span class="c"># Make absolute</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+            <span class="k">continue</span> <span class="c"># This is not a plugin</span>
         <span class="n">plugin_files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
         <span class="k">if</span> <span class="s">&quot;__init__.py&quot;</span> <span class="ow">in</span> <span class="n">plugin_files</span><span class="p">:</span>
             <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;py&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span> <span class="c"># Just need the base</span>
@@ -855,15 +976,15 @@
     <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;css&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">out_dict</span>
 </div>
-<div class="viewcode-block" id="load_plugins"><a class="viewcode-back" href="../Developer/utils.html#utils.load_plugins">[docs]</a><span class="k">def</span> <span class="nf">load_plugins</span><span class="p">(</span><span class="n">plugins</span><span class="p">):</span>
+<div class="viewcode-block" id="load_modules"><a class="viewcode-back" href="../Developer/utils.html#utils.load_modules">[docs]</a><span class="k">def</span> <span class="nf">load_modules</span><span class="p">(</span><span class="n">modules</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a list of *plugins*, imports them.</span>
+<span class="sd">    Given a list of Python *modules*, imports them.</span>
 
 <span class="sd">    .. note::  Assumes they&#39;re all in `sys.path`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">out_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">plugins</span><span class="p">:</span>
-        <span class="n">imported</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">modules</span><span class="p">:</span>
+        <span class="n">imported</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">])</span>
         <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imported</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out_list</span>
 </div>
@@ -1174,8 +1295,10 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">os</span><span class="o">.</span><span class="n">chown</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">pwd</span>
         <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">errno</span> <span class="ow">in</span> <span class="p">[</span><span class="n">errno</span><span class="o">.</span><span class="n">EACCES</span><span class="p">,</span> <span class="n">errno</span><span class="o">.</span><span class="n">EPERM</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="n">ChownError</span><span class="p">(</span><span class="n">error_msg</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getlogin</span><span class="p">())))</span>
+            <span class="k">raise</span> <span class="n">ChownError</span><span class="p">(</span><span class="n">error_msg</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span>
+                <span class="nb">repr</span><span class="p">(</span><span class="n">pwd</span><span class="o">.</span><span class="n">getpwuid</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">geteuid</span><span class="p">())[</span><span class="mi">0</span><span class="p">])))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span>
     <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
@@ -1184,9 +1307,10 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">chown</span><span class="p">(</span><span class="n">_path</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">pwd</span>
                 <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">errno</span> <span class="ow">in</span> <span class="p">[</span><span class="n">errno</span><span class="o">.</span><span class="n">EACCES</span><span class="p">,</span> <span class="n">errno</span><span class="o">.</span><span class="n">EPERM</span><span class="p">]:</span>
                     <span class="k">raise</span> <span class="n">ChownError</span><span class="p">(</span><span class="n">error_msg</span> <span class="o">%</span> <span class="p">(</span>
-                        <span class="n">_path</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getlogin</span><span class="p">())))</span>
+                        <span class="n">_path</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">pwd</span><span class="o">.</span><span class="n">getpwuid</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">geteuid</span><span class="p">())[</span><span class="mi">0</span><span class="p">])))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span>
         <span class="k">for</span> <span class="n">momo</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
@@ -1194,11 +1318,100 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">chown</span><span class="p">(</span><span class="n">_path</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">pwd</span>
                 <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">errno</span> <span class="ow">in</span> <span class="p">[</span><span class="n">errno</span><span class="o">.</span><span class="n">EACCES</span><span class="p">,</span> <span class="n">errno</span><span class="o">.</span><span class="n">EPERM</span><span class="p">]:</span>
                     <span class="k">raise</span> <span class="n">ChownError</span><span class="p">(</span><span class="n">error_msg</span> <span class="o">%</span> <span class="p">(</span>
-                        <span class="n">_path</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getlogin</span><span class="p">())))</span>
+                        <span class="n">_path</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">pwd</span><span class="o">.</span><span class="n">getpwuid</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">geteuid</span><span class="p">())[</span><span class="mi">0</span><span class="p">])))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span>
+</div>
+<div class="viewcode-block" id="check_write_permissions"><a class="viewcode-back" href="../Developer/utils.html#utils.check_write_permissions">[docs]</a><span class="k">def</span> <span class="nf">check_write_permissions</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns True if the given *user* has write permissions to *path*.  *user*</span>
+<span class="sd">    can be a UID (int) or a username (string).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">pwd</span><span class="o">,</span> <span class="nn">grp</span><span class="o">,</span> <span class="nn">stat</span>
+    <span class="c"># Get the user&#39;s complete passwd record</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">pwd</span><span class="o">.</span><span class="n">getpwuid</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">pwd</span><span class="o">.</span><span class="n">getpwnam</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span> <span class="c"># A combination of user&#39;s primary GID and supplemental groups</span>
+    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">grp</span><span class="o">.</span><span class="n">getgrall</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">pw_name</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">gr_mem</span><span class="p">:</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">gr_gid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">group</span><span class="o">.</span><span class="n">gr_gid</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">pw_gid</span><span class="p">:</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">gr_gid</span><span class="p">)</span>
+    <span class="n">st</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">other_write</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">st_mode</span> <span class="o">&amp;</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWOTH</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">other_write</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span> <span class="c"># Read/write world!</span>
+    <span class="n">owner_write</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">st_mode</span> <span class="o">&amp;</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWUSR</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">st</span><span class="o">.</span><span class="n">st_uid</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">pw_uid</span> <span class="ow">and</span> <span class="n">owner_write</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span> <span class="c"># User can write to their own file</span>
+    <span class="n">group_write</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">st_mode</span> <span class="o">&amp;</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_IWGRP</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">st</span><span class="o">.</span><span class="n">st_gid</span> <span class="ow">in</span> <span class="n">groups</span> <span class="ow">and</span> <span class="n">group_write</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span> <span class="c"># User belongs to a group that can write to the file</span>
+    <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="bind"><a class="viewcode-back" href="../Developer/utils.html#utils.bind">[docs]</a><span class="k">def</span> <span class="nf">bind</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Will return *function* with *self* bound as the first argument.  Allows one</span>
+<span class="sd">    to write functions like this::</span>
+
+<span class="sd">        def foo(self, whatever):</span>
+<span class="sd">            return whatever</span>
+
+<span class="sd">    ...outside of the construct of a class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+    <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="minify"><a class="viewcode-back" href="../Developer/utils.html#utils.minify">[docs]</a><span class="k">def</span> <span class="nf">minify</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">,</span> <span class="n">kind</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns *path_or_fileobj* as a minified string.  *kind* should be one of</span>
+<span class="sd">    &#39;js&#39; or &#39;css&#39;.  Works with JavaScript and CSS files using `slimit` and</span>
+<span class="sd">    `cssmin`, respectively.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="c"># Optional:  If slimit is installed Gate One will use it to minify JS and CSS</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">slimit</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">slimit</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="s">&quot;slimit module not found.  JavaScript will not be minified.&quot;</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;To install slimit:  sudo pip install slimit&quot;</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">cssmin</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">cssmin</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="s">&quot;cssmin module not found.  CSS will not be minified.&quot;</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;To install slimit:  sudo pip install cssmin&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path_or_fileobj</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">path_or_fileobj</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="k">if</span> <span class="n">slimit</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;js&#39;</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">slimit</span><span class="o">.</span><span class="n">minify</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="s">&quot;(saved ~</span><span class="si">%s</span><span class="s"> bytes minifying </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">))</span>
+    <span class="k">elif</span> <span class="n">cssmin</span> <span class="ow">and</span> <span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;css&#39;</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">cssmin</span><span class="o">.</span><span class="n">cssmin</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
+            <span class="s">&quot;(saved ~</span><span class="si">%s</span><span class="s"> bytes minifying </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
 </div>
 <div class="viewcode-block" id="drop_privileges"><a class="viewcode-back" href="../Developer/utils.html#utils.drop_privileges">[docs]</a><span class="k">def</span> <span class="nf">drop_privileges</span><span class="p">(</span><span class="n">uid</span><span class="o">=</span><span class="s">&#39;nobody&#39;</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="s">&#39;nogroup&#39;</span><span class="p">,</span> <span class="n">supl_groups</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1215,7 +1428,7 @@
 
 <span class="sd">    .. note:: On most Unix systems users must belong to the &#39;tty&#39; group to create new controlling TTYs which is necessary for &#39;pty.fork()&#39; to work.</span>
 
-<span class="sd">    .. tip:: If you get errors like, &quot;OSError: out of pty devices&quot; it likely means that your OS uses something other than &#39;tty&#39; as the group owner of the devpts filesystem.  &#39;mount | grep pts&#39; will tell you the owner.</span>
+<span class="sd">    .. tip:: If you get errors like, &quot;OSError: out of pty devices&quot; it likely means that your OS uses something other than &#39;tty&#39; as the group owner of the devpts filesystem.  &#39;mount | grep pts&#39; will tell you the owner (look for gid=&lt;owner&gt;).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">pwd</span><span class="o">,</span> <span class="nn">grp</span>
     <span class="n">running_gid</span> <span class="o">=</span> <span class="n">gid</span>
@@ -1259,6 +1472,19 @@
         <span class="s">&#39; </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pwd</span><span class="o">.</span><span class="n">getpwuid</span><span class="p">(</span><span class="n">final_uid</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">grp</span><span class="o">.</span><span class="n">getgrgid</span><span class="p">(</span><span class="n">final_gid</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
                  <span class="s">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">human_supl_groups</span><span class="p">))</span>
     <span class="p">))</span>
+</div>
+<div class="viewcode-block" id="settings_template"><a class="viewcode-back" href="../Developer/utils.html#utils.settings_template">[docs]</a><span class="k">def</span> <span class="nf">settings_template</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Renders and returns the Tornado template at *path* using the given *kwargs*.</span>
+
+<span class="sd">    .. note:: Any blank lines in the rendered template will be removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">tornado.template</span> <span class="kn">import</span> <span class="n">Template</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">template_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="n">template_data</span><span class="p">)</span>
+    <span class="n">rendered</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">rendered</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">strip</span><span class="p">()])</span>
 
 <span class="c"># Misc</span></div>
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>

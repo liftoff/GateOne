@@ -60,7 +60,6 @@
 <span class="c"># TODO: Fix the flat log viewing format.  Doesn&#39;t look quite right.</span>
 <span class="c"># TODO: Write search functions.</span>
 <span class="c"># TODO: Add some search indexing capabilities so that search will be fast.</span>
-<span class="c"># TODO: Add a background process that cleans up old logs.</span>
 <span class="c"># TODO: Write a handler that displays a page where users can drag &amp; drop .golog files to have them played back in their browser.</span>
 
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
@@ -98,9 +97,8 @@
 <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Queue</span>
 
 <span class="c"># Our stuff</span>
-<span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">BaseHandler</span><span class="p">,</span> <span class="n">PLUGINS</span>
 <span class="kn">from</span> <span class="nn">logviewer</span> <span class="kn">import</span> <span class="n">flatten_log</span><span class="p">,</span> <span class="n">get_frames</span>
-<span class="kn">from</span> <span class="nn">termio</span> <span class="kn">import</span> <span class="n">retrieve_first_frame</span><span class="p">,</span> <span class="n">retrieve_last_frame</span>
+<span class="kn">from</span> <span class="nn">termio</span> <span class="kn">import</span> <span class="n">retrieve_first_frame</span>
 <span class="kn">from</span> <span class="nn">termio</span> <span class="kn">import</span> <span class="n">get_or_update_metadata</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">json_encode</span>
 
@@ -109,7 +107,6 @@
 <span class="c"># Tornado stuff</span>
 <span class="kn">import</span> <span class="nn">tornado.template</span>
 <span class="kn">import</span> <span class="nn">tornado.ioloop</span>
-<span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">json_decode</span>
 
 <span class="c"># TODO: Make the log retrieval functions work incrementally as logs are read so they don&#39;t have to be stored entirely in memory before being sent to the client.</span>
 
@@ -159,26 +156,26 @@
 <span class="c"># Handlers</span>
 
 <span class="c"># WebSocket commands (not the same as handlers)</span></div>
-<div class="viewcode-block" id="enumerate_logs"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.enumerate_logs">[docs]</a><span class="k">def</span> <span class="nf">enumerate_logs</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="enumerate_logs"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.enumerate_logs">[docs]</a><span class="k">def</span> <span class="nf">enumerate_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls _enumerate_logs() via a :py:class:`multiprocessing.Process` so it</span>
 <span class="sd">    doesn&#39;t cause the :py:class:`~tornado.ioloop.IOLoop` to block.</span>
 
 <span class="sd">    Log objects will be returned to the client one at a time by sending</span>
-<span class="sd">    &#39;logging_log&#39; actions to the client over the WebSocket (*tws*).</span>
+<span class="sd">    &#39;logging_log&#39; actions to the client over the WebSocket (*self*).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Sometimes IOLoop detects multiple events on the fd before we&#39;ve finished</span>
     <span class="c"># doing a get() from the queue.  This variable is used to ensure we don&#39;t</span>
     <span class="c"># send the client duplicates:</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">if</span> <span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;session_logging&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;session_logging&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;NOTE: User session logging is disabled.  To enable it, set &quot;</span>
             <span class="s">&quot;&#39;session_logging = True&#39; in your server.conf.&quot;</span><span class="p">)}</span>
         <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="k">return</span> <span class="c"># Nothing left to do</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
     <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROCS</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROCS</span><span class="p">:</span>
@@ -218,7 +215,7 @@
             <span class="p">}</span>
             <span class="c"># This signals to the client that we&#39;re done</span>
             <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;logging_logs_complete&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
-            <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">message</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
@@ -226,7 +223,7 @@
             <span class="k">if</span> <span class="n">results</span><span class="p">:</span>
                 <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="c"># No need to keep old stuff hanging around</span>
             <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-            <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="c"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
     <span class="c"># underlying fd that you can access via the _reader:</span>
     <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">send_message</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
@@ -264,7 +261,7 @@
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
     <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s">&#39;complete&#39;</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="retrieve_log_flat"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_log_flat">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_flat</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="retrieve_log_flat"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_log_flat">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_flat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls :func:`_retrieve_log_flat` via a :py:class:`multiprocessing.Process`</span>
 <span class="sd">    so it doesn&#39;t cause the :py:class:`~tornado.ioloop.IOLoop` to block.</span>
@@ -279,11 +276,11 @@
 <span class="sd">    :arg settings[&#39;theme&#39;]: The CSS theme to use when generating output.</span>
 <span class="sd">    :arg settings[&#39;where&#39;]: Whether or not the result should go into a new window or an iframe.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">container</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">prefix</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span>
     <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROCS</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROCS</span><span class="p">:</span>
@@ -309,7 +306,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="c"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
     <span class="c"># underlying fd that you can access via the _reader:</span>
     <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">send_message</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
@@ -371,18 +368,18 @@
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;logging_log_flat&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
     <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="retrieve_log_playback"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_log_playback">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_playback</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="retrieve_log_playback"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.retrieve_log_playback">[docs]</a><span class="k">def</span> <span class="nf">retrieve_log_playback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls :func:`_retrieve_log_playback` via a</span>
 <span class="sd">    :py:class:`multiprocessing.Process` so it doesn&#39;t cause the</span>
 <span class="sd">    :py:class:`~tornado.ioloop.IOLoop` to block.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">container</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">prefix</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
     <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROCS</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROCS</span><span class="p">:</span>
@@ -408,7 +405,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="c"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
     <span class="c"># underlying fd that you can access via the _reader:</span>
     <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">send_message</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
@@ -547,17 +544,17 @@
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;logging_log_playback&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
     <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="save_log_playback"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.save_log_playback">[docs]</a><span class="k">def</span> <span class="nf">save_log_playback</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="save_log_playback"><a class="viewcode-back" href="../Developer/plugin_logging.html#logging_plugin.save_log_playback">[docs]</a><span class="k">def</span> <span class="nf">save_log_playback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calls :func:`_save_log_playback` via a :py:class:`multiprocessing.Process`</span>
 <span class="sd">    so it doesn&#39;t cause the :py:class:`~tornado.ioloop.IOLoop` to block.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">container</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">prefix</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span>
-    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;users_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span>
+    <span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
     <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
     <span class="k">global</span> <span class="n">PROC</span>
     <span class="n">PROC</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">_save_log_playback</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">settings</span><span class="p">))</span>
@@ -571,7 +568,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">io_loop</span><span class="o">.</span><span class="n">remove_handler</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
         <span class="n">message</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="c"># This is kind of neat:  multiprocessing.Queue() instances have an</span>
     <span class="c"># underlying fd that you can access via the _reader:</span>
     <span class="n">io_loop</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="n">send_message</span><span class="p">,</span> <span class="n">io_loop</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
@@ -703,14 +700,14 @@
 
 <span class="c"># Temporarily disabled while I work around the problem of gzip files not being</span>
 <span class="c"># downloadable over the websocket.</span>
-<span class="c">#def get_log_file(log_filename, tws):</span>
+<span class="c">#def get_log_file(self, log_filename):</span>
     <span class="c">#&quot;&quot;&quot;</span>
     <span class="c">#Returns the given *log_filename* (as a regular file) so the user can save it</span>
     <span class="c">#to disk.</span>
     <span class="c">#&quot;&quot;&quot;</span>
-    <span class="c">#user = tws.get_current_user()[&#39;upn&#39;]</span>
+    <span class="c">#user = self.get_current_user()[&#39;upn&#39;]</span>
     <span class="c">#logging.debug(&quot;%s: get_log_file(%s)&quot; % (user, log_filename))</span>
-    <span class="c">#users_dir = os.path.join(tws.settings[&#39;user_dir&#39;], user) # &quot;User&#39;s dir&quot;</span>
+    <span class="c">#users_dir = os.path.join(self.ws.settings[&#39;user_dir&#39;], user) # &quot;User&#39;s dir&quot;</span>
     <span class="c">#users_log_dir = os.path.join(users_dir, &#39;logs&#39;)</span>
     <span class="c">#log_path = os.path.join(users_log_dir, log_filename)</span>
     <span class="c">#out_dict = {&#39;result&#39;: &#39;Success&#39;}</span>
@@ -721,7 +718,7 @@
         <span class="c">#out_dict[&#39;result&#39;] = _(</span>
             <span class="c">#&#39;SSH Plugin Error: Log not found at %s&#39; % log_path)</span>
     <span class="c">#message = {&#39;save_file&#39;: out_dict}</span>
-    <span class="c">#tws.write_message(message)</span>
+    <span class="c">#self.write_message(message)</span>
 </div>
 <span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>

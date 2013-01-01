@@ -84,14 +84,14 @@
 
 <span class="c"># Python stdlib</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">json_encode</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
 
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 
 <span class="c"># Globals</span>
-<span class="n">plugin_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">PLUGIN_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-<div class="viewcode-block" id="save_recording"><a class="viewcode-back" href="../Developer/plugin_playback.html#playback.save_recording">[docs]</a><span class="k">def</span> <span class="nf">save_recording</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">tws</span><span class="p">):</span>
+<div class="viewcode-block" id="save_recording"><a class="viewcode-back" href="../Developer/plugin_playback.html#playback.save_recording">[docs]</a><span class="k">def</span> <span class="nf">save_recording</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles uploads of session recordings and returns them to the client in a</span>
 <span class="sd">    self-contained HTML file that will auto-start playback.</span>
@@ -113,10 +113,7 @@
     <span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;prefix&quot;</span><span class="p">]</span>
     <span class="n">theme</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;theme&quot;</span><span class="p">]</span>
     <span class="n">colors</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;colors&quot;</span><span class="p">]</span>
-    <span class="n">gateone_dir</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;gateone_dir&#39;</span><span class="p">]</span>
-    <span class="n">plugins_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">gateone_dir</span><span class="p">,</span> <span class="s">&#39;plugins&#39;</span><span class="p">)</span>
-    <span class="c">#playback_plugin_path = os.path.join(plugins_path, &#39;playback&#39;)</span>
-    <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">gateone_dir</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
+    <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
     <span class="n">colors_templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_path</span><span class="p">,</span> <span class="s">&#39;term_colors&#39;</span><span class="p">)</span>
     <span class="n">colors_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">colors_templates_path</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.css&#39;</span> <span class="o">%</span> <span class="n">colors</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">colors_css_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -141,7 +138,7 @@
         <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
         <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
         <span class="n">colors_256</span><span class="o">=</span><span class="n">colors_256</span><span class="p">,</span>
-        <span class="n">url_prefix</span><span class="o">=</span><span class="n">tws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
+        <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
     <span class="p">)</span>
     <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_path</span><span class="p">,</span> <span class="s">&quot;templates&quot;</span><span class="p">)</span>
     <span class="n">recording_template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
@@ -158,7 +155,7 @@
     <span class="p">)</span>
     <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rendered_recording</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;save_file&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
-    <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
 <span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>

@@ -19,6 +19,21 @@ GateOne.SSH.remoteCmdCallbacks = {};
 GateOne.SSH.remoteCmdErrorbacks = {};
 GateOne.Base.update(GateOne.SSH, {
     init: function() {
+        /**:GateOne.SSH.init()
+
+        Creates the SSH Identity Manager panel, adds some buttons to the Info & Tools panel, and registers the following WebSocket actions & events::
+
+            GateOne.Net.addAction('sshjs_connect', GateOne.SSH.handleConnect);
+            GateOne.Net.addAction('sshjs_reconnect', GateOne.SSH.handleReconnect);
+            GateOne.Net.addAction('sshjs_keygen_complete', GateOne.SSH.keygenComplete);
+            GateOne.Net.addAction('sshjs_save_id_complete', GateOne.SSH.saveComplete);
+            GateOne.Net.addAction('sshjs_display_fingerprint', GateOne.SSH.displayHostFingerprint);
+            GateOne.Net.addAction('sshjs_identities_list', GateOne.SSH.incomingIDsAction);
+            GateOne.Net.addAction('sshjs_delete_identity_complete', GateOne.SSH.deleteCompleteAction);
+            GateOne.Net.addAction('sshjs_cmd_output', GateOne.SSH.commandCompleted);
+            GateOne.Net.addAction('sshjs_ask_passphrase', GateOne.SSH.enterPassphraseAction);
+            GateOne.Events.on("new_terminal", GateOne.SSH.getConnectString);
+        */
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
@@ -105,7 +120,10 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     createPanel: function() {
-        // Creates the SSH identity management panel (the shell of it anyway)
+        /**:GateOne.SSH.createPanel()
+
+        Creates the SSH identity management panel (the shell of it anyway).
+        */
         var go = GateOne,
             u = go.Utils,
             ssh = go.SSH,
@@ -295,7 +313,10 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     loadIDs: function() {
-        // Toggles the panel into view (if not already visible) and tells the server to send us our list of identities
+        /**:GateOne.SSH.loadIDs()
+
+        Toggles the SSH Identity Manager into view (if not already visible) and asks the server to send us our list of identities.
+        */
         var go = GateOne,
             u = go.Utils,
             ssh = go.SSH,
@@ -310,7 +331,10 @@ GateOne.Base.update(GateOne.SSH, {
         go.ws.send(JSON.stringify({'ssh_get_identities': true}));
     },
     incomingIDsAction: function(message) {
-        // Adds *message['identities']* to GateOne.SSH.identities and places them into the view.
+        /**:GateOne.SSH.incomingIDsAction(message)
+
+        This gets attached to the 'sshjs_identities_list' WebSocket action.  Adds *message['identities']* to `GateOne.SSH.identities` and places them into the Identity Manager.
+        */
         var go = GateOne,
             u = go.Utils,
             ssh = go.SSH,
@@ -363,8 +387,10 @@ GateOne.Base.update(GateOne.SSH, {
         sshIDHeaderH2.innerHTML = "SSH Identity Manager";
     },
     displayMetadata: function(identity) {
-        // Displays the information about the given *identity* (its name) in the SSH identities metadata area (on the right).
-        // Also displays the buttons that allow the user to delete the identity or upload a certificate.
+        /**:GateOne.SSH.displayMetadata(identity)
+
+        Displays the information about the given *identity* (its name) in the SSH identities metadata area (on the right).  Also displays the buttons that allow the user to delete the identity or upload a certificate.
+        */
         var go = GateOne,
             u = go.Utils,
             ssh = go.SSH,
@@ -466,8 +492,12 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     createIDItem: function(container, IDObj, delay) {
-        // Creates an SSH identity element using *IDObj* and places it into *container*.
-        // *delay* controls how long it will wait before using a CSS3 effect to move it into view.
+        /**:GateOne.SSH.displayMetadata(container, IDObj, delay)
+
+        Creates an SSH identity element using *IDObj* and places it into *container*.
+
+        *delay* controls how long it will wait before using a CSS3 effect to move it into view.
+        */
         var go = GateOne,
             u = go.Utils,
             ssh = go.SSH,
@@ -542,7 +572,10 @@ GateOne.Base.update(GateOne.SSH, {
         return elem;
     },
     getMaxIDs: function(elem) {
-        // Calculates and returns the number of SSH identities that will fit in the given element ID (elem).
+        /**:GateOne.SSH.getMaxIDs(elem)
+
+        Calculates and returns the number of SSH identities that will fit in the given element ID (elem).
+        */
         try {
             var go = GateOne,
                 ssh = go.SSH,
@@ -577,7 +610,10 @@ GateOne.Base.update(GateOne.SSH, {
         return max;
     },
     newIDForm: function() {
-        // Displays the dialog/form where a user can create or edit an SSH identity.
+        /**:GateOne.SSH.newIDForm()
+
+        Displays the dialog/form where the user can create or edit an SSH identity.
+        */
         var go = GateOne,
             u = go.Utils,
             ssh = go.SSH,
@@ -726,7 +762,10 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     uploadIDForm: function() {
-        // Displays the dialog/form where a user can upload an SSH identity (that's already been created)
+        /**:GateOne.SSH.uploadIDForm()
+
+        Displays the dialog/form where a user can upload an SSH identity (that's already been created).
+        */
         var go = GateOne,
             u = go.Utils,
             ssh = go.SSH,
@@ -826,8 +865,12 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     uploadCertificateForm: function(identity) {
-        // Displays the dialog/form where a user can add or replace a certificate associated with their identity
-        // *identity* should be the name of the identity associated with this certificate
+        /**:GateOne.SSH.uploadCertificateForm(identity)
+
+        Displays the dialog/form where a user can add or replace a certificate associated with their identity.
+
+        *identity* should be the name of the identity associated with this certificate.
+        */
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
@@ -869,7 +912,10 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     enterPassphraseAction: function(settings) {
-        // Displays the dialog/form where a user can enter a passphrase for a given identity (called by the server if something requires it)
+        /**:GateOne.SSH.enterPassphraseAction(settings)
+
+        Displays the dialog/form where a user can enter a passphrase for a given identity (called by the server if something requires it).
+        */
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
@@ -912,17 +958,28 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     getConnectString: function(term) {
-        // Asks the SSH plugin on the Gate One server what the SSH connection string is for the given *term*.
+        /**:GateOne.SSH.getConnectString(term)
+
+        Asks the SSH plugin on the Gate One server what the SSH connection string is for the given *term*.
+        */
         GateOne.ws.send(JSON.stringify({'ssh_get_connect_string': term}));
     },
     deleteCompleteAction: function(message) {
-        // Called when an identity is deleted
+        /**:GateOne.SSH.deleteCompleteAction(message)
+
+        Called when an identity is deleted, calls :js:meth:`GateOne.SSH.loadIDs`
+        */
         GateOne.SSH.loadIDs();
     },
     handleConnect: function(connectString) {
-        // Handles the 'sshjs_connect' action which should provide an SSH *connectString* in the form of user@host:port
-        // The *connectString* will be stored in GateOne.terminals[term]['sshConnectString'] which is meant to be used in duplicating terminals (because you can't rely on the title).
-        // Also requests the host's public certificate to have it displayed to the user.
+        /**:GateOne.SSH.handleConnect(connectString)
+
+        Handles the 'sshjs_connect' WebSocket action which should provide an SSH *connectString* in the form of 'user@host:port'.
+
+        The *connectString* will be stored in `GateOne.terminals[term]['sshConnectString']` which is meant to be used in duplicating terminals (because you can't rely on the title).
+
+        Also requests the host's public SSH key so it can be displayed to the user.
+        */
         logDebug('sshjs_connect: ' + connectString);
         var go = GateOne,
             host = connectString.split('@')[1].split(':')[0],
@@ -933,8 +990,12 @@ GateOne.Base.update(GateOne.SSH, {
         go.ws.send(JSON.stringify({'ssh_get_host_fingerprint': message}));
     },
     handleReconnect: function(jsonDoc) {
-        // Handles the 'sshjs_reconnect' action which should provide a JSON-encoded dictionary containing each terminal's SSH connection string.
-        // Example *jsonDoc*: "{1: 'user@host1:22', 2: 'user@host2:22'}"
+        /**:GateOne.SSH.handleReconnect(jsonDoc)
+
+        Handles the 'sshjs_reconnect' WebSocket action which should provide a JSON-encoded dictionary containing each terminal's SSH connection string.  Example *jsonDoc*::
+
+            {1: 'user@host1:22', 2: 'user@host2:22'}
+        */
         var go = GateOne,
             dict = JSON.parse(jsonDoc);
         for (var term in dict) {
@@ -946,7 +1007,10 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     keygenComplete: function(message) {
-        // Called when we receive a message from the server indicating a keypair was generated successfully
+        /**:GateOne.SSH.keygenComplete(message)
+
+        Called when we receive a message from the server indicating a keypair was generated successfully.
+        */
         var go = GateOne,
             ssh = go.SSH,
             v = go.Visual;
@@ -958,7 +1022,10 @@ GateOne.Base.update(GateOne.SSH, {
         ssh.loadIDs();
     },
     saveComplete: function(message) {
-        // Called when we receive a message from the server indicating the uploaded identity was saved
+        /**:GateOne.SSH.saveComplete(message)
+
+        Called when we receive a message from the server indicating the uploaded identity was saved.
+        */
         var go = GateOne,
             ssh = go.SSH,
             v = go.Visual;
@@ -970,7 +1037,10 @@ GateOne.Base.update(GateOne.SSH, {
         ssh.loadIDs();
     },
     duplicateSession: function(term) {
-        // Duplicates the SSH session at *term* in a new terminal
+        /**:GateOne.SSH.duplicateSession(term)
+
+        Duplicates the SSH session at *term* in a new terminal.
+        */
         var go = GateOne,
             E = go.Events,
             connectString = GateOne.terminals[term]['sshConnectString'],
@@ -988,8 +1058,12 @@ GateOne.Base.update(GateOne.SSH, {
         go.Terminal.newTerminal();
     },
     updateKH: function(known_hosts) {
-        // Updates the sshKHTextArea with the given *known_hosts* file.
-        // NOTE: Meant to be used as the callback function passed to GateOne.Utils.xhrGet()
+        /**:GateOne.SSH.updateKH(known_hosts)
+
+        Updates the sshKHTextArea with the given *known_hosts* file.
+
+        .. note:: Meant to be used as a callback function passed to :js:meth:`GateOne.Utils.xhrGet`.
+        */
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
@@ -999,8 +1073,12 @@ GateOne.Base.update(GateOne.SSH, {
         go.Visual.togglePanel('#'+prefix+'panel_known_hosts');
     },
     createKHPanel: function() {
-        // Creates a panel where the user can edit their known_hosts file and appends it to #gateone
-        // If the panel already exists, leave it but recreate the contents
+        /**:GateOne.SSH.createKHPanel()
+
+        Creates a panel where the user can edit their known_hosts file and appends it to '#gateone'.
+
+        If the panel already exists its contents will be destroyed and re-created.
+        */
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
@@ -1075,9 +1153,13 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     displayHostFingerprint: function(message) {
-        // Displays the host's key as sent by the server via the sshjs_display_fingerprint action.
-        // The fingerprint will be colorized using the hex values of the fingerprint as the color code with the last value highlighted in bold.
-        // {"sshjs_display_fingerprint": {"result": "Success", "fingerprint": "cc:2f:b9:4f:f6:c0:e5:1d:1b:7a:86:7b:ff:86:97:5b"}}
+        /**:GateOne.SSH.displayHostFingerprint(message)
+
+        Displays the host's key as sent by the server via the 'sshjs_display_fingerprint' WebSocket action.
+
+        The fingerprint will be colorized using the hex values of the fingerprint as the color code with the last value highlighted in bold.
+        */
+        // Example message: {"sshjs_display_fingerprint": {"result": "Success", "fingerprint": "cc:2f:b9:4f:f6:c0:e5:1d:1b:7a:86:7b:ff:86:97:5b"}}
         var go = GateOne,
             v = go.Visual;
         if (message['result'] == 'Success') {
@@ -1103,11 +1185,27 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     commandCompleted: function(message) {
-        // Uses the contents of *message* to report the results of the command executed via execRemoteCmd()
-        // Message should be something like:  {'term': 1, 'cmd': 'uptime', 'output': ' 20:45:27 up 13 days,  3:44,  9 users,  load average: 1.21, 0.79, 0.57', 'result', 'Success'}
-        // If result is anything other than 'Success' the error will be displayed to the user.
-        // If a callback was registered in GateOne.SSH.remoteCmdCallbacks[term] it will be called like so:  callback(message['output']).  Otherwise the output will just be displayed to the user.
-        // After the callback has executed it will be removed from GateOne.SSH.remoteCmdCallbacks.
+        /**:GateOne.SSH.commandCompleted(message)
+
+        Uses the contents of *message* to report the results of the command executed via :js:meth:`~GateOne.SSH.execRemoteCmd`.
+
+        The *message* should be something like::
+
+            {
+                'term': 1,
+                'cmd': 'uptime',
+                'output': ' 20:45:27 up 13 days,  3:44,  9 users,  load average: 1.21, 0.79, 0.57',
+                'result', 'Success'
+            }
+
+        If 'result' is anything other than 'Success' the error will be displayed to the user.
+
+        If a callback was registered in :js:attr:`GateOne.SSH.remoteCmdCallbacks[term]` it will be called like so::
+
+            callback(message['output'])
+
+        Otherwise the output will just be displayed to the user.  After the callback has executed it will be removed from `GateOne.SSH.remoteCmdCallbacks`.
+        */
         var go = GateOne,
             term = message['term'],
             cmd = message['cmd'],
@@ -1129,9 +1227,14 @@ GateOne.Base.update(GateOne.SSH, {
         }
     },
     execRemoteCmd: function(term, command, callback, errorback) {
-        // Executes *command* by creating a secondary shell in the background using the multiplexed tunnel of *term* (works just like duplicateSession()).
-        // Calls *callback* when the result of *command* comes back.
-        // *errorback* will be called if there's an error executing the command.
+        /**:GateOne.SSH.execRemoteCmd(term, command, callback, errorback)
+
+        Executes *command* by creating a secondary shell in the background using the multiplexed tunnel of *term* (works just like :js:meth:`~GateOne.SSH.duplicateSession`).
+
+        Calls *callback* when the result of *command* comes back.
+
+        Calls *errorback* if there's an error executing the command.
+        */
         var go = GateOne,
             ssh = go.SSH;
         // Create an associative array to keep track of which callback belongs to which command (so we can support multiple simultaneous commands/callbacks for the same terminal)

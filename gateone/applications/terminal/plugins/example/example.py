@@ -20,7 +20,6 @@ This Python plugin file implements the following hooks::
             'example_action': example_websocket_action
         },
         'Escape': example_opt_esc_handler,
-        #'Auth': create_user_ssh_dir
     }
 
 Docstrings
@@ -221,5 +220,4 @@ hooks = {
     'Environment': {
         'EXAMPLE_VAR': 'This was set via the Example plugin'
     }
-    #'Auth': some_post_authentication_function
 }

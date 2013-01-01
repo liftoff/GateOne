@@ -95,7 +95,7 @@ recursively chown a directory.</p>
 sub-dicts will be merged without one clobbering the other.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This class taken from <a class="reference external" href="http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python">here</a></p>
+<p class="last">This class (mostly) taken from <a class="reference external" href="http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python">here</a></p>
 </div>
 </dd></dl>
 
@@ -103,6 +103,21 @@ sub-dicts will be merged without one clobbering the other.</p>
 <dt id="utils.noop">
 <tt class="descclassname">utils.</tt><tt class="descname">noop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/utils.html#noop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.noop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Do nothing (i.e. &quot;No Operation&quot;)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.get_settings">
+<tt class="descclassname">utils.</tt><tt class="descname">get_settings</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads any and all <em>.conf files containing JSON (JS-style comments are OK)
+inside *path</em> and returns them as an <a class="reference internal" href="#utils.RUDict" title="utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a>.  Optionally, <em>path</em>
+may be a specific file (as opposed to just a directory).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.options_to_settings">
+<tt class="descclassname">utils.</tt><tt class="descname">options_to_settings</tt><big>(</big><em>options</em><big>)</big><a class="reference internal" href="../_modules/utils.html#options_to_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.options_to_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the given Tornado-style <em>options</em> to new-style settings.  Returns
+an <a class="reference internal" href="#utils.RUDict" title="utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a> containing all the settings.</p>
 </dd></dl>
 
 <dl class="function">
@@ -143,7 +158,7 @@ auto-killed and the following will be returned:</p>
 <dl class="function">
 <dt id="utils.json_encode">
 <tt class="descclassname">utils.</tt><tt class="descname">json_encode</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/utils.html#json_encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.json_encode" title="Permalink to this definition">¶</a></dt>
-<dd><p>On some platforms (CentOS 6.2, specifically) <a class="reference external" href="http://www.tornadoweb.org/documentation/escape.html#tornado.escape.json_decode" title="(in Tornado v2.4)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.escape.json_decode</span></tt></a>
+<dd><p>On some platforms (CentOS 6.2, specifically) <a class="reference external" href="http://www.tornadoweb.org/documentation/escape.html#tornado.escape.json_decode" title="(in Tornado v2.4.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.escape.json_decode</span></tt></a>
 doesn't seem to work just right when it comes to returning unicode strings.
 This is just a wrapper that ensures that the returned string is unicode.</p>
 </dd></dl>
@@ -321,20 +336,12 @@ signal handling required by <a class="reference internal" href="#utils.shell_com
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.create_plugin_links">
-<tt class="descclassname">utils.</tt><tt class="descname">create_plugin_links</tt><big>(</big><em>static_dir</em>, <em>templates_dir</em>, <em>plugin_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#create_plugin_links"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.create_plugin_links" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates symbolic links for all plugins in the ./static/ and ./templates/
-directories.  The equivalent of:</p>
-<pre class="ansi-block literal-block">
-<span class="ansi-bold ansi-red">root</span>&#64;host<span class="ansi-bold ansi-blue">:~ $</span> ln -s *plugin_dir*/&lt;plugin&gt;/static *static_dir*/&lt;plugin&gt;
-<span class="ansi-bold ansi-red">root</span>&#64;host<span class="ansi-bold ansi-blue">:~ $</span> ln -s *plugin_dir*/&lt;plugin&gt;/templates *templates_dir*/&lt;plugin&gt;
-</pre>
-<p>This is so plugins can reference files in these directories using the
-following straightforward paths:</p>
-<div class="highlight-python"><pre>https://&lt;gate one&gt;/static/&lt;plugin name&gt;/&lt;some file&gt;
-https://&lt;gate one&gt;/render/&lt;plugin name&gt;/&lt;some file&gt;</pre>
-</div>
-<p>This function will also remove any dead links if a plugin is removed.</p>
+<dt id="utils.get_applications">
+<tt class="descclassname">utils.</tt><tt class="descname">get_applications</tt><big>(</big><em>application_dir</em>, <em>settings_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_applications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_applications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds applications' Python files to <a class="reference external" href="http://docs.python.org/2.7/library/sys.html#sys.path" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt></a> and returns a list containing
+the name of each application.  In order to ensure that only enabled apps
+are listed the <em>settings_dir</em> argument must be given so only enabled
+apps are returned.</p>
 </dd></dl>
 
 <dl class="function">
@@ -366,9 +373,9 @@ added to Gate One's index.html like so:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.load_plugins">
-<tt class="descclassname">utils.</tt><tt class="descname">load_plugins</tt><big>(</big><em>plugins</em><big>)</big><a class="reference internal" href="../_modules/utils.html#load_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.load_plugins" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a list of <em>plugins</em>, imports them.</p>
+<dt id="utils.load_modules">
+<tt class="descclassname">utils.</tt><tt class="descname">load_modules</tt><big>(</big><em>modules</em><big>)</big><a class="reference internal" href="../_modules/utils.html#load_modules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.load_modules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of Python <em>modules</em>, imports them.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Assumes they're all in <a class="reference external" href="http://docs.python.org/2.7/library/sys.html#sys.path" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt></a>.</p>
@@ -632,6 +639,33 @@ underscore (if <em>allow_underscore</em> is True).</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="utils.check_write_permissions">
+<tt class="descclassname">utils.</tt><tt class="descname">check_write_permissions</tt><big>(</big><em>user</em>, <em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#check_write_permissions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.check_write_permissions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if the given <em>user</em> has write permissions to <em>path</em>.  <em>user</em>
+can be a UID (int) or a username (string).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.bind">
+<tt class="descclassname">utils.</tt><tt class="descname">bind</tt><big>(</big><em>function</em>, <em>self</em><big>)</big><a class="reference internal" href="../_modules/utils.html#bind"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.bind" title="Permalink to this definition">¶</a></dt>
+<dd><p>Will return <em>function</em> with <em>self</em> bound as the first argument.  Allows one
+to write functions like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">whatever</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">whatever</span>
+</pre></div>
+</div>
+<p>...outside of the construct of a class.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.minify">
+<tt class="descclassname">utils.</tt><tt class="descname">minify</tt><big>(</big><em>path_or_fileobj</em>, <em>kind</em><big>)</big><a class="reference internal" href="../_modules/utils.html#minify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.minify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>path_or_fileobj</em> as a minified string.  <em>kind</em> should be one of
+'js' or 'css'.  Works with JavaScript and CSS files using <tt class="xref py py-obj docutils literal"><span class="pre">slimit</span></tt> and
+<tt class="xref py py-obj docutils literal"><span class="pre">cssmin</span></tt>, respectively.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="utils.drop_privileges">
 <tt class="descclassname">utils.</tt><tt class="descname">drop_privileges</tt><big>(</big><em>uid='nobody'</em>, <em>gid='nogroup'</em>, <em>supl_groups=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#drop_privileges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.drop_privileges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Drop privileges by changing the current process owner/group to
@@ -650,7 +684,17 @@ its only supplemental group.</p>
 </div>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p class="last">If you get errors like, &quot;OSError: out of pty devices&quot; it likely means that your OS uses something other than 'tty' as the group owner of the devpts filesystem.  'mount | grep pts' will tell you the owner.</p>
+<p class="last">If you get errors like, &quot;OSError: out of pty devices&quot; it likely means that your OS uses something other than 'tty' as the group owner of the devpts filesystem.  'mount | grep pts' will tell you the owner (look for gid=&lt;owner&gt;).</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.settings_template">
+<tt class="descclassname">utils.</tt><tt class="descname">settings_template</tt><big>(</big><em>path</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/utils.html#settings_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.settings_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders and returns the Tornado template at <em>path</em> using the given <em>kwargs</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Any blank lines in the rendered template will be removed.</p>
 </div>
 </dd></dl>
 
@@ -664,7 +708,7 @@ processess to kill.</p>
 
 <dl class="function">
 <dt id="utils.killall">
-<tt class="descclassname">utils.</tt><tt class="descname">killall</tt><big>(</big><em>session_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#killall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.killall" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">killall</tt><big>(</big><em>session_dir</em>, <em>pid_file</em><big>)</big><a class="reference internal" href="../_modules/utils.html#killall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.killall" title="Permalink to this definition">¶</a></dt>
 <dd><p>Kills all running Gate One terminal processes including any detached dtach
 sessions.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -672,6 +716,8 @@ sessions.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Session_dir :</th><td class="field-body">The path to Gate One's session directory.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Pid_file :</th><td class="field-body">The path to Gate One's PID file</td>
 </tr>
 </tbody>
 </table>

@@ -72,7 +72,7 @@
 </ul>
 </div></blockquote>
 <p>The Multiplex class was built for asynchronous use in conjunction with a running
-<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt></a> instance but it can be used in a synchronous
+<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt></a> instance but it can be used in a synchronous
 (blocking) manner as well.  Synchronous use of this module is most likely to be
 useful in an interactive Python session but if blocking doesn't matter for your
 program please see the section titled, &quot;Blocking&quot; for tips &amp; tricks.</p>
@@ -655,7 +655,7 @@ then return the result.</p>
 <dd><p>The MultiplexPOSIXIOLoop class takes care of executing a child process on
 POSIX (aka Unix) systems and keeping track of its state via a terminal
 emulator (<a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-obj docutils literal"><span class="pre">terminal.Terminal</span></tt></a> by default).  If there's a started instance
-of <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt></a>, handlers will be added to it that
+of <a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.IOLoop" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.IOLoop</span></tt></a>, handlers will be added to it that
 automatically keep the terminal emulator synchronized with the output of the
 child process.</p>
 <p>If there's no IOLoop (or it just isn't started), terminal applications can
@@ -796,7 +796,7 @@ patterns in <tt class="xref py py-attr docutils literal"><span class="pre">self.
 <p>Calls <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop._read" title="termio.MultiplexPOSIXIOLoop._read"><tt class="xref py py-obj docutils literal"><span class="pre">_read</span></tt></a> and checks if any timeouts have been reached
 in <tt class="xref py py-attr docutils literal"><span class="pre">self._patterns</span></tt>.  Returns the result of <a class="reference internal" href="#termio.MultiplexPOSIXIOLoop._read" title="termio.MultiplexPOSIXIOLoop._read"><tt class="xref py py-meth docutils literal"><span class="pre">_read()</span></tt></a>.  This
 is an override of <a class="reference internal" href="#termio.BaseMultiplex.read" title="termio.BaseMultiplex.read"><tt class="xref py py-obj docutils literal"><span class="pre">BaseMultiplex.read</span></tt></a> that will create a
-<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.PeriodicCallback" title="(in Tornado v2.4)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.PeriodicCallback</span></tt></a> (as <tt class="xref py py-obj docutils literal"><span class="pre">self.scheduler</span></tt>) that
+<a class="reference external" href="http://www.tornadoweb.org/documentation/ioloop.html#tornado.ioloop.PeriodicCallback" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.ioloop.PeriodicCallback</span></tt></a> (as <tt class="xref py py-obj docutils literal"><span class="pre">self.scheduler</span></tt>) that
 executes <tt class="xref py py-attr docutils literal"><span class="pre">timeout_check</span></tt> at a regular interval.  The
 <tt class="xref py py-obj docutils literal"><span class="pre">PeriodicCallback</span></tt> will automatically cancel itself if there are no more
 non-sticky patterns in <tt class="xref py py-attr docutils literal"><span class="pre">self._patterns</span></tt>.</p>

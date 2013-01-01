@@ -3,6 +3,8 @@ The Mobile Plugin
 
 .. moduleauthor:: Dan McDougall <daniel.mcdougall@liftoffsoftware.com>
 
-.. automodule:: mobile
+JavaScript
+----------
+
+.. autojs:: ../applications/terminal/plugins/mobile/static/mobile.js
     :members:
-    :private-members:

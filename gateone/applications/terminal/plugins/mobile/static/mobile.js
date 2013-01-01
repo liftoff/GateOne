@@ -36,6 +36,10 @@ GateOne.Mobile.origHeight = document.body.scrollHeight;
 GateOne.Mobile.origWidth = document.body.scrollWidth;
 GateOne.Base.update(GateOne.Mobile, {
     init: function() {
+        /**:GateOne.Mobile.init()
+
+        Attempts to detect whether or not the page was loaded via a mobile device and loads touch events/input elements as necessary.
+        */
         // text input (native keyboard) version
         if (mobile.detect()) {
             var go = GateOne,
@@ -120,7 +124,10 @@ GateOne.Base.update(GateOne.Mobile, {
         }
     },
     sendDimensions: function(term) {
-        // Same as GateOne.Net.sendDimensions() but we don't adjust for the playback controls
+        /**:GateOne.Mobile.sendDimensions(term)
+
+        Same as :js:meth:`GateOne.Net.sendDimensions` but we don't adjust for the playback controls.
+        */
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
