@@ -1351,6 +1351,7 @@ def minify(path_or_fileobj, kind):
                 (len(data) - len(out), filename)
             )
         ))
+        del slimit # Don't need this anymore
     elif cssmin and kind == 'css':
         out = cssmin.cssmin(data)
         logging.debug(_(
@@ -1358,6 +1359,7 @@ def minify(path_or_fileobj, kind):
                 (len(data) - len(out), filename)
             )
         ))
+        del cssmin # Don't need this anymore
     return out
 
 def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):

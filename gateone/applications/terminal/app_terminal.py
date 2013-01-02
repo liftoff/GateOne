@@ -1,20 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-#       Copyright 2011 Liftoff Software Corporation
+#       Copyright 2013 Liftoff Software Corporation
 #
 
 __doc__ = """\
-app_terminal.py - A Gate One "application" that provides a terminal emulator.
-
-Hooks
------
-This application implements the following hooks::
-
-    hooks = {
-        'WebSocket': {
-            'example_action': example_websocket_action
-        }
-    }
+app_terminal.py - A Gate One Application (GOApplication) that provides a
+terminal emulator.
 
 Docstrings
 ----------
@@ -39,7 +30,7 @@ from auth import require, authenticated, applicable_policies, policies
 from utils import cmd_var_swap, RUDict, json_encode, get_settings, short_hash
 from utils import mkdir_p, string_to_syslog_facility, get_plugins, load_modules
 from utils import process_opt_esc_sequence, bind, MimeTypeFail, create_data_uri
-from utils import convert_to_timedelta, kill_dtached_proc, which
+from utils import convert_to_timedelta, which
 
 # 3rd party imports
 import tornado.ioloop
@@ -352,15 +343,18 @@ define(
     type=basestring
 )
 
-def kill_session(session):
+def kill_session(session, kill_dtach=False):
     """
-    Terminates all the terminal processes associated with *session*.
+    Terminates all the terminal processes associated with *session*.  If
+    *kill_dtach* is True, the dtach processes associated with the session will
+    also be killed.
 
     .. note:: This function gets appended to the `SESSIONS[session]["terminal_callbacks"]` list inside of :meth:`TerminalApplication.authenticate`.
     """
     logging.debug('kill_session(%s)' % session)
     settings = get_settings(os.path.join(GATEONE_DIR, 'settings'))
-    kill_dtach = settings['*']['terminal']['dtach']
+    if kill_dtach:
+        from utils import kill_dtached_proc
     for location, terms in list(SESSIONS[session]['locations'].items()):
         loc = SESSIONS[session]['locations'][location]
         for term in terms:
@@ -404,9 +398,9 @@ def cleanup_session_logs():
 def policy_new_terminal(cls, policy):
     """
     Called by :func:`terminal_policies`, returns True if the *user* is
-    authorized to execute :func:`new_terminal`.  Specifically, checks to make
-    sure the user is not in violation of their applicable policies (e.g.
-    max_terms).
+    authorized to execute :func:`new_terminal` and applies any configured
+    restrictions (e.g. max_dimensions).  Specifically, checks to make sure the
+    user is not in violation of their applicable policies (e.g. max_terms).
     """
     instance = cls.instance
     try:
@@ -457,6 +451,24 @@ def policy_new_terminal(cls, policy):
     sess_term_store["open_terminals"] += 1
     return True
 
+def policy_share_terminal(cls, policy):
+    """
+    Called by :func:`terminal_policies`, returns True if the *user* is
+    authorized to execute :func:`share_terminal`.
+    """
+    instance = cls.instance
+    try:
+        term = cls.f_args[0]['term']
+    except KeyError:
+        # new_terminal got bad *settings*.  Deny
+        return False
+    user = instance.current_user
+    sess_term_store = SESSIONS[instance.ws.session]["terminal"]
+    can_share = policy.get('share_terminals', True)
+    if not can_share:
+        return False
+    return True
+
 def terminal_policies(cls):
     """
     This function gets registered under 'terminal' in the
@@ -480,7 +492,8 @@ def terminal_policies(cls):
     f_args = cls.f_args     # Wrapped function's arguments
     f_kwargs = cls.f_kwargs # Wrapped function's keyword arguments
     policy_functions = {
-        'new_terminal': policy_new_terminal
+        'new_terminal': policy_new_terminal,
+        'share_terminal': policy_share_terminal
     }
     user = instance.current_user
     policy = applicable_policies('terminal', user, instance.ws.policies)
@@ -1487,14 +1500,32 @@ class TerminalApplication(GOApplication):
         """
         logging.debug("share_terminal(%s)" % settings)
         from utils import generate_session_id
-        term = settings['term'] # Term number at the current location
-        whom = settings['whom'] # List of who to share with.  Options are:
+        share_dict = {'result': 'Success'}
+        term = settings.get('term', self.current_term)
+        whom = settings.get('whom', 'ANONYMOUS') # List of who to share with
         # ANONYMOUS (auto-gen URL), user.attr=(regex), and "AUTHENTICATED"
-        password = settings['password'] # If None and whom==ANONYMOUS, auto-gen
+        password = settings.get('password', generate_session_id()[:8])
+        share_dict.update({
+            'term': term,
+            'whom': whom,
+            'password': password
+        })
         url_prefix = self.ws.settings['url_prefix']
         loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
         term_obj = loc[term]
-        url = "%s/terminal/shared/%s" % (url_prefix, generate_session_id())
+        if self.ws.session not in SHARED:
+            SHARED[self.ws.session] = {}
+        if term_obj not in SHARED[self.ws.session]:
+            share_id = generate_session_id()
+            share_dict['share_id'] = share_id
+            url = "%s/terminal/shared/%s" % (url_prefix, share_id)
+            share_dict['url'] = url
+            SHARED[self.ws.session][term_obj] = share_dict
+        else:
+            share_dict = SHARED[self.ws.session][term_obj]
+            self.send_message(_("FYI: This terminal is already shared."))
+        message = {'terminal:term_shared': share_dict}
+        self.write_message(json_encode(message))
 
     @require(authenticated())
     def debug_terminal(self, term):

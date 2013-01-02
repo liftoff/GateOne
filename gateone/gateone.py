@@ -250,7 +250,7 @@ import pty
 import atexit
 import ssl
 import hashlib
-from functools import partial, wraps
+from functools import wraps
 from datetime import datetime, timedelta
 
 # Tornado modules (yeah, we use all this stuff)
@@ -2415,16 +2415,14 @@ def main():
             # you want.
             settings_path = os.path.join(GATEONE_DIR, 'settings')
             server_conf_path = os.path.join(settings_path, '10server.conf')
+            # Using 20authentication.conf for authentication settings
             auth_conf_path = os.path.join(
                 settings_path, '20authentication.conf')
             terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
             api_keys_conf = os.path.join(settings_path, '20api_keys.conf')
-            # Using 20authentication.conf for authentication settings
             # NOTE: Using a separate file for authentication stuff for no other
             #       reason than it seems like a good idea.  Don't want one
             #       gigantic config file for everything (by default, anyway).
-            authentication_conf_path = os.path.join(
-                GATEONE_DIR, 'settings', '20authentication.conf')
             logging.info(_(
                 "Old server.conf file found.  Converting to the new format as "
                 "%s, %s, and %s" % (
