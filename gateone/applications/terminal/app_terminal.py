@@ -39,7 +39,7 @@ from tornado.options import options, define
 
 # Globals
 SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
-SHARED = {} # Used to store shared terminals, callbacks, and whatnot
+# NOTE: The overwriting of SESSIONS happens inside of gateone.py
 # This is in case we have relative imports, templates, or whatever:
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 REGISTERED_HANDLERS = [] # So we don't accidentally re-add handlers
@@ -397,7 +397,7 @@ def cleanup_session_logs():
 
 def policy_new_terminal(cls, policy):
     """
-    Called by :func:`terminal_policies`, returns True if the *user* is
+    Called by :func:`terminal_policies`, returns True if the user is
     authorized to execute :func:`new_terminal` and applies any configured
     restrictions (e.g. max_dimensions).  Specifically, checks to make sure the
     user is not in violation of their applicable policies (e.g. max_terms).
@@ -405,7 +405,7 @@ def policy_new_terminal(cls, policy):
     instance = cls.instance
     try:
         term = cls.f_args[0]['term']
-    except KeyError:
+    except (KeyError, IndexError):
         # new_terminal got bad *settings*.  Deny
         return False
     user = instance.current_user
@@ -438,9 +438,9 @@ def policy_new_terminal(cls, policy):
             term_ended = partial(instance.term_ended, term)
             ioloop.add_timeout(
                 timedelta(milliseconds=500), term_ended)
-            instance.ws.send_message(_(
+            cls.error = _(
                 "Server policy dictates that you may only open %s terminal(s) "
-                % max_terms))
+                % max_terms)
             return False
     if max_cols:
         if int(cls.f_args['cols']) > max_cols:
@@ -453,37 +453,72 @@ def policy_new_terminal(cls, policy):
 
 def policy_share_terminal(cls, policy):
     """
-    Called by :func:`terminal_policies`, returns True if the *user* is
+    Called by :func:`terminal_policies`, returns True if the user is
     authorized to execute :func:`share_terminal`.
     """
     instance = cls.instance
     try:
         term = cls.f_args[0]['term']
-    except KeyError:
-        # new_terminal got bad *settings*.  Deny
+    except (KeyError, IndexError):
+        # share_terminal got bad *settings*.  Deny
         return False
     user = instance.current_user
-    sess_term_store = SESSIONS[instance.ws.session]["terminal"]
     can_share = policy.get('share_terminals', True)
     if not can_share:
         return False
     return True
 
+def policy_char_handler(cls, policy):
+    """
+    Called by :func:`terminal_policies`, returns True if the user is
+    authorized to write to the current (or specified) terminal.
+    """
+    error_msg = _("You do not have permission to write to this terminal.")
+    cls.error = error_msg
+    instance = cls.instance
+    try:
+        term = cls.f_args[1]
+    except IndexError:
+        # char_handler didn't get 'term' as a non-keyword argument.  Try kword:
+        try:
+            term = cls.f_kwargs['term']
+        except KeyError:
+            # No 'term' was given at all.  Use current_term
+            term = instance.current_term
+    loc = SESSIONS[instance.ws.session]['locations'][instance.ws.location]
+    term_obj = loc[term]
+    user = instance.current_user
+    if user['upn'] == term_obj['user']['upn']:
+        if user['upn'] == 'ANONYMOUS':
+            # All users will be ANONYMOUS so we need to check their session ID
+            if user['session'] != term_obj['user']['session']:
+                return False
+        # TODO: Think about adding an administrative lock feature here
+        return True # Users can always write to their own terminals
+    if 'share_id' in term_obj:
+        # This is a shared terminal.  Check if the user is in the 'write' list
+        shared = SESSIONS[instance.ws.session]["terminal"]['shared']
+        share_obj = shared[term_obj['share_id']]
+        if user['upn'] in share_obj['write']:
+            return True
+        elif share_obj['write'] in ['AUTHENTICATED', 'ANONYMOUS']:
+            return True
+        # TODO: Handle regexes and lists of regexes here
+    return False
+
 def terminal_policies(cls):
     """
     This function gets registered under 'terminal' in the
-    :attr:`GOApplication.security` dict and is called by the :func:`require`
-    decorator by way of the :class:`policies` sub-function. It returns True or
-    False depending on what is defined in security.conf and what function is
-    being called.
+    :attr:`ApplicationWebSocket.security` dict and is called by the
+    :func:`require` decorator by way of the :class:`policies` sub-function. It
+    returns True or False depending on what is defined in the settings dir and
+    what function is being called.
 
     This function will keep track of and place limmits on the following:
 
         * The number of open terminals.
-        * The number of shared terminals.
-        * How many users are connected to a shared terminal.
-        * How many locations a user is currently using.
-        * The number of terminals in each location.
+        * How big each terminal may be.
+        * Who may view or write to a shared terminal.
 
     If no 'terminal' policies are defined this function will always return True.
     """
@@ -493,7 +528,8 @@ def terminal_policies(cls):
     f_kwargs = cls.f_kwargs # Wrapped function's keyword arguments
     policy_functions = {
         'new_terminal': policy_new_terminal,
-        'share_terminal': policy_share_terminal
+        'share_terminal': policy_share_terminal,
+        'char_handler': policy_char_handler
     }
     user = instance.current_user
     policy = applicable_policies('terminal', user, instance.ws.policies)
@@ -510,12 +546,49 @@ def terminal_policies(cls):
         return policy_functions[function.__name__](cls, policy)
     return True # Default to permissive if we made it this far
 
+# NOTE:  THE BELOW IS A WORK IN PROGRESS
+class SharedTermHandler(BaseHandler):
+    """
+    Renders shared.html which allows an anonymous user to view a shared
+    terminal.
+    """
+    def get(self):
+        hostname = os.uname()[1]
+        prefs = self.get_argument("prefs", None)
+        gateone_js = "%sstatic/gateone.js" % self.settings['url_prefix']
+        minified_js_abspath = os.path.join(GATEONE_DIR, 'static')
+        minified_js_abspath = os.path.join(
+            minified_js_abspath, 'gateone.min.js')
+        # Use the minified version if it exists
+        if os.path.exists(minified_js_abspath):
+            gateone_js = "%sstatic/gateone.min.js" % self.settings['url_prefix']
+        template_path = os.path.join(APPLICATION_PATH, 'templates')
+        index_path = os.path.join(template_path, 'shared.html')
+        self.render(
+            index_path,
+            hostname=hostname,
+            gateone_js=gateone_js,
+            url_prefix=self.settings['url_prefix'],
+            prefs=prefs
+        )
+
 class TerminalApplication(GOApplication):
+    def __init__(self, ws):
+        logging.debug("TerminalApplication.__init__(%s)" % ws)
+        self.policy = {} # Gets set in authenticate() below
+        self.terms = {}
+        # So we can keep track and avoid sending unnecessary messages:
+        self.titles = {}
+        self.em_dimensions = None
+        self.apps = []
+        GOApplication.__init__(self, ws)
+
     def initialize(self):
         """
         Called when the WebSocket is instantiated, sets up our WebSocket
         actions, security policies, and sets up all of our plugin hooks/events.
         """
+        logging.debug("TerminalApplication.initialize()")
         # Register our security policy function
         self.ws.security.update({'terminal': terminal_policies})
         self.ws.commands.update({
@@ -532,13 +605,15 @@ class TerminalApplication(GOApplication):
             'manual_title': self.manual_title,
             'reset_terminal': self.reset_terminal,
             'get_webworker': self.get_webworker,
-            'debug_terminal': self.debug_terminal
+            'terminal:share_terminal': self.share_terminal,
+            'terminal:unshare_terminal': self.unshare_terminal,
+            'terminal:list_shared_terminals': self.list_shared_terminals,
+            'terminal:attach_shared_terminal': self.attach_shared_terminal,
+            'terminal:set_sharing_permissions': self.set_sharing_permissions,
+            'terminal:debug_terminal': self.debug_terminal
         })
-        self.policy = {} # Gets set in authenticate() below
-        self.terms = {}
-        # So we can keep track and avoid sending unnecessary messages:
-        self.titles = {}
-        self.em_dimensions = None
+        if 'terminal' not in self.ws.persist:
+            self.ws.persist['terminal'] = {}
         # Initialize plugins (every time a connection is established so we can
         # load new plugins with a simple page reload)
         self.plugins = get_plugins(os.path.join(APPLICATION_PATH, 'plugins'))
@@ -636,7 +711,7 @@ class TerminalApplication(GOApplication):
         Sends all plugin JavaScript files to the client and triggers the
         'terminal:authenticate' event.
         """
-        logging.debug('authenticate()')
+        logging.debug('TerminalApplication.authenticate()')
         self.ws.send_static_files(os.path.join(APPLICATION_PATH, 'plugins'))
         terminals = []
         for term in list(SESSIONS[self.ws.session][
@@ -675,8 +750,8 @@ class TerminalApplication(GOApplication):
         user = self.current_user
         if not hasattr(self.ws, 'location'):
             return # Connection closed before authentication completed
-        if self.ws.location in SESSIONS[user['session']]['locations']:
-            loc = SESSIONS[user['session']]['locations'][self.ws.location]
+        if self.ws.location in SESSIONS[self.ws.session]['locations']:
+            loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
             for term in loc:
                 if isinstance(term, int):
                     term_obj = loc[term]
@@ -810,6 +885,22 @@ class TerminalApplication(GOApplication):
         self.trigger("terminal:new_multiplex", m)
         return m
 
+    def highest_term_num(self, location=None):
+        """
+        Returns the highest terminal number at the given *location* (so we can
+        figure out what's next).  If *location* is omitted, uses
+        `self.ws.location`.
+        """
+        if not location:
+            location = self.ws.location
+        loc = SESSIONS[self.ws.session]['locations'][location]
+        highest = 0
+        for term in list(loc.keys()):
+            if isinstance(term, int):
+                if term > highest:
+                    highest = term
+        return highest
+
     @require(authenticated(), policies('terminal'))
     def new_terminal(self, settings):
         """
@@ -823,6 +914,7 @@ class TerminalApplication(GOApplication):
         logging.debug("%s new_terminal(): %s" % (
             self.current_user['upn'], settings))
         term = settings['term']
+        # TODO: Make these specific to each terminal:
         self.rows = rows = settings['rows']
         self.cols = cols = settings['cols']
         # NOTE: 'command' here is actually just the short name of the command.
@@ -862,7 +954,9 @@ class TerminalApplication(GOApplication):
             loc[term] = {
                 'last_activity': datetime.now(),
                 'title': 'Gate One',
-                'manual_title': False
+                'manual_title': False,
+                # This is needed by the terminal sharing policies:
+                'user': self.current_user # So we can determine the owner
             }
         term_obj = loc[term]
         if self.ws.client_id not in term_obj:
@@ -1277,6 +1371,9 @@ class TerminalApplication(GOApplication):
             force_refresh_threshold = timedelta(milliseconds=150)
             last_activity = term_obj['last_activity']
             timediff = datetime.now() - last_activity
+            # Because users can be connected to their session from more than one
+            # browser/computer we differentiate between refresh timeouts by
+            # tying the timeout to the client_id.
             client_dict = term_obj[self.ws.client_id]
             multiplex = term_obj['multiplex']
             refresh = partial(self._send_refresh, term, full)
@@ -1359,19 +1456,18 @@ class TerminalApplication(GOApplication):
             pass
         self.trigger("terminal:resize", term)
 
-    @require(authenticated())
+    @require(authenticated(), policies('terminal'))
     def char_handler(self, chars, term=None):
         """
         Writes *chars* (string) to *term*.  If *term* is not provided the
         characters will be sent to the currently-selected terminal.
         """
-        #logging.debug("char_handler(%s, %s)" % (repr(chars), repr(term)))
+        logging.debug("char_handler(%s, %s)" % (repr(chars), repr(term)))
         if not term:
             term = self.current_term
         term = int(term) # Just in case it was sent as a string
-        session = self.ws.session
-        loc = SESSIONS[session]['locations'][self.ws.location]
-        if session in SESSIONS and term in loc:
+        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
+        if self.ws.session in SESSIONS and term in loc:
             multiplex = loc[term]['multiplex']
             if multiplex.isalive():
                 multiplex.write(chars)
@@ -1389,7 +1485,7 @@ class TerminalApplication(GOApplication):
                     multiplex.io_loop.add_timeout(
                         timedelta(milliseconds=1050), refresh)
 
-    @require(authenticated())
+    @require(authenticated(), policies('terminal'))
     def write_chars(self, message):
         """
         Writes *message['chars']* to *message['term']*.  If *message['term']*
@@ -1496,36 +1592,246 @@ class TerminalApplication(GOApplication):
     @require(authenticated(), policies('terminal'))
     def share_terminal(self, settings):
         """
-        Shares the given *settings['term']* using the given *settings*.
+        Shares the given *settings['term']* using the given *settings*.  The
+        *settings* dict **must** contain the following::
+
+            {
+                'term': <terminal number>,
+                'read': <"ANONYMOUS", "AUTHENTICATED", a user.attr regex like "user.email=.*@liftoffsoftware.com" or a list thereof>,
+            }
+
+        Optionally, the *settings* dict may also contain the following::
+
+            {
+                'broadcast': <True/False>,
+                'password': <string>,
+                'write': <"ANONYMOUS", "AUTHENTICATED", a user.attr regex like "user.email=.*@liftoffsoftware.com", or a list thereof>
+                # If "write" is omitted the terminal will be shared read-only until write access is granted (on demand)
+            }
+
+        If *broadcast* is True, anyone will be able to connect to the shared
+        terminal without a password.
+
+        If a *password* is provided, the given password will be required before
+        users may connect to the shared terminal.
+
+        Example WebSocket command to share a terminal:
+
+        .. code-block:: javascript
+
+            settings = {
+                "term": 1,
+                "read": "AUTHENTICATED",
+                "password": "foo" // Omit if no password is required
+            }
+            GateOne.ws.send(JSON.stringify({"terminal:share_terminal": settings}));
+
+        .. note:: If the server is configured with 'auth="none"' and *settings['read']* is "AUTHENTICATED" all users will be able to view the shared terminal without having to enter a password.
         """
         logging.debug("share_terminal(%s)" % settings)
         from utils import generate_session_id
-        share_dict = {'result': 'Success'}
+        from pprint import pprint
+        print("Sessions:")
+        pprint(SESSIONS)
+        out_dict = {'result': 'Success'}
+        share_dict = {}
         term = settings.get('term', self.current_term)
-        whom = settings.get('whom', 'ANONYMOUS') # List of who to share with
-        # ANONYMOUS (auto-gen URL), user.attr=(regex), and "AUTHENTICATED"
-        password = settings.get('password', generate_session_id()[:8])
-        share_dict.update({
-            'term': term,
-            'whom': whom,
-            'password': password
-        })
-        url_prefix = self.ws.settings['url_prefix']
+        if 'shared' not in self.ws.persist['terminal']:
+            self.ws.persist['terminal']['shared'] = {}
+        shared_terms = self.ws.persist['terminal']['shared']
+        print("shared:")
+        pprint(self.ws.persist['terminal']['shared'])
         loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
         term_obj = loc[term]
-        if self.ws.session not in SHARED:
-            SHARED[self.ws.session] = {}
-        if term_obj not in SHARED[self.ws.session]:
-            share_id = generate_session_id()
-            share_dict['share_id'] = share_id
-            url = "%s/terminal/shared/%s" % (url_prefix, share_id)
-            share_dict['url'] = url
-            SHARED[self.ws.session][term_obj] = share_dict
-        else:
-            share_dict = SHARED[self.ws.session][term_obj]
-            self.send_message(_("FYI: This terminal is already shared."))
-        message = {'terminal:term_shared': share_dict}
+        read = settings.get('read', 'ANONYMOUS') # List of who to share with
+        write = settings.get('write', list()) # List of who can write
+        # "broadcast" mode allows anonymous access without a password
+        broadcast = settings.get('broadcast', False)
+        # ANONYMOUS (auto-gen URL), user.attr=(regex), and "AUTHENTICATED"
+        out_dict.update({
+            'term': term,
+            'read': read,
+            'broadcast': broadcast
+        })
+        share_dict.update({
+            'user': self.current_user,
+            'term': term,
+            'term_obj': term_obj,
+            'read': read,
+            'write': [], # Populated on-demand by the sharing user
+            'broadcast': broadcast
+        })
+        password = settings.get('password', False)
+        if read == 'ANONYMOUS':
+            if not broadcast:
+                # This situation *requires* a password
+                password = settings.get('password', generate_session_id()[:8])
+        out_dict['password'] = password
+        share_dict['password'] = password
+        url_prefix = self.ws.settings['url_prefix']
+        for share_id, val in shared_terms.items():
+            if val['term_obj'] == term_obj:
+                if share_dict['read'] != shared_terms[share_id]['read']:
+                    # User is merely changing the permissions
+                    shared_terms[share_id]['read'] = share_dict['read']
+                    return
+                if share_dict['write'] != shared_terms[share_id]['write']:
+                    # User is merely changing the permissions
+                    shared_terms[share_id]['write'] = share_dict['write']
+                    return
+                self.ws.send_message(_("This terminal is already shared."))
+                return
+        share_id = generate_session_id()
+        url = "%sterminal/shared/%s" % (url_prefix, share_id)
+        share_dict['url'] = url
+        out_dict['url'] = url
+        out_dict['share_id'] = share_id
+        shared_terms[share_id] = share_dict
+        term_obj['share_id'] = share_id # So we can quickly tell it's shared
+        print("self.ws.persist['terminal']:")
+        pprint(self.ws.persist['terminal'])
+        # Make a note of this shared terminal in the logs
+        logging.info(_(
+            "%s shared terminal %s (%s)" % (
+                self.current_user['upn'], term, term_obj['title'])))
+        message = {'terminal:term_shared': out_dict}
         self.write_message(json_encode(message))
+
+    @require(authenticated(), policies('terminal'))
+    def unshare_terminal(self, term):
+        """
+        Stops sharing the given *term*.
+        """
+        out_dict = {'result': 'Success'}
+        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
+        term_obj = loc[term]
+        shared_terms = self.ws.persist['terminal']['shared']
+        for share_id, share_dict in shared_terms.items():
+            if share_dict['term_obj'] == term_obj:
+                del shared_terms[share_id]
+                break
+        del term_obj['share_id']
+        message = {'terminal:unshared_terminal': out_dict}
+        self.write_message(json_encode(message))
+
+    @require(authenticated(), policies('terminal'))
+    def set_sharing_permissions(self, settings):
+        """
+        Sets the sharing permissions on the given *settings['term']*.  Requires
+        *settings['read']* and/or *settings['write']*.
+        """
+        out_dict = {'result': 'Success'}
+        term = settings['term']
+        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
+        term_obj = loc[term]
+        shared_terms = self.ws.persist['terminal']['shared']
+        for share_id, share_dict in shared_terms.items():
+            if share_dict['term_obj'] == term_obj:
+                if 'read' in settings:
+                    share_dict['read'] = read
+                if 'write' in settings:
+                    share_dict['write'] = write
+                break
+        # TODO: Put some logic here that notifies users if their permissions changed.
+        message = {'terminal:sharing_permissions': out_dict}
+        self.write_message(json_encode(message))
+
+    @require(authenticated(), policies('terminal'))
+    def list_shared_terminals(self):
+        """
+        Returns a message to the client listing all the shared terminals they
+        may access.
+        """
+        out_dict = {'terminals': {}, 'result': 'Success'}
+        shared_terms = self.ws.persist['terminal']['shared']
+        for share_id, share_dict in shared_terms.items():
+            if share_dict['read'] in ['AUTHENTICATED', 'ANONYMOUS']:
+                password = share_dict.get('password', False)
+                if password: # This would be a string
+                    password = True # Don't want to reveal it to the client!
+                broadcast = share_dict.get('broadcast', False)
+                out_dict['terminals'][share_id] = {
+                    'upn': share_dict['user']['upn'],
+                    'broadcast': broadcast
+                }
+                out_dict['terminals'][share_id]['password_required'] = password
+        message = {'terminal:shared_terminals': out_dict}
+        print("list_shared_terminals message: %s" % message)
+        self.write_message(json_encode(message))
+
+    def attach_shared_terminal(self, settings):
+        """
+        Attaches callbacks for the terminals associated with
+        *settings['share_id']* if the user is authorized to view the share or if
+        the given *settings['password']* is correct (if shared anonymously).
+
+        To attach to a shared terminal from the client:
+
+        .. code-block:: javascript
+
+            settings = {
+                "share_id": "ZWVjNGRiZTA0OTllNDJiODkwOGZjNDA2ZWNkNGU4Y2UwM",
+                "password": "password here (if required)"
+            }
+            GateOne.ws.send(JSON.stringify({"terminal:attach_shared_terminal": settings}));
+        """
+        logging.debug("attach_shared_terminal(%s)" % settings)
+        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
+        shared_terms = self.ws.persist['terminal']['shared']
+        if 'share_id' not in settings:
+            logging.error(_("Invalid share_id."))
+            return
+        password = settings.get('password', None)
+        share_obj = None
+        for share_id, share_dict in shared_terms.items():
+            if share_id == settings['share_id']:
+                share_obj = share_dict
+                break # This is the share_dict we want
+        if not share_obj:
+            self.ws.send_message(_("Requested shared terminal does not exist."))
+            return
+        if share_obj['password'] and password != share_obj['password']:
+            print("share_obj['password']: %s" % share_obj['password'])
+            self.ws.send_message(_("Invalid password."))
+            return
+        term = self.highest_term_num() + 1
+        term_obj = share_obj['term_obj']
+        # Add this terminal to our existing SESSION
+        loc[term] = term_obj
+        # We're basically making a new terminal for this client that happens to
+        # be read-only (starts that way anyway).
+        multiplex = term_obj['multiplex']
+        if self.ws.client_id not in term_obj:
+            term_obj[self.ws.client_id] = {
+                # Used by refresh_screen()
+                'refresh_timeout': None
+            }
+        if multiplex.isalive():
+            message = {'term_exists': term}
+            self.write_message(json_encode(message))
+            # This resets the screen diff
+            multiplex.prev_output[self.ws.client_id] = [
+                None for a in xrange(multiplex.rows-1)]
+            # Remind the client about this terminal's title
+            self.set_title(term, force=True)
+        # Setup callbacks so that everything gets called when it should
+        self.add_terminal_callbacks(
+            term, term_obj['multiplex'], self.callback_id)
+        # NOTE: refresh_screen will also take care of cleaning things up if
+        #       term_obj['multiplex'].isalive() is False
+        self.refresh_screen(term, True) # Send a fresh screen to the client
+        self.current_term = term
+        # Restore application cursor keys mode if set
+        if 'application_mode' in term_obj:
+            current_setting = term_obj['application_mode']
+            self.mode_handler(term, '1', current_setting)
+        # Tell the client about this terminal's title
+        self.set_title(term, force=True)
+        # Make a note of this connection in the logs
+        logging.info(_(
+            "%s connected to shared the terminal shared by %s " % (
+            self.current_user['upn'], term_obj['user']['upn'])))
+        self.trigger("terminal:attach_shared_terminal", term)
 
     @require(authenticated())
     def debug_terminal(self, term):
@@ -1537,7 +1843,7 @@ class TerminalApplication(GOApplication):
 
         .. code-block:: javascript
 
-            GateOne.ws.send(JSON.stringify({'debug_terminal': *term*}));
+            GateOne.ws.send(JSON.stringify({'terminal:debug_terminal': *term*}));
         """
         m = SESSIONS[self.ws.session]['locations'][
             self.ws.location][term]['multiplex']

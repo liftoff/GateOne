@@ -1627,6 +1627,217 @@ GateOne.Base.update(GateOne.Utils, {
     }
 });
 
+// GateOne.Logging
+GateOne.Base.module(GateOne, "Logging", '1.1', ['Base']);
+GateOne.Logging.levels = {
+    // Forward and backward
+    50: 'FATAL',
+    40: 'ERROR',
+    30: 'WARNING',
+    20: 'INFO',
+    10: 'DEBUG',
+    'FATAL': 50,
+    'ERROR': 40,
+    'WARNING': 30,
+    'INFO': 20,
+    'DEBUG': 10
+};
+// Tunable logging prefs
+if (typeof(GateOne.prefs.logLevel) == "undefined") {
+    GateOne.prefs.logLevel = 'INFO';
+}
+GateOne.noSavePrefs['logLevel'] = null; // This ensures that the logging level isn't saved along with everything else if the user clicks "Save" in the settings panel
+GateOne.Logging.level = GateOne.prefs.logLevel; // This allows it to be adjusted at the client
+GateOne.Base.update(GateOne.Logging, {
+    setLevel: function(level) {
+        /**:GateOne.Logging.setLevel(level)
+
+        Sets the log *level* to an integer if the given a string (e.g. "DEBUG").  Sets it as-is if it's already a number.
+        */
+        var l = GateOne.Logging;
+        if (level === parseInt(level,10)) { // It's an integer, set it as-is
+            l.level = level;
+        } else { // It's a string, convert it first
+            levelStr = level;
+            level = l.levels[levelStr]; // Get integer
+            l.level = level;
+        }
+    },
+    logToConsole: function (msg, /*opt*/level) {
+        /**:GateOne.Logging.logToConsole(msg, level)
+
+        Logs the given *msg* to the browser's JavaScript console.  If *level* is provided it will attempt to use the appropriate console logger (e.g. console.warn()).
+
+        .. note:: Original version of this function is from: `MochiKit.Logging.Logger.prototype.logToConsole`.
+        */
+        if (typeof(window) != "undefined" && window.console && window.console.log) {
+            // Safari and FireBug 0.4
+            // Percent replacement is a workaround for cute Safari crashing bug
+            msg = msg.replace(/%/g, '\uFF05');
+            if (!level) {
+                window.console.log(msg);
+                return;
+            } else if (level == 'ERROR' || level == 'FATAL') {
+                if (typeof(window.console.error) == "function") {
+                    window.console.error(msg);
+                    return;
+                }
+            } else if (level == 'WARN') {
+                if (typeof(window.console.warn) == "function") {
+                    window.console.warn(msg);
+                    return;
+                }
+            } else if (level == 'DEBUG') {
+                if (typeof(window.console.debug) == "function") {
+                    window.console.debug(msg);
+                    return;
+                }
+            } else if (level == 'INFO') {
+                if (typeof(window.console.info) == "function") {
+                    window.console.info(msg);
+                    return;
+                }
+            }
+            // Fallback to default
+            window.console.warn(msg);
+        } else if (typeof(opera) != "undefined" && opera.postError) {
+            // Opera
+            opera.postError(msg);
+        } else if (typeof(Debug) != "undefined" && Debug.writeln) {
+            // IE Web Development Helper (?)
+            // http://www.nikhilk.net/Entry.aspx?id=93
+            Debug.writeln(msg);
+        } else if (typeof(debug) != "undefined" && debug.trace) {
+            // Atlas framework (?)
+            // http://www.nikhilk.net/Entry.aspx?id=93
+            debug.trace(msg);
+        }
+    },
+    log: function(msg, level, destination) {
+        /**:GateOne.Logging.log(msg, level, destination)
+
+        Logs the given *msg* using all of the functions in `GateOne.Logging.destinations` after being prepended with the date and a string indicating the log level (e.g. "692011-10-25 10:04:28 INFO <msg>") if *level* is determined to be greater than the value of `GateOne.Logging.level`.  If the given *level* is not greater than `GateOne.Logging.level` *msg* will be discarded (noop).
+
+        *level* can be provided as a string, an integer, null, or be left undefined:
+
+             If an integer, an attempt will be made to convert it to a string using GateOne.Logging.levels but if this fails it will use "lvl:<integer>" as the level string.
+             If a string, an attempt will be made to obtain an integer value using GateOne.Logging.levels otherwise GateOne.Logging.level will be used (to determine whether or not the message should actually be logged).
+             If undefined, the level will be set to GateOne.Logging.level.
+             If null (as opposed to undefined), level info will not be included in the log message.
+
+        If *destination* is given (must be a function) it will be used to log messages like so: `destination(message, levelStr)`.  The usual conversion of *msg* to *message* will apply.
+        */
+        var l = GateOne.Logging,
+            now = new Date(),
+            message = "",
+            levelStr = null;
+        if (typeof(level) == 'undefined') {
+            level = l.level;
+        }
+        if (level === parseInt(level, 10)) { // It's an integer
+            if (l.levels[level]) {
+                levelStr = l.levels[level]; // Get string
+            } else {
+                levelStr = "lvl:" + level;
+            }
+        } else if (typeof(level) == "string") { // It's a string
+            levelStr = level;
+            if (l.levels[levelStr]) {
+                level = l.levels[levelStr]; // Get integer
+            } else {
+                level = l.level;
+            }
+        }
+        if (level == null) {
+            message = l.dateFormatter(now) + " " + msg;
+        } else if (level >= l.level) {
+            message = l.dateFormatter(now) + ' ' + levelStr + " " + msg;
+        }
+        if (message) {
+            if (!destination) {
+                for (var dest in l.destinations) {
+                    l.destinations[dest](message, levelStr);
+                }
+            } else {
+                destination(message, levelStr);
+            }
+        }
+    },
+    // Shortcuts for each log level
+    logFatal: function(msg) { GateOne.Logging.log(msg, 'FATAL') },
+    logError: function(msg) { GateOne.Logging.log(msg, 'ERROR') },
+    logWarning: function(msg) { GateOne.Logging.log(msg, 'WARNING') },
+    logInfo: function(msg) { GateOne.Logging.log(msg, 'INFO') },
+    logDebug: function(msg) { GateOne.Logging.log(msg, 'DEBUG') },
+    deprecated: function(whatever, moreInfo) { GateOne.Logging.log(whatever + " is deprecated.  " + moreInfo, 'WARNING') },
+    addDestination: function(name, dest) {
+        /**:GateOne.Logging.addDestination(name, dest)
+
+        Creates a new log destination named, *name* that calls function *dest* like so::
+
+            dest(<log message>);
+
+        Example usage::
+
+             GateOne.Logging.addDestination('screen', GateOne.Visual.displayMessage);
+
+        .. note:: The above example is kind of fun.  Try it in your JavaScript console!
+        */
+        GateOne.Logging.destinations[name] = dest;
+    },
+    removeDestination: function(name) {
+        /**:GateOne.Logging.removeDestination(name)
+
+        Removes the given log destination (*name*) from `GateOne.Logging.destinations`
+        */
+        if (GateOne.Logging.destinations[name]) {
+            delete GateOne.Logging.destinations[name];
+        } else {
+            GateOne.Logging.logError("No log destination named, '" + name + "'.");
+        }
+    },
+    dateFormatter: function(dateObj) {
+        /**:GateOne.Logging.dateFormatter(dateObj)
+
+        Converts a Date() object into string suitable for logging.  e.g. 2011-05-29 13:24:03
+        */
+        var year = dateObj.getFullYear(),
+            month = dateObj.getMonth() + 1, // JS starts months at 0
+            day = dateObj.getDate(),
+            hours = dateObj.getHours(),
+            minutes = dateObj.getMinutes(),
+            seconds = dateObj.getSeconds();
+        // pad a 0 so it doesn't look silly
+        if (month < 10) {
+            month = "0" + month;
+        }
+        if (day < 10) {
+            day = "0" + day;
+        }
+        if (hours < 10) {
+            hours = "0" + hours;
+        }
+        if (minutes < 10) {
+            minutes = "0" + minutes;
+        }
+        if (seconds < 10) {
+            seconds = "0" + seconds;
+        }
+        return year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
+    }
+});
+
+GateOne.Logging.destinations = { // Default to console logging.
+    'console': GateOne.Logging.logToConsole // Can be added to or replaced/removed
+    // If anyone has any cool ideas for log destinations please let us know!
+}
+
+// Initialize the logger immediately upon loading of the module (before init())
+if (typeof(GateOne.Logging.level) == 'string') {
+    // Convert to integer
+    GateOne.Logging.level = GateOne.Logging.levels[GateOne.Logging.level];
+}
+
 GateOne.Base.module(GateOne, 'Net', '1.1', ['Base', 'Utils']);
 GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
 GateOne.Net.connectionSuccess = false; // Gets set after we connect successfully at least once

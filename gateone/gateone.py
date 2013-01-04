@@ -286,7 +286,7 @@ tornado.options.enable_pretty_logging()
 # Our own modules
 from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
 from auth import APIAuthHandler, SSLAuthHandler, PAMAuthHandler
-from auth import require, authenticated
+from auth import require, authenticated, policies, applicable_policies
 from utils import generate_session_id, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_modules
 from utils import merge_handlers, none_fix, convert_to_timedelta
@@ -640,6 +640,64 @@ def require_auth(method):
             self.close() # Close the WebSocket
         return method(self, *args, **kwargs)
     return wrapper
+
+def policy_send_user_message(cls, policy):
+    """
+    Called by :func:`gateone_policies`, returns True if the user is
+    authorized to send messages to other users and if applicable, all users
+    (broadcasts).
+    """
+    error_msg = _("You do not have permission to send messages to %s.")
+    try:
+        upn = cls.f_args[0]['upn']
+    except (KeyError, IndexError):
+        # send_user_message got bad *settings*.  Deny
+        return False
+    # TODO: Add a mechanism that allows users to mute other users here.
+    if upn == 'AUTHENTICATED':
+        cls.error = error_msg % "all users at once"
+    else:
+        cls.error = error_msg % upn
+    return policy.get('send_user_messages', True)
+
+def policy_broadcast(cls, policy):
+    """
+    Called by :func:`gateone_policies`, returns True if the user is
+    authorized to broadcast messages using the
+    :meth:`ApplicationWebSocket.broadcast` method.
+    """
+    cls.error = _("You do not have permission to broadcast messages.")
+    return policy.get('send_broadcasts', True)
+
+def gateone_policies(cls):
+    """
+    This function gets registered under 'gateone' in the
+    :attr:`ApplicationWebSocket.security` dict and is called by the
+    :func:`require` decorator by way of the :class:`policies` sub-function. It
+    returns True or False depending on what is defined in the settings dir and
+    what function is being called.
+
+    This function will keep track of and place limmits on the following:
+
+        * Who can send messages to other users (including broadcasts).
+
+    If no 'terminal' policies are defined this function will always return True.
+    """
+    instance = cls.instance # ApplicationWebSocket instance
+    function = cls.function # Wrapped function
+    f_args = cls.f_args     # Wrapped function's arguments
+    f_kwargs = cls.f_kwargs # Wrapped function's keyword arguments
+    policy_functions = {
+        'send_user_message': policy_send_user_message,
+        'broadcast': policy_broadcast,
+    }
+    user = instance.current_user
+    policy = applicable_policies('gateone', user, instance.ws.policies)
+    if not policy: # Empty RUDict
+        return True # A world without limits!
+    if function.__name__ in policy_functions:
+        return policy_functions[function.__name__](cls, policy)
+    return True # Default to permissive if we made it this far
 
 @atexit.register # I love this feature!
 def kill_all_sessions():
@@ -1002,32 +1060,47 @@ class GOApplication(object):
 class ApplicationWebSocket(WebSocketHandler):
     """
     The main WebSocket interface for Gate One, this class is setup to call
-    'commands' which are methods registered in self.commands.  Methods that are
-    registered this way will be exposed and directly callable over the
-    WebSocket.
+    'commands' (aka WebSocket Actions) which are methods registered in
+    `self.commands`.  Methods that are registered this way will be exposed and
+    directly callable over the WebSocket.
     """
     instances = set()
-    commands = {}
+    #watched_files = set()
     def __init__(self, application, request, **kwargs):
-        WebSocketHandler.__init__(self, application, request)
-        self.commands.update({
+        self.user = None
+        self.commands = {
             'ping': self.pong,
             'authenticate': self.authenticate,
             'get_style': self.get_style,
             'get_js': self.get_js,
             'enumerate_themes': self.enumerate_themes,
-        })
+            'go:send_user_message': self.send_user_message,
+            'go:broadcast': self.broadcast
+        }
         self._events = {}
-        self.user = None
         # This is used to keep track of used API authentication signatures so
         # we can prevent replay attacks.
         self.prev_signatures = []
         self.origin_denied = True # Only allow valid origins
         self.file_cache = FILE_CACHE # So applications and plugins can reference
         self.persist = PERSIST # So applications and plugins can reference
+        self.policies = {} # Gets filled out in authenticate()
         self.apps = [] # Gets filled up by self.initialize()
-        self.security = {} # Stores applications' various policy functions
-        self.initialize(**kwargs)
+        # The security dict stores applications' various policy functions
+        self.security = {}
+        WebSocketHandler.__init__(self, application, request, **kwargs)
+
+# NOTE:  This is a work in progres...  Just some experimentation.  Probably not sticking around in the current form
+    #@classmethod
+    #def file_watcher(cls):
+        #logging.debug("file_watcher()")
+        #for fname in cls.watched_files:
+            #message = open(fname).read()
+            #if message:
+                #print("got message: %s" % message)
+                #message_dict = {'notice': message}
+                #cls._deliver(message_dict, upn="AUTHENTICATED")
+                #open(fname, 'w').write('') # Empty it out
 
     def initialize(self, apps=None, **kwargs):
         """
@@ -1038,6 +1111,7 @@ class ApplicationWebSocket(WebSocketHandler):
         current instance of :class:`ApplicationWebSocket`.  Kind of like a
         dynamic mixin.
         """
+        logging.debug('ApplicationWebSocket.initialize(%s)' % apps)
         if not apps:
             return
         for app in apps:
@@ -1046,6 +1120,17 @@ class ApplicationWebSocket(WebSocketHandler):
             logging.debug("Initializing %s" % instance)
             if hasattr(instance, 'initialize'):
                 instance.initialize()
+        # Playing around with a file watcher process that could be hooked into by apps/plugins...  Definitely changing but I like it so far so you can expect a feature along these lines soon.
+        #cls = ApplicationWebSocket
+        #if not cls.watched_files:
+            #fname = '/tmp/gateone_messaging'
+            #check_time = 2000
+            #cls.watched_files.add(fname)
+            #open(fname, 'w').write('') # Touch file
+            #io_loop = tornado.ioloop.IOLoop.instance()
+            #scheduler = tornado.ioloop.PeriodicCallback(
+                #cls.file_watcher, check_time, io_loop=io_loop)
+            #scheduler.start()
 
     def on(self, events, callback, times=None):
         """
@@ -1145,8 +1230,7 @@ class ApplicationWebSocket(WebSocketHandler):
         Called when a new WebSocket is opened.  Will deny access to any
         origin that is not defined in self.settings['origin'].
         """
-        cls = ApplicationWebSocket
-        cls.instances.add(self)
+        ApplicationWebSocket.instances.add(self)
         valid_origins = self.settings['origins']
         if 'Origin' in self.request.headers:
             origin_header = self.request.headers['Origin']
@@ -1251,8 +1335,7 @@ class ApplicationWebSocket(WebSocketHandler):
         .. note:: Normally self.refresh_screen() catches the disconnect first and this method won't end up being called.
         """
         logging.debug("on_close()")
-        cls = ApplicationWebSocket
-        cls.instances.discard(self)
+        ApplicationWebSocket.instances.discard(self)
         user = self.current_user
         client_address = self.request.connection.address[0]
         if user and user['session'] in SESSIONS:
@@ -1840,13 +1923,66 @@ class ApplicationWebSocket(WebSocketHandler):
         message = {'themes_list': {'themes': themes, 'colors': colors}}
         self.write_message(message)
 
-    def send_message(self, message):
+# NOTE: This is not meant to be a chat application.  That is forthcoming :)
+#       The real purpose of send_user_message() and broadcast() are for
+#       programmatic use.  For example, when a user shares a terminal and it
+#       would be appropriate to notify certain users that the terminal is now
+#       available for them to connect.  This may use something other than the
+#       'notice' WebSocket action in the future to avoid confusion (if need be).
+    @require(authenticated(), policies('gateone'))
+    def send_user_message(self, settings):
+        """
+        Sends the given *settings['message']* to the given *settings['upn']*.
+
+        if *upn* is 'AUTHENTICATED' all users will get the message.
+        """
+        if 'message' not in settings:
+            self.send_message(_("Error: No message to send."))
+            return
+        if 'upn' not in settings:
+            self.send_message(_("Error: Missing UPN."))
+            return
+        self.send_message(settings['message'], upn=settings['upn'])
+
+    def send_message(self, message, upn=None):
         """
         Sends the given *message* to the client using the 'notice' WebSocket
-        action at the client.
+        action at the currently-connected client.
+
+        If *upn* is provided, the message will be sent to all users with a
+        matching 'upn' value.
+
+        if *upn* is 'AUTHENTICATED' all users will get the message.
         """
         message_dict = {'notice': message}
-        self.write_message(message_dict)
+        if upn:
+            ApplicationWebSocket._deliver(message_dict, upn=upn)
+        else:
+            self.write_message(message_dict)
+
+    @require(authenticated(), policies('gateone'))
+    def broadcast(self, message):
+        """
+        Sends the given *message* (string) to all connected, authenticated
+        users using the :meth:`ApplicationWebSocket._broadcast` classmethod.
+        """
+        logging.info("Broadcast: %s" % message)
+        self.send_message(message, upn="AUTHENTICATED")
+
+    @classmethod
+    def _deliver(cls, message, upn="AUTHENTICATED"):
+        """
+        Writes the given *message* (string) to all users matching *upn* using
+        the write_message() function.  If *upn* is not provided or is
+        "AUTHENTICATED", will send the *message* to all users.
+        """
+        logging.debug("_deliver(%s, upn=%s)" % (message, upn))
+        for instance in cls.instances:
+            try:
+                user = instance.current_user
+            except AttributeError:
+                continue
+            instance.write_message(message)
 
 class ErrorHandler(tornado.web.RequestHandler):
     """
@@ -1933,7 +2069,8 @@ class Application(tornado.web.Application):
         # Setup our URL handlers
         handlers = [
             (index_regex, MainHandler),
-            (r"%sws" % url_prefix, ApplicationWebSocket, {'apps':APPLICATIONS}),
+            (r"%sws" % url_prefix,
+                ApplicationWebSocket, dict(apps=APPLICATIONS)),
             (r"%sauth" % url_prefix, AuthHandler),
             (r"%sdownloads/(.*)" % url_prefix, DownloadHandler),
             (r"%scssrender" % url_prefix, PluginCSSTemplateHandler),

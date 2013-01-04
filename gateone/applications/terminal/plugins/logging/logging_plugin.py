@@ -675,7 +675,7 @@ def send_css_template(self):
     it once.
     """
     # Here we use the 'persist' dict to keep track of our rendered CSS template
-    if 'logging_css' not in self.ws.persist:
+    if 'logging_css' not in self.ws.persist['terminal']:
         import tornado.template
         import tempfile
         temp = tempfile.NamedTemporaryFile(prefix='go_logging_css')
@@ -690,8 +690,8 @@ def send_css_template(self):
         temp.flush()
         # Save the rendered template to our persistent store so we don't have to
         # process it with every page load.
-        self.ws.persist['logging_css'] = temp
-    self.ws.send_css(self.ws.persist['logging_css'])
+        self.ws.persist['terminal']['logging_css'] = temp
+    self.ws.send_css(self.ws.persist['terminal']['logging_css'])
 
 hooks = {
     'WebSocket': {

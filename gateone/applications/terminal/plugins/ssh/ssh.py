@@ -1069,7 +1069,7 @@ def send_css_template(self):
     the rendered CSS template to ensure we only ever have to render it once.
     """
     # Here we use the 'persist' dict to keep track of our rendered CSS template
-    if 'ssh_css' not in self.ws.persist:
+    if 'ssh_css' not in self.ws.persist['terminal']:
         import tempfile
         temp = tempfile.NamedTemporaryFile(prefix='go_ssh_css')
         css_path = os.path.join(PLUGIN_PATH, 'templates', 'ssh.css')
@@ -1083,8 +1083,8 @@ def send_css_template(self):
         temp.flush()
         # Save the rendered template to our persistent store so we don't have to
         # process it with every page load.
-        self.ws.persist['ssh_css'] = temp
-    self.ws.send_css(self.ws.persist['ssh_css'])
+        self.ws.persist['terminal']['ssh_css'] = temp
+    self.ws.send_css(self.ws.persist['terminal']['ssh_css'])
 
 def initialize(self):
     """

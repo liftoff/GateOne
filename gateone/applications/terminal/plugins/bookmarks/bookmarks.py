@@ -726,7 +726,7 @@ def send_css_template(self):
     it once.
     """
     # Here we use the 'persist' dict to keep track of our rendered CSS template
-    if 'bookmarks_css' not in self.ws.persist:
+    if 'bookmarks_css' not in self.ws.persist['terminal']:
         import tempfile
         temp = tempfile.NamedTemporaryFile(prefix='go_bookmarks_css')
         css_path = os.path.join(PLUGIN_PATH, 'templates', 'bookmarks.css')
@@ -741,8 +741,8 @@ def send_css_template(self):
         temp.flush()
         # Save the rendered template to our persistent store so we don't have to
         # process it with every page load.
-        self.ws.persist['bookmarks_css'] = temp
-    self.ws.send_css(self.ws.persist['bookmarks_css'])
+        self.ws.persist['terminal']['bookmarks_css'] = temp
+    self.ws.send_css(self.ws.persist['terminal']['bookmarks_css'])
 
 hooks = {
     'Web': [

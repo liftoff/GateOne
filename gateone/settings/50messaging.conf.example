@@ -1,0 +1,24 @@
+// This file defines which users may send messages/broadcasts to each other.
+// It is just an example; you'll need to make your own.
+// If these settings are not defined all users will be able to send messages and
+// broadcasts.
+{
+    "*": { // This applies to all users
+        "gateone": { // Default deny for all users:
+            "send_user_messages": false,
+            "send_broadcasts": false
+        }
+    },
+    "user.email=.*@liftoffsoftware.com" {
+        "gateone": { // Allow these folks to send messages to each other
+            "send_user_messages": true,
+            "send_broadcasts": false // But not broadcasts
+        }
+    },
+    "user.upn=root@yourhost" {
+        "gateone": { // Allow root to do it all
+            "send_user_messages": true,
+            "send_broadcasts": true
+        }
+    }
+}

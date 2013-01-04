@@ -170,7 +170,7 @@ class require(object):
                         logging.error(_(
                             "unknown user -> %s failed requirement: %s" % (
                             f.__name__, str(condition))))
-                    msg = _("ERROR: %s (%s)" % (condition.error, f.__name__))
+                    msg = _("ERROR: %s" % condition.error)
                     if hasattr(self, 'send_message'):
                         self.send_message(msg)
                     elif hasattr(self, 'ws'):
