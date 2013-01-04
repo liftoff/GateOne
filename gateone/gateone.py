@@ -1320,13 +1320,12 @@ class ApplicationWebSocket(WebSocketHandler):
                             # Try, try again
                             self.commands[key]()
                     except (KeyError, TypeError, AttributeError) as e:
-                        logging.debug(_(
-                            "Error with WebSocket action, %s: %s" % (key, e)))
-                        logging.debug("Printing traceback...")
-                        if self.settings['logging'] == "debug":
-                            import traceback
-                            traceback.print_exc(file=sys.stdout)
-                        logging.error(_('Unknown WebSocket action: %s' % key))
+                        import traceback
+                        for frame in traceback.extract_tb(sys.exc_info()[2]):
+                            fname, lineno, fn, text = frame
+                        logging.error(_(
+                         "Error/Unknown WebSocket action, %s: %s (%s line %s)" %
+                         (key, e, fname, lineno)))
 
     def on_close(self):
         """

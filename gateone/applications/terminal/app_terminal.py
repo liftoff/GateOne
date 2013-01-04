@@ -403,20 +403,30 @@ def policy_new_terminal(cls, policy):
     user is not in violation of their applicable policies (e.g. max_terms).
     """
     instance = cls.instance
+    session = instance.ws.session
     try:
         term = cls.f_args[0]['term']
     except (KeyError, IndexError):
         # new_terminal got bad *settings*.  Deny
         return False
     user = instance.current_user
-    sess_term_store = SESSIONS[instance.ws.session]["terminal"]
-    if "open_terminals" not in sess_term_store:
-        # Make an attribute we can use to count open terminals
-        sess_term_store["open_terminals"] = 0
-        # Add an event that reduces open_terminals when they're closed
-        def one_less(term):
-            sess_term_store["open_terminals"] -= 1
-        instance.on("terminal:kill_terminal", one_less)
+    open_terminals = 0
+    locations = SESSIONS[session]['locations']
+    if term in SESSIONS[session]['locations'][instance.ws.location]:
+        # Terminal already exists (reattaching) or was shared by someone else
+        return True
+    for loc in locations.values():
+        for t, term_obj in loc.items():
+            if t in SESSIONS[session]['locations'][instance.ws.location]:
+                if user == term_obj['user']:
+                    # Terms shared by others don't count
+                    if user['upn'] == 'ANONYMOUS':
+                        # ANONYMOUS users are all the same so we have to use
+                        # the session ID
+                        if session == term_obj['user']['session']:
+                            open_terminals += 1
+                    else:
+                        open_terminals += 1
     # Start by determining the limits
     max_terms = 0 # No limit
     if 'max_terms' in policy:
@@ -427,7 +437,7 @@ def policy_new_terminal(cls, policy):
         max_cols = policy['max_dimensions']['cols']
         max_rows = policy['max_dimensions']['rows']
     if max_terms:
-        if sess_term_store["open_terminals"] >= max_terms:
+        if open_terminals >= max_terms:
             logging.error(_(
                 "%s denied opening new terminal.  The 'max_terms' policy limit "
                 "(%s) has been reached for this user." % (
@@ -448,7 +458,6 @@ def policy_new_terminal(cls, policy):
     if max_rows:
         if int(cls.f_args['rows']) > max_rows:
             cls.f_args['rows'] = max_rows # Reduce to max size
-    sess_term_store["open_terminals"] += 1
     return True
 
 def policy_share_terminal(cls, policy):
@@ -1718,7 +1727,16 @@ class TerminalApplication(GOApplication):
     def set_sharing_permissions(self, settings):
         """
         Sets the sharing permissions on the given *settings['term']*.  Requires
-        *settings['read']* and/or *settings['write']*.
+        *settings['read']* and/or *settings['write']*.  Example JavaScript:
+
+        .. code-block:: javascript
+
+            settings = {
+                "term": 1,
+                "read": "AUTHENTICATED",
+                "write": ['bob@somehost', 'joe@somehost']
+            }
+            GateOne.ws.send(JSON.stringify({"terminal:set_sharing_permissions": settings}));
         """
         out_dict = {'result': 'Success'}
         term = settings['term']
