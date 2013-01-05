@@ -1,8 +1,11 @@
 include LICENSE.txt
+include README.rst
 include AGPLv3.txt
 include babel_gateone.cfg
 include *.rst
 graft scripts
 graft gateone
+exclude .gitignore
 global-exclude *.kate-swp
 global-exclude *.pyc
+global-exclude *.git

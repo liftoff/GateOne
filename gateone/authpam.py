@@ -6,8 +6,8 @@
 
 # Meta
 __version__ = '1.0'
-__license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __version_info__ = (1, 0)
+__license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __doc__ = """
 This authentication module is built on top of gopam.py which is included with
 Gate One.

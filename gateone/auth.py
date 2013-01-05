@@ -4,9 +4,9 @@
 #
 
 # Meta
-__version__ = '1.1'
+__version__ = '1.2'
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1.1)
+__version_info__ = (1.2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
@@ -76,7 +76,7 @@ import os, logging, re
 
 # Import our own stuff
 from utils import mkdir_p, generate_session_id, noop, RUDict
-from utils import get_translation
+from utils import get_translation, memoize
 
 # 3rd party imports
 import tornado.web
@@ -88,10 +88,11 @@ _ = get_translation()
 
 # Globals
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
+SETTINGS_CACHE = {} # Lists of settings files and their modification times
 # The security stuff below is a work-in-progress.  Likely to change all around.
 
 # Authorization stuff
-# TODO: Get this memoizing or caching or something like that
+@memoize
 def applicable_policies(application, user, policies):
     """
     Given an *application* and a *user* object, returns the merged/resolved

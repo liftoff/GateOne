@@ -70,7 +70,7 @@ var deprecated = noop;
 // Define GateOne
 var GateOne = GateOne || {};
 GateOne.NAME = "GateOne";
-GateOne.VERSION = "1.1";
+GateOne.VERSION = "1.2";
 GateOne.__repr__ = function () {
     return "[" + this.NAME + " " + this.VERSION + "]";
 };
@@ -1654,7 +1654,8 @@ GateOne.Base.update(GateOne.Logging, {
 
         Sets the log *level* to an integer if the given a string (e.g. "DEBUG").  Sets it as-is if it's already a number.
         */
-        var l = GateOne.Logging;
+        var l = GateOne.Logging,
+            levelStr = null;
         if (level === parseInt(level,10)) { // It's an integer, set it as-is
             l.level = level;
         } else { // It's a string, convert it first
@@ -3176,7 +3177,6 @@ GateOne.Base.update(GateOne.Visual, {
         go.Net.addAction('bell', go.Visual.bellAction);
         go.Net.addAction('set_title', go.Visual.setTitleAction);
         go.Net.addAction('notice', go.Visual.serverMessageAction);
-        go.Net.addAction('load_css', go.Visual.CSSPluginAction);
     },
     updateDimensions: function() {
         /**GateOne.Visual.updateDimensions()
@@ -4031,17 +4031,6 @@ GateOne.Base.update(GateOne.Visual, {
     serverMessageAction: function(message) {
         // Displays a *message* sent from the server
         GateOne.Visual.displayMessage(message);
-    },
-    CSSPluginAction: function(url) {
-        // Loads the CSS for a given plugin by adding a <link> tag to the <head>
-        var queries = url.split('?')[1].split('&'), // So we can parse out the plugin name and the template
-            plugin = queries[0].split('=')[1],
-            file = queries[1].split('=')[1].split('.')[0];
-        // The /cssrender method needs the prefix and the container
-        url = url + '&container=' + GateOne.prefs.goDiv.substring(1);
-        url = url + '&prefix=' + GateOne.prefs.prefix;
-        url = GateOne.prefs.url + url.substring(1);
-        GateOne.Utils.loadCSS(url, plugin+'_'+file);
     },
     dialog: function(title, content, /*opt*/options) {
         // Creates a dialog with the given *title* and *content*.  Returns a function that will close the dialog when called.

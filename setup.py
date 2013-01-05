@@ -14,7 +14,7 @@ except ImportError: # Python 3
 
 # Globals
 POSIX = 'posix' in sys.builtin_module_names
-version = '1.1'
+version = '1.2.0'
 major, minor = sys.version_info[:2] # Python version
 if major == 2 and minor <=5:
     print("Gate One requires Python 2.6+.  You are running %s" % sys.version)
@@ -148,7 +148,6 @@ relocate_plugins = [
     'bookmarks',
     'convenience',
     'example',
-    'help',
     'logging',
     'mobile',
     'notice',

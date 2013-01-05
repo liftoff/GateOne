@@ -9,9 +9,9 @@ Gate One utility functions and classes.
 """
 
 # Meta
-__version__ = '1.1'
+__version__ = '1.2'
+__version_info__ = (1, 2)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 1)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import stdlib stuff
@@ -25,6 +25,7 @@ import uuid
 import logging
 import mimetypes
 import fcntl
+import cPickle
 from datetime import timedelta
 
 # Import 3rd party stuff
@@ -1434,6 +1435,21 @@ def settings_template(path, **kwargs):
     t = Template(template_data)
     rendered = t.generate(**kwargs)
     return "\n".join([a for a in rendered.splitlines() if a.strip()])
+
+class memoize:
+    def __init__(self, fn):
+        self.fn = fn
+        self.memo = {}
+
+    def __call__(self, *args, **kwds):
+        str = cPickle.dumps(args, 1)+cPickle.dumps(kwds, 1)
+        if not self.memo.has_key(str):
+            logging.debug("memoize cache miss (%s)" % self.fn.__name__)
+            self.memo[str] = self.fn(*args, **kwds)
+        else:
+            logging.debug("memoize cache hit (%s)" % self.fn.__name__)
+
+        return self.memo[str]
 
 # Misc
 _ = get_translation()

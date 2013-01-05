@@ -8,9 +8,9 @@
 # TODO:
 
 # Meta
-__version__ = '1.1.0'
+__version__ = '1.2.0'
+__version_info__ = (1, 2, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # NOTE: Docstring includes reStructuredText markup for use with Sphinx.
@@ -233,7 +233,6 @@ the Plugin Development docs.  From the perspective of gateone.py, it performs
 the following tasks in relation to plugins:
 
  * Imports Python plugins and connects their hooks.
- * Creates symbolic links inside ./static/ that point to each plugin's respective /static/ directory and serves them to clients.
  * Serves the index.html that includes plugins' respective .js and .css files.
 
 Class Docstrings
@@ -312,9 +311,9 @@ def _(string):
 SESSIONS = {} # We store the crux of most session info here
 CMD = None # Will be overwritten by options.command
 TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
-# WATCHER be replaced with a tornado.ioloop.PeriodicCallback that watches for
+# SESSION_WATCHER be replaced with a tornado.ioloop.PeriodicCallback that watches for
 # sessions that have timed out and takes care of cleaning them up.
-WATCHER = None
+SESSION_WATCHER = None
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_CACHE = {}
 # PERSIST is a generic place for applications and plugins to store stuff in a
@@ -723,10 +722,24 @@ def timeout_sessions():
     try:
         if not SESSIONS: # Last client has timed out
             logging.info(_("All user sessions have terminated."))
-            global WATCHER
-            if WATCHER:
-                WATCHER.stop() # Stop ourselves
-                WATCHER = None # Reset so authenticate() will know to start it
+            global SESSION_WATCHER
+            if SESSION_WATCHER:
+                SESSION_WATCHER.stop() # Stop ourselves
+                SESSION_WATCHER = None # So authenticate() will know to start it
+            # Reload gateone.py to free up memory (CPython can be a bit
+            # overzealous in keeping things cached).  In theory this isn't
+            # necessary due to Gate One's prodigous use of dynamic imports but
+            # in reality people will see an idle gateone.py eating up 30 megs of
+            # RAM and wonder, "WTF...  No one has connected in weeks."
+            logging.info(_("The last idle session has timed out. Reloading..."))
+            try:
+                os.execv(sys.executable, [sys.executable] + sys.argv)
+            except OSError:
+                # Mac OS X versions prior to 10.6 do not support execv in
+                # a process that contains multiple threads.
+                os.spawnv(os.P_NOWAIT, sys.executable,
+                    [sys.executable] + sys.argv)
+                sys.exit(0)
         for session in list(SESSIONS.keys()):
             if "last_seen" not in SESSIONS[session]:
                 # Session is in the process of being created.  We'll check it
@@ -926,38 +939,6 @@ class MainHandler(BaseHandler):
             prefs=prefs
         )
 
-class PluginCSSTemplateHandler(BaseHandler):
-    """
-    Renders plugin CSS template files, passing them the same *prefix* and
-    *container* variables used by the StyleHandler.  This is so we don't need a
-    CSS template rendering function in every plugin that needs to use {{prefix}}
-    or {{container}}.
-
-    gateone.js will automatically load all \*.css files in plugin template
-    directories using this method.
-    """
-    # Had to disable authentication for this for the embedded stuff to work.
-    # Not a big deal...  Just some stylesheets.  To an attacker it's like
-    # peering into a window and seeing the wallpaper.
-    def get(self):
-        container = self.get_argument("container")
-        prefix = self.get_argument("prefix")
-        plugin = self.get_argument("plugin")
-        templates_path = os.path.join(GATEONE_DIR, 'templates')
-        plugin_templates_path = os.path.join(templates_path, plugin)
-        plugin_template = os.path.join(plugin_templates_path, "%s.css" % plugin)
-        self.set_header('Content-Type', 'text/css')
-        try:
-            self.render(
-                plugin_template,
-                container=container,
-                prefix=prefix,
-                url_prefix=self.settings['url_prefix']
-            )
-        except IOError:
-            # The provided plugin/template combination was not found
-            logging.error(_("%s.css was not found" % plugin_template))
-
 class GOApplication(object):
     """
     The base from which all Gate One Applications will inherit.  Applications
@@ -1065,7 +1046,11 @@ class ApplicationWebSocket(WebSocketHandler):
     directly callable over the WebSocket.
     """
     instances = set()
-    #watched_files = set()
+    # These three attributes handle watching files for changes:
+    watched_files = {}     # Format: {<file path>: <modification time>}
+    file_update_funcs = {} # Format: {<file path>: <function called on update>}
+    file_watcher = None    # Will be replaced with a PeriodicCallback
+    prefs = {} # Gets updated with every call to open()
     def __init__(self, application, request, **kwargs):
         self.user = None
         self.commands = {
@@ -1084,23 +1069,65 @@ class ApplicationWebSocket(WebSocketHandler):
         self.origin_denied = True # Only allow valid origins
         self.file_cache = FILE_CACHE # So applications and plugins can reference
         self.persist = PERSIST # So applications and plugins can reference
-        self.policies = {} # Gets filled out in authenticate()
         self.apps = [] # Gets filled up by self.initialize()
         # The security dict stores applications' various policy functions
         self.security = {}
         WebSocketHandler.__init__(self, application, request, **kwargs)
 
-# NOTE:  This is a work in progres...  Just some experimentation.  Probably not sticking around in the current form
-    #@classmethod
-    #def file_watcher(cls):
-        #logging.debug("file_watcher()")
-        #for fname in cls.watched_files:
-            #message = open(fname).read()
-            #if message:
-                #print("got message: %s" % message)
-                #message_dict = {'notice': message}
-                #cls._deliver(message_dict, upn="AUTHENTICATED")
-                #open(fname, 'w').write('') # Empty it out
+    @classmethod
+    def file_checker(cls):
+        logging.debug("file_checker()")
+        if not SESSIONS:
+            # No connected sessions; no point in watching files
+            cls.file_checker.stop()
+            # Also remove the broadcast file so we know to start up the
+            # file_watcher again if a user connects.
+            session_dir = cls.prefs['*']['gateone']['session_dir']
+            broadcast_file = os.path.join(session_dir, 'broadcast') # Default
+            broadcast_file = cls.prefs['*']['gateone'].get(
+                'broadcast_file', broadcast_file) # If set, use that
+            del cls.watched_files[broadcast_file]
+            del cls.file_update_funcs[broadcast_file]
+            os.remove(broadcast_file)
+        for path, mtime in cls.watched_files.items():
+            if os.stat(path).st_mtime == mtime:
+                continue
+            try:
+                cls.file_update_funcs[path]()
+            except Exception as e:
+                logging.error(_(
+                    "Exception encountered trying to execute the file update "
+                    "function for %s..." % path))
+                logging.error(e)
+
+    @classmethod
+    def watch_file(cls, path, func):
+        """
+        Registers the given file *path* and *func* in
+        `ApplicationWebSocket.watched_files`.  The *func* will be called if the
+        file at *path* is modified.
+        """
+        cls.watched_files.update({path: os.stat(path).st_mtime})
+        cls.file_update_funcs.update({path: func})
+
+    @classmethod
+    def broadcast_file_update(cls):
+        """
+        Called when there's an update to the 'broadcast_file', broadcasts its
+        contents to all connected users.
+        """
+        session_dir = cls.prefs['*']['gateone']['session_dir']
+        broadcast_file = os.path.join(session_dir, 'broadcast')
+        broadcast_file = cls.prefs['*']['gateone'].get(
+            'broadcast_file', broadcast_file)
+        with open(broadcast_file) as f:
+            message = f.read()
+        if message:
+            message = message.rstrip()
+            logging.info("Broadcast (via broadcast_file): %s" % message)
+            message_dict = {'notice': message}
+            cls._deliver(message_dict, upn="AUTHENTICATED")
+            open(broadcast_file, 'w').write('') # Empty it out
 
     def initialize(self, apps=None, **kwargs):
         """
@@ -1120,17 +1147,6 @@ class ApplicationWebSocket(WebSocketHandler):
             logging.debug("Initializing %s" % instance)
             if hasattr(instance, 'initialize'):
                 instance.initialize()
-        # Playing around with a file watcher process that could be hooked into by apps/plugins...  Definitely changing but I like it so far so you can expect a feature along these lines soon.
-        #cls = ApplicationWebSocket
-        #if not cls.watched_files:
-            #fname = '/tmp/gateone_messaging'
-            #check_time = 2000
-            #cls.watched_files.add(fname)
-            #open(fname, 'w').write('') # Touch file
-            #io_loop = tornado.ioloop.IOLoop.instance()
-            #scheduler = tornado.ioloop.PeriodicCallback(
-                #cls.file_watcher, check_time, io_loop=io_loop)
-            #scheduler.start()
 
     def on(self, events, callback, times=None):
         """
@@ -1230,7 +1246,8 @@ class ApplicationWebSocket(WebSocketHandler):
         Called when a new WebSocket is opened.  Will deny access to any
         origin that is not defined in self.settings['origin'].
         """
-        ApplicationWebSocket.instances.add(self)
+        cls = ApplicationWebSocket
+        cls.instances.add(self)
         valid_origins = self.settings['origins']
         if 'Origin' in self.request.headers:
             origin_header = self.request.headers['Origin']
@@ -1274,16 +1291,14 @@ class ApplicationWebSocket(WebSocketHandler):
             message = {'reauthenticate': True}
             self.write_message(json_encode(message))
             self.close() # Close the WebSocket
-        # Make sure we have all policies ready for checking
-        self.policies = get_settings(os.path.join(GATEONE_DIR, 'settings'))
-        # NOTE: The above will eventually be rolled into self.settings once the
-        #       conversion of all settings to the new JSON format is completed.
-        # NOTE: By getting the policies with each call to open() we're enabling
-        #       the ability to make changes inside the settings dir without
+        # Make sure we have all prefs ready for checking
+        cls.prefs = get_settings(os.path.join(GATEONE_DIR, 'settings'))
+        # NOTE: By getting the prefs with each call to open() we make
+        #       it possible to make changes inside the settings dir without
         #       having to restart Gate One (just need to wait for users to
-        #       eventually re-connect).
-        # Call applications' open() functions (if any)
-        for app in self.apps:
+        #       eventually re-connect or reload the page).
+        # NOTE: Why store prefs in the class itself?  No need for redundancy.
+        for app in self.apps: # Call applications' open() functions (if any)
             if hasattr(app, 'open'):
                 app.open()
 
@@ -1330,8 +1345,6 @@ class ApplicationWebSocket(WebSocketHandler):
     def on_close(self):
         """
         Called when the client terminates the connection.
-
-        .. note:: Normally self.refresh_screen() catches the disconnect first and this method won't end up being called.
         """
         logging.debug("on_close()")
         ApplicationWebSocket.instances.discard(self)
@@ -1652,13 +1665,32 @@ class ApplicationWebSocket(WebSocketHandler):
         # This is just so the client has a human-readable point of reference:
         message = {'set_username': self.current_user['upn']}
         self.write_message(json_encode(message))
-        # Startup the watcher if it isn't already running
-        global WATCHER
-        if not WATCHER:
-            interval = 30*1000 # Check every 30 seconds
-            WATCHER = tornado.ioloop.PeriodicCallback(timeout_sessions,interval)
-            WATCHER.start()
+        # Startup the session watcher if it isn't already running
+        global SESSION_WATCHER
+        if not SESSION_WATCHER:
+            interval = self.prefs['*']['gateone'].get(
+                'session_timeout_check_interval', 30*1000) # 30s default
+            SESSION_WATCHER = tornado.ioloop.PeriodicCallback(
+                timeout_sessions, interval)
+            SESSION_WATCHER.start()
+        # Startup the file watcher if it isn't already running and get it
+        # watching the broadcast file.
+        cls = ApplicationWebSocket
+        broadcast_file = os.path.join(self.settings['session_dir'], 'broadcast')
+        broadcast_file = self.prefs['*']['gateone'].get(
+            'broadcast_file', broadcast_file)
+        if broadcast_file not in cls.watched_files:
+            # No broadcast file means the file watcher isn't running
+            open(broadcast_file, 'w').write('') # Touch file
+            check_time = self.prefs['*']['gateone'].get(
+                'file_check_interval', 5000)
+            cls.watch_file(broadcast_file, cls.broadcast_file_update)
+            io_loop = tornado.ioloop.IOLoop.instance()
+            cls.file_watcher = tornado.ioloop.PeriodicCallback(
+                cls.file_checker, check_time, io_loop=io_loop)
+            cls.file_watcher.start()
 
+# TODO: Make this more generic so it can load stylesheets for anything.
     def get_style(self, settings):
         """
         Sends the CSS stylesheets matching the properties specified in
@@ -2072,7 +2104,6 @@ class Application(tornado.web.Application):
                 ApplicationWebSocket, dict(apps=APPLICATIONS)),
             (r"%sauth" % url_prefix, AuthHandler),
             (r"%sdownloads/(.*)" % url_prefix, DownloadHandler),
-            (r"%scssrender" % url_prefix, PluginCSSTemplateHandler),
             (r"%sdocs/(.*)" % url_prefix, tornado.web.StaticFileHandler, {
                 "path": docs_path,
                 "default_filename": "index.html"

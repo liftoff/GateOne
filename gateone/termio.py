@@ -9,9 +9,9 @@
 # TODO: Make the environment variables used before launching self.cmd configurable
 
 # Meta
-__version__ = '1.1'
+__version__ = '1.2'
+__version_info__ = (1, 2)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 1)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
@@ -608,6 +608,7 @@ class BaseMultiplex(object):
         if self.syslog:
             # Try and keep it as line-line as possible so we don't end up with
             # a log line per character.
+            import syslog
             if '\n' in stream:
                 for line in stream.splitlines():
                     if self.syslog_buffer:

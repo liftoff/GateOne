@@ -541,7 +541,7 @@ def terminal_policies(cls):
         'char_handler': policy_char_handler
     }
     user = instance.current_user
-    policy = applicable_policies('terminal', user, instance.ws.policies)
+    policy = applicable_policies('terminal', user, instance.ws.prefs)
     if not policy: # Empty RUDict
         return True # A world without limits!
     # Start by determining if the user can even login to the terminal app
@@ -728,7 +728,7 @@ class TerminalApplication(GOApplication):
             if isinstance(term, int): # Only terminals are integers in the dict
                 terminals.append(term)
         self.policy = applicable_policies(
-            'terminal', self.current_user, self.ws.policies)
+            'terminal', self.current_user, self.ws.prefs)
         # Check for any dtach'd terminals we might have missed
         if self.policy['dtach']:
             session_dir = self.ws.settings['session_dir']
@@ -853,7 +853,7 @@ class TerminalApplication(GOApplication):
             * *logging* - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).
         """
         policies = applicable_policies(
-            'terminal', self.current_user, self.ws.policies)
+            'terminal', self.current_user, self.ws.prefs)
         user_dir = self.settings['user_dir']
         try:
             user = self.current_user['upn']
@@ -1333,7 +1333,7 @@ class TerminalApplication(GOApplication):
         multiplex = term_obj['multiplex']
         scrollback, screen = multiplex.dump_html(
             full=full, client_id=self.ws.client_id)
-        if [a for a in screen if a]:
+        if [a for a in screen if a]: # Checking for non-empty lines here
             output_dict = {
                 'termupdate': {
                     'term': term,
