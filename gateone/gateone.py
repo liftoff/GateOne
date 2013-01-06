@@ -1246,27 +1246,27 @@ class ApplicationWebSocket(WebSocketHandler):
         Called when a new WebSocket is opened.  Will deny access to any
         origin that is not defined in self.settings['origin'].
         """
+
         cls = ApplicationWebSocket
         cls.instances.add(self)
         valid_origins = self.settings['origins']
         if 'Origin' in self.request.headers:
-            origin_header = self.request.headers['Origin']
+            origin = self.request.headers['Origin']
         elif 'Sec-Websocket-Origin' in self.request.headers: # Old version
-            origin_header = self.request.headers['Sec-Websocket-Origin']
-        origin_header = origin_header.lower() # hostnames are case-insensitive
-        origin_header = origin_header.split('://', 1)[1]
+            origin = self.request.headers['Sec-Websocket-Origin']
+        origin = origin.lower() # hostnames are case-insensitive
+        origin = origin.split('://', 1)[1]
+        logging.debug("open() origin: %s" % origin)
         if '*' not in valid_origins:
-            if origin_header not in valid_origins:
+            if origin not in valid_origins:
                 self.origin_denied = True
-                origin = origin_header
-                short_origin = origin.split('//')[1]
                 denied_msg = _("Access denied for origin: %s" % origin)
                 logging.error(denied_msg)
                 self.write_message(denied_msg)
                 self.write_message(_(
                     "If you feel this is incorrect you just have to add '%s' to"
                     " the 'origin' option in your settings.  See the docs "
-                    "for details." % short_origin
+                    "for details." % origin
                 ))
                 self.close()
         self.origin_denied = False
@@ -1280,7 +1280,8 @@ class ApplicationWebSocket(WebSocketHandler):
         # time it is used.
         if user and 'upn' in user:
             logging.info(
-                _("WebSocket opened (%s %s).") % (user['upn'], client_address))
+                _("WebSocket opened (%s %s) via origin %s.") % (
+                    user['upn'], client_address, origin))
         else:
             logging.info(_("WebSocket opened (unknown user)."))
         if user and 'upn' not in user: # Invalid user info
@@ -1298,6 +1299,11 @@ class ApplicationWebSocket(WebSocketHandler):
         #       having to restart Gate One (just need to wait for users to
         #       eventually re-connect or reload the page).
         # NOTE: Why store prefs in the class itself?  No need for redundancy.
+        if 'cache_dir' not in cls.prefs['*']['gateone']:
+            # Set the cache dir to a default if not set in the prefs
+            import tempfile
+            cache_dir = os.path.join(tempfile.gettempdir(), 'gateone_cache')
+            cls.prefs['*']['gateone']['cache_dir'] = cache_dir
         for app in self.apps: # Call applications' open() functions (if any)
             if hasattr(app, 'open'):
                 app.open()
@@ -1386,9 +1392,9 @@ class ApplicationWebSocket(WebSocketHandler):
         """
         logging.debug("authenticate(): %s" % settings)
         if 'Origin' in self.request.headers:
-            origin_header = self.request.headers['Origin']
+            origin = self.request.headers['Origin']
         elif 'Sec-Websocket-Origin' in self.request.headers: # Old version
-            origin_header = self.request.headers['Sec-Websocket-Origin']
+            origin = self.request.headers['Sec-Websocket-Origin']
         # Make sure the client is authenticated if authentication is enabled
         if self.settings['auth'] and self.settings['auth'] != 'api':
             try:
@@ -1486,7 +1492,7 @@ class ApplicationWebSocket(WebSocketHandler):
                             logging.error(_(
                             "API authentication replay attack detected!  User: "
                             "%s, Remote IP: %s, Origin: %s" % (
-                                upn, self.request.remote_ip, origin_header)))
+                                upn, self.request.remote_ip, origin)))
                             message = {'notice': _(
                                 'AUTH FAILED: Replay attack detected!  This '
                                 'event has been logged.')}
@@ -1839,7 +1845,6 @@ class ApplicationWebSocket(WebSocketHandler):
         message = {'load_js': out_dict}
         self.write_message(message)
 
-# TODO: Persistent minified file cache between restarts of gateone.py
     def send_js_or_css(self, path_or_fileobj, kind):
         """
         If *kind* is 'js', reads the given JavaScript file at *path_or_fileobj*
@@ -1868,13 +1873,30 @@ class ApplicationWebSocket(WebSocketHandler):
             logging.error(_("send_js_or_css(): File not found: %s" % path))
             return
         out_dict = {'result': 'Success', 'filename': filename, 'data': None}
+        # Need to store the original file's modification time in the filename
+        # so we can tell if the original changed in the event that Gate One is
+        # restarted.
+        # Also, we're using the full path in the cached filename in the event
+        # that two files have the same name but at different paths.
+        cached_filename = "%s:%s" % (path.replace('/', '_'), mtime)
+        cache_dir = self.prefs['*']['gateone']['cache_dir']
+        if not os.path.exists(cache_dir):
+            mkdir_p(cache_dir)
+        cached_file_path = os.path.join(cache_dir, cached_filename)
         # Check if the file has changed since last time and use the cached
-        # version if it makes sense to do so
-        if path in FILE_CACHE.keys():
-            if mtime == FILE_CACHE[path]['mtime']:
-                with open(FILE_CACHE[path]['file'].name) as f:
-                    out_dict['data'] = f.read()
-        if not out_dict['data']:
+        # version if it makes sense to do so.
+        if os.path.exists(cached_file_path):
+            with open(cached_file_path) as f:
+                out_dict['data'] = f.read()
+            # Double-check there's not an old version of this file
+            for fname in os.listdir(cache_dir):
+                if fname == cached_filename:
+                    continue
+                elif fname.split(':', 1) == path.replace('/', '_'):
+                    # Older version present.  Remove it.
+                    os.remove(os.path.join(cache_dir, fname))
+        else:
+            # Minify (if warranted) and cache the file
             if self.settings['debug']:
                 if isinstance(path_or_fileobj, basestring):
                     filename = os.path.split(path_or_fileobj)[1]
@@ -1884,16 +1906,14 @@ class ApplicationWebSocket(WebSocketHandler):
                     filename = os.path.split(path_or_fileobj.name)[1]
                     out_dict['data'] = path_or_fileobj.read()
             else:
-                out_dict['data'] = minify(path_or_fileobj, kind)
-            import tempfile
-            # Keep track of our files so we don't have to re-minify them
-            temp = tempfile.NamedTemporaryFile(prefix='go_minified')
-            temp.write(out_dict['data'])
-            temp.flush()
-            FILE_CACHE[path] = {
-                'file': temp,
-                'mtime': mtime
-            }
+                if os.path.exists(cached_file_path):
+                    with open(cached_file_path) as f:
+                        out_dict['data'] = f.read()
+                else:
+                    out_dict['data'] = minify(path_or_fileobj, kind)
+            # Add it to the cache so we don't have to go through this again
+            with open(cached_file_path, 'w') as f:
+                f.write(out_dict['data'])
         if kind == 'js':
             message = {'load_js': out_dict}
         elif kind == 'css':

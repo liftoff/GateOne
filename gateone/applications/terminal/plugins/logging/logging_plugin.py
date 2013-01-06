@@ -670,28 +670,33 @@ def _save_log_playback(queue, settings):
 def send_css_template(self):
     """
     Sends our logging.css template to the client using the 'load_style'
-    WebSocket action.  Uses :attr:`ApplicationWebSocket.persist` to store a
-    reference to the rendered CSS template to ensure we only ever have to render
-    it once.
+    WebSocket action.  The rendered template will be saved in Gate One's
+    'cache_dir'.
     """
-    # Here we use the 'persist' dict to keep track of our rendered CSS template
-    if 'logging_css' not in self.ws.persist['terminal']:
-        import tornado.template
-        import tempfile
-        temp = tempfile.NamedTemporaryFile(prefix='go_logging_css')
-        css_path = os.path.join(PLUGIN_PATH, 'templates', 'logging.css')
-        with open(css_path) as f:
-            css_template = tornado.template.Template(f.read())
-        rendered = css_template.generate(
-            container=self.ws.container,
-            prefix=self.ws.prefix
-        )
-        temp.write(rendered)
-        temp.flush()
-        # Save the rendered template to our persistent store so we don't have to
-        # process it with every page load.
-        self.ws.persist['terminal']['logging_css'] = temp
-    self.ws.send_css(self.ws.persist['terminal']['logging_css'])
+    cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
+    css_path = os.path.join(PLUGIN_PATH, 'templates', 'logging.css')
+    mtime = os.stat(css_path).st_mtime
+    rendered_filename = 'rendered_logging_css_%s' % int(mtime)
+    rendered_path = os.path.join(cache_dir, rendered_filename)
+    if rendered_filename in os.listdir(cache_dir):
+        self.ws.send_css(rendered_path)
+        return
+    with open(css_path) as f:
+        css_template = tornado.template.Template(f.read())
+    rendered = css_template.generate(
+        container=self.ws.container,
+        prefix=self.ws.prefix
+    )
+    with open(rendered_path, 'w') as f:
+        f.write(rendered)
+    self.ws.send_css(rendered_path)
+    # Remove older versions of the rendered template if present
+    for fname in os.listdir(cache_dir):
+        if fname == rendered_filename:
+            continue
+        elif 'rendered_logging_css' in fname:
+            # Older version present.  Remove it (and it's minified counterpart).
+            os.remove(os.path.join(cache_dir, fname))
 
 hooks = {
     'WebSocket': {

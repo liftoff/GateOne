@@ -647,10 +647,13 @@ def short_hash(to_shorten):
     """
     Converts *to_shorten* into a really short hash depenendent on the length of
     *to_shorten*.  The result will be safe for use as a file name.
+
+    .. note:: Collisions are possible but *highly* unlikely because of how this method is used by Gate One.
     """
-    import struct, binascii, base64
-    packed = struct.pack('q', binascii.crc32(utf8(to_shorten)))
-    return str(base64.urlsafe_b64encode(packed)).replace('=', '')
+    import hashlib, base64
+    hashed = hashlib.sha1(to_shorten.encode('utf-8'))
+    # Take the first eight characters to create a shortened version.
+    return base64.urlsafe_b64encode(hashed.digest())[:8]
 
 def get_process_tree(parent_pid):
     """
@@ -1437,6 +1440,10 @@ def settings_template(path, **kwargs):
     return "\n".join([a for a in rendered.splitlines() if a.strip()])
 
 class memoize:
+    """
+    A memoization decorator that works with multiple arguments as well as
+    unhashable arguments (e.g. dicts).
+    """
     def __init__(self, fn):
         self.fn = fn
         self.memo = {}

@@ -303,7 +303,7 @@ go.Base.update(GateOne.Playback, {
     addPlaybackControls: function() {
         /**:GateOne.Playback.addPlaybackControls()
 
-        Adds the session playback controls to Gate One.
+        Adds the session playback controls to Gate One's element (:js:attr:`GateOne.prefs.goDiv`).
         */
         var go = GateOne,
             u = go.Utils,
