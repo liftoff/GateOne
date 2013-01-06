@@ -262,7 +262,7 @@ def timeout_sub_channel(m_instance):
         % repr(m_instance.term_id)))
     terminate_sub_channel(m_instance)
 
-def got_error(m_instance, match=None, term=None, cmd=None, tws=None):
+def got_error(self, m_instance, match=None, term=None, cmd=None):
     """
     Called if :func:`execute_command` encounters a problem/timeout.
 
@@ -273,7 +273,7 @@ def got_error(m_instance, match=None, term=None, cmd=None, tws=None):
         "execute_command() running: %s" % (m_instance.user, m_instance.cmd)))
     logging.debug("output before error: %s" % m_instance.dump())
     terminate_sub_channel(m_instance)
-    if tws:
+    if self:
         message = {
             'sshjs_cmd_output': {
                 'cmd': cmd,
@@ -283,9 +283,9 @@ def got_error(m_instance, match=None, term=None, cmd=None, tws=None):
                     'Error: Timeout exceeded or command failed to execute.')
             }
         }
-        tws.write_message(message)
+        self.write_message(message)
 
-def execute_command(term, cmd, callback=None, tws=None):
+def execute_command(self, term, cmd, callback=None):
     """
     Execute the given command (*cmd*) on the given *term* using the existing
     SSH tunnel (taking advantage of `Master mode <http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing>`_)
@@ -302,11 +302,11 @@ def execute_command(term, cmd, callback=None, tws=None):
     logging.debug(
         "execute_command(): term: %s, cmd: %s" % (term, cmd))
     try:
-        m = open_sub_channel(term, tws)
+        m = open_sub_channel(self, term)
     except SSHMultiplexingException as e:
         logging.error(_(
             "%s: Got an error trying to open sub-channel on term %s..." %
-            (tws.get_current_user()['upn'], term)))
+            (self.get_current_user()['upn'], term)))
         # Try to send an error response to the client
         message = {
             'sshjs_cmd_output': {
@@ -317,7 +317,7 @@ def execute_command(term, cmd, callback=None, tws=None):
             }
         }
         try:
-            tws.write_message(message)
+            self.write_message(message)
         except: # This is really just a last-ditch thing
             pass
         return
@@ -329,7 +329,7 @@ def execute_command(term, cmd, callback=None, tws=None):
     # using a regular expression to match a shell prompt (which could be set
     # to anything).  It also gives us a clear indication as to where the command
     # output begins and ends.
-    errorback = partial(got_error, term=term, cmd=cmd, tws=tws)
+    errorback = partial(got_error, self, term=term, cmd=cmd)
     wait = partial(wait_for_prompt, term, cmd, errorback, callback)
     m.expect(READY_MATCH, callback=wait, errorback=errorback, timeout=10)
     logging.debug("Waiting for READY_MATCH inside execute_command()")
@@ -363,7 +363,7 @@ def ws_exec_command(self, settings):
     cmd = settings['cmd']
     send = partial(send_result, self, term, cmd)
     try:
-        execute_command(term, cmd, send, tws=self)
+        execute_command(self, term, cmd, send)
     except SSHExecutionException as e:
         message = {
             'sshjs_cmd_output': {
@@ -604,13 +604,13 @@ def generate_new_keypair(self, settings):
         #DROPBEAR_VERSION = shell_command('dropbear -V')[1].splitlines()[1]
     if which('ssh-keygen'): # Prefer OpenSSH
         openssh_generate_new_keypair(
+            self,
             name, # Name to use when generating the keypair
             users_ssh_dir, # Path to save it
             keytype=keytype,
             passphrase=passphrase,
             bits=bits,
-            comment=comment,
-            tws=self
+            comment=comment
         )
     elif which('dropbearkey'):
         dropbear_generate_new_keypair(*args, **kwargs)
@@ -649,8 +649,8 @@ def finished(self, m_instance, fingerprint):
     m_instance.terminate()
     self.write_message(message)
 
-def openssh_generate_new_keypair(name, path,
-        keytype=None, passphrase="", bits=None, comment="", tws=None):
+def openssh_generate_new_keypair(self, name, path,
+        keytype=None, passphrase="", bits=None, comment=""):
     """
     Generates a new private and public key pair--stored in the user's directory
     using the given *name* and other optional parameters (using OpenSSH).
@@ -696,15 +696,15 @@ def openssh_generate_new_keypair(name, path,
         "-f %s"     # Key path
         % (ssh_keygen_path, bits, keytype, comment, key_path)
     )
-    m = tws.new_multiplex(command, "gen_ssh_keypair")
-    call_errorback = partial(errorback, tws)
+    m = self.new_multiplex(command, "gen_ssh_keypair")
+    call_errorback = partial(errorback, self)
     m.expect('^Overwrite.*', overwrite, optional=True, timeout=10)
     passphrase_handler = partial(enter_passphrase, passphrase)
     m.expect('^Enter passphrase',
         passphrase_handler, errorback=call_errorback, timeout=10)
     m.expect('^Enter same passphrase again',
         passphrase_handler, errorback=call_errorback, timeout=10)
-    finalize = partial(finished, tws)
+    finalize = partial(finished, self)
     # The regex below captures the md5 fingerprint which tells us the
     # operation was successful.
     m.expect(
@@ -715,14 +715,14 @@ def openssh_generate_new_keypair(name, path,
     )
     m.spawn()
 
-def dropbear_generate_new_keypair(name, path,
-        keytype=None, passphrase="", bits=None, comment="", tws=None):
+def dropbear_generate_new_keypair(self, name, path,
+        keytype=None, passphrase="", bits=None, comment=""):
     """
     .. note:: Not implemented yet
     """
     pass
 
-def openssh_generate_public_key(path, passphrase=None, settings=None, tws=None):
+def openssh_generate_public_key(self, path, passphrase=None, settings=None):
     """
     Generates a public key from the given private key at *path*.  If a
     *passphrase* is provided, it will be used to generate the public key (if
@@ -744,7 +744,7 @@ def openssh_generate_public_key(path, passphrase=None, settings=None, tws=None):
     def request_passphrase(*args, **kwargs):
         "Called if this key requires a passphrase.  Ask the client to provide"
         message = {'sshjs_ask_passphrase': settings}
-        tws.write_message(message)
+        self.write_message(message)
     def bad_passphrase(m_instance, match):
         "Called if the user entered a bad passphrase"
         settings['bad'] = True
@@ -881,8 +881,8 @@ def store_id_file(self, settings):
             io_loop = tornado.ioloop.IOLoop.instance()
             deadline = timedelta(seconds=2)
             def generate_public_key(): # I love closures
-                openssh_generate_public_key(
-                    private_key_path, passphrase, settings=settings, tws=self)
+                openssh_generate_public_key(self,
+                    private_key_path, passphrase, settings=settings)
                 get_ids = partial(get_identities, None, self)
                 io_loop.add_timeout(timedelta(seconds=2), get_ids)
             # This gets removed if the public key is uploaded
