@@ -43,7 +43,6 @@ SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
 # This is in case we have relative imports, templates, or whatever:
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 REGISTERED_HANDLERS = [] # So we don't accidentally re-add handlers
-CLEANER = None # The reference to our session logs cleanup periodic callback
 # A HUGE thank you to Micah Elliott (http://MicahElliott.com) for posting these
 # values here: https://gist.github.com/719710
 # This gets used by StyleHandler to generate the CSS that supports 256-colors:
@@ -335,13 +334,6 @@ define(
     help=_("Kill any running Gate One terminal processes including dtach'd "
             "processes.")
 )
-define(
-    "session_logs_max_age",
-    default="30d",
-    help=_("Maximum amount of length of time to keep any given session log "
-            "before it is removed."),
-    type=basestring
-)
 
 def kill_session(session, kill_dtach=False):
     """
@@ -356,44 +348,13 @@ def kill_session(session, kill_dtach=False):
     if kill_dtach:
         from utils import kill_dtached_proc
     for location, terms in list(SESSIONS[session]['locations'].items()):
-        loc = SESSIONS[session]['locations'][location]
+        loc = SESSIONS[session]['locations'][location]['terminal']
         for term in terms:
             if isinstance(term, int):
                 if loc[term]['multiplex'].isalive():
                     loc[term]['multiplex'].terminate()
                 if kill_dtach:
                     kill_dtached_proc(session, term)
-
-def cleanup_session_logs():
-    """
-    Cleans up all user's session logs (*.golog files) older than the
-    `session_logs_max_age` setting.  The session log directory is assumed to be:
-
-        *user_dir*/<user>/logs
-
-    ...where *user_dir* is whatever Gate One happens to have configured for
-    that particular setting.
-    """
-    logging.debug("cleanup_session_logs()")
-    settings = get_settings(os.path.join(GATEONE_DIR, 'settings'))
-    user_dir = settings['*']['gateone']['user_dir']
-    max_age = convert_to_timedelta(
-        settings['*']['terminal']['session_logs_max_age'])
-    for user in os.listdir(user_dir):
-        logs_path = os.path.join(user_dir, user, 'logs')
-        if not os.path.exists(logs_path):
-            # Nothing to do
-            continue
-        for log_name in os.listdir(logs_path):
-            log_path = os.path.join(logs_path, log_name)
-            if not log_path.endswith('.golog'):
-                continue
-            mtime = time.localtime(os.stat(log_path).st_mtime)
-            # Convert to a datetime object for easier comparison
-            mtime = datetime.fromtimestamp(time.mktime(mtime))
-            if datetime.now() - mtime > max_age:
-                # The log is older than max_age, remove it
-                os.remove(log_path)
 
 def policy_new_terminal(cls, policy):
     """
@@ -402,6 +363,7 @@ def policy_new_terminal(cls, policy):
     restrictions (e.g. max_dimensions).  Specifically, checks to make sure the
     user is not in violation of their applicable policies (e.g. max_terms).
     """
+    print("policy_new_terminal()")
     instance = cls.instance
     session = instance.ws.session
     try:
@@ -412,12 +374,13 @@ def policy_new_terminal(cls, policy):
     user = instance.current_user
     open_terminals = 0
     locations = SESSIONS[session]['locations']
-    if term in SESSIONS[session]['locations'][instance.ws.location]:
+    if term in instance.loc_terms:
         # Terminal already exists (reattaching) or was shared by someone else
         return True
     for loc in locations.values():
-        for t, term_obj in loc.items():
-            if t in SESSIONS[session]['locations'][instance.ws.location]:
+        print(loc)
+        for t, term_obj in loc['terminal'].items():
+            if t in instance.loc_terms:
                 if user == term_obj['user']:
                     # Terms shared by others don't count
                     if user['upn'] == 'ANONYMOUS':
@@ -494,8 +457,7 @@ def policy_char_handler(cls, policy):
         except KeyError:
             # No 'term' was given at all.  Use current_term
             term = instance.current_term
-    loc = SESSIONS[instance.ws.session]['locations'][instance.ws.location]
-    term_obj = loc[term]
+    term_obj = instance.loc_terms[term]
     user = instance.current_user
     if user['upn'] == term_obj['user']['upn']:
         if user['upn'] == 'ANONYMOUS':
@@ -589,7 +551,6 @@ class TerminalApplication(GOApplication):
         # So we can keep track and avoid sending unnecessary messages:
         self.titles = {}
         self.em_dimensions = None
-        self.apps = []
         GOApplication.__init__(self, ws)
 
     def initialize(self):
@@ -722,13 +683,19 @@ class TerminalApplication(GOApplication):
         """
         logging.debug('TerminalApplication.authenticate()')
         self.ws.send_static_files(os.path.join(APPLICATION_PATH, 'plugins'))
-        terminals = []
-        for term in list(SESSIONS[self.ws.session][
-                'locations'][self.ws.location].keys()):
-            if isinstance(term, int): # Only terminals are integers in the dict
-                terminals.append(term)
+        # Get our user-specific settings/policies for quick reference
         self.policy = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
+        terminals = []
+        # Create an application-specific storage space in the locations dict
+        if 'terminal' not in self.ws.locations[self.ws.location]:
+            self.ws.locations[self.ws.location]['terminal'] = {}
+        # Quick reference for our terminals in the current location:
+        self.loc_terms = self.ws.locations[self.ws.location]['terminal']
+        for term in list(self.loc_terms.keys()):
+            if isinstance(term, int): # Only terminals are integers in the dict
+                terminals.append(term)
+        print("terminals: %s" % terminals)
         # Check for any dtach'd terminals we might have missed
         if self.policy['dtach']:
             session_dir = self.ws.settings['session_dir']
@@ -746,11 +713,13 @@ class TerminalApplication(GOApplication):
         self.write_message(json_encode(message))
         sess = SESSIONS[self.ws.session]
         # Create a place to store app-specific stuff related to this session
+        # (but not necessarily this 'location')
         if "terminal" not in sess:
             sess['terminal'] = {}
         if "timeout_callbacks" in sess:
             if kill_session not in sess["timeout_callbacks"]:
                 sess["timeout_callbacks"].append(kill_session)
+        print("end of authenticate()")
         self.trigger("terminal:authenticate")
 
     def on_close(self):
@@ -760,10 +729,9 @@ class TerminalApplication(GOApplication):
         if not hasattr(self.ws, 'location'):
             return # Connection closed before authentication completed
         if self.ws.location in SESSIONS[self.ws.session]['locations']:
-            loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-            for term in loc:
+            for term in self.loc_terms:
                 if isinstance(term, int):
-                    term_obj = loc[term]
+                    term_obj = self.loc_terms[term]
                     try:
                         multiplex = term_obj['multiplex']
                         multiplex.remove_all_callbacks(self.callback_id)
@@ -773,7 +741,7 @@ class TerminalApplication(GOApplication):
                         # Remove anything associated with the client_id
                         multiplex.io_loop.remove_timeout(
                             client_dict['refresh_timeout'])
-                        del loc[term][self.ws.client_id]
+                        del self.loc_terms[term][self.ws.client_id]
                     except (AttributeError, KeyError):
                         # User never completed opening a terminal so
                         # self.callback_id is missing.  Nothing to worry about
@@ -902,7 +870,7 @@ class TerminalApplication(GOApplication):
         """
         if not location:
             location = self.ws.location
-        loc = SESSIONS[self.ws.session]['locations'][location]
+        loc = SESSIONS[self.ws.session]['locations'][location]['terminal']
         highest = 0
         for term in list(loc.keys()):
             if isinstance(term, int):
@@ -957,17 +925,16 @@ class TerminalApplication(GOApplication):
             }
         user_dir = self.settings['user_dir']
         needs_full_refresh = False
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-        if term not in loc:
+        if term not in self.loc_terms:
             # Setup the requisite dict
-            loc[term] = {
+            self.loc_terms[term] = {
                 'last_activity': datetime.now(),
                 'title': 'Gate One',
                 'manual_title': False,
                 # This is needed by the terminal sharing policies:
                 'user': self.current_user # So we can determine the owner
             }
-        term_obj = loc[term]
+        term_obj = self.loc_terms[term]
         if self.ws.client_id not in term_obj:
             term_obj[self.ws.client_id] = {
                 # Used by refresh_screen()
@@ -1074,8 +1041,9 @@ class TerminalApplication(GOApplication):
     def move_terminal(self, settings):
         """
         Moves *settings['term']* (terminal number) to
-        *SESSIONS[self.ws.session][[settings['location']]*.  In other words, it
-        moves the given terminal to the given location in the *SESSIONS* dict.
+        *SESSIONS[self.ws.session][[settings['location']]['terminal']*.  In
+        other words, it moves the given terminal to the given location in the
+        *SESSIONS* dict.
 
         If the given location dict doesn't exist (yet) it will be created.
         """
@@ -1084,18 +1052,22 @@ class TerminalApplication(GOApplication):
         term = existing_term = int(settings['term'])
         new_location = settings['location']
         session_obj = SESSIONS[self.ws.session]
-        existing_term_obj = session_obj['locations'][self.ws.location][term]
+        existing_term_obj = self.loc_terms[term]
         if new_location not in session_obj:
             term = 1 # Starting anew in the new location
-            session_obj['locations'][new_location] = {term: existing_term_obj}
+            session_obj['locations'][new_location]['terminal'] = {
+                term: existing_term_obj
+            }
             new_location_exists = False
         else:
             existing_terms = [
-                a for a in session_obj['locations'][new_location].keys()
+                a for a in session_obj['locations'][
+                  new_location]['terminal'].keys()
                     if isinstance(a, int)]
             existing_terms.sort()
             term = existing_terms[-1] + 1
-            session_obj['locations'][new_location][term] = existing_term_obj
+            session_obj['locations'][new_location][
+                'terminal'][term] = existing_term_obj
         multiplex = existing_term_obj['multiplex']
         # Remove the existing object's callbacks so we don't end up sending
         # things like screen updates to the wrong place.
@@ -1125,7 +1097,7 @@ class TerminalApplication(GOApplication):
             # Make sure the new location dict is setup properly
             #self.add_terminal_callbacks(term, multiplex, callback_id)
         # Remove old location:
-        del session_obj['locations'][self.ws.location][existing_term]
+        del self.loc_terms[existing_term]
         details = {
             'term': term,
             'location': new_location
@@ -1143,10 +1115,9 @@ class TerminalApplication(GOApplication):
         """
         logging.debug("killing terminal: %s" % term)
         term = int(term)
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-        if term not in loc:
+        if term not in self.loc_terms:
             return # Nothing to do
-        multiplex = loc[term]['multiplex']
+        multiplex = self.loc_terms[term]['multiplex']
         # Remove the EXIT callback so the terminal doesn't restart itself
         multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
         try:
@@ -1159,7 +1130,7 @@ class TerminalApplication(GOApplication):
             pass # The EVIL termio has killed my child!  Wait, that's good...
                     # Because now I don't have to worry about it!
         finally:
-            del SESSIONS[self.ws.session]['locations'][self.ws.location][term]
+            del self.loc_terms[term]
         self.trigger("terminal:kill_terminal", term)
 
     @require(authenticated())
@@ -1193,8 +1164,7 @@ class TerminalApplication(GOApplication):
         tabs = u'\x1bH        ' * 22
         reset_sequence = (
             '\r\x1b[3g        %sr\x1bc\x1b[!p\x1b[?3;4l\x1b[4l\x1b>\r' % tabs)
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-        multiplex = loc[term]['multiplex']
+        multiplex = self.loc_terms[term]['multiplex']
         multiplex.term.write(reset_sequence)
         multiplex.write(u'\x0c') # ctrl-l
         self.full_refresh(term)
@@ -1206,7 +1176,7 @@ class TerminalApplication(GOApplication):
         Sends a message to the client telling it to set the window title of
         *term* to whatever comes out of::
 
-            SESSIONS[self.ws.session]['locations'][self.ws.location][term]['multiplex'].term.get_title() # Whew! Say that three times fast!
+            self.loc_terms[term]['multiplex'].term.get_title() # Whew! Say that three times fast!
 
         Example message::
 
@@ -1218,8 +1188,7 @@ class TerminalApplication(GOApplication):
         .. note:: Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.
         """
         logging.debug("set_title(%s, %s)" % (term, force))
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-        term_obj = loc[term]
+        term_obj = self.loc_terms[term]
         if term_obj['manual_title']:
             if force:
                 title = term_obj['title']
@@ -1244,8 +1213,7 @@ class TerminalApplication(GOApplication):
         logging.debug("manual_title: %s" % settings)
         term = int(settings['term'])
         title = settings['title']
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-        term_obj = loc[term]
+        term_obj = self.loc_terms[term]
         if not title:
             title = term_obj['multiplex'].term.get_title()
             term_obj['manual_title'] = False
@@ -1285,8 +1253,7 @@ class TerminalApplication(GOApplication):
         logging.debug(
             "mode_handler() term: %s, setting: %s, boolean: %s" %
             (term, setting, boolean))
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-        term_obj = loc[term]
+        term_obj = self.loc_terms[term]
         if setting in ['1']: # Only support this mode right now
             # So we can restore it:
             term_obj['application_mode'] = boolean
@@ -1316,14 +1283,12 @@ class TerminalApplication(GOApplication):
 
         .. note:: This also handles the CSI DSR sequence.
         """
-        m = SESSIONS[self.ws.session]['locations'][
-            self.ws.location][term]['multiplex']
+        m = self.loc_terms[term]['multiplex']
         m.write(response)
 
     def _send_refresh(self, term, full=False):
         """Sends a screen update to the client."""
-        term_obj = SESSIONS[self.ws.session]['locations'][
-            self.ws.location][term]
+        term_obj = self.loc_terms[term]
         try:
             term_obj['last_activity'] = datetime.now()
         except KeyError:
@@ -1371,8 +1336,7 @@ class TerminalApplication(GOApplication):
             term = int(term)
         else:
             return # This just prevents an exception when the cookie is invalid
-        term_obj = SESSIONS[self.ws.session]['locations'][
-            self.ws.location][term]
+        term_obj = self.loc_terms[term]
         try:
             msec = timedelta(milliseconds=50) # Keeps things smooth
             # In testing, 150 milliseconds was about as low as I could go and
@@ -1445,8 +1409,7 @@ class TerminalApplication(GOApplication):
         # If the user already has a running session, set the new terminal size:
         try:
             if term:
-                loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-                m = loc[term]['multiplex']
+                m = self.loc_terms[term]['multiplex']
                 m.resize(
                     self.rows,
                     self.cols,
@@ -1454,9 +1417,9 @@ class TerminalApplication(GOApplication):
                     ctrl_l=ctrl_l
                 )
             else: # Resize them all
-                for term in list(loc.keys()):
+                for term in list(self.loc_terms.keys()):
                     if isinstance(term, int): # Skip the TidyThread
-                        loc[term]['multiplex'].resize(
+                        self.loc_terms[term]['multiplex'].resize(
                             self.rows,
                             self.cols,
                             self.em_dimensions
@@ -1475,9 +1438,8 @@ class TerminalApplication(GOApplication):
         if not term:
             term = self.current_term
         term = int(term) # Just in case it was sent as a string
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-        if self.ws.session in SESSIONS and term in loc:
-            multiplex = loc[term]['multiplex']
+        if self.ws.session in SESSIONS and term in self.loc_terms:
+            multiplex = self.loc_terms[term]['multiplex']
             if multiplex.isalive():
                 multiplex.write(chars)
                 # Handle (gracefully) the situation where a capture is stopped
@@ -1650,8 +1612,7 @@ class TerminalApplication(GOApplication):
         shared_terms = self.ws.persist['terminal']['shared']
         print("shared:")
         pprint(self.ws.persist['terminal']['shared'])
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-        term_obj = loc[term]
+        term_obj = self.loc_terms[term]
         read = settings.get('read', 'ANONYMOUS') # List of who to share with
         write = settings.get('write', list()) # List of who can write
         # "broadcast" mode allows anonymous access without a password
@@ -1712,8 +1673,7 @@ class TerminalApplication(GOApplication):
         Stops sharing the given *term*.
         """
         out_dict = {'result': 'Success'}
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-        term_obj = loc[term]
+        term_obj = self.loc_terms[term]
         shared_terms = self.ws.persist['terminal']['shared']
         for share_id, share_dict in shared_terms.items():
             if share_dict['term_obj'] == term_obj:
@@ -1740,8 +1700,7 @@ class TerminalApplication(GOApplication):
         """
         out_dict = {'result': 'Success'}
         term = settings['term']
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
-        term_obj = loc[term]
+        term_obj = self.loc_terms[term]
         shared_terms = self.ws.persist['terminal']['shared']
         for share_id, share_dict in shared_terms.items():
             if share_dict['term_obj'] == term_obj:
@@ -1794,7 +1753,6 @@ class TerminalApplication(GOApplication):
             GateOne.ws.send(JSON.stringify({"terminal:attach_shared_terminal": settings}));
         """
         logging.debug("attach_shared_terminal(%s)" % settings)
-        loc = SESSIONS[self.ws.session]['locations'][self.ws.location]
         shared_terms = self.ws.persist['terminal']['shared']
         if 'share_id' not in settings:
             logging.error(_("Invalid share_id."))
@@ -1815,7 +1773,7 @@ class TerminalApplication(GOApplication):
         term = self.highest_term_num() + 1
         term_obj = share_obj['term_obj']
         # Add this terminal to our existing SESSION
-        loc[term] = term_obj
+        self.loc_terms[term] = term_obj
         # We're basically making a new terminal for this client that happens to
         # be read-only (starts that way anyway).
         multiplex = term_obj['multiplex']
@@ -1863,8 +1821,7 @@ class TerminalApplication(GOApplication):
 
             GateOne.ws.send(JSON.stringify({'terminal:debug_terminal': *term*}));
         """
-        m = SESSIONS[self.ws.session]['locations'][
-            self.ws.location][term]['multiplex']
+        m = self.loc_terms[term]['multiplex']
         term_obj = m.term
         screen = term_obj.screen
         renditions = term_obj.renditions
@@ -1976,16 +1933,6 @@ def init(settings):
                 "update your settings to use '/.ssh/known_hosts' instead of "
                 "'/ssh/known_hosts'.  Applying a termporary fix..."))
             term_settings['commands'][name] = command.replace('/ssh/', '/.ssh/')
-    # Make sure that old logs get cleaned up
-    global CLEANER
-    if not CLEANER:
-        try: # Optional override (not set by default due to obscurity/niche)
-            interval = term_settings['session_logs_cleanup_interval']
-        except KeyError:
-            interval = 5*60*1000 # Check every 5 minutes
-        max_age = convert_to_timedelta(term_settings['session_logs_max_age'])
-        CLEANER = tornado.ioloop.PeriodicCallback(cleanup_session_logs,interval)
-        CLEANER.start()
 
 # Tell Gate One which classes are applications
 apps = [TerminalApplication]

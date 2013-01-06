@@ -454,6 +454,8 @@ def gen_self_signed_openssl(path=None):
         "-out %s"               # Save it as certificate.pem
     )
     cert_command = cert_command % (keyfile_path, certfile_path)
+    logging.debug(_(
+        "Generating private key with command: %s" % gen_command))
     exitstatus, output = shell_command(gen_command, 30)
     if exitstatus != 0:
         error_msg = _(
@@ -461,6 +463,8 @@ def gen_self_signed_openssl(path=None):
         if os.path.exists('%s.tmp' % keyfile_path):
             os.remove('%s.tmp' % keyfile_path)
         raise SSLGenerationError(error_msg)
+    logging.debug(_(
+        "Decrypting private key with command: %s" % decrypt_key_command))
     exitstatus, output = shell_command(decrypt_key_command, 30)
     if exitstatus != 0:
         error_msg = _(
@@ -468,6 +472,8 @@ def gen_self_signed_openssl(path=None):
         if os.path.exists('%s.tmp' % keyfile_path):
             os.remove('%s.tmp' % keyfile_path)
         raise SSLGenerationError(error_msg)
+    logging.debug(_(
+        "Creating CSR with command: %s" % csr_command))
     exitstatus, output = shell_command(csr_command, 30)
     if exitstatus != 0:
         error_msg = _(
@@ -477,6 +483,8 @@ def gen_self_signed_openssl(path=None):
         if os.path.exists('temp.csr'):
             os.remove('temp.csr')
         raise SSLGenerationError(error_msg)
+    logging.debug(_(
+        "Generating self-signed certificate with command: %s" % gen_command))
     exitstatus, output = shell_command(cert_command, 30)
     if exitstatus != 0:
         error_msg = _(

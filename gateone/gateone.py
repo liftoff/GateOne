@@ -314,6 +314,7 @@ TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
 # SESSION_WATCHER be replaced with a tornado.ioloop.PeriodicCallback that watches for
 # sessions that have timed out and takes care of cleaning them up.
 SESSION_WATCHER = None
+CLEANER = None # Log cleaner PeriodicCallback
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_CACHE = {}
 # PERSIST is a generic place for applications and plugins to store stuff in a
@@ -639,6 +640,50 @@ def require_auth(method):
             self.close() # Close the WebSocket
         return method(self, *args, **kwargs)
     return wrapper
+
+def cleanup_user_logs():
+    """
+    Cleans up all user logs (everything in the user's 'logs' directory and
+    subdirectories that ends in 'log') older than the `user_logs_max_age`
+    setting.  The log directory is assumed to be:
+
+        *user_dir*/<user>/logs
+
+    ...where *user_dir* is whatever Gate One happens to have configured for
+    that particular setting.
+    """
+    logging.debug("cleanup_session_logs()")
+    settings = get_settings(os.path.join(GATEONE_DIR, 'settings'))
+    user_dir = settings['*']['gateone']['user_dir']
+    default = "30d"
+    max_age_str = settings['*']['gateone'].get('user_logs_max_age', default)
+    max_age = convert_to_timedelta(max_age_str)
+    def descend(path):
+        """
+        Descends *path* removing logs it finds older than `max_age` and calls
+        :func:`descend` on any directories.
+        """
+        for fname in os.listdir(path):
+            log_path = os.path.join(path, fname)
+            if os.path.isdir(log_path):
+                descend(log_path)
+                continue
+            if not log_path.endswith('log'):
+                continue
+            mtime = time.localtime(os.stat(log_path).st_mtime)
+            # Convert to a datetime object for easier comparison
+            mtime = datetime.fromtimestamp(time.mktime(mtime))
+            if datetime.now() - mtime > max_age:
+                # The log is older than max_age, remove it
+                logging.info(_("Removing log due to age (>%s old): %s" % (
+                    max_age_str, log_path)))
+                os.remove(log_path)
+    for user in os.listdir(user_dir):
+        logs_path = os.path.abspath(os.path.join(user_dir, user, 'logs'))
+        if not os.path.exists(logs_path):
+            # Nothing to do
+            continue
+        descend(logs_path)
 
 def policy_send_user_message(cls, policy):
     """
@@ -1076,7 +1121,7 @@ class ApplicationWebSocket(WebSocketHandler):
 
     @classmethod
     def file_checker(cls):
-        logging.debug("file_checker()")
+        #logging.debug("file_checker()") # Kinda noisy so I've commented it out
         if not SESSIONS:
             # No connected sessions; no point in watching files
             cls.file_checker.stop()
@@ -1643,6 +1688,7 @@ class ApplicationWebSocket(WebSocketHandler):
             self.container = settings['container']
         if 'prefix' in settings:
             self.prefix = settings['prefix']
+        # Locations are used to differentiate between different tabs/windows
         self.location = 'default'
         if 'location' in settings:
             self.location = settings['location']
@@ -1662,6 +1708,8 @@ class ApplicationWebSocket(WebSocketHandler):
             SESSIONS[self.session]['last_seen'] = 'connected'
             if self.location not in SESSIONS[self.session]['locations']:
                 SESSIONS[self.session]['locations'][self.location] = {}
+        # A shortcut for SESSIONS[self.session]['locations']:
+        self.locations = SESSIONS[self.session]['locations']
         # Send our plugin .js and .css files to the client
         self.send_static_files(os.path.join(GATEONE_DIR, 'plugins'))
         # Call applications' authenticate() functions (if any)
@@ -1679,6 +1727,17 @@ class ApplicationWebSocket(WebSocketHandler):
             SESSION_WATCHER = tornado.ioloop.PeriodicCallback(
                 timeout_sessions, interval)
             SESSION_WATCHER.start()
+        # Startup the log cleaner so that old user logs get cleaned up
+        global CLEANER
+        if not CLEANER:
+            default_interval = 5*60*1000 # 5 minutes
+            # NOTE: This interval isn't in the settings by default because it is
+            # kind of obscure.  No reason to clutter things up.
+            interval = self.prefs['*']['gateone'].get(
+                'user_logs_cleanup_interval', default_interval)
+            CLEANER = tornado.ioloop.PeriodicCallback(
+                cleanup_user_logs, interval)
+            CLEANER.start()
         # Startup the file watcher if it isn't already running and get it
         # watching the broadcast file.
         cls = ApplicationWebSocket
@@ -1941,6 +2000,8 @@ class ApplicationWebSocket(WebSocketHandler):
         logging.debug('send_static_files(%s)' % plugins_dir)
         # Build a list of plugins
         plugins = []
+        if not os.path.exists(plugins_dir):
+            return # Nothing to do
         for f in os.listdir(plugins_dir):
             if os.path.isdir(os.path.join(plugins_dir, f)):
                 plugins.append(f)
@@ -2357,6 +2418,13 @@ def define_options():
         type=basestring
     )
     define(
+        "user_logs_max_age",
+        default="30d",
+        help=_("Maximum amount of length of time to keep any given user log "
+                "before it is removed."),
+        type=basestring
+    )
+    define(
         "session_dir",
         default="/tmp/gateone",
         help=_(
@@ -2625,6 +2693,9 @@ def main():
                         if 'ssh_connect.py' in value:
                             value = value.replace(
                                 '/plugins/', '/applications/terminal/plugins/')
+                    if key == 'session_logs_max_age':
+                        # This is now user_logs_max_age.  Put it in 'gateone'
+                        settings.update({'user_logs_max_age': value})
                     terminal_settings.update({key: value})
                 elif key in authentication_options:
                     auth_settings.update({key: value})
