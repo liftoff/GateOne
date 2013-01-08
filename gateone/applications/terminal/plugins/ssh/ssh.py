@@ -26,7 +26,10 @@ This Python plugin file implements the following hooks::
             'ssh_set_default_identities': set_default_identities
         },
         'Escape': opt_esc_handler,
-        'Auth': create_user_ssh_dir
+        'Events': {
+            'terminal:authenticate': send_css_template,
+            'terminal:authenticate': create_user_ssh_dir
+        }
     }
 
 Docstrings
@@ -34,9 +37,9 @@ Docstrings
 """
 
 # Meta
-__version__ = '1.0'
+__version__ = '1.1'
+__version_info__ = (1, 1)
 __license__ = "GNU AGPLv3 or Proprietary (see LICENSE.txt)"
-__version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
@@ -1049,13 +1052,14 @@ def opt_esc_handler(self, text):
     message = {'sshjs_connect': text}
     self.write_message(message)
 
-def create_user_ssh_dir(self, current_user, settings):
+def create_user_ssh_dir(self):
     """
     To be called by the 'Auth' hook that gets called after the user is done
     authenticating, ensures that the `<user's dir>/ssh` directory exists.
     """
-    user = current_user['upn']
-    users_dir = os.path.join(settings['user_dir'], user) # "User's dir"
+    logging.debug("create_user_ssh_dir()")
+    user = self.current_user['upn']
+    users_dir = os.path.join(self.ws.settings['user_dir'], user) # "User's dir"
     ssh_dir = os.path.join(users_dir, '.ssh')
     try:
         mkdir_p(ssh_dir)
@@ -1068,30 +1072,8 @@ def send_css_template(self):
     WebSocket action.  The rendered template will be saved in Gate One's
     'cache_dir'.
     """
-    cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
     css_path = os.path.join(PLUGIN_PATH, 'templates', 'ssh.css')
-    mtime = os.stat(css_path).st_mtime
-    rendered_filename = 'rendered_ssh_css_%s' % int(mtime)
-    rendered_path = os.path.join(cache_dir, rendered_filename)
-    if rendered_filename in os.listdir(cache_dir):
-        self.ws.send_css(rendered_path)
-        return
-    with open(css_path) as f:
-        css_template = tornado.template.Template(f.read())
-    rendered = css_template.generate(
-        container=self.ws.container,
-        prefix=self.ws.prefix
-    )
-    with open(rendered_path, 'w') as f:
-        f.write(rendered)
-    self.ws.send_css(rendered_path)
-    # Remove older versions of the rendered template if present
-    for fname in os.listdir(cache_dir):
-        if fname == rendered_filename:
-            continue
-        elif 'rendered_ssh_css' in fname:
-            # Older version present.  Remove it (and it's minified counterpart).
-            os.remove(os.path.join(cache_dir, fname))
+    self.ws.render_and_send_css(css_path)
 
 def initialize(self):
     """
@@ -1115,9 +1097,9 @@ hooks = {
         'ssh_set_default_identities': set_default_identities
     },
     'Escape': opt_esc_handler,
-    'Auth': create_user_ssh_dir,
     'Events': {
-        'terminal:authenticate': send_css_template
+        'terminal:authenticate': send_css_template,
+        'terminal:authenticate': create_user_ssh_dir
     }
 }
 

@@ -361,272 +361,6 @@ locale_dir = os.path.join(GATEONE_DIR, 'i18n')
 locale.load_gettext_translations(locale_dir, 'gateone')
 # NOTE: The locale gets set in __main__
 
-# A HUGE thank you to Micah Elliott (http://MicahElliott.com) for posting these
-# values here: https://gist.github.com/719710
-# This gets used by StyleHandler to generate the CSS that supports 256-colors:
-COLORS_256 = {
-    # 8-color equivalents:
-     0: "000000",
-     1: "800000",
-     2: "008000",
-     3: "808000",
-     4: "000080",
-     5: "800080",
-     6: "008080",
-     7: "c0c0c0",
-    # "Bright" (16-color) equivalents:
-     8: "808080",
-     9: "ff0000",
-    10: "00ff00",
-    11: "ffff00",
-    12: "0000ff",
-    13: "ff00ff",
-    14: "00ffff",
-    15: "ffffff",
-    # The rest of the 256-colors:
-    16: "000000",
-    17: "00005f",
-    18: "000087",
-    19: "0000af",
-    20: "0000d7",
-    21: "0000ff",
-    22: "005f00",
-    23: "005f5f",
-    24: "005f87",
-    25: "005faf",
-    26: "005fd7",
-    27: "005fff",
-    28: "008700",
-    29: "00875f",
-    30: "008787",
-    31: "0087af",
-    32: "0087d7",
-    33: "0087ff",
-    34: "00af00",
-    35: "00af5f",
-    36: "00af87",
-    37: "00afaf",
-    38: "00afd7",
-    39: "00afff",
-    40: "00d700",
-    41: "00d75f",
-    42: "00d787",
-    43: "00d7af",
-    44: "00d7d7",
-    45: "00d7ff",
-    46: "00ff00",
-    47: "00ff5f",
-    48: "00ff87",
-    49: "00ffaf",
-    50: "00ffd7",
-    51: "00ffff",
-    52: "5f0000",
-    53: "5f005f",
-    54: "5f0087",
-    55: "5f00af",
-    56: "5f00d7",
-    57: "5f00ff",
-    58: "5f5f00",
-    59: "5f5f5f",
-    60: "5f5f87",
-    61: "5f5faf",
-    62: "5f5fd7",
-    63: "5f5fff",
-    64: "5f8700",
-    65: "5f875f",
-    66: "5f8787",
-    67: "5f87af",
-    68: "5f87d7",
-    69: "5f87ff",
-    70: "5faf00",
-    71: "5faf5f",
-    72: "5faf87",
-    73: "5fafaf",
-    74: "5fafd7",
-    75: "5fafff",
-    76: "5fd700",
-    77: "5fd75f",
-    78: "5fd787",
-    79: "5fd7af",
-    80: "5fd7d7",
-    81: "5fd7ff",
-    82: "5fff00",
-    83: "5fff5f",
-    84: "5fff87",
-    85: "5fffaf",
-    86: "5fffd7",
-    87: "5fffff",
-    88: "870000",
-    89: "87005f",
-    90: "870087",
-    91: "8700af",
-    92: "8700d7",
-    93: "8700ff",
-    94: "875f00",
-    95: "875f5f",
-    96: "875f87",
-    97: "875faf",
-    98: "875fd7",
-    99: "875fff",
-    100: "878700",
-    101: "87875f",
-    102: "878787",
-    103: "8787af",
-    104: "8787d7",
-    105: "8787ff",
-    106: "87af00",
-    107: "87af5f",
-    108: "87af87",
-    109: "87afaf",
-    110: "87afd7",
-    111: "87afff",
-    112: "87d700",
-    113: "87d75f",
-    114: "87d787",
-    115: "87d7af",
-    116: "87d7d7",
-    117: "87d7ff",
-    118: "87ff00",
-    119: "87ff5f",
-    120: "87ff87",
-    121: "87ffaf",
-    122: "87ffd7",
-    123: "87ffff",
-    124: "af0000",
-    125: "af005f",
-    126: "af0087",
-    127: "af00af",
-    128: "af00d7",
-    129: "af00ff",
-    130: "af5f00",
-    131: "af5f5f",
-    132: "af5f87",
-    133: "af5faf",
-    134: "af5fd7",
-    135: "af5fff",
-    136: "af8700",
-    137: "af875f",
-    138: "af8787",
-    139: "af87af",
-    140: "af87d7",
-    141: "af87ff",
-    142: "afaf00",
-    143: "afaf5f",
-    144: "afaf87",
-    145: "afafaf",
-    146: "afafd7",
-    147: "afafff",
-    148: "afd700",
-    149: "afd75f",
-    150: "afd787",
-    151: "afd7af",
-    152: "afd7d7",
-    153: "afd7ff",
-    154: "afff00",
-    155: "afff5f",
-    156: "afff87",
-    157: "afffaf",
-    158: "afffd7",
-    159: "afffff",
-    160: "d70000",
-    161: "d7005f",
-    162: "d70087",
-    163: "d700af",
-    164: "d700d7",
-    165: "d700ff",
-    166: "d75f00",
-    167: "d75f5f",
-    168: "d75f87",
-    169: "d75faf",
-    170: "d75fd7",
-    171: "d75fff",
-    172: "d78700",
-    173: "d7875f",
-    174: "d78787",
-    175: "d787af",
-    176: "d787d7",
-    177: "d787ff",
-    178: "d7af00",
-    179: "d7af5f",
-    180: "d7af87",
-    181: "d7afaf",
-    182: "d7afd7",
-    183: "d7afff",
-    184: "d7d700",
-    185: "d7d75f",
-    186: "d7d787",
-    187: "d7d7af",
-    188: "d7d7d7",
-    189: "d7d7ff",
-    190: "d7ff00",
-    191: "d7ff5f",
-    192: "d7ff87",
-    193: "d7ffaf",
-    194: "d7ffd7",
-    195: "d7ffff",
-    196: "ff0000",
-    197: "ff005f",
-    198: "ff0087",
-    199: "ff00af",
-    200: "ff00d7",
-    201: "ff00ff",
-    202: "ff5f00",
-    203: "ff5f5f",
-    204: "ff5f87",
-    205: "ff5faf",
-    206: "ff5fd7",
-    207: "ff5fff",
-    208: "ff8700",
-    209: "ff875f",
-    210: "ff8787",
-    211: "ff87af",
-    212: "ff87d7",
-    213: "ff87ff",
-    214: "ffaf00",
-    215: "ffaf5f",
-    216: "ffaf87",
-    217: "ffafaf",
-    218: "ffafd7",
-    219: "ffafff",
-    220: "ffd700",
-    221: "ffd75f",
-    222: "ffd787",
-    223: "ffd7af",
-    224: "ffd7d7",
-    225: "ffd7ff",
-    226: "ffff00",
-    227: "ffff5f",
-    228: "ffff87",
-    229: "ffffaf",
-    230: "ffffd7",
-    231: "ffffff",
-    # Grayscale:
-    232: "080808",
-    233: "121212",
-    234: "1c1c1c",
-    235: "262626",
-    236: "303030",
-    237: "3a3a3a",
-    238: "444444",
-    239: "4e4e4e",
-    240: "585858",
-    241: "626262",
-    242: "6c6c6c",
-    243: "767676",
-    244: "808080",
-    245: "8a8a8a",
-    246: "949494",
-    247: "9e9e9e",
-    248: "a8a8a8",
-    249: "b2b2b2",
-    250: "bcbcbc",
-    251: "c6c6c6",
-    252: "d0d0d0",
-    253: "dadada",
-    254: "e4e4e4",
-    255: "eeeeee"
-}
-
 # Helper functions
 def require_auth(method):
     """
@@ -708,7 +442,8 @@ def policy_broadcast(cls, policy):
     """
     Called by :func:`gateone_policies`, returns True if the user is
     authorized to broadcast messages using the
-    :meth:`ApplicationWebSocket.broadcast` method.
+    :meth:`ApplicationWebSocket.broadcast` method.  It makes this determination
+    by checking the `['gateone']['send_broadcasts']` policy.
     """
     cls.error = _("You do not have permission to broadcast messages.")
     return policy.get('send_broadcasts', True)
@@ -1349,6 +1084,11 @@ class ApplicationWebSocket(WebSocketHandler):
             import tempfile
             cache_dir = os.path.join(tempfile.gettempdir(), 'gateone_cache')
             cls.prefs['*']['gateone']['cache_dir'] = cache_dir
+            if self.settings['debug']:
+                # Clean out the cache_dir every page reload when in debug mode
+                for fname in os.listdir(cache_dir):
+                    filepath = os.path.join(cache_dir, fname)
+                    os.remove(filepath)
         for app in self.apps: # Call applications' open() functions (if any)
             if hasattr(app, 'open'):
                 app.open()
@@ -1711,7 +1451,7 @@ class ApplicationWebSocket(WebSocketHandler):
         # A shortcut for SESSIONS[self.session]['locations']:
         self.locations = SESSIONS[self.session]['locations']
         # Send our plugin .js and .css files to the client
-        self.send_static_files(os.path.join(GATEONE_DIR, 'plugins'))
+        self.send_plugin_static_files(os.path.join(GATEONE_DIR, 'plugins'))
         # Call applications' authenticate() functions (if any)
         for app in self.apps:
             if hasattr(app, 'authenticate'):
@@ -1755,7 +1495,7 @@ class ApplicationWebSocket(WebSocketHandler):
                 cls.file_checker, check_time, io_loop=io_loop)
             cls.file_watcher.start()
 
-# TODO: Make this more generic so it can load stylesheets for anything.
+# TODO: Make this cache/minify like send_js_or_css()
     def get_style(self, settings):
         """
         Sends the CSS stylesheets matching the properties specified in
@@ -1794,29 +1534,75 @@ class ApplicationWebSocket(WebSocketHandler):
         _print = None
         if 'print' in settings:
             _print = settings["print"]
-        # Setup our 256-color support CSS:
-        colors_256 = ""
-        for i in xrange(256):
-            fg = "#%s span.fx%s {color: #%s;}" % (
-                container, i, COLORS_256[i])
-            bg = "#%s span.bx%s {background-color: #%s;} " % (
-                container, i, COLORS_256[i])
-            fg_rev = "#%s span.reverse.fx%s {background-color: #%s; color: inherit;}" % (
-                container, i, COLORS_256[i])
-            bg_rev = "#%s span.reverse.bx%s {color: #%s; background-color: inherit;} " % (
-                container, i, COLORS_256[i])
-            colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
-        colors_256 += "\n"
         if theme:
-            theme_path = os.path.join(themes_path, "%s.css" % theme)
+            theme_filename = "%s.css" % theme
+            theme_path = os.path.join(themes_path, theme_filename)
             theme_css = self.render_string(
                 theme_path,
                 container=container,
                 prefix=prefix,
-                colors_256=colors_256,
                 url_prefix=go_url
             )
+            if bytes != str: # Python 3
+                theme_css = str(theme_css, 'UTF-8')
             out_dict['theme'] = theme_css
+            # Now enumerate all applications/plugins looking for their own
+            # implementations of this theme (must have same name).
+            theme_paths = []
+            plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
+            # Find plugin's theme-specific CSS files
+            for plugin in os.listdir(plugins_dir):
+                plugin_dir = os.path.join(plugins_dir, plugin)
+                themes_dir = os.path.join(plugin_dir, 'templates', 'themes')
+                theme_css_file = os.path.join(themes_dir, theme_filename)
+                if not os.path.exists(theme_css_file):
+                    # Try falling back to the 'black.css' theme
+                    theme_css_file = os.path.join(themes_dir, 'black.css')
+                if os.path.exists(theme_css_file):
+                    plugin_theme_css = self.render_string(
+                        theme_css_file,
+                        container=container,
+                        prefix=prefix,
+                        url_prefix=go_url
+                    )
+                    out_dict['theme'] += '\n' + plugin_theme_css
+            # Find application's theme-specific CSS files
+            applications_dir = os.path.join(GATEONE_DIR, 'applications')
+            for app in os.listdir(applications_dir):
+                app_dir = os.path.join(applications_dir, app)
+                themes_dir = os.path.join(app_dir, 'templates', 'themes')
+                theme_css_file = os.path.join(themes_dir, theme_filename)
+                if not os.path.exists(theme_css_file):
+                    # Try falling back to the 'black.css' theme
+                    theme_css_file = os.path.join(themes_dir, 'black.css')
+                if os.path.exists(theme_css_file):
+                    app_theme_css = self.render_string(
+                        theme_css_file,
+                        container=container,
+                        prefix=prefix,
+                        url_prefix=go_url
+                    )
+                    out_dict['theme'] += '\n' + app_theme_css
+                # Find application plugin's theme-specific CSS files
+                plugins_dir = os.path.join(app_dir, 'plugins')
+                if not os.path.exists(plugins_dir):
+                    continue
+                for plugin in os.listdir(plugins_dir):
+                    plugin_dir = os.path.join(plugins_dir, plugin)
+                    themes_dir = os.path.join(plugin_dir, 'templates', 'themes')
+                    theme_css_file = os.path.join(themes_dir, theme_filename)
+                    if not os.path.exists(theme_css_file):
+                        # Try falling back to the 'black.css' theme
+                        theme_css_file = os.path.join(themes_dir, 'black.css')
+                    if os.path.exists(theme_css_file):
+                        plugin_theme_css = self.render_string(
+                            theme_css_file,
+                            container=container,
+                            prefix=prefix,
+                            url_prefix=go_url
+                        )
+                        out_dict['theme'] += '\n' + plugin_theme_css
+        # TODO: Move text color themes into the terminal application
         if colors:
             color_path = os.path.join(colors_path, "%s.css" % colors)
             colors_css = self.render_string(
@@ -1857,7 +1643,6 @@ class ApplicationWebSocket(WebSocketHandler):
                 print_css_path,
                 container=container,
                 prefix=prefix,
-                colors_256=colors_256,
                 url_prefix=go_url
             )
             out_dict['print'] = print_css
@@ -1903,6 +1688,38 @@ class ApplicationWebSocket(WebSocketHandler):
                 out_dict['data'] = f.read()
         message = {'load_js': out_dict}
         self.write_message(message)
+
+# NOTE:  This is a work in progress...  May be on hold for a while
+    #def send_cache_request(self, path_or_fileobj, kind):
+        #"""
+        #Asks the client to use the cached copy of the given file at
+        #*path_or_fileobj* by sending it the filename and it's modification time.
+        #If the modification time does not match what's in the client's cache the
+        #client is expected to send a request for the full file using the
+        #'load_style' or 'load_js' WebSocket actions.
+        #"""
+        #if isinstance(path_or_fileobj, basestring):
+            #path = path_or_fileobj
+            #filename = os.path.split(path)[1]
+            #mtime = os.stat(path).st_mtime
+        #else:
+            #path_or_fileobj.seek(0) # Just in case
+            #path = path_or_fileobj.name
+            #filename = os.path.split(path_or_fileobj.name)[1]
+            #mtime = os.stat(path_or_fileobj.name).st_mtime
+        #logging.debug('send_js_or_css(%s)' % path)
+        ## Use a hash of the full file path as the identifier at the client
+        ## (they don't need to know our filesystem layout).
+        #from utils import short_hash
+        #client_filename = short_hash(path)
+        #if not os.path.exists(path):
+            #logging.error(_("send_cache_request(): File not found: %s" % path))
+            #return
+        #out_dict = {
+            #'filename': client_filename,
+            #'mtime' = mtime
+        #}
+        #message = {'go:try_cached_file', out_dict}
 
     def send_js_or_css(self, path_or_fileobj, kind):
         """
@@ -1992,12 +1809,53 @@ class ApplicationWebSocket(WebSocketHandler):
         """
         self.send_js_or_css(path, 'css')
 
-    def send_static_files(self, plugins_dir):
+    def render_and_send_css(self, css_path, **kwargs):
+        """
+        Renders, caches (in the `cache_dir`), and sends a stylesheet template at
+        the given *css_path*.  The template will be rendered with the following
+        keyword arguments::
+
+            container = self.container
+            prefix = self.prefix
+            url_prefix = self.settings['url_prefix']
+            **kwargs
+
+        Returns the path to the rendered template.
+        """
+        cache_dir = self.prefs['*']['gateone']['cache_dir']
+        mtime = os.stat(css_path).st_mtime
+        safe_path = css_path.replace('/', '_') # So we can name the file safely
+        rendered_filename = 'rendered_%s_%s' % (safe_path, int(mtime))
+        rendered_path = os.path.join(cache_dir, rendered_filename)
+        if os.path.exists(rendered_path):
+            self.send_css(rendered_path)
+            return
+        with open(css_path) as f:
+            css_template = tornado.template.Template(f.read())
+        rendered = self.render_string(
+            css_path,
+            container=self.container,
+            prefix=self.prefix,
+            url_prefix=self.settings['url_prefix']
+        )
+        with open(rendered_path, 'w') as f:
+            f.write(rendered)
+        self.send_css(rendered_path)
+        # Remove older versions of the rendered template if present
+        for fname in os.listdir(cache_dir):
+            if fname == rendered_filename:
+                continue
+            elif 'rendered_ssh_css' in fname:
+                # Older version present.  Remove it (and it's minified counterpart).
+                os.remove(os.path.join(cache_dir, fname))
+        return rendered_path
+
+    def send_plugin_static_files(self, plugins_dir):
         """
         Sends all plugin .js and .css files to the client that exist inside
         *plugins_dir*.
         """
-        logging.debug('send_static_files(%s)' % plugins_dir)
+        logging.debug('send_plugin_static_files(%s)' % plugins_dir)
         # Build a list of plugins
         plugins = []
         if not os.path.exists(plugins_dir):
@@ -2056,45 +1914,60 @@ class ApplicationWebSocket(WebSocketHandler):
             return
         self.send_message(settings['message'], upn=settings['upn'])
 
-    def send_message(self, message, upn=None):
+    def send_message(self, message, upn=None, session=None):
         """
         Sends the given *message* to the client using the 'notice' WebSocket
         action at the currently-connected client.
 
-        If *upn* is provided, the message will be sent to all users with a
+        If *upn* is provided the *message* will be sent to all users with a
         matching 'upn' value.
+
+        If *session* is provided the message will be sent to all users with a
+        matching session ID.  This is useful in situations where all users share
+        the same 'upn' (i.e. ANONYMOUS).
 
         if *upn* is 'AUTHENTICATED' all users will get the message.
         """
         message_dict = {'notice': message}
         if upn:
             ApplicationWebSocket._deliver(message_dict, upn=upn)
-        else:
+        elif session:
+            ApplicationWebSocket._deliver(message_dict, session=session)
+        else: # Just send to the currently-connected client
             self.write_message(message_dict)
 
     @require(authenticated(), policies('gateone'))
     def broadcast(self, message):
         """
         Sends the given *message* (string) to all connected, authenticated
-        users using the :meth:`ApplicationWebSocket._broadcast` classmethod.
+        users.
         """
         logging.info("Broadcast: %s" % message)
         self.send_message(message, upn="AUTHENTICATED")
 
     @classmethod
-    def _deliver(cls, message, upn="AUTHENTICATED"):
+    def _deliver(cls, message, upn="AUTHENTICATED", session=None):
         """
         Writes the given *message* (string) to all users matching *upn* using
         the write_message() function.  If *upn* is not provided or is
         "AUTHENTICATED", will send the *message* to all users.
+
+        Alternatively a *session* ID may be specified instead of a *upn*.  This
+        is useful when more than one user shares a UPN (i.e. ANONYMOUS).
         """
-        logging.debug("_deliver(%s, upn=%s)" % (message, upn))
+        logging.debug("_deliver(%s, upn=%s, session=%s)" %
+            (message, upn, session))
         for instance in cls.instances:
-            try:
+            try: # Only send to users that have authenticated
                 user = instance.current_user
             except AttributeError:
                 continue
-            instance.write_message(message)
+            if session and user['session'] == session:
+                instance.write_message(message)
+            elif upn == "AUTHENTICATED":
+                instance.write_message(message)
+            elif upn == user['upn']:
+                instance.write_message(message)
 
 class ErrorHandler(tornado.web.RequestHandler):
     """

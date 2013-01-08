@@ -168,6 +168,13 @@ for plugin in relocate_plugins:
             print("Error moving %s to %s.  You'll have to DIY." % (
                 old_plugin_loc, new_plugin_loc))
 
+# NOTE:  Eventually this logic will go away too.
+# Remove the old go_process.js Web Worker file (it has been moved into terminal)
+old_webworker_loc = os.path.join(prefix, 'gateone', 'static', 'go_process.js')
+if os.path.exists(old_webworker_loc):
+    # Just keeping things tidy
+    os.remove(old_webworker_loc)
+
 setup(
     name = 'gateone',
     license = 'AGPLv3 or Proprietary',

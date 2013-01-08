@@ -673,30 +673,8 @@ def send_css_template(self):
     WebSocket action.  The rendered template will be saved in Gate One's
     'cache_dir'.
     """
-    cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
     css_path = os.path.join(PLUGIN_PATH, 'templates', 'logging.css')
-    mtime = os.stat(css_path).st_mtime
-    rendered_filename = 'rendered_logging_css_%s' % int(mtime)
-    rendered_path = os.path.join(cache_dir, rendered_filename)
-    if rendered_filename in os.listdir(cache_dir):
-        self.ws.send_css(rendered_path)
-        return
-    with open(css_path) as f:
-        css_template = tornado.template.Template(f.read())
-    rendered = css_template.generate(
-        container=self.ws.container,
-        prefix=self.ws.prefix
-    )
-    with open(rendered_path, 'w') as f:
-        f.write(rendered)
-    self.ws.send_css(rendered_path)
-    # Remove older versions of the rendered template if present
-    for fname in os.listdir(cache_dir):
-        if fname == rendered_filename:
-            continue
-        elif 'rendered_logging_css' in fname:
-            # Older version present.  Remove it (and it's minified counterpart).
-            os.remove(os.path.join(cache_dir, fname))
+    self.ws.render_and_send_css(css_path)
 
 hooks = {
     'WebSocket': {

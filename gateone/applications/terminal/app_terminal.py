@@ -43,271 +43,6 @@ SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
 # This is in case we have relative imports, templates, or whatever:
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 REGISTERED_HANDLERS = [] # So we don't accidentally re-add handlers
-# A HUGE thank you to Micah Elliott (http://MicahElliott.com) for posting these
-# values here: https://gist.github.com/719710
-# This gets used by StyleHandler to generate the CSS that supports 256-colors:
-COLORS_256 = {
-    # 8-color equivalents:
-     0: "000000",
-     1: "800000",
-     2: "008000",
-     3: "808000",
-     4: "000080",
-     5: "800080",
-     6: "008080",
-     7: "c0c0c0",
-    # "Bright" (16-color) equivalents:
-     8: "808080",
-     9: "ff0000",
-    10: "00ff00",
-    11: "ffff00",
-    12: "0000ff",
-    13: "ff00ff",
-    14: "00ffff",
-    15: "ffffff",
-    # The rest of the 256-colors:
-    16: "000000",
-    17: "00005f",
-    18: "000087",
-    19: "0000af",
-    20: "0000d7",
-    21: "0000ff",
-    22: "005f00",
-    23: "005f5f",
-    24: "005f87",
-    25: "005faf",
-    26: "005fd7",
-    27: "005fff",
-    28: "008700",
-    29: "00875f",
-    30: "008787",
-    31: "0087af",
-    32: "0087d7",
-    33: "0087ff",
-    34: "00af00",
-    35: "00af5f",
-    36: "00af87",
-    37: "00afaf",
-    38: "00afd7",
-    39: "00afff",
-    40: "00d700",
-    41: "00d75f",
-    42: "00d787",
-    43: "00d7af",
-    44: "00d7d7",
-    45: "00d7ff",
-    46: "00ff00",
-    47: "00ff5f",
-    48: "00ff87",
-    49: "00ffaf",
-    50: "00ffd7",
-    51: "00ffff",
-    52: "5f0000",
-    53: "5f005f",
-    54: "5f0087",
-    55: "5f00af",
-    56: "5f00d7",
-    57: "5f00ff",
-    58: "5f5f00",
-    59: "5f5f5f",
-    60: "5f5f87",
-    61: "5f5faf",
-    62: "5f5fd7",
-    63: "5f5fff",
-    64: "5f8700",
-    65: "5f875f",
-    66: "5f8787",
-    67: "5f87af",
-    68: "5f87d7",
-    69: "5f87ff",
-    70: "5faf00",
-    71: "5faf5f",
-    72: "5faf87",
-    73: "5fafaf",
-    74: "5fafd7",
-    75: "5fafff",
-    76: "5fd700",
-    77: "5fd75f",
-    78: "5fd787",
-    79: "5fd7af",
-    80: "5fd7d7",
-    81: "5fd7ff",
-    82: "5fff00",
-    83: "5fff5f",
-    84: "5fff87",
-    85: "5fffaf",
-    86: "5fffd7",
-    87: "5fffff",
-    88: "870000",
-    89: "87005f",
-    90: "870087",
-    91: "8700af",
-    92: "8700d7",
-    93: "8700ff",
-    94: "875f00",
-    95: "875f5f",
-    96: "875f87",
-    97: "875faf",
-    98: "875fd7",
-    99: "875fff",
-    100: "878700",
-    101: "87875f",
-    102: "878787",
-    103: "8787af",
-    104: "8787d7",
-    105: "8787ff",
-    106: "87af00",
-    107: "87af5f",
-    108: "87af87",
-    109: "87afaf",
-    110: "87afd7",
-    111: "87afff",
-    112: "87d700",
-    113: "87d75f",
-    114: "87d787",
-    115: "87d7af",
-    116: "87d7d7",
-    117: "87d7ff",
-    118: "87ff00",
-    119: "87ff5f",
-    120: "87ff87",
-    121: "87ffaf",
-    122: "87ffd7",
-    123: "87ffff",
-    124: "af0000",
-    125: "af005f",
-    126: "af0087",
-    127: "af00af",
-    128: "af00d7",
-    129: "af00ff",
-    130: "af5f00",
-    131: "af5f5f",
-    132: "af5f87",
-    133: "af5faf",
-    134: "af5fd7",
-    135: "af5fff",
-    136: "af8700",
-    137: "af875f",
-    138: "af8787",
-    139: "af87af",
-    140: "af87d7",
-    141: "af87ff",
-    142: "afaf00",
-    143: "afaf5f",
-    144: "afaf87",
-    145: "afafaf",
-    146: "afafd7",
-    147: "afafff",
-    148: "afd700",
-    149: "afd75f",
-    150: "afd787",
-    151: "afd7af",
-    152: "afd7d7",
-    153: "afd7ff",
-    154: "afff00",
-    155: "afff5f",
-    156: "afff87",
-    157: "afffaf",
-    158: "afffd7",
-    159: "afffff",
-    160: "d70000",
-    161: "d7005f",
-    162: "d70087",
-    163: "d700af",
-    164: "d700d7",
-    165: "d700ff",
-    166: "d75f00",
-    167: "d75f5f",
-    168: "d75f87",
-    169: "d75faf",
-    170: "d75fd7",
-    171: "d75fff",
-    172: "d78700",
-    173: "d7875f",
-    174: "d78787",
-    175: "d787af",
-    176: "d787d7",
-    177: "d787ff",
-    178: "d7af00",
-    179: "d7af5f",
-    180: "d7af87",
-    181: "d7afaf",
-    182: "d7afd7",
-    183: "d7afff",
-    184: "d7d700",
-    185: "d7d75f",
-    186: "d7d787",
-    187: "d7d7af",
-    188: "d7d7d7",
-    189: "d7d7ff",
-    190: "d7ff00",
-    191: "d7ff5f",
-    192: "d7ff87",
-    193: "d7ffaf",
-    194: "d7ffd7",
-    195: "d7ffff",
-    196: "ff0000",
-    197: "ff005f",
-    198: "ff0087",
-    199: "ff00af",
-    200: "ff00d7",
-    201: "ff00ff",
-    202: "ff5f00",
-    203: "ff5f5f",
-    204: "ff5f87",
-    205: "ff5faf",
-    206: "ff5fd7",
-    207: "ff5fff",
-    208: "ff8700",
-    209: "ff875f",
-    210: "ff8787",
-    211: "ff87af",
-    212: "ff87d7",
-    213: "ff87ff",
-    214: "ffaf00",
-    215: "ffaf5f",
-    216: "ffaf87",
-    217: "ffafaf",
-    218: "ffafd7",
-    219: "ffafff",
-    220: "ffd700",
-    221: "ffd75f",
-    222: "ffd787",
-    223: "ffd7af",
-    224: "ffd7d7",
-    225: "ffd7ff",
-    226: "ffff00",
-    227: "ffff5f",
-    228: "ffff87",
-    229: "ffffaf",
-    230: "ffffd7",
-    231: "ffffff",
-    # Grayscale:
-    232: "080808",
-    233: "121212",
-    234: "1c1c1c",
-    235: "262626",
-    236: "303030",
-    237: "3a3a3a",
-    238: "444444",
-    239: "4e4e4e",
-    240: "585858",
-    241: "626262",
-    242: "6c6c6c",
-    243: "767676",
-    244: "808080",
-    245: "8a8a8a",
-    246: "949494",
-    247: "9e9e9e",
-    248: "a8a8a8",
-    249: "b2b2b2",
-    250: "bcbcbc",
-    251: "c6c6c6",
-    252: "d0d0d0",
-    253: "dadada",
-    254: "e4e4e4",
-    255: "eeeeee"
-}
 
 # Terminal-specific command line options.  These become options you can pass to
 # gateone.py (e.g. --session_logging)
@@ -363,7 +98,6 @@ def policy_new_terminal(cls, policy):
     restrictions (e.g. max_dimensions).  Specifically, checks to make sure the
     user is not in violation of their applicable policies (e.g. max_terms).
     """
-    print("policy_new_terminal()")
     instance = cls.instance
     session = instance.ws.session
     try:
@@ -378,7 +112,6 @@ def policy_new_terminal(cls, policy):
         # Terminal already exists (reattaching) or was shared by someone else
         return True
     for loc in locations.values():
-        print(loc)
         for t, term_obj in loc['terminal'].items():
             if t in instance.loc_terms:
                 if user == term_obj['user']:
@@ -460,20 +193,29 @@ def policy_char_handler(cls, policy):
     term_obj = instance.loc_terms[term]
     user = instance.current_user
     if user['upn'] == term_obj['user']['upn']:
+        # UPN match...  Double-check ANONYMOUS
         if user['upn'] == 'ANONYMOUS':
             # All users will be ANONYMOUS so we need to check their session ID
-            if user['session'] != term_obj['user']['session']:
-                return False
+            if user['session'] == term_obj['user']['session']:
+                return True
         # TODO: Think about adding an administrative lock feature here
-        return True # Users can always write to their own terminals
+        else:
+            return True # Users can always write to their own terminals
     if 'share_id' in term_obj:
         # This is a shared terminal.  Check if the user is in the 'write' list
-        shared = SESSIONS[instance.ws.session]["terminal"]['shared']
+        shared = instance.ws.persist['terminal']['shared']
         share_obj = shared[term_obj['share_id']]
         if user['upn'] in share_obj['write']:
             return True
         elif share_obj['write'] in ['AUTHENTICATED', 'ANONYMOUS']:
             return True
+        elif isinstance(share_obj['write'], list):
+            # Iterate and check each item
+            for allowed in share_obj['write']:
+                if allowed == user['upn']:
+                    return True
+                elif allowed in ['AUTHENTICATED', 'ANONYMOUS']:
+                    return True
         # TODO: Handle regexes and lists of regexes here
     return False
 
@@ -577,6 +319,7 @@ class TerminalApplication(GOApplication):
             'get_webworker': self.get_webworker,
             'terminal:share_terminal': self.share_terminal,
             'terminal:unshare_terminal': self.unshare_terminal,
+            'terminal:share_user_list': self.share_user_list,
             'terminal:list_shared_terminals': self.list_shared_terminals,
             'terminal:attach_shared_terminal': self.attach_shared_terminal,
             'terminal:set_sharing_permissions': self.set_sharing_permissions,
@@ -634,12 +377,6 @@ class TerminalApplication(GOApplication):
                 self.on(
                     "terminal:opt_esc_handler:%s" %
                     plugin_name, hooks['Escape'])
-            if 'Auth' in hooks:
-                # Apply the plugin's post-authentication functions
-                if isinstance(hooks['Auth'], (list, tuple)):
-                    self.plugin_auth_hooks.extend(hooks['Auth'])
-                else:
-                    self.plugin_auth_hooks.append(hooks['Auth'])
             if 'Command' in hooks:
                 # Apply the plugin's 'Command' hooks (called by new_multiplex)
                 if isinstance(hooks['Command'], (list, tuple)):
@@ -682,10 +419,29 @@ class TerminalApplication(GOApplication):
         'terminal:authenticate' event.
         """
         logging.debug('TerminalApplication.authenticate()')
-        self.ws.send_static_files(os.path.join(APPLICATION_PATH, 'plugins'))
         # Get our user-specific settings/policies for quick reference
         self.policy = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
+        # Start by determining if the user can even login to the terminal app
+        if 'allow' in self.policy:
+            if not self.policy['allow']:
+                # User is not allowed to access the terminal application.  Don't
+                # bother sending them any static files and whatnot.
+                return
+        # Render and send the client our terminal.css
+        terminal_css = os.path.join(
+            APPLICATION_PATH, 'templates', 'terminal.css')
+        self.ws.render_and_send_css(terminal_css)
+        # Send the client our terminal.js
+        static_dir = os.path.join(APPLICATION_PATH, 'static')
+        for fname in os.listdir(static_dir):
+            if fname.endswith('.js'):
+                js_file_path = os.path.join(static_dir, fname)
+                self.ws.send_js(js_file_path)
+        self.ws.send_plugin_static_files(
+            os.path.join(APPLICATION_PATH, 'plugins'))
+        # Send the client the 256-color style information
+        self.send_256_colors()
         terminals = []
         # Create an application-specific storage space in the locations dict
         if 'terminal' not in self.ws.locations[self.ws.location]:
@@ -695,7 +451,6 @@ class TerminalApplication(GOApplication):
         for term in list(self.loc_terms.keys()):
             if isinstance(term, int): # Only terminals are integers in the dict
                 terminals.append(term)
-        print("terminals: %s" % terminals)
         # Check for any dtach'd terminals we might have missed
         if self.policy['dtach']:
             session_dir = self.ws.settings['session_dir']
@@ -719,7 +474,6 @@ class TerminalApplication(GOApplication):
         if "timeout_callbacks" in sess:
             if kill_session not in sess["timeout_callbacks"]:
                 sess["timeout_callbacks"].append(kill_session)
-        print("end of authenticate()")
         self.trigger("terminal:authenticate")
 
     def on_close(self):
@@ -1521,7 +1275,7 @@ class TerminalApplication(GOApplication):
         the limitations of loading remote Web Worker URLs (for embedding Gate
         One into other apps).
         """
-        static_url = os.path.join(GATEONE_DIR, "static")
+        static_url = os.path.join(APPLICATION_PATH, "static")
         webworker_path = os.path.join(static_url, 'go_process.js')
         with open(webworker_path) as f:
             go_process = f.read()
@@ -1539,16 +1293,16 @@ class TerminalApplication(GOApplication):
 #       - A mechanism to invite people (send an email/alert).
 #       - A mechanism to approve inbound viewers.
 #   * A server-side API to control sharing:
-#       - Share X with authorization options (allow anon w/URL and/or password, authenticated users, or a specific list)
-#       - Stop sharing terminal X.
-#       - Pause sharing of terminal X.
+#       DONE (mostly)   - Share X with authorization options (allow anon w/URL and/or password, authenticated users, or a specific list)
+#       DONE            - Stop sharing terminal X.
+#       - Pause sharing of terminal X (So it can be resumed without having to change the viewers/write list).
 #       - Generate sharing URL for terminal X.
 #       - Send invitation to view terminal X.  Connected user(s), email, and possibly other mechanisms (Jabber/Google Talk, SMS, etc)
 #       - Approve inbound viewer.
-#       - Allow viewer(s) to control terminal X.
+#       DONE            - Allow viewer(s) to control terminal X.
 #       - A completely separate chat/communications API.
-#       - List shared terminals.
-#       - Must @require()
+#       DONE            - List shared terminals.
+#       DONE            - Must integrate policy support for @require(policies('terminal'))
 #   * A client-side API to control sharing:
 #       - Notify user of connected viewers.
 #       - Notify user of access/control grants.
@@ -1601,17 +1355,12 @@ class TerminalApplication(GOApplication):
         """
         logging.debug("share_terminal(%s)" % settings)
         from utils import generate_session_id
-        from pprint import pprint
-        print("Sessions:")
-        pprint(SESSIONS)
         out_dict = {'result': 'Success'}
         share_dict = {}
         term = settings.get('term', self.current_term)
         if 'shared' not in self.ws.persist['terminal']:
             self.ws.persist['terminal']['shared'] = {}
         shared_terms = self.ws.persist['terminal']['shared']
-        print("shared:")
-        pprint(self.ws.persist['terminal']['shared'])
         term_obj = self.loc_terms[term]
         read = settings.get('read', 'ANONYMOUS') # List of who to share with
         write = settings.get('write', list()) # List of who can write
@@ -1658,30 +1407,37 @@ class TerminalApplication(GOApplication):
         out_dict['share_id'] = share_id
         shared_terms[share_id] = share_dict
         term_obj['share_id'] = share_id # So we can quickly tell it's shared
-        print("self.ws.persist['terminal']:")
-        pprint(self.ws.persist['terminal'])
         # Make a note of this shared terminal in the logs
         logging.info(_(
             "%s shared terminal %s (%s)" % (
                 self.current_user['upn'], term, term_obj['title'])))
         message = {'terminal:term_shared': out_dict}
         self.write_message(json_encode(message))
+        self.trigger("terminal:share_terminal", settings)
 
     @require(authenticated(), policies('terminal'))
     def unshare_terminal(self, term):
         """
-        Stops sharing the given *term*.
+        Stops sharing the given *term*.  Example JavaScript:
+
+        .. code-block:: javascript
+
+            GateOne.ws.send(JSON.stringify({"terminal:unshare_terminal": 1}));
         """
         out_dict = {'result': 'Success'}
         term_obj = self.loc_terms[term]
         shared_terms = self.ws.persist['terminal']['shared']
+        message = {'terminal:unshared_terminal': out_dict}
+        self.write_message(json_encode(message))
+        # TODO: Write logic here that kills the terminal of each viewer and sends them a message indicating that the sharing has ended.
+        message = {'term_ended': term}
+        ApplicationWebSocket._deliver(json_encode(message), session=session)
         for share_id, share_dict in shared_terms.items():
             if share_dict['term_obj'] == term_obj:
                 del shared_terms[share_id]
                 break
         del term_obj['share_id']
-        message = {'terminal:unshared_terminal': out_dict}
-        self.write_message(json_encode(message))
+        self.trigger("terminal:unshare_terminal", term)
 
     @require(authenticated(), policies('terminal'))
     def set_sharing_permissions(self, settings):
@@ -1698,6 +1454,10 @@ class TerminalApplication(GOApplication):
             }
             GateOne.ws.send(JSON.stringify({"terminal:set_sharing_permissions": settings}));
         """
+        if 'shared' not in self.ws.persist['terminal']:
+            error_msg = _("Error: Invalid share ID.")
+            self.ws.send_message(error_msg)
+            return
         out_dict = {'result': 'Success'}
         term = settings['term']
         term_obj = self.loc_terms[term]
@@ -1705,19 +1465,56 @@ class TerminalApplication(GOApplication):
         for share_id, share_dict in shared_terms.items():
             if share_dict['term_obj'] == term_obj:
                 if 'read' in settings:
-                    share_dict['read'] = read
+                    share_dict['read'] = settings['read']
                 if 'write' in settings:
-                    share_dict['write'] = write
+                    share_dict['write'] = settings['write']
                 break
         # TODO: Put some logic here that notifies users if their permissions changed.
         message = {'terminal:sharing_permissions': out_dict}
         self.write_message(json_encode(message))
+        self.trigger("terminal:set_sharing_permissions", settings)
+
+    @require(authenticated(), policies('terminal'))
+    def share_user_list(self, share_id):
+        """
+        Sends the client a dict of users that are currently viewing the terminal
+        associated with *share_id* using the 'terminal:share_user_list'
+        WebSocket action.  The output will indicate which users have write
+        access.
+        """
+        out_dict = {'viewers': [], 'write': []}
+        message = {'terminal:share_user_list': out_dict}
+        try:
+            share_obj = self.ws.persist['terminal']['shared'][share_id]
+        except KeyError:
+            error_msg = _("No terminal associated with the given share_id.")
+            message = {'notice': error_msg}
+            self.write_message(message)
+            return
+        if 'viewers' in share_obj:
+            for user in share_obj['viewers']:
+                # Only let the client know about the UPN and IP Address
+                out_dict['viewers'].append({
+                    'upn': user['upn'],
+                    'ip_address': user['ip_address']
+                })
+        if isinstance(share_obj['write'], list):
+            for allowed in share_obj['write']:
+                out_dict['write'].append(allowed)
+        else:
+            out_dict['write'] = share_obj['write']
+        self.write_message(message)
+        self.trigger("terminal:share_user_list", share_id)
 
     @require(authenticated(), policies('terminal'))
     def list_shared_terminals(self):
         """
         Returns a message to the client listing all the shared terminals they
-        may access.
+        may access.  Example JavaScript:
+
+        .. code-block:: javascript
+
+            GateOne.ws.send(JSON.stringify({"terminal:list_shared_terminals": null}));
         """
         out_dict = {'terminals': {}, 'result': 'Success'}
         shared_terms = self.ws.persist['terminal']['shared']
@@ -1733,8 +1530,8 @@ class TerminalApplication(GOApplication):
                 }
                 out_dict['terminals'][share_id]['password_required'] = password
         message = {'terminal:shared_terminals': out_dict}
-        print("list_shared_terminals message: %s" % message)
         self.write_message(json_encode(message))
+        self.trigger("terminal:list_shared_terminals")
 
     def attach_shared_terminal(self, settings):
         """
@@ -1748,7 +1545,7 @@ class TerminalApplication(GOApplication):
 
             settings = {
                 "share_id": "ZWVjNGRiZTA0OTllNDJiODkwOGZjNDA2ZWNkNGU4Y2UwM",
-                "password": "password here (if required)"
+                "password": "password here" // This line is only necessary if the shared terminal requires a password
             }
             GateOne.ws.send(JSON.stringify({"terminal:attach_shared_terminal": settings}));
         """
@@ -1767,7 +1564,6 @@ class TerminalApplication(GOApplication):
             self.ws.send_message(_("Requested shared terminal does not exist."))
             return
         if share_obj['password'] and password != share_obj['password']:
-            print("share_obj['password']: %s" % share_obj['password'])
             self.ws.send_message(_("Invalid password."))
             return
         term = self.highest_term_num() + 1
@@ -1775,7 +1571,7 @@ class TerminalApplication(GOApplication):
         # Add this terminal to our existing SESSION
         self.loc_terms[term] = term_obj
         # We're basically making a new terminal for this client that happens to
-        # be read-only (starts that way anyway).
+        # have been started by someone else.
         multiplex = term_obj['multiplex']
         if self.ws.client_id not in term_obj:
             term_obj[self.ws.client_id] = {
@@ -1805,9 +1601,60 @@ class TerminalApplication(GOApplication):
         self.set_title(term, force=True)
         # Make a note of this connection in the logs
         logging.info(_(
-            "%s connected to shared the terminal shared by %s " % (
+            "%s connected to terminal shared by %s " % (
             self.current_user['upn'], term_obj['user']['upn'])))
+        # Add this user to the list of viewers
+        if 'viewers' not in share_obj:
+            share_obj['viewers'] = [self.current_user]
+        else:
+            share_obj['viewers'].append(self.current_user)
+        # Notify the owner of the terminal that this user is now viewing
+        message = _("%s (%s) is now viewing terminal %s" % (
+            self.current_user['upn'],
+            term_obj['user']['ip_address'],
+            share_obj['term']))
+        # TODO: Use something more specific to sharing than send_message().  Preferably something that opens up a widget that can also display which user is typing.
+        if self.current_user['upn'] == 'ANONYMOUS':
+            self.ws.send_message(message, session=term_obj['user']['session'])
+        else:
+            self.ws.send_message(message, upn=term_obj['user']['upn'])
         self.trigger("terminal:attach_shared_terminal", term)
+
+    def send_256_colors(self):
+        """
+        Sends the client the CSS to handle 256 color support.
+        """
+        # NOTE:  Why generate this every time?  Presumably these colors can be
+        #        changed on-the-fly by terminal programs.  That functionality
+        #        has yet to be implemented but this function will enable use to
+        #        eventually do that.
+        # Use the get_settings() function to import our 256 colors (convenient)
+        cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
+        cached_256_colors = os.path.join(cache_dir, '256_colors.css')
+        if os.path.exists(cached_256_colors):
+            # send_css() will take care of minifiying and caching further...
+            self.ws.send_css(cached_256_colors)
+            return
+        colors_json_path = os.path.join(APPLICATION_PATH, '256colors.json')
+        color_map = get_settings(colors_json_path, add_default=False)
+        # Setup our 256-color support CSS:
+        colors_256 = ""
+        for i in xrange(256):
+            i = str(i)
+            fg = "#%s span.fx%s {color: #%s;}" % (
+                self.ws.container, i, color_map[i])
+            bg = "#%s span.bx%s {background-color: #%s;} " % (
+                self.ws.container, i, color_map[i])
+            fg_rev =(
+                "#%s span.reverse.fx%s {background-color: #%s; color: "
+                "inherit;}" % (self.ws.container, i, color_map[i]))
+            bg_rev =(
+                "#%s span.reverse.bx%s {color: #%s; background-color: "
+                "inherit;} " % (self.ws.container, i, color_map[i]))
+            colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
+        with open(cached_256_colors, 'w') as f:
+            f.write(colors_256)
+        self.ws.send_css(cached_256_colors)
 
     @require(authenticated())
     def debug_terminal(self, term):

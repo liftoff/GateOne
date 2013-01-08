@@ -5,7 +5,7 @@
 {
     // "*" for default (all users)
     "*": {
-        "terminal": { // This is the "application" i.e. whatever is passed to @require(security("<application>"))
+        "terminal": { // This is the "application" i.e. whatever is passed to @require(policies("<application>"))
             "max_terms": 50 // An absolute maximum
         }
     },

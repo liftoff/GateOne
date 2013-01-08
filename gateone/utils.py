@@ -184,19 +184,23 @@ def noop(*args, **kwargs):
     """Do nothing (i.e. "No Operation")"""
     pass
 
-def get_settings(path):
+def get_settings(path, add_default=True):
     """
     Reads any and all *.conf files containing JSON (JS-style comments are OK)
     inside *path* and returns them as an :class:`RUDict`.  Optionally, *path*
     may be a specific file (as opposed to just a directory).
+
+    By default, all returned :class:`RUDict` objects will include a '*' dict
+    which indicates "all users".  This behavior can be skipped by setting the
+    *add_default* keyword argument to `False`.
     """
     re_comment = re.compile( # This removes JavaScript-style comments
         r'(^)?[^\S\n]*/(?:\*(.*?)\*/[^\S\n]*|/[^\n]*)($)?',
         re.DOTALL | re.MULTILINE
     )
-    settings = RUDict({
-        '*': {}
-    })
+    settings = RUDict()
+    if add_default:
+        settings['*'] = {}
     # Using an RUDict so that subsequent .conf files can safely override
     # settings way down the chain without clobbering parent keys/dicts.
     if os.path.isdir(path):
