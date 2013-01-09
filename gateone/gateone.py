@@ -767,7 +767,6 @@ class GOApplication(object):
         self.security = ws.security
         self.request = ws.request
         self.settings = ws.settings
-        self.trigger = ws.trigger
         self.on = ws.on
         self.off = ws.off
 
@@ -797,6 +796,25 @@ class GOApplication(object):
         actions when the WebSocket is closed.
         """
         pass
+
+    def trigger(self, events, *args, **kwargs):
+        """
+        A clone of :meth:`ApplicationWebSocket.trigger` that calls registered
+        callbacks with `self` from :class:`GOApplication` (as opposed to the
+        `self` from :class:`ApplicationWebSocket`).  This gives Applications and
+        plugins the ability to call :meth:`self.trigger` or
+        :meth:`self.ws.trigger` depending on what is most appropriate for the
+        given event.
+        """
+        if isinstance(events, basestring):
+            events = [events]
+        for event in events:
+            if event in self.ws._events:
+                for callback_obj in self.ws._events[event]:
+                    callback_obj['callback'](self, *args, **kwargs)
+                    callback_obj['calls'] += 1
+                    if callback_obj['calls'] == callback_obj['times']:
+                        off(event, callback_obj['callback'])
 
     def add_handler(self, pattern, handler, **kwargs):
         """
@@ -969,7 +987,7 @@ class ApplicationWebSocket(WebSocketHandler):
 
     def once(self, events, callback):
         """
-        A shortcut for :meth:`ApplicationWebSocket.on(events, callback, 1)`
+        A shortcut for :meth:`self.on(events, callback, 1)`
         """
         self.on(events, callback, 1)
 
@@ -988,7 +1006,7 @@ class ApplicationWebSocket(WebSocketHandler):
         for event in events:
             if event in self._events:
                 for callback_obj in self._events[event]:
-                    callback_obj['callback'](*args, **kwargs)
+                    callback_obj['callback'](self, *args, **kwargs)
                     callback_obj['calls'] += 1
                     if callback_obj['calls'] == callback_obj['times']:
                         off(event, callback_obj['callback'])
@@ -1494,6 +1512,7 @@ class ApplicationWebSocket(WebSocketHandler):
             cls.file_watcher = tornado.ioloop.PeriodicCallback(
                 cls.file_checker, check_time, io_loop=io_loop)
             cls.file_watcher.start()
+        self.trigger('go:authenticate')
 
 # TODO: Make this cache/minify like send_js_or_css()
     def get_style(self, settings):
@@ -1836,7 +1855,8 @@ class ApplicationWebSocket(WebSocketHandler):
             css_path,
             container=self.container,
             prefix=self.prefix,
-            url_prefix=self.settings['url_prefix']
+            url_prefix=self.settings['url_prefix'],
+            **kwargs
         )
         with open(rendered_path, 'w') as f:
             f.write(rendered)
@@ -1846,7 +1866,8 @@ class ApplicationWebSocket(WebSocketHandler):
             if fname == rendered_filename:
                 continue
             elif 'rendered_ssh_css' in fname:
-                # Older version present.  Remove it (and it's minified counterpart).
+                # Older version present.
+                # Remove it (and it's minified counterpart).
                 os.remove(os.path.join(cache_dir, fname))
         return rendered_path
 
@@ -1913,6 +1934,7 @@ class ApplicationWebSocket(WebSocketHandler):
             self.send_message(_("Error: Missing UPN."))
             return
         self.send_message(settings['message'], upn=settings['upn'])
+        self.trigger('go:send_user_message', settings)
 
     def send_message(self, message, upn=None, session=None):
         """
@@ -1935,6 +1957,7 @@ class ApplicationWebSocket(WebSocketHandler):
             ApplicationWebSocket._deliver(message_dict, session=session)
         else: # Just send to the currently-connected client
             self.write_message(message_dict)
+        self.trigger('go:send_message', message, upn, session)
 
     @require(authenticated(), policies('gateone'))
     def broadcast(self, message):
@@ -1944,6 +1967,7 @@ class ApplicationWebSocket(WebSocketHandler):
         """
         logging.info("Broadcast: %s" % message)
         self.send_message(message, upn="AUTHENTICATED")
+        self.trigger('go:broadcast', message)
 
     @classmethod
     def _deliver(cls, message, upn="AUTHENTICATED", session=None):

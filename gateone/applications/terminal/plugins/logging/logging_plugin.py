@@ -667,7 +667,7 @@ def _save_log_playback(queue, settings):
     #message = {'save_file': out_dict}
     #self.write_message(message)
 
-def send_css_template(self):
+def send_logging_css_template(self):
     """
     Sends our logging.css template to the client using the 'load_style'
     WebSocket action.  The rendered template will be saved in Gate One's
@@ -684,6 +684,6 @@ hooks = {
         'logging_get_log_file': save_log_playback,
     },
     'Events': {
-        'terminal:authenticate': send_css_template
+        'terminal:authenticate': send_logging_css_template
     }
 }

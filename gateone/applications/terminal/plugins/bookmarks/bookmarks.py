@@ -718,7 +718,7 @@ def rename_tags(self, renamed_tags):
     message = {'bookmarks_renamed_tags': out_dict}
     self.write_message(json_encode(message))
 
-def send_css_template(self):
+def send_bookmarks_css_template(self):
     """
     Sends our bookmarks.css template to the client using the 'load_style'
     WebSocket action.  The rendered template will be saved in Gate One's
@@ -740,6 +740,6 @@ hooks = {
         'bookmarks_rename_tags': rename_tags,
     },
     'Events': {
-        'terminal:authenticate': send_css_template
+        'terminal:authenticate': send_bookmarks_css_template
     }
 }

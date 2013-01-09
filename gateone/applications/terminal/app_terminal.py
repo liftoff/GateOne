@@ -399,7 +399,7 @@ class TerminalApplication(GOApplication):
                 self.plugin_env_hooks.update(hooks['Environment'])
             if 'Events' in hooks:
                 for event, callback in hooks['Events'].items():
-                    self.on(event, bind(callback, self))
+                    self.on(event, callback)
 
     def open(self):
         """
@@ -1233,15 +1233,33 @@ class TerminalApplication(GOApplication):
     @require(authenticated())
     def opt_esc_handler(self, chars):
         """
-        Executes whatever function is registered matching the tuple returned by
-        :func:`utils.process_opt_esc_sequence`.
+        Calls whatever function is attached to the
+        'terminal:opt_esc_handler:<name>' event; passing it the *text* (second
+        item in the tuple) that is returned by
+        :func:`utils.process_opt_esc_sequence`.  Such functions are usually
+        attached via the 'Escape' plugin hook but may also be registered via
+        the usual event method, :meth`self.on`::
+
+            self.on('terminal:opt_esc_handler:somename', some_function)
+
+        The above example would result in :func:`some_function` being called
+        whenever a matching optional escape sequence handler is encountered.
+        For example:
+
+        .. ansi-block::
+
+            $ echo -e "\033[_;somename|Text passed to some_function()\007"
+
+        Which would result in :func:`some_function` being called like so::
+
+            some_function(self, "Text passed to some_function()")
         """
         logging.debug("opt_esc_handler(%s)" % repr(chars))
         plugin_name, text = process_opt_esc_sequence(chars)
         if plugin_name:
             try:
                 self.trigger(
-                    "terminal:opt_esc_handler:%s" % plugin_name, self, text)
+                    "terminal:opt_esc_handler:%s" % plugin_name, text)
             except Exception as e:
                 logging.error(_(
                     "Got exception trying to execute plugin's optional ESC "

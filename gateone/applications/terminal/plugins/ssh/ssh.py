@@ -1066,7 +1066,7 @@ def create_user_ssh_dir(self):
     except OSError as e:
         logging.error(_("Error creating user's ssh directory: %s\n" % e))
 
-def send_css_template(self):
+def send_ssh_css_template(self):
     """
     Sends our ssh.css template to the client using the 'load_style'
     WebSocket action.  The rendered template will be saved in Gate One's
@@ -1080,7 +1080,14 @@ def initialize(self):
     Called inside of :meth:`TerminalApplication.initialize` shortly after the
     WebSocket is instantiated.
     """
-    pass
+    # NOTE:  Why not use the 'Events' hook for these?  You can't attach two
+    # functions to the same event via that mechanism because it's a dict
+    # (one would override the other).
+    # An alternative would be to write a single function say, on_auth() that
+    # calls both of these functions then assign it to 'terminal:authenticate' in
+    # the 'Events' hook.  I think this way is better since it is more explicit.
+    self.ws.on('terminal:authenticate', send_ssh_css_template)
+    self.ws.on('terminal:authenticate', create_user_ssh_dir)
 
 hooks = {
     'Web': [(r"/ssh", KnownHostsHandler)],
@@ -1097,10 +1104,9 @@ hooks = {
         'ssh_set_default_identities': set_default_identities
     },
     'Escape': opt_esc_handler,
-    'Events': {
-        'terminal:authenticate': send_css_template,
-        'terminal:authenticate': create_user_ssh_dir
-    }
+    #'Events': {
+        #'terminal:authenticate': on_auth
+    #}
 }
 
 # Certificate information (as output by ssh-keygen) for reference:
