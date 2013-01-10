@@ -1,0 +1,27 @@
+/* Generic Terminal application CSS that will be the same across all themes */
+#{{container}} .pastearea {
+    font-family: monospace;
+    display: block;
+    color: transparent;
+    background: transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 1.5em;
+    padding: 0;
+    right: 3em;
+    z-index: 500;
+    margin: 0;
+    opacity: 0;
+    width: 96%; /* For whatever reason Firefox needs the width/height set */
+    height: 95%; /* Make room at the bottom for playback controls */
+}
+#{{container}} .pastearea:hover {
+    cursor: text;
+}
+/* This is to work around a Chrome/Windows bug where pasting gets disabled if you use JS to set display: none */
+#{{container}} .go_none { /* No prefix on this one because of issues with that in the JS code */
+/*     display: none; */
+    height: 1px;
+    width: 1px;
+}

@@ -1,0 +1,54 @@
+/* Terminal dark-black theme */
+#{{container}} .terminal {
+    line-height: 1.04;
+    position: static;
+    float: left;
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -ms-transition: -ms-transform 1s ease-in-out;
+    -o-transition: -o-transform 1s ease-in-out;
+    transition: transform 1s ease-in-out;
+}
+#{{container}} .terminal a {
+    color: #fff;
+}
+#{{container}} .terminal a:visited {
+    color: #fff;
+}
+#{{container}} .terminal pre {
+    font-family: 'Ubuntu Mono', monospace;
+    background-color: #000; /* Black - dark black! */
+    color: #fff;
+    font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */
+    line-height: 1.04;
+    /*height: auto;*/ /* Needs to be 100% when scrollback is enabled */
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: absolute;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    white-space: pre;
+    word-break: normal;
+    word-wrap: normal; /* If this gets set to 'break-word' it might as well be 'break-everything' :) */
+    -webkit-transform-origin: left bottom;
+    -moz-transform-origin: left bottom;
+    -ms-transform-origin: left bottom;
+    -o-transform-origin: left bottom;
+    transform-origin: left bottom;
+}
+#{{container}} .terminal span.screen {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    display: block;
+}
+#{{container}} .terminal span.scrollback {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    display: block;
+}
+/* The "reverse" default needs to be set in the theme since the background will vary */
+#{{container}} span.reverse { color: #000; background-color: #ccc; } /* Black on White */
+#{{container}} span.cursor { color: #000; background-color: #ccc; }

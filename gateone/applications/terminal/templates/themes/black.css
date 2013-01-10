@@ -1,0 +1,64 @@
+/* Terminal black theme */
+#{{container}} .terminal {
+    line-height: 1.04;
+    position: static;
+    float: left;
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -ms-transition: -ms-transform 1s ease-in-out;
+    -o-transition: -o-transform 1s ease-in-out;
+    transition: transform 1s ease-in-out;
+}
+#{{container}} .terminal a {
+    color: #90A3C5;
+}
+#{{container}} .terminal a:visited {
+    color: #90A3C5;
+}
+#{{container}} .terminal pre {
+    font-family: 'Ubuntu Mono', monospace;
+    background-color: #222; /* Not quite black so we can use shadows :) */
+    color: #eee;
+    font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */
+    line-height: 1.04;
+    /*height: auto;*/ /* Needs to be 100% when scrollback is enabled */
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: absolute;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    white-space: pre;
+    word-break: normal;
+    word-wrap: normal; /* If this gets set to 'break-word' it might as well be 'break-everything' :) */
+    -webkit-transform-origin: left bottom;
+    -moz-transform-origin: left bottom;
+    -ms-transform-origin: left bottom;
+    -o-transform-origin: left bottom;
+    transform-origin: left bottom;
+}
+#{{container}} .terminal span.screen {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+/*     margin-right: 2em; */
+    display: block;
+}
+#{{container}} .terminal span.scrollback {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+/*     margin-right: 2em; */
+    display: block;
+}
+/* The "reverse" default needs to be set in the theme since the background will vary */
+#{{container}} span.reverse { color: #222; background-color: #ccc; } /* Black on White */
+#{{container}} span.cursor { color: #000; background-color: #ccc; }
+#{{prefix}}terminfo {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+/* Override the black text background since our background is already black */
+#{{container}} span.b0 { background-color: transparent; }
+#{{container}} span.f0.b0 { color: #444; background-color: transparent; } /* Black on Black */
