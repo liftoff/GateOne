@@ -138,7 +138,7 @@ go.Base.update(GateOne.Bookmarks, {
             }
         }, 3000);
         // Setup a callback that re-draws the bookmarks panel whenever it is opened
-        go.Events.on('panel_toggle:in', b.panelToggleIn);
+        go.Events.on('go:panel_toggle:in', b.panelToggleIn);
         // Register our WebSocket actions
         go.Net.addAction('bookmarks_updated', b.syncBookmarks);
         go.Net.addAction('bookmarks_save_result', b.syncComplete);
@@ -149,7 +149,7 @@ go.Base.update(GateOne.Bookmarks, {
             go.Input.registerShortcut('KEY_B', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': toggleBookmarks});
         }
         // Setup a callback that synchronizes the user's bookmarks after they login
-        go.Events.on("user_login", b.userLoginSync);
+        go.Events.on("go:user_login", b.userLoginSync);
     },
     panelToggleIn: function(panel) {
         /**:GateOne.Bookmarks.panelToggleIn(panel)
@@ -1449,6 +1449,7 @@ go.Base.update(GateOne.Bookmarks, {
             return; // All done
         }
         go.Visual.togglePanel('#'+prefix+'panel_bookmarks');
+        go.Events.trigger("bookmarks:open_bookmark", URL);
     },
     toggleSortOrder: function() {
         /**:GateOne.Bookmarks.toggleSortOrder()

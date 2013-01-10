@@ -37,11 +37,11 @@ go.Base.update(GateOne.Playback, {
         Adds the playback controls to Gate One and adds some GUI elements to the Tools & Info panel.  Also attaches the following events/functions::
 
             // Add our callback that adds an extra newline to all terminals
-            GateOne.Events.on("new_terminal", GateOne.Playback.newTerminalCallback);
+            GateOne.Events.on("terminal:new_terminal", GateOne.Playback.newTerminalCallback);
             // This makes sure our playback frames get added to the terminal object whenever the screen is updated
-            GateOne.Events.on("term_updated", GateOne.Playback.pushPlaybackFrame);
+            GateOne.Events.on("terminal:term_updated", GateOne.Playback.pushPlaybackFrame);
             // This makes sure our prefs get saved along with everything else
-            GateOne.Events.on("save_prefs", GateOne.Playback.savePrefsCallback)
+            GateOne.Events.on("go:save_prefs", GateOne.Playback.savePrefsCallback)
         */
         var go = GateOne,
             u = go.Utils,
@@ -71,11 +71,11 @@ go.Base.update(GateOne.Playback, {
             go.prefs.rowAdjust += 1;
         }
         // Add our callback that adds an extra newline to all terminals
-        go.Events.on("new_terminal", p.newTerminalCallback);
+        go.Events.on("terminal:new_terminal", p.newTerminalCallback);
         // This makes sure our playback frames get added to the terminal object whenever the screen is updated
-        go.Events.on("term_updated", p.pushPlaybackFrame);
+        go.Events.on("terminal:term_updated", p.pushPlaybackFrame);
         // This makes sure our prefs get saved along with everything else
-        go.Events.on("save_prefs", p.savePrefsCallback)
+        go.Events.on("go:save_prefs", p.savePrefsCallback)
     },
     newTerminalCallback: function(term, calledTwice) {
         /**:GateOne.Playback.newTerminalCallback(term, calledTwice)
@@ -209,6 +209,7 @@ go.Base.update(GateOne.Playback, {
             GateOne.Playback.clockUpdater = null;
         }
         GateOne.Playback.frameUpdater = setInterval('GateOne.Playback.playbackRealtime('+term+')', GateOne.Playback.frameInterval);
+        GateOne.Events.trigger('playback:start_playback', term);
     },
     selectFrame: function(term, ms) {
         /**:GateOne.Playback.selectFrame(term, ms)
@@ -293,11 +294,13 @@ go.Base.update(GateOne.Playback, {
             playPause.innerHTML = '=';
             // NOTE:  Using a transform here to increase the size and move the element because these changes are *relative* to the current state.
             go.Visual.applyTransform(playPause, 'rotate(90deg) scale(1.7) translate(5%, -15%)');
+            go.Events.trigger("playback:play");
         } else {
             playPause.innerHTML = '\u25B8';
             clearInterval(p.frameUpdater);
             p.frameUpdater = null;
             go.Visual.applyTransform(playPause, 'scale(1.5) translate(15%, -5%)'); // Set it back to normal
+            go.Events.trigger("playback:pause");
         }
     },
     addPlaybackControls: function() {

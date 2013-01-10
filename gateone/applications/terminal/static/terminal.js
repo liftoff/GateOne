@@ -285,7 +285,45 @@ go.Base.update(GateOne.Terminal, {
 //         go.Net.addAction('metadata', go.Terminal.storeMetadata);
         go.Net.addAction('load_webworker', go.Terminal.loadWebWorkerAction);
         // This ensures that whatever effects are applied to a terminal when switching to it get applied when resized too:
-        go.Events.on("update_dimensions", switchTerm);
+        go.Events.on("go:update_dimensions", switchTerm);
+        go.Events.on("go:save_prefs", function() {
+            // In case the user changed the rows/cols or the font/size changed:
+            setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
+                go.Visual.updateDimensions();
+                for (var term in GateOne.terminals) {
+                    go.Net.sendDimensions(term);
+                };
+            }, 3000);
+        });
+    },
+    sendChars: function() {
+        // pop()s out the current charBuffer and sends it to the server.
+        // NOTE: This function is normally called every time a key is pressed.
+        var term = localStorage[go.prefs.prefix+'selectedTerminal'],
+            termPre = GateOne.terminals[term]['node'];
+        if (!go.Terminal.doingUpdate) { // Only perform a character push if we're *positive* the last character POST has completed.
+            go.Terminal.doingUpdate = true;
+            var cb = go.Input.charBuffer,
+                charString = "";
+            for (var i=0; i<=cb.length; i++) { charString += cb.pop() }
+            if (charString != "undefined") {
+                var message = {'c': charString};
+                go.ws.send(JSON.stringify(message));
+                go.Terminal.doingUpdate = false;
+            } else {
+                go.Terminal.doingUpdate = false;
+            }
+        } else {
+            // We are in the middle of processing the last character
+            setTimeout(go.Net.sendChars, 100); // Wait 0.1 seconds and retry.
+        }
+    },
+    sendString: function(chars, term) {
+        // Like sendChars() but for programmatic use.  *chars* will be sent to *term* on the server.
+        var u = go.Utils,
+            term = term || localStorage[go.prefs.prefix+'selectedTerminal'],
+            message = {'chars': chars, 'term': term};
+        go.ws.send(JSON.stringify({'write_chars': message}));
     },
     // TODO: Get this *actually* centering the terminal info
     displayTermInfo: function(term) {
@@ -312,6 +350,49 @@ go.Base.update(GateOne.Terminal, {
                 u.hideElement(infoContainer);
             }, 1000);
         }, 1000);
+    },
+    sendDimensions: function(term, /*opt*/ctrl_l) {
+        /**:GateOne.Terminal.sendDimensions(term, ctrl_l)
+
+        Sends the current terminal's dimensions to the server.
+        */
+        logDebug('sendDimensions(' + term + ', ' + ctrl_l + ')');
+        if (!term) {
+            var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
+        }
+        if (typeof(ctrl_l) == 'undefined') {
+            ctrl_l = true;
+        }
+        var rowAdjust = go.prefs.rowAdjust + 1, // Always 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
+            colAdjust = go.prefs.colAdjust + 3, // Always 3 for the scrollbar
+            emDimensions = u.getEmDimensions(go.prefs.goDiv),
+            dimensions = u.getRowsAndColumns(go.prefs.goDiv),
+            prefs = {
+                'term': term,
+                'rows': Math.ceil(dimensions.rows - rowAdjust),
+                'cols': Math.ceil(dimensions.cols - colAdjust),
+                'em_dimensions': emDimensions
+            }
+        if (!emDimensions || !dimensions) {
+            return; // Nothing to do
+        }
+        if (go.prefs.showToolbar || go.prefs.showTitle) {
+            prefs['cols'] = prefs['cols'] - 4; // If there's no toolbar and no title there's no reason to have empty space on the right.
+        }
+        // Apply user-defined rows and cols (if set)
+        if (go.prefs.cols) { prefs.cols = go.prefs.cols };
+        if (go.prefs.rows) { prefs.rows = go.prefs.rows };
+        // Execute any sendDimensionsCallbacks
+        go.Events.trigger("terminal:send_dimensions", term);
+        // sendDimensionsCallbacks is DEPRECATED.  Use GateOne.Events.on("send_dimensions", yourFunc) instead
+        if (GateOne.Net.sendDimensionsCallbacks.length) {
+            go.Logging.deprecated("sendDimensionsCallbacks", "Use GateOne.Events.on('terminal:send_dimensions', func) instead.");
+            for (var i=0; i<GateOne.Net.sendDimensionsCallbacks.length; i++) {
+                GateOne.Net.sendDimensionsCallbacks[i](term);
+            }
+        }
+        // Tell the server the new dimensions
+        go.ws.send(JSON.stringify({'resize': prefs}));
     },
     setTitleAction: function(titleObj) {
         // Sets the title of titleObj['term'] to titleObj['title']
@@ -679,9 +760,9 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
             // Excute any registered callbacks
-            GateOne.Events.trigger("term_updated", term);
+            GateOne.Events.trigger("terminal:term_updated", term);
             if (GateOne.Terminal.updateTermCallbacks.length) {
-                GateOne.Logging.deprecated("updateTermCallbacks", "Use GateOne.Events.on('term_updated', func) instead.");
+                GateOne.Logging.deprecated("updateTermCallbacks", "Use GateOne.Events.on('terminal:term_updated', func) instead.");
                 for (var i=0; i<GateOne.Terminal.updateTermCallbacks.length; i++) {
                     GateOne.Terminal.updateTermCallbacks[i](term);
                 }
@@ -805,21 +886,6 @@ go.Base.update(GateOne.Terminal, {
             rows = Math.ceil(dimensions.rows - rowAdjust),
             cols = Math.ceil(dimensions.cols - colAdjust),
             prevScrollback = localStorage.getItem(prefix + "scrollback" + term);
-        if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
-            // Create the grid if it isn't already present
-            if (!gridwrapper) {
-                gridwrapper = go.Visual.createGrid('gridwrapper');
-                goDiv.appendChild(gridwrapper);
-                var style = window.getComputedStyle(goDiv, null),
-                    adjust = 0,
-                    paddingRight = (style['padding-right'] || style['paddingRight']);
-                if (paddingRight) {
-                    adjust = parseInt(paddingRight.split('px')[0]);
-                }
-                var gridWidth = (go.Visual.goDimensions.w+adjust) * 2; // Will likely always be x2
-                gridwrapper.style.width = gridWidth + 'px';
-            }
-        }
         if (go.prefs.showToolbar || go.prefs.showTitle) {
             cols = cols - 4; // Leave some empty space on the right if the toolbar or title are present
         }
@@ -1080,14 +1146,14 @@ go.Base.update(GateOne.Terminal, {
         }
         // Excute any registered callbacks (DEPRECATED: Use GateOne.Events.on("new_terminal", <callback>) instead)
         if (go.Terminal.newTermCallbacks.length) {
-            go.Logging.deprecated("newTermCallbacks", "Use GateOne.Events.on('new_terminal', func) instead.");
+            go.Logging.deprecated("newTermCallbacks", "Use GateOne.Events.on('terminal:new_terminal', func) instead.");
             go.Terminal.newTermCallbacks.forEach(function(callback) {
                 callback(term);
             });
         }
         // Fire our new_terminal event if everything was successful
         if (go.terminals[term]) {
-            go.Events.trigger("new_terminal", term);
+            go.Events.trigger("terminal:new_terminal", term);
         }
         return term; // So you can call it from your own code and know what terminal number you wound up with
     },
@@ -1118,10 +1184,10 @@ go.Base.update(GateOne.Terminal, {
             lastTerm = termObj;
         });
         // Excute any registered callbacks
-        go.Events.trigger("term_closed", term);
+        go.Events.trigger("terminal:term_closed", term);
         if (go.Terminal.closeTermCallbacks.length) {
             go.Terminal.closeTermCallbacks.forEach(function(callback) {
-                go.Logging.deprecated("closeTermCallbacks", "Use GateOne.Events.on('term_closed', func) instead.");
+                go.Logging.deprecated("closeTermCallbacks", "Use GateOne.Events.on('terminal:term_closed', func) instead.");
                 callback(term);
             });
         }
@@ -1337,9 +1403,9 @@ go.Base.update(GateOne.Terminal, {
                 }, 1000); // Give everything a moment to settle so the dimensions are set properly
             }
         }
-        go.Events.trigger("term_reattach", terminals);
+        go.Events.trigger("terminal:term_reattach", terminals);
         if (go.Terminal.reattachTerminalsCallbacks.length) {
-            go.Logging.deprecated("reattachTerminalsCallbacks", "Use GateOne.Events.on('term_reattach', func) instead.");
+            go.Logging.deprecated("reattachTerminalsCallbacks", "Use GateOne.Events.on('terminal:term_reattach', func) instead.");
             // Call any registered callbacks
             go.Terminal.reattachTerminalsCallbacks.forEach(function(callback) {
                 callback(terminals);

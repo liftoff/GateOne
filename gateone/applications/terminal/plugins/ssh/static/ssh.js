@@ -32,7 +32,7 @@ GateOne.Base.update(GateOne.SSH, {
             GateOne.Net.addAction('sshjs_delete_identity_complete', GateOne.SSH.deleteCompleteAction);
             GateOne.Net.addAction('sshjs_cmd_output', GateOne.SSH.commandCompleted);
             GateOne.Net.addAction('sshjs_ask_passphrase', GateOne.SSH.enterPassphraseAction);
-            GateOne.Events.on("new_terminal", GateOne.SSH.getConnectString);
+            GateOne.Events.on("terminal:new_terminal", GateOne.SSH.getConnectString);
         */
         var go = GateOne,
             u = go.Utils,
@@ -84,7 +84,7 @@ GateOne.Base.update(GateOne.SSH, {
                             go.Net.sendString(sshQueryString + '\n', term);
                         }
                     }
-                    go.Events.on("new_terminal", connect);
+                    go.Events.on("terminal:new_terminal", connect);
                 } else {
                     logError("SSH Plugin:  ssh query string must start with ssh:// or telnet:// (e.g. ssh=ssh://)");
                 }
@@ -93,13 +93,13 @@ GateOne.Base.update(GateOne.SSH, {
             }
         }
         // Setup a callback that runs disableCapture() whenever the panel is opened
-        go.Events.on('panel_toggle:in', function(panel) {
+        go.Events.on('go:panel_toggle:in', function(panel) {
             if (panel.id == go.prefs.prefix+'panel_ssh_ids') {
                 go.Input.disableCapture();
             }
         });
         // Setup a callback that runs capture() whenever the panel is closed
-        go.Events.on('panel_toggle:out', function(panel) {
+        go.Events.on('go:panel_toggle:out', function(panel) {
             if (panel.id == go.prefs.prefix+'panel_ssh_ids') {
                 go.Input.capture();
             }
@@ -114,7 +114,7 @@ GateOne.Base.update(GateOne.SSH, {
         go.Net.addAction('sshjs_delete_identity_complete', go.SSH.deleteCompleteAction);
         go.Net.addAction('sshjs_cmd_output', go.SSH.commandCompleted);
         go.Net.addAction('sshjs_ask_passphrase', go.SSH.enterPassphraseAction);
-        go.Events.on("new_terminal", go.SSH.getConnectString);
+        go.Events.on("terminal:new_terminal", go.SSH.getConnectString);
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
         }

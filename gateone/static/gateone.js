@@ -202,6 +202,7 @@ GateOne.Icons = {}; // NOTE: The built-in icons are actually at the bottom of th
 GateOne.initialized = false; // Used to detect if we've already called initialize()
 var go = GateOne.Base.update(GateOne, {
     // GateOne internal tracking variables and user functions
+    // TODO: Move this to GateOne.Terminal
     terminals: {
         count: function() {
             // Returns the number of open terminals
@@ -214,7 +215,18 @@ var go = GateOne.Base.update(GateOne, {
             return counter;
         }
     }, // For keeping track of running terminals
-    doingUpdate: false, // Used to prevent out-of-order character events
+    workspaces: {
+        count: function() {
+            // Returns the number of open terminals
+            var counter = 0;
+            for (var workspace in GateOne.workspaces) {
+                if (workspace % 1 === 0) {
+                    counter += 1;
+                }
+            }
+            return counter;
+        }
+    }, // For keeping track of open workspaces
     ws: null, // Where our WebSocket gets stored
     savePrefsCallbacks: [], // DEPRECATED: For plugins to use so they can have their own preferences saved when the user clicks "Save" in the Gate One prefs panel
     restoreDefaults: function() {
@@ -579,8 +591,8 @@ var go = GateOne.Base.update(GateOne, {
             } else {
                 go.prefs.audibleBell = true;
             }
-            E.trigger("save_prefs");
-            // savePrefsCallbacks is DEPRECATED.  Use GateOne.Events.on("save_prefs", yourFunc) instead
+            E.trigger("go:save_prefs");
+            // savePrefsCallbacks is DEPRECATED.  Use GateOne.Events.on("go:save_prefs", yourFunc) instead
             if (go.savePrefsCallbacks.length) {
                 // Call any registered prefs callbacks
                 for (var i in go.savePrefsCallbacks) {
@@ -588,13 +600,6 @@ var go = GateOne.Base.update(GateOne, {
                 }
             }
             u.savePrefs();
-            // In case the user changed the rows/cols or the font/size changed:
-            setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
-                go.Visual.updateDimensions();
-                for (var term in GateOne.terminals) {
-                    go.Net.sendDimensions(term);
-                };
-            }, 3000);
         }
         // Apply user-specified dimension styles and settings
         go.Visual.applyStyle(goDiv, go.prefs.style);
@@ -741,8 +746,25 @@ var go = GateOne.Base.update(GateOne, {
             }, 750);
         }
         window.addEventListener('resize', go.onResizeEvent, false);
+        // Create the workspace grid if not in embedded mode
+        if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
+            var gridwrapper = u.getNode('#'+prefix+'gridwrapper');
+            // Create the grid if it isn't already present
+            if (!gridwrapper) {
+                gridwrapper = go.Visual.createGrid('gridwrapper');
+                goDiv.appendChild(gridwrapper);
+                var style = window.getComputedStyle(goDiv, null),
+                    adjust = 0,
+                    paddingRight = (style['padding-right'] || style['paddingRight']);
+                if (paddingRight) {
+                    adjust = parseInt(paddingRight.split('px')[0]);
+                }
+                var gridWidth = (go.Visual.goDimensions.w+adjust) * 2;
+                gridwrapper.style.width = gridWidth + 'px';
+            }
+        }
         // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
-        go.Events.on("panel_toggle:in", updateCSSfunc);
+        go.Events.on("go:panel_toggle:in", updateCSSfunc);
         // Make sure the gridwrapper is the proper width for 2 columns
         go.Visual.updateDimensions();
         // This calls plugins init() and postInit() functions:
@@ -754,7 +776,7 @@ var go = GateOne.Base.update(GateOne, {
         document.addEventListener(visibilityChange, go.Input.handleVisibility, false);
         goDiv.addEventListener('blur', go.Input.disableCapture, false); // So we don't end up stealing input from something else on the page
         go.initialized = true;
-        go.Events.trigger("initialized");
+        go.Events.trigger("go:initialized");
         setTimeout(function() {
             // Make sure all the panels have their style set to 'display:none' to prevent their form elements from gaining focus when the user presses the tab key (only matters when a dialog or other panel is open)
             u.hideElements(go.prefs.goDiv+' .panel');
@@ -1844,37 +1866,16 @@ GateOne.Base.module(GateOne, 'Net', '1.1', ['Base', 'Utils']);
 GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
 GateOne.Net.connectionSuccess = false; // Gets set after we connect successfully at least once
 GateOne.Net.sendDimensionsCallbacks = []; // DEPRECATED: A hook plugins can use if they want to call something whenever the terminal dimensions change
-// TODO:  Move the terminal-specific functions from here into GateOne.Terminal (sendChars, sendString, sendDimensions)
 GateOne.Base.update(GateOne.Net, {
     sendChars: function() {
-        // pop()s out the current charBuffer and sends it to the server.
-        // NOTE: This function is normally called every time a key is pressed.
-        var u = go.Utils,
-            term = localStorage[go.prefs.prefix+'selectedTerminal'],
-            termPre = GateOne.terminals[term]['node'];
-        if (!go.doingUpdate) { // Only perform a character push if we're *positive* the last character POST has completed.
-            go.doingUpdate = true;
-            var cb = go.Input.charBuffer,
-                charString = "";
-            for (var i=0; i<=cb.length; i++) { charString += cb.pop() }
-            if (charString != "undefined") {
-                var message = {'c': charString};
-                go.ws.send(JSON.stringify(message));
-                go.doingUpdate = false;
-            } else {
-                go.doingUpdate = false;
-            }
-        } else {
-            // We are in the middle of processing the last character
-            setTimeout(go.Net.sendChars, 100); // Wait 0.1 seconds and retry.
-        }
+        /**:GateOne.Net.sendChars() DEPRECATED:  Use GateOne.Terminal.sendChars() instead. */
+        GateOne.Logging.deprecated("GateOne.Net.sendChars", "Use GateOne.Terminal.sendChars() instead.");
+        GateOne.Terminal.sendChars();
     },
     sendString: function(chars, term) {
-        // Like sendChars() but for programmatic use.  *chars* will be sent to *term* on the server.
-        var u = go.Utils,
-            term = term || localStorage[go.prefs.prefix+'selectedTerminal'],
-            message = {'chars': chars, 'term': term};
-        go.ws.send(JSON.stringify({'write_chars': message}));
+        /**:GateOne.Net.sendString() DEPRECATED:  Use GateOne.Terminal.sendString() instead. */
+        GateOne.Logging.deprecated("GateOne.Net.sendString", "Use GateOne.Terminal.sendString() instead.");
+        GateOne.Terminal.sendString(chars, term);
     },
     log: function(msg) {
         // Just logs the message (use for debugging plugins and whatnot)
@@ -1925,48 +1926,9 @@ GateOne.Base.update(GateOne.Net, {
         }
     },
     sendDimensions: function(term, /*opt*/ctrl_l) {
-        /**GateOne.Net.sendDimensions(term, ctrl_l)
-        Sends the current terminal's dimensions to the server.
-        */
-        logDebug('sendDimensions(' + term + ', ' + ctrl_l + ')');
-        if (!term) {
-            var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
-        }
-        if (typeof(ctrl_l) == 'undefined') {
-            ctrl_l = true;
-        }
-        var go = GateOne,
-            u = go.Utils,
-            rowAdjust = go.prefs.rowAdjust + 1, // Always 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
-            colAdjust = go.prefs.colAdjust + 3, // Always 3 for the scrollbar
-            emDimensions = u.getEmDimensions(go.prefs.goDiv),
-            dimensions = u.getRowsAndColumns(go.prefs.goDiv),
-            prefs = {
-                'term': term,
-                'rows': Math.ceil(dimensions.rows - rowAdjust),
-                'cols': Math.ceil(dimensions.cols - colAdjust),
-                'em_dimensions': emDimensions
-            }
-        if (!emDimensions || !dimensions) {
-            return; // Nothing to do
-        }
-        if (go.prefs.showToolbar || go.prefs.showTitle) {
-            prefs['cols'] = prefs['cols'] - 4; // If there's no toolbar and no title there's no reason to have empty space on the right.
-        }
-        // Apply user-defined rows and cols (if set)
-        if (go.prefs.cols) { prefs.cols = go.prefs.cols };
-        if (go.prefs.rows) { prefs.rows = go.prefs.rows };
-        // Execute any sendDimensionsCallbacks
-        go.Events.trigger("send_dimensions", term);
-        // sendDimensionsCallbacks is DEPRECATED.  Use GateOne.Events.on("send_dimensions", yourFunc) instead
-        if (GateOne.Net.sendDimensionsCallbacks.length) {
-            go.Logging.deprecated("sendDimensionsCallbacks", "Use GateOne.Events.on('send_dimensions', func) instead.");
-            for (var i=0; i<GateOne.Net.sendDimensionsCallbacks.length; i++) {
-                GateOne.Net.sendDimensionsCallbacks[i](term);
-            }
-        }
-        // Tell the server the new dimensions
-        go.ws.send(JSON.stringify({'resize': prefs}));
+        /**:GateOne.Net.sendDimensions() DEPRECATED:  Use GateOne.Terminal.sendDimensions() instead. */
+        GateOne.Logging.deprecated("GateOne.Net.sendDimensions", "Use GateOne.Terminal.sendDimensions() instead.");
+        GateOne.Terminal.sendDimensions(term, ctrl_l);
     },
     // TODO: Move the terminal-specific stuff to GateOne.Terminal and have it call those things as part of the "connection_error" event.
     connectionError: function(msg) {
@@ -1989,7 +1951,7 @@ GateOne.Base.update(GateOne.Net, {
         u.getNode(go.prefs.goDiv).appendChild(errorElem);
         // Fire a connection_error event.  Primarily so developers can get a new/valid API authentication object.
         // For reference, to reset the auth object just assign it:  GateOne.prefs.auth = <your auth object>
-        go.Events.trigger("connection_error");
+        go.Events.trigger("go:connection_error");
         go.Net.reconnectTimeout = setTimeout(go.Net.connect, 5000);
     },
     sslError: function(callback) {
@@ -2108,7 +2070,7 @@ GateOne.Base.update(GateOne.Net, {
                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
                 }, 4000);
                 // NOTE: This event can't be used by applications (and their plugins) since their JS won't have been loaded yet:
-                go.Events.trigger("connnection_established");
+                go.Events.trigger("go:connnection_established");
                 go.initialize();
                 if (callback) {
                     callback();
@@ -2228,7 +2190,7 @@ GateOne.Base.update(GateOne.Input, {
                 // Only preventDefault if text is selected so we don't muck up X11-style middle-click pasting
                 e.preventDefault();
                 go.Input.queue(selectedText);
-                go.Net.sendChars();
+                go.Terminal.sendChars();
                 setTimeout(function() {
                     go.Input.handlingPaste = false;
                 }, 250);
@@ -2367,7 +2329,7 @@ GateOne.Base.update(GateOne.Input, {
                 logDebug('paste contents: ' + contents);
                 // Queue it up and send the characters as if we typed them in
                 go.Input.queue(contents);
-                go.Net.sendChars();
+                go.Terminal.sendChars();
             } else {
                 // Change focus to the current pastearea and hope for the best
                 go.Terminal.paste();
@@ -2633,10 +2595,10 @@ GateOne.Base.update(GateOne.Input, {
         // If a non-shift modifier was depressed, emulate the given keystroke:
         if (modifiers.alt || modifiers.ctrl || modifiers.meta) {
             goIn.emulateKeyCombo(e);
-            go.Net.sendChars();
+            go.Terminal.sendChars();
         } else { // Just send the key if no modifiers:
             goIn.emulateKey(e);
-            go.Net.sendChars();
+            go.Terminal.sendChars();
         }
     },
     // TODO: Add a GUI for configuring the keyboard.
@@ -2879,7 +2841,7 @@ GateOne.Base.update(GateOne.Input, {
             goIn.F11timer = setTimeout(function() {
                 goIn.F11 = false;
                 goIn.emulateKey(e, true); // Pretend this never happened
-                go.Net.sendChars();
+                go.Terminal.sendChars();
             }, 750);
             GateOne.Visual.displayMessage("NOTE: Rapidly pressing F11 twice will enable/disable fullscreen mode.");
             return;
@@ -3084,7 +3046,7 @@ GateOne.Base.update(GateOne.Input, {
         if (!goIn.handledKeystroke) {
             if (e.charCode != 0) {
                 q(String.fromCharCode(e.charCode));
-                go.Net.sendChars();
+                go.Terminal.sendChars();
             }
         }
         q = null;
@@ -3209,7 +3171,7 @@ GateOne.Base.update(GateOne.Visual, {
             }
         }
         // Trigger a dimensions update event and pass in the goDimensions object
-        go.Events.trigger("update_dimensions", go.Visual.goDimensions);
+        go.Events.trigger("go:update_dimensions", go.Visual.goDimensions);
     },
     applyTransform: function (obj, transform) {
         // Applys the given CSS3 *transform* to *obj* for all known vendor prefixes (e.g. -<whatever>-transform)
@@ -3277,13 +3239,13 @@ GateOne.Base.update(GateOne.Visual, {
 
         This function also has some events that can be hooked into:
 
-            * When the panel is toggled out of view: GateOne.Events.trigger("panel_toggle:out", panelElement)
-            * When the panel is toggled into view: GateOne.Events.trigger("panel_toggle:in", panelElement)
+            * When the panel is toggled out of view: GateOne.Events.trigger("go:panel_toggle:out", panelElement)
+            * When the panel is toggled into view: GateOne.Events.trigger("go:panel_toggle:in", panelElement)
 
         You can hook into these events like so::
 
-            > GateOne.Events.on("panel_toggle:in", myFunc); // When panel is toggled into view
-            > GateOne.Events.on("panel_toggle:out", myFunc); // When panel is toggled out of view
+            > GateOne.Events.on("go:panel_toggle:in", myFunc); // When panel is toggled into view
+            > GateOne.Events.on("go:panel_toggle:out", myFunc); // When panel is toggled out of view
         */
         var v = go.Visual,
             u = go.Utils,
@@ -3291,7 +3253,7 @@ GateOne.Base.update(GateOne.Visual, {
             panel = u.getNode(panel),
             origState = null,
             panels = u.getNodes(go.prefs.goDiv + ' .panel'),
-            deprecatedMsg = "Use GateOne.Events.on('panel_toggle:in', func) or GateOne.Events.on('panel_toggle:out', func) instead.",
+            deprecatedMsg = "Use GateOne.Events.on('go:panel_toggle:in', func) or GateOne.Events.on('go:panel_toggle:out', func) instead.",
             setHideTimeout = function(panel) {
                 // Just used to get around the closure issue below
                 if (v.hidePanelsTimeout[panel.id]) {
@@ -3342,7 +3304,7 @@ GateOne.Base.update(GateOne.Visual, {
                 v.applyTransform(panel, 'scale(1)');
             }, 1);
             // Call any registered 'in' callbacks for all of these panels
-            GateOne.Events.trigger("panel_toggle:in", panel)
+            GateOne.Events.trigger("go:panel_toggle:in", panel)
             if (v.panelToggleCallbacks['in']['#'+panel.id]) {
                 for (var ref in v.panelToggleCallbacks['in']['#'+panel.id]) {
                     if (typeof(v.panelToggleCallbacks['in']['#'+panel.id][ref]) == "function") {
@@ -3369,7 +3331,7 @@ GateOne.Base.update(GateOne.Visual, {
             // Activate capturing of keystrokes so the user doesn't have to click on #gateone to start typing again
             go.Input.capture();
             // Call any registered 'out' callbacks for all of these panels
-            GateOne.Events.trigger("panel_toggle:out", panel);
+            GateOne.Events.trigger("go:panel_toggle:out", panel);
             if (v.panelToggleCallbacks['out']['#'+panel.id]) {
                 for (var ref in v.panelToggleCallbacks['out']['#'+panel.id]) {
                     if (typeof(v.panelToggleCallbacks['out']['#'+panel.id][ref]) == "function") {
@@ -3687,7 +3649,7 @@ GateOne.Base.update(GateOne.Visual, {
             wPX = 0,
             hPX = 0,
             count = 0,
-            currentTerm = localStorage[prefix+'selectedTerminal'],
+            currentWorkspace = localStorage[prefix+'selectedTerminal'],
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             style = window.getComputedStyle(u.getNode(go.prefs.goDiv), null),
             rightAdjust = 0,
@@ -3704,7 +3666,7 @@ GateOne.Base.update(GateOne.Visual, {
         terms.forEach(function(termNode) {
             // Calculate all the width and height adjustments so we know where to move them
             count = count + 1;
-            if (termNode.id == prefix+'term' + currentTerm) { // Pretend we're switching to what's right in front of us (current terminal)
+            if (termNode.id == prefix+'term' + currentWorkspace) { // Pretend we're switching to what's right in front of us (current terminal)
                 if (u.isEven(count)) {
                     wPX = ((v.goDimensions.w+rightAdjust) * 2) - (v.goDimensions.w+rightAdjust);
                     hPX = (((v.goDimensions.h+bottomAdjust) * count)/2) - (v.goDimensions.h+(bottomAdjust*Math.floor(count/2)));
@@ -3717,7 +3679,7 @@ GateOne.Base.update(GateOne.Visual, {
         });
         terms.forEach(function(termNode) {
             // Move each terminal into position
-            if (termNode.id == prefix+'term' + currentTerm) { // Apply to current terminal...  Not the one we're switching to
+            if (termNode.id == prefix+'term' + currentWorkspace) { // Apply to current terminal...  Not the one we're switching to
                 v.applyTransform(termNode, 'translate(-' + wPX + 'px, -' + hPX + 'px)');
             } else {
                 v.applyTransform(termNode, 'translate(-' + wPX + 'px, -' + hPX + 'px) scale(0.5)');
@@ -3732,10 +3694,8 @@ GateOne.Base.update(GateOne.Visual, {
         var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
-            currentTerm = localStorage[prefix+'selectedTerminal'],
-            currentTermObj = u.getNode('#'+prefix+'term'+currentTerm),
             controlsContainer = u.getNode('#'+prefix+'controlsContainer'),
-            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         if (goBack == null) {
             goBack == true;
         }
@@ -3743,7 +3703,7 @@ GateOne.Base.update(GateOne.Visual, {
             // Switch to the selected terminal and undo the grid
             v.gridView = false;
             // Remove the events we added for the grid:
-            terms.forEach(function(termObj) {
+            workspaces.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
                     pastearea = go.terminals[termID]['pasteNode'];
                 if (pastearea) {
@@ -3774,17 +3734,17 @@ GateOne.Base.update(GateOne.Visual, {
             go.Terminal.disableScrollback();
             v.resetGrid();
             setTimeout(function() {
-                terms.forEach(function(termObj) {
+                workspaces.forEach(function(termObj) {
                     termObj.style.display = null; // Make sure they're all visible
                     v.enableTransitions(termObj);
                 });
-                v.applyTransform(terms, 'translate(0px, 0px)');
+                v.applyTransform(workspaces, 'translate(0px, 0px)');
                 var odd = true,
                     count = 1,
                     oddAmount = 0,
                     evenAmount = 0,
                     transform = "";
-                terms.forEach(function(termObj) {
+                workspaces.forEach(function(termObj) {
                     var termID = termObj.id.split(prefix+'term')[1],
                         pastearea = go.terminals[termID]['pasteNode'],
                         selectTermFunc = function(e) {
@@ -4388,10 +4348,10 @@ GateOne.Base.update(GateOne.User, {
         if (prefsPanelUserID) {
             prefsPanelUserID.innerHTML = username + " ";
         }
-        go.Events.trigger("user_login", username);
+        go.Events.trigger("go:user_login", username);
         if (go.User.userLoginCallbacks.length) {
             // Call any registered callbacks
-            go.Logging.deprecated("userLoginCallbacks", "Use GateOne.Events.on('user_login', func) instead.");
+            go.Logging.deprecated("userLoginCallbacks", "Use GateOne.Events.on('go:user_login', func) instead.");
             go.User.userLoginCallbacks.forEach(function(callback) {
                 callback(username);
             });
@@ -4411,7 +4371,7 @@ GateOne.Base.update(GateOne.User, {
         } else {
             redirectURL = '';
         }
-        go.Events.trigger("user_logout", go.User.username);
+        go.Events.trigger("go:user_logout", go.User.username);
         // NOTE: This takes care of deleting the "user" cookie
         u.xhrGet(go.prefs.url+'auth?logout=True&redirect='+redirectURL, function(response) {
             logDebug("Logout Response: " + response);
@@ -4689,6 +4649,18 @@ GateOne.Base.update(GateOne.Events, {
             args = Array.prototype.slice.call(arguments, 1); // Everything after *events*
         events.split(/\s+/).forEach(function(event) {
             var callList = E.callbacks[event];
+            if (!callList) {
+                // Try the old, un-prefixed event name too for backwards compatibility
+                event = event.split(':')[1];
+                if (event) {
+                    callList = E.callbacks[event];
+                }
+                // NOTE: This deprecated check will go away eventually!
+                if (callList) {
+                    // Warn about this being deprecated
+                    GateOne.Logging.deprecated("Event: " + event, "Events now use prefixes such as 'go:' or 'terminal:'.");
+                }
+            }
             if (callList) {
                 callList.forEach(function(callObj) {
                     callObj.callback.apply(callObj.context || this, args);
