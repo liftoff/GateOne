@@ -68,11 +68,15 @@ class HTMLOutput(terminal.FileType):
     re_capture = re.compile('(\x90;HTML\|.+?\x90)', re.DOTALL)
     # Why have a tag whitelist?  So programs like 'wall' don't enable XSS
     # exploits.
-    tag_whitelist = [
-        'img', 'p', 'a', 'em', 'strong', 'blockquote', 'video', 'audio', 'ul',
-        'ol', 'li', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'del',
-        'ins', 'q', 'wbr', 'mark', 'sub', 'sup', 'span', 'div'
-    ]
+    tag_whitelist = set([
+        'a', 'abbr', 'aside', 'audio', 'bdi', 'bdo', 'blockquote', 'canvas',
+        'caption', 'code', 'col', 'colgroup', 'data', 'dd', 'del',
+        'details', 'div', 'dl', 'dt', 'em', 'figcaption', 'figure', 'h1',
+        'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'i', 'img', 'ins', 'kbd', 'li',
+        'mark', 'ol', 'p', 'pre', 'q', 'rp', 'rt', 'ruby', 's', 'samp',
+        'small', 'source', 'span', 'strong', 'sub', 'summary', 'sup',
+        'time', 'track', 'u', 'ul', 'var', 'video', 'wbr'
+    ])
     # This will match things like 'onmouseover=' ('on<whatever>=')
     on_events_re = re.compile('.*\s+(on[a-z]+\s*=).*')
 
@@ -113,7 +117,7 @@ class HTMLOutput(terminal.FileType):
                 error_msg = _(
                    "HTML Plugin: Sorry but using 'javascript:' is not allowed.")
                 term.send_message(error_msg)
-                html = u"\u2421" # ␡ char
+                html = u"\u2421"
                 break
             # on<whatever> events are not allowed (just another XSS vuln)
             if self.on_events_re.search(tag_lower):
@@ -121,14 +125,14 @@ class HTMLOutput(terminal.FileType):
                     "HTML Plugin: Sorry but using JavaScript events is not "
                     "allowed.")
                 term.send_message(error_msg)
-                html = u"\u2421" # ␡ char
+                html = u"\u2421"
                 break
             # Flash sucks
             if "fscommand" in tag_lower:
                 error_msg = _(
                     "HTML Plugin: Sorry but using 'FSCommand' is not allowed.")
                 term.send_message(error_msg)
-                html = u"\u2421" # ␡ char
+                html = u"\u2421"
                 break
             # I'd be impressed if an attacker tried this one (super obscure)
             if "seeksegmenttime" in tag_lower:
@@ -136,14 +140,14 @@ class HTMLOutput(terminal.FileType):
                     "HTML Plugin: Sorry but using 'seekSegmentTime' is not "
                     "allowed.")
                 term.send_message(error_msg)
-                html = u"\u2421" # ␡ char
+                html = u"\u2421"
                 break
             # Yes we'll protect IE users from themselves...
             if "vbscript:" in tag_lower:
                 error_msg = _(
                    "HTML Plugin: Sorry but using 'vbscript:' is not allowed.")
                 term.send_message(error_msg)
-                html = u"\u2421" # ␡ char
+                html = u"\u2421"
                 break
         if self.path:
             if os.path.exists(self.path):

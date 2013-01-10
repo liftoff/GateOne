@@ -1470,6 +1470,100 @@ class memoize:
 
         return self.memo[str]
 
+def strip_xss(html, whitelist=None, replacement=u"\u2421"):
+    """
+    This function returns a tuple containing:
+
+        * *html* with all non-whitelisted HTML tags replaced with *replacement*.  Any tags that contain JavaScript, VBScript, or other known XSS/executable functions will also be removed.
+        * A list containing the any tags that were removed.
+
+    If *whitelist* is not given the following will be used::
+
+        whitelist = set([
+            'a', 'abbr', 'aside', 'audio', 'bdi', 'bdo', 'blockquote', 'canvas',
+            'caption', 'code', 'col', 'colgroup', 'data', 'dd', 'del',
+            'details', 'div', 'dl', 'dt', 'em', 'figcaption', 'figure', 'h1',
+            'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'i', 'img', 'ins', 'kbd', 'li',
+            'mark', 'ol', 'p', 'pre', 'q', 'rp', 'rt', 'ruby', 's', 'samp',
+            'small', 'source', 'span', 'strong', 'sub', 'summary', 'sup',
+            'time', 'track', 'u', 'ul', 'var', 'video', 'wbr'
+        ])
+
+    Example::
+
+        >>> html = '<span>Hello, exploit: <img src="javascript:alert(\"pwned!\")"></span>'
+        >>> strip_xss(html)
+        (u'<span>Hello, exploit: \u2421</span>', ['<img src="javascript:alert("pwned!")">'])
+
+    .. note:: The default *replacement* is the unicode ␡ character (u"\u2421").
+
+    If *replacement* is "entities" bad HTML tags will be encoded into HTML
+    entities.  This allows things like <script>'whatever'</script> to be
+    displayed without execution (which would be much less annoying to users that
+    were merely trying to share a code example).  Here's an example::
+
+        >>> html = '<span>Hello, exploit: <img src="javascript:alert(\"pwned!\")"></span>'
+        >>> strip_xss(html, replacement="entities")
+        ('<span>Hello, exploit: &lt;span&gt;Hello, exploit: &lt;img src="javascript:alert("pwned!")"&gt;&lt;/span&gt;</span>',
+         ['<img src="javascript:alert("pwned!")">'])
+        (u'<span>Hello, exploit: \u2421</span>', ['<img src="javascript:alert("pwned!")">'])
+
+    .. note:: This function should work to protect against all `the XSS examples at OWASP <https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet>`_.  Please `let us know <https://github.com/liftoff/GateOne/issues>`_ if you find something we missed.
+    """
+    re_html_tag = re.compile( # This matches HTML tags (if used correctly)
+      "(?i)<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>")
+    # This will match things like 'onmouseover=' ('on<whatever>=')
+    on_events_re = re.compile('.*\s+(on[a-z]+\s*=).*')
+    if not whitelist:
+        # These are all pretty safe and covers most of what users would want in
+        # terms of formatting and sharing media (images, audio, video, etc).
+        whitelist = set([
+            'a', 'abbr', 'aside', 'audio', 'bdi', 'bdo', 'blockquote', 'canvas',
+            'caption', 'code', 'col', 'colgroup', 'data', 'dd', 'del',
+            'details', 'div', 'dl', 'dt', 'em', 'figcaption', 'figure', 'h1',
+            'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'i', 'img', 'ins', 'kbd', 'li',
+            'mark', 'ol', 'p', 'pre', 'q', 'rp', 'rt', 'ruby', 's', 'samp',
+            'small', 'source', 'span', 'strong', 'sub', 'summary', 'sup',
+            'time', 'track', 'u', 'ul', 'var', 'video', 'wbr'
+        ])
+    bad_tags = []
+    for tag in re_html_tag.finditer(html):
+        tag = tag.group()
+        tag_lower = tag.lower()
+        short_tag = tag_lower.split()[0].lstrip('</').rstrip('>')
+        if short_tag not in whitelist:
+            bad_tags.append(tag)
+            continue
+        # Make sure the tag can't execute any JavaScript
+        if "javascript:" in tag_lower:
+            bad_tags.append(tag)
+            continue
+        # on<whatever> events are not allowed (just another XSS vuln)
+        if on_events_re.search(tag_lower):
+            bad_tags.append(tag)
+            continue
+        # Flash sucks
+        if "fscommand" in tag_lower:
+            bad_tags.append(tag)
+            continue
+        # I'd be impressed if an attacker tried this one (super obscure)
+        if "seeksegmenttime" in tag_lower:
+            bad_tags.append(tag)
+            continue
+        # Yes we'll protect IE users from themselves...
+        if "vbscript:" in tag_lower:
+            bad_tags.append(tag)
+            continue
+    if replacement == "entities":
+        import cgi
+        for bad_tag in bad_tags:
+            escaped = cgi.escape(html).encode('ascii', 'xmlcharrefreplace')
+            html = html.replace(bad_tag, escaped)
+    else:
+        for bad_tag in bad_tags:
+            html = html.replace(bad_tag, u"\u2421")
+    return (html, bad_tags)
+
 # Misc
 _ = get_translation()
 if MACOS: # Apply mac-specific stuff

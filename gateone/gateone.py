@@ -1966,6 +1966,8 @@ class ApplicationWebSocket(WebSocketHandler):
         users.
         """
         logging.info("Broadcast: %s" % message)
+        from utils import strip_xss # Prevent XSS attacks
+        message, bad_tags = strip_xss(message, replacement="entities")
         self.send_message(message, upn="AUTHENTICATED")
         self.trigger('go:broadcast', message)
 

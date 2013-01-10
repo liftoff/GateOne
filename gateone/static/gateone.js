@@ -678,7 +678,7 @@ var go = GateOne.Base.update(GateOne, {
                     }
                     if (!terminalObj['scrollbackVisible']) {
                         // Immediately re-enable the scrollback buffer
-                        go.Visual.enableScrollback(term);
+                        go.Terminal.enableScrollback(term);
                     }
                 }
             } else {
@@ -743,7 +743,7 @@ var go = GateOne.Base.update(GateOne, {
         window.addEventListener('resize', go.onResizeEvent, false);
         // Setup a callback that updates the CSS options whenever the panel is opened (so the user doesn't have to reload the page when the server has new CSS files).
         go.Events.on("panel_toggle:in", updateCSSfunc);
-        // Make sure the termwrapper is the proper width for 2 columns
+        // Make sure the gridwrapper is the proper width for 2 columns
         go.Visual.updateDimensions();
         // This calls plugins init() and postInit() functions:
         u.runPostInit();
@@ -2065,7 +2065,7 @@ GateOne.Base.update(GateOne.Net, {
         logDebug("onOpen()");
         var u = go.Utils,
             prefix = go.prefs.prefix,
-            termwrapper = u.getNode('#'+prefix+'termwrapper'),
+            gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             settings = {'auth': go.prefs.auth, 'container': go.prefs.goDiv.split('#')[1], 'prefix': prefix, 'location': go.location};
         // Cancel our SSL error timeout since everything is working fine.
         clearTimeout(go.Net.sslErrorTimeout);
@@ -2078,8 +2078,8 @@ GateOne.Base.update(GateOne.Net, {
                 u.loadThemeCSS({'theme': go.prefs.theme, 'colors': go.prefs.colors});
                 u.loadPluginCSS();
                 // Clear the error message if it's still there
-                if (termwrapper) {
-                    termwrapper.innerHTML = "";
+                if (gridwrapper) {
+                    gridwrapper.innerHTML = "";
                 }
                 // Load the bell sound
                 if (go.prefs.bellSound.length) {
@@ -3189,7 +3189,7 @@ GateOne.Base.update(GateOne.Visual, {
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
-            wrapperDiv = u.getNode('#'+prefix+'termwrapper'),
+            wrapperDiv = u.getNode('#'+prefix+'gridwrapper'),
             style = window.getComputedStyle(goDiv, null),
             rightAdjust = 0,
             paddingRight = (style['padding-right'] || style['paddingRight']);
@@ -3199,7 +3199,7 @@ GateOne.Base.update(GateOne.Visual, {
         go.Visual.goDimensions.w = parseInt(style.width.split('px')[0]);
         go.Visual.goDimensions.h = parseInt(style.height.split('px')[0]);
         if (wrapperDiv) { // Explicit check here in case we're embedded into something that isn't using the grid (aka the wrapperDiv here).
-            // Update the width of termwrapper in case #gateone has padding
+            // Update the width of gridwrapper in case #gateone has padding
             wrapperDiv.style.width = ((go.Visual.goDimensions.w+rightAdjust)*2) + 'px';
             if (terms.length) {
                 terms.forEach(function(termObj) {
@@ -3471,114 +3471,6 @@ GateOne.Base.update(GateOne.Visual, {
             }
         }
     },
-    enableScrollback: function(/*Optional*/term) {
-        // Replaces the contents of the selected terminal with the complete screen + scrollback buffer
-        // If *term* is given, only disable scrollback for that terminal
-        logDebug('enableScrollback(' + term + ')');
-        var u = go.Utils,
-            prefix = go.prefs.prefix,
-            enableSB = function(termNum) {
-                var termPreNode = go.terminals[termNum]['node'],
-                    termScreen = go.terminals[termNum]['screenNode'],
-                    termScrollback = go.terminals[termNum]['scrollbackNode'],
-                    parentHeight = termPreNode.parentElement.clientHeight;
-                if (!go.terminals[termNum]) { // The terminal was just closed
-                    return; // We're done here
-                }
-                if (u.getSelText()) {
-                    // Don't re-enable the scrollback buffer if the user is selecting text (so we don't clobber their highlight)
-                    // Retry again in 3.5 seconds
-                    clearTimeout(go.terminals[termNum]['scrollbackTimer']);
-                    go.terminals[termNum]['scrollbackTimer'] = setTimeout(function() {
-                        go.Visual.enableScrollback(termNum);
-                    }, 500);
-                    return;
-                }
-                // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
-                if (parentHeight) {
-                    termPreNode.style.height = (parentHeight - go.terminals[termNum]['heightAdjust']) + 'px';
-                } else {
-                    termPreNode.style.height = "100%"; // This ensures there's a scrollbar
-                }
-                if (termScrollback) {
-                    var scrollbackHTML = go.terminals[termNum]['scrollback'].join('\n') + '\n';
-                    if (termScrollback.innerHTML != scrollbackHTML) {
-                        termScrollback.innerHTML = scrollbackHTML;
-                    }
-                    termScrollback.style.display = null; // Reset
-                    u.scrollToBottom(termPreNode);
-                } else {
-                    // Create the span that holds the scrollback buffer
-                    termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback', 'class': 'scrollback'});
-                    termScrollback.innerHTML = go.terminals[termNum]['scrollback'].join('\n') + '\n';
-                    termPreNode.insertBefore(termScrollback, termScreen);
-                    go.terminals[termNum]['scrollbackNode'] = termScrollback;
-                    u.scrollToBottom(termPreNode); // Since we just created it for the first time we have to get to the bottom of things, so to speak =)
-                }
-                if (go.terminals[termNum]['scrollbackTimer']) {
-                    clearTimeout(go.terminals[termNum]['scrollbackTimer']);
-                }
-                go.terminals[termNum]['scrollbackVisible'] = true;
-            };
-        if (term && term in GateOne.terminals) {
-            // If there's already an existing scrollback buffer...
-            if (go.terminals[term]['scrollbackNode']) {
-                // ...and it's *not* visible
-                if (go.terminals[term]['scrollbackNode'].style.display != 'none') {
-                    // Make it visible again
-                    enableSB(term);
-                }
-            } else {
-                enableSB(term); // Have it create/add the scrollback buffer
-            }
-        } else {
-            var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
-            terms.forEach(function(termObj) {
-                var termNum = termObj.id.split(prefix+'term')[1];
-                if (termNum in GateOne.terminals) {
-                    enableSB(termNum);
-                }
-            });
-        }
-        go.Visual.scrollbackToggle = true;
-    },
-    disableScrollback: function(/*Optional*/term) {
-        // Replaces the contents of the selected terminal with just the screen (i.e. no scrollback)
-        // If *term* is given, only disable scrollback for that terminal
-        var u = go.Utils,
-            prefix = go.prefs.prefix;
-        if (term) {
-            var termPreNode = GateOne.terminals[term]['node'],
-                termScrollback = go.terminals[term]['scrollbackNode'];
-                if (termScrollback) {
-                    termScrollback.style.display = "none";
-                }
-            go.terminals[term]['scrollbackVisible'] = false;
-        } else {
-            var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
-            terms.forEach(function(termObj) {
-                var termID = termObj.id.split(prefix+'term')[1],
-                    termScrollback = go.terminals[termID]['scrollbackNode'];
-                if (termScrollback) {
-                    termScrollback.style.display = "none";
-                }
-                go.terminals[termID]['scrollbackVisible'] = false;
-            });
-        }
-        go.Visual.scrollbackToggle = false;
-    },
-    toggleScrollback: function() {
-        // Enables or disables the scrollback buffer (to hide or show the scrollbars)
-        // Why bother?  The translate() effect is a _lot_ smoother without scrollbars.  Also, full-screen applications that regularly update the screen can really slow down if the entirety of the scrollback buffer must be updated along with the current view.
-        var v = GateOne.Visual;
-        if (v.scrollbackToggle) {
-            v.enableScrollback();
-            v.scrollbackToggle = false;
-        } else {
-            v.disableScrollback();
-            v.scrollbackToggle = true;
-        }
-    },
     disableTransitions: function(elem) {
         /**:GateOne.Visual.disableTransitions(elem)
 
@@ -3601,7 +3493,7 @@ GateOne.Base.update(GateOne.Visual, {
             node = u.getNode(elem);
         node.className = node.className.replace(/(?:^|\s)noanimate(?!\S)/, '');
     },
-    // TODO: Change this so it doesn't hard-code things like setting the terminal title or fixing the activity checkboxes (use a callback array like everything else)
+    // TODO:  Change this so it doesn't hard-code things like setting the terminal title or fixing the activity checkboxes (use a callback array like everything else)
     // TODO:  Change this function so it uses 'workspace' instead of 'term' and remove all the terminal-specific stuff.
     slideToWorkspace: function(term) {
         // Slides the view to the given *term*.  If *GateOne.Visual.noReset* is true, don't reset the grid before switching
@@ -3620,7 +3512,7 @@ GateOne.Base.update(GateOne.Visual, {
             style = window.getComputedStyle(u.getNode(go.prefs.goDiv), null),
             rightAdjust = 0,
             bottomAdjust = 0,
-            reScrollback = u.partial(v.enableScrollback, term),
+            reScrollback = u.partial(go.Terminal.enableScrollback, term),
             paddingRight = (style['padding-right'] || style['paddingRight']),
             paddingBottom = (style['padding-bottom'] || style['paddingBottom']),
             setActivityCheckboxes = function(term) {
@@ -3786,7 +3678,7 @@ GateOne.Base.update(GateOne.Visual, {
     resetGrid: function() {
         /**:GateOne.Visual.resetGrid()
 
-        Places all terminals in their proper position in the grid instantly (no animations).
+        Places all workspaces in their proper position in the grid instantly (no animations).
         */
         var go = GateOne,
             u = go.Utils,
@@ -3868,18 +3760,18 @@ GateOne.Base.update(GateOne.Visual, {
             if (controlsContainer) {
                 u.showElement(controlsContainer);
             }
-            v.enableScrollback();
+            go.Terminal.enableScrollback();
         } else {
             // Bring up the grid
             v.gridView = true;
             setTimeout(function() {
                 u.getNode(go.prefs.goDiv).style.overflowY = 'visible';
-                u.getNode('#'+prefix+'termwrapper').style.width = go.Visual.goDimensions.w;
+                u.getNode('#'+prefix+'gridwrapper').style.width = go.Visual.goDimensions.w;
             }, 1000);
             if (controlsContainer) {
                 u.hideElement(controlsContainer);
             }
-            v.disableScrollback();
+            go.Terminal.disableScrollback();
             v.resetGrid();
             setTimeout(function() {
                 terms.forEach(function(termObj) {
@@ -3954,16 +3846,16 @@ GateOne.Base.update(GateOne.Visual, {
         var terminal = GateOne.Utils.createElement('div', {'id': squareName, 'class': 'terminal', 'style': {'width': GateOne.Visual.goDimensions.w + 'px', 'height': GateOne.Visual.goDimensions.h + 'px'}});
         GateOne.Visual.squares.push(terminal);
     },
-    createGrid: function(id, terminalNames) {
-        // Creates a container for all the terminals and optionally pre-creates terminals using *terminalNames*.
-        // *id* will be the ID of the resulting grid (e.g. "termwrapper")
-        // *terminalNames* is expected to be a list of DOM IDs.
+    createGrid: function(id, workspaceNames) {
+        // Creates a container for all the workspaces and optionally pre-creates workspaces using *workspaceNames*.
+        // *id* will be the ID of the resulting grid (e.g. "gridwrapper")
+        // *workspaceNames* is expected to be a list of DOM IDs.
         var u = GateOne.Utils,
             v = GateOne.Visual,
             grid = null;
         v.squares = [];
-        if (terminalNames) {
-            terminalNames.forEach(addSquare);
+        if (workspaceNames) {
+            workspaceNames.forEach(addSquare);
             grid = u.createElement('div', {'id': id});
             v.squares.forEach(function(square) {
                 grid.appendChild(square);
