@@ -493,7 +493,7 @@ class BaseMultiplex(object):
 
         Returns the identifier of the callback.  to Example:
 
-            >>> m = Multiplex()
+            >>> m = Multiplex('bash')
             >>> def somefunc(): pass
             >>> id = "myref"
             >>> ref = m.add_callback(m.CALLBACK_UPDATE, somefunc, id)
@@ -649,7 +649,7 @@ class BaseMultiplex(object):
                 continue
             if isinstance(pattern_obj.pattern, (list, tuple)):
                 for pat in pattern_obj.pattern:
-                    match = pat.search(term_lines)
+                    match = pat.search(stream)
                     if match:
                         callback = partial(
                             pattern_obj.callback, self, match.group())
@@ -861,7 +861,7 @@ class BaseMultiplex(object):
             errorback=None,
             timeout=15,
             position=None,
-            preprocess=False):
+            preprocess=True):
         """
         Watches the stream of output coming from the underlying terminal program
         for *patterns* and if there's a match *callback* will be called like so::
@@ -1004,9 +1004,9 @@ class BaseMultiplex(object):
         """
         # Create the Pattern object before we do anything else
         if isinstance(patterns, (str, unicode)):
-            # Convert to a compiled regex (assume MULTILINE for the sanity of
-            # the ignorant)
-            patterns = re.compile(patterns, re.MULTILINE)
+            # Convert to a compiled regex (assume MULTILINE and DOTALL for the
+            # sanity of the ignorant)
+            patterns = re.compile(patterns, re.MULTILINE|re.DOTALL)
         if isinstance(patterns, (tuple, list)):
             # Ensure that all patterns are RegexObjects
             pattern_list = []
@@ -1031,10 +1031,10 @@ class BaseMultiplex(object):
             errorback=errorback,
             preprocess=preprocess,
             timeout=timeout)
-        if not position:
-            self._patterns.append(pattern_obj)
-        else:
+        if isinstance(position, int):
             self._patterns.insert(position, pattern_obj)
+        else:
+            self._patterns.append(pattern_obj)
         return hash(pattern_obj)
 
     def unexpect(self, ref=None):
@@ -1079,7 +1079,9 @@ class BaseMultiplex(object):
                 "timedelta object"))
         remaining_patterns = True
         # This starts up the scheduler that constantly checks patterns
-        self.read() # Remember:  read() is non-blocking
+        output = self.read() # Remember:  read() is non-blocking
+        if output and self.debug:
+            print(repr(output))
         while remaining_patterns:
             # First we need to discount optional patterns
             remaining_patterns = False
@@ -1093,7 +1095,9 @@ class BaseMultiplex(object):
             if (datetime.now() - start) > timeout:
                 raise Timeout("Lingered longer than %s" % timeout.seconds)
             # Lastly we perform a read() to ensure the output is processed
-            self.read() # Remember:  read() is non-blocking
+            output = self.read() # Remember:  read() is non-blocking
+            if output and self.debug:
+                print(repr(output))
             time.sleep(0.01) # So we don't eat up all the CPU
         return True
 
@@ -1178,13 +1182,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         iteration (which is thread safe).  If the IOLoop isn't started
         *callback* will get called immediately and directly.
         """
-        try:
-            if self.io_loop.running():
-                self.io_loop.add_callback(callback)
-            else:
-                callback()
-        finally:
-            del callback
+        if self.io_loop.running():
+            self.io_loop.add_callback(callback)
+        else:
+            callback()
 
     def _reenable_output(self):
         """
@@ -1582,16 +1583,16 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             # reading from it.  Not a big deal.
             pass
         except OSError as e:
-            logging.error("Got exception in read: %s" % `e`)
-        except Exception as e:
-            import traceback
-            logging.error(
-                "Got unhandled exception in read (???): %s" % `e`)
-            traceback.print_exc(file=sys.stdout)
-            if self.isalive():
-                self.terminate()
-        finally:
-            return result
+            logging.error("Got exception in read: %s" % repr(e))
+        # This can be useful in debugging:
+        #except Exception as e:
+            #import traceback
+            #logging.error(
+                #"Got unhandled exception in read (???): %s" % repr(e))
+            #traceback.print_exc(file=sys.stdout)
+            #if self.isalive():
+                #self.terminate()
+        return result
 
     def _timeout_checker(self):
         """

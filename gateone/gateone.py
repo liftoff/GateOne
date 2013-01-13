@@ -1130,7 +1130,7 @@ class ApplicationWebSocket(WebSocketHandler):
         if message_obj:
             for key, value in message_obj.items():
                 if key in PLUGIN_WS_CMDS:
-                    try: # Plugins first so they can override behavior if they wish
+                    try: # Plugins first so they can override behavior
                         PLUGIN_WS_CMDS[key](value, tws=self)
                         # tws==ApplicationWebSocket
                     except (KeyError, TypeError, AttributeError) as e:
@@ -2877,12 +2877,13 @@ def main():
         # Just like the keyfile, assume they want to use the one in the
         # gateone_dir
         go_settings['certificate'] = "%s/certificate.pem" % GATEONE_DIR
-    if not os.path.exists(go_settings['keyfile']):
-        logging.info(_("No SSL private key found.  One will be generated."))
-        gen_self_signed_ssl(path=GATEONE_DIR)
-    if not os.path.exists(go_settings['certificate']):
-        logging.info(_("No SSL certificate found.  One will be generated."))
-        gen_self_signed_ssl(path=GATEONE_DIR)
+    if not go_settings['disable_ssl']:
+        if not os.path.exists(go_settings['keyfile']):
+            logging.info(_("No SSL private key found.  One will be generated."))
+            gen_self_signed_ssl(path=GATEONE_DIR)
+        if not os.path.exists(go_settings['certificate']):
+            logging.info(_("No SSL certificate found.  One will be generated."))
+            gen_self_signed_ssl(path=GATEONE_DIR)
     # When logging=="debug" it will display all user's keystrokes so make sure
     # we warn about this.
     if go_settings['logging'] == "debug":

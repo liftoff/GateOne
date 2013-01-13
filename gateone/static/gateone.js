@@ -4245,6 +4245,57 @@ GateOne.Base.update(GateOne.Visual, {
         }
         return closeWidget;
     },
+    pane: function(title, workspace, /*opt*/options) {
+        /**:GateOne.Visual.panel(title, workspace, [options])
+
+        Creates a new pane element inside of the given *workspace* and adds a pane object to :js:attr:`GateOne.Visual.workspaces`.  Panes can be docked or undocked (hover/pseudo pop-up) depending on *options*.  Returns the DOM node that winds up being created.
+
+        Example usage (creates a 4x4 grid)::
+
+            >>> paneObj = GateOne.Visual.pane('term1', 1); // New pane object.  Not attached to anything yet.
+            >>> document.body.appendChild(paneObj.node); // Add it to the body
+            >>> leftPane = paneObj.verticalSplit({'position': 'right', 'title': 'term2'}); // Cut the pane in half 50% and create a new, empty pane to the left named 'term2'
+            >>> topPane = leftPane.horizontalSplit({'position': 'bottom', 'title': 'term3'}); // Cut the pane in half 50% and create a new, empty pane above
+            >>> topLeftPane = topPane.verticalSplit({'position': 'left', 'title': 'term4'});  // Split the top pane in two.
+
+        More examples...
+
+        Add a new pane to an existing workspace that already has a pane::
+
+            >>> paneObj2 = GateOne.Visual.pane('terminal', 1, {'split': 'vertical'}); // Vertical split is the default if not specified
+            >>> // Would split whatever pane(s) exist on workspace 1 into two 50/50 sections.
+
+        TODO list:
+
+            * Make it so panes can be resized.
+            * Make it so can be minimized.
+            * Make it so other panes are aware of all other panes and their dimensions so they can be resized together (say, move one pane up and the one below it grows to fill the new space).
+            * By default a pane should just add a full width/height div to the specified element.
+
+        Visualing panels (end goal):
+
+        --------------------------------------------------------------------
+        |terminal list pane |         main terminal pane           |toolbar|
+        |                   |                                      |       |
+        |                   |                                      |       |
+        |                   |<--draggable left/right to resize     |       |
+        |                   |                                      |       |
+        |                   |                                      |       |
+        |                   |                                      |       |
+        |                   |                                      |       |
+        |                   |                                      |       |
+        |                   |                                      |       |
+        |                   |                                      |       |
+        |                   |                                      |       |
+        |-------------------|<--draggable up/down                  |       |
+        |some other pane    |                                      |       |
+        |                   |<--can move pane top, bottom, etc     |       |
+        |                   |                                      |       |
+        |------------------------------------------------------------------|
+        |       Some other pane              | Some other pane  (log view?)|
+        --------------------------------------------------------------------
+        */
+    },
     toggleOverlay: function() {
         // Toggles the overlay that visually indicates whether or not Gate One is ready for input
         logDebug('toggleOverlay()');
