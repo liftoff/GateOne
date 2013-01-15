@@ -131,16 +131,16 @@ def debug_expect(m_instance, match, pattern):
 
     .. note::  This function only works with post-process patterns.
     """
-    print("%s was matched..." % repr(match))
+    print("%s was matched..." % repr(pattern.pattern))
     out = ""
     for line in m_instance.dump():
         match_obj = pattern.search(line)
         if match_obj:
-            out += "--->%s\n" % repr(line)
+            print("--->%s\n" % repr(line))
             break
         else:
-            out += "    %s\n" % repr(line)
-    print(out)
+            if line.strip():
+                print("    %s\n" % repr(line))
 
 def retrieve_first_frame(golog_path):
     """
@@ -656,7 +656,7 @@ class BaseMultiplex(object):
                         self._call_callback(callback)
                         if not pattern_obj.sticky:
                             self.unexpect(hash(pattern_obj)) # Remove it
-                        break
+                            break
             else:
                 match = pattern_obj.pattern.search(stream)
                 if match:
@@ -1080,8 +1080,9 @@ class BaseMultiplex(object):
         remaining_patterns = True
         # This starts up the scheduler that constantly checks patterns
         output = self.read() # Remember:  read() is non-blocking
-        if output and self.debug:
-            print(repr(output))
+        # TODO: Add an extra "too much" debug option for "those times"...
+        #if output and self.debug:
+            #print("await: %s" % repr(output))
         while remaining_patterns:
             # First we need to discount optional patterns
             remaining_patterns = False
@@ -1093,11 +1094,17 @@ class BaseMultiplex(object):
                     break
             # Now check if we've timed out
             if (datetime.now() - start) > timeout:
+                for pattern in self._patterns:
+                    if not pattern.sticky and not pattern.optional:
+                        print(
+                          "We were waiting on this pattern before timeout: %s" %
+                          repr(pattern.pattern.pattern))
                 raise Timeout("Lingered longer than %s" % timeout.seconds)
             # Lastly we perform a read() to ensure the output is processed
             output = self.read() # Remember:  read() is non-blocking
-            if output and self.debug:
-                print(repr(output))
+            # TODO: Add this to the "too much" debug option
+            #if output and self.debug:
+                #print("await: %s" % repr(output))
             time.sleep(0.01) # So we don't eat up all the CPU
         return True
 
@@ -1501,6 +1508,8 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         else: # Child died
             logging.debug(_(
                 "Apparently fd %s just died (event: %s)" % (self.fd, event)))
+            #if self.debug:
+                #print(repr("".join([a for a in self.term.dump() if a.strip()])))
             self.terminate()
 
     def _read(self, bytes=-1):
@@ -1592,6 +1601,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             #traceback.print_exc(file=sys.stdout)
             #if self.isalive():
                 #self.terminate()
+        if self.debug:
+            if result:
+                print("_read(): %s" % repr(result))
         return result
 
     def _timeout_checker(self):
