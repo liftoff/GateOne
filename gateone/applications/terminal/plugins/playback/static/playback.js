@@ -50,7 +50,7 @@ go.Base.update(GateOne.Playback, {
             pTag = u.getNode('#'+prefix+'info_actions'),
             prefsTableDiv2 = u.getNode('#'+prefix+'prefs_tablediv2'),
             prefsPanelRow = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelPlaybackLabel = u.createElement('span', {'id': 'prefs_playback_label', 'class':'paneltablelabel'}),
+            prefsPanelPlaybackLabel = u.createElement('span', {'id': 'prefs_playback_label', 'class': 'paneltablelabel'}),
             prefsPanelPlayback = u.createElement('input', {'id': 'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
         if (prefsTableDiv2) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
@@ -313,13 +313,13 @@ go.Base.update(GateOne.Playback, {
             p = go.Playback,
             prefix = go.prefs.prefix,
             existingControls = u.getNode('#'+prefix+'playbackControls'),
-            playPause = u.createElement('div', {'id': 'playPause'}),
-            progressBar = u.createElement('div', {'id': 'progressBar'}),
+            playPause = u.createElement('div', {'id': 'playPause', 'class': '✈playPause'}),
+            progressBar = u.createElement('div', {'id': 'progressBar', 'class': '✈progressBar'}),
             progressBarContainer = u.createElement('div', {
-                'id': 'progressBarContainer', 'onmouseover': 'this.style.cursor = "col-resize"'}),
-            clock = u.createElement('div', {'id': 'clock'}),
-            playbackControls = u.createElement('div', {'id': 'playbackControls'}),
-            controlsContainer = u.createElement('div', {'id': 'controlsContainer', 'class': 'centertrans'}),
+                'id': 'progressBarContainer', 'class': '✈progressBarContainer', 'onmouseover': 'this.style.cursor = "col-resize"'}),
+            clock = u.createElement('div', {'id': 'clock', 'class': '✈clock'}),
+            playbackControls = u.createElement('div', {'id': 'playbackControls', 'class': '✈playbackControls'}),
+            controlsContainer = u.createElement('div', {'id': 'controlsContainer', 'class': 'centertrans ✈controlsContainer'}),
             goDiv = u.getNode(go.prefs.goDiv),
             // Firefox doesn't support 'mousewheel'
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";

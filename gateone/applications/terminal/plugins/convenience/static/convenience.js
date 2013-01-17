@@ -81,7 +81,7 @@ GateOne.Base.update(GateOne.Convenience, {
             tableDiv.appendChild(IPRow);
             prefsPanelForm.insertBefore(tableDiv, saveButton);
             // This makes sure our prefs get saved along with everything else
-            go.savePrefsCallbacks.push(go.Convenience.savePrefsCallback);
+            go.Events.on('go:save_prefs', go.Convenience.savePrefsCallback);
         }
     },
     savePrefsCallback: function() {

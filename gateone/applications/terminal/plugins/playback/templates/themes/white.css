@@ -1,9 +1,9 @@
 /* Gate One white theme */
-#{{prefix}}playbackControls {
+.✈playbackControls {
     padding: 0;
     border: 0;
 }
-#{{prefix}}controlsContainer {
+.✈controlsContainer {
     display: block;
     position: absolute;
     z-index: 100;
@@ -15,17 +15,17 @@
     right: 2em;
     font-family: 'Ubuntu Mono', monospace;
 }
-#{{prefix}}playPause {
+.✈playPause {
     float: left;
     color: #000;
     opacity: 0.7;
     font-size: 1em;
     margin-left: 0.3em;
 }
-#{{prefix}}playPause:hover {
+.✈playPause:hover {
     cursor: pointer;
 }
-#{{prefix}}progressBar {
+.✈progressBar {
     background: #000;
     padding: 0;
     margin: 1px;
@@ -33,7 +33,7 @@
     width: 0%;
     height: 5px;
 }
-#{{prefix}}progressBarContainer {
+.✈progressBarContainer {
     position: absolute;
     bottom: 0;
     right: 5em;
@@ -43,7 +43,7 @@
     border: 0;
     opacity: 0.7;
 }
-#{{prefix}}clock {
+.✈clock {
     color: #000;
     opacity: 0.7;
     font-size: 0.7em;

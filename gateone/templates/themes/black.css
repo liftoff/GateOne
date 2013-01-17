@@ -196,7 +196,7 @@
     -o-transition: all 0s ease-in-out !important;
     transition: all 0s ease-in-out !important;
 }
-#{{prefix}}toolbar {
+#{{container}} .toolbar_container {
     z-index:600;
     position:absolute;
     top:0;
@@ -227,7 +227,7 @@
     -o-transform:rotate(180deg);
     transform:rotate(180deg);
 }
-#{{prefix}}infocontainer {
+.✈infocontainer {
     -webkit-transition: all 2.0s ease-in-out;
     -moz-transition: all 2.0s ease-in-out;
     -o-transition: all 2.0s ease-in-out;
@@ -241,14 +241,14 @@
     z-index: 500;
     padding: 0.5em;
 }
-#{{prefix}}noticecontainer {
+.✈noticecontainer {
     display: block;
     position: fixed;
     bottom: 2em;
     right: 3em;
     z-index: 9999;
 }
-#{{prefix}}noticecontainer .close_notice {
+.✈noticecontainer .close_notice {
     float: right;
     opacity: .5;
     -webkit-transform: scale(.6);
@@ -262,14 +262,14 @@
     transform: scale(.5);
     transform-origin: right top;
 }
-#{{prefix}}noticecontainer .close_notice:hover {
+.✈noticecontainer .close_notice:hover {
     cursor: pointer;
     opacity: 1;
 }
-#{{prefix}}noticecontainer a {
+.✈noticecontainer a {
     color: #90A3C5;
 }
-#{{prefix}}noticecontainer a:visited {
+.✈noticecontainer a:visited {
     color: #90A3C5;
 }
 #{{container}} .sideinfo {
@@ -295,7 +295,7 @@
     margin-bottom: -1em;
     z-index: 10;
 }
-#{{prefix}}notice {
+.✈notice {
     -webkit-transition: all 5.0s ease-in-out;
     -moz-transition: all 5.0s ease-in-out;
     -ms-transition: all 5.0s ease-in-out;
@@ -311,7 +311,7 @@
     float: right;
     clear: both;
 }
-#{{prefix}}notice.noanimate {
+.✈notice.noanimate {
     -webkit-transition: all .1s ease-in-out;
     -moz-transition: all 0.1s ease-in-out;
     -ms-transition: all 0.1s ease-in-out;
@@ -432,6 +432,9 @@
 #{{container}} .panel_close_icon:hover {
     opacity: 1;
     cursor:pointer;
+}
+#{{container}} .panel form {
+    padding-right: 1em;
 }
 #{{container}} form { margin: 0 0 1em; }
 #{{container}} label {
@@ -568,15 +571,15 @@
     color: #fff;
     box-shadow: 0em 0em 1em #000;
 }
-#{{prefix}}user_info {
+.✈user_info {
     font-size: 0.8em;
     padding-bottom: 0.25em;
     text-align: right;
 }
-#{{prefix}}user_info a:hover {
+.✈user_info a:hover {
     cursor: pointer;
 }
-#{{container}} .dialogcontainer {
+.✈dialogcontainer {
     font-family: sans-serif;
     position: fixed;
     overflow-x: hidden;
@@ -595,7 +598,7 @@
     background-image: -ms-linear-gradient(#eee, #aaa);
     background-image: -o-linear-gradient(#eee, #aaa);
 }
-#{{container}} .dialogcontainer h3 {
+.✈dialogcontainer h3 {
     background-color: #1F5470;
     color: #fff;
     padding-left: 0.5em;
@@ -607,7 +610,7 @@
     font-size: 1.1em;
     border-radius: 0.25em 0.25em 0 0;
 }
-#{{container}} .dialogcontainer textarea {
+.✈dialogcontainer textarea {
     margin-right: 1.3em;
     padding: 0.2em 0.2em;
     border: 1px solid #bbb;
@@ -615,7 +618,7 @@
     color: #000;
     position: relative;
 }
-#{{container}} .dialogcontainer input {
+.✈dialogcontainer input {
     margin-right: 1.3em;
     margin-bottom: 0.2em;
     padding: 0.2em 0.2em;
@@ -626,29 +629,29 @@
     display: block;
     width: 99%;
 }
-#{{container}} .dialogcontainer label {
+.✈dialogcontainer label {
     font-size: 1.2em;
     padding-top: 0.5em;
     display: inline-block;
     font-family: sans-serif;
 }
-#{{prefix}}dialogtitle:hover {
+.✈dialogtitle:hover {
     cursor: move;
 }
 /* dialogdiv wraps dialogcontent with this "left: 50%" and "left: -50%" mixture to ensure that everything stays centered. */
-#{{prefix}}dialogdiv {
+.✈dialogdiv {
     float: left;
     position: relative;
     left: 50%;
     width: 95%;
 }
-#{{prefix}}dialogcontent {
+.✈dialogcontent {
     float: left;
     position: relative;
     left: -50%;
     width: 100%;
 }
-#{{prefix}}dialog_close {
+.✈dialog_close {
     position: absolute;
     top: 0;
     right: 0;
@@ -657,26 +660,11 @@
     cursor: pointer;
     opacity: .75;
 }
-#{{prefix}}dialog_close:hover {
+.✈dialog_close:hover {
     text-shadow: 0.1em 0.1em 0.1em #000;
     opacity: 1;
 }
-#{{prefix}}dialog_form input {
-    width: 97%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 0.2em;
-    display: block;
-    padding: 0.2em 0.2em;
-    border: 1px solid #bbb;
-    border-radius: 2px;
-    box-shadow: 0 1px 1px #fff;
-    color: #000;
-    position: relative;
-    z-index: 2;
-    font-size: 1em;
-}
-#{{container}} .widgetcontainer {
+.✈widgetcontainer {
     font-family: sans-serif;
     position: absolute;
     overflow: hidden;
@@ -687,10 +675,10 @@
     max-height: 100%;
     z-index: 750;
 }
-#{{container}} .widgetcontainer:hover {
+.✈widgetcontainer:hover {
     cursor: move;
 }
-#{{container}} .widgetcontainer h3 {
+.✈widgetcontainer h3 {
     background-color: transparent;
     color: #fff;
     padding-left: 0.5em;
@@ -703,7 +691,7 @@
     /* Hidden by default */
     opacity: 0;
 }
-#{{container}} .widgetcontainer textarea {
+.✈widgetcontainer textarea {
     margin-right: 1.3em;
     padding: 0.2em 0.2em;
     border: 1px solid #bbb;
@@ -711,7 +699,7 @@
     color: #000;
     position: relative;
 }
-#{{container}} .widgetcontainer input {
+.✈widgetcontainer input {
     margin-right: 1.3em;
     margin-bottom: 0.2em;
     padding: 0.2em 0.2em;
@@ -722,33 +710,33 @@
     display: block;
     width: 99%;
 }
-#{{container}} .widgetcontainer label {
+.✈widgetcontainer label {
     font-size: 1.2em;
     padding-top: 0.5em;
     display: inline-block;
     font-family: sans-serif;
 }
-#{{prefix}}widgettitle:hover {
+.✈widgettitle:hover {
     cursor: move;
 }
 /* widgetdiv wraps widgetcontent with this "left: 50%" and "left: -50%" mixture to ensure that everything stays centered. */
-#{{prefix}}widgetdiv {
+.✈widgetdiv {
     float: left;
     position: relative;
     left: 50%;
     width: 100%;
 }
-#{{prefix}}widgetcontent:hover {
+.✈widgetcontent:hover {
     border: solid 1px #000;
 }
-#{{prefix}}widgetcontent {
+.✈widgetcontent {
     float: left;
     position: relative;
     left: -50%;
     width: 100%;
     border: solid 1px transparent;
 }
-#{{prefix}}widget_close {
+.✈widget_close {
     position: absolute;
     top: 0;
     right: 0;
@@ -757,11 +745,11 @@
     cursor: pointer;
     opacity: .75;
 }
-#{{prefix}}widget_close:hover {
+.✈widget_close:hover {
     text-shadow: 0.1em 0.1em 0.1em #000;
     opacity: 1;
 }
-#{{prefix}}widget_configure {
+.✈widget_configure {
     position: absolute;
     top: 0;
     left: 0;
@@ -770,24 +758,9 @@
     cursor: pointer;
     opacity: .75;
 }
-#{{prefix}}widget_configure:hover {
+.✈widget_configure:hover {
     text-shadow: 0.1em 0.1em 0.1em #000;
     opacity: 1;
-}
-#{{prefix}}widget_form input {
-    width: 97%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 0.2em;
-    display: block;
-    padding: 0.2em 0.2em;
-    border: 1px solid #bbb;
-    border-radius: 2px;
-    box-shadow: 0 1px 1px #fff;
-    color: #000;
-    position: relative;
-    z-index: 2;
-    font-size: 1em;
 }
 #{{container}} .table_row {
     display: table-row;
@@ -868,10 +841,10 @@
 #{{container}} .panelstop3 { stop-color: #2E63B9; }
 #{{container}} .panelstop4 { stop-color: #1F5470; }
 /* Change the styling of the SVG close icon so it is white when inside dialogs */
-#{{prefix}}dialogtitle .svgplain { fill: #FFFFFF; }
+.✈dialogtitle .svgplain { fill: #FFFFFF; }
 /* Ditto for widgets */
-#{{prefix}}widgettitle .svgplain { fill: #FFFFFF; }
-#{{prefix}}overlay {
+.✈widgettitle .svgplain { fill: #FFFFFF; }
+.✈overlay {
     position: absolute;
     top: 0;
     bottom: 0;

@@ -1,4 +1,6 @@
 
+// TODO: Add a feature that lets you highlight certain words in the terminal.
+
 // GateOne.Terminal gets its own sandbox to avoid a constant barrage of circular references on the garbage collector
 (function(window, undefined) {
 "use strict";
@@ -16,7 +18,7 @@ var logFatal = go.Utils.noop,
     logInfo = go.Utils.noop,
     logDebug = go.Utils.noop;
 
-go.Base.module(GateOne, "Terminal", "1.1", ['Base', 'Utils', 'Visual']);
+go.Base.module(GateOne, "Terminal", "1.2", ['Base', 'Utils', 'Visual']);
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
 go.Terminal.updateTermCallbacks = []; // DEPRECATED
@@ -282,7 +284,6 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('term_moved', go.Terminal.moveTerminalAction);
         go.Net.addAction('set_mode', go.Terminal.setModeAction); // For things like application cursor keys
         go.Net.addAction('reset_terminal', go.Terminal.resetTerminalAction);
-//         go.Net.addAction('metadata', go.Terminal.storeMetadata);
         go.Net.addAction('load_webworker', go.Terminal.loadWebWorkerAction);
         // This ensures that whatever effects are applied to a terminal when switching to it get applied when resized too:
         go.Events.on("go:update_dimensions", switchTerm);
@@ -290,8 +291,10 @@ go.Base.update(GateOne.Terminal, {
             // In case the user changed the rows/cols or the font/size changed:
             setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
                 go.Visual.updateDimensions();
-                for (var term in GateOne.terminals) {
-                    go.Net.sendDimensions(term);
+                for (var termObj in GateOne.terminals) {
+                    if (termObj % 1 === 0) { // Actual terminal objects are integers
+                        go.Terminal.sendDimensions(termObj);
+                    }
                 };
             }, 3000);
         });
@@ -535,16 +538,16 @@ go.Base.update(GateOne.Terminal, {
         existingPre = GateOne.terminals[term]['node'];
         existingScreen = GateOne.terminals[term]['screenNode']
         if (term && GateOne.terminals[term]) {
-            termTitle = go.terminals[term]['title'];
+            termTitle = GateOne.terminals[term]['title'];
         } else {
             // Terminal was likely just closed.
             return;
         };
         if (backspace.length) {
-            go.Input.automaticBackspace = false; // Tells us to hold off on attempting to detect backspace for a while
+            GateOne.Input.automaticBackspace = false; // Tells us to hold off on attempting to detect backspace for a while
             setTimeout(function() {
                 // Don't bother checking for incorrect backspace again for at least 30 seconds
-                go.Input.automaticBackspace = true;
+                GateOne.Input.automaticBackspace = true;
             }, 10000);
             // Use whatever was detected
             if (backspace.charCodeAt(0) == 8) {
@@ -632,7 +635,7 @@ go.Base.update(GateOne.Terminal, {
                                 GateOne.Visual.applyTransform(termPre, transform);
                             }
                         } else {
-                            if (!go.prefs.embedded) {
+                            if (!GateOne.prefs.embedded) {
                                 // In embedded mode this kind of adjustment can be unreliable
                                 GateOne.Visual.applyTransform(termPre, ''); // Need to reset before we do the calculation
                                 GateOne.terminals[term]['heightAdjust'] = 0; // Have to set this as a default value for new terminals
@@ -804,9 +807,7 @@ go.Base.update(GateOne.Terminal, {
     updateTerminalAction: function(termUpdateObj) {
         // Takes the updated screen information from *termUpdateObj* and posts it to the go_process.js Web Worker to be processed.
         // The Web Worker is important because it allows offloading of CPU-intensive tasks like linkification and text transforms so they don't block screen updates
-        var go = GateOne,
-            u = go.Utils,
-            t = go.Terminal,
+        var t = go.Terminal,
             v = go.Visual,
             prefix = go.prefs.prefix,
             term = termUpdateObj['term'],
@@ -815,7 +816,8 @@ go.Base.update(GateOne.Terminal, {
             textTransforms = go.Terminal.textTransforms,
             checkBackspace = null,
             message = null;
-//         logDebug('GateOne.Utils.updateTerminalActionTest() termUpdateObj: ' + u.items(termUpdateObj));
+//         logDebug('GateOne.Utils.updateTerminalAction() termUpdateObj: ' + u.items(termUpdateObj));
+        logDebug("screen length: " + termUpdateObj['screen'].length);
         if (ratelimiter) {
             v.displayMessage("WARNING: The rate limiter was engaged on terminal " + term + ".  Output will be severely slowed until you press a key (e.g. Ctrl-C).");
         }
@@ -823,32 +825,22 @@ go.Base.update(GateOne.Terminal, {
             checkBackspace = go.terminals[term]['backspace'];
             go.Input.sentBackspace = false; // Prevent a potential race condition
         }
-        try {
-            if (!scrollback) {
-                // Terminal was just closed, ignore
-                return;
-            }
-            // Remove all DOM nodes from the terminalObj since they can't be passed to a Web Worker
-            if (termUpdateObj['screen']) {
-                message = {
-                    'cmds': ['processScreen'],
-                    'scrollback': scrollback,
-                    'termUpdateObj': termUpdateObj,
-                    'prefs': go.prefs,
-                    'textTransforms': textTransforms,
-                    'checkBackspace': checkBackspace
-                };
-                // Offload processing of the incoming screen to the Web Worker
-                t.termUpdatesWorker.postMessage(message);
-            }
-        } finally {
-            // Force GC
-            message = null;
-            textTransforms = null;
-            v = null;
-            t = null;
-            u = null;
-            go = null;
+        if (!scrollback) {
+            // Terminal was just closed, ignore
+            return;
+        }
+        // Remove all DOM nodes from the terminalObj since they can't be passed to a Web Worker
+        if (termUpdateObj['screen']) {
+            message = {
+                'cmds': ['processScreen'],
+                'scrollback': scrollback,
+                'termUpdateObj': termUpdateObj,
+                'prefs': go.prefs,
+                'textTransforms': textTransforms,
+                'checkBackspace': checkBackspace
+            };
+            // Offload processing of the incoming screen to the Web Worker
+            t.termUpdatesWorker.postMessage(message);
         }
     },
     notifyInactivity: function(term) {

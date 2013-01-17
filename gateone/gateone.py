@@ -814,7 +814,7 @@ class GOApplication(object):
                     callback_obj['callback'](self, *args, **kwargs)
                     callback_obj['calls'] += 1
                     if callback_obj['calls'] == callback_obj['times']:
-                        off(event, callback_obj['callback'])
+                        self.off(event, callback_obj['callback'])
 
     def add_handler(self, pattern, handler, **kwargs):
         """
@@ -1009,7 +1009,7 @@ class ApplicationWebSocket(WebSocketHandler):
                     callback_obj['callback'](self, *args, **kwargs)
                     callback_obj['calls'] += 1
                     if callback_obj['calls'] == callback_obj['times']:
-                        off(event, callback_obj['callback'])
+                        self.off(event, callback_obj['callback'])
 
     def allow_draft76(self):
         """
@@ -1531,6 +1531,10 @@ class ApplicationWebSocket(WebSocketHandler):
             * **print** - If true, will send the print stylesheet.
         """
         logging.debug('get_style(%s)' % settings)
+        send_css = self.prefs['*']['gateone'].get('send_css', True)
+        if not send_css:
+            logging.info(_("send_css is false; will not send CSS."))
+            return
         out_dict = {'result': 'Success'}
         templates_path = os.path.join(GATEONE_DIR, 'templates')
         themes_path = os.path.join(templates_path, 'themes')
@@ -1754,6 +1758,16 @@ class ApplicationWebSocket(WebSocketHandler):
         If the `cssmin` module is installed CSS files will be minified before
         being sent to the client.
         """
+        if kind == 'js':
+            send_js = self.prefs['*']['gateone'].get('send_js', True)
+            if not send_js:
+                logging.info(_("send_js is false; will not send JavaScript."))
+                return
+        elif kind == 'css':
+            send_css = self.prefs['*']['gateone'].get('send_css', True)
+            if not send_css:
+                logging.info(_("send_css is false; will not send CSS."))
+                return
         if isinstance(path_or_fileobj, basestring):
             path = path_or_fileobj
             filename = os.path.split(path)[1]
@@ -1840,7 +1854,13 @@ class ApplicationWebSocket(WebSocketHandler):
             **kwargs
 
         Returns the path to the rendered template.
+
+        .. note:: If you want to serve Gate One's CSS via a different mechanism (e.g. nginx) this functionality can be completely disabled by adding `'send_css': false` to gateone/settings/10server.conf
         """
+        send_css = self.prefs['*']['gateone'].get('send_css', True)
+        if not send_css:
+            logging.info(_("send_css is false; will not send CSS."))
+            return
         cache_dir = self.prefs['*']['gateone']['cache_dir']
         mtime = os.stat(css_path).st_mtime
         safe_path = css_path.replace('/', '_') # So we can name the file safely
@@ -1875,8 +1895,14 @@ class ApplicationWebSocket(WebSocketHandler):
         """
         Sends all plugin .js and .css files to the client that exist inside
         *plugins_dir*.
+
+        .. note:: If you want to serve Gate One's JavaScript via a different mechanism (e.g. nginx) this functionality can be completely disabled by adding `'send_js': false` to gateone/settings/10server.conf
         """
         logging.debug('send_plugin_static_files(%s)' % plugins_dir)
+        send_js = self.prefs['*']['gateone'].get('send_js', True)
+        if not send_js:
+            logging.info(_("send_js is false; will not send JavaScript."))
+            return
         # Build a list of plugins
         plugins = []
         if not os.path.exists(plugins_dir):
@@ -2488,6 +2514,15 @@ def define_options():
                "applies if using API authentication)"),
         type=basestring
     )
+    define(
+        "combine_js",
+        default="",
+        help=_(
+            "Combines all of Gate One's JavaScript files into one big file and "
+            "saves it at the given path (e.g. ./gateone.py "
+            "--combine_js=/tmp/gateone.js)"),
+        type=basestring
+    )
 
 def main():
     global _
@@ -2532,13 +2567,6 @@ def main():
         except AttributeError:
             pass # No apps--probably just a supporting .py file.
     logging.debug(_("Imported applications: %s" % APPLICATIONS))
-    # Figure out which options are being overridden on the command line
-    arguments = []
-    for arg in list(sys.argv)[1:]:
-        if not arg.startswith('-'):
-            break
-        else:
-            arguments.append(arg.lstrip('-').split('=', 1)[0])
     authentication_options = [
         # These are here only for logical separation in the .conf files
         'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
@@ -2715,11 +2743,18 @@ def main():
         # Make sure these values get updated
         all_settings = get_settings(options.settings_dir)
         go_settings = all_settings['*']['gateone']
+    # Figure out which options are being overridden on the command line
+    arguments = []
+    for arg in list(sys.argv)[1:]:
+        if not arg.startswith('-'):
+            break
+        else:
+            arguments.append(arg.lstrip('-').split('=', 1)[0])
     for argument in arguments:
         if argument in non_options:
             continue
         elif argument in options.keys():
-            go_settings[argument] = options[argument]
+            go_settings[argument] = options[argument].value()
     # Update Tornado's options from our settings
     options['cookie_secret'].set(go_settings['cookie_secret'])
     options['logging'].set(str(go_settings['logging']))
@@ -2828,6 +2863,59 @@ def main():
         logging.info(_("A new API key has been generated: %s" % api_key))
         logging.info(_("This key can now be used to embed Gate One into other "
                 "applications."))
+        sys.exit(0)
+    if options.combine_js:
+        # Combine all JavaScript files into one big one.
+        plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
+        pluginslist = os.listdir(plugins_dir)
+        pluginslist.sort()
+        applications_dir = os.path.join(GATEONE_DIR, 'applications')
+        appslist = os.listdir(applications_dir)
+        appslist.sort()
+        with open(options.combine_js, 'w') as f:
+            # Start by adding gateone.js
+            gateone_js = os.path.join(GATEONE_DIR, 'static', 'gateone.js')
+            with open(gateone_js) as go_js:
+                f.write(go_js.read() + '\n')
+            # Gate One plugins
+            for plugin in pluginslist:
+                static_dir = os.path.join(plugins_dir, plugin, 'static')
+                if os.path.isdir(static_dir):
+                    filelist = os.listdir(static_dir)
+                    filelist.sort()
+                    for filename in filelist:
+                        filepath = os.path.join(static_dir, filename)
+                        if filename.endswith('.js'):
+                            with open(filepath) as js_file:
+                                f.write(js_file.read() + '\n')
+            # Gate One applications
+            for application in appslist:
+                static_dir = os.path.join(plugins_dir, application, 'static')
+                plugins_dir = os.path.join(
+                    applications_dir, application, 'plugins')
+                if os.path.isdir(static_dir):
+                    filelist = os.listdir(static_dir)
+                    filelist.sort()
+                    for filename in filelist:
+                        filepath = os.path.join(static_dir, filename)
+                        if filename.endswith('.js'):
+                            with open(filepath) as js_file:
+                                f.write(js_file.read() + '\n')
+                if os.path.isdir(plugins_dir):
+                    pluginslist = os.listdir(plugins_dir)
+                    pluginslist.sort()
+                    # Gate One application plugins
+                    for plugin in pluginslist:
+                        static_dir = os.path.join(plugins_dir, plugin, 'static')
+                        if os.path.isdir(static_dir):
+                            filelist = os.listdir(static_dir)
+                            filelist.sort()
+                            for filename in filelist:
+                                filepath = os.path.join(static_dir, filename)
+                                if filename.endswith('.js'):
+                                    with open(filepath) as js_file:
+                                        f.write(js_file.read() + '\n')
+            f.flush()
         sys.exit(0)
     # Display the version in case someone sends in a log for for support
     logging.info(_("Gate One %s" % __version__))

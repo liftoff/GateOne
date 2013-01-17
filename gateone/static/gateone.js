@@ -446,8 +446,8 @@ var go = GateOne.Base.update(GateOne, {
             prefsPanelColsLabel = u.createElement('span', {'id': 'prefs_cols_label', 'class':'paneltablelabel'}),
             prefsPanelCols = u.createElement('input', {'id': 'prefs_cols', 'name': prefix+'prefs_cols', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelSave = u.createElement('button', {'id': 'prefs_save', 'type': 'submit', 'value': 'Save', 'class': 'button black', 'style': {'float': 'right'}}),
-            noticeContainer = u.createElement('div', {'id': 'noticecontainer'}),
-            toolbar = u.createElement('div', {'id': 'toolbar'}),
+            noticeContainer = u.createElement('div', {'id': 'noticecontainer', 'class': '✈noticecontainer'}),
+            toolbar = u.createElement('div', {'id': 'toolbar', 'class': 'toolbar_container'}),
             toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'toolbar', 'title': "Preferences"}),
             panels = u.getNodes(go.prefs.goDiv + ' .panel'),
             // Firefox doesn't support 'mousewheel'
@@ -595,9 +595,9 @@ var go = GateOne.Base.update(GateOne, {
             // savePrefsCallbacks is DEPRECATED.  Use GateOne.Events.on("go:save_prefs", yourFunc) instead
             if (go.savePrefsCallbacks.length) {
                 // Call any registered prefs callbacks
-                for (var i in go.savePrefsCallbacks) {
-                    go.savePrefsCallbacks[i]();
-                }
+                go.savePrefsCallbacks.forEach(function(callback) {
+                    callback();
+                });
             }
             u.savePrefs();
         }
@@ -708,18 +708,19 @@ var go = GateOne.Base.update(GateOne, {
                     go.Visual.updateDimensions();
                     for (var termObj in GateOne.terminals) {
                         if (termObj % 1 === 0) { // Actual terminal objects are integers
-                            go.Net.sendDimensions(term);
+                            go.Terminal.sendDimensions(termObj);
                         }
                     };
                     setTimeout(function() {
                         var parentHeight = termPre.parentElement.clientHeight;
+                        console.log("parentHeight: " + parentHeight);
+                        console.log((parentHeight - go.terminals[term]['heightAdjust']) + 'px');
                         if (parentHeight) {
                             termPre.style.height = (parentHeight - go.terminals[term]['heightAdjust']) + 'px';
                         } else {
                             termPre.style.height = "100%";
                         }
                     }, 100);
-
                 }
                 // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
                 if (!go.prefs.embedded) {
@@ -1665,13 +1666,19 @@ GateOne.Logging.levels = {
     'INFO': 20,
     'DEBUG': 10
 };
-// Tunable logging prefs
-if (typeof(GateOne.prefs.logLevel) == "undefined") {
-    GateOne.prefs.logLevel = 'INFO';
-}
 GateOne.noSavePrefs['logLevel'] = null; // This ensures that the logging level isn't saved along with everything else if the user clicks "Save" in the settings panel
-GateOne.Logging.level = GateOne.prefs.logLevel; // This allows it to be adjusted at the client
 GateOne.Base.update(GateOne.Logging, {
+    init: function() {
+        if (typeof(GateOne.prefs.logLevel) == "undefined") {
+            GateOne.prefs.logLevel = 'INFO';
+        }
+        GateOne.Logging.level = GateOne.prefs.logLevel.toUpperCase(); // This allows it to be adjusted at the client
+        // Initialize the logger
+        if (typeof(GateOne.Logging.level) == 'string') {
+            // Convert to integer
+            GateOne.Logging.level = GateOne.Logging.levels[GateOne.Logging.level.toUpperCase()];
+        }
+    },
     setLevel: function(level) {
         /**:GateOne.Logging.setLevel(level)
 
@@ -1682,7 +1689,7 @@ GateOne.Base.update(GateOne.Logging, {
         if (level === parseInt(level,10)) { // It's an integer, set it as-is
             l.level = level;
         } else { // It's a string, convert it first
-            levelStr = level;
+            levelStr = level.toUpperCase();
             level = l.levels[levelStr]; // Get integer
             l.level = level;
         }
@@ -1854,12 +1861,6 @@ GateOne.Base.update(GateOne.Logging, {
 GateOne.Logging.destinations = { // Default to console logging.
     'console': GateOne.Logging.logToConsole // Can be added to or replaced/removed
     // If anyone has any cool ideas for log destinations please let us know!
-}
-
-// Initialize the logger immediately upon loading of the module (before init())
-if (typeof(GateOne.Logging.level) == 'string') {
-    // Convert to integer
-    GateOne.Logging.level = GateOne.Logging.levels[GateOne.Logging.level];
 }
 
 GateOne.Base.module(GateOne, 'Net', '1.1', ['Base', 'Utils']);
@@ -3365,7 +3366,7 @@ GateOne.Base.update(GateOne.Visual, {
             now = new Date(),
             timeDiff = now - go.Visual.sinceLastMessage,
             noticeContainer = u.getNode('#'+prefix+'noticecontainer'),
-            notice = u.createElement('div', {'id': prefix+id}),
+            notice = u.createElement('div', {'id': prefix+id, 'class': '✈notice'}),
             messageSpan = u.createElement('span'),
             closeX = u.createElement('span', {'class': 'close_notice'}),
             unique = u.randomPrime(),
@@ -3780,7 +3781,7 @@ GateOne.Base.update(GateOne.Visual, {
                         var displayText = termObj.id.split(prefix+'term')[1] + ": " + go.terminals[termID]['title'],
                             termInfoDiv = u.createElement('div', {'id': 'terminfo'}),
                             marginFix = Math.round(go.terminals[termID]['title'].length/2),
-                            infoContainer = u.createElement('div', {'id': 'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
+                            infoContainer = u.createElement('div', {'id': 'infocontainer', 'class': '✈infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
                         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer') }
                         termInfoDiv.innerHTML = displayText;
                         infoContainer.appendChild(termInfoDiv);
@@ -3841,12 +3842,12 @@ GateOne.Base.update(GateOne.Visual, {
             goDiv = u.getNode(go.prefs.goDiv),
             prevActiveElement = document.activeElement,
             unique = u.randomPrime(), // Need something unique to enable having more than one dialog on the same page.
-            dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': 'halfsectrans dialogcontainer', 'title': title}),
+            dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': 'halfsectrans ✈dialogcontainer', 'title': title}),
             // dialogContent is wrapped by dialogDiv with "float: left; position: relative; left: 50%" and "float: left; position: relative; left: -50%" to ensure the content stays centered (see the theme CSS).
-            dialogDiv = u.createElement('div', {'id': 'dialogdiv'}),
-            dialogConent = u.createElement('div', {'id': 'dialogcontent'}),
-            dialogTitle = u.createElement('h3', {'id': 'dialogtitle'}),
-            close = u.createElement('div', {'id': 'dialog_close'}),
+            dialogDiv = u.createElement('div', {'id': 'dialogdiv', 'class': '✈dialogdiv'}),
+            dialogConent = u.createElement('div', {'id': 'dialogcontent', 'class': '✈dialogcontent'}),
+            dialogTitle = u.createElement('h3', {'id': 'dialogtitle', 'class': '✈dialogtitle'}),
+            close = u.createElement('div', {'id': 'dialog_close', 'class': '✈dialog_close'}),
             dialogToForeground = function(e) {
                 // Move this dialog to the front of our array and fix all the z-index of all the dialogs
                 for (var i in v.dialogs) {
@@ -3914,7 +3915,7 @@ GateOne.Base.update(GateOne.Visual, {
             moveDialog = function(e) {
                 // Called when the title bar of a dialog is dragged
                 if (dialogContainer.dragging) {
-                    dialogContainer.className = 'dialogcontainer'; // Have to get rid of the halfsectrans so it will drag smoothly.
+                    dialogContainer.className = '✈dialogcontainer'; // Have to get rid of the halfsectrans so it will drag smoothly.
                     var X = e.clientX + window.scrollX,
                         Y = e.clientY + window.scrollY,
                         xMoved = X - v.dragOrigin.X,
@@ -3937,7 +3938,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             closeDialog = function(e) {
                 if (e) { e.preventDefault() }
-                dialogContainer.className = 'halfsectrans dialogcontainer';
+                dialogContainer.className = 'halfsectrans ✈dialogcontainer';
                 dialogContainer.style.opacity = 0;
                 setTimeout(function() {
                     u.removeElement(dialogContainer);
@@ -4033,8 +4034,8 @@ GateOne.Base.update(GateOne.Visual, {
     widget: function(title, content, /*opt*/options) {
         // Creates an on-screen widget with the given *title* and *content*.  Returns a function that will remove the widget when called.
         // Widgets differ from dialogs in that they don't have a visible title and are meant to be persistent on the screen without getting in the way.  They are transparent by default and the user can move them at-will by clicking and dragging anywhere within the widget (not just the title).
-        // Widgets can be attached to a specific terminal by specifying the terminal number in *options*['term'].  Otherwise the widget will be attached to the currently-selected terminal.
-        // Widgets can be 'global' (attached to GateOne.prefs.goDiv) by setting *options*['term'] to 'global'.
+        // Widgets can be attached to a specific element by specifying a DOM object or querySelector string in *options*['where'].  Otherwise the widget will be attached to the currently-selected terminal.
+        // Widgets can be 'global' (attached to document.body) by setting *options*['where'] to 'global'.
         // By default widgets will appear in the upper-right corner of a given terminal.
         // *title* - string: Will appear at the top of the widget when the mouse cursor is hovering over it for more than 2 seconds.
         // *content* - HTML string or JavaScript DOM node:  The content of the widget.
@@ -4042,7 +4043,7 @@ GateOne.Base.update(GateOne.Visual, {
         //      options['onopen'] - Assign a function to this option and it will be called when the widget is opened with the widget parent element (widgetContainer) being passed in as the only argument.
         //      options['onclose'] - Assign a function to this option and it will be called when the widget is closed.
         //      options['onconfig'] - If a function is assigned to this parameter a gear icon will be visible in the title bar that when clicked will call this function.
-        //      options['term'] - The terminal number to attach this widget to or 'global' to make the widget hover above all terminals.
+        //      options['where'] - The terminal number to attach this widget to or 'global' to add the widget to document.body.
         options = options || {};
         // Here are all the options
         options.onopen = options.onopen || null;
@@ -4054,13 +4055,13 @@ GateOne.Base.update(GateOne.Visual, {
             v = go.Visual,
             goDiv = u.getNode(go.prefs.goDiv),
             unique = u.randomPrime(), // Need something unique to enable having more than one widget on the same page.
-            widgetContainer = u.createElement('div', {'id': 'widgetcontainer_' + unique, 'class': 'halfsectrans widgetcontainer', 'name': 'widget', 'title': title}),
-            widgetDiv = u.createElement('div', {'id': 'widgetdiv'}),
-            widgetConent = u.createElement('div', {'id': 'widgetcontent'}),
+            widgetContainer = u.createElement('div', {'id': 'widgetcontainer_' + unique, 'class': 'halfsectrans ✈widgetcontainer', 'name': 'widget', 'title': title}),
+            widgetDiv = u.createElement('div', {'id': 'widgetdiv', 'class': '✈widgetdiv'}),
+            widgetContent = u.createElement('div', {'id': 'widgetcontent', 'class': '✈widgetcontent'}),
             termDiv = u.getNode('#'+prefix+'term'+options['term']), // Assigned below
-            widgetTitle = u.createElement('h3', {'id': 'widgettitle', 'class': 'halfsectrans originbottommiddle'}),
-            close = u.createElement('div', {'id': 'widget_close'}),
-            configure = u.createElement('div', {'id': 'widget_configure'}),
+            widgetTitle = u.createElement('h3', {'id': 'widgettitle', 'class': 'halfsectrans originbottommiddle ✈widgettitle'}),
+            close = u.createElement('div', {'id': 'widget_close', 'class': '✈widget_close'}),
+            configure = u.createElement('div', {'id': 'widget_configure', 'class': '✈widget_configure'}),
             widgetToForeground = function(e) {
                 // Move this widget to the front of our array and fix all the z-index of all the widgets
                 for (var i in v.widgets) {
@@ -4146,7 +4147,7 @@ GateOne.Base.update(GateOne.Visual, {
             moveWidget = function(e) {
                 // Called when the widget is dragged
                 if (widgetContainer.dragging) {
-                    widgetContainer.className = 'widgetcontainer'; // Have to get rid of the halfsectrans so it will drag smoothly.
+                    widgetContainer.className = '✈widgetcontainer'; // Have to get rid of the halfsectrans so it will drag smoothly.
                     var X = e.clientX + window.scrollX,
                         Y = e.clientY + window.scrollY,
                         xMoved = X - v.dragOrigin.X,
@@ -4169,7 +4170,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             closeWidget = function(e) {
                 if (e) { e.preventDefault() }
-                widgetContainer.className = 'halfsectrans widgetcontainer';
+                widgetContainer.className = 'halfsectrans ✈widgetcontainer';
                 widgetContainer.style.opacity = 0;
                 setTimeout(function() {
                     u.removeElement(widgetContainer);
@@ -4187,7 +4188,7 @@ GateOne.Base.update(GateOne.Visual, {
                     v.widgets[0].style.opacity = 1; // Set the new-first widget back to fully visible
                 }
                 // Call the onclose function
-                if ('onclose' in options) {
+                if (options['onclose']) {
                     options['onclose']();
                 }
             };
@@ -4196,7 +4197,7 @@ GateOne.Base.update(GateOne.Visual, {
             v.widgets = [];
         }
         v.widgets.push(widgetContainer);
-        widgetDiv.appendChild(widgetConent);
+        widgetDiv.appendChild(widgetContent);
         // Enable drag-to-move on the widget title
         if (!widgetContainer.dragging) {
             widgetContainer.dragging = false;
@@ -4226,15 +4227,17 @@ GateOne.Base.update(GateOne.Visual, {
         widgetContainer.appendChild(widgetTitle);
         widgetTitle.appendChild(close);
         if (typeof(content) == "string") {
-            widgetConent.innerHTML = content;
+            widgetContent.innerHTML = content;
         } else {
-            widgetConent.appendChild(content);
+            widgetContent.appendChild(content);
         }
         widgetContainer.appendChild(widgetDiv);
         // Determine where we should put this widget (a terminal or global?)
-        if (options['term'] == 'global') {
+        if (options['where'] == 'global') {
             // global widgets are fixed to the page--not the terminal.
-            goDiv.appendChild(widgetContainer);
+            document.body.appendChild(widgetContainer);
+        } else if (options['where']) {
+            u.getNode(options['where']).appendChild(widgetContainer);
         } else {
             termDiv.appendChild(widgetContainer);
         }
@@ -4304,7 +4307,7 @@ GateOne.Base.update(GateOne.Visual, {
             v = go.Visual,
             goDiv = u.getNode(go.prefs.goDiv),
             existingOverlay = u.getNode('#'+go.prefs.prefix+'overlay'),
-            overlay = u.createElement('div', {'id': 'overlay'});
+            overlay = u.createElement('div', {'id': 'overlay', 'class': '✈overlay'});
         if (existingOverlay) {
             // Remove it
             u.removeElement(existingOverlay);
@@ -4369,7 +4372,7 @@ GateOne.Base.update(GateOne.User, {
     init: function() {
         var prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
             prefsPanelForm = u.getNode('#'+prefix+'prefs_form'),
-            prefsPanelUserInfo = u.createElement('div', {'id': 'user_info'}),
+            prefsPanelUserInfo = u.createElement('div', {'id': 'user_info', 'class': '✈user_info'}),
             prefsPanelUserID = u.createElement('span', {'id': 'user_info_id'}),
             prefsPanelUserLogout = u.createElement('a', {'id': 'user_info_logout'});
         if (prefsPanelForm) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)

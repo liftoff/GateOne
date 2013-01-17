@@ -1146,7 +1146,10 @@ class TerminalApplication(GOApplication):
         logging.debug("resize(%s)" % repr(resize_obj))
         term = None
         if 'term' in resize_obj:
-            term = int(resize_obj['term'])
+            try:
+                term = int(resize_obj['term'])
+            except ValueError:
+                return # Got bad value, skip this resize
         self.rows = resize_obj['rows']
         self.cols = resize_obj['cols']
         self.em_dimensions = {
@@ -1739,6 +1742,10 @@ def init(settings):
                     if 'ssh_connect.py' in value:
                         value = value.replace(
                             '/plugins/', '/applications/terminal/plugins/')
+                    # Also fix the path to the known_hosts file
+                    if '/ssh/known_hosts' in value:
+                        value = value.replace(
+                            '/ssh/known_hosts', '/.ssh/known_hosts')
                     key = 'commands' # Convert to new name
                     value = {'SSH': value}
                 settings['*']['terminal'].update({key: value})

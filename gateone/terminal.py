@@ -1891,6 +1891,8 @@ class Terminal(object):
         magic = self.magic
         magic_map = self.magic_map
         changed = False
+        # This is commented because of how noisy it is.  Uncomment to debug the
+        # terminal emualtor:
         #logging.debug('handling chars: %s' % repr(chars))
         if special_checks:
             before_chars = ""
@@ -2972,16 +2974,21 @@ class Terminal(object):
     def clear_screen_from_cursor_down(self):
         """
         Clears the screen from the cursor down (ESC[J or ESC[0J).
+
+        .. note:: This method actually erases from the cursor position to the end of the screen.
         """
         #logging.debug('clear_screen_from_cursor_down()')
-        self.screen[self.cursorY:] = [
-            array('u', u' ' * self.cols) for a in self.screen[self.cursorY:]
+        self.clear_line_from_cursor_right()
+        if self.cursorY == self.rows - 1:
+            # Bottom of screen; nothing to do
+            return
+        self.screen[self.cursorY+1:] = [
+            array('u', u' ' * self.cols) for a in self.screen[self.cursorY+1:]
         ]
         c = self.cur_rendition # Just to save space below
-        self.renditions[self.cursorY:] = [
-            array('u', c * self.cols) for a in self.renditions[self.cursorY:]
+        self.renditions[self.cursorY+1:] = [
+            array('u', c * self.cols) for a in self.renditions[self.cursorY+1:]
         ]
-        self.cursorX = 0
 
     def clear_screen_from_cursor_up(self):
         """
@@ -2995,7 +3002,6 @@ class Terminal(object):
         self.renditions[:self.cursorY+1] = [
             array('u', c * self.cols) for a in self.renditions[:self.cursorY]
         ]
-        self.cursorX = 0
         self.cursorY = 0
 
     def clear_screen_from_cursor(self, n):
