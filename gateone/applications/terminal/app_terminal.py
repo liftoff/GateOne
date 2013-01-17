@@ -565,7 +565,7 @@ class TerminalApplication(GOApplication):
         term_emulator.remove_callback(terminal.CALLBACK_OPT, callback_id)
         term_emulator.remove_callback(terminal.CALLBACK_BELL, callback_id)
 
-    def new_multiplex(self, cmd, term_id, logging=True):
+    def new_multiplex(self, cmd, term_id, logging=True, debug=False):
         """
         Returns a new instance of :py:class:`termio.Multiplex` with the proper
         global and client-specific settings.
@@ -573,6 +573,7 @@ class TerminalApplication(GOApplication):
             * *cmd* - The command to execute inside of Multiplex.
             * *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).
             * *logging* - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).
+            * *debug* - If True, will enable debugging on the created Multiplex instance.
         """
         policies = applicable_policies(
             'terminal', self.current_user, self.ws.prefs)
@@ -606,6 +607,7 @@ class TerminalApplication(GOApplication):
             log_path=log_path,
             user=user,
             term_id=term_id,
+            debug=debug,
             syslog=syslog_logging,
             syslog_facility=facility,
             syslog_host=self.settings['syslog_host']

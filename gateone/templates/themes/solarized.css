@@ -866,7 +866,7 @@
 /* SVG Styling */
 #{{container}} .svgtext { letter-spacing:0px; text-anchor:middle; word-spacing:0px; text-align:center; color: #FFF; fill: #fff; }
 #{{container}} .svgplugin { fill: #FFF; }
-#{{container}} .svgplain { fill: #2A5BA6; }
+.✈svgplain { fill: #2A5BA6; }
 #{{container}} .stop1 { stop-color: #FFF; }
 #{{container}} .stop2 { stop-color: #E1E2E3; }
 #{{container}} .stop3 { stop-color: #D3D4D6; }
@@ -876,9 +876,9 @@
 #{{container}} .panelstop3 { stop-color: #2E63B9; }
 #{{container}} .panelstop4 { stop-color: #1F5470; }
 /* Change the styling of the SVG close icon so it is white when inside dialogs */
-.✈dialogtitle .svgplain { fill: #FFFFFF; }
+div.✈dialog_close .✈svgplain { fill: #FFFFFF; }
 /* Ditto for widgets */
-.✈widgettitle .svgplain { fill: #FFFFFF; }
+div.✈widget_close .✈svgplain { fill: #FFFFFF; }
 .✈clock {
     color: #fff;
     opacity: 0.7;

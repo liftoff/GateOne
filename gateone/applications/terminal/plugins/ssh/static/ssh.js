@@ -1181,7 +1181,7 @@ GateOne.Base.update(GateOne.SSH, {
                 }
                 count += 1;
             });
-            v.displayMessage('Fingerprint of <i>' + message['host'] + '</i>: ' + colorized);
+            v.displayMessage('<i>' + message['host'] + '</i>: ' + colorized);
         }
     },
     commandCompleted: function(message) {

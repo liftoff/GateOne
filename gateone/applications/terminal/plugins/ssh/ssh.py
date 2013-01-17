@@ -201,7 +201,8 @@ def wait_for_prompt(term, cmd, errorback, callback, m_instance, matched):
     logging.debug('wait_for_prompt()')
     m_instance.term.clear_screen() # Makes capturing just what we need easier
     getoutput = partial(get_cmd_output, term, errorback, callback)
-    m_instance.expect(OUTPUT_MATCH, getoutput, errorback=errorback, timeout=10)
+    m_instance.expect(OUTPUT_MATCH,
+        getoutput, errorback=errorback, preprocess=False, timeout=10)
     # Run our command immediately followed by our separation/ready string
     m_instance.writeline((
         u'echo -e "{rs}"; ' # Echo the first READY_STRING
@@ -235,6 +236,7 @@ def get_cmd_output(term, errorback, callback, m_instance, matched):
         "^SUB-CHANNEL INACTIVITY TIMEOUT$", # ^ and $ to prevent accidents ;)
         noop, # Don't need to do anything since this should never match
         errorback=timeout_sub_channel,
+        preprocess=False,
         timeout=SUBCHANNEL_TIMEOUT)
     m_instance.scheduler.start() # To ensure the timeout occurs
     cmd_out = "\n".join(out)
@@ -334,7 +336,8 @@ def execute_command(self, term, cmd, callback=None):
     # output begins and ends.
     errorback = partial(got_error, self, term=term, cmd=cmd)
     wait = partial(wait_for_prompt, term, cmd, errorback, callback)
-    m.expect(READY_MATCH, callback=wait, errorback=errorback, timeout=10)
+    m.expect(READY_MATCH,
+        callback=wait, errorback=errorback, preprocess=False, timeout=10)
     logging.debug("Waiting for READY_MATCH inside execute_command()")
     m.writeline(u'echo -e "\\n%s"' % READY_STRING)
 
@@ -531,7 +534,7 @@ def get_host_fingerprint(self, settings):
         'get_host_key',
         logging=False) # Logging is false so we don't make tons of silly logs
     def grab_fingerprint(m_instance, match):
-        out_dict['fingerprint'] = match.split()[-1][:-1]
+        out_dict['fingerprint'] = match.splitlines()[-1][:-1]
         m_instance.terminate()
         message = {'sshjs_display_fingerprint': out_dict}
         self.write_message(message)
@@ -545,7 +548,9 @@ def get_host_fingerprint(self, settings):
         message = {'sshjs_display_fingerprint': out_dict}
         self.write_message(message)
         del m_instance
-    m.expect('.+fingerprint .+$', grab_fingerprint, errorback=errorback)
+    # "The authenticity of host 'localhost (127.0.0.1)' can't be established.\r\nECDSA key fingerprint is 83:f5:b1:f1:d3:8c:b8:fe:d3:be:e5:dd:95:a5:ba:73.\r\nAre you sure you want to continue connecting (yes/no)? "
+    m.expect('\n.+fingerprint .+\n',
+        grab_fingerprint, errorback=errorback, preprocess=False)
     m.spawn()
     # OpenSSH output example:
     # ECDSA key fingerprint is 28:46:86:3a:c6:f9:63:b8:90:e1:09:69:f2:1d:c8:ce.
@@ -674,12 +679,19 @@ def openssh_generate_new_keypair(self, name, path,
     )
     m = self.new_multiplex(command, "gen_ssh_keypair")
     call_errorback = partial(errorback, self)
-    m.expect('^Overwrite.*', overwrite, optional=True, timeout=10)
+    m.expect('^Overwrite.*',
+        overwrite, optional=True, preprocess=False, timeout=10)
     passphrase_handler = partial(enter_passphrase, passphrase)
     m.expect('^Enter passphrase',
-        passphrase_handler, errorback=call_errorback, timeout=10)
+        passphrase_handler,
+        errorback=call_errorback,
+        preprocess=False,
+        timeout=10)
     m.expect('^Enter same passphrase again',
-        passphrase_handler, errorback=call_errorback, timeout=10)
+        passphrase_handler,
+        errorback=call_errorback,
+        preprocess=False,
+        timeout=10)
     finalize = partial(finished, self)
     # The regex below captures the md5 fingerprint which tells us the
     # operation was successful.
@@ -687,6 +699,7 @@ def openssh_generate_new_keypair(self, name, path,
         '(([0-9a-f][0-9a-f]\:){15}[0-9a-f][0-9a-f])',
         finalize,
         errorback=call_errorback,
+        preprocess=False,
         timeout=15 # Key generation can take a little while
     )
     m.spawn()
@@ -727,12 +740,12 @@ def openssh_generate_public_key(self, path, passphrase=None, settings=None):
         request_passphrase()
     if passphrase:
         m.expect('^Enter passphrase',
-            "%s\n" % passphrase, optional=True, timeout=5)
+            "%s\n" % passphrase, optional=True, preprocess=False, timeout=5)
         m.expect('^load failed',
-            bad_passphrase, optional=True, timeout=5)
+            bad_passphrase, optional=True, preprocess=False, timeout=5)
     elif settings:
         m.expect('^Enter passphrase',
-            request_passphrase, optional=True, timeout=5)
+            request_passphrase, optional=True, preprocess=False, timeout=5)
     def atexit(child, exitstatus):
         "Raises an SSHKeygenException if the *exitstatus* isn't 0"
         if exitstatus != 0:
