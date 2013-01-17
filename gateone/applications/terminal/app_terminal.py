@@ -452,7 +452,7 @@ class TerminalApplication(GOApplication):
             if isinstance(term, int): # Only terminals are integers in the dict
                 terminals.append(term)
         # Check for any dtach'd terminals we might have missed
-        if self.policy['dtach']:
+        if self.policy['dtach'] and which('dtach'):
             session_dir = self.ws.settings['session_dir']
             session_dir = os.path.join(session_dir, self.ws.session)
             if not os.path.exists(session_dir):
@@ -718,7 +718,8 @@ class TerminalApplication(GOApplication):
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
                 os.chmod(session_dir, 0o770)
-            if self.policy['dtach']: # Wrap in dtach (love this tool!)
+            if self.policy['dtach'] and which('dtach'):
+                # Wrap in dtach (love this tool!)
                 dtach_path = "%s/dtach_%s" % (session_dir, term)
                 if os.path.exists(dtach_path):
                     # Using 'none' for the refresh because the EVIL termio
@@ -1792,11 +1793,9 @@ def init(settings):
         import shutil
         shutil.rmtree(go_settings['session_dir'], ignore_errors=True)
         sys.exit(0)
-    # Make sure dtach is available and if not, set dtach=False
     if not which('dtach'):
         logging.warning(
             _("dtach command not found.  dtach support has been disabled."))
-        term_settings['dtach'] = False
     # Fix the path to known_hosts if using the old default command
     for name, command in term_settings['commands'].items():
         if '\"%USERDIR%/%USER%/ssh/known_hosts\"' in command:
