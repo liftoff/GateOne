@@ -102,7 +102,19 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
             out_frames.append({'screen': screen, 'time': frame_time})
     return out_frames # Skip the first frame which is the metadata
 
-# Handlers
+def get_256_colors(self):
+    """
+    Returns the rendered 256-color CSS.
+    """
+    colors_256_path = self.render_256_colors()
+    filename = os.path.split(colors_256_path)[1]
+    mtime = os.stat(colors_256_path).st_mtime
+    cached_filename = "%s:%s" % (colors_256_path.replace('/', '_'), mtime)
+    cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
+    cached_file_path = os.path.join(cache_dir, cached_filename)
+    with open(cached_file_path) as f:
+        colors_256 = f.read()
+    return colors_256
 
 # WebSocket commands (not the same as handlers)
 def enumerate_logs(self, limit=None):
@@ -123,7 +135,14 @@ def enumerate_logs(self, limit=None):
         message = {'notice': _(
             "NOTE: User session logging is disabled.  To enable it, set "
             "'session_logging = True' in your server.conf.")}
-        tws.write_message(message)
+        self.write_message(message)
+        return # Nothing left to do
+    view_logs = self.policy.get('view_logs', True)
+    if not view_logs:
+        # TODO: Make it so that users don't even see the log viewer if they don't have this setting
+        message = {'notice': _(
+            "NOTE: Your access to the log viewer has been restricted.")}
+        self.write_message(message)
         return # Nothing left to do
     user = self.get_current_user()['upn']
     users_dir = os.path.join(self.ws.settings['user_dir'], user) # "User's dir"
@@ -218,7 +237,6 @@ def retrieve_log_flat(self, settings):
     so it doesn't cause the :py:class:`~tornado.ioloop.IOLoop` to block.
 
     :arg dict settings: A dict containing the *log_filename*, *colors*, and *theme* to use when generating the HTML output.
-    :arg instance tws: The current :class:`gateone.TerminalWebSocket` instance (connected).
 
     Here's the details on *settings*:
 
@@ -232,6 +250,7 @@ def retrieve_log_flat(self, settings):
     settings['user'] = user = self.get_current_user()['upn']
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
     settings['gateone_dir'] = GATEONE_DIR
+    settings['256_colors'] = get_256_colors(self)
     io_loop = tornado.ioloop.IOLoop.instance()
     global PROCS
     if user not in PROCS:
@@ -331,6 +350,7 @@ def retrieve_log_playback(self, settings):
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
     settings['gateone_dir'] = GATEONE_DIR
     settings['url_prefix'] = self.ws.settings['url_prefix']
+    settings['256_colors'] = get_256_colors(self)
     io_loop = tornado.ioloop.IOLoop.instance()
     global PROCS
     if user not in PROCS:
@@ -374,7 +394,7 @@ def _retrieve_log_playback(queue, settings):
 
     :arg settings['log_filename']: The name of the log to display.
     :arg settings['colors']: The CSS color scheme to use when generating output.
-    :arg settings['theme']: The CSS theme to use when generating output.
+    :arg settings['theme_css']: The entire CSS theme <style> to use when generating output.
     :arg settings['where']: Whether or not the result should go into a new window or an iframe.
 
     The output will look like this::
@@ -407,6 +427,7 @@ def _retrieve_log_playback(queue, settings):
     log_filename = settings['log_filename']
     theme = "%s.css" % settings['theme']
     colors = "%s.css" % settings['colors']
+    colors_256 = settings['256_colors']
     # Important paths
     # NOTE: Using os.path.join() in case Gate One can actually run on Windows
     # some day.
@@ -446,19 +467,6 @@ def _retrieve_log_playback(queue, settings):
             theme_file = f.read()
         theme_template = tornado.template.Template(theme_file)
         # Setup our 256-color support CSS:
-        colors_256 = ""
-        from gateone import COLORS_256
-        for i in xrange(256):
-            fg = "#%s span.fx%s {color: #%s;}" % (
-                container, i, COLORS_256[i])
-            bg = "#%s span.bx%s {background-color: #%s;} " % (
-                container, i, COLORS_256[i])
-            fg_rev = "#%s span.reverse.fx%s {background-color: #%s; color: inherit;}" % (
-                container, i, COLORS_256[i])
-            bg_rev = "#%s span.reverse.bx%s {color: #%s; background-color: inherit;} " % (
-                container, i, COLORS_256[i])
-            colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
-        colors_256 += "\n"
         rendered_theme = theme_template.generate(
             container=container,
             prefix=prefix,
@@ -481,7 +489,7 @@ def _retrieve_log_playback(queue, settings):
         playback_html = playback_template.generate(
             prefix=prefix,
             container=container,
-            theme=rendered_theme,
+            theme=settings['theme_css'],
             colors=rendered_colors,
             preview=preview,
             recording=json_encode(recording),
@@ -504,6 +512,7 @@ def save_log_playback(self, settings):
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
     settings['gateone_dir'] = GATEONE_DIR
     settings['url_prefix'] = self.ws.settings['url_prefix']
+    settings['256_colors'] = get_256_colors(self)
     q = Queue()
     global PROC
     PROC = Process(target=_save_log_playback, args=(q, settings))
@@ -567,12 +576,11 @@ def _save_log_playback(queue, settings):
     url_prefix = settings['url_prefix']
     log_filename = settings['log_filename']
     short_logname = log_filename.split('.golog')[0]
+    colors_256 = settings['256_colors']
     out_dict['filename'] = "%s.html" % short_logname
     theme = "%s.css" % settings['theme']
     colors = "%s.css" % settings['colors']
     # Important paths
-    # NOTE: Using os.path.join() in case Gate One can actually run on Windows
-    # some day.
     logs_dir = os.path.join(users_dir, "logs")
     log_path = os.path.join(logs_dir, log_filename)
     templates_path = os.path.join(gateone_dir, 'templates')
@@ -605,16 +613,6 @@ def _save_log_playback(queue, settings):
         with open(os.path.join(themes_path, theme)) as f:
             theme_file = f.read()
         theme_template = tornado.template.Template(theme_file)
-        # Setup our 256-color support CSS:
-        colors_256 = ""
-        from gateone import COLORS_256
-        for i in xrange(256):
-            fg = "#%s span.fx%s {color: #%s;}" % (
-                container, i, COLORS_256[i])
-            bg = "#%s span.bx%s {background-color: #%s;} " % (
-                container, i, COLORS_256[i])
-            colors_256 += "%s %s" % (fg, bg)
-        colors_256 += "\n"
         rendered_theme = theme_template.generate(
             container=container,
             prefix=prefix,

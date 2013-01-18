@@ -5,14 +5,24 @@ var document = window.document; // Have to do this because we're sandboxed
 // TODO: Move the parts that load and render logs in separate windows into Web Workers so they don't hang the browser while they're being rendered.
 // TODO: Bring back *some* client-side logging so things like displayMessage() have somewhere to temporarily store messages so users can look back to re-read them (e.g. Which terminal was that bell just in?).  Probably put it in sessionStorage
 
+"use strict";
+
+// These are just convenient shortcuts:
+var go = GateOne,
+    u = go.Utils,
+    t = go.Terminal,
+    v = go.Visual,
+    E = go.Events,
+    prefix = go.prefs.prefix;
+
 // GateOne.TermLogging
-GateOne.Base.module(GateOne, "TermLogging", '1.0', ['Base', 'Net']);
-GateOne.TermLogging.serverLogs = [];
-GateOne.TermLogging.sortToggle = false;
-GateOne.TermLogging.searchFilter = null;
-GateOne.TermLogging.page = 0; // Used to tracking pagination
-GateOne.TermLogging.delay = 500;
-GateOne.Base.update(GateOne.TermLogging, {
+go.Base.module(GateOne, "TermLogging", '1.0', ['Base', 'Net', 'Events']);
+go.TermLogging.serverLogs = [];
+go.TermLogging.sortToggle = false;
+go.TermLogging.searchFilter = null;
+go.TermLogging.page = 0; // Used to tracking pagination
+go.TermLogging.delay = 500;
+go.Base.update(GateOne.TermLogging, {
     init: function() {
         /**:GateOne.TermLogging.init()
 
@@ -23,9 +33,7 @@ GateOne.Base.update(GateOne.TermLogging, {
             GateOne.Net.addAction('logging_log_flat', GateOne.TermLogging.displayFlatLogAction);
             GateOne.Net.addAction('logging_log_playback', GateOne.TermLogging.displayPlaybackLogAction);
         */
-        var go = GateOne,
-            l = go.TermLogging,
-            u = go.Utils,
+        var l = go.TermLogging,
             prefix = go.prefs.prefix,
             pTag = u.getNode('#'+prefix+'info_actions'),
             infoPanelViewLogs = u.createElement('button', {'id': 'logging_viewlogs', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
@@ -50,9 +58,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         Creates the logging panel (just the empty shell of it).
         */
-        var go = GateOne,
-            u = go.Utils,
-            l = go.TermLogging,
+        var l = go.TermLogging,
             prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_logs'),
             logPanel = u.createElement('div', {'id': 'panel_logs', 'class': 'panel sectrans'}),
@@ -226,13 +232,13 @@ GateOne.Base.update(GateOne.TermLogging, {
         logPreviewIframeDoc.open();
         logPreviewIframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; color: #fff; font-size: 1em; font-style: italic;">Click on a log to view a preview and metadata.</body></html>');
         logPreviewIframeDoc.close();
-        GateOne.Events.on('go:panel_toggle:in', function(panel) {
+        E.on('go:panel_toggle:in', function(panel) {
             if (panel.id == go.prefs.prefix+'panel_logs') {
                 // Make the iframe visible
                 u.showElement(logPreviewIframe);
             }
         });
-        GateOne.Events.on('go:panel_toggle:out', function(panel) {
+        E.on('go:panel_toggle:out', function(panel) {
             if (panel.id == go.prefs.prefix+'panel_logs') {
                 // Make the iframe INvisible
                 u.hideElement(logPreviewIframe);
@@ -246,8 +252,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         If *forceUpdate* empty out `GateOne.TermLogging.serverLogs` and tell the server to send us a new list.
         */
-        var go = GateOne,
-            u = go.Utils,
+        var u = go.Utils,
             l = go.TermLogging,
             prefix = go.prefs.prefix,
             logCount = 0,
@@ -327,9 +332,7 @@ GateOne.Base.update(GateOne.TermLogging, {
         Calculates and returns the number of log items that will fit in the given element (*elem*).  *elem* may be a DOM node or an element ID (string).
         */
         try {
-            var go = GateOne,
-                l = go.TermLogging,
-                u = go.Utils,
+            var l = go.TermLogging,
                 node = u.getNode(elem),
                 tempLog = {
                     'cols': 203,
@@ -367,9 +370,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         If *page* is given, the pagination will highlight the given page number and adjust prev/next accordingly.
         */
-        var go = GateOne,
-            l = go.TermLogging,
-            u = go.Utils,
+        var l = go.TermLogging,
             prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_logs'),
             logPaginationUL = u.createElement('ul', {'id': 'log_pagination_ul', 'class': 'log_pagination halfsectrans'}),
@@ -432,9 +433,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         Displays the information about the log file, *logFile* in the metadata area of the log viewer.
         */
-        var go = GateOne,
-            u = go.Utils,
-            l = go.TermLogging,
+        var l = go.TermLogging,
             prefix = go.prefs.prefix,
             infoDiv = u.getNode('#'+prefix+'log_info'),
             logMetadataDiv = u.getNode('#'+prefix+'log_metadata'),
@@ -513,9 +512,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         *delay* controls how long it will wait before using a CSS3 effect to move it into view.
         */
-        var go = GateOne,
-            u = go.Utils,
-            l = go.TermLogging,
+        var l = go.TermLogging,
             prefix = go.prefs.prefix,
             logElem = u.createElement('div', {'class':'halfsectrans table_row', 'name': prefix+'logitem'}),
             titleSpan = u.createElement('span', {'class':'table_cell logitem_title'}),
@@ -570,9 +567,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         Adds *message['log']* to `GateOne.TermLogging.serverLogs` and places it into the view.
         */
-        var go = GateOne,
-            u = go.Utils,
-            l = go.TermLogging,
+        var l = go.TermLogging,
             prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_logs'),
             logViewHeader = u.getNode('#'+prefix+'logging_title'),
@@ -615,10 +610,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         Sets the header of the log viewer and displays a message to indicate we're done loading.
         */
-        var go = GateOne,
-            u = go.Utils,
-            l = go.TermLogging,
-            prefix = go.prefs.prefix,
+        var l = go.TermLogging,
             logViewHeader = u.getNode('#'+prefix+'logging_title');
         go.Visual.displayMessage('<b>Log listing complete:</b> ' + l.serverLogs.length + ' logs representing ' + u.humanReadableBytes(message['total_bytes'], 1) + ' of disk space.');
         logViewHeader.innerHTML = 'Log Viewer';
@@ -628,11 +620,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         Opens a new window displaying the (flat) log contained within *message* if there are no errors reported.
         */
-        var go = GateOne,
-            u = go.Utils,
-            v = go.Visual,
-            l = go.TermLogging,
-            prefix = go.prefs.prefix,
+        var l = go.TermLogging,
             out = "",
             result = message['result'],
             logLines = message['log'],
@@ -667,11 +655,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         Opens a new window playing back the log contained within *message* if there are no errors reported.
         */
-        var go = GateOne,
-            u = go.Utils,
-            v = go.Visual,
-            l = go.TermLogging,
-            prefix = go.prefs.prefix,
+        var l = go.TermLogging,
             result = message['result'],
             logHTML = message['html'],
             where = message['where'],
@@ -700,8 +684,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         Tells the server to open *logFile* for playback via the 'logging_get_log_flat' server-side WebSocket action (will end up calling :js:meth:`~GateOne.TermLogging.displayFlatLogAction`.
         */
-        var go = GateOne,
-            message = {
+        var message = {
                 'log_filename': logFile,
                 'theme': go.prefs.theme,
                 'colors': go.prefs.colors
@@ -716,10 +699,11 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         If *where* is given and it is set to 'preview' the playback will happen in the log_preview iframe.
         */
-        var go = GateOne,
+        var theme_css = u.getNode('#'+prefix+'theme').innerHTML,
             message = {
                 'log_filename': logFile,
                 'theme': go.prefs.theme,
+                'theme_css': theme_css,
                 'colors': go.prefs.colors
             };
         if (where) {
@@ -734,10 +718,11 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         Tells the server to open *logFile* rendered as a self-contained recording (via the 'logging_get_log_file' WebSocket action) and send it back to the browser for saving (using the 'save_file' WebSocket action).
         */
-        var go = GateOne,
+        var theme_css = u.getNode('#'+prefix+'theme').innerHTML,
             message = {
                 'log_filename': logFile,
                 'theme': go.prefs.theme,
+                'theme_css': theme_css,
                 'colors': go.prefs.colors
             };
         go.ws.send(JSON.stringify({'logging_get_log_file': message}));
@@ -796,10 +781,7 @@ GateOne.Base.update(GateOne.TermLogging, {
 
         Reverses the order of the logs array.
         */
-        var go = GateOne,
-            l = go.TermLogging,
-            u = go.Utils,
-            prefix = go.prefs.prefix;
+        var l = go.TermLogging;
         if (l.sortToggle) {
             l.sortToggle = false;
             l.loadLogs();

@@ -21,7 +21,6 @@
     color: #eee;
     font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */
     line-height: 1.04;
-    /*height: auto;*/ /* Needs to be 100% when scrollback is enabled */
     width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
@@ -42,13 +41,11 @@
 #{{container}} .terminal span.screen {
     word-wrap: break-word;
     white-space: pre-wrap;
-/*     margin-right: 2em; */
     display: block;
 }
 #{{container}} .terminal span.scrollback {
     word-wrap: break-word;
     white-space: pre-wrap;
-/*     margin-right: 2em; */
     display: block;
 }
 /* The "reverse" default needs to be set in the theme since the background will vary */

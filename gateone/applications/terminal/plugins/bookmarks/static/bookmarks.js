@@ -1131,7 +1131,7 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             delay = 1000, // Pretty much everything has the 'sectrans' class for 1-second transition effects
             existingPanel = u.getNode('#'+prefix+'panel_bookmarks'),
-            bmPanel = u.createElement('div', {'id': 'panel_bookmarks', 'class': 'panel sectrans'}),
+            bmPanel = u.createElement('div', {'id': 'panel_bookmarks', 'class': 'panel sectrans ✈panel_bookmarks'}),
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
             bmHeader = u.createElement('div', {'id': 'bm_header', 'class': 'sectrans'}),
             bmContainer = u.createElement('div', {'id': 'bm_container', 'class': 'sectrans'}),
@@ -1169,7 +1169,7 @@ go.Base.update(GateOne.Bookmarks, {
         }
         bmHeader.appendChild(bmH2);
         bmHeader.appendChild(panelClose);
-        bmTags.innerHTML = '<span id="'+prefix+'bm_taglist_label">Tag Filter:</span> <ul id="'+prefix+'bm_taglist"></ul> ';
+        bmTags.innerHTML = '<span id="'+prefix+'bm_taglist_label" class="✈bm_taglist_label">Tag Filter:</span> <ul id="'+prefix+'bm_taglist"></ul> ';
         bmSync.innerHTML = 'Sync Bookmarks | ';
         bmImport.innerHTML = 'Import | ';
         bmExport.innerHTML = 'Export';
@@ -1671,6 +1671,7 @@ go.Base.update(GateOne.Bookmarks, {
             bmForm = u.createElement('form', {'name': prefix+'bm_import_form', 'id': 'bm_import_form', 'class': 'sectrans', 'enctype': 'multipart/form-data'}),
             importLabel = u.createElement('label', {'style': {'text-align': 'center'}}),
             importFile = u.createElement('input', {'type': 'file', 'id': 'bookmarks_upload', 'name': prefix+'bookmarks_upload'}),
+            buttonContainer = u.createElement('div', {'id': 'bm_buttons'}),
             bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'}),
             bmHelp = u.createElement('p');
@@ -1680,8 +1681,9 @@ go.Base.update(GateOne.Bookmarks, {
         importLabel.htmlFor = prefix+'bookmarks_upload';
         bmForm.appendChild(importLabel);
         bmForm.appendChild(importFile);
-        bmForm.appendChild(bmSubmit);
-        bmForm.appendChild(bmCancel);
+        buttonContainer.appendChild(bmSubmit);
+        buttonContainer.appendChild(bmCancel);
+        bmForm.appendChild(buttonContainer);
         bmHelp.innerHTML = '<br /><i>Imported bookmarks will be synchronized the next time you click, "Sync Bookmarks".</i>'
         bmForm.appendChild(bmHelp);
         var closeDialog = go.Visual.dialog("Import Bookmarks", bmForm);
@@ -1820,6 +1822,7 @@ go.Base.update(GateOne.Bookmarks, {
             tagsLabel = u.createElement('label'),
             notesTextarea = u.createElement('textarea', {'id': 'bm_new_notes', 'name': prefix+'bm_new_notes', 'placeholder': 'e.g. Supported by Global Ops'}),
             notesLabel = u.createElement('label'),
+            buttonContainer = u.createElement('div', {'id': 'bm_buttons'}),
             bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'});
         bmSubmit.innerHTML = "Submit";
@@ -1863,8 +1866,9 @@ go.Base.update(GateOne.Bookmarks, {
         bmForm.appendChild(tagsInput);
         bmForm.appendChild(notesLabel);
         bmForm.appendChild(notesTextarea);
-        bmForm.appendChild(bmSubmit);
-        bmForm.appendChild(bmCancel);
+        buttonContainer.appendChild(bmSubmit);
+        buttonContainer.appendChild(bmCancel);
+        bmForm.appendChild(buttonContainer);
         setTimeout(function() {
             u.getNode('#'+prefix+'bm_newurl').focus();
         }, 1000);
@@ -2037,7 +2041,7 @@ go.Base.update(GateOne.Bookmarks, {
             url = null,
             count = 0,
             remove = null,
-            confirmElement = u.createElement('div', {'id': 'bm_confirm_delete', 'class': 'bookmark halfsectrans'}),
+            confirmElement = u.createElement('div', {'id': 'bm_confirm_delete', 'class': 'bookmark halfsectrans ✈bm_confirm_delete'}),
             yes = u.createElement('button', {'id': 'bm_yes', 'class': 'button black'}),
             no = u.createElement('button', {'id': 'bm_no', 'class': 'button black'}),
             bmPanel = u.getNode('#'+prefix+'panel_bookmarks');
@@ -2380,7 +2384,7 @@ go.Base.update(GateOne.Bookmarks, {
             bmPanelWidth = bmPanel.offsetWidth,
             rename = u.createElement('a', {'id': 'bm_context_rename', 'class': 'pointer'}),
             cancel = u.createElement('a', {'id': 'bm_context_cancel', 'class': 'pointer'}),
-            menu = u.createElement('div', {'id': 'bm_context', 'class': 'quartersectrans'});
+            menu = u.createElement('div', {'id': 'bm_context', 'class': 'quartersectrans ✈bm_context'});
         // Close any existing context menu before we do anything else
         if (existing) {
             existing.style.opacity = 0;
@@ -2428,7 +2432,7 @@ go.Base.update(GateOne.Bookmarks, {
             b = go.Bookmarks,
             bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': 'sectrans'}),
             bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'});
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'value': 'Cancel', 'class': 'button black'});
         bmForm.innerHTML = '<label for="'+prefix+'bm_newtagname">New Name</label><input type="text" name="'+prefix+'bm_newtagname" id="'+prefix+'bm_newtagname" autofocus required>';
         bmCancel.onclick = closeDialog;
         bmForm.appendChild(bmSubmit);
@@ -2441,6 +2445,10 @@ go.Base.update(GateOne.Bookmarks, {
             e.preventDefault();
             var newName = u.getNode('#'+prefix+'bm_newtagname').value;
             b.renameTag(tagName, newName);
+            closeDialog();
+        }
+        bmCancel.onclick = function(e) {
+            e.preventDefault();
             closeDialog();
         }
     },

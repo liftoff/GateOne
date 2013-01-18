@@ -1644,9 +1644,14 @@ class TerminalApplication(GOApplication):
             self.ws.send_message(message, upn=term_obj['user']['upn'])
         self.trigger("terminal:attach_shared_terminal", term)
 
-    def send_256_colors(self):
+    def render_256_colors(self):
         """
-        Sends the client the CSS to handle 256 color support.
+        Renders the CSS for 256 color support and saves the result as
+        '256_colors.css' in Gate One's configured `cache_dir`.  If that file
+        already exists and has not been modified since the last time it was
+        generated rendering will be skipped.
+
+        Returns the path to that file as a string.
         """
         # NOTE:  Why generate this every time?  Presumably these colors can be
         #        changed on-the-fly by terminal programs.  That functionality
@@ -1656,9 +1661,7 @@ class TerminalApplication(GOApplication):
         cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
         cached_256_colors = os.path.join(cache_dir, '256_colors.css')
         if os.path.exists(cached_256_colors):
-            # send_css() will take care of minifiying and caching further...
-            self.ws.send_css(cached_256_colors)
-            return
+            return cached_256_colors
         colors_json_path = os.path.join(APPLICATION_PATH, '256colors.json')
         color_map = get_settings(colors_json_path, add_default=False)
         # Setup our 256-color support CSS:
@@ -1678,7 +1681,14 @@ class TerminalApplication(GOApplication):
             colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
         with open(cached_256_colors, 'w') as f:
             f.write(colors_256)
-        self.ws.send_css(cached_256_colors)
+        # send_css() will take care of minifiying and caching further
+        return cached_256_colors
+
+    def send_256_colors(self):
+        """
+        Sends the client the CSS to handle 256 color support.
+        """
+        self.ws.send_css(self.render_256_colors())
 
     @require(authenticated())
     def debug_terminal(self, term):

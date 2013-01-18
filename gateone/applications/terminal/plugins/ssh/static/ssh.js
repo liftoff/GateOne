@@ -129,16 +129,16 @@ GateOne.Base.update(GateOne.SSH, {
             ssh = go.SSH,
             prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
-            sshIDPanel = u.createElement('div', {'id': 'panel_ssh_ids', 'class': 'panel sectrans'}),
+            sshIDPanel = u.createElement('div', {'id': 'panel_ssh_ids', 'class': 'panel sectrans ✈panel_ssh_ids'}),
             sshIDHeader = u.createElement('div', {'id': 'ssh_ids_header', 'class': 'sectrans'}),
             sshIDHeaderH2 = u.createElement('h2', {'id': 'ssh_ids_title', 'class': 'sectrans'}),
             sshNewID = u.createElement('a', {'id': 'ssh_new_id', 'class': 'halfsectrans ssh_panel_link'}),
             sshUploadID = u.createElement('a', {'id': 'ssh_upload_id', 'class': 'halfsectrans ssh_panel_link'}),
             sshIDHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
-            sshIDContent = u.createElement('div', {'id': 'ssh_ids_container', 'class': 'sectrans'}),
-            sshIDInfoContainer = u.createElement('div', {'id': 'ssh_id_info', 'class': 'sectrans'}),
-            sshIDListContainer = u.createElement('div', {'id': 'ssh_ids_listcontainer', 'class': 'sectrans'}),
+            sshIDContent = u.createElement('div', {'id': 'ssh_ids_container', 'class': 'sectrans ✈ssh_ids_container'}),
+            sshIDInfoContainer = u.createElement('div', {'id': 'ssh_id_info', 'class': 'sectrans ✈ssh_id_info'}),
+            sshIDListContainer = u.createElement('div', {'id': 'ssh_ids_listcontainer', 'class': 'sectrans ✈ssh_ids_listcontainer'}),
             sshIDElemHeader = u.createElement('div', {'id': 'ssh_id_header', 'class':'table_header_row sectrans'}),
             defaultSpan = u.createElement('span', {'id': 'ssh_id_defaultspan', 'class':'table_cell table_header_cell'}),
             nameSpan = u.createElement('span', {'id': 'ssh_id_namespan', 'class':'table_cell table_header_cell'}),
@@ -147,7 +147,7 @@ GateOne.Base.update(GateOne.SSH, {
             bitsSpan = u.createElement('span', {'id': 'ssh_id_bitsspan', 'class':'table_cell table_header_cell'}),
             certSpan = u.createElement('span', {'id': 'ssh_id_certspan', 'class':'table_cell table_header_cell'}),
             sortOrder = u.createElement('span', {'id': 'ssh_ids_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
-            sshIDMetadataDiv = u.createElement('div', {'id': 'ssh_id_metadata', 'class': 'sectrans'});
+            sshIDMetadataDiv = u.createElement('div', {'id': 'ssh_id_metadata', 'class': 'sectrans ✈ssh_id_metadata'});
         sshIDHeaderH2.innerHTML = 'SSH Identity Manager: Loading...';
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
@@ -396,7 +396,7 @@ GateOne.Base.update(GateOne.SSH, {
             ssh = go.SSH,
             prefix = go.prefs.prefix,
             downloadButton = u.createElement('button', {'id': 'ssh_id_download', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            deleteIDButton = u.createElement('button', {'id': 'ssh_id_delete', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            deleteIDButton = u.createElement('button', {'id': 'ssh_id_delete', 'class': '✈ssh_id_delete', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             uploadCertificateButton = u.createElement('button', {'id': 'ssh_id_upload_cert', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             sshIDMetadataDiv = u.getNode('#'+prefix+'ssh_id_metadata'),
             IDObj = null;
@@ -502,7 +502,7 @@ GateOne.Base.update(GateOne.SSH, {
             u = go.Utils,
             ssh = go.SSH,
             prefix = go.prefs.prefix,
-            elem = u.createElement('div', {'class':'sectrans ssh_id', 'name': prefix+'ssh_id'}),
+            elem = u.createElement('div', {'class':'sectrans ssh_id', 'name': '✈ssh_id'}),
             IDViewOptions = u.createElement('span', {'class': 'ssh_id_options'}),
             viewPubKey = u.createElement('a'),
             defaultSpan = u.createElement('span', {'class':'table_cell ssh_id_default'}),

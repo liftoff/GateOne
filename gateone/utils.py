@@ -36,6 +36,8 @@ from tornado.escape import to_unicode, utf8
 
 # Globals
 MACOS = os.uname()[0] == 'Darwin'
+CSS_END = re.compile('\.css.*?$')
+JS_END = re.compile('\.js.*?$')
 # This matches JUST the PIDs from the output of the pstree command
 #RE_PSTREE = re.compile(r'\(([0-9]*)\)')
 # Matches Gate One's special optional escape sequence (ssh plugin only)
@@ -812,30 +814,20 @@ def killall_macos(session_dir):
         )
         exitstatus, output = shell_command(cmd)
 
-def get_applications(application_dir, settings_dir):
+def get_applications(application_dir, enabled=None):
     """
     Adds applications' Python files to `sys.path` and returns a list containing
-    the name of each application.  In order to ensure that only enabled apps
-    are listed the *settings_dir* argument must be given so only enabled
-    apps are returned.
+    the name of each application.  If given, only applications in the *enabled*
+    list will be returned.
     """
     out_list = []
-    settings_dir = os.path.abspath(settings_dir)
-    settings = get_settings(settings_dir)
-    enabled_applications = []
-    if 'applications' in settings['*']:
-        for app_name, enabled in settings['*']['applications']:
-            app_name = app_name.lower() # Just in case
-            if enabled:
-                enabled_applications.append(app_name)
-    else:
-        logging.debug(_('Loading all applications'))
     for directory in os.listdir(application_dir):
-        if enabled_applications:
-            if directory.lower() not in enabled_applications:
-                continue
         application = directory
         directory = os.path.join(application_dir, directory) # Make absolute
+        if not os.path.isdir(directory):
+            continue
+        if enabled and application not in enabled:
+            continue
         application_files = os.listdir(directory)
         if "__init__.py" in application_files:
             out_list.append(application) # Just need the base
@@ -853,7 +845,7 @@ def get_applications(application_dir, settings_dir):
     out_list.sort()
     return out_list
 
-def get_plugins(plugin_dir):
+def get_plugins(plugin_dir, enabled=None):
     """
     Adds plugins' Python files to `sys.path` and returns a dictionary of
     JavaScript, CSS, and Python files contained in *plugin_dir* like so::
@@ -881,22 +873,15 @@ def get_plugins(plugin_dir):
         {% end %}
 
     \*.css files will get imported automatically by GateOne.init()
+
+    Optionally, a list of *enabled* (Python) plugins may be provided and only
+    those plugins will be added to the 'py' portion of the returned dict.
     """
     out_dict = {'js': [], 'css': [], 'py': []}
     if not os.path.exists(plugin_dir):
         return out_dict
-    plugins_conf_path = plugin_dir + '.conf'
-    try:
-        enabled_plugins = open(plugins_conf_path).read().split()
-        if not enabled_plugins or "*" in enabled_plugins:
-            logging.debug(_('Loading all plugins'))
-            enabled_plugins = None
-    except IOError:
-        logging.debug(_('plugins.conf file not found, loading all plugins'))
-        enabled_plugins = None
-
     for directory in os.listdir(plugin_dir):
-        if enabled_plugins and directory not in enabled_plugins:
+        if enabled and directory not in enabled:
             continue
         plugin = directory
         http_static_path = '/static/%s' % plugin
@@ -1377,6 +1362,59 @@ def minify(path_or_fileobj, kind):
         ))
         del cssmin # Don't need this anymore
     return out
+
+# This is so we can have the argument below be 'minify' (user friendly)
+_minify = minify
+
+def get_or_cache(cache_dir, path, minify=True):
+    """
+    Given a *path*, returns the cached version of that file.  If the file has
+    yet to be cached, cache it and return the result.  If *minify* is `True`
+    (the default), the file will be minified as part of the caching process (if
+    possible).
+    """
+    # Need to store the original file's modification time in the filename
+    # so we can tell if the original changed in the event that Gate One is
+    # restarted.
+    # Also, we're using the full path in the cached filename in the event
+    # that two files have the same name but at different paths.
+    mtime = os.stat(path).st_mtime
+    cached_filename = "%s:%s" % (path.replace('/', '_'), mtime)
+    cached_file_path = os.path.join(cache_dir, cached_filename)
+    # Check if the file has changed since last time and use the cached
+    # version if it makes sense to do so.
+    if os.path.exists(cached_file_path):
+        with open(cached_file_path) as f:
+            data = f.read()
+    elif minify:
+        # Using regular expressions here because rendered filenames often end
+        # like this: .css_1357311277
+        # Hopefully this is a good enough classifier.
+        if JS_END.search(path):
+            kind = 'js'
+        elif CSS_END.search(path):
+            kind = 'css'
+        else: # Just cache it as-is; no minification
+            kind = False
+        if kind:
+            data = _minify(path, kind)
+            # Cache it
+            with open(cached_file_path, 'w') as f:
+                f.write(data)
+        else:
+            with open(path) as f:
+                data = f.read()
+    else:
+        with open(path) as f:
+            data = f.read()
+    # Clean up old versions of this file (if present)
+    for fname in os.listdir(cache_dir):
+        if fname == cached_filename:
+            continue
+        elif fname.split(':', 1)[0] == path.replace('/', '_'):
+            # Older version present.  Remove it.
+            os.remove(os.path.join(cache_dir, fname))
+    return data
 
 def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
     """

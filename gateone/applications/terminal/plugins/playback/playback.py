@@ -38,6 +38,20 @@ _ = get_translation()
 # Globals
 PLUGIN_PATH = os.path.split(__file__)[0]
 
+def get_256_colors(self):
+    """
+    Returns the rendered 256-color CSS.
+    """
+    colors_256_path = self.render_256_colors()
+    filename = os.path.split(colors_256_path)[1]
+    mtime = os.stat(colors_256_path).st_mtime
+    cached_filename = "%s:%s" % (colors_256_path.replace('/', '_'), mtime)
+    cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
+    cached_file_path = os.path.join(cache_dir, cached_filename)
+    with open(cached_file_path) as f:
+        colors_256 = f.read()
+    return colors_256
+
 def save_recording(self, settings):
     """
     Handles uploads of session recordings and returns them to the client in a
@@ -46,7 +60,6 @@ def save_recording(self, settings):
     NOTE: The real crux of the code that handles this is in the template.
     """
     import tornado.template
-    from gateone import COLORS_256
     from datetime import datetime
     now = datetime.now().strftime('%Y%m%d%H%m%S') # e.g. '20120208200222'
     out_dict = {
@@ -73,14 +86,7 @@ def save_recording(self, settings):
     rendered_colors = colors.generate(container=container, prefix=prefix)
     theme = tornado.template.Template(theme_file)
     # Setup our 256-color support CSS:
-    colors_256 = ""
-    for i in xrange(256):
-        fg = "#%s span.fx%s {color: #%s;}" % (
-            container, i, COLORS_256[i])
-        bg = "#%s span.bx%s {background-color: #%s;} " % (
-            container, i, COLORS_256[i])
-        colors_256 += "%s %s" % (fg, bg)
-    colors_256 += "\n"
+    colors_256 = get_256_colors(self)
     rendered_theme = theme.generate(
         container=container,
         prefix=prefix,

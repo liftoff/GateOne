@@ -7,7 +7,7 @@ hr {
     margin: 0;
     padding: 0;
 }
-  {
+#{{container}} {
     position: static;
     overflow: visible;
     background-color: white;
@@ -20,7 +20,7 @@ hr {
     float: none;
     height: 100%;
 }
-  textarea {
+textarea {
     background-color: #fff;
     color: black;
     outline: none;
@@ -28,7 +28,7 @@ hr {
     font-family: monospace; /* Just "monospace" let the browser/printer choose what's best for print */
     line-height: 1;
 }
-  .terminal {
+.terminal {
     line-height: 1;
     background-color: #fff;
     color: black;
@@ -38,13 +38,13 @@ hr {
     padding: 0;
     float: none;
 }
-  .terminal a {
+.terminal a {
     color: maroon;
 }
-  .terminal a:visited {
+.terminal a:visited {
     color: maroon;
 }
-  .terminal pre {
+.terminal pre {
     font-family: monospace;
     font-size: 1em;
     line-height: 1;
@@ -59,30 +59,30 @@ hr {
 }
 span.cursor { color: #fff; background-color: #000; }
 span.reverse { background-color: #aaa; color: #fff; }
-#{{prefix}}toolbar {
+.✈toolbar {
     display: none;
 }
 .toolbar {
     display: none;
 }
-#{{prefix}}infocontainer {
+.✈infocontainer {
     display: none;
 }
-#{{prefix}}noticecontainer {
+.✈noticecontainer {
     display: none;
 }
-#{{prefix}}terminfo {
+.✈terminfo {
     color: #000;
     font-weight: bold;
     font-size: 1.1em;
 }
-  .pastearea {
+.pastearea {
     display: none;
 }
-  .go_none { /* No prefix on this one because of issues with that in the JS code */
+.go_none { /* No prefix on this one because of issues with that in the JS code */
     display: none;
 }
-  .sideinfo {
+.sideinfo {
     -webkit-transform: rotate(90deg);
     -webkit-transform-origin: right top;
     -moz-transform: rotate(90deg);
@@ -105,39 +105,39 @@ span.reverse { background-color: #aaa; color: #fff; }
     margin-bottom: -1em;
     z-index: 10;
 }
-#{{prefix}}notice {
+.✈notice {
     display: none;
 }
-  .panel {
+.panel {
     display: none;
 }
-  .medium {
+.medium {
     height: 5em;
 }
-#{{prefix}}user_info {
+.✈user_info {
     font-size: 0.8em;
     padding-bottom: 0.25em;
     text-align: right;
 }
-#{{prefix}}user_info a:hover {
+.✈user_info a:hover {
     cursor: pointer;
 }
   .dialogcontainer {
     display: none;
 }
-#{{prefix}}dialogdiv {
+.✈dialogdiv {
     display: none;
 }
-#{{prefix}}dialogcontent {
+.✈dialogcontent {
     display: none;
 }
-#{{prefix}}dialog_close {
+.✈dialog_close {
     display: none;
 }
-  .widgetcontainer {
+.✈widgetcontainer {
     display: none;
 }
-  .widgetcontainer h3 {
+.✈widgetcontainer h3 {
     background-color: transparent;
     color: #000;
     padding-left: 0.5em;
@@ -150,7 +150,7 @@ span.reverse { background-color: #aaa; color: #fff; }
     /* Hidden by default */
     opacity: 0;
 }
-  .widgetcontainer textarea {
+.✈widgetcontainer textarea {
     margin-right: 1.3em;
     padding: 0.2em 0.2em;
     border: 1px solid #bbb;
@@ -158,7 +158,7 @@ span.reverse { background-color: #aaa; color: #fff; }
     color: #000;
     position: relative;
 }
-  .widgetcontainer input {
+.✈widgetcontainer input {
     margin-right: 1.3em;
     margin-bottom: 0.2em;
     padding: 0.2em 0.2em;
@@ -169,30 +169,29 @@ span.reverse { background-color: #aaa; color: #fff; }
     display: block;
     width: 99%;
 }
-  .widgetcontainer label {
+.✈widgetcontainer label {
     font-size: 1.2em;
     padding-top: 0.5em;
     display: inline-block;
     font-family: sans-serif;
 }
-#{{prefix}}widgettitle:hover {
+.✈widgettitle:hover {
     cursor: move;
 }
-/* widgetdiv wraps widgetcontent with this "left: 50%" and "left: -50%" mixture to ensure that everything stays centered. */
-#{{prefix}}widgetdiv {
+.✈widgetdiv {
     float: left;
     position: relative;
     left: 50%;
     width: 100%;
 }
-#{{prefix}}widgetcontent {
+.✈widgetcontent {
     float: left;
     position: relative;
     left: -50%;
     width: 100%;
     border: solid 1px transparent;
 }
-#{{prefix}}widget_close {
+.✈widget_close {
     position: absolute;
     top: 0;
     right: 0;
@@ -201,7 +200,7 @@ span.reverse { background-color: #aaa; color: #fff; }
     cursor: pointer;
     opacity: .75;
 }
-#{{prefix}}widget_configure {
+.✈widget_configure {
     position: absolute;
     top: 0;
     left: 0;
@@ -210,7 +209,7 @@ span.reverse { background-color: #aaa; color: #fff; }
     cursor: pointer;
     opacity: .75;
 }
-#{{prefix}}widget_form input {
+.✈widget_form input {
     width: 97%;
     margin-left: auto;
     margin-right: auto;
@@ -225,7 +224,7 @@ span.reverse { background-color: #aaa; color: #fff; }
     z-index: 2;
     font-size: 1em;
 }
-  .table_row {
+.table_row {
     display: table-row;
     height: 1.2em;
     overflow: hidden;
@@ -234,56 +233,55 @@ span.reverse { background-color: #aaa; color: #fff; }
     font-size: 0.9em;
     white-space: nowrap;
 }
-  .active.table_row {
+.active.table_row {
     -webkit-transform: skew(-10deg) translate(0.5%);
     -moz-transform: skew(-10deg) translate(0.5%);
     -ms-transform: skew(-10deg) translate(0.5%);
     -o-transform: skew(-10deg) translate(0.5%);
     transform: skew(-10deg) translate(0.5%);
 }
-  .table_cell {
+.table_cell {
     display: table-cell;
     max-width: 13em;
     padding-right: 0.5em;
     background-image: -moz-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
     background-image: -webkit-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
     background-image: -o-linear-gradient(top, #fff, rgba(255, 255, 255, 0.5));
-    background-image: -ms-linear-gradient(top,  #fff, rgba(255, 255, 255, 0.5));
     background-image: linear-gradient(top,  #fff, rgba(255, 255, 255, 0.5));
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-  .table_header_row {
+.table_header_row {
     display: table-header-group;
     font-weight: bold;
     font-size: 1.1em;
 }
-  .table_header_cell {
+.table_header_cell {
     color: #1F5470;
     background-image: none;
     background: none;
 }
-  .table_header_cell.active {
+.table_header_cell.active {
     color: maroon;
 }
-  .table_header_cell:hover {
+.table_header_cell:hover {
     color: maroon;
     cursor: pointer;
     background-color: #fff;
 }
-  .metadata_row {
+.metadata_row {
     display: table-row;
     height: 1.2em;
     overflow: hidden;
     border: 0.1em #000 solid;
     font-size: 0.9em;
 }
-  .metadata_value {
+.metadata_value {
     display: table-cell;
     padding-right: 0.5em;
 }
-  .metadata_title {
+.metadata_title {
     display: table-cell;
     font-weight: bold;
     padding-right: 0.5em;
@@ -292,8 +290,6 @@ span.reverse { background-color: #aaa; color: #fff; }
     width: 50%; /* Ensures things are centered */
 }
 /* SVG Styling */
-.svgtext { letter-spacing:0px; text-anchor:middle; word-spacing:0px; text-align:center; color: #000; fill: #000; }
-.svgplugin { fill: #000; }
 .stop1 { stop-color: #636466; }
 .stop2 { stop-color: #464648; }
 .stop3 { stop-color: #5D5E60; }
@@ -303,35 +299,35 @@ span.reverse { background-color: #aaa; color: #fff; }
 .panelstop3 { stop-color: #2E63B9; }
 .panelstop4 { stop-color: #1F5470; }
 /* Change the styling of the SVG close icon so it is white when inside dialogs */
-#{{prefix}}dialogtitle .panelstop1 { stop-color: #FFF; }
-#{{prefix}}dialogtitle .panelstop2 { stop-color: #CCC; }
-#{{prefix}}dialogtitle .panelstop3 { stop-color: #DDD; }
-#{{prefix}}dialogtitle .panelstop4 { stop-color: #FFF; }
+.✈dialogtitle .panelstop1 { stop-color: #FFF; }
+.✈dialogtitle .panelstop2 { stop-color: #CCC; }
+.✈dialogtitle .panelstop3 { stop-color: #DDD; }
+.✈dialogtitle .panelstop4 { stop-color: #FFF; }
 /* Ditto for widgets */
-#{{prefix}}widgettitle .panelstop1 { stop-color: #636466; }
-#{{prefix}}widgettitle .panelstop2 { stop-color: #464648; }
-#{{prefix}}widgettitle .panelstop3 { stop-color: #5D5E60; }
-#{{prefix}}widgettitle .panelstop4 { stop-color: #535355; }
+.✈widgettitle .panelstop1 { stop-color: #636466; }
+✈widgettitle .panelstop2 { stop-color: #464648; }
+✈widgettitle .panelstop3 { stop-color: #5D5E60; }
+✈widgettitle .panelstop4 { stop-color: #535355; }
+.✈overlay {
+    display: none;
+}
 
 /* Plugin-specific CSS (will get ignored if plugin is missing) */
-#{{prefix}}playbackControls {
+.✈playbackControls {
     display: none;
 }
-#{{prefix}}controlsContainer {
+.✈controlsContainer {
     display: none;
 }
-#{{prefix}}playPause {
+.✈playPause {
     display: none;
 }
-#{{prefix}}progressBar {
+.✈progressBar {
     display: none;
 }
-#{{prefix}}progressBarContainer {
+.✈progressBarContainer {
     display: none;
 }
-#{{prefix}}clock {
-    display: none;
-}
-#{{prefix}}overlay {
+.✈clock {
     display: none;
 }
