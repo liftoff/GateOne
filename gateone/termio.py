@@ -1306,7 +1306,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             # changes in the fd is so fast that it can result in the fd being
             # closed the very moment the Python interpreter is reading from it.
             cmd = ['/bin/sh', '-c', self.cmd + '; sleep .1']
-            os.dup2(2, 1) # Copy stderr to stdout (equivalent to 2>&1)
+            os.dup2(stderr, stdout) # Copy stderr to stdout (equivalent to 2>&1)
             os.execvpe(cmd[0], cmd, env)
             os._exit(0)
         else: # We're inside this Python script

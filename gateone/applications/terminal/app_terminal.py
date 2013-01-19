@@ -329,7 +329,10 @@ class TerminalApplication(GOApplication):
             self.ws.persist['terminal'] = {}
         # Initialize plugins (every time a connection is established so we can
         # load new plugins with a simple page reload)
-        self.plugins = get_plugins(os.path.join(APPLICATION_PATH, 'plugins'))
+        enabled_plugins = all_settings['*']['terminal'].get(
+            'enabled_plugins', [])
+        self.plugins = get_plugins(
+            os.path.join(APPLICATION_PATH, 'plugins'), enabled_plugins)
         js_plugins = [a.split('/')[2] for a in self.plugins['js']]
         css_plugins = []
         for i in css_plugins:
@@ -1767,7 +1770,7 @@ def init(settings):
         from utils import settings_template
         settings_path = os.path.join(GATEONE_DIR, 'settings')
         terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
-        # TODO: Think about moving the 50terminal.conf template into the terminal
+        # TODO: Think about moving 50terminal.conf template into the terminal
         # application's directory.
         template_path = os.path.join(
             GATEONE_DIR, 'templates', 'settings', '50terminal.conf')

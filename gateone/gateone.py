@@ -1931,15 +1931,15 @@ class ApplicationWebSocket(WebSocketHandler):
             return
         policy = applicable_policies(application, self.current_user, self.prefs)
         # This controls the client-side plugins that will be sent
-        allowed_client_plugins = policy.get('client_plugins', [])
+        allowed_client_side_plugins = policy.get('user_plugins', [])
         # Build a list of plugins
         plugins = []
         if not os.path.exists(plugins_dir):
             return # Nothing to do
         for f in os.listdir(plugins_dir):
             if os.path.isdir(os.path.join(plugins_dir, f)):
-                if allowed_client_plugins:
-                    if f in allowed_client_plugins:
+                if allowed_client_side_plugins:
+                    if f in allowed_client_side_plugins:
                         plugins.append(f)
                 else:
                     plugins.append(f)
