@@ -39,6 +39,9 @@ var BlobBuilder = (window.BlobBuilder || window.WebKitBlobBuilder || window.MozB
     Blob = window.Blob, // This will be favored (used by GateOne.Utils.createBlob())
     urlObj = (window.URL || window.webkitURL);
 
+// getUserMedia check
+var getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || null);
+
 // Choose appropriate Page Visibility API attribute
 var hidden, visibilityChange;
 if (typeof document.hidden !== "undefined") {
