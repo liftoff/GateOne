@@ -1192,9 +1192,15 @@ GateOne.Base.update(GateOne.Utils, {
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv);
         if (message['result'] == 'Success') {
-            var elementID = message['filename'].replace(/\./g, '_'), // Element IDs with dots are a no-no.
-                existing = u.getNode('#'+prefix+elementID),
+            var existing, s;
+            if (message['element_id']) {
+                existing = u.getNode('#'+prefix+message['element_id']);
+                s = u.createElement('script', {'id': message['element_id']});
+            } else {
+                var elementID = message['filename'].replace(/\./g, '_'); // Element IDs with dots are a no-no.
+                existing = u.getNode('#'+prefix+elementID);
                 s = u.createElement('script', {'id': elementID});
+            }
             s.innerHTML = message['data'];
             if (existing) {
                 existing.innerHTML = message['data'];
@@ -1255,9 +1261,15 @@ GateOne.Base.update(GateOne.Utils, {
             // This is for handling any given CSS file
             if (message['css']) {
                 if (message['data'].length) {
-                    var existing = u.getNode('#'+prefix+message['filename']+"_css"),
-                        stylesheet = u.createElement('style', {'id': message['filename']+"_css", 'rel': 'stylesheet', 'type': 'text/css', 'media': 'screen'}),
-                        themeStyle = u.getNode('#'+prefix+'theme');
+                    var stylesheet, existing, themeStyle = u.getNode('#'+prefix+'theme');
+                    if (message['element_id']) {
+                        // Use the element ID that was provided
+                        existing = u.getNode('#'+prefix+message['element_id']);
+                        stylesheet = u.createElement('style', {'id': message['element_id'], 'rel': 'stylesheet', 'type': 'text/css', 'media': 'screen'});
+                    } else {
+                        existing = u.getNode('#'+prefix+message['filename']+"_css");
+                        stylesheet = u.createElement('style', {'id': message['filename']+"_css", 'rel': 'stylesheet', 'type': 'text/css', 'media': 'screen'});
+                    }
                     stylesheet.textContent = message['data'];
                     if (existing) {
                         existing.textContent = message['data'];

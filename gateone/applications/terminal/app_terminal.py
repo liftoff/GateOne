@@ -329,7 +329,7 @@ class TerminalApplication(GOApplication):
             self.ws.persist['terminal'] = {}
         # Initialize plugins (every time a connection is established so we can
         # load new plugins with a simple page reload)
-        enabled_plugins = all_settings['*']['terminal'].get(
+        enabled_plugins = self.ws.prefs['*']['terminal'].get(
             'enabled_plugins', [])
         self.plugins = get_plugins(
             os.path.join(APPLICATION_PATH, 'plugins'), enabled_plugins)

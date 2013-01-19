@@ -939,6 +939,9 @@ class ApplicationWebSocket(WebSocketHandler):
         dynamic mixin.
         """
         logging.debug('ApplicationWebSocket.initialize(%s)' % apps)
+        # Make sure we have all prefs ready for checking
+        cls = ApplicationWebSocket
+        cls.prefs = get_settings(os.path.join(GATEONE_DIR, 'settings'))
         if not apps:
             return
         for app in apps:
@@ -1092,8 +1095,6 @@ class ApplicationWebSocket(WebSocketHandler):
             message = {'reauthenticate': True}
             self.write_message(json_encode(message))
             self.close() # Close the WebSocket
-        # Make sure we have all prefs ready for checking
-        cls.prefs = get_settings(os.path.join(GATEONE_DIR, 'settings'))
         # NOTE: By getting the prefs with each call to open() we make
         #       it possible to make changes inside the settings dir without
         #       having to restart Gate One (just need to wait for users to
@@ -1787,12 +1788,15 @@ class ApplicationWebSocket(WebSocketHandler):
         #}
         #message = {'go:try_cached_file', out_dict}
 
-    def send_js_or_css(self, path_or_fileobj, kind):
+    def send_js_or_css(self, path_or_fileobj, kind, element_id=None):
         """
         If *kind* is 'js', reads the given JavaScript file at *path_or_fileobj*
         and sends it to the client using the 'load_js' WebSocket action.
         If *kind* is 'css', reads the given CSS file at *path_or_fileobj*
         and sends it to the client using the 'load_style' WebSocket action.
+
+        Optionally, *element_id* may be provided which will be assigned to the
+        <script> or <style> tag that winds up being created.
 
         .. note:: Files will be cached after being minified until a file is modified or Gate One is restarted.
 
@@ -1835,7 +1839,11 @@ class ApplicationWebSocket(WebSocketHandler):
         # Use a hash of the filename because these names can get quite long.
         # Also, we don't want to reveal the file structure on the server.
         filename_hash = md5(filename).hexdigest()[:10]
-        out_dict = {'result': 'Success', 'filename': filename_hash}
+        out_dict = {
+            'result': 'Success',
+            'filename': filename_hash,
+            'element_id': element_id
+        }
         cache_dir = self.prefs['*']['gateone']['cache_dir']
         if self.settings['debug']:
             out_dict['data'] = get_or_cache(cache_dir, path, minify=False)
