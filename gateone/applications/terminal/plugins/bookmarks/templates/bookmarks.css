@@ -1,4 +1,4 @@
-.✈panel_bookmarks {
+#{{container}} .panel_bookmarks {
     width: 90%;
     height: 85%; /* A bit off the bottom so you can see if something scrolls */
 }
@@ -96,7 +96,7 @@
 #{{container}} .bookmark a:visited {
     color: #1F5470;
 }
-.✈bm_confirm_delete {
+#{{container}} .bm_confirm_delete {
     text-align: center;
     position: absolute;
     top: 0px;
@@ -113,7 +113,7 @@
     opacity: 1;
     background-color: white;
 }
-.✈bm_taglist_label {
+#{{container}} .bm_taglist_label {
     font-weight: bold;
 }
 #{{container}} ul.bm_taglist {
@@ -165,7 +165,7 @@
     background-color: maroon;
     cursor: pointer;
 }
-div.✈bm_context {
+#{{container}} .bm_context {
     position: fixed;
     font-size: 0.8em;
     background-color: #eee;
@@ -173,23 +173,23 @@ div.✈bm_context {
     padding: 0.2em;
     border: 1px #000 solid;
 }
-div.✈bm_context a {
+#{{container}} .bm_context a {
     color: #000;
     background-color: #eee;
     float: left;
     clear: both;
 }
-div.✈bm_context a:hover {
+#{{container}} .bm_context a:hover {
     color: #fff;
     background-color: #1F5470;
 }
-#{{prefix}}bm_options {
+#{{container}} .bm_options {
     float: right;
     font-weight: bold;
     color: #1F5470;
     padding-right: 0.5em;
 }
-#{{prefix}}bm_container {
+#{{container}} .bm_container {
     width: 60%;
     position: absolute;
     top: 4.8em;
@@ -203,7 +203,7 @@ div.✈bm_context a:hover {
     background-size: 100% 100%;
     margin-left: 9%;
 }
-#{{prefix}}bm_tagcloud {
+#{{container}} .bm_tagcloud {
     width: 29%;
     float: right;
     display: block;
@@ -212,16 +212,16 @@ div.✈bm_context a:hover {
     color: #000;
     font-family: 'Varela Round', Dejavu Sans, Verdana, Arial, sans-serif;
 }
-#{{prefix}}bm_tagcloud h3 {
+#{{container}} .bm_tagcloud h3 {
     font-family: 'Istok Web', Dejavu Sans, Verdana, Arial, sans-serif;
 }
-#{{container}} #{{prefix}}bm_tagcloud a.inactive {
+#{{container}} .bm_tagcloud a.inactive {
     color: #777;
 }
-#{{container}} #{{prefix}}bm_tagcloud a.inactive:hover {
+#{{container}} .bm_tagcloud a.inactive:hover {
     color: #1F5470;
 }
-#{{prefix}}bm_tagcloud_ul {
+#{{container}} .bm_tagcloud_ul {
     display: inline;
     padding-left: 0;
 }
@@ -334,7 +334,7 @@ div.✈bm_context a:hover {
     background-color: #000;
     cursor: pointer;
 }
-#{{prefix}}bm_tags {
+#{{container}} .bm_tags {
     width: 100%;
     position: relative;
     float: left;
@@ -342,12 +342,12 @@ div.✈bm_context a:hover {
     font-size: 0.9em;
     border-bottom: 0.1em #000 solid;
 }
-#{{prefix}}bm_tags ul {
+#{{container}} .bm_tags ul {
     margin-left: 0;
     padding-left: 0;
     display: inline;
 }
-#{{prefix}}bm_tags ul li {
+#{{container}} .bm_tags ul li {
     margin-right: -0.7em;
     padding-left: 0.2em;
     padding-right: 1.6em;
@@ -356,18 +356,18 @@ div.✈bm_context a:hover {
     background-color: #1F5470;
     color: #fff;
 }
-#{{prefix}}bm_tags ul li:hover {
+#{{container}} .bm_tags ul li:hover {
     background-color: #fff;
     cursor: pointer;
     color: #000;
 }
-#{{prefix}}bm_tags ul li:hover:after {
+#{{container}} .bm_tags ul li:hover:after {
     content: "X";
     font-size: 1.5em;
     bottom: 0.5em;
     color: maroon;
 }
-#{{prefix}}bm_tags ul li:after {
+#{{container}} .bm_tags ul li:after {
     font-size: 1.5em;
     font-weight: bold;
     content: "/";
@@ -377,16 +377,16 @@ div.✈bm_context a:hover {
     color: #DDD;
     margin-left: 0.2em;
 }
-#{{prefix}}bm_tags ul li:last-child {
+#{{container}} .bm_tags ul li:last-child {
     padding-right: 0.3em;
 }
-#{{prefix}}bm_tags ul li:last-child:hover:after {
+#{{container}} .bm_tags ul li:last-child:hover:after {
     content: "X";
     font-size: 1.5em;
     bottom: 0.5em;
     color: maroon;
 }
-#{{prefix}}bm_tags ul li:last-child:after {
+#{{container}} .bm_tags ul li:last-child:after {
     content: " ";
     font-size: 1.75em;
     margin-left: 0.2em;
@@ -394,34 +394,34 @@ div.✈bm_context a:hover {
     position: absolute;
     bottom: 0.5em;
 }
-#{{prefix}}bm_display_opts {
+#{{container}} .bm_display_opts {
     width: 69%;
     text-align: right;
     font-size: 0.9em;
     margin-left: 0.45em;
 }
-#{{prefix}}bm_display_opts a {
+#{{container}} .bm_display_opts a {
     font-size: 0.8em;
 }
 #{{container}} .bm_desc {
     padding-left: 0.3em;
     vertical-align: top;
 }
-#{{prefix}}bm_sort_options a {
+#{{container}} .bm_sort_options a {
     font-weight: normal;
 }
-#{{prefix}}bm_sort_options a:hover {
+#{{container}} .bm_sort_options a:hover {
     cursor: pointer;
 }
-#{{prefix}}bm_sort_options a.active {
+#{{container}} .bm_sort_options a.active {
     font-weight: normal;
     cursor: default;
     color: #000;
 }
-#{{prefix}}bm_sort_options a.active:hover {
+#{{container}} .bm_sort_options a.active:hover {
     color: #000;
 }
-#{{prefix}}bm_sort_direction {
+#{{container}} .bm_sort_direction {
     float: right;
     margin-left: 0.5em;
     -webkit-transition: -webkit-transform 0.5s ease-in-out;
@@ -433,23 +433,23 @@ div.✈bm_context a:hover {
     transition: -webkit-transform 0.5s ease-in-out;
     cursor: pointer;
 }
-#{{prefix}}bm_sort_direction:hover {
+#{{container}} .bm_sort_direction:hover {
     color: #fff;
 }
-#{{prefix}}bm_search {
+#{{container}} .bm_search {
     position: absolute;
     top: 0;
     right: 1.5em;
     font-size: 0.7em;
     margin-right: 0;
 }
-#{{prefix}}bm_new {
+#{{container}} .bm_new {
     float: left;
     font-size: 0.9em;
     font-weight: bold;
     padding-left: 0.2em;
 }
-#{{prefix}}bm_new:hover {
+#{{container}} .bm_new:hover {
     -webkit-transition: -webkit-transform 0.1s ease-in-out;
     -moz-transition: -webkit-transform 0.1s ease-in-out;
     -o-transition-property: all;
@@ -487,10 +487,10 @@ div.✈bm_context a:hover {
 #{{container}} .bm_favicon {
     padding-right: 0.1em;
 }
-#{{prefix}}bm_buttons {
+#{{container}} .bm_buttons {
     text-align: center;
 }
-#{{prefix}}bm_pagination {
+#{{container}} .bm_pagination {
     width: 29%;
     float: right;
     display: block;
@@ -498,12 +498,13 @@ div.✈bm_context a:hover {
     clear: right;
     margin-top: -1.2em;
 }
-#{{prefix}}bm_pagination ul {
+#{{container}} .bm_pagination ul {
     border: 0;
     margin: 0;
     padding: 0;
+    width: 100%;
 }
-#{{prefix}}bm_pagination li {
+#{{container}} .bm_pagination li {
     border: 0;
     margin:0;
     padding:0;
@@ -511,12 +512,12 @@ div.✈bm_context a:hover {
     list-style: none;
     margin-right: 0.1em;
 }
-#{{prefix}}bm_pagination a {
+#{{container}} .bm_pagination a {
     border: solid 1px #9aafe5;
     margin-right: 0.1em;
 }
-#{{prefix}}bm_pagination .previous-off,
-#{{prefix}}bm_pagination .next-off {
+#{{container}} .bm_pagination .previous-off,
+#{{container}} .bm_pagination .next-off {
     border: solid 1px #DEDEDE;
     color: #888888;
     display: block;
@@ -525,29 +526,29 @@ div.✈bm_context a:hover {
     margin-right: 0.1em;
     padding: 0 0.1em;
 }
-#{{prefix}}bm_pagination .next a,
-#{{prefix}}bm_pagination .previous a {
+#{{container}} .bm_pagination .next a,
+#{{container}} .bm_pagination .previous a {
     font-weight:bold;
 }
-#{{prefix}}bm_pagination a:link,
-#{{prefix}}bm_pagination a:visited {
+#{{container}} .bm_pagination a:link,
+#{{container}} .bm_pagination a:visited {
     float: left;
 }
-#{{prefix}}bm_pagination a:hover{
+#{{container}} .bm_pagination a:hover{
     border: solid 1px #1F5470;
 }
-#{{container}} #{{prefix}}bm_pagination .active {
+#{{container}} #{{container}} .bm_pagination .active {
     background: #1F5470;
     color: #FFF;
 }
-#{{container}} #{{prefix}}bm_pagination .inactive a {
+#{{container}} #{{container}} .bm_pagination .inactive a {
     border: solid 1px #DEDEDE;
     color: #888;
 }
 #{{container}} .search {
     color: maroon;
 }
-#{{prefix}}background_svg { /* Just used to center everything inside */
+#{{container}} .background_svg { /* Just used to center everything inside */
     width: 100%;
     height: 95%;
     overflow: hidden;
@@ -598,13 +599,13 @@ div.✈bm_context a:hover {
     background-color: #1F5470;
     height: 100%;
 }
-#{{prefix}}bookmarks_upload {
+#{{container}} .bookmarks_upload {
     height: 2.5em;
 }
-#{{prefix}}bm_new_form input {
+#{{container}} .bm_new_form input {
     width: 25em;
 }
-#{{prefix}}bm_new_form textarea {
+#{{container}} .bm_new_form textarea {
     width: 25em;
     height: 8em;
 }

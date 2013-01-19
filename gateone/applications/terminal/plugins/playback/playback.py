@@ -48,8 +48,13 @@ def get_256_colors(self):
     cached_filename = "%s:%s" % (colors_256_path.replace('/', '_'), mtime)
     cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
     cached_file_path = os.path.join(cache_dir, cached_filename)
-    with open(cached_file_path) as f:
-        colors_256 = f.read()
+    if os.path.exists(cached_file_path):
+        with open(cached_file_path) as f:
+            colors_256 = f.read()
+    else:
+        # Debug mode is enabled
+        with open(os.path.join(cache_dir, '256_colors.css')) as f:
+            colors_256 = f.read()
     return colors_256
 
 def save_recording(self, settings):
@@ -71,29 +76,10 @@ def save_recording(self, settings):
     recording = settings["recording"]
     container = settings["container"]
     prefix = settings["prefix"]
-    theme = settings["theme"]
-    colors = settings["colors"]
-    template_path = os.path.join(PLUGIN_PATH, 'templates')
-    colors_templates_path = os.path.join(template_path, 'term_colors')
-    colors_css_path = os.path.join(colors_templates_path, '%s.css' % colors)
-    with open(colors_css_path) as f:
-        colors_file = f.read()
-    themes_templates_path = os.path.join(template_path, 'themes')
-    theme_css_path = os.path.join(themes_templates_path, '%s.css' % theme)
-    with open(theme_css_path) as f:
-        theme_file = f.read()
-    colors = tornado.template.Template(colors_file)
-    rendered_colors = colors.generate(container=container, prefix=prefix)
-    theme = tornado.template.Template(theme_file)
-    # Setup our 256-color support CSS:
+    theme_css = settings['theme_css']
+    colors_css = settings['colors_css']
     colors_256 = get_256_colors(self)
-    rendered_theme = theme.generate(
-        container=container,
-        prefix=prefix,
-        colors_256=colors_256,
-        url_prefix=self.ws.settings['url_prefix']
-    )
-    templates_path = os.path.join(plugin_path, "templates")
+    templates_path = os.path.join(PLUGIN_PATH, "templates")
     recording_template_path = os.path.join(
         templates_path, "self_contained_recording.html")
     with open(recording_template_path) as f:
@@ -103,8 +89,9 @@ def save_recording(self, settings):
         recording=recording,
         container=container,
         prefix=prefix,
-        theme=rendered_theme,
-        colors=rendered_colors
+        theme=theme_css,
+        colors=colors_css,
+        colors_256=colors_256
     )
     out_dict['data'] = rendered_recording
     message = {'save_file': out_dict}

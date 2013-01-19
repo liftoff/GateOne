@@ -467,7 +467,13 @@ go.Base.update(GateOne.Playback, {
         var go = GateOne,
             u = go.Utils,
             recording = JSON.stringify(go.terminals[term]['playbackFrames']),
-            settings = {'recording': recording, 'prefix': go.prefs.prefix, 'container': go.prefs.goDiv.split('#')[1], 'theme': go.prefs.theme, 'colors': go.prefs.colors};
+            settings = {
+                'recording': recording,
+                'prefix': go.prefs.prefix,
+                'container': go.prefs.goDiv.split('#')[1],
+                'theme_css': u.getNode('#'+prefix+'theme').innerHTML,
+                'colors_css': u.getNode('#'+prefix+'colors').innerHTML
+            };
         go.ws.send(JSON.stringify({'playback_save_recording': settings}));
     }
 });

@@ -44,6 +44,7 @@ body {
 }
 {{theme}}
 {{colors}}
+{{colors_256}}
 /* Need a few custom overrides of the defaults for session playback since it isn't being controlled by gateone.js */
 .terminal pre {
     height: 100%;
@@ -71,7 +72,7 @@ body {
 
 <body>
   <div id="{{container}}">
-    <div id="{{prefix}}termwrapper">
+    <div id="{{prefix}}gridwrapper">
     </div>
   </div>
 
@@ -90,6 +91,7 @@ var progressBarMouseDown = false,
     frameRate = 15, // Approximate
     frameInterval = Math.round(1000/frameRate), // Needs to be converted to ms
     resizeTimer = null, // Used to de-bounce window resizes
+    selectedFrameIndex = 0,
     progressBar = null; // Assigned below
 function setTransform(node, transform) {
     // Applys the given CSS3 *transform* to *node* for all known vendor prefixes (e.g. -<whatever>-transform)
@@ -131,6 +133,7 @@ function addPlaybackControls() {
     }
     var playPause = document.createElement("div");
     playPause.id = "{{prefix}}playPause";
+    playPause.className = "centertrans ✈playPause";
     playPause.innerHTML = "▶";
     playPause.onclick = function (e) {
         clearInterval(frameUpdater);
@@ -138,11 +141,14 @@ function addPlaybackControls() {
     }
     progressBar = document.createElement("div");
     progressBar.id = "{{prefix}}progressBar";
+    progressBar.className = "✈progressBar";
     var progressBarContainer = document.createElement("div");
     progressBarContainer.id = "{{prefix}}progressBarContainer";
+    progressBarContainer.className = "✈progressBarContainer";
     progressBarContainer.appendChild(progressBar);
     var clock = document.createElement("div");
     clock.id = "{{prefix}}clock";
+    clock.className = "✈clock";
     clock.innerHTML = "00:00:00";
     var updateProgress = function(e) {
         e.preventDefault();
@@ -184,11 +190,13 @@ function addPlaybackControls() {
     };
     var playbackControls = document.createElement("div");
     playbackControls.id = "{{prefix}}playbackControls";
+    playbackControls.className = "✈playbackControls";
     playbackControls.appendChild(playPause);
     playbackControls.appendChild(progressBarContainer);
     playbackControls.appendChild(clock);
     var controlsContainer = document.createElement("div");
     controlsContainer.id = "{{prefix}}controlsContainer";
+    controlsContainer.className = "✈controlsContainer";
     controlsContainer.appendChild(playbackControls);
     document.getElementById('{{container}}').appendChild(controlsContainer);
 }
@@ -345,7 +353,7 @@ function wheelFunc(e) {
         selectedFrameIndex = lastFrame;
         progressBar.style.width = '100%';
         scrollToBottom('{{prefix}}term1_pre');
-        clearInterval(frameUpdater);
+        return;
     }
     if (m.wheel.y > 0) {
         // Scroll up
@@ -364,11 +372,14 @@ function wheelFunc(e) {
     // Now update the terminal window to reflect the (approximate) selected frame
         selectedFrame = terminals[term]['playbackFrames'][selectedFrameIndex],
         dateTime = new Date(selectedFrame['time']);
-    progressBar.style.width = (percent*100) + '%'; // Update the progress bar to reflect the current position
+    progressBar.style.width = percent + '%'; // Update the progress bar to reflect the current position
+    if (selectedFrameIndex == lastFrame) {
+        progressBar.style.width = '100%';
+    }
     document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
     document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();
     // Set the milliseconds global to accurately reflect the selected position:
-    milliseconds = Math.round(totalMilliseconds * percent);
+    milliseconds = Math.round(totalMilliseconds * (percent/100));
 }
 var mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
 window.onresize = function() {onResize()}
@@ -384,7 +395,7 @@ window.onload = function() {
     terminal.id = '{{prefix}}term1';
     terminal.title = 'Recorded Session';
     terminal.className = 'terminal termcontainer full';
-    document.getElementById('{{prefix}}termwrapper').appendChild(terminal);
+    document.getElementById('{{prefix}}gridwrapper').appendChild(terminal);
     addPlaybackControls();
     document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
     document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();

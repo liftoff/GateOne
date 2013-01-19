@@ -713,8 +713,6 @@ var go = GateOne.Base.update(GateOne, {
                     };
                     setTimeout(function() {
                         var parentHeight = termPre.parentElement.clientHeight;
-                        console.log("parentHeight: " + parentHeight);
-                        console.log((parentHeight - go.terminals[term]['heightAdjust']) + 'px');
                         if (parentHeight) {
                             termPre.style.height = (parentHeight - go.terminals[term]['heightAdjust']) + 'px';
                         } else {
@@ -825,11 +823,19 @@ GateOne.Base.update(GateOne.Utils, {
         u.benchmarkAvg = Math.round(u.benchmarkTotal/u.benchmarkCount);
         logInfo(msg + ": " + diff + "ms" + ", total: " + u.benchmarkTotal + "ms, Average: " + u.benchmarkAvg);
     },
+    _nodeCache: {}, // Used by getNode() for memoization
     getNode: function(nodeOrSelector) {
         // Given a CSS query selector (string, e.g. '#someid') or node (in case we're not sure), lookup the node using document.querySelector() and return it.
         // NOTE: The benefit of this over just querySelector() is that if it is given a node it will just return the node as-is (so functions can accept both without having to worry about such things).  See removeElement() below for a good example.
+        var u = GateOne.Utils;
         if (typeof(nodeOrSelector) == 'string') {
-            return document.querySelector(nodeOrSelector);
+            if (u._nodeCache[nodeOrSelector]) {
+                return u._nodeCache[nodeOrSelector];
+            } else {
+                var result = document.querySelector(nodeOrSelector);
+                if (result) {u._nodeCache[nodeOrSelector] = result;}
+                return result;
+            }
         }
         return nodeOrSelector;
     },
@@ -919,7 +925,6 @@ GateOne.Base.update(GateOne.Utils, {
         return obj instanceof HTMLElement;
     },
     renames: {
-//         "class": "className",
         "checked": "defaultChecked",
         "usemap": "useMap",
         "for": "htmlFor",
@@ -935,6 +940,12 @@ GateOne.Base.update(GateOne.Utils, {
         var node = GateOne.Utils.getNode(elem);
         if (node.parentNode) { // This check ensures that we don't throw an exception if the element has already been removed.
             node.parentNode.removeChild(node);
+            // Also remove this element from the node cache so it can be reaped by the garbage collector
+            for (var n in GateOne.Utils._nodeCache) {
+                if (GateOne.Utils._nodeCache[n] == node) {
+                    delete GateOne.Utils._nodeCache[n];
+                }
+            }
         }
     },
     createElement: function(tagname, properties, noprefix) {

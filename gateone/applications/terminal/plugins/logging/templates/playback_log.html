@@ -41,8 +41,12 @@ html, body { min-height:100%; }
 body {
     padding: 0 0 0px;
 }
+/* Theme */
 {{theme}}
+/* Text colors */
 {{colors}}
+/* 256 colors */
+{{colors_256}}
 /* Need a few custom overrides of the defaults for session playback since it isn't being controlled by gateone.js */
 #{{container}} .terminal pre {
     height: 100%;
@@ -367,7 +371,6 @@ function wheelFunc(e) {
         selectedFrameIndex = lastFrame;
         progressBar.style.width = '100%';
         scrollToBottom('{{prefix}}term1_pre');
-        clearInterval(frameUpdater);
     }
     if (m.wheel.y > 0) {
         // Scroll up
@@ -386,11 +389,14 @@ function wheelFunc(e) {
     // Now update the terminal window to reflect the (approximate) selected frame
         selectedFrame = terminals[term]['playbackFrames'][selectedFrameIndex],
         dateTime = new Date(selectedFrame['time']);
-    progressBar.style.width = (percent*100) + '%'; // Update the progress bar to reflect the current position
+    progressBar.style.width = percent + '%'; // Update the progress bar to reflect the current position
+    if (selectedFrameIndex == lastFrame) {
+        progressBar.style.width = '100%';
+    }
     document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
     document.getElementById('{{prefix}}clock').innerHTML = dateTime.toLocaleTimeString();
     // Set the milliseconds global to accurately reflect the selected position:
-    milliseconds = Math.round(totalMilliseconds * percent);
+    milliseconds = Math.round(totalMilliseconds * (percent/100));
 }
 var mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
 window.onresize = function() {onResize()}

@@ -239,14 +239,12 @@ def get_or_update_metadata(golog_path, user, force_update=False):
     end_date = last_frame[:13]
     version = u"1.0"
     connect_string = None
-    from gateone import PLUGINS
-    if 'ssh' in PLUGINS['py']:
-        # Try to find the host that was connected to by looking for the SSH
-        # plugin's special optional escape sequence.  It looks like this:
-        #   "\x1b]_;ssh|%s@%s:%s\007"
-        match_obj = RE_OPT_SSH_SEQ.match(log_data[:(chunk_size*10)])
-        if match_obj:
-            connect_string = match_obj.group(1).split('|')[1]
+    # Try to find the host that was connected to by looking for the SSH
+    # plugin's special optional escape sequence.  It looks like this:
+    #   "\x1b]_;ssh|%s@%s:%s\007"
+    match_obj = RE_OPT_SSH_SEQ.match(log_data[:(chunk_size*10)])
+    if match_obj:
+        connect_string = match_obj.group(1).split('|')[1]
     if not connect_string:
         # Try guessing it by looking for a title escape sequence
         match_obj = RE_TITLE_SEQ.match(log_data[:(chunk_size*10)])

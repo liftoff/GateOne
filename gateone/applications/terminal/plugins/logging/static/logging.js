@@ -684,10 +684,12 @@ go.Base.update(GateOne.TermLogging, {
 
         Tells the server to open *logFile* for playback via the 'logging_get_log_flat' server-side WebSocket action (will end up calling :js:meth:`~GateOne.TermLogging.displayFlatLogAction`.
         */
-        var message = {
+        var theme_css = u.getNode('#'+prefix+'theme').innerHTML,
+            colors_css = u.getNode('#'+prefix+'colors').innerHTML,
+            message = {
                 'log_filename': logFile,
-                'theme': go.prefs.theme,
-                'colors': go.prefs.colors
+                'theme_css': theme_css,
+                'colors_css': colors_css
             };
         go.ws.send(JSON.stringify({'logging_get_log_flat': message}));
         go.Visual.displayMessage(logFile + ' will be opened in a new window when rendering is complete.  Large logs can take some time so please be patient.');
@@ -700,11 +702,11 @@ go.Base.update(GateOne.TermLogging, {
         If *where* is given and it is set to 'preview' the playback will happen in the log_preview iframe.
         */
         var theme_css = u.getNode('#'+prefix+'theme').innerHTML,
+            colors_css = u.getNode('#'+prefix+'colors').innerHTML,
             message = {
                 'log_filename': logFile,
-                'theme': go.prefs.theme,
                 'theme_css': theme_css,
-                'colors': go.prefs.colors
+                'colors_css': colors_css
             };
         if (where) {
             message['where'] = where;
@@ -719,11 +721,11 @@ go.Base.update(GateOne.TermLogging, {
         Tells the server to open *logFile* rendered as a self-contained recording (via the 'logging_get_log_file' WebSocket action) and send it back to the browser for saving (using the 'save_file' WebSocket action).
         */
         var theme_css = u.getNode('#'+prefix+'theme').innerHTML,
+            colors_css = u.getNode('#'+prefix+'colors').innerHTML,
             message = {
                 'log_filename': logFile,
-                'theme': go.prefs.theme,
                 'theme_css': theme_css,
-                'colors': go.prefs.colors
+                'colors_css': colors_css
             };
         go.ws.send(JSON.stringify({'logging_get_log_file': message}));
         go.Visual.displayMessage(logFile + ' will be downloaded when rendering is complete.  Large logs can take some time so please be patient.');

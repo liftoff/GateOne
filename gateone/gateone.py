@@ -2915,6 +2915,8 @@ def main():
                 f.write(go_js.read() + '\n')
             # Gate One plugins
             for plugin in pluginslist:
+                if enabled_plugins and plugin not in enabled_plugins:
+                    continue
                 static_dir = os.path.join(plugins_dir, plugin, 'static')
                 if os.path.isdir(static_dir):
                     filelist = os.listdir(static_dir)
@@ -2926,6 +2928,10 @@ def main():
                                 f.write(js_file.read() + '\n')
             # Gate One applications
             for application in appslist:
+                if enabled_applications:
+                    # Only export JS of enabled apps
+                    if application not in enabled_applications:
+                        continue
                 static_dir = os.path.join(plugins_dir, application, 'static')
                 plugins_dir = os.path.join(
                     applications_dir, application, 'plugins')
@@ -2937,11 +2943,20 @@ def main():
                         if filename.endswith('.js'):
                             with open(filepath) as js_file:
                                 f.write(js_file.read() + '\n')
+                app_settings = all_settings['*'].get(application, None)
+                enabled_app_plugins = []
+                if app_settings:
+                    enabled_app_plugins = app_settings.get(
+                        'enabled_plugins', [])
                 if os.path.isdir(plugins_dir):
                     pluginslist = os.listdir(plugins_dir)
                     pluginslist.sort()
                     # Gate One application plugins
                     for plugin in pluginslist:
+                        # Only export JS of enabled app plugins
+                        if enabled_app_plugins:
+                            if plugin not in enabled_app_plugins:
+                                continue
                         static_dir = os.path.join(plugins_dir, plugin, 'static')
                         if os.path.isdir(static_dir):
                             filelist = os.listdir(static_dir)

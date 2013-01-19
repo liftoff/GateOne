@@ -23,7 +23,7 @@
   font-weight: normal;
   src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('{{url_prefix}}static/ubuntumono-italic.woff') format('woff');
 }
-#{{container}} hr {
+#{{container}} hr, h1, h2, h3, h4, h5, h6 {
     margin: 0;
     padding: 0;
 }
@@ -227,6 +227,12 @@
     -o-transform:rotate(180deg);
     transform:rotate(180deg);
 }
+/*
+A note about these ✈-prefixed classes:  If there's a chance that an element may
+be added to the page outside of #{{container}} (i.e. when embedding) I have
+prefixed it with the unicode symbol for an airplane (✈).  This is to avoid
+potential conflicts with other classes that may be on the page.
+*/
 .✈infocontainer {
     -webkit-transition: all 2.0s ease-in-out;
     -moz-transition: all 2.0s ease-in-out;
@@ -341,7 +347,9 @@
     z-index: 700; /* Same as toolbar */
     overflow-x: hidden;
     overflow-y: auto;
-    padding: 0.25em;
+    padding-right: 1.2em;
+    padding-top: 0.2em;
+    padding-left: 0.2em;
     font-size: 1em;
     margin-top: 0.1em;
     margin-bottom: 0.1em;
@@ -432,9 +440,6 @@
 #{{container}} .panel_close_icon:hover {
     opacity: 1;
     cursor:pointer;
-}
-#{{container}} .panel form {
-    padding-right: 1em;
 }
 #{{container}} form { margin: 0 0 1em; }
 #{{container}} label {

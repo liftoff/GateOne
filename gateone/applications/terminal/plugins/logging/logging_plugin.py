@@ -112,8 +112,13 @@ def get_256_colors(self):
     cached_filename = "%s:%s" % (colors_256_path.replace('/', '_'), mtime)
     cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
     cached_file_path = os.path.join(cache_dir, cached_filename)
-    with open(cached_file_path) as f:
-        colors_256 = f.read()
+    if os.path.exists(cached_file_path):
+        with open(cached_file_path) as f:
+            colors_256 = f.read()
+    else:
+        # Debug mode is enabled
+        with open(os.path.join(cache_dir, '256_colors.css')) as f:
+            colors_256 = f.read()
     return colors_256
 
 # WebSocket commands (not the same as handlers)
@@ -289,8 +294,8 @@ def _retrieve_log_flat(queue, settings):
 
         ./logviewer.py --flat log_filename
 
-    *settings* - A dict containing the *log_filename*, *colors*, and *theme* to
-    use when generating the HTML output.
+    *settings* - A dict containing the *log_filename*, *colors_css*, and
+    *theme_css* to use when generating the HTML output.
     """
     out_dict = {
         'result': "",
@@ -306,8 +311,6 @@ def _retrieve_log_flat(queue, settings):
     container = settings['container']
     prefix = settings['prefix']
     log_filename = settings['log_filename']
-    theme = "%s.css" % settings['theme']
-    colors = "%s.css" % settings['colors']
     logs_dir = os.path.join(users_dir, "logs")
     log_path = os.path.join(logs_dir, log_filename)
     if os.path.exists(log_path):
@@ -393,7 +396,7 @@ def _retrieve_log_playback(queue, settings):
     use when generating the HTML output.
 
     :arg settings['log_filename']: The name of the log to display.
-    :arg settings['colors']: The CSS color scheme to use when generating output.
+    :arg settings['colors_css']: The CSS color scheme to use when generating output.
     :arg settings['theme_css']: The entire CSS theme <style> to use when generating output.
     :arg settings['where']: Whether or not the result should go into a new window or an iframe.
 
@@ -425,9 +428,6 @@ def _retrieve_log_playback(queue, settings):
     prefix = settings['prefix']
     url_prefix = settings['url_prefix']
     log_filename = settings['log_filename']
-    theme = "%s.css" % settings['theme']
-    colors = "%s.css" % settings['colors']
-    colors_256 = settings['256_colors']
     # Important paths
     # NOTE: Using os.path.join() in case Gate One can actually run on Windows
     # some day.
@@ -453,29 +453,6 @@ def _retrieve_log_playback(queue, settings):
             rows = 40
             cols = 500
         out_dict['result'] = "Success" # TODO: Add more error checking
-        # Next we render the theme and color templates so we can pass them to
-        # our final template
-        with open(os.path.join(colors_path, colors)) as f:
-            colors_file = f.read()
-        colors_template = tornado.template.Template(colors_file)
-        rendered_colors = colors_template.generate(
-            container=container,
-            prefix=prefix,
-            url_prefix=url_prefix
-        )
-        with open(os.path.join(themes_path, theme)) as f:
-            theme_file = f.read()
-        theme_template = tornado.template.Template(theme_file)
-        # Setup our 256-color support CSS:
-        rendered_theme = theme_template.generate(
-            container=container,
-            prefix=prefix,
-            colors_256=colors_256,
-            url_prefix=url_prefix
-        )
-        # NOTE: 'colors' are customizable but colors_256 is universal.  That's
-        # why they're separate.
-        # Lastly we render the actual HTML template file
         # NOTE: Using Loader() directly here because I was getting strange EOF
         # errors trying to do it the other way :)
         loader = tornado.template.Loader(template_path)
@@ -490,7 +467,8 @@ def _retrieve_log_playback(queue, settings):
             prefix=prefix,
             container=container,
             theme=settings['theme_css'],
-            colors=rendered_colors,
+            colors=settings['colors_css'],
+            colors_256=settings['256_colors'],
             preview=preview,
             recording=json_encode(recording),
             url_prefix=url_prefix
@@ -578,14 +556,14 @@ def _save_log_playback(queue, settings):
     short_logname = log_filename.split('.golog')[0]
     colors_256 = settings['256_colors']
     out_dict['filename'] = "%s.html" % short_logname
-    theme = "%s.css" % settings['theme']
-    colors = "%s.css" % settings['colors']
+    #theme = "%s.css" % settings['theme']
+    #colors = "%s.css" % settings['colors']
     # Important paths
     logs_dir = os.path.join(users_dir, "logs")
     log_path = os.path.join(logs_dir, log_filename)
-    templates_path = os.path.join(gateone_dir, 'templates')
-    colors_path = os.path.join(templates_path, 'term_colors')
-    themes_path = os.path.join(templates_path, 'themes')
+    #templates_path = os.path.join(gateone_dir, 'templates')
+    #colors_path = os.path.join(templates_path, 'term_colors')
+    #themes_path = os.path.join(templates_path, 'themes')
     template_path = os.path.join(PLUGIN_PATH, 'templates')
     # recording format:
     # {"screen": [log lines], "time":"2011-12-20T18:00:01.033Z"}
@@ -602,23 +580,23 @@ def _save_log_playback(queue, settings):
         # Use some large values to ensure nothing wraps and hope for the best:
             rows = 40
             cols = 500
-        with open(os.path.join(colors_path, colors)) as f:
-            colors_file = f.read()
-        colors_template = tornado.template.Template(colors_file)
-        rendered_colors = colors_template.generate(
-            container=container,
-            prefix=prefix,
-            url_prefix=url_prefix
-        )
-        with open(os.path.join(themes_path, theme)) as f:
-            theme_file = f.read()
-        theme_template = tornado.template.Template(theme_file)
-        rendered_theme = theme_template.generate(
-            container=container,
-            prefix=prefix,
-            colors_256=colors_256,
-            url_prefix=url_prefix
-        )
+        #with open(os.path.join(colors_path, colors)) as f:
+            #colors_file = f.read()
+        #colors_template = tornado.template.Template(colors_file)
+        #rendered_colors = colors_template.generate(
+            #container=container,
+            #prefix=prefix,
+            #url_prefix=url_prefix
+        #)
+        #with open(os.path.join(themes_path, theme)) as f:
+            #theme_file = f.read()
+        #theme_template = tornado.template.Template(theme_file)
+        #rendered_theme = theme_template.generate(
+            #container=container,
+            #prefix=prefix,
+            #colors_256=colors_256,
+            #url_prefix=url_prefix
+        #)
         # NOTE: 'colors' are customizable but colors_256 is universal.  That's
         # why they're separate.
         # Lastly we render the actual HTML template file
@@ -631,8 +609,9 @@ def _save_log_playback(queue, settings):
         playback_html = playback_template.generate(
             prefix=prefix,
             container=container,
-            theme=rendered_theme,
-            colors=rendered_colors,
+            theme=settings['theme_css'],
+            colors=settings['colors_css'],
+            colors_256=settings['256_colors'],
             preview=preview,
             recording=json_encode(recording),
             url_prefix=url_prefix

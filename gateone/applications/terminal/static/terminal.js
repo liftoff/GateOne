@@ -39,7 +39,7 @@ go.Base.update(GateOne.Terminal, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             term = localStorage[prefix+'selectedTerminal'],
-            p = u.createElement('p', {'id': 'info_actions', 'style': {'padding-bottom': '0.4em'}}),
+            div = u.createElement('div', {'id': 'info_actions', 'style': {'padding-bottom': '0.4em'}}),
             tableDiv = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             tableDiv2 = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             toolbarClose = u.createElement('div', {'id': 'icon_closeterm', 'class': 'toolbar', 'title': "Close This Terminal"}),
@@ -115,7 +115,7 @@ go.Base.update(GateOne.Terminal, {
         infoPanelBackspace.appendChild(infoPanelBackspaceCheckQ);
         infoPanel.appendChild(infoPanelH2);
         infoPanel.appendChild(panelClose);
-        infoPanel.appendChild(p);
+        infoPanel.appendChild(div);
         infoPanel.appendChild(tableDiv);
         infoPanel.appendChild(tableDiv2);
         infoPanelBackspaceCheckQ.insertAdjacentHTML('afterend', "^?");
@@ -249,7 +249,7 @@ go.Base.update(GateOne.Terminal, {
         resetTermButton.onclick = function() {
             go.ws.send(JSON.stringify({'reset_terminal': localStorage[prefix+'selectedTerminal']}));
         }
-        p.appendChild(resetTermButton);
+        div.appendChild(resetTermButton);
         // Assign our visual terminal switching function (if not already assigned)
         if (!go.prefs.embedded) { // In embedded mode the developer must choose their own way to switch terminals explicitly
             if (!go.Terminal.termSelectCallback) {
@@ -546,7 +546,7 @@ go.Base.update(GateOne.Terminal, {
         if (backspace.length) {
             GateOne.Input.automaticBackspace = false; // Tells us to hold off on attempting to detect backspace for a while
             setTimeout(function() {
-                // Don't bother checking for incorrect backspace again for at least 30 seconds
+                // Don't bother checking for incorrect backspace again for at least 10 seconds
                 GateOne.Input.automaticBackspace = true;
             }, 10000);
             // Use whatever was detected
@@ -720,7 +720,7 @@ go.Base.update(GateOne.Terminal, {
             GateOne.terminals[term]['scrollbackWriteTimer'] = setTimeout(writeScrollback, 3500);
             // This updates the scrollback buffer in the DOM
             clearTimeout(GateOne.terminals[term]['scrollbackTimer']);
-            // This timeout re-adds the scrollback buffer after .75 seconds.  If we don't do this it can slow down the responsiveness quite a bit
+            // This timeout re-adds the scrollback buffer after .5 seconds.  If we don't do this it can slow down the responsiveness quite a bit
             GateOne.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 500); // Just enough to de-bounce (to keep things smooth)
         }
         if (consoleLog) {
