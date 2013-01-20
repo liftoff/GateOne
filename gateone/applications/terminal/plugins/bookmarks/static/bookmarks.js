@@ -1423,7 +1423,7 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             bookmark = b.getBookmarkObj(URL),
             term = localStorage[prefix+'selectedTerminal'],
-            termTitle = go.terminals[term]['title'];
+            termTitle = go.Terminal.terminals[term]['title'];
         if (URL.indexOf('%s') != -1) { // This is a keyword search bookmark
             b.openSearchDialog(URL, bookmark.name);
             return;

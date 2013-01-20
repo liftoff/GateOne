@@ -129,7 +129,7 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
             go.Example.stopGraph();
             return;
         }
-        if (!go.terminals[term]['sshConnectString']) {
+        if (!go.Terminal.terminals[term]['sshConnectString']) {
             // FYI: This doesn't always work because the sshConnectString might be present even if the terminal isn't connected...  Working on fixing that :)
             go.Visual.displayMessage("Error: Can't display load graph because terminal " + term + " is not connected via SSH.");
             return;

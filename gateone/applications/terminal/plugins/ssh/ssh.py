@@ -446,7 +446,7 @@ def get_connect_string(self, term):
 
     In ssh.js we attach an action (aka handler) to :js:attr:`GateOne.Net.actions`
     for 'sshjs_reconnect' messages that attaches the connection string to
-    `GateOne.terminals[*term*]['sshConnectString']`
+    `GateOne.Terminal.terminals[*term*]['sshConnectString']`
     """
     logging.debug("get_connect_string() term: %s" % term)
     session = self.ws.session

@@ -1706,7 +1706,7 @@ class ApplicationWebSocket(WebSocketHandler):
                                     cache_dir, rendered_path, minify=True)
         if _print:
             print_css_path = os.path.join(printing_path, "default.css")
-            rendered_path = self.render_style(color_path, **template_args)
+            rendered_path = self.render_style(print_css_path, **template_args)
             if self.settings['debug']:
                 out_dict['print'] = get_or_cache(
                     cache_dir, rendered_path, minify=False)

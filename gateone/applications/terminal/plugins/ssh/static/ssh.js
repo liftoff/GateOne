@@ -80,7 +80,7 @@ GateOne.Base.update(GateOne.SSH, {
                 if (u.startsWith('ssh://', sshQueryString) || u.startsWith('telnet://', sshQueryString)) {
                     var connect = function(term) {
                         // This ensures that we only send this string if it's a new terminal
-                        if (GateOne.terminals[term]['title'] == 'Gate One') {
+                        if (GateOne.Terminal.terminals[term]['title'] == 'Gate One') {
                             go.Net.sendString(sshQueryString + '\n', term);
                         }
                     }
@@ -976,7 +976,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         Handles the 'sshjs_connect' WebSocket action which should provide an SSH *connectString* in the form of 'user@host:port'.
 
-        The *connectString* will be stored in `GateOne.terminals[term]['sshConnectString']` which is meant to be used in duplicating terminals (because you can't rely on the title).
+        The *connectString* will be stored in `GateOne.Terminal.terminals[term]['sshConnectString']` which is meant to be used in duplicating terminals (because you can't rely on the title).
 
         Also requests the host's public SSH key so it can be displayed to the user.
         */
@@ -986,7 +986,7 @@ GateOne.Base.update(GateOne.SSH, {
             port = connectString.split('@')[1].split(':')[1],
             message = {'host': host, 'port': port},
             term = localStorage[go.prefs.prefix+'selectedTerminal'];
-        go.terminals[term]['sshConnectString'] = connectString;
+        go.Terminal.terminals[term]['sshConnectString'] = connectString;
         go.ws.send(JSON.stringify({'ssh_get_host_fingerprint': message}));
     },
     handleReconnect: function(jsonDoc) {
@@ -1000,7 +1000,7 @@ GateOne.Base.update(GateOne.SSH, {
             dict = JSON.parse(jsonDoc);
         for (var term in dict) {
             try {
-                go.terminals[term]['sshConnectString'] = dict[term];
+                go.Terminal.terminals[term]['sshConnectString'] = dict[term];
             } catch (e) {
                 logError("GateOne.SSH.handleReconnect() encountered an exception: " + e);
             }
@@ -1043,7 +1043,7 @@ GateOne.Base.update(GateOne.SSH, {
         */
         var go = GateOne,
             E = go.Events,
-            connectString = GateOne.terminals[term]['sshConnectString'],
+            connectString = GateOne.Terminal.terminals[term]['sshConnectString'],
             connectFunc = function(term) {
                 // This gets attached to the "new_terminal" event
                 GateOne.Net.sendString('ssh://' + connectString + '\n', term);

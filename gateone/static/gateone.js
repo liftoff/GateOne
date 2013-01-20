@@ -21,7 +21,7 @@ this file.
 // General TODOs
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
 // TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated with the base themes.
-// TODO: Make it so that variables like GateOne.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
+// TODO: Make it so that variables like GateOne.Terminal.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
 // TODO: Make it so that you can press the ESC key to close panels and dialog boxes even if GateOne.Input.disableCapture() has been called.
 
 // Everything goes in GateOne
@@ -203,18 +203,6 @@ GateOne.initialized = false; // Used to detect if we've already called initializ
 var go = GateOne.Base.update(GateOne, {
     // GateOne internal tracking variables and user functions
     // TODO: Move this to GateOne.Terminal
-    terminals: {
-        count: function() {
-            // Returns the number of open terminals
-            var counter = 0;
-            for (var term in GateOne.terminals) {
-                if (term % 1 === 0) {
-                    counter += 1;
-                }
-            }
-            return counter;
-        }
-    }, // For keeping track of running terminals
     workspaces: {
         count: function() {
             // Returns the number of open terminals
@@ -648,9 +636,9 @@ var go = GateOne.Base.update(GateOne, {
             var m = go.Input.mouse(e),
                 modifiers = go.Input.modifiers(e);
             if (!modifiers.shift && !modifiers.ctrl && !modifiers.alt) { // Only for basic scrolling
-                if (go.terminals[term]) {
+                if (go.Terminal.terminals[term]) {
                     var term = localStorage[prefix+'selectedTerminal'],
-                        terminalObj = go.terminals[term],
+                        terminalObj = go.Terminal.terminals[term],
                         screen = terminalObj['screen'],
                         scrollback = terminalObj['scrollback'],
                         sbT = terminalObj['scrollbackTimer'];
@@ -677,13 +665,13 @@ var go = GateOne.Base.update(GateOne, {
             go.resizeEventTimer = setTimeout(function() {
                 // Wrapped in a timeout to de-bounce
                 var term = localStorage[prefix+'selectedTerminal'],
-                    terminalObj = go.terminals[term],
+                    terminalObj = go.Terminal.terminals[term],
                     termPre = terminalObj['node'],
                     screenNode = terminalObj['screenNode'],
                     emHeight = u.getEmDimensions(goDiv).h;
                 if (u.isVisible(termPre)) {
                     go.Visual.updateDimensions();
-                    for (var termObj in GateOne.terminals) {
+                    for (var termObj in GateOne.Terminal.terminals) {
                         if (termObj % 1 === 0) { // Actual terminal objects are integers
                             go.Terminal.sendDimensions(termObj);
                         }
@@ -691,7 +679,7 @@ var go = GateOne.Base.update(GateOne, {
                     setTimeout(function() {
                         var parentHeight = termPre.parentElement.clientHeight;
                         if (parentHeight) {
-                            termPre.style.height = (parentHeight - go.terminals[term]['heightAdjust']) + 'px';
+                            termPre.style.height = (parentHeight - go.Terminal.terminals[term]['heightAdjust']) + 'px';
                         } else {
                             termPre.style.height = "100%";
                         }
@@ -2174,8 +2162,8 @@ GateOne.Base.update(GateOne.Input, {
             selectedTerm = localStorage[prefix+'selectedTerminal'],
             selectedPastearea = null,
             selectedText = u.getSelText();
-        if (go.terminals[selectedTerm] && go.terminals[selectedTerm]['pasteNode']) {
-            selectedPastearea = go.terminals[selectedTerm]['pasteNode'];
+        if (go.Terminal.terminals[selectedTerm] && go.Terminal.terminals[selectedTerm]['pasteNode']) {
+            selectedPastearea = go.Terminal.terminals[selectedTerm]['pasteNode'];
         }
         go.Input.mouseDown = true;
         // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
@@ -2229,8 +2217,8 @@ GateOne.Base.update(GateOne.Input, {
         }
         if (!go.Visual.gridView) {
             setTimeout(function() {
-                if (!u.getSelText() && go.terminals[selectedTerm]) {
-                    u.showElement(go.terminals[selectedTerm]['pasteNode']);
+                if (!u.getSelText() && go.Terminal.terminals[selectedTerm]) {
+                    u.showElement(go.Terminal.terminals[selectedTerm]['pasteNode']);
                 }
             }, 750); // NOTE: For this to work (to allow users to double-click-to-highlight a word) they must double-click before this timer fires.
         }
@@ -2852,16 +2840,16 @@ GateOne.Base.update(GateOne.Input, {
         }
         if (key.string != "KEY_SHIFT" && key.string != "KEY_CTRL" && key.string != "KEY_ALT" && key.string != "KEY_META") {
             // Scroll to bottom (seems like a normal convention for when a key is pressed in a terminal)
-            u.scrollToBottom(go.terminals[term]['node']);
+            u.scrollToBottom(go.Terminal.terminals[term]['node']);
         }
         // Try using the keyTable first (so everything can be overridden)
         if (key.string in goIn.keyTable) {
             if (goIn.keyTable[key.string]) { // Not null
-                var mode = go.terminals[term]['mode'];
+                var mode = go.Terminal.terminals[term]['mode'];
                 if (!modifiers.shift) { // Non-modified keypress
                     if (key.string == 'KEY_BACKSPACE') {
                         // So we can switch between ^? and ^H
-                        q(go.terminals[term]['backspace']);
+                        q(go.Terminal.terminals[term]['backspace']);
                         if (goIn.automaticBackspace) {
                             goIn.sentBackspace = true;
                         }
@@ -2982,7 +2970,7 @@ GateOne.Base.update(GateOne.Input, {
             } else if (key.string == 'KEY_V') {
                 // Macs need this to support pasting with ⌘-v (⌘-c doesn't need anything special)
                 var term = localStorage[go.prefs.prefix+'selectedTerminal'],
-                    pastearea = go.terminals[term]['pasteNode'];
+                    pastearea = go.Terminal.terminals[term]['pasteNode'];
                 pastearea.focus(); // So the browser will know to issue a paste event
             }
         }
@@ -3423,7 +3411,7 @@ GateOne.Base.update(GateOne.Visual, {
         // Plays a bell sound and pops up a message indiciating which terminal issued a bell
         var term = bellObj['term'];
         go.Visual.playBell();
-        go.Visual.displayMessage("Bell in " + term + ": " + go.terminals[term]['title']);
+        go.Visual.displayMessage("Bell in " + term + ": " + go.Terminal.terminals[term]['title']);
     },
     playBell: function() {
         // Plays the bell sound without any visual notification.
@@ -3481,11 +3469,11 @@ GateOne.Base.update(GateOne.Visual, {
             setActivityCheckboxes = function(term) {
                 var monitorInactivity = u.getNode('#'+prefix+'monitor_inactivity'),
                     monitorActivity = u.getNode('#'+prefix+'monitor_activity');
-                monitorInactivity.checked = go.terminals[term]['inactivityTimer']
-                monitorActivity.checked = go.terminals[term]['activityNotify'];
+                monitorInactivity.checked = go.Terminal.terminals[term]['inactivityTimer']
+                monitorActivity.checked = go.Terminal.terminals[term]['activityNotify'];
             };
         if (termObj) {
-            displayText = termObj.id.split(prefix+'term')[1] + ": " + go.terminals[term]['title'];
+            displayText = termObj.id.split(prefix+'term')[1] + ": " + go.Terminal.terminals[term]['title'];
             termTitleH2.innerHTML = displayText;
             setActivityCheckboxes(term);
         } else {
@@ -3553,11 +3541,11 @@ GateOne.Base.update(GateOne.Visual, {
         go.Terminal.displayTermInfo(term);
         if (!v.scrollbackToggle) {
             // Cancel any pending scrollback timers to keep the user experience smooth
-            if (go.terminals[term]['scrollbackTimer']) {
-                clearTimeout(go.terminals[term]['scrollbackTimer']);
-                go.terminals[term]['scrollbackTimer'] = null;
+            if (go.Terminal.terminals[term]['scrollbackTimer']) {
+                clearTimeout(go.Terminal.terminals[term]['scrollbackTimer']);
+                go.Terminal.terminals[term]['scrollbackTimer'] = null;
             }
-            go.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 1000);
+            go.Terminal.terminals[term]['scrollbackTimer'] = setTimeout(reScrollback, 1000);
         }
     },
     slideLeft: function() {
@@ -3706,7 +3694,7 @@ GateOne.Base.update(GateOne.Visual, {
             // Remove the events we added for the grid:
             workspaces.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
-                    pastearea = go.terminals[termID]['pasteNode'];
+                    pastearea = go.Terminal.terminals[termID]['pasteNode'];
                 if (pastearea) {
                     u.showElement(pastearea);
                 }
@@ -3747,9 +3735,9 @@ GateOne.Base.update(GateOne.Visual, {
                     transform = "";
                 workspaces.forEach(function(termObj) {
                     var termID = termObj.id.split(prefix+'term')[1],
-                        pastearea = go.terminals[termID]['pasteNode'],
+                        pastearea = go.Terminal.terminals[termID]['pasteNode'],
                         selectTermFunc = function(e) {
-                            var termPre = GateOne.terminals[termID]['node'];
+                            var termPre = GateOne.Terminal.terminals[termID]['node'];
                             localStorage[prefix+'selectedTerminal'] = termID;
                             v.toggleGridView(false);
                             v.noReset = true; // Make sure slideToWorkspace doesn't reset the grid before applying transitions
@@ -3778,9 +3766,9 @@ GateOne.Base.update(GateOne.Visual, {
                     count += 1;
                     termObj.onclick = selectTermFunc;
                     termObj.onmouseover = function(e) {
-                        var displayText = termObj.id.split(prefix+'term')[1] + ": " + go.terminals[termID]['title'],
+                        var displayText = termObj.id.split(prefix+'term')[1] + ": " + go.Terminal.terminals[termID]['title'],
                             termInfoDiv = u.createElement('div', {'id': 'terminfo'}),
-                            marginFix = Math.round(go.terminals[termID]['title'].length/2),
+                            marginFix = Math.round(go.Terminal.terminals[termID]['title'].length/2),
                             infoContainer = u.createElement('div', {'id': 'infocontainer', 'class': '✈infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
                         if (u.getNode('#'+prefix+'infocontainer')) { u.removeElement('#'+prefix+'infocontainer') }
                         termInfoDiv.innerHTML = displayText;
@@ -4412,8 +4400,8 @@ GateOne.Base.update(GateOne.Visual, {
     fitWindow: function(term) {
         // Scales the terminal <pre> to fit within the browser window based on the size of the screen <span> if rows/cols has been explicitly set.
         // If rows/cols are not set it will simply move all terminals to the top of the view so that the scrollback stays hidden while screen updates are happening.
-        var termPre = GateOne.terminals[term].node,
-            screenSpan = GateOne.terminals[term].screenNode;
+        var termPre = GateOne.Terminal.terminals[term].node,
+            screenSpan = GateOne.Terminal.terminals[term].screenNode;
         if (GateOne.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
             var nodeHeight = screenSpan.offsetHeight;
             if (nodeHeight < document.documentElement.clientHeight) { // Grow to fit
