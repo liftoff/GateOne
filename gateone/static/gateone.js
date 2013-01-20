@@ -152,23 +152,17 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     fillContainer: true, // If set to true, #gateone will fill itself out to the full size of its parent element
     style: {}, // Whatever CSS the user wants to apply to #gateone.  NOTE: Width and height will be skipped if fillContainer is true
     goDiv: '#gateone', // Default element to place gateone inside
-    scrollback: 500, // Amount of lines to keep in the scrollback buffer
-    rows: null, // Override the automatically calculated value (null means fill the window)
-    cols: null, // Ditto
     prefix: 'go_', // What to prefix element IDs with (in case you need to avoid a name conflict).  NOTE: There are a few classes that use the prefix too.
     theme: 'black', // The theme to use by default (e.g. 'black', 'white', etc)
     fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
     autoConnectURL: null, // This is a URL that will be automatically connected to whenever a terminal is loaded. TODO: Move this to the ssh plugin.
     embedded: false, // Equivalent to {showTitle: false, showToolbar: false} and certain keyboard shortcuts won't be registered
     auth: null, // If using API authentication, this value will hold the user's auth object (see docs for the format).
-    showTitle: true, // If false, the terminal title will not be shown in the sidebar.
+    showTitle: true, // If false, the title will not be shown in the sidebar.
     showToolbar: true, // If false, the toolbar will now be shown in the sidebar.
     audibleBell: true, // If false, the bell sound will not be played (visual notification will still occur),
     bellSound: '', // Stores the bell sound data::URI (cached).
     bellSoundType: '', // Stores the mimetype of the bell sound.
-    rowAdjust: 0, // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
-                  // rowAdjust is necessary so that plugins can increment it if they're adding things to the top or bottom of GateOne.
-    colAdjust: 0,  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
     skipChecks: false // Tells GateOne.init() to skip capabilities checks (in case you have your own or are happy with silent failures)
 }
 // Properties in this object will get ignored when GateOne.prefs is saved to localStorage
@@ -184,8 +178,6 @@ GateOne.noSavePrefs = {
     auth: null,
     showTitle: null,
     showToolbar: null,
-    rowAdjust: null,
-    colAdjust: null,
     skipChecks: null
 }
 // Example 'auth' object:
@@ -220,9 +212,6 @@ var go = GateOne.Base.update(GateOne, {
     restoreDefaults: function() {
         // Restores all of Gate One's user-specific prefs to default values
         GateOne.prefs = {
-            scrollback: 500,
-            rows: null,
-            cols: null,
             theme: 'black',
             fontSize: '100%',
             audibleBell: true,
@@ -472,9 +461,9 @@ var go = GateOne.Base.update(GateOne, {
         prefsPanelScrollbackLabel.innerHTML = "<b>Scrollback Buffer Lines:</b> ";
         prefsPanelScrollback.value = go.prefs.scrollback;
         prefsPanelRowsLabel.innerHTML = "<b>Terminal Rows:</b> ";
-        prefsPanelRows.value = go.prefs.rows;
+        prefsPanelRows.value = go.prefs.rows || "";
         prefsPanelColsLabel.innerHTML = "<b>Terminal Columns:</b> ";
-        prefsPanelCols.value = go.prefs.cols;
+        prefsPanelCols.value = go.prefs.cols || "";
         prefsPanelRow1.appendChild(prefsPanelScrollbackLabel);
         prefsPanelRow1.appendChild(prefsPanelScrollback);
         prefsPanelRow4.appendChild(prefsPanelRowsLabel);
@@ -3138,7 +3127,7 @@ GateOne.Base.update(GateOne.Visual, {
         */
         var u = go.Utils,
             prefix = go.prefs.prefix,
-            goDiv = u.getNode(go.prefs.goDiv),
+            goDiv = go.node,
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             wrapperDiv = u.getNode('#'+prefix+'gridwrapper'),
             style = window.getComputedStyle(goDiv, null),

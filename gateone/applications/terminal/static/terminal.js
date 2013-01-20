@@ -11,11 +11,20 @@ var go = GateOne,
     v = go.Visual,
     urlObj = (window.URL || window.webkitURL);
 
+// Setup some defaults for our terminal-specific prefs
 go.prefs['webWorker'] = null; // This is the fallback path to Gate One's Web Worker.  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.
+go.prefs['scrollback'] = 500, // Amount of lines to keep in the scrollback buffer
+go.prefs['rows'] =  null; // Override the automatically calculated value (null means fill the window)
+go.prefs['cols'] =  null; // Ditto
 go.prefs['colors'] = 'default'; // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
 go.prefs['disableTermTransitions'] = false; // Disabled the sliding animation on terminals to make switching faster
+go.prefs['rowAdjust'] = 0;   // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
+                            // rowAdjust is necessary so that plugins can increment it if they're adding things to the top or bottom of GateOne.
+go.prefs['colAdjust'] = 0;  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
 // This ensures that the webWorker setting isn't stored in the user's prefs in localStorage:
 go.noSavePrefs['webWorker'] = null;
+go.noSavePrefs['rowAdjust'] = null;
+go.noSavePrefs['colAdjust'] = null;
 
 go.Base.module(GateOne, "Terminal", "1.2", ['Base', 'Utils', 'Visual']);
 GateOne.Terminal.terminals = { // For keeping track of running terminals
@@ -322,6 +331,9 @@ go.Base.update(GateOne.Terminal, {
         go.Events.on('go:restore_defaults', function() {
             go.prefs['colors'] = "default";
             go.prefs['disableTermTransitions'] = false;
+            go.prefs['scrollback'] = 500;
+            go.prefs['rows'] = null;
+            go.prefs['cols'] = null;
         });
     },
     sendChars: function() {
