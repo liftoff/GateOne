@@ -71,7 +71,7 @@ var logFatal = noop,
     deprecated = noop;
 
 // Define GateOne
-var GateOne = GateOne || {};
+var GateOne = GateOne || function() {};
 GateOne.NAME = "GateOne";
 GateOne.VERSION = "1.2";
 GateOne.__repr__ = function () {
@@ -149,7 +149,6 @@ GateOne.Base.update = function (self, obj/*, ... */) {
 GateOne.location = "default"; // Yes, the default location is called "default" :)
 GateOne.prefs = { // Tunable prefs (things users can change)
     url: null, // URL of the GateOne server.  Will default to whatever is in window.location
-    webWorker: null, // This is the fallback path to Gate One's Web Worker.  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.
     fillContainer: true, // If set to true, #gateone will fill itself out to the full size of its parent element
     style: {}, // Whatever CSS the user wants to apply to #gateone.  NOTE: Width and height will be skipped if fillContainer is true
     goDiv: '#gateone', // Default element to place gateone inside
@@ -158,11 +157,9 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     cols: null, // Ditto
     prefix: 'go_', // What to prefix element IDs with (in case you need to avoid a name conflict).  NOTE: There are a few classes that use the prefix too.
     theme: 'black', // The theme to use by default (e.g. 'black', 'white', etc)
-    colors: 'default', // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
     fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
     autoConnectURL: null, // This is a URL that will be automatically connected to whenever a terminal is loaded. TODO: Move this to the ssh plugin.
     embedded: false, // Equivalent to {showTitle: false, showToolbar: false} and certain keyboard shortcuts won't be registered
-    disableTermTransitions: false, // Disabled the sliding animation on terminals to make switching faster
     auth: null, // If using API authentication, this value will hold the user's auth object (see docs for the format).
     showTitle: true, // If false, the terminal title will not be shown in the sidebar.
     showToolbar: true, // If false, the toolbar will now be shown in the sidebar.
@@ -178,7 +175,6 @@ GateOne.prefs = { // Tunable prefs (things users can change)
 GateOne.noSavePrefs = {
     // Plugin authors:  If you want to have your own property in GateOne.prefs but it isn't a per-user setting, add your property here
     url: null,
-    webWorker: null,
     fillContainer: null,
     style: null,
     goDiv: null, // Why an object and not an array?  So the logic is simpler:  "for (var objName in noSavePrefs) ..."
@@ -234,31 +230,18 @@ var go = GateOne.Base.update(GateOne, {
     ws: null, // Where our WebSocket gets stored
     savePrefsCallbacks: [], // DEPRECATED: For plugins to use so they can have their own preferences saved when the user clicks "Save" in the Gate One prefs panel
     restoreDefaults: function() {
-        // Restores all of Gate One's prefs to default values
-        GateOne.prefs = { // Tunable prefs (things users can change)
-            url: null,
-            fillContainer: true,
-            style: {},
-            goDiv: '#gateone',
+        // Restores all of Gate One's user-specific prefs to default values
+        GateOne.prefs = {
             scrollback: 500,
             rows: null,
             cols: null,
-            prefix: 'go_',
             theme: 'black',
-            colors: 'default',
             fontSize: '100%',
-            autoConnectURL: null,
-            embedded: false,
-            disableTermTransitions: false,
-            auth: null,
-            showTitle: true,
-            showToolbar: true,
             audibleBell: true,
             bellSound: '',
-            bellSoundType: '',
-            rowAdjust: 0,
-            colAdjust: 0
+            bellSoundType: ''
         }
+        GateOne.Events.trigger('go:restore_defaults');
         GateOne.Utils.savePrefs(true); // 'true' here skips the notification
     },
     // This starts up GateOne using the given *prefs*
@@ -372,9 +355,6 @@ var go = GateOne.Base.update(GateOne, {
             }
             go.prefs.url = go.prefs.url.split('#')[0]; // Get rid of any hash at the end (just in case)
         }
-        if (!go.prefs.webWorker) {
-            go.prefs.webWorker = go.prefs.url + 'static/go_process.js';
-        }
         if (!u.endsWith('/', go.prefs.url)) {
             go.prefs.url = go.prefs.url + '/';
         }
@@ -386,10 +366,12 @@ var go = GateOne.Base.update(GateOne, {
             go.Net.connect(callback);
         } else {
             // Check if we're authenticated after all the scripts are done loading
-            u.xhrGet(authCheck, parseResponse);
+            u.xhrGet(authCheck, parseResponse); // The point of this function is to let the server verify the cookie for us
         }
+        // Cache our node for easy reference
+        go.node = u.getNode(go.prefs.goDiv);
     // Empty out anything that might be already-existing in goDiv
-        u.getNode(go.prefs.goDiv).innerHTML = '';
+        go.node.innerHTML = '';
     },
     // TODO: Move the terminal-specific stuff out of this and into GateOne.Terminal.init()
     initialize: function() {
@@ -639,12 +621,6 @@ var go = GateOne.Base.update(GateOne, {
                 translateY = ((100 * scale) - 100) / 2; // translateY needs to be in % (one half of scale)
                 go.Visual.applyTransform(toolbar, 'translateY('+translateY+'%) scale('+scale+')');
             }
-        }
-        // Disable terminal transitions if the user wants
-        if (go.prefs.disableTermTransitions) {
-            var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
-            newStyle.innerHTML = go.prefs.goDiv + " .terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
-            u.getNode(goDiv).appendChild(newStyle);
         }
         // Create the (empty) toolbar
         if (!go.prefs.showToolbar) {

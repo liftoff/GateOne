@@ -11,12 +11,11 @@ var go = GateOne,
     v = go.Visual,
     urlObj = (window.URL || window.webkitURL);
 
-// Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = go.Utils.noop,
-    logError = go.Utils.noop,
-    logWarning = go.Utils.noop,
-    logInfo = go.Utils.noop,
-    logDebug = go.Utils.noop;
+go.prefs['webWorker'] = null; // This is the fallback path to Gate One's Web Worker.  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.
+go.prefs['colors'] = 'default'; // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
+go.prefs['disableTermTransitions'] = false; // Disabled the sliding animation on terminals to make switching faster
+// This ensures that the webWorker setting isn't stored in the user's prefs in localStorage:
+go.noSavePrefs['webWorker'] = null;
 
 go.Base.module(GateOne, "Terminal", "1.2", ['Base', 'Utils', 'Visual']);
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
@@ -269,7 +268,17 @@ go.Base.update(GateOne.Terminal, {
             // Ctrl-Alt-W to close the current terminal
             go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
         }
+        // TODO: Get rid of the disableTermTransitions preference.  It will be a workspaces thing in the future.
+        // Disable terminal transitions if the user wants
+        if (go.prefs.disableTermTransitions) {
+            var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
+            newStyle.innerHTML = go.prefs.goDiv + " .terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+            u.getNode(goDiv).appendChild(newStyle);
+        }
         // Load the Web Worker
+        if (!go.prefs.webWorker) {
+            go.prefs.webWorker = go.prefs.url + 'static/go_process.js';
+        }
         logDebug("Attempting to download our WebWorker...");
         go.ws.send(JSON.stringify({'get_webworker': null}));
         // Get shift-Insert working in a natural way (NOTE: Will only work when Gate One is the active element on the page)
@@ -297,6 +306,10 @@ go.Base.update(GateOne.Terminal, {
                     }
                 };
             }, 3000);
+        });
+        go.Events.on('go:restore_defaults', function() {
+            go.prefs['colors'] = "default";
+            go.prefs['disableTermTransitions'] = false;
         });
     },
     sendChars: function() {
