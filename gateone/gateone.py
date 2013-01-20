@@ -2585,7 +2585,14 @@ def main():
                "Could not find/create settings directory at %s" % settings_dir))
             sys.exit(1)
     all_settings = get_settings(settings_dir)
-    enabled_plugins = all_settings['*']['gateone'].get('enabled_plugins', [])
+    enabled_plugins = []
+    enabled_applications = []
+    if 'gateone' in all_settings:
+        # The check above will fail in first-run situations
+        enabled_plugins = all_settings['*']['gateone'].get(
+            'enabled_plugins', [])
+        enabled_applications = all_settings['*']['gateone'].get(
+            'enabled_applications', [])
     PLUGINS = get_plugins(os.path.join(GATEONE_DIR, 'plugins'), enabled_plugins)
     imported = load_modules(PLUGINS['py'])
     for plugin in imported:
@@ -2593,8 +2600,6 @@ def main():
             PLUGIN_HOOKS.update({plugin.__name__: plugin.hooks})
         except AttributeError:
             pass # No hooks--probably just a supporting .py file.
-    enabled_applications = all_settings['*']['gateone'].get(
-        'enabled_applications', [])
     APPLICATIONS = get_applications(
         os.path.join(GATEONE_DIR, 'applications'), enabled_applications)
     app_modules = load_modules(APPLICATIONS)

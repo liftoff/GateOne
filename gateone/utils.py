@@ -229,7 +229,8 @@ def get_settings(path, add_default=True):
             except ValueError as e:
                 # Something was wrong with the JSON (syntax error, usually)
                 logging.error(_(
-                    "Error decoding JSON in %s" % os.path.join(path, fname)))
+                    "Error decoding JSON in settings file: %s"
+                    % os.path.join(path, fname)))
                 logging.error(e)
                 # Let's try to be as user-friendly as possible by pointing out
                 # *precisely* where the error occurred (if possible)...
@@ -246,7 +247,12 @@ def get_settings(path, add_default=True):
                             break
                         else:
                             print(line)
-                except ValueError:
+                except (ValueError, IndexError):
+                    print(_(
+                        "Got an exception trying to display precisely where "
+                        "the problem was.  This usually happens when you've "
+                        "used single quotes (') instead of double quotes (\")."
+                    ))
                     # Couldn't parse the exception message for line/column info
                     pass # No big deal; the user will figure it out eventually
     return settings

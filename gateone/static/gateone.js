@@ -60,15 +60,10 @@ if (typeof document.hidden !== "undefined") {
 // NOTE:  If the browser doesn't support the Page Visibility API it isn't a big deal; the user will merely have to click on the page for input to start being captured.
 
 // Sandbox-wide shortcuts
-var noop = function(a) { return a }; // Let's us reference functions that may or may not be available (see logging shortcuts below).
-var ESC = String.fromCharCode(27); // Saves a lot of typing and it's easy to read
+var noop = function(a) { return a }, // Let's us reference functions that may or may not be available (see logging shortcuts below).
+    ESC = String.fromCharCode(27); // Saves a lot of typing and it's easy to read
 // Log level shortcuts for each log level (these get properly assigned in GateOne.initialize() if GateOne.Logging is available)
-var logFatal = noop;
-var logError = noop;
-var logWarning = noop;
-var logInfo = noop;
-var logDebug = noop;
-var deprecated = noop;
+var logFatal = logError = logWarning = logInfo = logDebug = deprecated = noop;
 
 // Define GateOne
 var GateOne = GateOne || {};
@@ -110,6 +105,7 @@ GateOne.Base.module = function (parent, name, version, deps) {
         prefix = (parent.NAME ? parent.NAME + "." : "");
     module.NAME = prefix + name;
     module.VERSION = version;
+    module.parent = parent;
     module.__repr__ = function () {
         return "[" + this.NAME + " " + this.VERSION + "]";
     };
@@ -379,18 +375,15 @@ var go = GateOne.Base.update(GateOne, {
         }
         var combined_js = go.prefs.url + 'combined_js',
             authCheck = go.prefs.url + 'auth?check=True';
-        // Load our JS Plugins
-//         u.loadScript(combined_js, function() {
-            if (go.prefs.auth) {
-                // API authentication doesn't need to use the /auth URL.
-                logDebug("Using API authentiation object: " + go.prefs.auth);
-                go.Net.connect(callback);
-            } else {
-                // Check if we're authenticated after all the scripts are done loading
-                u.xhrGet(authCheck, parseResponse);
-            }
-//         });
-        // Empty out anything that might be already-existing in goDiv
+        if (go.prefs.auth) {
+            // API authentication doesn't need to use the /auth URL.
+            logDebug("Using API authentiation object: " + go.prefs.auth);
+            go.Net.connect(callback);
+        } else {
+            // Check if we're authenticated after all the scripts are done loading
+            u.xhrGet(authCheck, parseResponse);
+        }
+    // Empty out anything that might be already-existing in goDiv
         u.getNode(go.prefs.goDiv).innerHTML = '';
     },
     // TODO: Move the terminal-specific stuff out of this and into GateOne.Terminal.init()
@@ -4274,6 +4267,81 @@ GateOne.Base.update(GateOne.Visual, {
         }
         return closeWidget;
     },
+    // Example pane usage scenarios:
+    //   var testPane = GateOne.Visual.Pane();
+    //   testPane.innerHTML = "<p>Test pane</p>";
+    //   testPane.appendChild('#some_element');
+
+    //   var term1Pane = GateOne.Visual.Pane('#go_default_term1_pre'); <-- Creates a new Pane from term1_pre.  Doesn't make any changes to term1_pre unless specified in options.
+    //   term1Pane.vsplit(); <-- Splits into two panes 50/50 left-and-right with the existing pane winding up on the left (default).
+    //   term1Pane = term1Pane.hsplit(); <-- Splits into two panes 50/50 top-and-bottom with the existing pane winding up on the top (default).
+    //   term1Pane.relocate('#some_id'); <-- Removes term1Pane from its existing location and places it into #some_id.  If #some_id is also a Pane it will be split.
+    Pane: function(elem, options) {
+        /**:GateOne.Visual.Pane(elem, options)
+
+        An object that represents a pane on the page.  Options:
+
+            :param options['name'] string: What to call this Pane so you can reference it later.
+            :param options['node'] node: A DOM node or querySelector string.
+        */
+        // Enforce 'new' to ensure unique instances
+        if (!(this instanceof GateOne.Visual.Pane)) {return new GateOne.Visual.Pane(options);}
+        options = (options || {});
+        var self = this,
+            u = GateOne.Utils;
+        self.node = (options['node'] || u.createElement('div', {'class': 'gopane'}));
+        self.title = (options['title'] || null);
+        self.scroll = (options['scroll'] || false);
+        if (!('gopane' in self.node.classList)) {
+            // Converting existing element into a Pane.
+            self.node.classList.push('gopane');
+            // TODO: Probably need to add more stuff here
+        }
+        self.split = function(axis, way) {
+            /**:GateOne.Visual.Pane.split(axis)
+
+            Split this Pane into two.  The *axis* argument may be 'vertical', 'horizontal', or 'evil'.  Actually, just those first two make sense.
+
+            The *way* argument controls left/right (vertical split) or top/bottom (horizontal split).  If not provided the default is have the existing pane wind up on the left or on the top, respectively.
+            */
+
+        }
+        self.vsplit = function() {
+            /**:GateOne.Visual.Pane.vsplit()
+
+            A shortcut for `GateOne.Visual.Pane.split('vertical')`
+            */
+            GateOne.Visual.Pane.split('vertical');
+        }
+        self.hsplit = function() {
+            /**:GateOne.Visual.Pane.hsplit()
+
+            A shortcut for `GateOne.Visual.Pane.split('horizontal')`
+            */
+            GateOne.Visual.Pane.split('horizontal');
+        }
+        self.relocate = function(where, /*opt*/splitAxis) {
+            /**:GateOne.Visual.Pane.relocate(where)
+
+            Moves the Pane from wherever it currently resides into the element at *where*.  The *splitAxis* argument will be used to determine how to split *where* to accomodate this Pane.
+            */
+        }
+        self.minimize = function(way) {
+            /**:GateOne.Visual.Pane.minimize()
+
+            Minimizes the Pane by docking it to the 'top', 'bottom', 'left', or 'right' of the view depending on *way*.
+            */
+        }
+        self.remove = function() {
+            /**:GateOne.Visual.Pane.remove()
+
+            Removes the Pane from the page.
+            */
+            u.removeElement(self.node);
+            // TODO: Add logic here to remove the splitbar(s)
+        }
+    },
+    // PANE TYPE 2
     pane: function(title, workspace, /*opt*/options) {
         /**:GateOne.Visual.panel(title, workspace, [options])
 
@@ -4323,6 +4391,14 @@ GateOne.Base.update(GateOne.Visual, {
         |------------------------------------------------------------------|
         |       Some other pane              | Some other pane  (log view?)|
         --------------------------------------------------------------------
+
+        Programmatic necessities:
+            * An object to store panes and their properties.
+            * Functions to perform:
+                * Convert element into pane.
+                * Split existing pane into two.  (Requires creating in-between div for dragging)
+                * Relocate pane.
+            * CSS for the splitbar.
         */
     },
     toggleOverlay: function() {
