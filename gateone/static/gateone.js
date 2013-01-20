@@ -63,7 +63,12 @@ if (typeof document.hidden !== "undefined") {
 var noop = function(a) { return a }, // Let's us reference functions that may or may not be available (see logging shortcuts below).
     ESC = String.fromCharCode(27); // Saves a lot of typing and it's easy to read
 // Log level shortcuts for each log level (these get properly assigned in GateOne.initialize() if GateOne.Logging is available)
-var logFatal = logError = logWarning = logInfo = logDebug = deprecated = noop;
+var logFatal = noop,
+    logError = noop,
+    logWarning = noop,
+    logInfo = noop,
+    logDebug = noop,
+    deprecated = noop;
 
 // Define GateOne
 var GateOne = GateOne || {};
@@ -79,7 +84,7 @@ GateOne.toString = function () {
 // Define our internal token seed storage (inaccessible outside this sandbox)
 var seed1 = null, seed2 = null; // NOTE: Not used yet.
 
-// NOTE: This module/mehtod loading/updating code was copied from the *excellent* MochiKit JS library (http://mochikit.com).
+// NOTE: This module/method loading/updating code was copied from the *excellent* MochiKit JS library (http://mochikit.com).
 //       ...which is MIT licensed: http://www.opensource.org/licenses/mit-license.php
 //      Other functions copied from MochiKit are indicated individually throughout this file
 GateOne.Base = GateOne.Base || {}; // "Base" contains the basic functions used to create/update Gate One modules/plugins
