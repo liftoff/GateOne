@@ -358,14 +358,12 @@ var go = GateOne.Base.update(GateOne, {
             return; // Nothing left to do
         }
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
-        if (GateOne.Logging) {
-            logFatal = GateOne.Logging.logFatal;
-            logError = GateOne.Logging.logError;
-            logWarning = GateOne.Logging.logWarning;
-            logInfo = GateOne.Logging.logInfo;
-            logDebug = GateOne.Logging.logDebug;
-            deprecated = GateOne.Logging.deprecated;
-        }
+        logFatal = GateOne.Logging.logFatal;
+        logError = GateOne.Logging.logError;
+        logWarning = GateOne.Logging.logWarning;
+        logInfo = GateOne.Logging.logInfo;
+        logDebug = GateOne.Logging.logDebug;
+        deprecated = GateOne.Logging.deprecated;
         var go = GateOne,
             u = go.Utils,
             E = go.Events,

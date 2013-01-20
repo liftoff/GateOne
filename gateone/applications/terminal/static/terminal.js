@@ -5,11 +5,17 @@
 (function(window, undefined) {
 "use strict";
 
+// Sandbox-wide shortcuts
 var go = GateOne,
     prefix = go.prefs.prefix,
     u = go.Utils,
     v = go.Visual,
-    urlObj = (window.URL || window.webkitURL);
+    urlObj = (window.URL || window.webkitURL),
+    logFatal = GateOne.Logging.logFatal,
+    logError = GateOne.Logging.logError,
+    logWarning = GateOne.Logging.logWarning,
+    logInfo = GateOne.Logging.logInfo,
+    logDebug = GateOne.Logging.logDebug;
 
 // Setup some defaults for our terminal-specific prefs
 go.prefs['webWorker'] = null; // This is the fallback path to Gate One's Web Worker.  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.
@@ -97,14 +103,6 @@ go.Base.update(GateOne.Terminal, {
             switchTerm = function() {
                 GateOne.Terminal.switchTerminal(localStorage[GateOne.prefs.prefix+'selectedTerminal'])
             };
-        // Assign our logging function shortcuts if the Logging module is available with a safe fallback
-        if (GateOne.Logging) {
-            logFatal = GateOne.Logging.logFatal;
-            logError = GateOne.Logging.logError;
-            logWarning = GateOne.Logging.logWarning;
-            logInfo = GateOne.Logging.logInfo;
-            logDebug = GateOne.Logging.logDebug;
-        }
         // Create our info panel
         go.Icons['info'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
         toolbarInfo.innerHTML = go.Icons['info'];

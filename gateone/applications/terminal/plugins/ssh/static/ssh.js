@@ -6,11 +6,11 @@ var document = window.document; // Have to do this because we're sandboxed
 var noop = GateOne.Utils.noop;
 
 // Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = noop;
-var logError = noop;
-var logWarning = noop;
-var logInfo = noop;
-var logDebug = noop;
+var logFatal = noop,
+    logError = noop,
+    logWarning = noop,
+    logInfo = noop,
+    logDebug = noop;
 
 // GateOne.SSH (ssh client functions)
 GateOne.Base.module(GateOne, "SSH", "1.1", ['Base']);
