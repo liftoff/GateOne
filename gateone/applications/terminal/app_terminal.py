@@ -1281,12 +1281,15 @@ class TerminalApplication(GOApplication):
         """
         bell_path = os.path.join(GATEONE_DIR, 'static')
         bell_path = os.path.join(bell_path, 'bell.ogg')
+        fallback_path = os.path.join(APPLICATION_PATH, 'fallback_bell.txt')
         if os.path.exists(bell_path):
             try:
                 bell_data_uri = create_data_uri(bell_path)
             except MimeTypeFail:
+                fallback_bell = open(fallback_path).read()
                 bell_data_uri = fallback_bell
         else: # There's always the fallback
+            fallback_bell = open(fallback_path).read()
             bell_data_uri = fallback_bell
         mimetype = bell_data_uri.split(';')[0].split(':')[1]
         message = {
