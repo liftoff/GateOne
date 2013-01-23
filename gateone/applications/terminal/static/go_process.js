@@ -112,6 +112,11 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms, c
             }
         }
     }
+    textTransforms['contenteditable cursor'] = {
+        'name': 'contentenditable cursor',
+        'pattern': '/\<span class="cursor"\>/g',
+        'newString': '<span id="term'+term+'cursor" class="cursor">'
+    };
     // Assemble the entire screen from what the server sent us (lines that haven't changed get sent as null)
     screen = processLines(termUpdateObj['screen'], textTransforms);
     outputObj['screen'] = screen;

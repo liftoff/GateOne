@@ -460,7 +460,10 @@ go.Base.update(GateOne.Terminal, {
         }
     },
     paste: function(e) {
-        // This gets attached to Shift-Insert (KEY_INSERT) as a shortcut in order to support pasting
+        /**:GateOne.Terminal.paste(e)
+
+        This gets attached to Shift-Insert (KEY_INSERT) as a shortcut in order to support pasting.
+        */
         logDebug('paste()');
         var go = GateOne,
             u = go.Utils,

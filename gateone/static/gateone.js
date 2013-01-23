@@ -725,7 +725,13 @@ var go = GateOne.Base.update(GateOne, {
         // Start capturing keyboard input
         go.Input.capture();
         document.addEventListener(visibilityChange, go.Input.handleVisibility, false);
-        goDiv.addEventListener('blur', go.Input.disableCapture, false); // So we don't end up stealing input from something else on the page
+        var onBlur = function(e) {
+            // This is here because--for whatever reason--if disableCapture() is called inside onMouseUp() the activeElement will be document.body instead of inputNode (even if we explicitly set focus!)
+            setTimeout(function() {
+                go.Input.disableCapture(e);
+            }, 100);
+        }
+        goDiv.addEventListener('blur', onBlur, false); // So we don't end up stealing input from something else on the page
         go.initialized = true;
         go.Events.trigger("go:initialized");
         setTimeout(function() {
@@ -2137,6 +2143,9 @@ GateOne.Base.update(GateOne.Input, {
     init: function() {
         // Attach our global shortcut handler to window
         window.addEventListener('keydown', GateOne.Input.onGlobalKeyDown, true);
+        window.addEventListener('compositionstart', GateOne.Input.onCompositionStart, true);
+        window.addEventListener('compositionupdate', GateOne.Input.onCompositionUpdate, true);
+        window.addEventListener('compositionend', GateOne.Input.onCompositionEnd, true);
     },
     onMouseDown: function(e) {
         // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
@@ -2144,7 +2153,7 @@ GateOne.Base.update(GateOne.Input, {
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            goDiv = u.getNode(go.prefs.goDiv),
+            goDiv = go.node,
             m = go.Input.mouse(e),
             selectedTerm = localStorage[prefix+'selectedTerminal'],
             selectedPastearea = null,
@@ -2189,7 +2198,7 @@ GateOne.Base.update(GateOne.Input, {
             u = go.Utils,
             prefix = go.prefs.prefix,
             selectedTerm = localStorage[prefix+'selectedTerminal'],
-            goDiv = u.getNode(go.prefs.goDiv),
+            goDiv = go.node,
             selectedText = u.getSelText();
         logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
         // Once the user is done pasting (or clicking), set it back to false for speed
@@ -2214,7 +2223,7 @@ GateOne.Base.update(GateOne.Input, {
             clearTimeout(go.Input.firefoxBugTimer);
             go.Input.firefoxBugTimer = null;
         }
-        goDiv.focus();
+        go.Input.inputNode.focus();
     },
     capture: function() {
         // Returns focus to goDiv and ensures that it is capturing onkeydown events properly
@@ -2222,11 +2231,18 @@ GateOne.Base.update(GateOne.Input, {
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            goDiv = u.getNode(go.prefs.goDiv);
-        goDiv.tabIndex = 1; // Just in case--this is necessary to set focus
-        goDiv.onkeydown = go.Input.onKeyDown;
-        goDiv.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
-        goDiv.onkeypress = go.Input.emulateKeyFallback;
+            selectedTerm = localStorage[prefix+'selectedTerminal'],
+            goDiv = go.node;
+        if (!go.Input.inputNode) {
+            go.Input.inputNode = u.createElement('input', {'class': 'IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
+            go.node.appendChild(go.Input.inputNode);
+        }
+        go.Input.inputNode.oninput = go.Input.onInput;
+        go.Input.inputNode.tabIndex = 1; // Just in case--this is necessary to set focus
+        go.Input.inputNode.onkeydown = go.Input.onKeyDown;
+        go.Input.inputNode.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
+        // TODO: Investigate if we still need emulateKeyFallback at all
+//         goDiv.onkeypress = go.Input.emulateKeyFallback;
         goDiv.onpaste = go.Input.onPaste;
         goDiv.oncopy = function(e) {
             // After the copy we need to bring the pastearea back up so the context menu will work to paste again
@@ -2241,15 +2257,15 @@ GateOne.Base.update(GateOne.Input, {
         if (go.Visual.overlay) {
             go.Visual.toggleOverlay();
         }
-        if (document.activeElement != goDiv) {
-            goDiv.focus();
+        if (document.activeElement != go.Input.inputNode) {
+            go.Input.inputNode.focus();
         }
     },
     disableCapture: function(e) {
         // Turns off keyboard input and certain mouse capture events so that other things (e.g. forms) can work properly
         logDebug('disableCapture()');
         var u = go.Utils,
-            goDiv = u.getNode(go.prefs.goDiv);
+            goDiv = go.node;
         if (go.Input.mouseDown) {
             return; // Work around Firefox's occasional inability to properly register mouse events (WTF Firefox!)
         }
@@ -2259,18 +2275,19 @@ GateOne.Base.update(GateOne.Input, {
         }
         if (e) {
             // This was called from an onblur event
-            if (document.activeElement == goDiv || document.activeElement.className == 'pastearea') {
+            if (document.activeElement == goDiv || document.activeElement.className == 'pastearea' || document.activeElement == go.Input.inputNode) {
                 // Nothing to do
                 return;
             }
             e.preventDefault();
         }
+        go.Input.inputNode.oninput = null;
 //         goDiv.contentEditable = false; // This needs to be turned off or it might capture paste events (which is really annoying when you're trying to edit a form)
         goDiv.onpaste = null;
-        goDiv.tabIndex = null;
-        goDiv.onkeydown = null;
-        goDiv.onkeyup = null;
-        goDiv.onkeypress = null;
+        go.Input.inputNode.tabIndex = null;
+        go.Input.inputNode.onkeydown = null;
+        go.Input.inputNode.onkeyup = null;
+        go.Input.inputNode.onkeypress = null;
         goDiv.onmousedown = null;
         goDiv.onmouseup = null;
         go.Input.metaHeld = false; // This can get stuck at 'true' if the uses does something like command-tab to switch applications.
@@ -2468,34 +2485,113 @@ GateOne.Base.update(GateOne.Input, {
         }
         return m;
     },
+    onCompositionStart: function(e) {
+        /**GateOne.Input.onCompositionStart(e)
+
+        Called when we encounter the 'compositionstart' event which indicates the use of an IME.  That would most commonly be a mobile phone software keyboard or foreign language input methods (e.g. Japanese, Chinese, etc).
+        */
+        logDebug('onCompositionStart()');
+        var u = go.Utils,
+            term = localStorage[go.prefs.prefix+'selectedTerminal'],
+            cursor = document.querySelector('#term' + term + 'cursor'),
+            offset = u.getOffset(cursor);
+        // This tells the other keyboard input events to suspend their actions until the compositionupdate or compositionend event.
+        go.Input.composition = true;
+        go.Input.inputNode.style['top'] = (offset.top) + "px";
+        go.Input.inputNode.style['left'] = offset.left + "px";
+    },
+    onCompositionEnd: function(e) {
+        /**GateOne.Input.onCompositionEnd(e)
+
+        Called when we encounter the 'compositionend' event which indicates the IME has completed.  Sends what was composed to the server.
+        */
+        logDebug('onCompositionEnd('+e.data+')');
+        if (e.data) {go.Terminal.sendString(go.Input.composition);}
+        go.Input.inputNode.style['top'] = "-99999px";
+        go.Input.inputNode.style['left'] = "-99999px";
+        setTimeout(function() {
+            // Wrapped in a timeout because Firefox fires the onkeyup event immediately after compositionend and we don't want that to result in double keystrokes
+            go.Input.composition = null;
+            go.Input.inputNode.value = "";
+        }, 250);
+    },
+    onCompositionUpdate: function(e) {
+        /**GateOne.Input.onCompositionUpdate(e)
+
+        Called when we encounter the 'compositionupdate' event which indicates incoming characters.  They will be sent as-is
+        */
+        logDebug('onCompositionUpdate() data: ' + e.data);
+        if (e.data) {
+            go.Input.composition = e.data;
+        }
+    },
     onKeyUp: function(e) {
         // Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
         var goIn = go.Input,
             key = goIn.key(e),
-            modifiers = goIn.modifiers(e);
+            modifiers = goIn.modifiers(e),
+            term = localStorage[go.prefs.prefix+'selectedTerminal'];
+        logDebug('onKeyUp()');
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
             goIn.metaHeld = false;
         }
+        if (goIn.handledShortcut) {
+            // This key has already been taken care of
+            goIn.handledShortcut = false;
+            return;
+        }
+        if (!goIn.composition) {
+            // If a non-shift modifier was depressed, emulate the given keystroke:
+            if (modifiers.alt || modifiers.ctrl || modifiers.meta) {
+                ;;
+            } else { // Just send the key if no modifiers:
+                // The value of the input node is really only necessary for IME-style input
+                goIn.inputNode.value = ""; // Keep it empty until needed
+            }
+        }
+    },
+    onInput: function(e) {
+        /**:GateOne.Input.onInput(e)
+
+        Assigned to the IME <input> element; captures all non-modifier incoming keys.
+        */
+        logDebug("onInput()");
+        var inputNode = go.Input.inputNode,
+            value = inputNode.value;
+        if (!GateOne.Input.composition) {
+            go.Terminal.sendString(value);
+            inputNode.value = "";
+            return false;
+        }
     },
     onKeyDown: function(e) {
-        // Handles keystroke events by determining which kind of event occurred and how/whether it should be sent to the server as specific characters or escape sequences.
-        // NOTE: Benchmarking has shown round trip times from here (onkeydown) to the end of termUpdateFromWorker() to average ~53ms using Chrome 22 on my laptop (localhost).  So that's the time to beat.  On the server the bottleneck is the _spanify_screen() function which represents about ~25ms of that 53ms number.
+        /**:GateOne.Input.onKeyDown(e)
+
+        Handles keystroke events by determining which kind of event occurred and how/whether it should be sent to the server as specific characters or escape sequences.
+        */
+        // NOTE:  In order for e.preventDefault() to work in canceling browser keystrokes like Ctrl-C it must be called before keyup.
         var goIn = go.Input,
-            container = go.Utils.getNode(go.prefs.goDiv),
+            u = go.Utils,
+            container = go.node,
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
-            goDivStyle = document.defaultView.getComputedStyle(container, null);
+            term = localStorage[go.prefs.prefix+'selectedTerminal'];
         logDebug("onKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
         if (goIn.handledGlobal) {
             // Global shortcuts take precedence
             return;
         }
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
-            return; // Let the browser handle it if the user is editing something
-            // NOTE: Doesn't actually work so well so we have GateOne.Input.disableCapture() as a fallback :)
+            if (document.activeElement != go.Input.inputNode) {
+                return; // Let the browser handle it if the user is editing something
+                // NOTE: This doesn't actually work so well so we have GateOne.Input.disableCapture() as a fallback :)
+            }
         }
         if (container) { // This display check prevents an exception when someone presses a key before the document has been fully loaded
+            var goDivStyle = document.defaultView.getComputedStyle(container, null);
             if (goDivStyle.display != "none" && goDivStyle.opacity != "0") {
+                // In order for things like Ctrl-C to be overridden we have to call preventDefault() on keydown.
+                // execKeystroke() handles that for us.
                 goIn.execKeystroke(e);
             }
         }
@@ -2516,6 +2612,7 @@ GateOne.Base.update(GateOne.Input, {
 
         Executes the keystroke or shortcut associated with the given keydown event (*e*).  If *global* is true, will only execute global shortcuts (no regular keystroke overrides).
         */
+        logDebug('execKeystroke(global=='+global+')');
         var goIn = go.Input,
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
@@ -2526,6 +2623,9 @@ GateOne.Base.update(GateOne.Input, {
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
             goIn.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
             return true; // Save some CPU
+        }
+        if (goIn.composition) {
+            return true; // Let the IME handle this keystroke
         }
         // This loops over everything in *shortcuts* and executes actions for any matching keyboard shortcuts that have been defined.
         for (var k in shortcuts) {
@@ -2551,6 +2651,7 @@ GateOne.Base.update(GateOne.Input, {
                         } else if (typeof(shortcut['action']) == 'function') {
                             shortcut['action'](e); // Pass it the event
                         }
+                        goIn.handledShortcut = true;
                         goIn.handledGlobal = true;
                         matched = true;
                     }
@@ -2785,9 +2886,13 @@ GateOne.Base.update(GateOne.Input, {
         return out;
     },
     emulateKey: function(e, skipF11check) {
-        // This method handles all regular keys registered via onkeydown events (not onkeypress)
-        // If *skipF11check* is not undefined (or null), the F11 (fullscreen check) logic will be skipped.
-        // NOTE: Shift+key also winds up being handled by this function.
+        /**:GateOne.Input.emulateKey(e, skipF11check)
+
+        This method handles all regular keys registered via onkeydown events (not onkeypress)
+        If *skipF11check* is not undefined (or null), the F11 (fullscreen check) logic will be skipped.
+
+        .. note:: Shift+key also winds up being handled by this function.
+        */
         var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
@@ -2800,8 +2905,7 @@ GateOne.Base.update(GateOne.Input, {
                 goIn.queue(c);
                 goIn.handledKeystroke = true;
             },
-            term = localStorage[prefix+'selectedTerminal'],
-            keyString = String.fromCharCode(key.code);
+            term = localStorage[prefix+'selectedTerminal'];
         logDebug("emulateKey() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
         goIn.handledKeystroke = false;
         goIn.sentBackspace = false;

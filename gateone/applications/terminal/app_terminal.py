@@ -190,6 +190,8 @@ def policy_char_handler(cls, policy):
         except KeyError:
             # No 'term' was given at all.  Use current_term
             term = instance.current_term
+    # Make sure the term is an int
+    term = int(term)
     term_obj = instance.loc_terms[term]
     user = instance.current_user
     if user['upn'] == term_obj['user']['upn']:
@@ -649,7 +651,7 @@ class TerminalApplication(GOApplication):
         """
         logging.debug("%s new_terminal(): %s" % (
             self.current_user['upn'], settings))
-        term = settings['term']
+        term = int(settings['term'])
         # TODO: Make these specific to each terminal:
         self.rows = rows = settings['rows']
         self.cols = cols = settings['cols']
@@ -1238,6 +1240,8 @@ class TerminalApplication(GOApplication):
                 "Got exception trying to write_chars() to terminal %s"
                 % message['term']))
             logging.error(str(e))
+            import traceback
+            traceback.print_exc(file=sys.stdout)
 
     @require(authenticated())
     def opt_esc_handler(self, chars):

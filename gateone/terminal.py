@@ -1142,6 +1142,9 @@ class Terminal(object):
         self.message_interval = timedelta(seconds=1.5)
         self.notified = False # Used to tell if we have notified the user before
         self.cancel_capture = False
+        # Used by cursor_left() and cursor_right() to handle double-width chars:
+        self.double_width_right = False
+        self.double_width_left = False
         self.initialize(rows, cols, em_dimensions)
 
     def initialize(self, rows=24, cols=80, em_dimensions=None):
@@ -2007,9 +2010,25 @@ class Terminal(object):
         except AttributeError:
             # In Python 3 strings don't have .decode()
             pass # Already Unicode
+        backspaced = False
         for char in chars:
             charnum = ord(char)
             if charnum in specials:
+                # Be intelligent about backspacing double-width Unicode chars:
+                #if charnum == self.ASCII_BS:
+                    #if self.cursorX == 0:
+                        ## This won't do anything but it's good to keep the logic
+                        #specials[charnum]() # Shouldn't move the cursor
+                        #continue
+                    #if backspaced:
+                        #backspaced = False # Reset
+                        #continue # Skip this backspace
+                    #prev_char = self.screen[self.cursorY][self.cursorX-1]
+                    #if unicodedata.east_asian_width(prev_char) == 'W':
+                        ## Double-width char.  Treat backspace special.
+                        #backspaced = True
+                    #specials[charnum]() # Exec backspace
+                #else:
                 specials[charnum]()
             else:
                 # Now handle the regular characters and escape sequences
@@ -2830,7 +2849,15 @@ class Terminal(object):
         # Commented out to save CPU (and the others below too)
         #logging.debug('cursor_left(%s)' % n)
         n = int(n)
+        # This logic takes care of double-width unicode characters
+        if self.double_width_left:
+            self.double_width_left = False
+            return
         self.cursorX = max(0, self.cursorX - n)
+        char = self.screen[self.cursorY][self.cursorX]
+        if unicodedata.east_asian_width(char) == 'W':
+            # This lets us skip the next call (get called 2x for 2x width)
+            self.double_width_left = True
         try:
             for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
                 callback()
@@ -2843,7 +2870,15 @@ class Terminal(object):
         if not n:
             n = 1
         n = int(n)
+        # This logic takes care of double-width unicode characters
+        if self.double_width_right:
+            self.double_width_right = False
+            return
         self.cursorX += n
+        char = self.screen[self.cursorY][self.cursorX]
+        if unicodedata.east_asian_width(char) == 'W':
+            # This lets us skip the next call (get called 2x for 2x width)
+            self.double_width_right = True
         try:
             for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
                 callback()
@@ -2945,6 +2980,18 @@ class Terminal(object):
         row = max(0, row - 1)
         col = max(0, col - 1)
         self.cursorY = row
+        # The column needs special attention in case there's double-width
+        # characters.
+        double_width = 0
+        if self.cursorY < self.rows:
+            for i, char in enumerate(self.screen[self.cursorY]):
+                if i == col - double_width:
+                    # No need to continue further
+                    break
+                if unicodedata.east_asian_width(char) == 'W':
+                    double_width += 1
+            if double_width:
+                col = col - double_width
         self.cursorX = col
         try:
             for callback in self.callbacks[CALLBACK_CURSOR_POS].values():
@@ -3407,8 +3454,9 @@ class Terminal(object):
 
     def _spanify_scrollback(self):
         """
-        Spanifies everything inside *screen* using *renditions*.  This differs
-        from _spanify_screen() in that it doesn't apply any logic to detect the
+        Spanifies (turns renditions into `<span>` elements) everything inside
+        `self.scrollback` using `self.renditions`.  This differs from
+        `_spanify_screen` in that it doesn't apply any logic to detect the
         location of the cursor (to make it just a tiny bit faster).
         """
         # NOTE: See the comments in _spanify_screen() for details on this logic
@@ -3507,7 +3555,7 @@ class Terminal(object):
 
         .. note:: This places <span class="cursor">(current character)</span> around the cursor location.
         """
-        if renditions: # i.e. Use stylized text
+        if renditions: # i.e. Use stylized text (the default)
             screen = self._spanify_screen()
             scrollback = []
             if self.scrollback_buf:
