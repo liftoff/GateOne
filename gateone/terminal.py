@@ -1451,9 +1451,7 @@ class Terminal(object):
         logging.debug('init_screen()')
         self.screen = [array('u', u' ' * self.cols) for a in xrange(self.rows)]
         # Tabstops
-        tabs, remainder = divmod(self.cols, 8) # Default is every 8 chars
-        self.tabstops = [(a*8)-1 for a in xrange(tabs)]
-        self.tabstops[0] = 0 # Fix the first tabstop (which will be -1)
+        self.tabstops = set(range(7, self.cols, 8))
         # Base cursor position
         self.cursorX = 0
         self.cursorY = 0
@@ -2257,12 +2255,12 @@ class Terminal(object):
 
     def horizontal_tab(self):
         """Execute horizontal tab (\\x09)"""
-        next_tabstop = self.cols -1
-        for tabstop in self.tabstops:
-            if tabstop > self.cursorX:
-                next_tabstop = tabstop
+        for stop in sorted(self.tabstops):
+            if self.cursorX < stop:
+                self.cursorX = stop + 1
                 break
-        self.cursorX = next_tabstop
+        else:
+            self.cursorX = self.columns - 1
 
     def _set_tabstop(self):
         """Sets a tabstop at the current position of :attr:`self.cursorX`."""
