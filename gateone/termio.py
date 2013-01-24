@@ -390,7 +390,9 @@ class BaseMultiplex(object):
             syslog=False,
             syslog_host=None,
             syslog_facility=None,
+            encoding='utf-8',
             debug=False):
+        self.encoding = encoding
         self.debug = debug
         self.exitfunc = None
         self.cmd = cmd
@@ -475,6 +477,12 @@ class BaseMultiplex(object):
             )
         )
         return out
+
+    def set_encoding(self, encoding):
+        """
+        Sets the encoding for the terminal emulator to *encoding*.
+        """
+        self.term.encoding = encoding
 
     def add_callback(self, event, callback, identifier=None):
         """
@@ -1321,13 +1329,15 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 self.term = self.terminal_emulator(
                     rows=rows,
                     cols=cols,
-                    em_dimensions=em_dimensions
+                    em_dimensions=em_dimensions,
+                    encoding=self.encoding
                 )
             except TypeError:
                 # Terminal emulator doesn't support em_dimensions.  That's OK
                 self.term = self.terminal_emulator(
                     rows=rows,
-                    cols=cols
+                    cols=cols,
+                    encoding=self.encoding
                 )
             # Tell our IOLoop instance to start watching the child
             self.io_loop.add_handler(

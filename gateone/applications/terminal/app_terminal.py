@@ -34,6 +34,7 @@ from utils import convert_to_timedelta, which
 
 # 3rd party imports
 import tornado.ioloop
+import tornado.web
 from tornado.escape import json_decode
 from tornado.options import options, define
 
@@ -287,6 +288,21 @@ class SharedTermHandler(BaseHandler):
             prefs=prefs
         )
 
+class TermStaticFiles(tornado.web.StaticFileHandler):
+    """
+    Serves static files in the `gateone/applications/terminal/static` directory.
+    """
+    # This is the only function we need to override thanks to the thoughtfulness
+    # of the Tornado devs.
+    def set_extra_headers(self, path):
+        """
+        Adds the Access-Control-Allow-Origin header to allow cross-origin
+        access to static content for applications embedding Gate One.
+        Specifically, this is necessary in order to support loading fonts
+        from different origins.
+        """
+        self.set_header('Access-Control-Allow-Origin', '*')
+
 class TerminalApplication(GOApplication):
     def __init__(self, ws):
         logging.debug("TerminalApplication.__init__(%s)" % ws)
@@ -305,6 +321,7 @@ class TerminalApplication(GOApplication):
         logging.debug("TerminalApplication.initialize()")
         # Register our security policy function
         self.ws.security.update({'terminal': terminal_policies})
+        # Register our WebSocket actions
         self.ws.commands.update({
             'new_terminal': self.new_terminal,
             'set_terminal': self.set_terminal,
@@ -319,9 +336,10 @@ class TerminalApplication(GOApplication):
             'manual_title': self.manual_title,
             'reset_terminal': self.reset_terminal,
             'get_webworker': self.get_webworker,
+            'terminal:set_encoding': self.set_term_encoding,
             'terminal:share_terminal': self.share_terminal,
-            'terminal:unshare_terminal': self.unshare_terminal,
             'terminal:share_user_list': self.share_user_list,
+            'terminal:unshare_terminal': self.unshare_terminal,
             'terminal:list_shared_terminals': self.list_shared_terminals,
             'terminal:attach_shared_terminal': self.attach_shared_terminal,
             'terminal:set_sharing_permissions': self.set_sharing_permissions,
@@ -437,9 +455,11 @@ class TerminalApplication(GOApplication):
         terminal_css = os.path.join(
             APPLICATION_PATH, 'templates', 'terminal.css')
         self.ws.render_and_send_css(terminal_css)
-        # Send the client our terminal.js
+        # Send the client our JavaScript files
         static_dir = os.path.join(APPLICATION_PATH, 'static')
-        for fname in os.listdir(static_dir):
+        js_files = os.listdir(static_dir)
+        js_files.sort()
+        for fname in js_files:
             if fname.endswith('.js'):
                 js_file_path = os.path.join(static_dir, fname)
                 self.ws.send_js(js_file_path)
@@ -570,7 +590,8 @@ class TerminalApplication(GOApplication):
         term_emulator.remove_callback(terminal.CALLBACK_OPT, callback_id)
         term_emulator.remove_callback(terminal.CALLBACK_BELL, callback_id)
 
-    def new_multiplex(self, cmd, term_id, logging=True, debug=False):
+    def new_multiplex(self,
+        cmd, term_id, logging=True, encoding='utf-8', debug=False):
         """
         Returns a new instance of :py:class:`termio.Multiplex` with the proper
         global and client-specific settings.
@@ -655,6 +676,7 @@ class TerminalApplication(GOApplication):
         # TODO: Make these specific to each terminal:
         self.rows = rows = settings['rows']
         self.cols = cols = settings['cols']
+        encoding = settings.get('encoding', 'utf-8')
         # NOTE: 'command' here is actually just the short name of the command.
         #       ...which maps to what's configured the 'commands' part of your
         #       terminal settings.
@@ -735,7 +757,8 @@ class TerminalApplication(GOApplication):
                     resumed_dtach = True
                 else: # No existing dtach session...  Make a new one
                     cmd = "dtach -c %s -E -z -r none %s" % (dtach_path, cmd)
-            m = term_obj['multiplex'] = self.new_multiplex(cmd, term)
+            m = term_obj['multiplex'] = self.new_multiplex(
+                cmd, term, encoding=encoding)
             # Set some environment variables so the programs we execute can use
             # them (very handy).  Allows for "tight integration" and "synergy"!
             env = {
@@ -798,6 +821,19 @@ class TerminalApplication(GOApplication):
                 "WARNING: Logging is set to DEBUG.  All keystrokes will be "
                 "logged!"))
         self.trigger("terminal:new_terminal", term)
+
+    @require(authenticated())
+    def set_term_encoding(self, settings):
+        """
+        Sets the encoding for the given *settings['term']* to
+        *settings['encoding']*.
+        """
+        term = int(settings['term'])
+        encoding = settings['encoding']
+        session_obj = SESSIONS[self.ws.session]
+        term_obj = self.loc_terms[term]
+        m = term_obj['multiplex']
+        m.set_encoding(encoding)
 
     @require(authenticated())
     def move_terminal(self, settings):
@@ -1305,12 +1341,12 @@ class TerminalApplication(GOApplication):
 
     def get_webworker(self):
         """
-        Sends the text of our go_process.js to the client in order to get around
-        the limitations of loading remote Web Worker URLs (for embedding Gate
-        One into other apps).
+        Sends the text of our term_ww.js to the client in order to get
+        around the limitations of loading remote Web Worker URLs (for embedding
+        Gate One into other apps).
         """
         static_url = os.path.join(APPLICATION_PATH, "static")
-        webworker_path = os.path.join(static_url, 'go_process.js')
+        webworker_path = os.path.join(static_url, 'webworkers', 'term_ww.js')
         with open(webworker_path) as f:
             go_process = f.read()
         message = {'load_webworker': go_process}
@@ -1829,3 +1865,9 @@ def init(settings):
 
 # Tell Gate One which classes are applications
 apps = [TerminalApplication]
+# Tell Gate One about our static file handler
+web_handlers = [(
+    r'terminal/static/(.*)',
+    TermStaticFiles,
+    {"path": os.path.join(APPLICATION_PATH, 'static')}
+)]

@@ -18,7 +18,7 @@ var go = GateOne,
     logDebug = GateOne.Logging.logDebug;
 
 // Setup some defaults for our terminal-specific prefs
-go.prefs['webWorker'] = null; // This is the fallback path to Gate One's Web Worker.  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.
+go.prefs['webWorker'] = null; // This is the fallback path to the Terminal's screen processing Web Worker (term_ww.js).  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.  In such situations you'd want to copy term_ww.js to some location on your server and set this variable to that path (e.g. 'https://your-app.company.com/static/term_ww.js').
 go.prefs['scrollback'] = 500, // Amount of lines to keep in the scrollback buffer
 go.prefs['rows'] =  null; // Override the automatically calculated value (null means fill the window)
 go.prefs['cols'] =  null; // Ditto
@@ -78,6 +78,7 @@ go.Base.update(GateOne.Terminal, {
             infoPanelRow3 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow3'}),
             infoPanelRow4 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow4'}),
             infoPanelRow5 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow5'}),
+            infoPanelRow6 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow5'}),
             infoPanelH2 = u.createElement('h2', {'id': 'termtitle'}),
             infoPanelTimeLabel = u.createElement('span', {'id': 'term_time_label', 'style': {'display': 'table-cell'}}),
             infoPanelTime = u.createElement('span', {'id': 'term_time', 'style': {'display': 'table-cell'}}),
@@ -89,6 +90,8 @@ go.Base.update(GateOne.Terminal, {
             infoPanelBackspace = u.createElement('span', {'id': 'backspace', 'style': {'display': 'table-cell'}}),
             infoPanelBackspaceCheckH = u.createElement('input', {'type': 'radio', 'id': 'backspace_h', 'name': 'backspace', 'value': '^H', 'style': {'display': 'table-cell'}}),
             infoPanelBackspaceCheckQ = u.createElement('input', {'type': 'radio', 'id': 'backspace_q', 'name': 'backspace', 'value': '^?', 'style': {'display': 'table-cell'}}),
+            infoPanelEncodingLabel = u.createElement('span', {'id': 'encoding_label', 'style': {'display': 'table-cell'}}),
+            infoPanelEncoding = u.createElement('input', {'type': 'text', 'id': 'encoding', 'name': 'encoding', 'value': 'utf-8', 'style': {'display': 'table-cell'}}),
             infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             infoPanelMonitorActivity = u.createElement('input', {'id': 'monitor_activity', 'type': 'checkbox', 'name': 'monitor_activity', 'value': 'monitor_activity', 'style': {'margin-right': '0.5em'}}),
             infoPanelMonitorActivityLabel = u.createElement('span'),
@@ -131,6 +134,12 @@ go.Base.update(GateOne.Terminal, {
         }
         infoPanelBackspace.appendChild(infoPanelBackspaceCheckH);
         infoPanelBackspace.appendChild(infoPanelBackspaceCheckQ);
+        infoPanelEncodingLabel.innerHTML = "<b>Encoding:</b> ";
+        infoPanelEncoding.onblur = function(e) {
+            // When the user is done editing their encoding make the change immediately
+            go.Terminal.terminals[term]['encoding'] = this.value;
+            go.ws.send(JSON.stringify({'terminal:set_encoding': {'term': term, 'encoding': this.value}}));
+        }
         infoPanel.appendChild(infoPanelH2);
         infoPanel.appendChild(panelClose);
         infoPanel.appendChild(div);
@@ -146,20 +155,23 @@ go.Base.update(GateOne.Terminal, {
         infoPanelRow3.appendChild(infoPanelCols);
         infoPanelRow4.appendChild(infoPanelBackspaceLabel);
         infoPanelRow4.appendChild(infoPanelBackspace);
+        infoPanelRow5.appendChild(infoPanelEncodingLabel);
+        infoPanelRow5.appendChild(infoPanelEncoding);
         tableDiv.appendChild(infoPanelRow1);
         tableDiv.appendChild(infoPanelRow2);
         tableDiv.appendChild(infoPanelRow3);
         tableDiv.appendChild(infoPanelRow4);
+        tableDiv.appendChild(infoPanelRow5);
         infoPanelMonitorActivityLabel.innerHTML = "Monitor for Activity<br />";
         infoPanelMonitorInactivityLabel.innerHTML = "Monitor for ";
         infoPanelInactivityIntervalLabel.innerHTML = "Seconds of Inactivity";
-        infoPanelRow5.appendChild(infoPanelMonitorActivity);
-        infoPanelRow5.appendChild(infoPanelMonitorActivityLabel);
-        infoPanelRow5.appendChild(infoPanelMonitorInactivity);
-        infoPanelRow5.appendChild(infoPanelMonitorInactivityLabel);
-        infoPanelRow5.appendChild(infoPanelInactivityInterval);
-        infoPanelRow5.appendChild(infoPanelInactivityIntervalLabel);
-        tableDiv2.appendChild(infoPanelRow5);
+        infoPanelRow6.appendChild(infoPanelMonitorActivity);
+        infoPanelRow6.appendChild(infoPanelMonitorActivityLabel);
+        infoPanelRow6.appendChild(infoPanelMonitorInactivity);
+        infoPanelRow6.appendChild(infoPanelMonitorInactivityLabel);
+        infoPanelRow6.appendChild(infoPanelInactivityInterval);
+        infoPanelRow6.appendChild(infoPanelInactivityIntervalLabel);
+        tableDiv2.appendChild(infoPanelRow6);
         u.hideElement(infoPanel); // Start out hidden
         go.Visual.applyTransform(infoPanel, 'scale(0)');
         goDiv.appendChild(infoPanel); // Doesn't really matter where it goes
@@ -296,7 +308,7 @@ go.Base.update(GateOne.Terminal, {
         }
         // Load the Web Worker
         if (!go.prefs.webWorker) {
-            go.prefs.webWorker = go.prefs.url + 'static/go_process.js';
+            go.prefs.webWorker = go.prefs.url + 'terminal/static/webworkers/term_ww.js';
         }
         logDebug("Attempting to download our WebWorker...");
         go.ws.send(JSON.stringify({'get_webworker': null}));
@@ -843,7 +855,7 @@ go.Base.update(GateOne.Terminal, {
         t.termUpdatesWorker.onmessage = t.termUpdateFromWorker;
     },
     updateTerminalAction: function(termUpdateObj) {
-        // Takes the updated screen information from *termUpdateObj* and posts it to the go_process.js Web Worker to be processed.
+        // Takes the updated screen information from *termUpdateObj* and posts it to the term_ww.js Web Worker to be processed.
         // The Web Worker is important because it allows offloading of CPU-intensive tasks like linkification and text transforms so they don't block screen updates
         var t = go.Terminal,
             v = go.Visual,
@@ -948,6 +960,7 @@ go.Base.update(GateOne.Terminal, {
             columns: cols,
             mode: 'default', // e.g. 'appmode', 'xterm', etc
             backspace: String.fromCharCode(127), // ^?
+            encoding: 'utf-8',
             screen: [],
             prevScreen: [],
             title: 'Gate One',
@@ -1006,7 +1019,7 @@ go.Base.update(GateOne.Terminal, {
                 }
                 go.Input.queue(pasted);
                 pastearea.value = "";
-                go.Net.sendChars();
+                go.Terminal.sendChars();
                 go.Input.capture();
             },
             pasteareaScroll = function(e) {
@@ -1168,7 +1181,7 @@ go.Base.update(GateOne.Terminal, {
             if (termUndefined) {
                 setTimeout(function () {
                     go.Input.queue(go.prefs.autoConnectURL+'\n');
-                    go.Net.sendChars();
+                    go.Terminal.sendChars();
                 }, 500);
             }
         }

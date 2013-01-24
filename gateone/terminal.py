@@ -1080,7 +1080,7 @@ class Terminal(object):
     RE_SIGINT = re.compile('.*\^C', re.MULTILINE|re.DOTALL)
 
     def __init__(self, rows=24, cols=80, em_dimensions=None, temppath='/tmp',
-        linkpath='/tmp', icondir=None, debug=False):
+        linkpath='/tmp', icondir=None, encoding='utf-8', debug=False):
         """
         Initializes the terminal by calling *self.initialize(rows, cols)*.  This
         is so we can have an equivalent function in situations where __init__()
@@ -1136,6 +1136,7 @@ class Terminal(object):
         self.temppath = temppath
         self.linkpath = linkpath
         self.icondir = icondir
+        self.encoding = encoding
         # This controls how often we send a message to the client when capturing
         # a special file type.  The default is to update the user of progress
         # once every 1.5 seconds.
@@ -1913,7 +1914,7 @@ class Terminal(object):
                             "Got UnicodeEncodeError trying to check FileTypes"))
                         self.esc_buffer = ""
                         # Make it so it won't barf below
-                        chars = chars.encode('UTF-8', 'ignore')
+                        chars = chars.encode(self.encoding, 'ignore')
             if self.capture or self.matched_header:
                 self.capture += chars
                 if self.cancel_capture:
@@ -1996,11 +1997,11 @@ class Terminal(object):
                 return
         # Have to convert to unicode
         try:
-            chars = chars.decode('utf-8', "handle_special")
+            chars = chars.decode(self.encoding, "handle_special")
         except UnicodeDecodeError:
             # Just in case
             try:
-                chars = chars.decode('utf-8', "ignore")
+                chars = chars.decode(self.encoding, "ignore")
             except UnicodeDecodeError:
                 logging.error(
                     _("Double UnicodeDecodeError in terminal.Terminal."))
@@ -2012,21 +2013,6 @@ class Terminal(object):
         for char in chars:
             charnum = ord(char)
             if charnum in specials:
-                # Be intelligent about backspacing double-width Unicode chars:
-                #if charnum == self.ASCII_BS:
-                    #if self.cursorX == 0:
-                        ## This won't do anything but it's good to keep the logic
-                        #specials[charnum]() # Shouldn't move the cursor
-                        #continue
-                    #if backspaced:
-                        #backspaced = False # Reset
-                        #continue # Skip this backspace
-                    #prev_char = self.screen[self.cursorY][self.cursorX-1]
-                    #if unicodedata.east_asian_width(prev_char) == 'W':
-                        ## Double-width char.  Treat backspace special.
-                        #backspaced = True
-                    #specials[charnum]() # Exec backspace
-                #else:
                 specials[charnum]()
             else:
                 # Now handle the regular characters and escape sequences

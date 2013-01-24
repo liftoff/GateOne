@@ -51,7 +51,7 @@ var processLines = function(lines, textTransforms) {
                 try {
                     pattern = Function("return " + pattern)();
                 } catch(e) {
-                    log("Error transforming text inside of the go_process.js Worker: " + e + ", name: " + name + ", pattern: '" + pattern + "'");
+                    log("Error transforming text inside of the term_ww.js Worker: " + e + ", name: " + name + ", pattern: '" + pattern + "'");
                 }
             }
         }

@@ -2090,8 +2090,8 @@ class ErrorHandler(tornado.web.RequestHandler):
     def prepare(self):
         raise tornado.web.HTTPError(self._status_code)
 
-class Application(tornado.web.Application):
-    def __init__(self, settings):
+class GateOneApp(tornado.web.Application):
+    def __init__(self, settings, **kwargs):
         """
         Setup our Tornado application...  Everything in *settings* will wind up
         in the Tornado settings dict so as to be accessible under self.settings.
@@ -2156,18 +2156,22 @@ class Application(tornado.web.Application):
                 "default_filename": "index.html"
             })
         ]
-        # Add plugin /static/ routes
-        for plugin_name in os.listdir(os.path.join(GATEONE_DIR, 'plugins')):
-            plugin_path = os.path.join(GATEONE_DIR, 'plugins', plugin_name)
-            plugin_static_path = os.path.join(plugin_path, 'static')
-            if os.path.exists(plugin_static_path):
-                handlers.append((
-                    r"%sstatic/%s/(.*)" % (url_prefix, plugin_name),
-                    StaticHandler, {"path": plugin_static_path}
-                ))
+        if 'web_handlers' in kwargs:
+            for handler_tuple in kwargs['web_handlers']:
+                regex = handler_tuple[0]
+                handler = handler_tuple[1]
+                kwargs = {}
+                try:
+                    kwargs = handler_tuple[2]
+                except IndexError:
+                    pass # No kwargs for this handler
+                # Make sure the regex is prefix with the url_prefix
+                if not regex.startswith(url_prefix):
+                    regex = "%s%s" % (url_prefix, regex)
+                handlers.append((regex, handler, kwargs))
         # Override the default static handler to ensure the headers are set
         # to allow cross-origin requests.
-        handlers.append( # NOTE: This has to come after the plugin stuff above
+        handlers.append(
             (r"%sstatic/(.*)" % url_prefix, StaticHandler, {"path": static_url}
         ))
         # Hook up the hooks
@@ -2607,12 +2611,15 @@ def main():
     # application has additional calls to define().
     tornado.options.parse_command_line()
     APPLICATIONS = [] # Replace it with a list of actual class instances
+    web_handlers = []
     for module in app_modules:
         module.SESSIONS = SESSIONS
         try:
             APPLICATIONS.extend(module.apps)
             if hasattr(module, 'init'):
                 module.init(all_settings)
+            if hasattr(module, 'web_handlers'):
+                web_handlers.extend(module.web_handlers)
         except AttributeError:
             pass # No apps--probably just a supporting .py file.
     logging.debug(_("Imported applications: %s" % APPLICATIONS))
@@ -3062,7 +3069,8 @@ def main():
     else:
         proto = "https://"
     https_server = tornado.httpserver.HTTPServer(
-        Application(settings=go_settings), ssl_options=ssl_options)
+        GateOneApp(settings=go_settings, web_handlers=web_handlers),
+        ssl_options=ssl_options)
     https_redirect = tornado.web.Application(
         [(r".*", HTTPSRedirectHandler),],
         port=go_settings['port'],

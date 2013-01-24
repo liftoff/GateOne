@@ -2131,7 +2131,6 @@ GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since som
 // Why did I code it this way?  If the user is unaware of this feature when they enter fullscreen mode, they might panic and hit F11 a bunch of times and it's likely they'll break out of fullscreen mode as an instinct :).  The message indicating the behavior will probably help too :D
 GateOne.Input.F11 = false;
 GateOne.Input.F11timer = null;
-GateOne.Input.handledKeystroke = false;
 GateOne.Input.handlingPaste = false;
 GateOne.Input.automaticBackspace = true; // This controls whether or not we'll try to automatically switch between ^H and ^?
 GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.
@@ -2241,8 +2240,6 @@ GateOne.Base.update(GateOne.Input, {
         go.Input.inputNode.tabIndex = 1; // Just in case--this is necessary to set focus
         go.Input.inputNode.onkeydown = go.Input.onKeyDown;
         go.Input.inputNode.onkeyup = go.Input.onKeyUp; // Only used to emulate the meta key modifier (if necessary)
-        // TODO: Investigate if we still need emulateKeyFallback at all
-//         goDiv.onkeypress = go.Input.emulateKeyFallback;
         goDiv.onpaste = go.Input.onPaste;
         goDiv.oncopy = function(e) {
             // After the copy we need to bring the pastearea back up so the context menu will work to paste again
@@ -2889,9 +2886,9 @@ GateOne.Base.update(GateOne.Input, {
         /**:GateOne.Input.emulateKey(e, skipF11check)
 
         This method handles all regular keys registered via onkeydown events (not onkeypress)
-        If *skipF11check* is not undefined (or null), the F11 (fullscreen check) logic will be skipped.
+        If *skipF11check* is true, the F11 (fullscreen check) logic will be skipped.
 
-        .. note:: Shift+key also winds up being handled by this function.
+        .. note:: :kbd:`Shift+key` also winds up being handled by this function.
         */
         var u = go.Utils,
             v = go.Visual,
@@ -2903,11 +2900,9 @@ GateOne.Base.update(GateOne.Input, {
             q = function(c) {
                 e.preventDefault();
                 goIn.queue(c);
-                goIn.handledKeystroke = true;
             },
             term = localStorage[prefix+'selectedTerminal'];
         logDebug("emulateKey() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + u.items(modifiers));
-        goIn.handledKeystroke = false;
         goIn.sentBackspace = false;
         // Need some special logic for the F11 key since it controls fullscreen mode and without it, users could get stuck in fullscreen mode.
         if (!modifiers.shift && goIn.F11 == true && !skipF11check) { // This is the *second* time F11 was pressed within 0.750 seconds.
@@ -2976,13 +2971,11 @@ GateOne.Base.update(GateOne.Input, {
             q = function(c) {
                 e.preventDefault();
                 goIn.queue(c);
-                goIn.handledKeystroke = true;
             };
         if (key.string == "KEY_SHIFT" || key.string == "KEY_ALT" || key.string == "KEY_CTRL" || key.string == "KEY_WINDOWS_LEFT" || key.string == "KEY_WINDOWS_RIGHT" || key.string == "KEY_UNKNOWN") {
             return; // For some reason if you press any combo of these keys at the same time it occasionally will send the keystroke as the second key you press.  It's odd but this ensures we don't act upon such things.
         }
         logDebug("emulateKeyCombo() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
-        goIn.handledKeystroke = false;
         // Handle ctrl-<key> and ctrl-shift-<key> combos
         if (modifiers.ctrl && !modifiers.alt && !modifiers.meta) {
             if (goIn.keyTable[key.string]) {
@@ -3009,7 +3002,6 @@ GateOne.Base.update(GateOne.Input, {
                         if (u.getSelText()) {
                             // Something is slected, let the native keystroke do its thing (it will automatically de-select the text afterwards)
                             go.Visual.displayMessage("Text copied to clipboard.");
-                            goIn.handledKeystroke = true;
                             return;
                         } else {
                             q(String.fromCharCode(key.code - 64)); // Send normal Ctrl-C
@@ -3104,29 +3096,6 @@ GateOne.Base.update(GateOne.Input, {
                         q(goIn.keyTable[key.string]['altgr-meta-shift']);
                     }
                 }
-            }
-        }
-        q = null;
-    },
-    emulateKeyFallback: function(e) {
-        // Meant to be attached to (GateOne.prefs.goDiv).onkeypress, will queue the (character) result of a keypress event if an unknown modifier key is held.
-        // Without this, 3rd and 5th level keystroke events (i.e. the stuff you get when you hold down various combinations of AltGr+<key>) would not work.
-        // NOTE:  This gets assigned to goDiv.onkeypress (keypress events get fired *after* keydown and keyup events)
-        logDebug("emulateKeyFallback() charCode: " + e.charCode + ", keyCode: " + e.keyCode);
-        var goIn = go.Input,
-            q = function(c) {
-                e.preventDefault();
-                goIn.queue(c);
-                goIn.handledKeystroke = false;
-            };
-        if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
-            return; // Let the browser handle it if the user is editing something
-            // NOTE: Doesn't actually work so well so we have GateOne.Input.disableCapture() as a fallback :)
-        }
-        if (!goIn.handledKeystroke) {
-            if (e.charCode != 0) {
-                q(String.fromCharCode(e.charCode));
-                go.Terminal.sendChars();
             }
         }
         q = null;
