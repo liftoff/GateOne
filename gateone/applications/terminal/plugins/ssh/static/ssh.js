@@ -2,15 +2,18 @@
 (function(window, undefined) { // Sandbox it all
 var document = window.document; // Have to do this because we're sandboxed
 
-// Useful sandbox-wide stuff
-var noop = GateOne.Utils.noop;
-
-// Sandbox-wide shortcuts for each log level (actually assigned in init())
-var logFatal = noop,
-    logError = noop,
-    logWarning = noop,
-    logInfo = noop,
-    logDebug = noop;
+// Sandbox-wide shortcuts
+var go = GateOne,
+    prefix = go.prefs.prefix,
+    u = go.Utils,
+    v = go.Visual,
+    E = go.Events,
+    urlObj = (window.URL || window.webkitURL),
+    logFatal = GateOne.Logging.logFatal,
+    logError = GateOne.Logging.logError,
+    logWarning = GateOne.Logging.logWarning,
+    logInfo = GateOne.Logging.logInfo,
+    logDebug = GateOne.Logging.logDebug;
 
 // GateOne.SSH (ssh client functions)
 GateOne.Base.module(GateOne, "SSH", "1.1", ['Base']);
@@ -34,10 +37,7 @@ GateOne.Base.update(GateOne.SSH, {
             GateOne.Net.addAction('sshjs_ask_passphrase', GateOne.SSH.enterPassphraseAction);
             GateOne.Events.on("terminal:new_terminal", GateOne.SSH.getConnectString);
         */
-        var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
+        var prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
             infoPanel = u.getNode('#'+prefix+'panel_info'),
             h3 = u.createElement('h3'),
             sshQueryString = u.getQueryVariable('ssh'),
@@ -80,8 +80,8 @@ GateOne.Base.update(GateOne.SSH, {
                 if (u.startsWith('ssh://', sshQueryString) || u.startsWith('telnet://', sshQueryString)) {
                     var connect = function(term) {
                         // This ensures that we only send this string if it's a new terminal
-                        if (GateOne.Terminal.terminals[term]['title'] == 'Gate One') {
-                            go.Net.sendString(sshQueryString + '\n', term);
+                        if (go.Terminal.terminals[term]['title'] == 'Gate One') {
+                            go.Terminal.sendString(sshQueryString + '\n', term);
                         }
                     }
                     go.Events.on("terminal:new_terminal", connect);
@@ -93,14 +93,14 @@ GateOne.Base.update(GateOne.SSH, {
             }
         }
         // Setup a callback that runs disableCapture() whenever the panel is opened
-        go.Events.on('go:panel_toggle:in', function(panel) {
-            if (panel.id == go.prefs.prefix+'panel_ssh_ids') {
+        E.on('go:panel_toggle:in', function(panel) {
+            if (panel.id == prefix+'panel_ssh_ids') {
                 go.Input.disableCapture();
             }
         });
         // Setup a callback that runs capture() whenever the panel is closed
-        go.Events.on('go:panel_toggle:out', function(panel) {
-            if (panel.id == go.prefs.prefix+'panel_ssh_ids') {
+        E.on('go:panel_toggle:out', function(panel) {
+            if (panel.id == prefix+'panel_ssh_ids') {
                 go.Input.capture();
             }
         });
@@ -114,7 +114,7 @@ GateOne.Base.update(GateOne.SSH, {
         go.Net.addAction('sshjs_delete_identity_complete', go.SSH.deleteCompleteAction);
         go.Net.addAction('sshjs_cmd_output', go.SSH.commandCompleted);
         go.Net.addAction('sshjs_ask_passphrase', go.SSH.enterPassphraseAction);
-        go.Events.on("terminal:new_terminal", go.SSH.getConnectString);
+        E.on("terminal:new_terminal", go.SSH.getConnectString);
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
         }
@@ -124,10 +124,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         Creates the SSH identity management panel (the shell of it anyway).
         */
-        var go = GateOne,
-            u = go.Utils,
-            ssh = go.SSH,
-            prefix = go.prefs.prefix,
+        var ssh = go.SSH,
             existingPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
             sshIDPanel = u.createElement('div', {'id': 'panel_ssh_ids', 'class': 'panel sectrans ✈panel_ssh_ids'}),
             sshIDHeader = u.createElement('div', {'id': 'ssh_ids_header', 'class': 'sectrans'}),
@@ -151,7 +148,7 @@ GateOne.Base.update(GateOne.SSH, {
         sshIDHeaderH2.innerHTML = 'SSH Identity Manager: Loading...';
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
-            GateOne.Visual.togglePanel('#'+GateOne.prefs.prefix+'panel_ssh_ids'); // Scale away, scale away, scale away.
+            v.togglePanel('#'+prefix+'panel_ssh_ids'); // Scale away, scale away, scale away.
         }
         sshIDHeader.appendChild(sshIDHeaderH2);
         sshIDHeader.appendChild(panelClose);
@@ -166,7 +163,7 @@ GateOne.Base.update(GateOne.SSH, {
             // Show the upload identity dialog/form
             ssh.uploadIDForm();
         }
-        go.Visual.applyTransform(sshIDMetadataDiv, 'translate(300%)'); // It gets translated back in showIDs
+        v.applyTransform(sshIDMetadataDiv, 'translate(300%)'); // It gets translated back in showIDs
         sshIDInfoContainer.appendChild(sshIDMetadataDiv);
         sshIDContent.appendChild(sshIDInfoContainer);
         if (ssh.sortToggle) {
@@ -317,15 +314,12 @@ GateOne.Base.update(GateOne.SSH, {
 
         Toggles the SSH Identity Manager into view (if not already visible) and asks the server to send us our list of identities.
         */
-        var go = GateOne,
-            u = go.Utils,
-            ssh = go.SSH,
-            prefix = go.prefs.prefix,
+        var ssh = go.SSH,
             existingPanel = u.getNode('#'+prefix+'panel_ssh_ids');
         ssh.delay = 500; // Reset it
         // Make sure the panel is visible
-        if (go.Visual.getTransform(existingPanel) != "scale(1)") {
-            go.Visual.togglePanel('#'+prefix+'panel_ssh_ids');
+        if (v.getTransform(existingPanel) != "scale(1)") {
+            v.togglePanel('#'+prefix+'panel_ssh_ids');
         }
         // Kick off the process to list them
         go.ws.send(JSON.stringify({'ssh_get_identities': true}));
@@ -335,10 +329,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         This gets attached to the 'sshjs_identities_list' WebSocket action.  Adds *message['identities']* to `GateOne.SSH.identities` and places them into the Identity Manager.
         */
-        var go = GateOne,
-            u = go.Utils,
-            ssh = go.SSH,
-            prefix = go.prefs.prefix,
+        var ssh = go.SSH,
             existingPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
             sshIDHeaderH2 = u.getNode('#'+prefix+'ssh_ids_title'),
             sshIDMetadataDiv = u.getNode('#'+prefix+'ssh_id_metadata'),
@@ -365,7 +356,7 @@ GateOne.Base.update(GateOne.SSH, {
         }
         sshIDMetadataDiv.innerHTML = '<p id="' + prefix + 'ssh_id_tip"><i><b>Tip:</b> Click on an identity to see its information.</i></p>';
         setTimeout(function() {
-            go.Visual.applyTransform(sshIDMetadataDiv, '');
+            v.applyTransform(sshIDMetadataDiv, '');
             setTimeout(function() {
                 var tip = u.getNode('#'+prefix+'ssh_id_tip');
                 if (tip) {
@@ -391,10 +382,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         Displays the information about the given *identity* (its name) in the SSH identities metadata area (on the right).  Also displays the buttons that allow the user to delete the identity or upload a certificate.
         */
-        var go = GateOne,
-            u = go.Utils,
-            ssh = go.SSH,
-            prefix = go.prefs.prefix,
+        var ssh = go.SSH,
             downloadButton = u.createElement('button', {'id': 'ssh_id_download', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             deleteIDButton = u.createElement('button', {'id': 'ssh_id_delete', 'class': '✈ssh_id_delete', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             uploadCertificateButton = u.createElement('button', {'id': 'ssh_id_upload_cert', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
@@ -498,10 +486,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         *delay* controls how long it will wait before using a CSS3 effect to move it into view.
         */
-        var go = GateOne,
-            u = go.Utils,
-            ssh = go.SSH,
-            prefix = go.prefs.prefix,
+        var ssh = go.SSH,
             elem = u.createElement('div', {'class':'sectrans ssh_id', 'name': '✈ssh_id'}),
             IDViewOptions = u.createElement('span', {'class': 'ssh_id_options'}),
             viewPubKey = u.createElement('a'),
@@ -523,7 +508,7 @@ GateOne.Base.update(GateOne.SSH, {
                     newDefaults.push(idNode.value);
                 }
             });
-            GateOne.ws.send(JSON.stringify({'ssh_set_default_identities': newDefaults}));
+            go.ws.send(JSON.stringify({'ssh_set_default_identities': newDefaults}));
         }
         defaultSpan.appendChild(defaultCheckbox);
         nameSpan.innerHTML = "<b>" + IDObj['name'] + "</b>";
@@ -552,7 +537,7 @@ GateOne.Base.update(GateOne.SSH, {
             }
         }
         elem.style.opacity = 0;
-        go.Visual.applyTransform(elem, 'translateX(-300%)');
+        v.applyTransform(elem, 'translateX(-300%)');
         setTimeout(function() {
             // Fade it in
             elem.style.opacity = 1;
@@ -564,7 +549,7 @@ GateOne.Base.update(GateOne.SSH, {
         }
         setTimeout(function() {
             try {
-                go.Visual.applyTransform(elem, '');
+                v.applyTransform(elem, '');
             } catch(e) {
                 u.noop(); // Element was removed already.  No biggie.
             }
@@ -577,9 +562,7 @@ GateOne.Base.update(GateOne.SSH, {
         Calculates and returns the number of SSH identities that will fit in the given element ID (elem).
         */
         try {
-            var go = GateOne,
-                ssh = go.SSH,
-                u = go.Utils,
+            var ssh = go.SSH,
                 node = u.getNode(elem),
                 tempID = {
                     'bits': '2048',
@@ -614,10 +597,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         Displays the dialog/form where the user can create or edit an SSH identity.
         */
-        var go = GateOne,
-            u = go.Utils,
-            ssh = go.SSH,
-            prefix = go.prefs.prefix,
+        var ssh = go.SSH,
             goDiv = u.getNode(go.prefs.goDiv),
             sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
             identityForm = u.createElement('form', {'name': prefix+'ssh_id_form', 'class': 'ssh_id_form'}),
@@ -766,11 +746,8 @@ GateOne.Base.update(GateOne.SSH, {
 
         Displays the dialog/form where a user can upload an SSH identity (that's already been created).
         */
-        var go = GateOne,
-            u = go.Utils,
-            ssh = go.SSH,
-            prefix = go.prefs.prefix,
-            goDiv = u.getNode(go.prefs.goDiv),
+        var ssh = go.SSH,
+            goDiv = go.node,
             sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
             uploadIDForm = u.createElement('form', {'name': prefix+'ssh_upload_id_form', 'class': 'ssh_id_form'}),
             privateKeyFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_privatekey', 'name': prefix+'ssh_upload_id_privatekey', 'required': 'required'}),
@@ -871,10 +848,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         *identity* should be the name of the identity associated with this certificate.
         */
-        var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            goDiv = u.getNode(go.prefs.goDiv),
+        var goDiv = go.node,
             sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
             uploadCertForm = u.createElement('form', {'name': prefix+'ssh_upload_cert_form', 'class': 'ssh_id_form'}),
             certificateFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_cert', 'name': prefix+'ssh_upload_id_cert'}),
@@ -916,10 +890,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         Displays the dialog/form where a user can enter a passphrase for a given identity (called by the server if something requires it).
         */
-        var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            goDiv = u.getNode(go.prefs.goDiv),
+        var goDiv = go.node,
             sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
             passphraseForm = u.createElement('form', {'name': prefix+'ssh_passphrase_form', 'class': 'ssh_id_form'}),
             passphrase = u.createElement('input', {'type': 'password', 'id': 'ssh_passphrase', 'name': prefix+'ssh_passphrase'}),
@@ -962,14 +933,14 @@ GateOne.Base.update(GateOne.SSH, {
 
         Asks the SSH plugin on the Gate One server what the SSH connection string is for the given *term*.
         */
-        GateOne.ws.send(JSON.stringify({'ssh_get_connect_string': term}));
+        go.ws.send(JSON.stringify({'ssh_get_connect_string': term}));
     },
     deleteCompleteAction: function(message) {
         /**:GateOne.SSH.deleteCompleteAction(message)
 
         Called when an identity is deleted, calls :js:meth:`GateOne.SSH.loadIDs`
         */
-        GateOne.SSH.loadIDs();
+        go.SSH.loadIDs();
     },
     handleConnect: function(connectString) {
         /**:GateOne.SSH.handleConnect(connectString)
@@ -1011,9 +982,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         Called when we receive a message from the server indicating a keypair was generated successfully.
         */
-        var go = GateOne,
-            ssh = go.SSH,
-            v = go.Visual;
+        var ssh = go.SSH;
         if (message['result'] == 'Success') {
             v.displayMessage('Keypair generation complete.');
         } else {
@@ -1026,9 +995,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         Called when we receive a message from the server indicating the uploaded identity was saved.
         */
-        var go = GateOne,
-            ssh = go.SSH,
-            v = go.Visual;
+        var ssh = go.SSH;
         if (message['result'] == 'Success') {
             v.displayMessage('Identity saved successfully.');
         } else {
@@ -1041,12 +1008,10 @@ GateOne.Base.update(GateOne.SSH, {
 
         Duplicates the SSH session at *term* in a new terminal.
         */
-        var go = GateOne,
-            E = go.Events,
-            connectString = GateOne.Terminal.terminals[term]['sshConnectString'],
+        var connectString = go.Terminal.terminals[term]['sshConnectString'],
             connectFunc = function(term) {
                 // This gets attached to the "new_terminal" event
-                GateOne.Net.sendString('ssh://' + connectString + '\n', term);
+                go.Terminal.sendString('ssh://' + connectString + '\n', term);
             }
         if (!connectString.length) {
             return; // Can't do anything without a connection string!
@@ -1064,13 +1029,10 @@ GateOne.Base.update(GateOne.SSH, {
 
         .. note:: Meant to be used as a callback function passed to :js:meth:`GateOne.Utils.xhrGet`.
         */
-        var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            sshKHTextArea = u.getNode('#'+prefix+'ssh_kh_textarea');
+        var sshKHTextArea = u.getNode('#'+prefix+'ssh_kh_textarea');
         sshKHTextArea.value = known_hosts;
         // Now show the panel
-        go.Visual.togglePanel('#'+prefix+'panel_known_hosts');
+        v.togglePanel('#'+prefix+'panel_known_hosts');
     },
     createKHPanel: function() {
         /**:GateOne.SSH.createKHPanel()
@@ -1079,10 +1041,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         If the panel already exists its contents will be destroyed and re-created.
         */
-        var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            existingPanel = u.getNode('#'+prefix+'panel_known_hosts'),
+        var existingPanel = u.getNode('#'+prefix+'panel_known_hosts'),
             sshPanel = u.createElement('div', {'id': 'panel_known_hosts', 'class': 'panel sectrans'}),
             sshHeader = u.createElement('div', {'id': 'ssh_header', 'class': 'sectrans'}),
             sshHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
@@ -1099,7 +1058,7 @@ GateOne.Base.update(GateOne.SSH, {
         cancel.innerHTML = "Cancel";
         cancel.onclick = function(e) {
             e.preventDefault(); // Don't submit the form
-            go.Visual.togglePanel('#'+prefix+'panel_known_hosts'); // Hide the panel
+            v.togglePanel('#'+prefix+'panel_known_hosts'); // Hide the panel
         }
         sshKHTextArea.onfocus = function(e) {
             sshKHTextArea.focus();
@@ -1121,9 +1080,9 @@ GateOne.Base.update(GateOne.SSH, {
                         return;
                     }
                     if (e.target.readyState == 4 && status == 200 && e.target.responseText) {
-                        go.Visual.displayMessage("SSH Plugin: known_hosts saved.");
+                        v.displayMessage("SSH Plugin: known_hosts saved.");
                         // Hide the panel
-                        go.Visual.togglePanel('#'+prefix+'panel_known_hosts');
+                        v.togglePanel('#'+prefix+'panel_known_hosts');
                     }
                 };
             if (xhr.addEventListener) {
@@ -1160,8 +1119,6 @@ GateOne.Base.update(GateOne.SSH, {
         The fingerprint will be colorized using the hex values of the fingerprint as the color code with the last value highlighted in bold.
         */
         // Example message: {"sshjs_display_fingerprint": {"result": "Success", "fingerprint": "cc:2f:b9:4f:f6:c0:e5:1d:1b:7a:86:7b:ff:86:97:5b"}}
-        var go = GateOne,
-            v = go.Visual;
         if (message['result'] == 'Success') {
             var fingerprint = message['fingerprint'],
                 hexes = fingerprint.split(':'),
@@ -1206,13 +1163,12 @@ GateOne.Base.update(GateOne.SSH, {
 
         Otherwise the output will just be displayed to the user.  After the callback has executed it will be removed from `GateOne.SSH.remoteCmdCallbacks`.
         */
-        var go = GateOne,
-            term = message['term'],
+        var term = message['term'],
             cmd = message['cmd'],
             output = message['output'],
             result = message['result'];
         if (result != 'Success') {
-            go.Visual.displayMessage("Error executing background command, '" + cmd + "' on terminal " + term + ": " + result);
+            v.displayMessage("Error executing background command, '" + cmd + "' on terminal " + term + ": " + result);
             if (go.SSH.remoteCmdErrorbacks[term][cmd]) {
                 go.SSH.remoteCmdErrorbacks[term][cmd](result);
                 delete go.SSH.remoteCmdErrorbacks[term][cmd];
@@ -1223,7 +1179,7 @@ GateOne.Base.update(GateOne.SSH, {
             go.SSH.remoteCmdCallbacks[term][cmd](output);
             delete go.SSH.remoteCmdCallbacks[term][cmd];
         } else { // If you don't have an associated callback it will display and log the output:  VERY useful in debugging!
-            go.Visual.displayMessage("Remote command output from terminal " + term + ": " + output);
+            v.displayMessage("Remote command output from terminal " + term + ": " + output);
         }
     },
     execRemoteCmd: function(term, command, callback, errorback) {
@@ -1235,8 +1191,7 @@ GateOne.Base.update(GateOne.SSH, {
 
         Calls *errorback* if there's an error executing the command.
         */
-        var go = GateOne,
-            ssh = go.SSH;
+        var ssh = go.SSH;
         // Create an associative array to keep track of which callback belongs to which command (so we can support multiple simultaneous commands/callbacks for the same terminal)
         if (!ssh.remoteCmdCallbacks[term]) {
             ssh.remoteCmdCallbacks[term] = {};
