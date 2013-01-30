@@ -396,7 +396,7 @@ def openssh_connect(
         os.setsid() # This is the key
     # Execute then immediately quit so we don't use up any more memory than we
     # need.
-    os.execvpe(script_path, [], env)
+    os.execvpe(script_path, [''], env)
     os._exit(0)
 
 def telnet_connect(user, host, port=23, env=None):

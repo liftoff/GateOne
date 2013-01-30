@@ -1,4 +1,6 @@
-
+/**:GateOne.Convenience
+Provides numerous syntax highlighting functions and conveniences to provide quick and useful information to the user.
+*/
 (function(window, undefined) {
 var document = window.document; // Have to do this because we're sandboxed
 
@@ -397,6 +399,7 @@ GateOne.Base.update(GateOne.Convenience, {
         // Sometimes the browser registers one click for the entire row sometimes it registers two clicks:  One for the row and one for the span inside of it.
         // Sometimes the browser will only register a click for the span inside of the row--failing to fire the containing row's onclick event.
         // The semi-strange logic below handles all of these situations gracefully.
+        return; // Temporarily disabled because it was getting annoying.  Might get rid of it entirely in the future.
         if (go.Convenience.togglingBackground) {
             return; // Only once per click thanks :)
         }

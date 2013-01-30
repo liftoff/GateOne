@@ -249,6 +249,7 @@ import pty
 import atexit
 import ssl
 import hashlib
+import time
 from functools import wraps
 from datetime import datetime, timedelta
 
@@ -273,8 +274,8 @@ except ImportError:
           "--upgrade tornado'\x1b[0m.")
     sys.exit(1)
 
-if tornado_version_info[0] < 2 and tornado_version_info[1] < 2:
-    print("\x1b[31;1mERROR:\x1b[0m Gate One requires version 2.2+ of the "
+if tornado_version_info[0] < 2 and tornado_version_info[1] < 4:
+    print("\x1b[31;1mERROR:\x1b[0m Gate One requires version 2.4+ of the "
             "Tornado framework.  The installed version of Tornado is version "
             "%s." % tornado_version)
     sys.exit(1)
@@ -856,9 +857,11 @@ class ApplicationWebSocket(WebSocketHandler):
         self.commands = {
             'ping': self.pong,
             'authenticate': self.authenticate,
-            'get_style': self.get_style,
+            'get_theme': self.get_theme,
             'get_js': self.get_js,
             'enumerate_themes': self.enumerate_themes,
+            'go:file_request': self.file_request,
+            'go:cache_cleanup': self.cache_cleanup,
             'go:send_user_message': self.send_user_message,
             'go:broadcast': self.broadcast
         }
@@ -1471,6 +1474,7 @@ class ApplicationWebSocket(WebSocketHandler):
                 SESSIONS[self.session]['locations'][self.location] = {}
         # A shortcut for SESSIONS[self.session]['locations']:
         self.locations = SESSIONS[self.session]['locations']
+        policy = applicable_policies("gateone", self.current_user, self.prefs)
         # Send our plugin .js and .css files to the client
         self.send_plugin_static_files(os.path.join(GATEONE_DIR, 'plugins'))
         # Call applications' authenticate() functions (if any)
@@ -1479,6 +1483,30 @@ class ApplicationWebSocket(WebSocketHandler):
                 app.authenticate()
         # This is just so the client has a human-readable point of reference:
         message = {'set_username': self.current_user['upn']}
+        self.write_message(json_encode(message))
+        # Tell the client which applications are available
+        enabled_applications = policy.get('enabled_applications', [])
+        if not enabled_applications:
+            for app in self.apps: # Use the app's name attribute
+                name = str(app)
+                if hasattr(app, 'name'):
+                    name = app.name
+                enabled_applications.append(name)
+        # I've been using these for testing stuff...  Ignore
+        #enabled_applications.append("Bookmarks")
+        #enabled_applications.append("Terminal: Nethack")
+        #enabled_applications.append("Terminal: Login")
+        #enabled_applications.append("Admin")
+        #enabled_applications.append("IRC")
+        #enabled_applications.append("Log Viewer")
+        #enabled_applications.append("Help")
+        #enabled_applications.append("X11 Desktop")
+        #enabled_applications.append("RDP")
+        #enabled_applications.append("VNC")
+        enabled_applications.sort()
+        # Use this user's specific allowed list of applications if possible:
+        user_apps = policy.get('user_applications', enabled_applications)
+        message = {'go:applications': user_apps}
         self.write_message(json_encode(message))
         # Startup the session watcher if it isn't already running
         global SESSION_WATCHER
@@ -1549,22 +1577,18 @@ class ApplicationWebSocket(WebSocketHandler):
                     os.remove(os.path.join(cache_dir, fname))
         return rendered_path
 
-    def get_style(self, settings):
+    def get_theme(self, settings):
         """
-        Sends the CSS stylesheets matching the properties specified in
+        Sends the theme stylesheets matching the properties specified in
         *settings* to the client.  *settings* must contain the following:
 
             * **container** - The element Gate One resides in (e.g. 'gateone')
             * **prefix** - The string being used to prefix all elements (e.g. 'go\_')
-
-        *settings* may also contain any combination of the following:
-
             * **theme** - The name of the CSS theme to be retrieved.
-            * **colors** - The name of the text color CSS scheme to be retrieved.
-            * **plugins** - If true, will send all plugin .css files to the client.
-            * **print** - If true, will send the print stylesheet.
+
+        .. note:: This will send the theme files for all applications and plugins that have a matching stylesheet in their 'templates' directory.
         """
-        logging.debug('get_style(%s)' % settings)
+        logging.debug('get_theme(%s)' % settings)
         send_css = self.prefs['*']['gateone'].get('send_css', True)
         if not send_css:
             if not hasattr('logged_css_message', self):
@@ -1573,53 +1597,64 @@ class ApplicationWebSocket(WebSocketHandler):
             # So we don't repeat this message a zillion times in the logs:
             self.logged_css_message = True
             return
-        from utils import get_or_cache
+        use_client_cache = self.prefs['*']['gateone'].get(
+            'use_client_cache', False)
         cache_dir = self.prefs['*']['gateone']['cache_dir']
         if not os.path.exists(cache_dir):
             mkdir_p(cache_dir)
-        out_dict = {'result': 'Success'}
         templates_path = os.path.join(GATEONE_DIR, 'templates')
         themes_path = os.path.join(templates_path, 'themes')
-        colors_path = os.path.join(templates_path, 'term_colors')
-        printing_path = os.path.join(templates_path, 'printing')
+        #printing_path = os.path.join(templates_path, 'printing')
         go_url = settings['go_url'] # Used to prefix the url_prefix
         if not go_url.endswith('/'):
             go_url += '/'
         container = settings["container"]
         prefix = settings["prefix"]
-        theme = None
-        if 'theme' in settings:
-            theme = settings["theme"]
-        colors = None
-        if 'colors' in settings:
-            colors = settings["colors"]
-        plugins = None
-        if 'plugins' in settings:
-            plugins = settings["plugins"]
-        _print = None
-        if 'print' in settings:
-            _print = settings["print"]
+        theme = settings["theme"]
         template_args = dict(
             container=container,
             prefix=prefix,
             url_prefix=go_url
         )
-        if theme:
-            theme_filename = "%s.css" % theme
-            theme_path = os.path.join(themes_path, theme_filename)
+        out_dict = {'files': []}
+        theme_filename = "%s.css" % theme
+        theme_path = os.path.join(themes_path, theme_filename)
+        rendered_path = self.render_style(
+            theme_path, **template_args)
+        filename = os.path.split(rendered_path)[1]
+        mtime = os.stat(rendered_path).st_mtime
+        kind = 'css'
+        theme_files = []
+        theme_files.append(rendered_path)
+        # Now enumerate all applications/plugins looking for their own
+        # implementations of this theme (must have same name).
+        theme_paths = []
+        plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
+        # Find plugin's theme-specific CSS files
+        for plugin in os.listdir(plugins_dir):
+            plugin_dir = os.path.join(plugins_dir, plugin)
+            themes_dir = os.path.join(plugin_dir, 'templates', 'themes')
+            theme_css_file = os.path.join(themes_dir, theme_filename)
+            if not os.path.exists(theme_css_file):
+                continue
             rendered_path = self.render_style(
-                theme_path, **template_args)
-            if self.settings['debug']:
-                out_dict['theme'] = get_or_cache(
-                    cache_dir, rendered_path, minify=False)
-            else:
-                out_dict['theme'] = get_or_cache(
-                    cache_dir, rendered_path, minify=True)
-            # Now enumerate all applications/plugins looking for their own
-            # implementations of this theme (must have same name).
-            theme_paths = []
-            plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
-            # Find plugin's theme-specific CSS files
+                theme_css_file, **template_args)
+            theme_files.append(rendered_path)
+        # Find application's theme-specific CSS files
+        applications_dir = os.path.join(GATEONE_DIR, 'applications')
+        for app in os.listdir(applications_dir):
+            app_dir = os.path.join(applications_dir, app)
+            themes_dir = os.path.join(app_dir, 'templates', 'themes')
+            theme_css_file = os.path.join(themes_dir, theme_filename)
+            if not os.path.exists(theme_css_file):
+                continue
+            rendered_path = self.render_style(
+                theme_css_file, **template_args)
+            theme_files.append(rendered_path)
+            # Find application plugin's theme-specific CSS files
+            plugins_dir = os.path.join(app_dir, 'plugins')
+            if not os.path.exists(plugins_dir):
+                continue
             for plugin in os.listdir(plugins_dir):
                 plugin_dir = os.path.join(plugins_dir, plugin)
                 themes_dir = os.path.join(plugin_dir, 'templates', 'themes')
@@ -1628,92 +1663,40 @@ class ApplicationWebSocket(WebSocketHandler):
                     continue
                 rendered_path = self.render_style(
                     theme_css_file, **template_args)
-                if self.settings['debug']:
-                    out_dict['theme'] += '\n' + get_or_cache(
-                        cache_dir, rendered_path, minify=False)
-                else:
-                    out_dict['theme'] += '\n' + get_or_cache(
-                        cache_dir, rendered_path, minify=True)
-            # Find application's theme-specific CSS files
-            applications_dir = os.path.join(GATEONE_DIR, 'applications')
-            for app in os.listdir(applications_dir):
-                app_dir = os.path.join(applications_dir, app)
-                themes_dir = os.path.join(app_dir, 'templates', 'themes')
-                theme_css_file = os.path.join(themes_dir, theme_filename)
-                if not os.path.exists(theme_css_file):
-                    continue
-                rendered_path = self.render_style(
-                    theme_css_file, **template_args)
-                if self.settings['debug']:
-                    out_dict['theme'] += '\n' + get_or_cache(
-                        cache_dir, rendered_path, minify=False)
-                else:
-                    out_dict['theme'] += '\n' + get_or_cache(
-                        cache_dir, rendered_path, minify=True)
-                # Find application plugin's theme-specific CSS files
-                plugins_dir = os.path.join(app_dir, 'plugins')
-                if not os.path.exists(plugins_dir):
-                    continue
-                for plugin in os.listdir(plugins_dir):
-                    plugin_dir = os.path.join(plugins_dir, plugin)
-                    themes_dir = os.path.join(plugin_dir, 'templates', 'themes')
-                    theme_css_file = os.path.join(themes_dir, theme_filename)
-                    if not os.path.exists(theme_css_file):
-                        continue
-                    rendered_path = self.render_style(
-                        theme_css_file, **template_args)
-                    if self.settings['debug']:
-                        out_dict['theme'] += '\n' + get_or_cache(
-                            cache_dir, rendered_path, minify=False)
-                    else:
-                        out_dict['theme'] += '\n' + get_or_cache(
-                            cache_dir, rendered_path, minify=True)
-        # TODO: Move text color themes into the terminal application
-        if colors:
-            color_path = os.path.join(colors_path, "%s.css" % colors)
-            rendered_path = self.render_style(color_path, **template_args)
-            if self.settings['debug']:
-                out_dict['colors'] = get_or_cache(
-                    cache_dir, rendered_path, minify=False)
-            else:
-                out_dict['colors'] =  get_or_cache(
-                    cache_dir, rendered_path, minify=True)
-        if plugins:
-            # Build a dict of plugins
-            out_dict['plugins'] = {}
-            plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
-            for f in os.listdir(plugins_dir):
-                if os.path.isdir(os.path.join(plugins_dir, f)):
-                    out_dict['plugins'][f] = ''
-            # Add each plugin's CSS template(s) to its respective dict
-            for plugin in list(out_dict['plugins'].keys()):
-                plugin_templates_path = os.path.join(
-                    plugins_dir, plugin, 'templates')
-                if os.path.exists(plugin_templates_path):
-                    for f in os.listdir(plugin_templates_path):
-                        if f.endswith('.css'):
-                            plugin_css_path = os.path.join(
-                                plugin_templates_path, f)
-                            rendered_path = self.render_style(
-                                plugin_css_path, **template_args)
-                            if self.settings['debug']:
-                                out_dict['plugins'][plugin] += '\n'
-                                out_dict['plugins'][plugin] += get_or_cache(
-                                    cache_dir, rendered_path, minify=False)
-                            else:
-                                out_dict['plugins'][plugin] += '\n'
-                                out_dict['plugins'][plugin] += get_or_cache(
-                                    cache_dir, rendered_path, minify=True)
-        if _print:
-            print_css_path = os.path.join(printing_path, "default.css")
-            rendered_path = self.render_style(print_css_path, **template_args)
-            if self.settings['debug']:
-                out_dict['print'] = get_or_cache(
-                    cache_dir, rendered_path, minify=False)
-            else:
-                out_dict['print'] = get_or_cache(
-                    cache_dir, rendered_path, minify=True)
-        self.write_message(json_encode({'load_style': out_dict}))
+                theme_files.append(rendered_path)
+        #print_css_path = os.path.join(printing_path, "default.css")
+        #rendered_path = self.render_style(print_css_path, **template_args)
+        # TODO: Do something about the print stylesheet (needs to go in terminal)
+        # Combine the theme files into one
+        # Don't need a hashed name for the theme:
+        filename = 'theme.css'
+        cached_theme_path = os.path.join(cache_dir, filename)
+        with open(cached_theme_path, 'w') as f:
+            for path in theme_files:
+                f.write(open(path).read())
+        mtime = os.stat(rendered_path).st_mtime
+        if self.settings['debug']:
+            # This makes sure that the files are always re-downloaded
+            mtime = time.time()
+        out_dict['files'].append({
+            'filename': filename,
+            'mtime': mtime,
+            'kind': kind,
+            'element_id': 'theme'
+        })
+        self.file_cache[filename] = {
+            'filename': filename,
+            'kind': kind,
+            'path': cached_theme_path,
+            'mtime': mtime,
+            'element_id': 'theme'
+        }
+        if use_client_cache:
+            message = {'go:file_sync': out_dict}
+            self.write_message(message)
+        else:
+            files = [a['filename'] for a in out_dict['files']]
+            self.file_request(files, use_client_cache=use_client_cache)
 
     @require(authenticated())
     def get_js(self, filename):
@@ -1756,54 +1739,142 @@ class ApplicationWebSocket(WebSocketHandler):
         message = {'load_js': out_dict}
         self.write_message(message)
 
-# NOTE:  This is a work in progress...  May be on hold for a while
-    #def send_cache_request(self, path_or_fileobj, kind):
-        #"""
-        #Asks the client to use the cached copy of the given file at
-        #*path_or_fileobj* by sending it the filename and it's modification time.
-        #If the modification time does not match what's in the client's cache the
-        #client is expected to send a request for the full file using the
-        #'load_style' or 'load_js' WebSocket actions.
-        #"""
-        #if isinstance(path_or_fileobj, basestring):
-            #path = path_or_fileobj
-            #filename = os.path.split(path)[1]
-            #mtime = os.stat(path).st_mtime
-        #else:
-            #path_or_fileobj.seek(0) # Just in case
-            #path = path_or_fileobj.name
-            #filename = os.path.split(path_or_fileobj.name)[1]
-            #mtime = os.stat(path_or_fileobj.name).st_mtime
-        #logging.debug('send_js_or_css(%s)' % path)
-        ## Use a hash of the full file path as the identifier at the client
-        ## (they don't need to know our filesystem layout).
-        #from utils import short_hash
-        #client_filename = short_hash(path)
-        #if not os.path.exists(path):
-            #logging.error(_("send_cache_request(): File not found: %s" % path))
-            #return
-        #out_dict = {
-            #'filename': client_filename,
-            #'mtime' = mtime
-        #}
-        #message = {'go:try_cached_file', out_dict}
-
-    def send_js_or_css(self, path_or_fileobj, kind, element_id=None):
+    def cache_cleanup(self, message):
         """
-        If *kind* is 'js', reads the given JavaScript file at *path_or_fileobj*
-        and sends it to the client using the 'load_js' WebSocket action.
-        If *kind* is 'css', reads the given CSS file at *path_or_fileobj*
-        and sends it to the client using the 'load_style' WebSocket action.
+        Attached to the 'go:cache_cleanup' WebSocket action; rifles through the
+        given list of *message['filenames']* from the client and sends a
+        'go:cache_expired' WebSocket action to the client with a list of files
+        that no longer exist in `self.file_cache` (so it can clean them up).
+        """
+        logging.debug("cache_cleanup(%s)" % message)
+        from hashlib import md5
+        filenames = message['filenames']
+        kind = message['kind']
+        expired = []
+        for filename in filenames:
+            if filename.endswith('.js'):
+                # The file_cache uses hashes; convert it
+                filename = md5(filename.split('.')[0]).hexdigest()[:10]
+            if filename not in self.file_cache:
+                expired.append(filename)
+        if not expired:
+            logging.debug(_(
+                "No expired %s files at client %s" %
+                (kind, self.request.remote_ip)))
+            return
+        out_dict = {
+            'filenames': expired,
+            'kind': message['kind']
+        }
+        logging.debug(_(
+            "Requesting deletion of expired files at client %s: %s" % (
+            self.request.remote_ip, filenames)))
+        message = {'go:cache_expired': message}
+        self.write_message(message)
+        # Also clean up stale files in the cache while we're at it
+        newest_files = {}
+        for filename_hash, file_obj in list(self.file_cache.items()):
+            filename = file_obj['filename']
+            if filename not in newest_files:
+                newest_files[filename] = file_obj
+                newest_files[filename]['filename_hash'] = filename_hash
+            if file_obj['mtime'] > newest_files[filename]['mtime']:
+                # Delete then replace the stale one
+                stale_hash = newest_files[filename]['filename_hash']
+                del self.file_cache[stale_hash]
+                newest_files[file_obj['filename']] = file_obj
+            if file_obj['mtime'] < newest_files[filename]['mtime']:
+                del self.file_cache[filename_hash] # Stale
 
-        Optionally, *element_id* may be provided which will be assigned to the
-        <script> or <style> tag that winds up being created.
+    def file_request(self, files_or_hash, use_client_cache=True):
+        """
+        Attached to the 'go:file_request' WebSocket action; minifies, caches,
+        and finally sends the requested file to the client.  If
+        *use_client_cache* is `False` the client will be instructed not to cache
+        the file.  Example message from the client requesting a file:
 
-        .. note:: Files will be cached after being minified until a file is modified or Gate One is restarted.
+        .. code-block:: javascript
+
+            GateOne.ws.send(JSON.stringify({
+                'go:file_request': {'some_file.js'}}));
+
+        .. note:: In reality 'some_file.js' will be a unique/unguessable hash.
+
+        Optionally, *files_or_hash* may be given as a list or tuple and all the
+        requested files will be sent.
+
+        Files will be cached after being minified until a file is modified or
+        Gate One is restarted.
 
         If the `slimit` module is installed JavaScript files will be minified
         before being sent to the client.
+
         If the `cssmin` module is installed CSS files will be minified before
         being sent to the client.
+        """
+        from utils import get_or_cache
+        from hashlib import md5
+        if isinstance(files_or_hash, (list, tuple)):
+            for filename_hash in files_or_hash:
+                self.file_request(
+                    filename_hash, use_client_cache=use_client_cache)
+            return
+        else:
+            filename_hash = files_or_hash
+        if filename_hash.endswith('.js'):
+            # The file_cache uses hashes; convert it
+            filename_hash = md5(filename_hash.split('.')[0]).hexdigest()[:10]
+        # Get the file info out of the file_cache so we can send it
+        element_id = self.file_cache[filename_hash].get('element_id', None)
+        path = self.file_cache[filename_hash]['path']
+        filename = self.file_cache[filename_hash]['filename']
+        kind = self.file_cache[filename_hash]['kind']
+        mtime = self.file_cache[filename_hash]['mtime']
+        requires = self.file_cache[filename_hash].get('requires', None)
+        out_dict = {
+            'result': 'Success',
+            'cache': use_client_cache,
+            'mtime': mtime,
+            'filename': filename_hash,
+            'kind': kind,
+            'element_id': element_id,
+            'requires': requires
+        }
+        if filename.endswith('.js'):
+            # JavaScript files can have dependencies which require that the
+            # client knows the filename.  The path-is-information-disclosure
+            # problem really only applies to rendered CSS template files anyway
+            out_dict['filename'] = filename
+        cache_dir = self.prefs['*']['gateone']['cache_dir']
+        if self.settings['debug']:
+            out_dict['data'] = get_or_cache(cache_dir, path, minify=False)
+        else:
+            out_dict['data'] = get_or_cache(cache_dir, path, minify=True)
+        if kind == 'js':
+            message = {'load_js': out_dict}
+        elif kind == 'css':
+            out_dict['css'] = True # So loadStyleAction() knows what to do
+            message = {'load_style': out_dict}
+        elif kind == 'theme':
+            out_dict['theme'] = True
+            message = {'load_theme': out_dict}
+        self.write_message(message)
+
+    def send_js_or_css(self,
+        paths_or_fileobj, kind, element_id=None, requires=None):
+        """
+        Initiates a file synchronization of the given *paths_or_fileobj* with
+        the client to ensure it has the latest version of the file(s).
+
+        The *kind* argument must be one of 'js' or 'css' to indicate JavaScript
+        or CSS, respectively.
+
+        Optionally, *element_id* may be provided which will be assigned to the
+        <script> or <style> tag that winds up being created (only works with
+        single files).
+
+        Optionally, a *requires* string or list/tuple may be given which will
+        ensure that the given file gets loaded after any dependencies.
         """
         if kind == 'js':
             send_js = self.prefs['*']['gateone'].get('send_js', True)
@@ -1821,46 +1892,100 @@ class ApplicationWebSocket(WebSocketHandler):
                     logging.info(_("send_css is false; will not send CSS."))
                 # So we don't repeat this message a zillion times in the logs:
                 self.logged_css_message = True
-        if isinstance(path_or_fileobj, basestring):
-            path = path_or_fileobj
+        use_client_cache = self.prefs['*']['gateone'].get(
+            'use_client_cache', True)
+        if requires and not isinstance(requires, (tuple, list)):
+            requires = [requires] # This makes the logic simpler at the client
+        from hashlib import md5
+        if isinstance(paths_or_fileobj, (tuple, list)):
+            out_dict = {'files': []}
+            for file_obj in paths_or_fileobj:
+                if isinstance(file_obj, basestring):
+                    path = file_obj
+                    filename = os.path.split(path)[1]
+                else:
+                    file_obj.seek(0) # Just in case
+                    path = file_obj.name
+                    filename = os.path.split(file_obj.name)[1]
+                mtime = os.stat(path).st_mtime
+                filename_hash = md5(filename.split('.')[0]).hexdigest()[:10]
+                self.file_cache[filename_hash] = {
+                    'filename': filename,
+                    'kind': kind,
+                    'path': path,
+                    'mtime': mtime,
+                    'element_id': element_id,
+                    'requires': requires
+                }
+                if self.settings['debug']:
+                    # This makes sure that the files are always re-downloaded
+                    mtime = time.time()
+                if not filename.endswith('.js'):
+                    # JavaScript files don't need a hashed filename
+                    filename = filename_hash
+                out_dict['files'].append({
+                    'filename': filename,
+                    'mtime': mtime,
+                    'kind': kind,
+                    'requires': requires
+                })
+            if use_client_cache:
+                message = {'go:file_sync': out_dict}
+                self.write_message(message)
+            else:
+                files = [a['filename'] for a in out_dict['files']]
+                self.file_request(files, use_client_cache=use_client_cache)
+            return # No further processing is necessary
+        elif isinstance(paths_or_fileobj, basestring):
+            path = paths_or_fileobj
             filename = os.path.split(path)[1]
-            mtime = os.stat(path).st_mtime
         else:
-            path_or_fileobj.seek(0) # Just in case
-            path = path_or_fileobj.name
-            filename = os.path.split(path_or_fileobj.name)[1]
-            mtime = os.stat(path_or_fileobj.name).st_mtime
+            paths_or_fileobj.seek(0) # Just in case
+            path = paths_or_fileobj.name
+            filename = os.path.split(paths_or_fileobj.name)[1]
+        mtime = os.stat(path).st_mtime
         logging.debug('send_js_or_css(%s)' % path)
         if not os.path.exists(path):
             logging.error(_("send_js_or_css(): File not found: %s" % path))
             return
-        from utils import get_or_cache
-        from hashlib import md5
         # Use a hash of the filename because these names can get quite long.
         # Also, we don't want to reveal the file structure on the server.
-        filename_hash = md5(filename).hexdigest()[:10]
-        out_dict = {
-            'result': 'Success',
-            'filename': filename_hash,
-            'element_id': element_id
+        filename_hash = md5(filename.split('.')[0]).hexdigest()[:10]
+        # NOTE: The .split('.') above is so the hash we generate is always the
+        # same.  The tail end of the filename will have its modification date.
+        # Cache the metadata for sync
+        self.file_cache[filename_hash] = {
+            'filename': filename,
+            'kind': kind,
+            'path': path,
+            'mtime': mtime,
+            'element_id': element_id,
+            'requires': requires
         }
-        cache_dir = self.prefs['*']['gateone']['cache_dir']
         if self.settings['debug']:
-            out_dict['data'] = get_or_cache(cache_dir, path, minify=False)
+            # This makes sure that the files are always re-downloaded
+            mtime = time.time()
+        if not filename.endswith('.js'):
+            # JavaScript files don't need a hashed filename
+            filename = filename_hash
+        out_dict = {'files': [{
+            'filename': filename,
+            'mtime': mtime,
+            'kind': kind,
+            'requires': requires
+        }]}
+        if use_client_cache:
+            message = {'go:file_sync': out_dict}
+            self.write_message(message)
         else:
-            out_dict['data'] = get_or_cache(cache_dir, path, minify=True)
-        if kind == 'js':
-            message = {'load_js': out_dict}
-        elif kind == 'css':
-            out_dict['css'] = True # So loadStyleAction() knows what to do
-            message = {'load_style': out_dict}
-        self.write_message(message)
+            files = [a['filename'] for a in out_dict['files']]
+            self.file_request(files, use_client_cache=use_client_cache)
 
-    def send_js(self, path):
+    def send_js(self, path, requires=None):
         """
-        A shortcut for `self.send_js_or_css(path, 'js')`
+        A shortcut for `self.send_js_or_css(path, 'js', requires=requires)`.
         """
-        self.send_js_or_css(path, 'js')
+        self.send_js_or_css(path, 'js', requires=requires)
 
     def send_css(self, path):
         """
@@ -1920,12 +2045,15 @@ class ApplicationWebSocket(WebSocketHandler):
                 os.remove(os.path.join(cache_dir, fname))
         return rendered_path
 
-    def send_plugin_static_files(self, plugins_dir, application=None):
+    def send_plugin_static_files(self,
+        plugins_dir, application=None, requires=None):
         """
         Sends all plugin .js and .css files to the client that exist inside
         *plugins_dir*.  Optionally, if *application* is given the policies that
         apply to the current user for that application will be used to determine
         whether or not a given plugin's static files will be sent.
+
+        If *requires* is given it will be passed along to `self.send_js()`.
 
         .. note:: If you want to serve Gate One's JavaScript via a different mechanism (e.g. nginx) this functionality can be completely disabled by adding `'send_js': false` to gateone/settings/10server.conf
         """
@@ -1960,7 +2088,7 @@ class ApplicationWebSocket(WebSocketHandler):
                 for f in static_files:
                     if f.endswith('.js'):
                         js_file_path = os.path.join(plugin_static_path, f)
-                        self.send_js(js_file_path)
+                        self.send_js(js_file_path, requires=requires)
                     elif f.endswith('.css'):
                         css_file_path = os.path.join(plugin_static_path, f)
                         self.send_css(css_file_path)
@@ -1973,7 +2101,9 @@ class ApplicationWebSocket(WebSocketHandler):
         """
         templates_path = os.path.join(GATEONE_DIR, 'templates')
         themes_path = os.path.join(templates_path, 'themes')
-        colors_path = os.path.join(templates_path, 'term_colors')
+        # NOTE: This is temporary until this logic is moved to the terminal app:
+        colors_path = os.path.join(GATEONE_DIR,
+            'applications', 'terminal', 'templates', 'term_colors')
         themes = os.listdir(themes_path)
         themes = [a.replace('.css', '') for a in themes]
         colors = os.listdir(colors_path)

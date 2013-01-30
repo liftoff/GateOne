@@ -1,6 +1,6 @@
 /* Terminal black theme */
 #{{container}} .terminal {
-    line-height: 1.04;
+    line-height: 1;
     position: static;
     float: left;
     -webkit-transition: -webkit-transform 1s ease-in-out;
@@ -20,7 +20,7 @@
     background-color: #222; /* Not quite black so we can use shadows :) */
     color: #eee;
     font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */
-    line-height: 1.04;
+    line-height: 1;
     width: 100%;
     overflow-y: auto;
     overflow-x: hidden;

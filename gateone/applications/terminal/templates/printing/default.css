@@ -311,7 +311,6 @@ span.reverse { background-color: #aaa; color: #fff; }
 .✈overlay {
     display: none;
 }
-
 /* Plugin-specific CSS (will get ignored if plugin is missing) */
 .✈playbackControls {
     display: none;

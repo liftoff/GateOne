@@ -304,6 +304,13 @@ class TermStaticFiles(tornado.web.StaticFileHandler):
         self.set_header('Access-Control-Allow-Origin', '*')
 
 class TerminalApplication(GOApplication):
+    """
+    A Gate One Application (`GOApplication`) that handles creating and
+    controlling terminal applications running on the Gate One server.
+    """
+    name = "Terminal" # A user-friendly name that will be displayed to the user
+    icon = os.path.join(APPLICATION_PATH, "static", "icons", "terminal.svg")
+    about = "Open terminals running any number of configured applications."
     def __init__(self, ws):
         logging.debug("TerminalApplication.__init__(%s)" % ws)
         self.policy = {} # Gets set in authenticate() below
@@ -316,14 +323,14 @@ class TerminalApplication(GOApplication):
     def initialize(self):
         """
         Called when the WebSocket is instantiated, sets up our WebSocket
-        actions, security policies, and sets up all of our plugin hooks/events.
+        actions, security policies, and attaches all of our plugin hooks/events.
         """
         logging.debug("TerminalApplication.initialize()")
         # Register our security policy function
         self.ws.security.update({'terminal': terminal_policies})
         # Register our WebSocket actions
         self.ws.commands.update({
-            'new_terminal': self.new_terminal,
+            'terminal:new_terminal': self.new_terminal,
             'set_terminal': self.set_terminal,
             'move_terminal': self.move_terminal,
             'kill_terminal': self.kill_terminal,
@@ -336,7 +343,9 @@ class TerminalApplication(GOApplication):
             'manual_title': self.manual_title,
             'reset_terminal': self.reset_terminal,
             'get_webworker': self.get_webworker,
+            'terminal:get_colors': self.get_colors,
             'terminal:set_encoding': self.set_term_encoding,
+            'terminal:get_terminals': self.terminals,
             'terminal:share_terminal': self.share_terminal,
             'terminal:share_user_list': self.share_user_list,
             'terminal:unshare_terminal': self.unshare_terminal,
@@ -462,35 +471,14 @@ class TerminalApplication(GOApplication):
         for fname in js_files:
             if fname.endswith('.js'):
                 js_file_path = os.path.join(static_dir, fname)
-                self.ws.send_js(js_file_path)
+                if fname == 'terminal.js':
+                    self.ws.send_js(js_file_path)
+                else:
+                    self.ws.send_js(js_file_path, requires='terminal.js')
         self.ws.send_plugin_static_files(
-            os.path.join(APPLICATION_PATH, 'plugins'))
+            os.path.join(APPLICATION_PATH, 'plugins'), requires="terminal.js")
         # Send the client the 256-color style information
         self.send_256_colors()
-        terminals = []
-        # Create an application-specific storage space in the locations dict
-        if 'terminal' not in self.ws.locations[self.ws.location]:
-            self.ws.locations[self.ws.location]['terminal'] = {}
-        # Quick reference for our terminals in the current location:
-        self.loc_terms = self.ws.locations[self.ws.location]['terminal']
-        for term in list(self.loc_terms.keys()):
-            if isinstance(term, int): # Only terminals are integers in the dict
-                terminals.append(term)
-        # Check for any dtach'd terminals we might have missed
-        if self.policy['dtach'] and which('dtach'):
-            session_dir = self.ws.settings['session_dir']
-            session_dir = os.path.join(session_dir, self.ws.session)
-            if not os.path.exists(session_dir):
-                mkdir_p(session_dir)
-                os.chmod(session_dir, 0o770)
-            for item in os.listdir(session_dir):
-                if item.startswith('dtach_'):
-                    term = int(item.split('_')[1])
-                    if term not in terminals:
-                        terminals.append(term)
-        terminals.sort() # Put them in order so folks don't get confused
-        message = {'terminals': terminals}
-        self.write_message(json_encode(message))
         sess = SESSIONS[self.ws.session]
         # Create a place to store app-specific stuff related to this session
         # (but not necessarily this 'location')
@@ -499,6 +487,11 @@ class TerminalApplication(GOApplication):
         if "timeout_callbacks" in sess:
             if kill_session not in sess["timeout_callbacks"]:
                 sess["timeout_callbacks"].append(kill_session)
+        self.terminals() # Tell the client about open terminals
+        # NOTE: The user will often be authenticated before terminal.js is
+        # loaded.  This means that self.terminals() will be ignored in most
+        # cases (only when the connection lost and re-connected without a page
+        # reload).  For this reason GateOne.Terminal.init() calls getTerminals()
         self.trigger("terminal:authenticate")
 
     def on_close(self):
@@ -527,6 +520,36 @@ class TerminalApplication(GOApplication):
                         if self.ws.client_id in term_obj:
                             del term_obj[self.ws.client_id]
         self.trigger("terminal:on_close")
+
+    def terminals(self):
+        """
+        Sends a list of the current open terminals to the client using the
+        'terminal:get_terminals' WebSocket action.
+        """
+        terminals = []
+        # Create an application-specific storage space in the locations dict
+        if 'terminal' not in self.ws.locations[self.ws.location]:
+            self.ws.locations[self.ws.location]['terminal'] = {}
+        # Quick reference for our terminals in the current location:
+        self.loc_terms = self.ws.locations[self.ws.location]['terminal']
+        for term in list(self.loc_terms.keys()):
+            if isinstance(term, int): # Only terminals are integers in the dict
+                terminals.append(term)
+        # Check for any dtach'd terminals we might have missed
+        if self.policy['dtach'] and which('dtach'):
+            session_dir = self.ws.settings['session_dir']
+            session_dir = os.path.join(session_dir, self.ws.session)
+            if not os.path.exists(session_dir):
+                mkdir_p(session_dir)
+                os.chmod(session_dir, 0o770)
+            for item in os.listdir(session_dir):
+                if item.startswith('dtach_'):
+                    term = int(item.split('_')[1])
+                    if term not in terminals:
+                        terminals.append(term)
+        terminals.sort() # Put them in order so folks don't get confused
+        message = {'terminal:terminals': terminals}
+        self.write_message(json_encode(message))
 
     def term_ended(self, term):
         """
@@ -830,10 +853,29 @@ class TerminalApplication(GOApplication):
         """
         term = int(settings['term'])
         encoding = settings['encoding']
+        try:
+            " ".encode(encoding)
+        except LookupError:
+            # Invalid encoding
+            self.ws.send_message(_(
+                "Invalid encoding.  For a list of valid encodings see:<br>"
+    "<a href='http://docs.python.org/2/library/codecs.html#standard-encodings'"
+                " target='new'>Standard Encodings</a>"
+            ))
+            return
         session_obj = SESSIONS[self.ws.session]
         term_obj = self.loc_terms[term]
         m = term_obj['multiplex']
         m.set_encoding(encoding)
+        # Make sure the client is aware that the change was successful
+
+    def send_term_encoding(self, term, encoding):
+        """
+        Sends a message to the client indicating the *encoding* of *term* (in
+        the event that a terminal is reattached or when sharing a terminal).
+        """
+        message = {'terminal:encoding': {'term': term, 'encoding': encoding}}
+        self.write_message(message)
 
     @require(authenticated())
     def move_terminal(self, settings):
@@ -1351,6 +1393,65 @@ class TerminalApplication(GOApplication):
             go_process = f.read()
         message = {'load_webworker': go_process}
         self.write_message(json_encode(message))
+
+    def get_colors(self, settings):
+        """
+        Sends the text color stylesheet matching the properties specified in
+        *settings* to the client.  *settings* must contain the following:
+
+            * **container** - The element Gate One resides in (e.g. 'gateone')
+            * **prefix** - The string being used to prefix all elements (e.g. 'go\_')
+            * **colors** - The name of the CSS text color scheme to be retrieved.
+        """
+        logging.debug('get_colors(%s)' % settings)
+        send_css = self.ws.prefs['*']['gateone'].get('send_css', True)
+        if not send_css:
+            if not hasattr('logged_css_message', self):
+                logging.info(_(
+                    "send_css is false; will not send JavaScript."))
+            # So we don't repeat this message a zillion times in the logs:
+            self.logged_css_message = True
+            return
+        templates_path = os.path.join(APPLICATION_PATH, 'templates')
+        term_colors_path = os.path.join(templates_path, 'term_colors')
+        #printing_path = os.path.join(templates_path, 'printing')
+        go_url = settings['go_url'] # Used to prefix the url_prefix
+        if not go_url.endswith('/'):
+            go_url += '/'
+        container = settings["container"]
+        prefix = settings["prefix"]
+        colors = settings["colors"]
+        template_args = dict(
+            container=container,
+            prefix=prefix,
+            url_prefix=go_url
+        )
+        out_dict = {'files': []}
+        colors_filename = "%s.css" % colors
+        colors_path = os.path.join(term_colors_path, colors_filename)
+        rendered_path = self.ws.render_style(colors_path, **template_args)
+        filename = "term_colors.css" # Make sure it's the same every time
+        mtime = os.stat(rendered_path).st_mtime
+        kind = 'css'
+        #print_css_path = os.path.join(printing_path, "default.css")
+        #rendered_path = self.render_style(print_css_path, **template_args)
+        # TODO: Do something about the print stylesheet (needs to go in terminal)
+        out_dict['files'].append({
+            'filename': filename,
+            'mtime': mtime,
+            'kind': kind,
+            'element_id': 'text_colors' # To ensure the filename isn't used
+        })
+        self.ws.file_cache[filename] = {
+            'filename': filename,
+            'kind': kind,
+            'path': rendered_path,
+            'mtime': mtime,
+            'element_id': 'text_colors'
+        }
+        message = {'go:file_sync': out_dict}
+        self.write_message(message)
+        #self.write_message(json_encode({'load_style': out_dict}))
 
 # Terminal sharing TODO (not in any particular order or priority):
 #   * GUI elements that allow a user to share a terminal:

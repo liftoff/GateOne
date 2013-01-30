@@ -57,6 +57,52 @@
     transform-origin: top right;
     transition: all 1s ease-in-out;
 }
+#{{container}} .workspace {
+    position: static;
+    float: left;
+    -webkit-transition: -webkit-transform 1s ease-in-out;
+    -moz-transition: -moz-transform 1s ease-in-out;
+    -ms-transition: -ms-transform 1s ease-in-out;
+    -o-transition: -o-transform 1s ease-in-out;
+    transition: transform 1s ease-in-out;
+}
+#{{container}} .new_workspace_workspace {
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+}
+#{{container}} .new_workspace_workspace_title {
+    text-align: center;
+    width: 80%;
+    background-color: #000;
+    font-family: Ubuntu, Arial Black, sans-serif;
+    border-bottom: 1px solid #222;
+    margin: 0 auto;
+}
+#{{container}} .app_grid {
+    width: 80%;
+    margin: 0 auto;
+}
+#{{container}} .application {
+    width: 20%;
+    background: linear-gradient(to bottom, #333, #191919);
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(0, 0, 0, 0);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    color: #fff;
+    font-weight: bold;
+    float: left;
+    text-align: center;
+    margin-left: 3.9%;
+    margin-top: 1em;
+    border-radius: 1em;
+}
+#{{container}} .application:hover {
+    box-shadow: 0 0 0.6em #444;
+    background: linear-gradient(to bottom, #333, #686868);
+    cursor: pointer;
+    text-shadow: .1em .1em .4em #000;
+}
 #{{container}} .pointer {
     cursor: pointer;
 }
@@ -84,88 +130,58 @@
     transform-origin: top right;
 }
 #{{container}} .twosectrans {
-    -webkit-transform-origin: top right;
     -webkit-transition: all 2s ease-in-out;
     -moz-transition: all 2s ease-in-out;
-    -moz-transform-origin: top right;
     -o-transition-property: all;
     -o-transition-duration: 2s;
     -o-transition-timing-function: ease-in-out;
-    -o-transform-origin: right top;
-    -ms-transform-origin: top right;
     -ms-transition: all 2s ease-in-out;
-    transform-origin: top right;
     transition: all 2s ease-in-out;
 }
 #{{container}} .sectrans {
-    -webkit-transform-origin: top right;
     -webkit-transition: all 1s ease-in-out;
     -moz-transition: all 1s ease-in-out;
-    -moz-transform-origin: top right;
     -o-transition-property: all;
     -o-transition-duration: 1s;
     -o-transition-timing-function: ease-in-out;
-    -o-transform-origin: right top;
-    -ms-transform-origin: top right;
     -ms-transition: all 1s ease-in-out;
-    transform-origin: top right;
     transition: all 1s ease-in-out;
 }
 #{{container}} .sectransform {
     /* For only transform effects */
-    -webkit-transform-origin: top right;
     -webkit-transition: -webkit-transform 1s ease-in-out;
     -moz-transition: -moz-transform 1s ease-in-out;
-    -moz-transform-origin: top right;
     -o-transition-property: -o-transform;
     -o-transition-duration: 1s;
     -o-transition-timing-function: ease-in-out;
-    -o-transform-origin: right top;
-    -ms-transform-origin: top right;
     -ms-transition: -ms-transform 1s ease-in-out;
-    transform-origin: top right;
     transition: transform 1s ease-in-out;
 }
 #{{container}} .halfsectrans {
-    -webkit-transform-origin: top right;
     -webkit-transition: all 0.5s ease-in-out;
     -moz-transition: all 0.5s ease-in-out;
-    -moz-transform-origin: top right;
     -o-transition-property: all;
     -o-transition-duration: 0.5s;
     -o-transition-timing-function: ease-in-out;
-    -o-transform-origin: right top;
-    -ms-transform-origin: top right;
     -ms-transition: all 0.5s ease-in-out;
-    transform-origin: top right;
     transition: all 0.5s ease-in-out;
 }
 #{{container}} .quartersectrans {
-    -webkit-transform-origin: top right;
     -webkit-transition: all 0.25s ease-in-out;
     -moz-transition: all 0.25s ease-in-out;
-    -moz-transform-origin: top right;
     -o-transition-property: all;
     -o-transition-duration: 0.25s;
     -o-transition-timing-function: ease-in-out;
-    -o-transform-origin: right top;
-    -ms-transform-origin: top right;
     -ms-transition: all 0.25s ease-in-out;
-    transform-origin: top right;
     transition: all 0.25s ease-in-out;
 }
 #{{container}} .superfasttrans {
-    -webkit-transform-origin: top left;
     -webkit-transition: all 0.1s ease-in-out;
     -moz-transition: all 0.1s ease-in-out;
-    -moz-transform-origin: top left;
     -o-transition-property: all;
     -o-transition-duration: 0.1s;
     -o-transition-timing-function: ease-in-out;
-    -o-transform-origin: left top;
-    -ms-transform-origin: top right;
     -ms-transition: all 0.1s ease-in-out;
-    transform-origin: top left;
     transition: all 0.1s ease-in-out;
 }
 #{{container}} .origintopmiddle {

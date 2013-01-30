@@ -5,6 +5,8 @@ var document = window.document; // Have to do this because we're sandboxed
 // Useful sandbox-wide stuff
 var go = GateOne,
     u = go.Utils,
+    v = go.Visual,
+    E = go.Events,
     prefix = go.prefs.prefix,
     noop = u.noop;
 
@@ -31,6 +33,7 @@ go.Playback.frameRate = 15; // Approximate
 go.Playback.frameInterval = Math.round(1000/go.Playback.frameRate); // Needs to be converted to ms
 go.Playback.frameObj = {'screen': null, 'time': null}; // Used to prevent garbage from building up
 go.Base.update(GateOne.Playback, {
+    // TODO: Figure out why the bottom of the terminal ends up under the playback bar.
     init: function() {
         /**:GateOne.Playback.init()
 
@@ -42,6 +45,10 @@ go.Base.update(GateOne.Playback, {
             GateOne.Events.on("terminal:term_updated", GateOne.Playback.pushPlaybackFrame);
             // This makes sure our prefs get saved along with everything else
             GateOne.Events.on("go:save_prefs", GateOne.Playback.savePrefsCallback)
+            // Hide the playback controls when in grid view
+            GateOne.Events.on("go:grid_view:open", p.hideControls);
+            // Show the playback controls when no longer in grid view
+            GateOne.Events.on("go:grid_view:close", p.showControls);
         */
         var go = GateOne,
             u = go.Utils,
@@ -71,16 +78,34 @@ go.Base.update(GateOne.Playback, {
             go.prefs.rowAdjust += 1;
         }
         // Add our callback that adds an extra newline to all terminals
-        go.Events.on("terminal:new_terminal", p.newTerminalCallback);
+        E.on("terminal:new_terminal", p.newTerminalCallback);
         // This makes sure our playback frames get added to the terminal object whenever the screen is updated
-        go.Events.on("terminal:term_updated", p.pushPlaybackFrame);
+        E.on("terminal:term_updated", p.pushPlaybackFrame);
         // This makes sure our prefs get saved along with everything else
-        go.Events.on("go:save_prefs", p.savePrefsCallback)
+        E.on("go:save_prefs", p.savePrefsCallback)
+        // Hide the playback controls when in grid view
+        E.on("go:grid_view:open", p.hideControls);
+        // Show the playback controls when no longer in grid view
+        E.on("go:grid_view:close", p.showControls);
+    },
+    hideControls: function() {
+        /**:GateOne.Playback.hideControls()
+
+        Hides the playback controls.
+        */
+        u.hideElement('#'+prefix+'controlsContainer');
+    },
+    showControls: function() {
+        /**:GateOne.Playback.showsControls()
+
+        Shows the playback controls again after they've been hidden via :js:meth:`GateOne.Playback.hideControls`.
+        */
+        u.showElement('#'+prefix+'controlsContainer');
     },
     newTerminalCallback: function(term, calledTwice) {
         /**:GateOne.Playback.newTerminalCallback(term, calledTwice)
 
-        This gets added to the 'new_terminal' event to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls.
+        This gets added to the 'terminal:new_terminal' event to ensure that there's some extra space at the bottom of each terminal to make room for the playback controls.
 
         It also calls :js:meth:`GateOne.Playback.addPlaybackControls` to make sure they're present only after a new terminal is open.
         */
@@ -105,14 +130,14 @@ go.Base.update(GateOne.Playback, {
                 if (u.isVisible(termPre)) {
                     if (go.prefs.rows) {
                         // Have to reset the current transform in order to take an accurate measurement:
-                        go.Visual.applyTransform(termPre, '');
+                        v.applyTransform(termPre, '');
                         // Now we can proceed to measure and adjust the size of the terminal accordingly
                         var nodeHeight = screenSpan.getClientRects()[0].top,
                             transform = null;
                         if (nodeHeight < goDiv.clientHeight) { // Resize to fit
                             var scale = goDiv.clientHeight / (goDiv.clientHeight - nodeHeight);
                             transform = "scale(" + scale + ", " + scale + ")";
-                            go.Visual.applyTransform(termPre, transform);
+                            v.applyTransform(termPre, transform);
                         }
                     }
                 }
@@ -254,7 +279,7 @@ go.Base.update(GateOne.Playback, {
         if (!selectedFrame) { // All done
             var playPause = u.getNode('#'+prefix+'playPause');
             playPause.innerHTML = '\u25B8';
-            go.Visual.applyTransform(playPause, 'scale(1.5) translateY(-5%)'); // Needs to be resized a bit
+            v.applyTransform(playPause, 'scale(1.5) translateY(-5%)'); // Needs to be resized a bit
             go.Terminal.applyScreen(go.Terminal.terminals[term]['playbackFrames'][lastFrame]['screen'], term);
             p.clockElement.innerHTML = lastDateTime.toLocaleTimeString();
             sideinfo.innerHTML = lastDateTime.toLocaleDateString();
@@ -293,13 +318,13 @@ go.Base.update(GateOne.Playback, {
             p.startPlayback(localStorage[prefix+'selectedTerminal']);
             playPause.innerHTML = '=';
             // NOTE:  Using a transform here to increase the size and move the element because these changes are *relative* to the current state.
-            go.Visual.applyTransform(playPause, 'rotate(90deg) scale(1.7) translate(5%, -15%)');
+            v.applyTransform(playPause, 'rotate(90deg) scale(1.7) translate(5%, -15%)');
             go.Events.trigger("playback:play");
         } else {
             playPause.innerHTML = '\u25B8';
             clearInterval(p.frameUpdater);
             p.frameUpdater = null;
-            go.Visual.applyTransform(playPause, 'scale(1.5) translate(15%, -5%)'); // Set it back to normal
+            v.applyTransform(playPause, 'scale(1.5) translate(15%, -5%)'); // Set it back to normal
             go.Events.trigger("playback:pause");
         }
     },
@@ -320,14 +345,14 @@ go.Base.update(GateOne.Playback, {
             clock = u.createElement('div', {'id': 'clock', 'class': '✈clock'}),
             playbackControls = u.createElement('div', {'id': 'playbackControls', 'class': '✈playbackControls'}),
             controlsContainer = u.createElement('div', {'id': 'controlsContainer', 'class': 'centertrans ✈controlsContainer'}),
-            goDiv = u.getNode(go.prefs.goDiv),
+            goDiv = go.node,
             // Firefox doesn't support 'mousewheel'
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
         if (existingControls) {
             return; // Controls have already been added; Nothing to do
         }
         playPause.innerHTML = '\u25B8';
-        go.Visual.applyTransform(playPause, 'scale(1.5) translateY(-5%)');
+        v.applyTransform(playPause, 'scale(1.5) translateY(-5%)');
         playPause.onclick = p.playPauseControl;
         progressBarContainer.appendChild(progressBar);
         clock.innerHTML = '00:00:00';
@@ -428,7 +453,7 @@ go.Base.update(GateOne.Playback, {
                                 p.clockUpdater = setInterval('GateOne.Playback.updateClock()', 1);
                             }
                             terminalObj['scrollbackTimer'] = setTimeout(function() { // Get the scrollback timer going again
-                                go.Visual.enableScrollback(term);
+                                v.enableScrollback(term);
                             }, 3500);
                         } else {
                             percent = (p.currentFrame / terminalObj['playbackFrames'].length) * 100;

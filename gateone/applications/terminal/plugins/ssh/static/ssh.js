@@ -1053,7 +1053,7 @@ GateOne.Base.update(GateOne.SSH, {
         }
         if (!go.prefs.autoConnectURL) {
             // Only send the connection string if autoConnectURL isn't set
-            E.once("new_terminal", connectFunc);
+            E.once("terminal:new_terminal", connectFunc);
         }
         go.Terminal.newTerminal();
     },
