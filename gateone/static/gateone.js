@@ -1145,7 +1145,7 @@ GateOne.Base.update(GateOne.Utils, {
         });
     },
     loadJSAction: function(message, /*opt*/noCache) {
-        /**GateOne.Utils.loadJSAction(message)
+        /**:GateOne.Utils.loadJSAction(message)
 
         Loads a JavaScript file sent via the 'load_js' WebSocket action into a <script> tag inside of GateOne.prefs.goDiv (not that it matters where it goes).  To request that a .js file be loaded from the Gate One server one can use the following::
 
@@ -1195,7 +1195,7 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     loadStyleAction: function(message, /*opt*/noCache) {
-        /**GateOne.Utils.loadStyleAction(message)
+        /**:GateOne.Utils.loadStyleAction(message)
 
         Loads various kinds of stylesheets sent via the 'load_style' WebSocket action.  These stylesheets would be a, 'theme', 'colors', 'plugins', 'print', or 'css' (generic).
 
@@ -1287,7 +1287,7 @@ GateOne.Base.update(GateOne.Utils, {
         go.ws.send(JSON.stringify({'get_style': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'plugins': true}}));
     },
     loadScriptError: function(scriptTag, url, callback) {
-        /**GateOne.Utils.loadScriptError(url, scriptTag, callback)
+        /**:GateOne.Utils.loadScriptError(url, scriptTag, callback)
 
         Called when :js:meth:`GateOne.Utils.loadScript` fails to load the .js file at the given *url*.  Under the assumption that the user has yet to accept the Gate One server's SSL certificate, it will pop-up an alert that instructs the user they will be redirected to a page where they can accept Gate One's SSL certificate (when they click OK).
         */
@@ -2510,7 +2510,7 @@ GateOne.Base.update(GateOne.Input, {
         return m;
     },
     onCompositionStart: function(e) {
-        /**GateOne.Input.onCompositionStart(e)
+        /**:GateOne.Input.onCompositionStart(e)
 
         Called when we encounter the 'compositionstart' event which indicates the use of an IME.  That would most commonly be a mobile phone software keyboard or foreign language input methods (e.g. Japanese, Chinese, etc).
         */
@@ -2525,7 +2525,7 @@ GateOne.Base.update(GateOne.Input, {
         go.Input.inputNode.style['left'] = offset.left + "px";
     },
     onCompositionEnd: function(e) {
-        /**GateOne.Input.onCompositionEnd(e)
+        /**:GateOne.Input.onCompositionEnd(e)
 
         Called when we encounter the 'compositionend' event which indicates the IME has completed.  Sends what was composed to the server.
         */
@@ -2540,7 +2540,7 @@ GateOne.Base.update(GateOne.Input, {
         }, 250);
     },
     onCompositionUpdate: function(e) {
-        /**GateOne.Input.onCompositionUpdate(e)
+        /**:GateOne.Input.onCompositionUpdate(e)
 
         Called when we encounter the 'compositionupdate' event which indicates incoming characters.  They will be sent as-is
         */
@@ -2621,7 +2621,7 @@ GateOne.Base.update(GateOne.Input, {
         }
     },
     onGlobalKeyDown: function(e) {
-        /**GateOne.Input.onGlobalKeyDown(e)
+        /**:GateOne.Input.onGlobalKeyDown(e)
 
         Handles global keystroke events (i.e. those attached to the window object).
         */
@@ -2632,7 +2632,7 @@ GateOne.Base.update(GateOne.Input, {
         goIn.execKeystroke(e, true);
     },
     execKeystroke: function(e, /*opt*/global) {
-        /**GateOne.Input.execKeystroke(e, global)
+        /**:GateOne.Input.execKeystroke(e, global)
 
         Executes the keystroke or shortcut associated with the given keydown event (*e*).  If *global* is true, will only execute global shortcuts (no regular keystroke overrides).
         */
@@ -2845,7 +2845,7 @@ GateOne.Base.update(GateOne.Input, {
         }
     },
     registerGlobalShortcut: function(keyString, shortcutObj) {
-        /**GateOne.Input.registerGlobalShortcut(keyString, shortcutObj)
+        /**:GateOne.Input.registerGlobalShortcut(keyString, shortcutObj)
 
         Used to register a *global* shortcut.  Identical to :js:meth:`GateOne.Input.registerShortcut` with the exception that shortcuts registered via this function will work even if `GateOne.prefs.goDiv` (e.g. #gateone) doesn't currently have focus (i.e. it will work even after disableCapture() is called).
         */
@@ -3263,7 +3263,7 @@ GateOne.Base.update(GateOne.Visual, {
         E.trigger('go:new_workspace_workspace', workspace);
     },
     updateDimensions: function() {
-        /**GateOne.Visual.updateDimensions()
+        /**:GateOne.Visual.updateDimensions()
 
         Sets `GateOne.Visual.goDimensions` to the current width/height of prefs.goDiv
         */
@@ -4942,7 +4942,7 @@ GateOne.Base.update(GateOne.Storage, {
     },
     // storeObj['options'] == {keyPath: 'id', autoIncrement: true}
     _upgradeDB: function(DB, trans, callback) {
-        /**GateOne.Storage._upgradeDB(trans[, callback])
+        /**:GateOne.Storage._upgradeDB(trans[, callback])
 
         DB version upgrade function attached to the `onupgradeneeded` event.  It creates our object store(s).
 
@@ -4973,7 +4973,7 @@ GateOne.Base.update(GateOne.Storage, {
     // The DB will also then be accessible via:
     // GateOne.Storage.databases['somedb']
     openDB: function(DB, callback, model, /*opt*/version) {
-        /**GateOne.Storage.openDB(DB[, callback[, model]])
+        /**:GateOne.Storage.openDB(DB[, callback[, model]])
 
         Opens the given database (*DB*) for use and stores a reference to it as `GateOne.Storage.databases[DB]`.
 
