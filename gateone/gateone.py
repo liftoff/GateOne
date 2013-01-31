@@ -1598,7 +1598,7 @@ class ApplicationWebSocket(WebSocketHandler):
             self.logged_css_message = True
             return
         use_client_cache = self.prefs['*']['gateone'].get(
-            'use_client_cache', False)
+            'use_client_cache', True)
         cache_dir = self.prefs['*']['gateone']['cache_dir']
         if not os.path.exists(cache_dir):
             mkdir_p(cache_dir)
@@ -1623,7 +1623,6 @@ class ApplicationWebSocket(WebSocketHandler):
             theme_path, **template_args)
         filename = os.path.split(rendered_path)[1]
         mtime = os.stat(rendered_path).st_mtime
-        kind = 'css'
         theme_files = []
         theme_files.append(rendered_path)
         # Now enumerate all applications/plugins looking for their own
@@ -1678,6 +1677,7 @@ class ApplicationWebSocket(WebSocketHandler):
         if self.settings['debug']:
             # This makes sure that the files are always re-downloaded
             mtime = time.time()
+        kind = 'css'
         out_dict['files'].append({
             'filename': filename,
             'mtime': mtime,
@@ -1944,7 +1944,7 @@ class ApplicationWebSocket(WebSocketHandler):
             path = paths_or_fileobj.name
             filename = os.path.split(paths_or_fileobj.name)[1]
         mtime = os.stat(path).st_mtime
-        logging.debug('send_js_or_css(%s)' % path)
+        logging.debug('send_js_or_css(%s) (mtime: %s)' % (path, mtime))
         if not os.path.exists(path):
             logging.error(_("send_js_or_css(): File not found: %s" % path))
             return
@@ -2025,6 +2025,8 @@ class ApplicationWebSocket(WebSocketHandler):
             return
         with open(css_path) as f:
             css_template = tornado.template.Template(f.read())
+        # This wierd little line empties Tornado's template cache:
+        tornado.web.RequestHandler._template_loaders['.'].reset()
         rendered = self.render_string(
             css_path,
             container=self.container,

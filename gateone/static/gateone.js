@@ -1176,11 +1176,11 @@ GateOne.Base.update(GateOne.Utils, {
                 go.node.appendChild(s);
             }
             delete message['result'];
-            if (!noCache && message['cache'] != false) {
-                go.Storage.cacheJS(message);
-            } else {
+            if (noCache === undefined && message['cache'] != false) {
+                go.Storage.cacheJS(message, 'js');
+            } else if (message['cache'] == false) {
                 // Cleanup the existing entry if present
-                go.Storage.uncacheJS(message);
+                go.Storage.uncacheJS(message, 'js');
             }
             go.Storage.loadedFiles[message['filename']] = true;
             // Don't call runPostInit() until we're done loading all JavaScript
@@ -1238,9 +1238,9 @@ GateOne.Base.update(GateOne.Utils, {
             }
         }
         delete message['result'];
-        if (!noCache && message['cache'] != false) {
+        if (noCache === undefined && message['cache'] != false) {
             go.Storage.cacheStyle(message, message['kind']);
-        } else {
+        } else if (message['cache'] == false) {
             // Cleanup the existing entry if present
             go.Storage.uncacheStyle(message, message['kind']);
         }
@@ -1619,6 +1619,25 @@ GateOne.Base.update(GateOne.Utils, {
         newString = newString.substring(0, newString.length - 1);
         window.history.replaceState("Replace", "Page Title", "/" + newString);
         return newString;
+    },
+    last: function(iterable, n, guard) {
+        /**:GateOne.Utils.last(iterable, n, guard)
+
+        Returns the last element of the given *iterable*.
+
+        If *n* is given it will return the last N values in the array.  Example::
+
+            >>> GateOne.Utils.last("foobar", 3);
+            ["b", "a", "r"]
+
+        The *guard* variable is there so it will work with :js:meth:`Array.prototype.map`.
+        */
+        if (iterable == null) return void 0;
+        if ((n != null) && !guard) {
+            return Array.prototype.slice.call(iterable, Math.max(iterable.length - n, 0));
+        } else {
+            return iterable.slice(-1)[0];
+        }
     }
 });
 
@@ -2181,11 +2200,40 @@ GateOne.Base.update(GateOne.Input, {
             prefix = go.prefs.prefix,
             goDiv = go.node,
             m = go.Input.mouse(e),
+            X, Y, className, // Used by mouse coordinates/tracking stuff
             selectedTerm = localStorage[prefix+'selectedTerminal'],
             selectedPastearea = null,
             selectedText = u.getSelText();
         if (go.Terminal.terminals[selectedTerm] && go.Terminal.terminals[selectedTerm]['pasteNode']) {
             selectedPastearea = go.Terminal.terminals[selectedTerm]['pasteNode'];
+        }
+        var elementUnder = document.elementFromPoint(e.clientX, e.clientY);
+        className = elementUnder.className + ''; // Ensure it's a string for Firefox
+        if (className && className.indexOf('termline') == -1) {
+            while (elementUnder.parentNode) {
+                elementUnder = elementUnder.parentNode;
+                if (elementUnder.className === undefined) {
+                    // User didn't click on a screen line; ignore
+                    elementUnder = null;
+                    break;
+                }
+                className = elementUnder.className + ''; // Ensure it's a string for Firefox
+                if (className.indexOf('termline') != -1) {
+                    break;
+                }
+            }
+        }
+        // This is for mouse tracking (FUTURE)
+        if (elementUnder) {
+            window.testingTest = elementUnder;
+            var termObj = go.Terminal.terminals[selectedTerm],
+                termNode = termObj['node'],
+                columns = termObj['columns'],
+                colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
+                width = elementUnder.offsetWidth;
+            Y = parseInt(u.last(className.split('_'))) + 1;
+            X = Math.ceil(e.clientX/(width/(columns)));
+            logDebug("Clicked on row/column: "+Y+"/"+X);
         }
         go.Input.mouseDown = true;
         // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
@@ -2550,7 +2598,10 @@ GateOne.Base.update(GateOne.Input, {
         }
     },
     onKeyUp: function(e) {
-        // Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
+        /**:GateOne.Input.onKeyUp(e)
+
+        Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
+        */
         var goIn = go.Input,
             key = goIn.key(e),
             modifiers = goIn.modifiers(e),
@@ -4768,7 +4819,7 @@ GateOne.Base.update(GateOne.Storage, {
             return;
         }
         var fileCache = GateOne.Storage.dbObject('fileCache');
-        fileCache.delete('js', fileObj);
+        fileCache.delete('js', fileObj['filename']);
     },
     cacheStyle: function(fileObj, kind) {
         /**:GateOne.Storage.cacheStyle(fileObj)
@@ -4803,7 +4854,7 @@ GateOne.Base.update(GateOne.Storage, {
             return;
         }
         var fileCache = GateOne.Storage.dbObject('fileCache');
-        fileCache.delete(kind, fileObj);
+        fileCache.delete(kind, fileObj['filename']);
     },
     cacheExpiredAction: function(message) {
         /**:GateOne.Storage.cacheExpiredAction(message)
@@ -4891,7 +4942,7 @@ GateOne.Base.update(GateOne.Storage, {
                             }
                         } else if (remoteFileObj['kind'] == 'css') {
                             // Emulate an incoming message from the server to load this CSS
-                            var messageObj = {'result': 'Success', 'css': true, 'filename': localFileObj['filename'], 'data': localFileObj['data'], 'element_id': remoteFileObj['element_id']};
+                            var messageObj = {'result': 'Success', 'css': true, 'kind': localFileObj['kind'], 'filename': localFileObj['filename'], 'data': localFileObj['data'], 'element_id': remoteFileObj['element_id']};
                             u.loadStyleAction(messageObj, true); // true here indicates "don't cache" (already cached)
                         }
                     }

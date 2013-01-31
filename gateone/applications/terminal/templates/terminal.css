@@ -7,14 +7,18 @@
     position: absolute;
     top: 0;
     left: 0;
-    bottom: 1.5em;
+    bottom: 1.1em;
     padding: 0;
     right: 3em;
     z-index: 500;
     margin: 0;
     opacity: 0;
-    width: 96%; /* For whatever reason Firefox needs the width/height set */
-    height: 95%; /* Make room at the bottom for playback controls */
+    width: calc(100% - 3.5em);
+    height: calc(100% - 1.3em);
+    width: -webkit-calc(100% - 3.5em);
+    height: -webkit-calc(100% - 1.3em);
+    /*width: 96%;*/ /* For whatever reason Firefox needs the width/height set */
+    /*height: 95%;*/ /* Make room at the bottom for playback controls */
 }
 #{{container}} .pastearea:hover {
     cursor: text;

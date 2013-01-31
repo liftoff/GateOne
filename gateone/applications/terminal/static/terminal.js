@@ -46,6 +46,9 @@ GateOne.Terminal.terminals = { // For keeping track of running terminals
         return counter;
     }
 }
+// These two variables are semi-constants that are used in determining the size of terminals.  They make room for...
+go.Terminal.colAdjust = 3; // The scrollbar (3 chars of width is usually enough)
+go.Terminal.rowAdjust = 1; // The row that gets cut off at the top of the terminal by the browser (when doing our row/cols calculation)
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
 go.Terminal.updateTermCallbacks = []; // DEPRECATED
@@ -482,8 +485,8 @@ go.Base.update(GateOne.Terminal, {
         if (typeof(ctrl_l) == 'undefined') {
             ctrl_l = true;
         }
-        var rowAdjust = go.prefs.rowAdjust + 1, // Always 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
-            colAdjust = go.prefs.colAdjust + 3, // Always 3 for the scrollbar
+        var rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust, // Always 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
+            colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust, // Always 3 for the scrollbar + toolbar
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             prefs = {
@@ -992,8 +995,8 @@ go.Base.update(GateOne.Terminal, {
             terminal = null,
             termUndefined = false,
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
-            rowAdjust = go.prefs.rowAdjust + 1, // Always plus 1 since getRowsAndColumns uses Math.ceil (don't want anything to get cut off)
-            colAdjust = go.prefs.colAdjust + 3, // Always plus 3 for the scrollbar
+            rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
+            colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             rows = Math.ceil(dimensions.rows - rowAdjust),
