@@ -38,16 +38,6 @@
     -o-transform-origin: left bottom;
     transform-origin: left bottom;
 }
-#{{container}} .terminal span.screen {
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    display: block;
-}
-#{{container}} .terminal span.scrollback {
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    display: block;
-}
 /* The "reverse" default needs to be set in the theme since the background will vary */
 #{{container}} span.reverse { color: #000; background-color: #fff; }
 #{{container}} span.cursor { color: #fff; background-color: #000; }

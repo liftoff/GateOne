@@ -149,6 +149,7 @@ Class Docstrings
 import os, sys, re, logging, base64, StringIO, codecs, unicodedata, tempfile
 from array import array
 from datetime import datetime, timedelta
+from functools import partial
 from collections import defaultdict
 try:
     from collections import OrderedDict
@@ -1164,7 +1165,6 @@ class Terminal(object):
         self.local_echo = True
         self.insert_mode = False
         self.esc_buffer = '' # For holding escape sequences as they're typed.
-        self.show_cursor = True
         self.cursor_home = 0
         self.cur_rendition = unichr(1000) # Should always be reset ([0])
         self.init_screen()
@@ -1264,34 +1264,53 @@ class Terminal(object):
             #'t': self.window_manipulation, # TODO
             #'z': self.locator, # TODO: DECELR "Enable locator reporting"
         }
+        # Used to store what expanded modes are active
         self.expanded_modes = {
+            # Important defaults
+            '1': False, # Application Cursor Keys
+            '7': False, # Autowrap
+            '25': True, # Show Cursor
+        }
+        self.expanded_mode_handlers = {
             # Expanded modes take a True/False argument for set/reset
-            '1': self.set_application_mode,
-            '2': self.__ignore, # DECANM and set VT100 mode (also: lock keyboard)
+            '1': partial(self.expanded_mode_toggle, '1'),
+            '2': self.__ignore, # DECANM and set VT100 mode (and lock keyboard)
             '3': self.__ignore, # 132 Column Mode (DECCOLM)
             '4': self.__ignore, # Smooth (Slow) Scroll (DECSCLM)
             '5': self.__ignore, # Reverse video (might support in future)
             '6': self.__ignore, # Origin Mode (DECOM)
-            '7': self.toggle_autowrap, # Wraparound Mode (DECAWM)
+            # Wraparound Mode (DECAWM):
+            '7': partial(self.expanded_mode_toggle, '7'),
             '8': self.__ignore, # Auto-repeat Keys (DECARM)
-            '9': self.__ignore, # Send Mouse X & Y on button press (maybe)
-            '12': self.send_receive_mode, # SRM
+            # Send Mouse X & Y on button press:
+            '9': partial(self.expanded_mode_toggle, '9'),
+            '12': self.__ignore, # SRM or Start Blinking Cursor (att610)
             '18': self.__ignore, # Print form feed (DECPFF)
             '19': self.__ignore, # Set print extent to full screen (DECPEX)
-            '25': self.show_hide_cursor,
+            '25': partial(self.expanded_mode_toggle, '25'),
             '38': self.__ignore, # Enter Tektronix Mode (DECTEK)
             '41': self.__ignore, # more(1) fix (whatever that is)
             '42': self.__ignore, # Enable Nation Replacement Character sets (DECNRCM)
             '44': self.__ignore, # Turn On Margin Bell
             '45': self.__ignore, # Reverse-wraparound Mode
-            '46': self.__ignore, # Start Logging (Hmmm)
+            '46': self.__ignore, # Start Logging
             '47': self.toggle_alternate_screen_buffer, # Use Alternate Screen Buffer
             '66': self.__ignore, # Application keypad (DECNKM)
             '67': self.__ignore, # Backarrow key sends delete (DECBKM)
-            '1000': self.__ignore, # Send Mouse X/Y on button press and release
-            '1001': self.__ignore, # Use Hilite Mouse Tracking
-            '1002': self.__ignore, # Use Cell Motion Mouse Tracking
-            '1003': self.__ignore, # Use All Motion Mouse Tracking
+            # Send Mouse X/Y on button press and release:
+            '1000': partial(self.expanded_mode_toggle, '1000'),
+            # Use Hilite Mouse Tracking:
+            '1001': partial(self.expanded_mode_toggle, '1001'),
+            # Use Cell Motion Mouse Tracking:
+            '1002': partial(self.expanded_mode_toggle, '1002'),
+            # Use All Motion Mouse Tracking:
+            '1003': partial(self.expanded_mode_toggle, '1003'),
+            # Send FocusIn/FocusOut events:
+            '1004': partial(self.expanded_mode_toggle, '1004'),
+            # Enable UTF-8 Mouse Mode:
+            '1005': partial(self.expanded_mode_toggle, '1005'),
+            # Enable SGR Mouse Mode:
+            '1006': partial(self.expanded_mode_toggle, '1006'),
             '1010': self.__ignore, # Scroll to bottom on tty output
             '1011': self.__ignore, # Scroll to bottom on key press
             '1035': self.__ignore, # Enable special modifiers for Alt and NumLock keys
@@ -1299,7 +1318,9 @@ class Terminal(object):
             '1037': self.__ignore, # Send DEL from the editing-keypad Delete key
             '1047': self.__ignore, # Use Alternate Screen Buffer
             '1048': self.__ignore, # Save cursor as in DECSC
-            '1049': self.toggle_alternate_screen_buffer_cursor, # Save cursor as in DECSC and use Alternate Screen Buffer, clearing it first
+            # Save cursor as in DECSC and use Alternate Screen Buffer,
+            # clearing it first:
+            '1049': self.toggle_alternate_screen_buffer_cursor,
             '1051': self.__ignore, # Set Sun function-key mode
             '1052': self.__ignore, # Set HP function-key mode
             '1060': self.__ignore, # Set legacy keyboard emulation (X11R6)
@@ -1347,13 +1368,11 @@ class Terminal(object):
         # an "alternate buffer"
         self.alt_screen = None
         self.alt_renditions = None
-        self.autowrap = False
         self.alt_cursorX = 0
         self.alt_cursorY = 0
         self.saved_cursorX = 0
         self.saved_cursorY = 0
         self.saved_rendition = [None]
-        self.application_keys = False
         self.capture = ""
         self.captured_files = {}
         self.file_counter = pua_counter()
@@ -1572,10 +1591,15 @@ class Terminal(object):
             3: False,
             4: False
         }
+        self.expanded_modes = {
+            # Important defaults
+            '1': False,
+            '7': False,
+            '25': True,
+        }
         self.local_echo = True
         self.title = "Gate One"
         self.esc_buffer = ''
-        self.show_cursor = True
         self.insert_mode = False
         self.rendition_set = False
         self.current_charset = 0
@@ -1586,13 +1610,11 @@ class Terminal(object):
         self.bottom_margin = self.rows - 1
         self.alt_screen = None
         self.alt_renditions = None
-        self.autowrap = False
         self.alt_cursorX = 0
         self.alt_cursorY = 0
         self.saved_cursorX = 0
         self.saved_cursorY = 0
         self.saved_rendition = [None]
-        self.application_keys = False
         self.init_screen()
         self.init_renditions()
         self.init_scrollback()
@@ -2065,7 +2087,7 @@ class Terminal(object):
                 if self.cursorX >= self.cols:
                     # Non-autowrap has been disabled due to issues with browser
                     # wrapping.
-                    #if self.autowrap:
+                    #if self.expanded_modes['7']:
                     self.cursorX = 0
                     self.newline()
                     #else:
@@ -2616,10 +2638,18 @@ class Terminal(object):
         Notes on modes::
 
             '?1h' - Application Cursor Keys
-            '?5h' - DECSCNM (default off): Set reverse-video mode.
+            '?5h' - DECSCNM (default off): Set reverse-video mode
             '?7h' - DECAWM: Autowrap mode
             '?12h' - Local echo (SRM or Send Receive Mode)
             '?25h' - Hide cursor
+            '?1000h' - Send Mouse X/Y on button press and release
+            '?1001h' - Use Hilite Mouse Tracking
+            '?1002h' - Use Cell Motion Mouse Tracking
+            '?1003h' - Use All Motion Mouse Tracking
+            '?1004h' - Send focus in/focus out events
+            '?1005h' - Enable UTF-8 Mouse Mode
+            '?1006h' - Enable SGR Mouse Mode
+            '?1015h' - Enable urxvt Mouse Mode
             '?1049h' - Save cursor and screen
         """
         # TODO: Add support for the following:
@@ -2635,7 +2665,7 @@ class Terminal(object):
             settings = setting.split(';')
             for setting in settings:
                 try:
-                    self.expanded_modes[setting](True)
+                    self.expanded_mode_handlers[setting](True)
                 except (KeyError, TypeError):
                     pass # Unsupported expanded mode
             try:
@@ -2663,7 +2693,7 @@ class Terminal(object):
             settings = setting.split(';')
             for setting in settings:
                 try:
-                    self.expanded_modes[setting](False)
+                    self.expanded_mode_handlers[setting](False)
                 except (KeyError, TypeError):
                     pass # Unsupported expanded mode
             try:
@@ -2680,16 +2710,6 @@ class Terminal(object):
             # The only one we care about is 4 (insert mode)
             if setting == '4':
                 self.insert_mode = False
-
-    def set_application_mode(self, boolean):
-        """
-        Sets :attr:`self.application_keys` equal to *boolean*.  Literally:
-
-        .. code-block:: python
-
-            self.application_keys = boolean
-        """
-        self.application_keys = boolean
 
     def toggle_alternate_screen_buffer(self, alt):
         """
@@ -2735,42 +2755,15 @@ class Terminal(object):
             self.cursorY = self.alt_cursorY
         self.toggle_alternate_screen_buffer(alt)
 
-    def toggle_autowrap(self, boolean):
+    def expanded_mode_toggle(self, mode, boolean):
         """
-        Sets :attr:`self.autowrap` equal to *boolean*.  Literally:
+        Meant to be used with (simple) expanded mode settings that merely set or
+        reset attributes for tracking purposes; sets `self.expanded_modes[mode]`
+        to *boolean*.  Example usage::
 
-        .. code-block:: python
-
-            self.autowrap = boolean
+            >>> self.expanded_mode_handlers['1000'] = partial(self.expanded_mode_toggle, 'mouse_button_events')
         """
-        logging.debug('setting autowrap: %s' % boolean)
-        self.autowrap = boolean
-
-    def show_hide_cursor(self, boolean):
-        """
-        Literally:
-
-        .. code-block:: python
-
-            self.show_cursor = boolean
-        """
-        self.show_cursor = boolean
-
-    def send_receive_mode(self, onoff):
-        """
-        Turns on or off local echo dependong on the value of *onoff*:
-
-        .. code-block:: python
-
-            self.local_echo = onoff
-        """
-        #logging.debug("send_receive_mode(%s)" % repr(onoff))
-        # This has been disabled because it might only be meant for the
-        # underlying program and not the terminal emulator.  Needs research.
-        #if onoff:
-            #self.local_echo = False
-        #else:
-            #self.local_echo = True
+        self.expanded_modes[mode] = boolean
 
     def insert_characters(self, n=1):
         """
@@ -3317,6 +3310,7 @@ class Terminal(object):
         renditions_store = self.renditions_store
         cursorX = self.cursorX
         cursorY = self.cursorY
+        show_cursor = self.expanded_modes['25']
         if len(self.prev_dump) != len(screen):
             # Fix it to be equal--assume first time/screen reset/resize/etc
             # Just fill it with empty strings (only the length matters here)
@@ -3412,7 +3406,7 @@ class Terminal(object):
                         outline += '<span class="%s">' % " ".join(current_classes)
                         spancount += 1
                 if linecount == cursorY and charcount == cursorX: # Cursor position
-                    if self.show_cursor:
+                    if show_cursor:
                         outline += '<span class="cursor">%s</span>' % char
                     else:
                         outline += char

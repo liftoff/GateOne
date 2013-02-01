@@ -314,7 +314,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('term_ended', go.Terminal.closeTerminal);
         go.Net.addAction('term_exists', go.Terminal.reconnectTerminalAction);
         go.Net.addAction('term_moved', go.Terminal.moveTerminalAction);
-        go.Net.addAction('set_mode', go.Terminal.setModeAction); // For things like application cursor keys
+        go.Net.addAction('terminal:set_mode', go.Terminal.setModeAction); // For things like application cursor keys
         go.Net.addAction('reset_terminal', go.Terminal.resetTerminalAction);
         go.Net.addAction('load_webworker', go.Terminal.loadWebWorkerAction);
         // This ensures that whatever effects are applied to a terminal when switching to it get applied when resized too:
@@ -1652,10 +1652,32 @@ go.Base.update(GateOne.Terminal, {
             logDebug("Setting Application Cursor Mode to: " + bool + " on term: " + term);
             if (bool) {
                 // Turn on Application Cursor Keys mode
-                GateOne.Terminal.terminals[term]['mode'] = 'appmode';
+                go.Terminal.terminals[term]['mode'] = 'appmode';
             } else {
                 // Turn off Application Cursor Keys mode
-                GateOne.Terminal.terminals[term]['mode'] = 'default';
+                go.Terminal.terminals[term]['mode'] = 'default';
+            }
+        },
+        '1000': function(term, bool) {
+            // Use Button Event Mouse Tracking (aka SET_VT200_MOUSE)
+            logDebug("Setting Button Motion Event Mouse Tracking Mode to: " + bool + " on term: " + term);
+            if (bool) {
+                // Turn on Button Event Mouse Tracking
+                go.Terminal.terminals[term]['mouse'] = 'mouse_button';
+            } else {
+                // Turn off Button Event Mouse Tracking
+                go.Terminal.terminals[term]['mouse'] = false;
+            }
+        },
+        '1002': function(term, bool) {
+            // Use Button Motion Event Mouse Tracking (aka SET_BTN_EVENT_MOUSE)
+            logDebug("Setting Button Motion Event Mouse Tracking Mode to: " + bool + " on term: " + term);
+            if (bool) {
+                // Turn on Button Motion Event Mouse Tracking
+                go.Terminal.terminals[term]['mouse'] = 'mouse_button_motion';
+            } else {
+                // Turn off Button Motion Event Mouse Tracking
+                go.Terminal.terminals[term]['mouse'] = false;
             }
         }
     },
@@ -1667,7 +1689,9 @@ go.Base.update(GateOne.Terminal, {
             {'mode': '1', 'term': '1', 'bool': true}
         */
         logDebug("setModeAction modeObj: " + GateOne.Utils.items(modeObj));
-        GateOne.Terminal.modes[modeObj.mode](modeObj.term, modeObj.bool);
+        if (go.Terminal.modes[modeObj.mode]) {
+            go.Terminal.modes[modeObj.mode](modeObj.term, modeObj.bool);
+        }
     },
     registerTextTransform: function(name, pattern, newString) {
         /**:GateOne.Terminal.registerTextTransform(name, pattern, newString)
@@ -1731,6 +1755,17 @@ go.Base.update(GateOne.Terminal, {
         var term = message['term'],
             encoding = message['encoding'];
         go.Terminal.terminals[term]['encoding'] = encoding;
+    },
+    xtermEncode: function(number) {
+        /**:GateOne.Terminal.xtermEncode(number)
+
+        Encodes the given *number* into a single character using xterm's encoding scheme.  e.g. to convert mouse coordinates for use in an escape sequence.
+
+        The xterm encoding scheme takes the ASCII value of (*number* + 32).  So the number one would be ! (exclamation point), the number two would be " (double-quote), the number three would be # (hash), and so on.
+
+        .. note:: This encoding mechansim has the unfortunate limitation of only being able to encode up to the number 233.
+        */
+        return String.fromCharCode(number+32);
     }
 });
 

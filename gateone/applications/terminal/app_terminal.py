@@ -812,15 +812,15 @@ class TerminalApplication(GOApplication):
                     timedelta(seconds=2), resize)
         else:
             # Terminal already exists
-            multiplex = term_obj['multiplex']
-            if multiplex.isalive():
+            m = term_obj['multiplex']
+            if m.isalive():
                 # It's ALIVE!!!
-                multiplex.resize(
+                m.resize(
                     rows, cols, ctrl_l=False, em_dimensions=self.em_dimensions)
                 message = {'term_exists': term}
                 self.write_message(json_encode(message))
                 # This resets the screen diff
-                multiplex.prev_output[self.ws.client_id] = [
+                m.prev_output[self.ws.client_id] = [
                     None for a in xrange(rows-1)]
                 # Remind the client about this terminal's title
                 self.set_title(term, force=True)
@@ -835,10 +835,9 @@ class TerminalApplication(GOApplication):
         #       term_obj['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
         self.current_term = term
-        # Restore application cursor keys mode if set
-        if 'application_mode' in term_obj:
-            current_setting = term_obj['application_mode']
-            self.mode_handler(term, '1', current_setting)
+        # Restore expanded modes
+        for mode, setting in m.term.expanded_modes.items():
+            self.mode_handler(term, mode, setting)
         if self.settings['logging'] == 'debug':
             self.ws.send_message(_(
                 "WARNING: Logging is set to DEBUG.  All keystrokes will be "
@@ -1083,7 +1082,7 @@ class TerminalApplication(GOApplication):
         a message like::
 
             {
-                'set_mode': {
+                'terminal:set_mode': {
                     'mode': setting,
                     'bool': True,
                     'term': term
@@ -1094,25 +1093,24 @@ class TerminalApplication(GOApplication):
             "mode_handler() term: %s, setting: %s, boolean: %s" %
             (term, setting, boolean))
         term_obj = self.loc_terms[term]
-        if setting in ['1']: # Only support this mode right now
-            # So we can restore it:
-            term_obj['application_mode'] = boolean
-            if boolean:
-                # Tell client to enable application cursor mode
-                mode_message = {'set_mode': {
-                    'mode': setting,
-                    'bool': True,
-                    'term': term
-                }}
-                self.write_message(json_encode(mode_message))
-            else:
-                # Tell client to disable application cursor mode
-                mode_message = {'set_mode': {
-                    'mode': setting,
-                    'bool': False,
-                    'term': term
-                }}
-                self.write_message(json_encode(mode_message))
+        # So we can restore it:
+        term_obj['application_mode'] = boolean
+        if boolean:
+            # Tell client to set this mode
+            mode_message = {'terminal:set_mode': {
+                'mode': setting,
+                'bool': True,
+                'term': term
+            }}
+            self.write_message(json_encode(mode_message))
+        else:
+            # Tell client to reset this mode
+            mode_message = {'terminal:set_mode': {
+                'mode': setting,
+                'bool': False,
+                'term': term
+            }}
+            self.write_message(json_encode(mode_message))
         self.trigger("terminal:mode_handler", term, setting, boolean)
 
     def dsr(self, term, response):
@@ -1764,10 +1762,9 @@ class TerminalApplication(GOApplication):
         #       term_obj['multiplex'].isalive() is False
         self.refresh_screen(term, True) # Send a fresh screen to the client
         self.current_term = term
-        # Restore application cursor keys mode if set
-        if 'application_mode' in term_obj:
-            current_setting = term_obj['application_mode']
-            self.mode_handler(term, '1', current_setting)
+        # Restore expanded modes
+        for mode, setting in multiplex.term.expanded_modes.items():
+            self.mode_handler(term, mode, setting)
         # Tell the client about this terminal's title
         self.set_title(term, force=True)
         # Make a note of this connection in the logs

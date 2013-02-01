@@ -2192,6 +2192,28 @@ GateOne.Base.update(GateOne.Input, {
         window.addEventListener('compositionupdate', GateOne.Input.onCompositionUpdate, true);
         window.addEventListener('compositionend', GateOne.Input.onCompositionEnd, true);
     },
+    _getLineNo: function(elementUnder) {
+        // An internal function that just gets the line number (if any) by recursively moving up the DOM from *elementUnder*
+        var u = GateOne.Utils,
+            className = elementUnder.className + '', // Ensure it's a string for Firefox
+            lineno;
+        if (className && className.indexOf('termline') == -1) {
+            while (elementUnder.parentNode) {
+                elementUnder = elementUnder.parentNode;
+                if (elementUnder.className === undefined) {
+                    // User didn't click on a screen line; ignore
+                    elementUnder = null;
+                    break;
+                }
+                className = elementUnder.className + ''; // Ensure it's a string for Firefox
+                if (className.indexOf('termline') != -1) {
+                    break;
+                }
+            }
+        }
+        lineno = parseInt(u.last(className.split('_'))) + 1;
+        return lineno;
+    },
     onMouseDown: function(e) {
         // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
         logDebug("goDiv.onmousedown() button: " + e.button + ", which: " + e.which);
@@ -2200,14 +2222,14 @@ GateOne.Base.update(GateOne.Input, {
             prefix = go.prefs.prefix,
             goDiv = go.node,
             m = go.Input.mouse(e),
-            X, Y, className, // Used by mouse coordinates/tracking stuff
+            X, Y, button, className, // Used by mouse coordinates/tracking stuff
             selectedTerm = localStorage[prefix+'selectedTerminal'],
             selectedPastearea = null,
-            selectedText = u.getSelText();
+            selectedText = u.getSelText(),
+            elementUnder = document.elementFromPoint(e.clientX, e.clientY);
         if (go.Terminal.terminals[selectedTerm] && go.Terminal.terminals[selectedTerm]['pasteNode']) {
             selectedPastearea = go.Terminal.terminals[selectedTerm]['pasteNode'];
         }
-        var elementUnder = document.elementFromPoint(e.clientX, e.clientY);
         className = elementUnder.className + ''; // Ensure it's a string for Firefox
         if (className && className.indexOf('termline') == -1) {
             while (elementUnder.parentNode) {
@@ -2223,17 +2245,50 @@ GateOne.Base.update(GateOne.Input, {
                 }
             }
         }
-        // This is for mouse tracking (FUTURE)
+        // This is for mouse tracking
         if (elementUnder) {
-            window.testingTest = elementUnder;
-            var termObj = go.Terminal.terminals[selectedTerm],
-                termNode = termObj['node'],
-                columns = termObj['columns'],
-                colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
-                width = elementUnder.offsetWidth;
-            Y = parseInt(u.last(className.split('_'))) + 1;
-            X = Math.ceil(e.clientX/(width/(columns)));
-            logDebug("Clicked on row/column: "+Y+"/"+X);
+            // CSI M CbCxCy
+            if (go.Terminal.terminals[selectedTerm]['mouse'] == "mouse_button_motion") {
+                e.preventDefault(); // Don't let the browser do its own highlighting
+                var termObj = go.Terminal.terminals[selectedTerm],
+                    termNode = termObj['node'],
+                    columns = termObj['columns'],
+                    colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
+                    width = termObj['screenNode'].offsetWidth;
+                Y = parseInt(u.last(className.split('_'))) + 1;
+                X = Math.ceil(e.clientX/(width/(columns)));
+                logDebug("Clicked on row/column: "+Y+"/"+X);
+                X = go.Terminal.xtermEncode(X);
+                Y = go.Terminal.xtermEncode(Y);
+                if (m.button.left) {
+                    go.node.onmousemove = function(e) {
+                        var x = Math.ceil(e.clientX/(width/(columns))),
+                            element_under = document.elementFromPoint(e.clientX, e.clientY),
+                            y = go.Input._getLineNo(element_under);
+                        x = go.Terminal.xtermEncode(x);
+                        if (y) {
+                            y = go.Terminal.xtermEncode(y);
+                            go.Terminal.mouseUpEscSeq = ESC+'[M@'+x+y;
+                        }
+                    };
+                    go.Terminal.mouseUpdater = setInterval(function() {
+                        // Send regular mouse escape sequences in case the user is dragging-to-highlight
+                        // NOTE:  This interval timer will be cleared automatically in onMouseUp()
+                        console.log(go.Terminal.mouseUpEscSeq);
+                        if (go.Terminal.mouseUpEscSeq != go.Terminal.mouseUpEscSeqLast) {
+                            go.Terminal.sendString(go.Terminal.mouseUpEscSeq);
+                            go.Terminal.mouseUpEscSeqLast = go.Terminal.mouseUpEscSeq;
+                        }
+                    }, 100);
+                    button = go.Terminal.xtermEncode(0);
+                } else if (m.button.right) {
+                    button = go.Terminal.xtermEncode(1);
+                } else if (m.button.middle) {
+                    button = go.Terminal.xtermEncode(2);
+                }
+                // Send the initial mouse down escape sequence
+                go.Terminal.sendString(ESC+'[M'+button+X+Y);
+            }
         }
         go.Input.mouseDown = true;
         // This is kinda neat:  By setting "contentEditable = true" we can right-click to paste.
@@ -2271,19 +2326,57 @@ GateOne.Base.update(GateOne.Input, {
         var go = GateOne,
             u = go.Utils,
             prefix = go.prefs.prefix,
+            X, Y, button, className, // Used by mouse coordinates/tracking stuff
             selectedTerm = localStorage[prefix+'selectedTerminal'],
             goDiv = go.node,
-            selectedText = u.getSelText();
+            selectedText = u.getSelText(),
+            elementUnder = document.elementFromPoint(e.clientX, e.clientY);
         logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
-        // Once the user is done pasting (or clicking), set it back to false for speed
-//             goDiv.contentEditable = false; // Having this as false makes screen updates faster
         go.Input.mouseDown = false;
+        if (go.Terminal.mouseUpdater) {
+            clearInterval(go.Terminal.mouseUpdater);
+            go.Terminal.mouseUpdater = null;
+        }
+        go.node.onmousemove = null;
         if (selectedText) {
             // Don't show the pastearea as it will prevent the user from right-clicking to copy.
             return;
         }
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
             return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
+        }
+        className = elementUnder.className + ''; // Ensure it's a string for Firefox
+        if (className && className.indexOf('termline') == -1) {
+            while (elementUnder.parentNode) {
+                elementUnder = elementUnder.parentNode;
+                if (elementUnder.className === undefined) {
+                    // User didn't click on a screen line; ignore
+                    elementUnder = null;
+                    break;
+                }
+                className = elementUnder.className + ''; // Ensure it's a string for Firefox
+                if (className.indexOf('termline') != -1) {
+                    break;
+                }
+            }
+        }
+        // This is for mouse tracking
+        if (elementUnder) {
+            // CSI M CbCxCy
+            if (go.Terminal.terminals[selectedTerm]['mouse'] == "mouse_button_motion") {
+                var termObj = go.Terminal.terminals[selectedTerm],
+                    termNode = termObj['node'],
+                    columns = termObj['columns'],
+                    colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
+                    width = termObj['screenNode'].offsetWidth;
+                Y = parseInt(u.last(className.split('_'))) + 1;
+                X = Math.ceil(e.clientX/(width/(columns)));
+                logDebug("Clicked on row/column: "+Y+"/"+X);
+                X = go.Terminal.xtermEncode(X);
+                Y = go.Terminal.xtermEncode(Y);
+                button = go.Terminal.xtermEncode(3); // 3 is always "release"
+                go.Terminal.sendString(ESC+'[M'+button+X+Y);
+            }
         }
         if (!go.Visual.gridView) {
             setTimeout(function() {

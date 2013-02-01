@@ -1577,6 +1577,7 @@ class ApplicationWebSocket(WebSocketHandler):
                     os.remove(os.path.join(cache_dir, fname))
         return rendered_path
 
+# TODO:  Get this so that it only renders the theme if a theme file has changed
     def get_theme(self, settings):
         """
         Sends the theme stylesheets matching the properties specified in
