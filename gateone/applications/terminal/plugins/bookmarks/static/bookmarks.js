@@ -1433,14 +1433,12 @@ go.Base.update(GateOne.Bookmarks, {
             if (termTitle == 'SSH Connect') { // NOTE: This MUST be equal to the title set by ssh_connect.py or it will send the ssh:// URL to the active terminal
                 // Foreground terminal has yet to be connected, use it
                 b.incrementVisits(URL);
-                go.Input.queue(URL+'\n');
-                go.Net.sendChars();
+                t.sendString(URL+'\n')
             } else {
                 b.incrementVisits(URL);
                 go.Terminal.newTerminal();
                 setTimeout(function() {
-                    go.Input.queue(URL+'\n');
-                    go.Net.sendChars();
+                    t.sendString(URL+'\n')
                 }, 250);
             }
         } else {

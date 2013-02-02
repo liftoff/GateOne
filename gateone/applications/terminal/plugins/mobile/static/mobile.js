@@ -5,6 +5,21 @@
 
 var document = window.document; // Have to do this because we're sandboxed
 
+// Sandbox-wide shortcuts
+var go = GateOne,
+    prefix = go.prefs.prefix,
+    t = go.Terminal,
+    i = go.Input, // Not the same as GateOne.Terminal.Input!
+    u = go.Utils,
+    v = go.Visual,
+    E = go.Events,
+    ESC = String.fromCharCode(27),
+    logFatal = GateOne.Logging.logFatal,
+    logError = GateOne.Logging.logError,
+    logWarning = GateOne.Logging.logWarning,
+    logInfo = GateOne.Logging.logInfo,
+    logDebug = GateOne.Logging.logDebug;
+
 // First we need to know if this is a mobile browser or not so we can decide whether we want to invoke our mobile-specific JS
 var mobile = function() {
     return {
@@ -31,10 +46,10 @@ var mobile = function() {
 }();
 
 // GateOne.Mobile
-GateOne.Base.module(GateOne, "Mobile", '1.0', ['Base', 'Net', 'Input']);
-GateOne.Mobile.origHeight = document.body.scrollHeight;
-GateOne.Mobile.origWidth = document.body.scrollWidth;
-GateOne.Base.update(GateOne.Mobile, {
+go.Base.module(GateOne, "Mobile", '1.0', ['Base', 'Net', 'Input']);
+go.Mobile.origHeight = document.body.scrollHeight;
+go.Mobile.origWidth = document.body.scrollWidth;
+go.Base.update(go.Mobile, {
     init: function() {
         /**:GateOne.Mobile.init()
 
@@ -42,9 +57,7 @@ GateOne.Base.update(GateOne.Mobile, {
         */
         // text input (native keyboard) version
         if (mobile.detect()) {
-            var go = GateOne,
-                u = go.Utils,
-                goDiv = u.getNode(go.prefs.goDiv),
+            var goDiv = go.node,
                 style = window.getComputedStyle(goDiv, null),
                 form = u.createElement('form'),
                 inputElement = u.createElement('input', {'type': 'text', 'name': 'mobile_input', 'id': 'mobile_input', 'size': 10, 'style': {'background': 'transparent', 'color': '#ccc', 'position': 'fixed', 'bottom': 0, 'left': 0, 'z-index': 1000, 'font-size': '200%', 'height': '2em', 'opacity': '0.5', 'border': 'none'}});
@@ -57,13 +70,13 @@ GateOne.Base.update(GateOne.Mobile, {
             goDiv.addEventListener('touchmove', function(e) {
                 var t = e.touches[0];
                 if (t.pageX < go.Mobile.touchstartX && (go.Mobile.touchstartX - t.pageX) > 20) {
-                    go.Visual.slideRight();
+                    v.slideRight();
                 } else if (t.pageX > go.Mobile.touchstartX && (t.pageX - go.Mobile.touchstartX) > 20) {
-                    go.Visual.slideLeft();
+                    v.slideLeft();
                 } else if (t.pageY < go.Mobile.touchstartY && (go.Mobile.touchstartY - t.pageY) > 20) {
-                    go.Visual.slideDown();
+                    v.slideDown();
                 } else if (t.pageY > go.Mobile.touchstartY && (t.pageY - go.Mobile.touchstartY) > 20) {
-                    go.Visual.slideUp();
+                    v.slideUp();
                 }
                 e.preventDefault();
             }, true);
@@ -82,7 +95,7 @@ GateOne.Base.update(GateOne.Mobile, {
             }, true);
             inputElement.addEventListener('blur', function(e) {
                 // Move everything UP so the user can see what they're typing
-                go.Visual.applyTransform(goDiv, '');
+                v.applyTransform(goDiv, '');
             }, true);
             inputElement.addEventListener('keyup', function(e) {
                 // For some reason mobile browsers have issues capturing onkeydown, onkeyup, and onkeypress events.  They seem to work OK for enter and backspace though (bizarre, right?)
@@ -91,16 +104,14 @@ GateOne.Base.update(GateOne.Mobile, {
                     modifiers = go.Input.modifiers(e),
                     keyString = String.fromCharCode(key.code);
                 if (key.string == "KEY_BACKSPACE" || key.string == "KEY_ENTER") {
-                    go.Input.queue(keyString);
-                    go.Net.sendChars();
+                    t.sendString(keyString);
                     inputElement.value = '';
                 }
                 e.preventDefault();
             }, true);
             inputElement.addEventListener('input', function(e) {
                 var keyString = inputElement.value;
-                go.Input.queue(keyString);
-                go.Net.sendChars();
+                t.sendString(keyString);
                 inputElement.value = ''; // Clear it out
             }, true);
             form.onsubmit = function(e) {
@@ -114,11 +125,11 @@ GateOne.Base.update(GateOne.Mobile, {
             }, 3000);
             window.onresize = function(e) {
                 // Mobile resize is slightly different from desktop
-                go.Visual.updateDimensions();
+                v.updateDimensions();
                 go.Mobile.sendDimensions(null, false);
             }
             setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
-                go.Visual.updateDimensions();
+                v.updateDimensions();
                 go.Mobile.sendDimensions();
             }, 4000);
         }
@@ -129,11 +140,9 @@ GateOne.Base.update(GateOne.Mobile, {
         Same as :js:meth:`GateOne.Net.sendDimensions` but we don't adjust for the playback controls.
         */
         if (!term) {
-            var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
+            var term = localStorage[prefix+'selectedTerminal'];
         }
-        var go = GateOne,
-            u = go.Utils,
-            emDimensions = u.getEmDimensions(go.prefs.goDiv),
+        var emDimensions = u.getEmDimensions(go.prefs.goDiv),
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             prefs = {
                 'term': term,

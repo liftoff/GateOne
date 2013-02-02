@@ -771,20 +771,25 @@ class BaseMultiplex(object):
         with an empty string in the output.
 
         If *full*, will return the entire screen (not just the diff).
+
         if *client_id* is given (string), this will be used as a unique client
         identifier for keeping track of screen differences (so you can have
         multiple clients getting their own unique diff output for the same
         Multiplex instance).
         """
+        modified = True
         if client_id not in self.prev_output:
             self.prev_output[client_id] = [None for a in xrange(self.rows-1)]
         try:
             scrollback, html = ([], [])
             if self.term:
                 try:
+                    modified = self.term.modified
                     result = self.term.dump_html()
                     if result:
                         scrollback, html = result
+                        if scrollback:
+                            self.shared_scrollback = scrollback
                         # Make a copy so we can save it to prev_output later
                         preserved_html = html[:]
                 except IOError as e:
@@ -801,6 +806,8 @@ class BaseMultiplex(object):
                         count += 1
                     # Otherwise a full dump will take place
                 self.prev_output.update({client_id: preserved_html})
+            if not modified:
+                return (self.shared_scrollback, html)
             return (scrollback, html)
         except ValueError as e:
             # This would be special...
@@ -1343,6 +1350,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
             self.io_loop.add_handler(
                 fd, self._ioloop_read_handler, self.io_loop.READ)
             self.prev_output = {}
+            self.shared_scrollback = []
             # Set non-blocking so we don't wait forever for a read()
             import fcntl
             fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)

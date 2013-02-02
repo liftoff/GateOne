@@ -851,7 +851,7 @@ class ApplicationWebSocket(WebSocketHandler):
     watched_files = {}     # Format: {<file path>: <modification time>}
     file_update_funcs = {} # Format: {<file path>: <function called on update>}
     file_watcher = None    # Will be replaced with a PeriodicCallback
-    prefs = {} # Gets updated with every call to open()
+    prefs = {} # Gets updated with every call to initialize()
     def __init__(self, application, request, **kwargs):
         self.user = None
         self.commands = {

@@ -78,7 +78,6 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms, c
         rateLimiter = termUpdateObj['ratelimiter'],
         backspace = "",
         outputObj = {'term': term};
-    // If there's no scrollback buffer, try filling it with what was preserved in localStorage
     if (!scrollback.length) {
         scrollback = [];
     }
@@ -165,5 +164,6 @@ self.addEventListener('message', function(e) {
             self.postMessage(result);
         }
         result = null;
+        consoleLog = []; // Reset
     }
 }, false);

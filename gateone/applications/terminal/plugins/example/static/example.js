@@ -3,7 +3,7 @@
 var _gaq = _gaq || []; // We'll actually make our plugin-specific Google Analytics call inside of init()
 (function() { // Load the GA script the Gate One way (you can include this in your own plugin without having to worry about duplicates/conflicts)
     var u = GateOne.Utils,
-        ga = u.createElement('script', {'id': 'ga', 'type': 'text/javascript', 'async': true, 'src': ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'}), // Note that GateOne.prefs.prefix is automatically prepended before the 'id' when using createElement()
+        ga = u.createElement('script', {'id': 'ga', 'type': 'text/javascript', 'async': true, 'src': ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'}), // Note that prefix is automatically prepended before the 'id' when using createElement()
         existing = u.getNode('#'+GateOne.prefs.prefix+'ga'), // This is why we need to use the prefix here
         s = u.getNodes('script')[0];
     if (!existing) { s.parentNode.insertBefore(ga, s) }
@@ -13,15 +13,25 @@ var _gaq = _gaq || []; // We'll actually make our plugin-specific Google Analyti
 (function(window, undefined) { // Sandbox everything
 var document = window.document; // Have to do this because we're sandboxed
 
-// GateOne.Example Plugin:   "Name", "version", ['dependency1', 'dependency2', etc]
-GateOne.Base.module(GateOne, "Example", "1.0", ['Base']); // We require 'Base'
-GateOne.Example.line1 = new TimeSeries();
-GateOne.Example.line2 = new TimeSeries();
-GateOne.Example.line3 = new TimeSeries();
-GateOne.Example.graphUpdateTimer = null; // Used to track the setTimout() that updates the load graph
-GateOne.Example.topUpdateTimer = null; // Used to track the setTimeout() that updates the topTop output
+// Useful sandbox-wide stuff
+var go = GateOne, // Things like this save a lot of typing
+    u = go.Utils,
+    v = go.Visual,
+    E = go.Events,
+    prefix = go.prefs.prefix,
+    noop = u.noop,
+    logFatal = GateOne.Logging.logFatal, // If you actually have a legitimate use for logFatal in your plugin...  Awesome!
+    logError = GateOne.Logging.logError,
+    logWarning = GateOne.Logging.logWarning,
+    logInfo = GateOne.Logging.logInfo,
+    logDebug = GateOne.Logging.logDebug;
 
-GateOne.Base.update(GateOne.Example, { // Everything that we want to be available under GateOne.Example goes in here
+// GateOne.Example Plugin:   "Name", "version", ['dependency1', 'dependency2', etc]
+go.Base.module(GateOne, "Example", "1.0", ['Base']); // We require 'Base'
+go.Example.graphUpdateTimer = null; // Used to track the setTimout() that updates the load graph
+go.Example.topUpdateTimer = null; // Used to track the setTimeout() that updates the topTop output
+
+go.Base.update(go.Example, { // Everything that we want to be available under GateOne.Example goes in here
     init: function() {
         /**:GateOne.Example.init()
 
@@ -29,29 +39,18 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
 
         The Example plugin's `init()` function sets up some internal variables, keyboard shortcuts (:kbd:`Control-Alt-L` to open the load graph), and adds some buttons to the Info & Tools menu.
         */
-        var go = GateOne, // Adding a shortcut like this at the top of your plugin saves a lot of typing
-            u = go.Utils, // Ditto
-            prefix = go.prefs.prefix, // Ditto again
-            infoPanel = u.getNode('#'+prefix+'panel_info'), // Need this since we're going to be adding a button here
+        var infoPanel = u.getNode('#'+prefix+'panel_info'), // Need this since we're going to be adding a button here
             h3 = u.createElement('h3'), // We'll add an "Example Plugin" header to the info panel just like the SSH plugin has
             infoPanelLoadGraph = u.createElement('button', {'id': 'load_g', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             infoPanelTopButton = u.createElement('button', {'id': 'load_top', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
-        // Assign our logging function shortcuts if the (JS) Logging plugin is available with a safe fallback
-        if (go.Logging) { // You can ignore this if you don't care about Gate One's fancy JavaScript logging plugin =)
-            logFatal = go.Logging.logFatal; // If you actually have a legitimate use for logFatal in your plugin...  Awesome!
-            logError = go.Logging.logError;
-            logWarning = go.Logging.logWarning;
-            logInfo = go.Logging.logInfo;
-            logDebug = go.Logging.logDebug;
-        }
         h3.innerHTML = "Example Plugin"; // Sing it with me: My plugin has a first name, it's E X A M P L E
         infoPanelLoadGraph.innerHTML = "Load Graph"; // My plugin has a button name, it's...  Yeah, you get the idea
         infoPanelLoadGraph.onclick = function(e) { // Make it do something when clicked
             e.preventDefault();
             go.Example.toggleLoadGraph();
-            go.Visual.togglePanel(); // Hide the panel while we're at so the widget isn't hidden underneath
+            v.togglePanel(); // Hide the panel while we're at so the widget isn't hidden underneath
             setTimeout(function() {
-                go.Input.capture();
+                go.Terminal.Input.capture();
             }, 100);
         }
         // Let's attach the load graph toggle to a keyboard shortcut too:
@@ -65,7 +64,7 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
             GateOne.Example.topTop();
             GateOne.Visual.togglePanel(); // Hide the panel while we're at so the widget isn't hidden underneath
             setTimeout(function() {
-                go.Input.capture();
+                go.Terminal.Input.capture();
             }, 100);
         }
         // Now add these elements to the info panel:
@@ -75,7 +74,7 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         // This sets a Google Analytics custom variable so you can tell what version of your plugin is in use out in the wild.
         _gaq.push(
             ['_setAccount', 'UA-30421535-1'], // Replace this with your own UA
-            ['_setCustomVar', 1, 'Version', GateOne.VERSION], // You could replace GateOne.VERSION with GateOne.YourPlugin.VERSION
+            ['_setCustomVar', 1, 'Version', go.VERSION], // You could replace GateOne.VERSION with GateOne.YourPlugin.VERSION
             ['_trackPageview'],
             ['_trackEvent','Plugin Loaded', 'Example']
         );
@@ -85,10 +84,10 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
 
         Clears the `GateOne.Example.graphUpdateTimer`, removes the canvas element, and stops the smoothie graph streaming.  *result* is unused.
         */
-        clearInterval(GateOne.Example.graphUpdateTimer);
-        GateOne.Example.graphUpdateTimer = null;
-        GateOne.Example.loadGraph.stop();
-        GateOne.Utils.removeElement(GateOne.Example.canvas);
+        clearInterval(go.Example.graphUpdateTimer);
+        go.Example.graphUpdateTimer = null;
+        go.Example.loadGraph.stop();
+        u.removeElement(go.Example.canvas);
     },
     updateGraph: function(output) {
         /**:GateOne.Example.updateGraph(output)
@@ -100,9 +99,9 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
             tenmin = parseFloat(output.split('average:')[1].split(',')[1].trim()),
             fifteenmin = parseFloat(output.split('average:')[1].split(',')[2].trim());
         // The smoothie charts library will watch these and update the chart automatically as the new data is added
-        GateOne.Example.line1.append(new Date().getTime(), fivemin);
-        GateOne.Example.line2.append(new Date().getTime(), tenmin);
-        GateOne.Example.line3.append(new Date().getTime(), fifteenmin);
+        go.Example.line1.append(new Date().getTime(), fivemin);
+        go.Example.line2.append(new Date().getTime(), tenmin);
+        go.Example.line3.append(new Date().getTime(), fifteenmin);
     },
     toggleLoadGraph: function(term) {
         /**:GateOne.Example.toggleLoadGraph(term)
@@ -110,13 +109,15 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         Displays a real-time load graph of the given terminal (inside of it as a :js:meth:`GateOne.Visual.widget`).
         */
         if (!term) {
-            term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
+            term = localStorage[prefix+'selectedTerminal'];
         }
-        var go = GateOne,
-            u = go.Utils,
-            goDiv = u.getNode(go.prefs.goDiv),
-            prefix = go.prefs.prefix,
-            canvas = u.createElement('canvas', {'id': 'load_graph', 'width': 300, 'height': 40}), // <canvas id="mycanvas" width="400" height="100"></canvas>
+        if (!go.Example.line1) {
+            // These are part of smoothie charts; they represent each load graph line.
+            go.Example.line1 = new TimeSeries();
+            go.Example.line2 = new TimeSeries();
+            go.Example.line3 = new TimeSeries();
+        }
+        var canvas = u.createElement('canvas', {'id': 'load_graph', 'width': 300, 'height': 40}), // <canvas id="mycanvas" width="400" height="100"></canvas>
             smoothie = new SmoothieChart({
                 grid: {strokeStyle:'rgba(125, 0, 0, 0.7)', fillStyle:'transparent', lineWidth: 1, millisPerLine: 3000, verticalSections: 6},
                 labels: {fillStyle:'#ffffff'}
@@ -127,14 +128,17 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         if (go.Example.graphUpdateTimer) {
             // Graph already present/running.  Turn it off
             go.Example.stopGraph();
+            go.Example.line1 = null;
+            go.Example.line2 = null;
+            go.Example.line3 = null;
             return;
         }
         if (!go.Terminal.terminals[term]['sshConnectString']) {
             // FYI: This doesn't always work because the sshConnectString might be present even if the terminal isn't connected...  Working on fixing that :)
-            go.Visual.displayMessage("Error: Can't display load graph because terminal " + term + " is not connected via SSH.");
+            v.displayMessage("Error: Can't display load graph because terminal " + term + " is not connected via SSH.");
             return;
         }
-        go.Visual.widget('Load Graph', canvas, {'onclose': go.Example.stopGraph, 'onconfig': configure});
+        v.widget('Load Graph', canvas, {'onclose': go.Example.stopGraph, 'onconfig': configure});
         // Update the graph every three seconds
         go.Example.graphUpdateTimer = setInterval(function() {
             go.SSH.execRemoteCmd(term, 'uptime', go.Example.updateGraph, go.Example.stopGraph);
@@ -146,8 +150,8 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         smoothie.streamTo(canvas, 3000);
         go.Example.canvas = canvas; // So we can easily remove it later.
         go.Example.loadGraph = smoothie; // So we can stop it later.
-        go.Visual.displayMessage("Example Plugin: Real-time Load Graph!", 5000);
-        go.Visual.displayMessage("Green: 5 minute, Blue: 10 minute, Red: 15 minute", 5000);
+        v.displayMessage("Example Plugin: Real-time Load Graph!", 5000);
+        v.displayMessage("Green: 5 minute, Blue: 10 minute, Red: 15 minute", 5000);
     },
     updateTop: function(output) {
         /**:GateOne.Example.updateTop(output)
@@ -159,16 +163,16 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
               2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 [kthreadd]
               3 root      20   0     0    0    0 S  0.0  0.0   0:00.08 [ksoftirqd/0]
         */
-        GateOne.Example.toptop.innerHTML = output;
+        go.Example.toptop.innerHTML = output;
     },
     stopTop: function(result) {
         /**:GateOne.Example.stopTop(result)
 
         Clears the `GateOne.Example.topUpdateTimer` and removes the 'toptop' element.  *result* is unused.
         */
-        clearInterval(GateOne.Example.topUpdateTimer);
-        GateOne.Example.topUpdateTimer = null;
-        GateOne.Utils.removeElement(GateOne.Example.toptop);
+        clearInterval(go.Example.topUpdateTimer);
+        go.Example.topUpdateTimer = null;
+        u.removeElement(go.Example.toptop);
     },
     topTop: function(term) {
         /**GateOne.Example.topTop(term)
@@ -176,17 +180,14 @@ GateOne.Base.update(GateOne.Example, { // Everything that we want to be availabl
         Displays the top three CPU-hogging processes on the server in real-time (updating every three seconds just like top).
         */
         if (!term) {
-            term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
+            term = localStorage[prefix+'selectedTerminal'];
         }
-        var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix;
         go.Example.toptop = u.getNode('#'+prefix+'toptop');
         if (!go.Example.toptop) {
             // NOTE: Have to set position:static below since GateOne's default CSS says that '<goDiv> .terminal pre' should be position:absolute
             go.Example.toptop = u.createElement('pre', {'id': 'toptop', 'style': {'width': '40em', 'height': '4em', 'position': 'static', 'border': '1px #ccc solid'}});
             go.Example.toptop.innerHTML = 'Loading...';
-            go.Visual.widget('Top Top', go.Example.toptop, {'onclose': go.Example.stopTop});
+            v.widget('Top Top', go.Example.toptop, {'onclose': go.Example.stopTop});
         }
         if (go.Example.topUpdateTimer) {
             // Toptop already present/running.  Stop it

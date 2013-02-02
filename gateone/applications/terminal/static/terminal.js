@@ -241,9 +241,9 @@ go.Base.update(GateOne.Terminal, {
                     go.ws.send(JSON.stringify({'manual_title': {'term': term, 'title': newTitle}}));
                     infoPanelH2.onclick = editTitle;
                     go.Terminal.displayTermInfo(term);
-                    go.Input.capture();
+                    go.Terminal.Input.capture();
                 };
-            go.Input.disableCapture();
+            go.Terminal.Input.disableCapture();
             titleEdit.onblur = finishEditing;
             titleEdit.onkeypress = function(e) {
                 if (go.Input.key(e).code == 13) { // Enter key
@@ -259,11 +259,11 @@ go.Base.update(GateOne.Terminal, {
         infoPanelH2.onclick = editTitle;
         toolbarNewTerm.onclick = function(e) {
             go.Terminal.newTerminal();
-            go.Input.capture();
+            go.Terminal.Input.capture();
         };
         var closeCurrentTerm = function() {
             go.Terminal.closeTerminal(localStorage[prefix+'selectedTerminal']);
-            go.Input.capture();
+            go.Terminal.Input.capture();
         }
         toolbarClose.onclick = closeCurrentTerm;
         // TODO: Get showInfo() displaying the proper status of the activity monitor checkboxes
@@ -371,32 +371,6 @@ go.Base.update(GateOne.Terminal, {
         Requests a list of open terminals on the server via the 'terminal:get_terminals' WebSocket action.  The server will respond with a 'terminal:terminals' WebSocket action message which calls :js:meth:`GateOne.Terminal.reattachTerminalsAction`.
         */
         go.ws.send(JSON.stringify({'terminal:get_terminals': null}));
-    },
-    sendChars: function() {
-        /**:GateOne.Terminal.sendChars()
-
-        pop()s out the current `charBuffer` and sends it to the server.
-
-        .. note: This function is normally called every time a key is pressed.
-        */
-        var term = localStorage[go.prefs.prefix+'selectedTerminal'],
-            termPre = GateOne.Terminal.terminals[term]['node'];
-        if (!go.Terminal.doingUpdate) { // Only perform a character push if we're *positive* the last character POST has completed.
-            go.Terminal.doingUpdate = true;
-            var cb = go.Input.charBuffer,
-                charString = "";
-            for (var i=0; i<=cb.length; i++) { charString += cb.pop() }
-            if (charString != "undefined") {
-                var message = {'c': charString};
-                go.ws.send(JSON.stringify(message));
-                go.Terminal.doingUpdate = false;
-            } else {
-                go.Terminal.doingUpdate = false;
-            }
-        } else {
-            // We are in the middle of processing the last character
-            setTimeout(go.Terminal.sendChars, 100); // Wait 0.1 seconds and retry.
-        }
     },
     sendString: function(chars, /*opt*/term) {
         /**:GateOne.Terminal.sendString(chars[, term])
@@ -552,12 +526,8 @@ go.Base.update(GateOne.Terminal, {
         This gets attached to Shift-Insert (KEY_INSERT) as a shortcut in order to support pasting.
         */
         logDebug('paste()');
-        var go = GateOne,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
-            goDiv = u.getNode(go.prefs.goDiv),
-            tempPaste = u.createElement('textarea', {'class': 'temppaste', 'style': {'position': 'fixed', 'top': '-100000px', 'left': '-100000px', 'opacity': 0}});
-        go.Input.handlingPaste = true;
+        var tempPaste = u.createElement('textarea', {'class': 'temppaste', 'style': {'position': 'fixed', 'top': '-100000px', 'left': '-100000px', 'opacity': 0}});
+        go.Terminal.Input.handlingPaste = true;
         tempPaste.oninput = function(e) {
             var pasted = tempPaste.value,
                 lines = pasted.split('\n');
@@ -568,16 +538,15 @@ go.Base.update(GateOne.Terminal, {
                 }
                 pasted = lines.join('\n');
             }
-            go.Input.queue(pasted);
+            go.Terminal.sendString(pasted);
             tempPaste.value = "";
-            go.Terminal.sendChars();
             u.removeElement(tempPaste); // Don't need this anymore
             setTimeout(function() {
-                go.Input.handlingPaste = false;
-                go.Input.capture();
+                go.Terminal.Input.handlingPaste = false;
+                go.Terminal.Input.capture();
             }, 250);
         }
-        goDiv.appendChild(tempPaste);
+        go.node.appendChild(tempPaste);
         tempPaste.focus();
     },
     writeScrollback: function(term, scrollback) {
@@ -689,19 +658,19 @@ go.Base.update(GateOne.Terminal, {
             return;
         };
         if (backspace.length) {
-            GateOne.Input.automaticBackspace = false; // Tells us to hold off on attempting to detect backspace for a while
+            go.Terminal.Input.automaticBackspace = false; // Tells us to hold off on attempting to detect backspace for a while
             setTimeout(function() {
                 // Don't bother checking for incorrect backspace again for at least 10 seconds
-                GateOne.Input.automaticBackspace = true;
+                go.Terminal.Input.automaticBackspace = true;
             }, 10000);
             // Use whatever was detected
             if (backspace.charCodeAt(0) == 8) {
-                GateOne.Visual.displayMessage("Backspace difference detected; switching to ^?");
-                GateOne.Net.sendString(String.fromCharCode(8)); // Send the intended backspace
+                v.displayMessage("Backspace difference detected; switching to ^?");
+                go.Net.sendString(String.fromCharCode(8)); // Send the intended backspace
                 u.getNode('#'+prefix+'backspace_h').checked = true;
             } else {
-                GateOne.Visual.displayMessage("Backspace difference detected; switching to ^H");
-                GateOne.Net.sendString(String.fromCharCode(127)); // Send the intended backspace
+                v.displayMessage("Backspace difference detected; switching to ^H");
+                go.Net.sendString(String.fromCharCode(127)); // Send the intended backspace
                 u.getNode('#'+prefix+'backspace_q').checked = true;
             }
             go.Terminal.terminals[term]['backspace'] = backspace;
@@ -787,7 +756,7 @@ go.Base.update(GateOne.Terminal, {
                             setTimeout(function() {
                                 // Get rid of it once the copy operation is complete
                                 u.removeElement(tempTextArea);
-                                GateOne.Input.capture(); // Re-focus on the terminal and start accepting keyboard input again
+                                go.Terminal.Input.capture(); // Re-focus on the terminal and start accepting keyboard input again
                             }, 100);
                             return true;
                         }
@@ -940,9 +909,9 @@ go.Base.update(GateOne.Terminal, {
         if (ratelimiter) {
             v.displayMessage("WARNING: The rate limiter was engaged on terminal " + term + ".  Output will be severely slowed until you press a key (e.g. Ctrl-C).");
         }
-        if (go.Input.sentBackspace) {
+        if (go.Terminal.Input.sentBackspace) {
             checkBackspace = go.Terminal.terminals[term]['backspace'];
-            go.Input.sentBackspace = false; // Prevent a potential race condition
+            go.Terminal.Input.sentBackspace = false; // Prevent a potential race condition
         }
         if (!scrollback) {
             // Terminal was just closed, ignore
@@ -965,14 +934,14 @@ go.Base.update(GateOne.Terminal, {
     notifyInactivity: function(term) {
         // Notifies the user of inactivity in *term*
         var message = "Inactivity in terminal " + term;
-        GateOne.Visual.playBell();
-        GateOne.Visual.displayMessage(message);
+        v.playBell();
+        v.displayMessage(message);
     },
     notifyActivity: function(term) {
         // Notifies the user of activity in *term*
         var message = "Activity in terminal " + term;
-        GateOne.Visual.playBell();
-        GateOne.Visual.displayMessage(message);
+        v.playBell();
+        v.displayMessage(message);
     },
     newTerminal: function(/*Opt:*/term, /*Opt:*/settings, /*Opt*/where) {
         /**:GateOne.Terminal.newTerminal([term[, settings[, where]]])
@@ -1073,7 +1042,7 @@ go.Base.update(GateOne.Terminal, {
         }
         go.Terminal.terminals[term]['terminal'] = terminal; // Cache it for quicker access later
         // This ensures that we re-enable input if the user clicked somewhere else on the page then clicked back on the terminal:
-//         terminal.addEventListener('click', go.Input.capture, false);
+//         terminal.addEventListener('click', go.Terminal.Input.capture, false);
         // Get any previous term's dimensions so we can use them for the new terminal
         var termSettings = {
                 'term': term,
@@ -1089,7 +1058,7 @@ go.Base.update(GateOne.Terminal, {
                 var go = GateOne,
                     pasted = pastearea.value,
                     lines = pasted.split('\n');
-                if (go.Input.handlingPaste) {
+                if (go.Terminal.Input.handlingPaste) {
                     return;
                 }
                 if (lines.length > 1) {
@@ -1099,10 +1068,9 @@ go.Base.update(GateOne.Terminal, {
                     }
                     pasted = lines.join('\n');
                 }
-                go.Input.queue(pasted);
+                go.Terminal.sendString(pasted);
                 pastearea.value = "";
-                go.Terminal.sendChars();
-                go.Input.capture();
+                go.Terminal.Input.capture();
             },
             pasteareaScroll = function(e) {
                 // We have to hide the pastearea so we can scroll the terminal underneath
@@ -1125,12 +1093,12 @@ go.Base.update(GateOne.Terminal, {
         pastearea.oninput = pasteareaOnInput;
         pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
         pastearea.onpaste = function(e) {
-            go.Input.onPaste(e);
+            go.Terminal.Input.onPaste(e);
             // Start capturing input again
             setTimeout(function() {
                 // For some reason when you paste the onmouseup event doesn't fire on goDiv; goFigure
-                go.Input.mouseDown = false;
-                GateOne.Input.capture();
+                go.Terminal.Input.mouseDown = false;
+                go.Terminal.Input.capture();
                 pastearea.value = ''; // Empty it out to ensure there's no leftovers in subsequent pastes
             }, 1);
         }
@@ -1150,7 +1118,7 @@ go.Base.update(GateOne.Terminal, {
                 timeout = 200;
             if (pastearea.style.display != 'none') {
                 u.hideElement(pastearea);
-                go.Input.pasteareaTemp = pastearea.onmousemove;
+                go.Terminal.Input.pasteareaTemp = pastearea.onmousemove;
                 pastearea.onmouseover = null;
             }
             var elementUnder = document.elementFromPoint(X, Y);
@@ -1190,7 +1158,7 @@ go.Base.update(GateOne.Terminal, {
                 return; // Let it return to visibility on its own
             }
             go.Terminal.pasteAreaTimer = setTimeout(function() {
-                pastearea.onmousemove = go.Input.pasteareaTemp;
+                pastearea.onmousemove = go.Terminal.Input.pasteareaTemp;
                 go.Terminal.pasteAreaTimer = null;
                 if (!u.getSelText()) {
                     u.showElement(pastearea);
@@ -1395,6 +1363,7 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.alignTimer = setTimeout(function() {
             go.Terminal.alignTerminal(term);
         }, 1100);
+        go.Terminal.Input.capture();
     },
     switchWorkspaceEvent: function(workspace) {
         /**:GateOne.Terminal.switchWorkspaceEvent(workspace)
@@ -1431,7 +1400,7 @@ go.Base.update(GateOne.Terminal, {
     enableScrollback: function(/*Optional*/term) {
         /**:GateOne.Terminal.enableScrollback([term])
 
-        Replaces the contents of the selected terminal with the complete screen + scrollback buffer.
+        Replaces the contents of the selected/active terminal with the complete screen + scrollback buffer.
 
         If *term* is given, only disable scrollback for that terminal.
         */
@@ -1484,15 +1453,7 @@ go.Base.update(GateOne.Terminal, {
             };
         if (term && term in GateOne.Terminal.terminals) {
             // If there's already an existing scrollback buffer...
-            if (go.Terminal.terminals[term]['scrollbackNode']) {
-                // ...and it's *not* visible
-                if (go.Terminal.terminals[term]['scrollbackNode'].style.display == 'none') {
-                    // Make it visible again
-                    enableSB(term);
-                }
-            } else {
                 enableSB(term); // Have it create/add the scrollback buffer
-            }
         } else {
             var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
             terms.forEach(function(termObj) {
