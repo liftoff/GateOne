@@ -201,10 +201,9 @@ GateOne.Icons = {}; // NOTE: The built-in icons are actually at the bottom of th
 GateOne.initialized = false; // Used to detect if we've already called initialize()
 var go = GateOne.Base.update(GateOne, {
     // GateOne internal tracking variables and user functions
-    // TODO: Move this to GateOne.Terminal
     workspaces: {
         count: function() {
-            // Returns the number of open terminals
+            // Returns the number of open workspaces
             var counter = 0;
             for (var workspace in GateOne.workspaces) {
                 if (workspace % 1 === 0) {
@@ -420,7 +419,7 @@ var go = GateOne.Base.update(GateOne, {
             toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'toolbar', 'title': "Preferences"}),
             panels = u.getNodes(go.prefs.goDiv + ' .panel'),
             // Firefox doesn't support 'mousewheel'
-            mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
+//             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
             sideinfo = u.createElement('div', {'id': 'sideinfo', 'class':'sideinfo'}),
             themeList = [], // Gets filled out below
             colorsList = [],
@@ -632,31 +631,6 @@ var go = GateOne.Base.update(GateOne, {
         goDiv.appendChild(sideinfo);
         // Set the tabIndex on our GateOne Div so we can give it focus()
         goDiv.tabIndex = 1;
-        // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)
-        var wheelFunc = function(e) {
-            var m = go.Input.mouse(e),
-                modifiers = go.Input.modifiers(e);
-            if (!modifiers.shift && !modifiers.ctrl && !modifiers.alt) { // Only for basic scrolling
-                if (go.Terminal.terminals[term]) {
-                    var term = localStorage[prefix+'selectedTerminal'],
-                        terminalObj = go.Terminal.terminals[term],
-                        screen = terminalObj['screen'],
-                        scrollback = terminalObj['scrollback'],
-                        sbT = terminalObj['scrollbackTimer'];
-                    if (sbT) {
-                        clearTimeout(sbT);
-                        sbT = null;
-                    }
-                    if (!terminalObj['scrollbackVisible']) {
-                        // Immediately re-enable the scrollback buffer
-                        go.Terminal.enableScrollback(term);
-                    }
-                }
-            } else {
-                e.preventDefault();
-            }
-        }
-        goDiv.addEventListener(mousewheelevt, wheelFunc, true);
         go.onResizeEvent = function(e) {
             // Update the Terminal if it is resized
             if (go.resizeEventTimer) {
@@ -736,18 +710,16 @@ var go = GateOne.Base.update(GateOne, {
         u.runPostInit();
         // Even though panels may start out at 'scale(0)' this makes sure they're all display:none as well to prevent them from messing with people's ability to tab between fields
         go.Visual.togglePanel(); // Scales them all away
-        // Start capturing keyboard input
-//         go.Input.capture();
-//         go.Terminal.Input.capture();
         document.addEventListener(visibilityChange, go.Input.handleVisibility, false);
-//         var onBlur = function(e) {
-//             // This is here because--for whatever reason--if disableCapture() is called inside onMouseUp() the activeElement will be document.body instead of inputNode (even if we explicitly set focus!)
-//             setTimeout(function() {
-// //                 go.Input.disableCapture(e);
-//                 go.Terminal.Input.disableCapture(e);
-//             }, 100);
-//         }
-//         goDiv.addEventListener('blur', onBlur, false); // So we don't end up stealing input from something else on the page
+        goDiv.addEventListener('blur', function(e) {
+            setTimeout(function() {
+                // NOTE:  This is wrapped in a timeout because--for whatever reason--document.body will be the activeElement at the beginning of onmouseup (always!).
+                if (!u.isDescendant(go.node, document.activeElement)) {
+                    go.Visual.enableOverlay();
+                }
+            }, 100);
+        }, false);
+        goDiv.addEventListener('focus', go.Visual.disableOverlay, false);
         go.initialized = true;
         go.Events.trigger("go:initialized");
         setTimeout(function() {
@@ -1034,6 +1006,20 @@ GateOne.Base.update(GateOne.Utils, {
     },
     isEven: function(someNumber){
         return (someNumber%2 == 0) ? true : false;
+    },
+    isDescendant: function(parent, child) {
+        /**:GateOne.Utils.isDescendant(parent, child)
+
+        Returns true if *child* is a descendent of *parent* (in the DOM).
+        */
+        var node = child.parentNode;
+        while (node != null) {
+            if (node == parent) {
+                return true;
+            }
+            node = node.parentNode;
+        }
+        return false;
     },
     getSelText: function() {
         var txt = '';
@@ -2846,7 +2832,7 @@ GateOne.Base.update(GateOne.Visual, {
             }
             // Disable input into the terminal so we can type into forms and whatnot
 //             go.Input.disableCapture();
-            go.Terminal.Input.disableCapture();
+//             go.Terminal.Input.disableCapture();
             // Make it so the user can press the ESC key to close the panel
             panel.onkeyup = function(e) {
                 if (e.keyCode == 27) { // ESC key
@@ -2862,7 +2848,7 @@ GateOne.Base.update(GateOne.Visual, {
             v.applyTransform(panel, 'scale(0)');
             // Activate capturing of keystrokes so the user doesn't have to click on #gateone to start typing again
 //             go.Input.capture();
-            go.Terminal.Input.capture();
+//             go.Terminal.Input.capture();
             // Call any registered 'out' callbacks for all of these panels
             GateOne.Events.trigger("go:panel_toggle:out", panel);
             if (v.panelToggleCallbacks['out']['#'+panel.id]) {
@@ -2931,7 +2917,7 @@ GateOne.Base.update(GateOne.Visual, {
             }
             u.removeElement(notice);
 //             go.Input.capture();
-            go.Terminal.Input.capture();
+//             go.Terminal.Input.capture();
         }
         notice.appendChild(messageSpan);
         notice.appendChild(closeX);
@@ -3013,6 +2999,8 @@ GateOne.Base.update(GateOne.Visual, {
             workspace = u.createElement('div', {'id': currentWorkspace, 'class': 'workspace'});
         }
         gridwrapper.appendChild(workspace);
+        workspace.focus();
+        go.Events.trigger('go:new_workspace', workspace);
         return workspace;
     },
     closeWorkspace: function(workspace, /*opt*/message) {
@@ -3432,7 +3420,7 @@ GateOne.Base.update(GateOne.Visual, {
         var prefix = go.prefs.prefix,
             u = go.Utils,
             v = go.Visual,
-            goDiv = u.getNode(go.prefs.goDiv),
+            goDiv = go.node,
             prevActiveElement = document.activeElement,
             unique = u.randomPrime(), // Need something unique to enable having more than one dialog on the same page.
             dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': 'halfsectrans ✈dialogcontainer', 'title': title}),
@@ -3469,7 +3457,8 @@ GateOne.Base.update(GateOne.Visual, {
                 }
                 // Remove the event that called us so we're not constantly looping over the dialogs array
                 dialogContainer.removeEventListener("mousedown", dialogToForeground, true);
-                go.Terminal.Input.disableCapture();
+                go.Events.trigger('go:dialog_to_foreground', dialogContainer);
+//                 go.Terminal.Input.disableCapture();
             },
             containerMouseUp = function(e) {
                 // Reattach our mousedown function since it auto-removes itself the first time it runs (so we're not wasting cycles constantly looping over the dialogs array)
@@ -3549,11 +3538,11 @@ GateOne.Base.update(GateOne.Visual, {
                     v.dialogs[0].style.opacity = 1; // Set the new-first dialog back to fully visible
                 }
                 // Return focus to the previously-active element
-                if (prevActiveElement == goDiv) {
-                    go.Terminal.Input.capture();
-                } else {
+//                 if (prevActiveElement == goDiv) {
+//                     go.Terminal.Input.capture();
+//                 } else {
                     prevActiveElement.focus();
-                }
+//                 }
             };
         // Keep track of all open dialogs so we can determine the foreground order
         if (!v.dialogs) {
@@ -3609,7 +3598,7 @@ GateOne.Base.update(GateOne.Visual, {
         }
         messageContainer.appendChild(OKButton);
         var closeDialog = go.Visual.dialog(title, messageContainer);
-        go.Terminal.Input.disableCapture();
+//         go.Terminal.Input.disableCapture();
         OKButton.tabIndex = 1;
         OKButton.onclick = function(e) {
             e.preventDefault();
@@ -3617,11 +3606,12 @@ GateOne.Base.update(GateOne.Visual, {
             if (callback) {
                 callback();
             }
-            go.Terminal.Input.capture();
+//             go.Terminal.Input.capture();
         }
         setTimeout(function() {
             OKButton.focus();
         }, 250);
+        go.Events.trigger('go:alert', title, message, closeDialog);
     },
     // TODO: Change this to use 'workspace' references instead of 'terminal' or 'term'
     widget: function(title, content, /*opt*/options) {
@@ -3978,27 +3968,56 @@ GateOne.Base.update(GateOne.Visual, {
     toggleOverlay: function() {
         // Toggles the overlay that visually indicates whether or not Gate One is ready for input
         logDebug('toggleOverlay()');
+        var v = go.Visual;
+        if (v.overlay) {
+            v.disableOverlay();
+        } else {
+            v.enableOverlay();
+        }
+    },
+    enableOverlay: function() {
+        /**:GateOne.Visual.enableOverlay()
+
+        Displays an overlay above Gate One on the page that 'greys it out' to indicate it does not have focus.  If the overlay is already present it will be left as-is.
+
+        The state of the overlay is tracked via the :js:attr:`GateOne.Visual.overlay` variable.
+        */
+        logDebug('enableOverlay()');
         var go = GateOne,
             u = go.Utils,
             v = go.Visual,
-            goDiv = u.getNode(go.prefs.goDiv),
             existingOverlay = u.getNode('#'+go.prefs.prefix+'overlay'),
             overlay = u.createElement('div', {'id': 'overlay', 'class': '✈overlay'});
         if (existingOverlay) {
-            // Remove it
-            u.removeElement(existingOverlay);
-            v.overlay = false;
+            return true;
         } else {
             overlay.onmousedown = function(e) {
                 // NOTE: Do not set 'onmousedown = go.Input.capture' as this will trigger capture() into thinking it was called via an onblur event.
                 u.removeElement(overlay);
                 v.overlay = false;
-                setTimeout(function() {
-                    go.Terminal.Input.capture();
-                }, 250);
             }
-            goDiv.appendChild(overlay);
+            go.node.appendChild(overlay);
             v.overlay = true;
+            go.Events.trigger('go:overlay_enabled');
+        }
+    },
+    disableOverlay: function() {
+        /**:GateOne.Visual.disableOverlay()
+
+        Removes the overlay above Gate One (if present).
+
+        The state of the overlay is tracked via the :js:attr:`GateOne.Visual.overlay` variable.
+        */
+        logDebug('disableOverlay()');
+        var go = GateOne,
+            u = go.Utils,
+            v = go.Visual,
+            existingOverlay = u.getNode('#'+go.prefs.prefix+'overlay');
+        if (existingOverlay) {
+            // Remove it
+            u.removeElement(existingOverlay);
+            v.overlay = false;
+            go.Events.trigger('go:overlay_disabled');
         }
     },
     // NOTE: Below is a work in progress.  Not used by anything yet.

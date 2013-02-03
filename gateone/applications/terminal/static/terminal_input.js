@@ -43,13 +43,6 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
         t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
         t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
-//         var onBlur = function(e) {
-//             // This is here because--for whatever reason--if disableCapture() is called inside onMouseUp() the activeElement will be document.body instead of inputNode (even if we explicitly set focus!)
-//             setTimeout(function() {
-//                 go.Terminal.Input.disableCapture(e);
-//             }, 100);
-//         }
-//         go.node.addEventListener('blur', onBlur, false); // So we don't end up stealing input from something else on the page
     },
     sendChars: function() {
         /**:GateOne.Terminal.Input.sendChars()
@@ -280,34 +273,27 @@ GateOne.Base.update(GateOne.Terminal.Input, {
     capture: function() {
         /**GateOne.Terminal.Input.capture()
 
-        Sets focus on the terminal and attaches all the relevant events (mousedown, mouseup, keydown, etc).  Also un-toggles the overlay to indicate that the terminal is active.
+        Sets focus on the terminal and attaches all the relevant events (mousedown, mouseup, keydown, etc).
         */
         logDebug('go.Terminal.Input.capture()');
-        var selectedTerm = localStorage[prefix+'selectedTerminal'],
-            goDiv = go.node;
+        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         if (!t.Input.inputNode) {
             t.Input.inputNode = u.createElement('input', {'class': 'IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
             go.node.appendChild(t.Input.inputNode);
         }
         t.Input.inputNode.oninput = t.Input.onInput;
         t.Input.inputNode.tabIndex = 1; // Just in case--this is necessary to set focus
-        // The keydown event has to go on #gateone or keyboard input will fail when text is highlighted
-        go.node.addEventListener('keydown', t.Input.onKeyDown, true);
-        go.node.addEventListener('keyup', t.Input.onKeyUp, true);
-        goDiv.onpaste = t.Input.onPaste;
-        goDiv.oncopy = function(e) {
-            // After the copy we need to bring the pastearea back up so the context menu will work to paste again
-            u.showElements('.pastearea');
-        }
-        goDiv.onmousedown = t.Input.onMouseDown;
-        goDiv.onmouseup = t.Input.onMouseUp;
-        if (t.Input.overlayTimer) {
-            clearTimeout(t.Input.overlayTimer);
-            t.Input.overlayTimer = null;
-        }
-        if (go.Visual.overlay) {
-            go.Visual.toggleOverlay();
-        }
+        t.Input.inputNode.addEventListener('keydown', t.Input.onKeyDown, true);
+        t.Input.inputNode.addEventListener('keyup', t.Input.onKeyUp, true);
+        terms.forEach(function(termNode) {
+            termNode.onpaste = t.Input.onPaste;
+            termNode.onmousedown = t.Input.onMouseDown;
+            termNode.onmouseup = t.Input.onMouseUp;
+            termNode.oncopy = function(e) {
+                // After the copy we need to bring the pastearea back up so the context menu will work to paste again
+                u.showElements('.pastearea');
+            }
+        });
         if (document.activeElement != t.Input.inputNode) {
             t.Input.inputNode.focus();
         }
@@ -315,10 +301,10 @@ GateOne.Base.update(GateOne.Terminal.Input, {
     disableCapture: function(e) {
         /**GateOne.Terminal.Input.disableCapture(e)
 
-        Disables the various input events that capture mouse and keystroke events an toggles the overlay on (to indicate the terminal is no longer active).  This allows things like input elements and forms to work properly (so keystrokes can pass through without intervention).
+        Disables the various input events that capture mouse and keystroke events.  This allows things like input elements and forms to work properly (so keystrokes can pass through without intervention).
         */
         logDebug('go.Terminal.Input.disableCapture()');
-        var goDiv = go.node;
+        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         if (t.Input.mouseDown) {
             return; // Work around Firefox's occasional inability to properly register mouse events (WTF Firefox!)
         }
@@ -327,28 +313,19 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             return; // Act as if we were never called to avoid flashing the overlay
         }
         logDebug('go.Terminal.Input.disableCapture()');
-        if (e) {
-            // This was called from an onblur event
-            if (document.activeElement == goDiv || document.activeElement.className == 'pastearea' || document.activeElement == t.Input.inputNode) {
-                // Nothing to do
-                return;
-            }
-            e.preventDefault();
-        }
         t.Input.inputNode.oninput = null;
-        goDiv.onpaste = null;
         t.Input.inputNode.tabIndex = null;
-        go.node.removeEventListener('keydown', t.Input.onKeyDown, true);
-        go.node.removeEventListener('keyup', t.Input.onKeyUp, true);
         t.Input.inputNode.onkeypress = null;
-        goDiv.onmousedown = null;
-        goDiv.onmouseup = null;
+        t.Input.inputNode.removeEventListener('keydown', t.Input.onKeyDown, true);
+        t.Input.inputNode.removeEventListener('keyup', t.Input.onKeyUp, true);
+        terms.forEach(function(termNode) {
+            termNode.onpaste = null;
+            termNode.onmousedown = null;
+            termNode.onmouseup = null;
+            termNode.oncopy = null;
+        });
         // TODO: Check to see if this should stay in GateOne.Input:
         t.Input.metaHeld = false; // This can get stuck at 'true' if the uses does something like command-tab to switch applications.
-        if (!go.Visual.overlay) {
-            // The timer here is to prevent the screen from flashing whenever something is pasted.
-            t.Input.overlayTimer = setTimeout(go.Visual.toggleOverlay, 250);
-        }
     },
     onPaste: function(e) {
         /**GateOne.Terminal.Input.onPaste(e)
@@ -491,10 +468,10 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             return;
         }
 //         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
-//             if (document.activeElement != t.Input.inputNode) {
-//                 return; // Let the browser handle it if the user is editing something
+            if (document.activeElement != t.Input.inputNode) {
+                return; // Let the browser handle it if the user is editing something
 //                 // NOTE: This doesn't actually work so well so we have GateOne.Terminal.Input.disableCapture() as a fallback :)
-//             }
+            }
 //         }
         t.Input.execKeystroke(e);
     },

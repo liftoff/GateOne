@@ -67,8 +67,6 @@ go.Base.update(GateOne.Terminal, {
     init: function() {
         logDebug("Terminal.init()");
         var t = go.Terminal,
-            u = go.Utils,
-            prefix = go.prefs.prefix,
             term = localStorage[prefix+'selectedTerminal'],
             div = u.createElement('div', {'id': 'info_actions', 'style': {'padding-bottom': '0.4em'}}),
             tableDiv = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
@@ -178,7 +176,7 @@ go.Base.update(GateOne.Terminal, {
         infoPanelRow6.appendChild(infoPanelInactivityIntervalLabel);
         tableDiv2.appendChild(infoPanelRow6);
         u.hideElement(infoPanel); // Start out hidden
-        go.Visual.applyTransform(infoPanel, 'scale(0)');
+        v.applyTransform(infoPanel, 'scale(0)');
         goDiv.appendChild(infoPanel); // Doesn't really matter where it goes
         infoPanelMonitorInactivity.onclick = function(e) {
             // Turn on/off inactivity monitoring
@@ -221,7 +219,7 @@ go.Base.update(GateOne.Terminal, {
                 }
             } else {
                 monitorActivity.checked = false;
-                GateOne.Terminal.terminals[term]['activityNotify'] = false;
+                go.Terminal.terminals[term]['activityNotify'] = false;
             }
         }
         infoPanelInactivityInterval.onblur = function(e) {
@@ -297,7 +295,7 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.disableTermTransitions) {
             var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
             newStyle.innerHTML = go.prefs.goDiv + " .terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
-            u.getNode(goDiv).appendChild(newStyle);
+            go.node.appendChild(newStyle);
         }
         // Load the Web Worker
         if (!go.prefs.webWorker) {
@@ -349,6 +347,7 @@ go.Base.update(GateOne.Terminal, {
             u.showElements(go.prefs.goDiv + ' .pastearea');
         });
         E.on("go:update_dimensions", go.Terminal.updateDimensions);
+        E.on("go:new_workspace", go.Terminal.Input.disableCapture);
         go.Terminal.loadTextColors();
         setTimeout(function() {
             go.Terminal.getOpenTerminals();
@@ -971,6 +970,8 @@ go.Base.update(GateOne.Terminal, {
             rows = Math.ceil(dimensions.rows - rowAdjust),
             cols = Math.ceil(dimensions.cols - colAdjust),
             workspaceNum = null, // Set below (if any)
+            // Firefox doesn't support 'mousewheel'
+            mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
             prevScrollback = localStorage.getItem(prefix + "scrollback" + term);
         if (go.prefs.showToolbar || go.prefs.showTitle) {
             cols = cols - 4; // Leave some empty space on the right if the toolbar or title are present
@@ -989,7 +990,6 @@ go.Base.update(GateOne.Terminal, {
         }
         if (!where) {
             if (gridwrapper) {
-//                 where = gridwrapper;
                 where = v.newWorkspace(); // Use the gridwrapper (grid) by default
                 where.innerHTML = ""; // Empty it out before we use it
                 workspaceNum = parseInt(where.id.split(prefix+'workspace')[1]);
@@ -1202,6 +1202,7 @@ go.Base.update(GateOne.Terminal, {
                         clearTimeout(go.Terminal.terminals[selectedTerm]['scrollbackTimer']);
                     }
                 }
+                go.Terminal.Input.capture();
             } else if (m.button.middle) {
                 // This is here to enable middle-click-to-paste in Windows but it only works if the user has launched Gate One in "application mode".
                 // Gate One can be launched in "application mode" if the user selects the "create application shortcut..." option from the tools menu.
@@ -1234,6 +1235,31 @@ go.Base.update(GateOne.Terminal, {
                 }, 500);
             }
         }
+        // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)
+        var wheelFunc = function(e) {
+            var m = go.Input.mouse(e),
+                modifiers = go.Input.modifiers(e);
+            if (!modifiers.shift && !modifiers.ctrl && !modifiers.alt) { // Only for basic scrolling
+                if (go.Terminal.terminals[term]) {
+                    var term = localStorage[prefix+'selectedTerminal'],
+                        terminalObj = go.Terminal.terminals[term],
+                        screen = terminalObj['screen'],
+                        scrollback = terminalObj['scrollback'],
+                        sbT = terminalObj['scrollbackTimer'];
+                    if (sbT) {
+                        clearTimeout(sbT);
+                        sbT = null;
+                    }
+                    if (!terminalObj['scrollbackVisible']) {
+                        // Immediately re-enable the scrollback buffer
+                        go.Terminal.enableScrollback(term);
+                    }
+                }
+            } else {
+                e.preventDefault();
+            }
+        };
+        terminal.addEventListener(mousewheelevt, wheelFunc, true);
         // Switch to our new terminal if *term* is set (no matter where it is)
         if (termUndefined) {
             // Only slide for terminals that are actually *new* (as opposed to ones that we're re-attaching to)
@@ -1261,9 +1287,7 @@ go.Base.update(GateOne.Terminal, {
 
         If a *message* is given it will be displayed to the user instead of the default "Closed term..." message.
         */
-        var u = GateOne.Utils,
-            prefix = go.prefs.prefix,
-            lastTerm = null;
+        var lastTerm = null;
         if (!message) {
             message = "Closed term " + term + ": " + go.Terminal.terminals[term]['title'];
         }
@@ -1371,15 +1395,20 @@ go.Base.update(GateOne.Terminal, {
         Called whenever Gate One switches to a new workspace; checks whether or not this workspace is home to a terminal and calls switchTerminalEvent() on said terminal (to make sure input is enabled and it is scrolled to the bottom).
         */
         logDebug('switchWorkspaceEvent('+workspace+')');
+        var termFound = false;
         // TODO: Make this switch to the appropriate terminal when multiple terminals share the same workspace (FUTURE)
         for (var term in go.Terminal.terminals) {
             // Only want terminals which are integers; not the 'count()' function
             if (term % 1 === 0) {
                 if (go.Terminal.terminals[term]['workspace'] == workspace) {
                     go.Terminal.switchTerminal(term);
+                    termFound = true;
                 }
             }
         };
+        if (!termFound) {
+            go.Terminal.Input.disableCapture();
+        }
     },
     updateDimensions: function() {
         /**:GateOne.Terminal.updateDimensions()
