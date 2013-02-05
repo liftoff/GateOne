@@ -16,11 +16,13 @@ var go = GateOne,
     logDebug = GateOne.Logging.logDebug;
 
 // GateOne.SSH (ssh client functions)
-GateOne.Base.module(GateOne, "SSH", "1.1", ['Base']);
-GateOne.SSH.identities = []; // SSH identity objects end up in here
-GateOne.SSH.remoteCmdCallbacks = {};
-GateOne.SSH.remoteCmdErrorbacks = {};
-GateOne.Base.update(GateOne.SSH, {
+go.Base.module(GateOne, "SSH", "1.1", ['Base']);
+go.SSH.identities = []; // SSH identity objects end up in here
+go.SSH.remoteCmdCallbacks = {};
+go.SSH.remoteCmdErrorbacks = {};
+go.prefs['autoConnectURL'] = null; // This is a URL that will be automatically connected to whenever a terminal is loaded. TODO: Move this to the ssh plugin.
+go.noSavePrefs['autoConnectURL'] = null; // So it doesn't get saved in localStorage
+go.Base.update(go.SSH, {
     init: function() {
         /**:GateOne.SSH.init()
 
@@ -115,8 +117,23 @@ GateOne.Base.update(GateOne.SSH, {
         go.Net.addAction('sshjs_cmd_output', go.SSH.commandCompleted);
         go.Net.addAction('sshjs_ask_passphrase', go.SSH.enterPassphraseAction);
         E.on("terminal:new_terminal", go.SSH.getConnectString);
+        E.on("terminal:new_terminal", go.SSH.autoConnect);
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
+        }
+    },
+    autoConnect: function() {
+        /**:GateOne.SSH.autoConnect()
+
+        Automatically connects to `GateOne.prefs.autoConnectURL` if it set.
+        */
+        if (go.prefs.autoConnectURL) {
+            // Only execute the autoConnectURL if this is a *new* terminal so resumed terminals don't get spammed with the autoConnectURL
+            if (termUndefined) {
+                setTimeout(function () {
+                    go.Terminal.sendString(go.prefs.autoConnectURL+'\n');
+                }, 500);
+            }
         }
     },
     createPanel: function() {

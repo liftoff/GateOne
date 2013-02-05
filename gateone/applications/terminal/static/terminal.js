@@ -73,7 +73,7 @@ go.Base.update(GateOne.Terminal, {
             tableDiv2 = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             toolbarClose = u.createElement('div', {'id': 'icon_closeterm', 'class': 'toolbar', 'title': "Close This Terminal"}),
             toolbarNewTerm = u.createElement('div', {'id': 'icon_newterm', 'class': 'toolbar', 'title': "New Terminal"}),
-            toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': 'toolbar', 'title': "Info and Tools"}),
+            toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': 'toolbar', 'title': "Terminal Application Panel"}),
             infoPanel = u.createElement('div', {'id': 'panel_info', 'class': 'panel'}),
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
             infoPanelRow1 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow1'}),
@@ -110,7 +110,8 @@ go.Base.update(GateOne.Terminal, {
                 go.Terminal.switchTerminal(localStorage[prefix+'selectedTerminal'])
             };
         // Create our info panel
-        go.Icons['info'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
+        go.Icons['magnifyingGlass'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
+        GateOne.Icons['info'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" y2="756.67" gradientUnits="userSpaceOnUse" x2="567.96" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" y1="674.11" x1="567.96"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g></svg>';
         toolbarInfo.innerHTML = go.Icons['info'];
         go.Icons['close'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="closeGradient" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#closeGradient)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
         toolbarClose.innerHTML = go.Icons['close'];
@@ -303,6 +304,7 @@ go.Base.update(GateOne.Terminal, {
         }
         logDebug("Attempting to download our WebWorker...");
         go.ws.send(JSON.stringify({'get_webworker': null}));
+        window.addEventListener('resize', go.Terminal.onResizeEvent, false);
         // Get shift-Insert working in a natural way (NOTE: Will only work when Gate One is the active element on the page)
         go.Input.registerShortcut('KEY_INSERT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': go.Terminal.paste, 'preventDefault': false});
         // Register our actions
@@ -348,10 +350,83 @@ go.Base.update(GateOne.Terminal, {
         });
         E.on("go:update_dimensions", go.Terminal.updateDimensions);
         E.on("go:new_workspace", go.Terminal.Input.disableCapture);
+        E.on("go:timeout", go.Terminal.timeoutEvent);
         go.Terminal.loadTextColors();
         setTimeout(function() {
             go.Terminal.getOpenTerminals();
         }, 500);
+    },
+    __new__: function(settings) {
+        /**:GateOne.Terminal.__new__(settings)
+
+        Called when a user clicks on the Terminal Application in the New Workspace Workspace (or anything that happens to call __new__()).
+        */
+        go.Terminal.newTerminal(); // Just create a new terminal in a new workspace for now.
+        // TODO: Make this take settings like "command", rows/cols, and *where*.
+    },
+    onResizeEvent: function(e) {
+        // Update the Terminal if it is resized
+        if (go.Terminal.resizeEventTimer) {
+            clearTimeout(go.Terminal.resizeEventTimer);
+            go.Terminal.resizeEventTimer = null;
+        }
+        go.Terminal.resizeEventTimer = setTimeout(function() {
+            // Wrapped in a timeout to de-bounce
+            var term = localStorage[prefix+'selectedTerminal'],
+                terminalObj = go.Terminal.terminals[term],
+                termPre = terminalObj['node'],
+                screenNode = terminalObj['screenNode'],
+                emHeight = u.getEmDimensions(go.node).h;
+            if (u.isVisible(termPre)) {
+                go.Visual.updateDimensions();
+                for (var termObj in GateOne.Terminal.terminals) {
+                    if (termObj % 1 === 0) { // Actual terminal objects are integers
+                        go.Terminal.sendDimensions(termObj);
+                    }
+                };
+                setTimeout(function() {
+                    var parentHeight = termPre.parentElement.clientHeight;
+                    if (parentHeight) {
+                        termPre.style.height = (parentHeight - go.Terminal.terminals[term]['heightAdjust']) + 'px';
+                    } else {
+                        termPre.style.height = "100%";
+                    }
+                }, 100);
+            }
+            // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
+            if (!go.prefs.embedded) {
+                // In embedded mode this kind of adjustment can be unreliable
+                v.applyTransform(termPre, ''); // Need to reset before we do calculations
+                go.Terminal.resizeAdjustTimer = setTimeout(function() {
+                    var distance = go.node.clientHeight - screenNode.offsetHeight;
+                    distance -= (emHeight * go.prefs.rowAdjust); // Have to adjust for the extra row we add for the playback controls
+                    if (go.Utils.isVisible(termPre)) {
+                        var transform = "translateY(-" + distance + "px)";
+                        v.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                    }
+                }, 1000);
+            }
+            if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
+                var nodeHeight = screenNode.getClientRects()[0].top;
+                if (nodeHeight < go.node.clientHeight) { // Resize to fit
+                    var scale = go.node.clientHeight / (go.node.clientHeight - nodeHeight),
+                        transform = "scale(" + scale + ", " + scale + ")";
+                    v.applyTransform(termPre, transform);
+                }
+            }
+            u.scrollToBottom(termPre);
+        }, 750);
+    },
+    timeoutEvent: function() {
+        /**:GateOne.Terminal.timeoutEvent()
+
+        Attached to the 'go:timeout' event; closes all open terminals when the user's session has timed out.
+        */
+        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+        terms.forEach(function(termObj) {
+            // Passing 'true' here to keep the stuff in localStorage for this term.
+            go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
+        });
     },
     connectionError: function() {
         /**:GateOne.Terminal.connectionError()
@@ -1226,15 +1301,6 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.rows) { termSettings.rows = go.prefs.rows };
         // Tell the server to create a new terminal process
         go.ws.send(JSON.stringify({'terminal:new_terminal': termSettings}));
-        // Autoconnect if autoConnectURL is specified
-        if (go.prefs.autoConnectURL) {
-            // Only execute the autoConnectURL if this is a *new* terminal so resumed terminals don't get spammed with the autoConnectURL
-            if (termUndefined) {
-                setTimeout(function () {
-                    go.Terminal.sendString(go.prefs.autoConnectURL+'\n');
-                }, 500);
-            }
-        }
         // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)
         var wheelFunc = function(e) {
             var m = go.Input.mouse(e),
@@ -1401,6 +1467,7 @@ go.Base.update(GateOne.Terminal, {
             // Only want terminals which are integers; not the 'count()' function
             if (term % 1 === 0) {
                 if (go.Terminal.terminals[term]['workspace'] == workspace) {
+                    // At least one terminal is on this workspace
                     go.Terminal.switchTerminal(term);
                     termFound = true;
                 }
@@ -1408,7 +1475,29 @@ go.Base.update(GateOne.Terminal, {
         };
         if (!termFound) {
             go.Terminal.Input.disableCapture();
+            go.Terminal.hideIcons();
+        } else {
+            go.Terminal.showIcons();
         }
+    },
+    hideIcons: function() {
+        /**:GateOne.Terminal.hideIcons()
+
+        Hides the Terminal's toolbar icons (i.e. when another application is running).
+        */
+        u.hideElement('#'+prefix+'icon_closeterm');
+        u.hideElement('#'+prefix+'icon_info');
+        u.hideElement('#'+prefix+'icon_newterm');
+    },
+    showIcons: function() {
+        /**:GateOne.Terminal.showIcons()
+
+        Shows (unhides) the Terminal's toolbar icons (i.e. when another application is running).
+        */
+        u.showElement('#'+prefix+'icon_closepanel');
+        u.showElement('#'+prefix+'icon_closeterm');
+        u.showElement('#'+prefix+'icon_info');
+        u.showElement('#'+prefix+'icon_newterm');
     },
     updateDimensions: function() {
         /**:GateOne.Terminal.updateDimensions()

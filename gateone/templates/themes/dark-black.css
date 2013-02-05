@@ -66,6 +66,9 @@
     -o-transition: -o-transform 1s ease-in-out;
     transition: transform 1s ease-in-out;
 }
+#{{container}} .wsshadow{
+    box-shadow: 0 0 1em #fff;
+}
 #{{container}} .new_workspace_workspace {
     width: 100%;
     height: 100%;

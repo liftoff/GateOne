@@ -162,7 +162,6 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     prefix: 'go_', // What to prefix element IDs with (in case you need to avoid a name conflict).  NOTE: There are a few classes that use the prefix too.
     theme: 'black', // The theme to use by default (e.g. 'black', 'white', etc)
     fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
-    autoConnectURL: null, // This is a URL that will be automatically connected to whenever a terminal is loaded. TODO: Move this to the ssh plugin.
     embedded: false, // Equivalent to {showTitle: false, showToolbar: false} and certain keyboard shortcuts won't be registered
     auth: null, // If using API authentication, this value will hold the user's auth object (see docs for the format).
     showTitle: true, // If false, the title will not be shown in the sidebar.
@@ -180,7 +179,6 @@ GateOne.noSavePrefs = {
     style: null,
     goDiv: null, // Why an object and not an array?  So the logic is simpler:  "for (var objName in noSavePrefs) ..."
     prefix: null,
-    autoConnectURL: null,
     embedded: null,
     auth: null,
     showTitle: null,
@@ -631,60 +629,6 @@ var go = GateOne.Base.update(GateOne, {
         goDiv.appendChild(sideinfo);
         // Set the tabIndex on our GateOne Div so we can give it focus()
         goDiv.tabIndex = 1;
-        go.onResizeEvent = function(e) {
-            // Update the Terminal if it is resized
-            if (go.resizeEventTimer) {
-                clearTimeout(go.resizeEventTimer);
-                go.resizeEventTimer = null;
-            }
-            go.resizeEventTimer = setTimeout(function() {
-                // Wrapped in a timeout to de-bounce
-                var term = localStorage[prefix+'selectedTerminal'],
-                    terminalObj = go.Terminal.terminals[term],
-                    termPre = terminalObj['node'],
-                    screenNode = terminalObj['screenNode'],
-                    emHeight = u.getEmDimensions(goDiv).h;
-                if (u.isVisible(termPre)) {
-                    go.Visual.updateDimensions();
-                    for (var termObj in GateOne.Terminal.terminals) {
-                        if (termObj % 1 === 0) { // Actual terminal objects are integers
-                            go.Terminal.sendDimensions(termObj);
-                        }
-                    };
-                    setTimeout(function() {
-                        var parentHeight = termPre.parentElement.clientHeight;
-                        if (parentHeight) {
-                            termPre.style.height = (parentHeight - go.Terminal.terminals[term]['heightAdjust']) + 'px';
-                        } else {
-                            termPre.style.height = "100%";
-                        }
-                    }, 100);
-                }
-                // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
-                if (!go.prefs.embedded) {
-                    // In embedded mode this kind of adjustment can be unreliable
-                    GateOne.Visual.applyTransform(termPre, ''); // Need to reset before we do calculations
-                    go.resizeAdjustTimer = setTimeout(function() {
-                        var distance = goDiv.clientHeight - screenNode.offsetHeight;
-                        distance -= (emHeight * go.prefs.rowAdjust); // Have to adjust for the extra row we add for the playback controls
-                        if (go.Utils.isVisible(termPre)) {
-                            var transform = "translateY(-" + distance + "px)";
-                            go.Visual.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
-                        }
-                    }, 1000);
-                }
-                if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
-                    var nodeHeight = screenNode.getClientRects()[0].top;
-                    if (nodeHeight < goDiv.clientHeight) { // Resize to fit
-                        var scale = goDiv.clientHeight / (goDiv.clientHeight - nodeHeight),
-                            transform = "scale(" + scale + ", " + scale + ")";
-                        go.Visual.applyTransform(termPre, transform);
-                    }
-                }
-                u.scrollToBottom(termPre);
-            }, 750);
-        }
-        window.addEventListener('resize', go.onResizeEvent, false);
         // Create the workspace grid if not in embedded mode
         if (!go.prefs.embedded) { // Only create the grid if we're not in embedded mode (where everything must be explicit)
             var gridwrapper = u.getNode('#'+prefix+'gridwrapper');
@@ -730,12 +674,12 @@ var go = GateOne.Base.update(GateOne, {
 });
 
 // Apply some universal defaults
-if (!localStorage[GateOne.prefs.prefix+GateOne.location+'_selectedTerminal']) {
-    localStorage[GateOne.prefs.prefix+GateOne.location+'_selectedTerminal'] = 1;
+if (!localStorage[GateOne.prefs.prefix+GateOne.location+'_selectedWorkspace']) {
+    localStorage[GateOne.prefs.prefix+GateOne.location+'_selectedWorkspace'] = 1;
 }
 
 // GateOne.Utils (generic utility functions)
-GateOne.Base.module(GateOne, "Utils", "1.1", ['Base']);
+GateOne.Base.module(GateOne, "Utils", "1.2", ['Base']);
 GateOne.Utils.scriptsLoaded = false; // Used to track whether or not combined_js loaded or not
 GateOne.Utils.benchmark = null; // Used in conjunction with the startBenchmark and stopBenchmark functions
 GateOne.Utils.benchmarkCount = 0; // Ditto
@@ -2110,13 +2054,8 @@ GateOne.Base.update(GateOne.Net, {
 
         Writes a message to the screen indicating a timeout has occurred and closes the WebSocket.
         */
-        var u = go.Utils,
-            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+        var u = go.Utils;
         logError("Session timed out.");
-        terms.forEach(function(termObj) {
-            // Passing 'true' here to keep the stuff in localStorage for this term.
-            go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
-        });
         u.getNode(go.prefs.goDiv).innerHTML = "Your session has timed out.  Reload the page to reconnect to Gate One.";
         go.ws.onclose = function() { // Have to replace the existing onclose() function so we don't end up auto-reconnecting.
             // Connection to the server was lost
@@ -3301,6 +3240,7 @@ GateOne.Base.update(GateOne.Visual, {
             workspaces.forEach(function(wsNode) {
                 wsNode.onclick = undefined;
                 wsNode.onmouseover = undefined;
+                wsNode.classList.remove('wsshadow');
             });
             go.node.style.overflow = 'hidden';
             v.noReset = true; // Make sure slideToWorkspace doesn't reset the grid before applying transitions
@@ -3321,6 +3261,7 @@ GateOne.Base.update(GateOne.Visual, {
             setTimeout(function() {
                 workspaces.forEach(function(wsNode) {
                     wsNode.style.display = ''; // Make sure they're all visible
+                    wsNode.classList.add('wsshadow');
                     v.enableTransitions(wsNode);
                 });
                 v.applyTransform(workspaces, 'translate(0px, 0px)');
@@ -4823,27 +4764,33 @@ GateOne.Base.update(GateOne.Events, {
 
             > GateOne.Events.off("new_terminal", someFunction);
         */
-        var E = GateOne.Events;
-        if (!GateOne.Utils.items(E.callbacks).length) { return this } // Nothing to do
-        if (events === undefined) {
-            E.callbacks = {}; // Empty it out
-            return this;
-        }
-        events.split(/\s+/).forEach(function(event) {
-            var callList = E.callbacks[event];
-            if (!callback && callList) {
-                // Clear all callbacks for this event
-                delete E.callbacks[event];
-            } else if (callback && callList) {
-                callList.forEach(function(callObj) {
-                    if (callObj.callback == callback) {
-                        if (context === undefined || callObj.context == context) {
-                            delete E.callbacks[event];
+        var E = GateOne.Events, eventList, i, n;
+        if (!arguments.length) {
+            E.callbacks = {}; // Clear all events/callbacks
+        } else {
+            eventList = events ? events.split(/\s+/) : keys(self.callbacks);
+            for (i in eventList) {
+                var event = eventList[i],
+                    callList = E.callbacks[event];
+                if (callList) { // There's a matching event
+                    var newList = [];
+                    for (n in callList) {
+                        if (callback && callList[n].callback.toString() == callback.toString()) {
+                            if (context && callList[n].context != context) {
+                                newList.push(callList[n]);
+                            } else if (context == null && callList[n].context) {
+// If the context is undefined assume the dev wants to remove all matching callbacks for this event
+// However, if the context was set to null assume they only want to match callbacks that have no context.
+                                newList.push(callList[n]);
+                            }
+                        } else if (context && callList[n].context != context) {
+                            newList.push(callList[n]);
                         }
                     }
-                });
+                }
+                self.callbacks[event] = newList;
             }
-        });
+        }
         return this;
     },
     once: function(events, callback, context) {
@@ -4851,8 +4798,7 @@ GateOne.Base.update(GateOne.Events, {
 
         A shortcut that performs the equivalent of GateOne.Events.on(events, callback, context, 1)
         */
-        var E = GateOne.Events;
-        E.on(events, callback, context, 1);
+        return GateOne.Events.on(events, callback, context, 1);
     },
     trigger: function(events) {
         /**:GateOne.Events trigger(events)
@@ -4898,7 +4844,6 @@ GateOne.Base.update(GateOne.Events, {
         return this;
     }
 });
-
 GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="prefsGradient" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#prefsGradient)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
 GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="backGradient" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#backGradient)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
 GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" class="✈svgplain"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';

@@ -1620,6 +1620,8 @@ class ApplicationWebSocket(WebSocketHandler):
         out_dict = {'files': []}
         theme_filename = "%s.css" % theme
         theme_path = os.path.join(themes_path, theme_filename)
+        # This wierd little line empties Tornado's template cache:
+        tornado.web.RequestHandler._template_loaders['.'].reset()
         rendered_path = self.render_style(
             theme_path, **template_args)
         filename = os.path.split(rendered_path)[1]
@@ -3270,7 +3272,8 @@ def main():
         # First we have to make sure there's at least one pty present
         tempfd1, tempfd2 = pty.openpty()
         # Now check the owning group (doesn't matter which one so we use 0)
-        tty_gid = os.stat('/dev/ptmx').st_gid
+        ptm = 'ptm' if os.path.exists('/dev/ptm') else '/dev/ptmx'
+        tty_gid = os.stat(ptm).st_gid
         # Close our temmporary pty/fds so we're not wasting them
         os.close(tempfd1)
         os.close(tempfd2)

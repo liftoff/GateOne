@@ -36,6 +36,7 @@ from tornado.escape import to_unicode, utf8
 
 # Globals
 MACOS = os.uname()[0] == 'Darwin'
+OPENBSD = os.uname()[0] == 'OpenBSD'
 CSS_END = re.compile('\.css.*?$')
 JS_END = re.compile('\.js.*?$')
 # This matches JUST the PIDs from the output of the pstree command
@@ -740,21 +741,26 @@ def kill_dtached_proc(session, term):
             except OSError:
                 pass # Process already died.  Not a problem.
 
-def kill_dtached_proc_macos(session, term):
+def kill_dtached_proc_bsd(session, term):
     """
-    A Mac OS-specific implementation of `kill_dtached_proc` since Macs don't
-    have /proc.  Seems simpler than :func:`kill_dtached_proc` but actually
-    having to call a subprocess is less efficient (due to the sophisticated
-    signal handling required by :func:`shell_command`).
+    A BSD-specific implementation of `kill_dtached_proc` since Macs don't have
+    /proc.  Seems simpler than :func:`kill_dtached_proc` but actually having to
+    call a subprocess is less efficient (due to the sophisticated signal
+    handling required by :func:`shell_command`).
     """
-    logging.debug('kill_dtached_proc_macos(%s, %s)' % (session, term))
+    logging.debug('kill_dtached_proc_bsd(%s, %s)' % (session, term))
     ps = which('ps')
+    if MACOS:
+        psopts = "-ef"
+    elif OPENBSD:
+        psopts = "-aux"
     cmd = (
-        "%s -ef | "
+        "%s %s | "
         "grep %s/dtach_%s | " # Limit to those matching our session/term combo
         "grep -v grep | " # Get rid of grep from the results (if present)
-        "awk '{print $2}' " % (ps, session, term) # Just the PID please
+        "awk '{print $2}' " % (ps, psopts, session, term) # Just the PID please
     )
+    logging.debug('kill cmd: %s' % cmd)
     exitstatus, output = shell_command(cmd)
     for line in output.splitlines():
         pid_to_kill = line.strip() # Get rid of trailing newline
@@ -803,21 +809,27 @@ def killall(session_dir, pid_file):
             "Could not open pid_file (%s).  You may have to kill gateone.py "
             "manually." % pid_file))
 
-def killall_macos(session_dir):
+def killall_bsd(session_dir):
     """
-    A Mac OS X-specific version of `killall` since Macs don't have /proc.
+    A BSD-specific version of `killall` since Macs don't have /proc.
     """
     # TODO: See if there's a better way to keep track of subprocesses so we
     # don't have to enumerate the process table at all.
+    logging.debug('killall_bsd(%s)' % session_dir)
     sessions = os.listdir(session_dir)
+    if MACOS:
+        psopts = "-ef"
+    elif OPENBSD:
+        psopts = "-aux"
     for session in sessions:
         cmd = (
-            "ps -ef | "
+            "ps %s | "
             "grep %s | " # Limit to those matching the session
             "grep -v grep | " # Get rid of grep from the results (if present)
             "awk '{print $2}' | " # Just the PID please
-            "xargs kill" % session # Kill em'
+            "xargs kill" % (psopts, session) # Kill em'
         )
+        logging.debug('killall cmd: %s' % cmd)
         exitstatus, output = shell_command(cmd)
 
 def get_applications(application_dir, enabled=None):
@@ -1519,7 +1531,7 @@ def strip_xss(html, whitelist=None, replacement=u"\u2421"):
     This function returns a tuple containing:
 
         * *html* with all non-whitelisted HTML tags replaced with *replacement*.  Any tags that contain JavaScript, VBScript, or other known XSS/executable functions will also be removed.
-        * A list containing the any tags that were removed.
+        * A list containing the tags that were removed.
 
     If *whitelist* is not given the following will be used::
 
@@ -1610,6 +1622,6 @@ def strip_xss(html, whitelist=None, replacement=u"\u2421"):
 
 # Misc
 _ = get_translation()
-if MACOS: # Apply mac-specific stuff
-    kill_dtached_proc = kill_dtached_proc_macos
-    killall = killall_macos
+if MACOS or OPENBSD: # Apply BSD-specific stuff
+    kill_dtached_proc = kill_dtached_proc_bsd
+    killall = killall_bsd
