@@ -157,7 +157,7 @@ go.Base.update(go.Mobile, {
         if (go.prefs.cols) { prefs.cols = go.prefs.cols };
         if (go.prefs.rows) { prefs.rows = go.prefs.rows };
         // Tell the server the new dimensions
-        go.ws.send(JSON.stringify({'resize': prefs}));
+        go.ws.send(JSON.stringify({'terminal:resize': prefs}));
     }
 });
 

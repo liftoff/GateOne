@@ -28,10 +28,10 @@ go.Base.update(GateOne.TermLogging, {
 
         Creates the log viewer panel and registers the following WebSocket actions::
 
-            GateOne.Net.addAction('logging_log', GateOne.TermLogging.incomingLogAction);
-            GateOne.Net.addAction('logging_logs_complete', GateOne.TermLogging.incomingLogsCompleteAction);
-            GateOne.Net.addAction('logging_log_flat', GateOne.TermLogging.displayFlatLogAction);
-            GateOne.Net.addAction('logging_log_playback', GateOne.TermLogging.displayPlaybackLogAction);
+            GateOne.Net.addAction('terminal:logging_log', GateOne.TermLogging.incomingLogAction);
+            GateOne.Net.addAction('terminal:logging_logs_complete', GateOne.TermLogging.incomingLogsCompleteAction);
+            GateOne.Net.addAction('terminal:logging_log_flat', GateOne.TermLogging.displayFlatLogAction);
+            GateOne.Net.addAction('terminal:logging_log_playback', GateOne.TermLogging.displayPlaybackLogAction);
         */
         var l = go.TermLogging,
             prefix = go.prefs.prefix,
@@ -48,10 +48,10 @@ go.Base.update(GateOne.TermLogging, {
         l.sortfunc = l.sortFunctions.date;
         localStorage[prefix+'logs_sort'] = 'date';
         // Register our WebSocket actions
-        go.Net.addAction('logging_log', l.incomingLogAction);
-        go.Net.addAction('logging_logs_complete', l.incomingLogsCompleteAction);
-        go.Net.addAction('logging_log_flat', l.displayFlatLogAction);
-        go.Net.addAction('logging_log_playback', l.displayPlaybackLogAction);
+        go.Net.addAction('terminal:logging_log', l.incomingLogAction);
+        go.Net.addAction('terminal:logging_logs_complete', l.incomingLogsCompleteAction);
+        go.Net.addAction('terminal:logging_log_flat', l.displayFlatLogAction);
+        go.Net.addAction('terminal:logging_log_playback', l.displayPlaybackLogAction);
     },
     createPanel: function() {
         /**:GateOne.TermLogging.createPanel()
@@ -291,7 +291,7 @@ go.Base.update(GateOne.TermLogging, {
             // Make sure GateOne.Logging.serverLogs is empty and kick off the process to list them
             l.serverLogs = [];
             setTimeout(function() {
-                go.ws.send(JSON.stringify({'logging_get_logs': true}));
+                go.ws.send(JSON.stringify({'terminal:logging_get_logs': true}));
             }, 1000); // Let the panel expand before we tell the server to start sending us logs
             return;
         }
@@ -685,24 +685,24 @@ go.Base.update(GateOne.TermLogging, {
         Tells the server to open *logFile* for playback via the 'logging_get_log_flat' server-side WebSocket action (will end up calling :js:meth:`~GateOne.TermLogging.displayFlatLogAction`.
         */
         var theme_css = u.getNode('#'+prefix+'theme').innerHTML,
-            colors_css = u.getNode('#'+prefix+'colors').innerHTML,
+            colors_css = u.getNode('#'+prefix+'text_colors').innerHTML,
             message = {
                 'log_filename': logFile,
                 'theme_css': theme_css,
                 'colors_css': colors_css
             };
-        go.ws.send(JSON.stringify({'logging_get_log_flat': message}));
+        go.ws.send(JSON.stringify({'terminal:logging_get_log_flat': message}));
         go.Visual.displayMessage(logFile + ' will be opened in a new window when rendering is complete.  Large logs can take some time so please be patient.');
     },
     openLogPlayback: function(logFile, /*opt*/where) {
         /**:GateOne.TermLogging.openLogPlayback(logFile[, where])
 
-        Tells the server to open *logFile* for playback via the 'logging_get_log_playback' server-side WebSocket action (will end up calling :js:meth:`~GateOne.TermLogging.displayPlaybackLogAction`.
+        Tells the server to open *logFile* for playback via the 'terminal:logging_get_log_playback' server-side WebSocket action (will end up calling :js:meth:`~GateOne.TermLogging.displayPlaybackLogAction`.
 
         If *where* is given and it is set to 'preview' the playback will happen in the log_preview iframe.
         */
         var theme_css = u.getNode('#'+prefix+'theme').innerHTML,
-            colors_css = u.getNode('#'+prefix+'colors').innerHTML,
+            colors_css = u.getNode('#'+prefix+'text_colors').innerHTML,
             message = {
                 'log_filename': logFile,
                 'theme_css': theme_css,
@@ -713,7 +713,7 @@ go.Base.update(GateOne.TermLogging, {
         } else {
             go.Visual.displayMessage(logFile + ' will be opened in a new window when rendering is complete.  Large logs can take some time so please be patient.');
         }
-        go.ws.send(JSON.stringify({'logging_get_log_playback': message}));
+        go.ws.send(JSON.stringify({'terminal:logging_get_log_playback': message}));
     },
     saveRenderedLog: function(logFile) {
         /**:GateOne.TermLogging.saveRenderedLog(logFile)
@@ -721,13 +721,13 @@ go.Base.update(GateOne.TermLogging, {
         Tells the server to open *logFile* rendered as a self-contained recording (via the 'logging_get_log_file' WebSocket action) and send it back to the browser for saving (using the 'save_file' WebSocket action).
         */
         var theme_css = u.getNode('#'+prefix+'theme').innerHTML,
-            colors_css = u.getNode('#'+prefix+'colors').innerHTML,
+            colors_css = u.getNode('#'+prefix+'text_colors').innerHTML,
             message = {
                 'log_filename': logFile,
                 'theme_css': theme_css,
                 'colors_css': colors_css
             };
-        go.ws.send(JSON.stringify({'logging_get_log_file': message}));
+        go.ws.send(JSON.stringify({'terminal:logging_get_log_file': message}));
         go.Visual.displayMessage(logFile + ' will be downloaded when rendering is complete.  Large logs can take some time so please be patient.');
     },
     sortFunctions: {

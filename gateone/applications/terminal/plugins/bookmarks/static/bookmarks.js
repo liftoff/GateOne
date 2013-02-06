@@ -71,10 +71,10 @@ go.Base.update(GateOne.Bookmarks, {
 
         Creates the bookmarks panel, initializes some important variables, registers the :kbd:`Control-Alt-b` keyboard shortcut, and registers the following WebSocket actions::
 
-            GateOne.Net.addAction('bookmarks_updated', GateOne.Bookmarks.syncBookmarks);
-            GateOne.Net.addAction('bookmarks_save_result', GateOne.Bookmarks.syncComplete);
-            GateOne.Net.addAction('bookmarks_delete_result', GateOne.Bookmarks.deletedBookmarksSyncComplete);
-            GateOne.Net.addAction('bookmarks_renamed_tags', GateOne.Bookmarks.tagRenameComplete);
+            GateOne.Net.addAction('terminal:bookmarks_updated', GateOne.Bookmarks.syncBookmarks);
+            GateOne.Net.addAction('terminal:bookmarks_save_result', GateOne.Bookmarks.syncComplete);
+            GateOne.Net.addAction('terminal:bookmarks_delete_result', GateOne.Bookmarks.deletedBookmarksSyncComplete);
+            GateOne.Net.addAction('terminal:bookmarks_renamed_tags', GateOne.Bookmarks.tagRenameComplete);
         */
         var b = go.Bookmarks,
             goDiv = u.getNode(go.prefs.goDiv),
@@ -140,10 +140,10 @@ go.Base.update(GateOne.Bookmarks, {
         // Setup a callback that re-draws the bookmarks panel whenever it is opened
         go.Events.on('go:panel_toggle:in', b.panelToggleIn);
         // Register our WebSocket actions
-        go.Net.addAction('bookmarks_updated', b.syncBookmarks);
-        go.Net.addAction('bookmarks_save_result', b.syncComplete);
-        go.Net.addAction('bookmarks_delete_result', b.deletedBookmarksSyncComplete);
-        go.Net.addAction('bookmarks_renamed_tags', b.tagRenameComplete);
+        go.Net.addAction('terminal:bookmarks_updated', b.syncBookmarks);
+        go.Net.addAction('terminal:bookmarks_save_result', b.syncComplete);
+        go.Net.addAction('terminal:bookmarks_delete_result', b.deletedBookmarksSyncComplete);
+        go.Net.addAction('terminal:bookmarks_renamed_tags', b.tagRenameComplete);
         // Setup a keyboard shortcut so bookmarks can be keyboard-navigable
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_B', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': toggleBookmarks});
@@ -166,7 +166,7 @@ go.Base.update(GateOne.Bookmarks, {
         This gets attached to the "user_login" event.  Calls the server-side 'bookmarks_get' WebSocket action with the current USN (Update Sequence Number) to ensure the user's bookmarks are in sync with what's on the server.
         */
         var USN = localStorage[prefix+'USN'] || 0;
-        go.ws.send(JSON.stringify({'bookmarks_get': USN}));
+        go.ws.send(JSON.stringify({'terminal:bookmarks_get': USN}));
     },
     sortFunctions: {
         /**:GateOne.Bookmarks.sortFunctions
@@ -392,7 +392,7 @@ go.Base.update(GateOne.Bookmarks, {
                     }
                 }
                 if (localDiff.length) {
-                    go.ws.send(JSON.stringify({'bookmarks_deleted': localDiff}));
+                    go.ws.send(JSON.stringify({'terminal:bookmarks_deleted': localDiff}));
                 }
                 if (remoteDiff.length) {
                     for (var i in remoteDiff) {
@@ -413,7 +413,7 @@ go.Base.update(GateOne.Bookmarks, {
             // Have to upload our deleted bookmarks list (if any)
             var deletedBookmarks = JSON.parse(localStorage[prefix+'deletedBookmarks']);
             if (deletedBookmarks.length) {
-                go.ws.send(JSON.stringify({'bookmarks_deleted': deletedBookmarks}));
+                go.ws.send(JSON.stringify({'terminal:bookmarks_deleted': deletedBookmarks}));
             }
         }
         setTimeout(function() {
@@ -427,7 +427,7 @@ go.Base.update(GateOne.Bookmarks, {
             });
             // If there *are* new/imported bookmarks, upload them:
             if (b.toUpload.length) {
-                go.ws.send(JSON.stringify({'bookmarks_sync': b.toUpload}));
+                go.ws.send(JSON.stringify({'terminal:bookmarks_sync': b.toUpload}));
             } else {
                 clearTimeout(b.syncTimer);
                 if (!firstTime) {
@@ -460,7 +460,7 @@ go.Base.update(GateOne.Bookmarks, {
             // Process any pending tag renames
             if (localStorage[prefix+'renamedTags']) {
                 var renamedTags = JSON.parse(localStorage[prefix+'renamedTags']);
-                go.ws.send(JSON.stringify({'bookmarks_rename_tags': renamedTags}));
+                go.ws.send(JSON.stringify({'terminal:bookmarks_rename_tags': renamedTags}));
             }
             b.loginSync = false; // So subsequent synchronizations display the "Synchronization Complete" message
         }, 200);
@@ -1191,7 +1191,7 @@ go.Base.update(GateOne.Bookmarks, {
             b.syncTimer = setInterval(function() {
                 go.Visual.displayMessage("Please wait while we synchronize your bookmarks...");
             }, 6000);
-            go.ws.send(JSON.stringify({'bookmarks_get': USN}));
+            go.ws.send(JSON.stringify({'terminal:bookmarks_get': USN}));
         }
         bmOptions.appendChild(bmSync);
         bmOptions.appendChild(bmImport);
@@ -1921,7 +1921,7 @@ go.Base.update(GateOne.Bookmarks, {
                 // Keep everything sync'd up.
                 setTimeout(function() {
                     var USN = localStorage[prefix+'USN'] || 0;
-                    go.ws.send(JSON.stringify({'bookmarks_get': USN}));
+                    go.ws.send(JSON.stringify({'terminal:bookmarks_get': USN}));
                     b.createPanel();
                     closeDialog();
                 }, 100);
@@ -2065,7 +2065,7 @@ go.Base.update(GateOne.Bookmarks, {
             // Now save our new bookmarks list to disk
             localStorage[prefix+'bookmarks'] = JSON.stringify(b.bookmarks);
             // Keep everything sync'd up.
-            go.ws.send(JSON.stringify({'bookmarks_get': USN}));
+            go.ws.send(JSON.stringify({'terminal:bookmarks_get': USN}));
 //             u.xhrGet(go.prefs.url+'bookmarks/sync?updateSequenceNum='+USN, b.syncBookmarks);
             setTimeout(function() {
                 u.removeElement(obj.parentNode.parentNode);

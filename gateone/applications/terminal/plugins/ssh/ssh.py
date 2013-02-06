@@ -179,7 +179,7 @@ def open_sub_channel(self, term):
     # Hopefully 'go_ssh_remote_cmd' will be a clear enough indication of
     # what is going on by anyone that has to review the logs...
     ssh = which('ssh')
-    ssh_command = '%s -x -S%s -F%s go_ssh_remote_cmd' % (
+    ssh_command = "%s -x -S'%s' -F'%s' go_ssh_remote_cmd" % (
         ssh, socket_path, ssh_config_path)
     OPEN_SUBCHANNELS[term] = m = self.new_multiplex(
         ssh_command, "%s (sub)" % term)
@@ -280,7 +280,7 @@ def got_error(self, m_instance, match=None, term=None, cmd=None):
     terminate_sub_channel(m_instance)
     if self:
         message = {
-            'sshjs_cmd_output': {
+            'terminal:sshjs_cmd_output': {
                 'cmd': cmd,
                 'term': term,
                 'output': None,
@@ -314,7 +314,7 @@ def execute_command(self, term, cmd, callback=None):
             (self.get_current_user()['upn'], term)))
         # Try to send an error response to the client
         message = {
-            'sshjs_cmd_output': {
+            'terminal:sshjs_cmd_output': {
                 'term': term,
                 'cmd': cmd,
                 'output': None,
@@ -348,7 +348,7 @@ def send_result(self, term, cmd, output, m_instance):
     command's output and some relevant metadata.
     """
     message = {
-        'sshjs_cmd_output': {
+        'terminal:sshjs_cmd_output': {
             'term': term,
             'cmd': cmd,
             'output': output,
@@ -372,7 +372,7 @@ def ws_exec_command(self, settings):
         execute_command(self, term, cmd, send)
     except SSHExecutionException as e:
         message = {
-            'sshjs_cmd_output': {
+            'terminal:sshjs_cmd_output': {
                 'term': term,
                 'cmd': cmd,
                 'output': None,
@@ -458,7 +458,8 @@ def get_connect_string(self, term):
             if terminal == term:
                 # TODO: Make it so we don't have to use json_encode below...
                 message = {
-                    'sshjs_reconnect': json_encode({term: connect_string})
+                    'terminal:sshjs_reconnect': json_encode(
+                    {term: connect_string})
                 }
                 self.write_message(message)
                 return # All done
@@ -471,7 +472,7 @@ def get_key(self, name, public):
     if not isinstance(name, (str, unicode)):
         error_msg = _(
             'SSH Plugin Error: Invalid name given, %s' % repr(name))
-        message = {'save_file': {'result': error_msg}}
+        message = {'go:save_file': {'result': error_msg}}
         self.write_message(message)
         return out_dict
     if public and not name.endswith('.pub'):
@@ -491,7 +492,7 @@ def get_key(self, name, public):
     else:
         out_dict['result'] = _(
             'SSH Plugin Error: Public key not found at %s' % key_path)
-    message = {'save_file': out_dict}
+    message = {'go:save_file': out_dict}
     self.write_message(message)
     return out_dict
 
@@ -518,7 +519,7 @@ def get_host_fingerprint(self, settings):
         port = settings['port']
     if 'host' not in settings:
         out_dict['result'] = _("Error:  You must supply a 'host'.")
-        message = {'sshjs_display_fingerprint': out_dict}
+        message = {'terminal:sshjs_display_fingerprint': out_dict}
         self.write_message(message)
     else:
         host = settings['host']
@@ -529,14 +530,15 @@ def get_host_fingerprint(self, settings):
         'fingerprint': None
     }
     ssh = which('ssh')
+    command = "%s -p %s -oUserKnownHostsFile=none -F. %s" % (ssh, port, host)
     m = self.new_multiplex(
-        '%s -p %s -oUserKnownHostsFile=none -F. %s' % (ssh, port, host),
+        command,
         'get_host_key',
         logging=False) # Logging is false so we don't make tons of silly logs
     def grab_fingerprint(m_instance, match):
         out_dict['fingerprint'] = match.splitlines()[-1][:-1]
         m_instance.terminate()
-        message = {'sshjs_display_fingerprint': out_dict}
+        message = {'terminal:sshjs_display_fingerprint': out_dict}
         self.write_message(message)
         del m_instance
     def errorback(m_instance):
@@ -545,7 +547,7 @@ def get_host_fingerprint(self, settings):
             "Error: Could not determine the fingerprint of %s:%s... '%s'"
             % (host, port, "\n".join(leftovers)))
         m_instance.terminate() # Don't leave stuff hanging around!
-        message = {'sshjs_display_fingerprint': out_dict}
+        message = {'terminal:sshjs_display_fingerprint': out_dict}
         self.write_message(message)
         del m_instance
     # "The authenticity of host 'localhost (127.0.0.1)' can't be established.\r\nECDSA key fingerprint is 83:f5:b1:f1:d3:8c:b8:fe:d3:be:e5:dd:95:a5:ba:73.\r\nAre you sure you want to continue connecting (yes/no)? "
@@ -601,7 +603,7 @@ def errorback(self, m_instance):
     print(m_instance.dump())
     m_instance.terminate()
     message = {
-        'sshjs_keygen_complete': {
+        'terminal:sshjs_keygen_complete': {
             'result': _("There was a problem generating SSH keys: %s"
                         % m_instance.dump()),
         }
@@ -622,7 +624,7 @@ def enter_passphrase(passphrase, m_instance, match):
 def finished(self, m_instance, fingerprint):
     logging.debug("keygen finished.  fingerprint: %s" % fingerprint)
     message = {
-        'sshjs_keygen_complete': {
+        'terminal:sshjs_keygen_complete': {
             'result': 'Success',
             'fingerprint': fingerprint
         }
@@ -674,9 +676,10 @@ def openssh_generate_new_keypair(self, name, path,
         "-b %s "    # bits
         "-t %s "    # keytype
         "-C '%s' "  # comment
-        "-f %s"     # Key path
+        "-f '%s'"   # Key path
         % (ssh_keygen_path, bits, keytype, comment, key_path)
     )
+    logging.debug("Keygen command: %s" % command)
     m = self.new_multiplex(command, "gen_ssh_keypair")
     call_errorback = partial(errorback, self)
     m.expect('^Overwrite.*',
@@ -732,7 +735,7 @@ def openssh_generate_public_key(self, path, passphrase=None, settings=None):
     m = termio.Multiplex(command)
     def request_passphrase(*args, **kwargs):
         "Called if this key requires a passphrase.  Ask the client to provide"
-        message = {'sshjs_ask_passphrase': settings}
+        message = {'terminal:sshjs_ask_passphrase': settings}
         self.write_message(message)
     def bad_passphrase(m_instance, match):
         "Called if the user entered a bad passphrase"
@@ -844,7 +847,7 @@ def store_id_file(self, settings):
                 # Without this you get a warning:
                 os.chmod(private_key_path, 0600)
             else:
-                self.write_message({'notice': _(
+                self.write_message({'go:notice': _(
                     "ERROR: Private key is not valid.")})
                 return
         if public:
@@ -884,7 +887,7 @@ def store_id_file(self, settings):
     except Exception as e:
         out_dict['result'] = _("Error saving keys: %s" % e)
     message = {
-        'sshjs_save_id_complete': out_dict
+        'terminal:sshjs_save_id_complete': out_dict
     }
     self.write_message(message)
 
@@ -910,7 +913,7 @@ def delete_identity(self, name):
     except Exception as e:
         out_dict['result'] = _("Error deleting keypair: %s" % e)
     message = {
-        'sshjs_delete_identity_complete': out_dict
+        'terminal:sshjs_delete_identity_complete': out_dict
     }
     self.write_message(message)
 
@@ -949,7 +952,8 @@ def get_identities(self, anything):
                             keytype = 'RSA'
                         else:
                             keytype = 'Unknown'
-                        keygen_cmd = "%s -vlf %s" % (ssh_keygen_path, id_path)
+                        keygen_cmd = "'%s' -vlf '%s'" % (
+                            ssh_keygen_path, id_path)
                         retcode, key_info = shell_command(keygen_cmd)
                         # This will just wind up as an empty string if the
                         # version of ssh doesn't support randomart:
@@ -957,13 +961,13 @@ def get_identities(self, anything):
                         bits = key_info.split()[0]
                         fingerprint = key_info.split()[1]
                         retcode, bubblebabble = shell_command(
-                            "%s -Bf %s" % (ssh_keygen_path, id_path))
+                            "'%s' -Bf '%s'" % (ssh_keygen_path, id_path))
                         bubblebabble = bubblebabble.split()[1]
                         certinfo = ''
-                        cert_path = "%s-cert.pub" % id_path
+                        cert_path = "'%s-cert.pub'" % id_path
                         if os.path.exists(cert_path):
                             retcode, certinfo = shell_command(
-                            "%s -Lf %s" % (ssh_keygen_path, cert_path))
+                            "'%s' -Lf '%s'" % (ssh_keygen_path, cert_path))
                         certinfo = ' '.join(certinfo.split(' ')[1:])
                         fixed_certinfo = ''
                         for i, line in enumerate(certinfo.splitlines()):
@@ -1005,7 +1009,7 @@ def get_identities(self, anything):
         logging.error(error_msg)
         out_dict['result'] = error_msg
     message = {
-        'sshjs_identities_list': out_dict
+        'terminal:sshjs_identities_list': out_dict
     }
     self.write_message(message)
 
@@ -1035,7 +1039,7 @@ def opt_esc_handler(self, text):
 
     .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`
     """
-    message = {'sshjs_connect': text}
+    message = {'terminal:sshjs_connect': text}
     self.write_message(message)
 
 def create_user_ssh_dir(self):
@@ -1078,16 +1082,16 @@ def initialize(self):
 hooks = {
     'Web': [(r"/ssh", KnownHostsHandler)],
     'WebSocket': {
-        'ssh_get_connect_string': get_connect_string,
-        'ssh_execute_command': ws_exec_command,
-        'ssh_get_identities': get_identities,
-        'ssh_get_public_key': get_public_key,
-        'ssh_get_private_key': get_private_key,
-        'ssh_get_host_fingerprint': get_host_fingerprint,
-        'ssh_gen_new_keypair': generate_new_keypair,
-        'ssh_store_id_file': store_id_file,
-        'ssh_delete_identity': delete_identity,
-        'ssh_set_default_identities': set_default_identities
+        'terminal:ssh_get_connect_string': get_connect_string,
+        'terminal:ssh_execute_command': ws_exec_command,
+        'terminal:ssh_get_identities': get_identities,
+        'terminal:ssh_get_public_key': get_public_key,
+        'terminal:ssh_get_private_key': get_private_key,
+        'terminal:ssh_get_host_fingerprint': get_host_fingerprint,
+        'terminal:ssh_gen_new_keypair': generate_new_keypair,
+        'terminal:ssh_store_id_file': store_id_file,
+        'terminal:ssh_delete_identity': delete_identity,
+        'terminal:ssh_set_default_identities': set_default_identities
     },
     'Escape': opt_esc_handler,
     #'Events': {

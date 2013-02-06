@@ -94,11 +94,11 @@ def save_recording(self, settings):
         colors_256=colors_256
     )
     out_dict['data'] = rendered_recording
-    message = {'save_file': out_dict}
+    message = {'go:save_file': out_dict}
     self.write_message(message)
 
 hooks = {
     'WebSocket': {
-        'playback_save_recording': save_recording,
+        'terminal:playback_save_recording': save_recording,
     }
 }

@@ -653,7 +653,7 @@ def save_bookmarks(self, bookmarks):
         out_dict['result'] = "Upload completed but errors were encountered."
     else:
         out_dict['result'] = "Upload successful"
-    message = {'bookmarks_save_result': out_dict}
+    message = {'terminal:bookmarks_save_result': out_dict}
     self.write_message(json_encode(message))
 
 def get_bookmarks(self, updateSequenceNum):
@@ -671,7 +671,7 @@ def get_bookmarks(self, updateSequenceNum):
     else: # This will force a full download
         updateSequenceNum = 0
     updated_bookmarks = bookmarks_db.get_bookmarks(updateSequenceNum)
-    message = {'bookmarks_updated': updated_bookmarks}
+    message = {'terminal:bookmarks_updated': updated_bookmarks}
     self.write_message(json_encode(message))
 
 def delete_bookmarks(self, deleted_bookmarks):
@@ -696,7 +696,7 @@ def delete_bookmarks(self, deleted_bookmarks):
         traceback.print_exc(file=sys.stdout)
         out_dict['result'] = "Errors"
         out_dict['errors'].append(str(e))
-    message = {'bookmarks_delete_result': out_dict}
+    message = {'terminal:bookmarks_delete_result': out_dict}
     self.write_message(json_encode(message))
 
 def rename_tags(self, renamed_tags):
@@ -715,7 +715,7 @@ def rename_tags(self, renamed_tags):
         old_name, new_name = pair.split(',')
         bookmarks_db.rename_tag(old_name, new_name)
         out_dict['count'] += 1
-    message = {'bookmarks_renamed_tags': out_dict}
+    message = {'terminal:bookmarks_renamed_tags': out_dict}
     self.write_message(json_encode(message))
 
 def send_bookmarks_css_template(self):
@@ -734,10 +734,10 @@ hooks = {
         (r"/bookmarks/import", ImportHandler),
     ],
     'WebSocket': {
-        'bookmarks_sync': save_bookmarks,
-        'bookmarks_get': get_bookmarks,
-        'bookmarks_deleted': delete_bookmarks,
-        'bookmarks_rename_tags': rename_tags,
+        'terminal:bookmarks_sync': save_bookmarks,
+        'terminal:bookmarks_get': get_bookmarks,
+        'terminal:bookmarks_deleted': delete_bookmarks,
+        'terminal:bookmarks_rename_tags': rename_tags,
     },
     'Events': {
         'terminal:authenticate': send_bookmarks_css_template

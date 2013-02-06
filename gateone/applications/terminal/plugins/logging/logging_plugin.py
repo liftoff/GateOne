@@ -137,7 +137,7 @@ def enumerate_logs(self, limit=None):
     results = []
     # NOTE: self.policy represents the user's specific settings
     if self.policy['session_logging'] == False:
-        message = {'notice': _(
+        message = {'go:notice': _(
             "NOTE: User session logging is disabled.  To enable it, set "
             "'session_logging = True' in your server.conf.")}
         self.write_message(message)
@@ -145,7 +145,7 @@ def enumerate_logs(self, limit=None):
     view_logs = self.policy.get('view_logs', True)
     if not view_logs:
         # TODO: Make it so that users don't even see the log viewer if they don't have this setting
-        message = {'notice': _(
+        message = {'go:notice': _(
             "NOTE: Your access to the log viewer has been restricted.")}
         self.write_message(message)
         return # Nothing left to do
@@ -189,7 +189,7 @@ def enumerate_logs(self, limit=None):
                 'total_bytes': total_bytes
             }
             # This signals to the client that we're done
-            message = {'logging_logs_complete': out_dict}
+            message = {'terminal:logging_logs_complete': out_dict}
             self.write_message(message)
             return
         message = json_encode(message)
@@ -230,7 +230,7 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
             continue # Just skip it
         metadata['size'] = os.stat(log_path).st_size
         out_dict['log'] = metadata
-        message = {'logging_log': out_dict}
+        message = {'terminal:logging_log': out_dict}
         queue.put(message)
         # If we go too quick sometimes the IOLoop will miss a message
         time.sleep(0.01)
@@ -338,7 +338,7 @@ def _retrieve_log_flat(queue, settings):
         out_dict['log'] = out
     else:
         out_dict['result'] = _("ERROR: Log not found")
-    message = {'logging_log_flat': out_dict}
+    message = {'terminal:logging_log_flat': out_dict}
     queue.put(message)
 
 def retrieve_log_playback(self, settings):
@@ -476,7 +476,7 @@ def _retrieve_log_playback(queue, settings):
         out_dict['html'] = playback_html
     else:
         out_dict['result'] = _("ERROR: Log not found")
-    message = {'logging_log_playback': out_dict}
+    message = {'terminal:logging_log_playback': out_dict}
     queue.put(message)
 
 def save_log_playback(self, settings):
@@ -580,23 +580,6 @@ def _save_log_playback(queue, settings):
         # Use some large values to ensure nothing wraps and hope for the best:
             rows = 40
             cols = 500
-        #with open(os.path.join(colors_path, colors)) as f:
-            #colors_file = f.read()
-        #colors_template = tornado.template.Template(colors_file)
-        #rendered_colors = colors_template.generate(
-            #container=container,
-            #prefix=prefix,
-            #url_prefix=url_prefix
-        #)
-        #with open(os.path.join(themes_path, theme)) as f:
-            #theme_file = f.read()
-        #theme_template = tornado.template.Template(theme_file)
-        #rendered_theme = theme_template.generate(
-            #container=container,
-            #prefix=prefix,
-            #colors_256=colors_256,
-            #url_prefix=url_prefix
-        #)
         # NOTE: 'colors' are customizable but colors_256 is universal.  That's
         # why they're separate.
         # Lastly we render the actual HTML template file
@@ -619,7 +602,7 @@ def _save_log_playback(queue, settings):
         out_dict['data'] = playback_html
     else:
         out_dict['result'] = _("ERROR: Log not found")
-    message = {'save_file': out_dict}
+    message = {'go:save_file': out_dict}
     queue.put(message)
 
 # Temporarily disabled while I work around the problem of gzip files not being
@@ -655,10 +638,10 @@ def send_logging_css_template(self):
 
 hooks = {
     'WebSocket': {
-        'logging_get_logs': enumerate_logs,
-        'logging_get_log_flat': retrieve_log_flat,
-        'logging_get_log_playback': retrieve_log_playback,
-        'logging_get_log_file': save_log_playback,
+        'terminal:logging_get_logs': enumerate_logs,
+        'terminal:logging_get_log_flat': retrieve_log_flat,
+        'terminal:logging_get_log_playback': retrieve_log_playback,
+        'terminal:logging_get_log_file': save_log_playback,
     },
     'Events': {
         'terminal:authenticate': send_logging_css_template

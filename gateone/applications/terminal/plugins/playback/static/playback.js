@@ -69,7 +69,9 @@ go.Base.update(GateOne.Playback, {
             infoPanelSaveRecording.onclick = function() {
                 p.saveRecording(localStorage[prefix+'selectedTerminal']);
             }
-            pTag.appendChild(infoPanelSaveRecording);
+            if (pTag) {
+                pTag.appendChild(infoPanelSaveRecording);
+            }
         }
         if (go.prefs.showPlaybackControls) {
             // Make room for the playback controls by increasing rowAdjust (the number of rows in the terminal will be reduced by this amount)
@@ -476,9 +478,9 @@ go.Base.update(GateOne.Playback, {
                 'prefix': prefix,
                 'container': go.prefs.goDiv.split('#')[1],
                 'theme_css': u.getNode('#'+prefix+'theme').innerHTML,
-                'colors_css': u.getNode('#'+prefix+'colors').innerHTML
+                'colors_css': u.getNode('#'+prefix+'text_colors').innerHTML
             };
-        go.ws.send(JSON.stringify({'playback_save_recording': settings}));
+        go.ws.send(JSON.stringify({'terminal:playback_save_recording': settings}));
     }
 });
 

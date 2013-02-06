@@ -43,6 +43,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
         t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
         t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
+        E.on("go:new_workspace", go.Terminal.Input.disableCapture);
     },
     sendChars: function() {
         /**:GateOne.Terminal.Input.sendChars()
@@ -448,7 +449,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         var inputNode = t.Input.inputNode,
             value = inputNode.value;
         if (!t.Input.composition) {
-            t.sendString(value);
+//             t.sendString(value);
+            t.Input.queue(value);
+            t.Input.sendChars();
             inputNode.value = "";
             return false;
         }

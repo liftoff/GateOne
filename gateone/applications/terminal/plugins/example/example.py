@@ -168,15 +168,15 @@ def example_websocket_action(self, message):
     called by the client (browser) inside of example.js (which is in this
     plugin's 'static' dir).
     """
-    message = {'example_pong': timestamp}
+    message = {'terminal:example_pong': timestamp}
     self.write_message(json_encode(message))
     # WebSockets are asynchronous so you can send as many messages as you want
-    message2 = {'notice': 'You just executed the "example_action" action.'}
+    message2 = {'go:notice': 'You just executed the "example_action" action.'}
     self.write_message(json_encode(message2))
     # Alternatively, you can combine multiple messages/actions into one message:
     combined = {
-        'notice': 'Hurray!',
-        'bell': {'term': self.current_term}
+        'go:notice': 'Hurray!',
+        'terminal:bell': {'term': self.current_term}
     }
     self.write_message(json_encode(combined))
 
@@ -191,7 +191,7 @@ def example_opt_esc_handler(self, message):
     execute whatever callback is registered for SOESH.  Inside of Gate One this
     callback will always be :func:`gateone.TerminalWebSocket.esc_opt_handler`.
     """
-    message = {'notice':
+    message = {'go:notice':
      "You just executed the Example plugin's optional escape sequence handler!"}
     self.write_message(message)
 
@@ -213,7 +213,7 @@ def example_command_hook(command):
 hooks = {
     'Web': [(r"/example", ExampleHandler)],
     'WebSocket': {
-        'example_action': example_websocket_action
+        'terminal:example_action': example_websocket_action
     },
     'Command': example_command_hook,
     'Escape': example_opt_esc_handler,

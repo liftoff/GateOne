@@ -42,7 +42,7 @@ def notice_esc_seq_handler(self, message):
 
     .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`
     """
-    message = {'notice': message}
+    message = {'go:notice': message}
     self.write_message(message)
 
 hooks = {

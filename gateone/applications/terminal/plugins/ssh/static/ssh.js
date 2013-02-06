@@ -28,15 +28,15 @@ go.Base.update(go.SSH, {
 
         Creates the SSH Identity Manager panel, adds some buttons to the Info & Tools panel, and registers the following WebSocket actions & events::
 
-            GateOne.Net.addAction('sshjs_connect', GateOne.SSH.handleConnect);
-            GateOne.Net.addAction('sshjs_reconnect', GateOne.SSH.handleReconnect);
-            GateOne.Net.addAction('sshjs_keygen_complete', GateOne.SSH.keygenComplete);
-            GateOne.Net.addAction('sshjs_save_id_complete', GateOne.SSH.saveComplete);
-            GateOne.Net.addAction('sshjs_display_fingerprint', GateOne.SSH.displayHostFingerprint);
-            GateOne.Net.addAction('sshjs_identities_list', GateOne.SSH.incomingIDsAction);
-            GateOne.Net.addAction('sshjs_delete_identity_complete', GateOne.SSH.deleteCompleteAction);
-            GateOne.Net.addAction('sshjs_cmd_output', GateOne.SSH.commandCompleted);
-            GateOne.Net.addAction('sshjs_ask_passphrase', GateOne.SSH.enterPassphraseAction);
+            GateOne.Net.addAction('terminal:sshjs_connect', GateOne.SSH.handleConnect);
+            GateOne.Net.addAction('terminal:sshjs_reconnect', GateOne.SSH.handleReconnect);
+            GateOne.Net.addAction('terminal:sshjs_keygen_complete', GateOne.SSH.keygenComplete);
+            GateOne.Net.addAction('terminal:sshjs_save_id_complete', GateOne.SSH.saveComplete);
+            GateOne.Net.addAction('terminal:sshjs_display_fingerprint', GateOne.SSH.displayHostFingerprint);
+            GateOne.Net.addAction('terminal:sshjs_identities_list', GateOne.SSH.incomingIDsAction);
+            GateOne.Net.addAction('terminal:sshjs_delete_identity_complete', GateOne.SSH.deleteCompleteAction);
+            GateOne.Net.addAction('terminal:sshjs_cmd_output', GateOne.SSH.commandCompleted);
+            GateOne.Net.addAction('terminal:sshjs_ask_passphrase', GateOne.SSH.enterPassphraseAction);
             GateOne.Events.on("terminal:new_terminal", GateOne.SSH.getConnectString);
         */
         var prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
@@ -107,15 +107,15 @@ go.Base.update(go.SSH, {
             }
         });
         go.SSH.createPanel();
-        go.Net.addAction('sshjs_connect', go.SSH.handleConnect);
-        go.Net.addAction('sshjs_reconnect', go.SSH.handleReconnect);
-        go.Net.addAction('sshjs_keygen_complete', go.SSH.keygenComplete);
-        go.Net.addAction('sshjs_save_id_complete', go.SSH.saveComplete);
-        go.Net.addAction('sshjs_display_fingerprint', go.SSH.displayHostFingerprint);
-        go.Net.addAction('sshjs_identities_list', go.SSH.incomingIDsAction);
-        go.Net.addAction('sshjs_delete_identity_complete', go.SSH.deleteCompleteAction);
-        go.Net.addAction('sshjs_cmd_output', go.SSH.commandCompleted);
-        go.Net.addAction('sshjs_ask_passphrase', go.SSH.enterPassphraseAction);
+        go.Net.addAction('terminal:sshjs_connect', go.SSH.handleConnect);
+        go.Net.addAction('terminal:sshjs_reconnect', go.SSH.handleReconnect);
+        go.Net.addAction('terminal:sshjs_keygen_complete', go.SSH.keygenComplete);
+        go.Net.addAction('terminal:sshjs_save_id_complete', go.SSH.saveComplete);
+        go.Net.addAction('terminal:sshjs_display_fingerprint', go.SSH.displayHostFingerprint);
+        go.Net.addAction('terminal:sshjs_identities_list', go.SSH.incomingIDsAction);
+        go.Net.addAction('terminal:sshjs_delete_identity_complete', go.SSH.deleteCompleteAction);
+        go.Net.addAction('terminal:sshjs_cmd_output', go.SSH.commandCompleted);
+        go.Net.addAction('terminal:sshjs_ask_passphrase', go.SSH.enterPassphraseAction);
         E.on("terminal:new_terminal", go.SSH.getConnectString);
         E.on("terminal:new_terminal", go.SSH.autoConnect);
         if (!go.prefs.embedded) {
@@ -339,7 +339,7 @@ go.Base.update(go.SSH, {
             v.togglePanel('#'+prefix+'panel_ssh_ids');
         }
         // Kick off the process to list them
-        go.ws.send(JSON.stringify({'ssh_get_identities': true}));
+        go.ws.send(JSON.stringify({'terminal:ssh_get_identities': true}));
     },
     incomingIDsAction: function(message) {
         /**:GateOne.SSH.incomingIDsAction(message)
@@ -417,8 +417,8 @@ go.Base.update(go.SSH, {
         }
         downloadButton.innerHTML = "Download";
         downloadButton.onclick = function(e) {
-            go.ws.send(JSON.stringify({'ssh_get_private_key': IDObj['name']}));
-            go.ws.send(JSON.stringify({'ssh_get_public_key': IDObj['name']}));
+            go.ws.send(JSON.stringify({'terminal:ssh_get_private_key': IDObj['name']}));
+            go.ws.send(JSON.stringify({'terminal:ssh_get_public_key': IDObj['name']}));
         }
         deleteIDButton.innerHTML = "Delete " + IDObj['name'];
         deleteIDButton.title = "Delete this identity";
@@ -433,7 +433,7 @@ go.Base.update(go.SSH, {
             container.appendChild(no);
             var closeDialog = go.Visual.dialog('Delete identity ' + IDObj['name'] + '?', container);
             yes.onclick = function(e) {
-                go.ws.send(JSON.stringify({'ssh_delete_identity': IDObj['name']}));
+                go.ws.send(JSON.stringify({'terminal:ssh_delete_identity': IDObj['name']}));
                 closeDialog();
             }
             no.onclick = closeDialog;
@@ -525,7 +525,7 @@ go.Base.update(go.SSH, {
                     newDefaults.push(idNode.value);
                 }
             });
-            go.ws.send(JSON.stringify({'ssh_set_default_identities': newDefaults}));
+            go.ws.send(JSON.stringify({'terminal:ssh_set_default_identities': newDefaults}));
         }
         defaultSpan.appendChild(defaultCheckbox);
         nameSpan.innerHTML = "<b>" + IDObj['name'] + "</b>";
@@ -753,7 +753,7 @@ go.Base.update(go.SSH, {
             if (comment) {
                 settings['comment'] = comment;
             }
-            go.ws.send(JSON.stringify({'ssh_gen_new_keypair': settings}));
+            go.ws.send(JSON.stringify({'terminal:ssh_gen_new_keypair': settings}));
             closeDialog();
             ssh.loadIDs();
         }
@@ -816,7 +816,7 @@ go.Base.update(go.SSH, {
                         'name': fileName, // The 'name' here represents the name of the identity, not the file, specifically
                         'private': data,
                     };
-                    go.ws.send(JSON.stringify({'ssh_store_id_file': settings}));
+                    go.ws.send(JSON.stringify({'terminal:ssh_store_id_file': settings}));
                 },
                 publicKeyReader = new FileReader(),
                 sendPublicKey = function(evt) {
@@ -831,7 +831,7 @@ go.Base.update(go.SSH, {
                         'name': fileName,
                         'public': data,
                     };
-                    go.ws.send(JSON.stringify({'ssh_store_id_file': settings}));
+                    go.ws.send(JSON.stringify({'terminal:ssh_store_id_file': settings}));
                 },
                 certificateReader = new FileReader(),
                 sendCertificate = function(evt) {
@@ -846,7 +846,7 @@ go.Base.update(go.SSH, {
                         'name': fileName,
                         'certificate': data,
                     };
-                    go.ws.send(JSON.stringify({'ssh_store_id_file': settings}));
+                    go.ws.send(JSON.stringify({'terminal:ssh_store_id_file': settings}));
                 };
             // Get the data out of the files
             privateKeyReader.onload = sendPrivateKey;
@@ -894,7 +894,7 @@ go.Base.update(go.SSH, {
                             'name': identity,
                             'certificate': data,
                         };
-                    go.ws.send(JSON.stringify({'ssh_store_id_file': settings}));
+                    go.ws.send(JSON.stringify({'terminal:ssh_store_id_file': settings}));
                 };
             // Get the data out of the files
             certificateReader.onload = sendCertificate;
@@ -941,7 +941,7 @@ go.Base.update(go.SSH, {
             // Don't actually submit it
             e.preventDefault();
             settings['passphrase'] = passphrase.value;
-            go.ws.send(JSON.stringify({'ssh_store_id_file': settings}));
+            go.ws.send(JSON.stringify({'terminal:ssh_store_id_file': settings}));
             closeDialog();
         }
     },
@@ -950,7 +950,7 @@ go.Base.update(go.SSH, {
 
         Asks the SSH plugin on the Gate One server what the SSH connection string is for the given *term*.
         */
-        go.ws.send(JSON.stringify({'ssh_get_connect_string': term}));
+        go.ws.send(JSON.stringify({'terminal:ssh_get_connect_string': term}));
     },
     deleteCompleteAction: function(message) {
         /**:GateOne.SSH.deleteCompleteAction(message)
@@ -975,7 +975,7 @@ go.Base.update(go.SSH, {
             message = {'host': host, 'port': port},
             term = localStorage[go.prefs.prefix+'selectedTerminal'];
         go.Terminal.terminals[term]['sshConnectString'] = connectString;
-        go.ws.send(JSON.stringify({'ssh_get_host_fingerprint': message}));
+        go.ws.send(JSON.stringify({'terminal:ssh_get_host_fingerprint': message}));
     },
     handleReconnect: function(jsonDoc) {
         /**:GateOne.SSH.handleReconnect(jsonDoc)
@@ -1224,7 +1224,7 @@ go.Base.update(go.SSH, {
         if (go.ws.readyState != 1) {
             ssh.commandCompleted({'term': term, 'cmd': command, 'result': 'WebSocket is disconnected.'});
         } else {
-            go.ws.send(JSON.stringify({'ssh_execute_command': {'term': term, 'cmd': command}}));
+            go.ws.send(JSON.stringify({'terminal:ssh_execute_command': {'term': term, 'cmd': command}}));
         }
     }
 });

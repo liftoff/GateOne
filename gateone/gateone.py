@@ -735,7 +735,7 @@ class GOApplication(object):
                 # Register a policy-checking function:
                 self.ws.security.update({'some_app': policy_checking_func})
                 # Register some WebSocket actions (note the app:action naming convention)
-                self.ws.commands.update({
+                self.ws.actions.update({
                     'some_app:do_stuff': self.do_stuff,
                     'some_app:do_other_stuff': self.do_other_stuff
                 })
@@ -843,7 +843,7 @@ class ApplicationWebSocket(WebSocketHandler):
     """
     The main WebSocket interface for Gate One, this class is setup to call
     'commands' (aka WebSocket Actions) which are methods registered in
-    `self.commands`.  Methods that are registered this way will be exposed and
+    `self.actions`.  Methods that are registered this way will be exposed and
     directly callable over the WebSocket.
     """
     instances = set()
@@ -854,12 +854,12 @@ class ApplicationWebSocket(WebSocketHandler):
     prefs = {} # Gets updated with every call to initialize()
     def __init__(self, application, request, **kwargs):
         self.user = None
-        self.commands = {
-            'ping': self.pong,
-            'authenticate': self.authenticate,
-            'get_theme': self.get_theme,
-            'get_js': self.get_js,
-            'enumerate_themes': self.enumerate_themes,
+        self.actions = {
+            'go:ping': self.pong,
+            'go:authenticate': self.authenticate,
+            'go:get_theme': self.get_theme,
+            'go:get_js': self.get_js,
+            'go:enumerate_themes': self.enumerate_themes,
             'go:file_request': self.file_request,
             'go:cache_cleanup': self.cache_cleanup,
             'go:send_user_message': self.send_user_message,
@@ -1095,7 +1095,7 @@ class ApplicationWebSocket(WebSocketHandler):
             # In case this is a legitimate client that simply had its auth info
             # expire/go bad, tell it to re-auth by calling the appropriate
             # action on the other side.
-            message = {'reauthenticate': True}
+            message = {'go:reauthenticate': True}
             self.write_message(json_encode(message))
             self.close() # Close the WebSocket
         # NOTE: By getting the prefs with each call to open() we make
@@ -1145,10 +1145,10 @@ class ApplicationWebSocket(WebSocketHandler):
                 else:
                     try:
                         if value:
-                            self.commands[key](value)
+                            self.actions[key](value)
                         else:
                             # Try, try again
-                            self.commands[key]()
+                            self.actions[key]()
                     except (KeyError, TypeError, AttributeError) as e:
                         import traceback
                         for frame in traceback.extract_tb(sys.exc_info()[2]):
@@ -1183,7 +1183,7 @@ class ApplicationWebSocket(WebSocketHandler):
         Responds to a client 'ping' request...  Just returns the given
         timestamp back to the client so it can measure round-trip time.
         """
-        message = {'pong': timestamp}
+        message = {'go:pong': timestamp}
         self.write_message(json_encode(message))
 
     def authenticate(self, settings):
@@ -1205,6 +1205,7 @@ class ApplicationWebSocket(WebSocketHandler):
         elif 'Sec-Websocket-Origin' in self.request.headers: # Old version
             origin = self.request.headers['Sec-Websocket-Origin']
         # Make sure the client is authenticated if authentication is enabled
+        reauth = {'go:reauthenticate': True}
         if self.settings['auth'] and self.settings['auth'] != 'api':
             try:
                 user = self.current_user
@@ -1213,21 +1214,18 @@ class ApplicationWebSocket(WebSocketHandler):
                     # This usually happens when the cookie_secret gets changed
                     # resulting in "Invalid cookie..." errors.  If we tell the
                     # client to re-auth the problem should correct itself.
-                    message = {'reauthenticate': True}
-                    self.write_message(json_encode(message))
+                    self.write_message(json_encode(reauth))
                     return
                 elif user and user['upn'] == 'ANONYMOUS':
                     logging.error(_("Unauthenticated WebSocket attempt."))
                     # This can happen when a client logs in with no auth type
                     # configured and then later the server is configured to use
                     # authentication.  The client must be told to re-auth:
-                    message = {'reauthenticate': True}
-                    self.write_message(json_encode(message))
+                    self.write_message(json_encode(reauth))
                     return
             except KeyError: # 'upn' wasn't in user
                 # Force them to authenticate
-                message = {'reauthenticate': True}
-                self.write_message(json_encode(message))
+                self.write_message(json_encode(reauth))
                 self.close() # Close the WebSocket
         elif self.settings['auth'] and self.settings['auth'] == 'api':
             if 'auth' in settings.keys():
@@ -1271,23 +1269,20 @@ class ApplicationWebSocket(WebSocketHandler):
                         logging.error(_(
                                 'AUTHENTICATION ERROR: Unsupported API auth '
                                 'signature method: %s' % signature_method))
-                        message = {'reauthenticate': True}
-                        self.write_message(json_encode(message))
+                        self.write_message(json_encode(reauth))
                         return
                     if api_version != "1.0":
                         logging.error(_(
                                 'AUTHENTICATION ERROR: Unsupported API version:'
                                 '%s' % api_version))
-                        message = {'reauthenticate': True}
-                        self.write_message(json_encode(message))
+                        self.write_message(json_encode(reauth))
                         return
                     try:
                         secret = self.settings['api_keys'][api_key]
                     except KeyError:
                         logging.error(_(
                             'AUTHENTICATION ERROR: API Key not found.'))
-                        message = {'reauthenticate': True}
-                        self.write_message(json_encode(message))
+                        self.write_message(json_encode(reauth))
                         return
                     # Check the signature against existing API keys
                     sig_check = tornado.web._create_signature(
@@ -1374,12 +1369,12 @@ class ApplicationWebSocket(WebSocketHandler):
                     else:
                         logging.error(_(
                             "WebSocket auth failed signature check."))
-                        message = {'reauthenticate': True}
+                        message = {'go:reauthenticate': True}
                         self.write_message(json_encode(message))
                         return
             else:
                 logging.error(_("Missing API Key in authentication object"))
-                message = {'reauthenticate': True}
+                message = {'go:reauthenticate': True}
                 self.write_message(json_encode(message))
                 return
         else: # Anonymous auth
@@ -1419,11 +1414,11 @@ class ApplicationWebSocket(WebSocketHandler):
                 # Also store/update their session info in localStorage
                 encoded_user = self.create_signed_value(
                     'gateone_user', tornado.escape.json_encode(self.user))
-                session_message = {'gateone_user': encoded_user}
+                session_message = {'go:gateone_user': encoded_user}
                 self.write_message(json_encode(session_message))
             if self.user['upn'] != 'ANONYMOUS':
                 # Gate One server's auth config probably changed
-                message = {'reauthenticate': True}
+                message = {'go:reauthenticate': True}
                 self.write_message(json_encode(message))
                 #self.close() # Close the WebSocket
                 return
@@ -1433,7 +1428,7 @@ class ApplicationWebSocket(WebSocketHandler):
                 self.session = user['session']
             else:
                 logging.error(_("Authentication failed for unknown user"))
-                message = {'notice': _('AUTHENTICATION ERROR: User unknown')}
+                message = {'go:notice': _('AUTHENTICATION ERROR: User unknown')}
                 self.write_message(json_encode(message))
                 return
         except Exception as e:
@@ -1482,7 +1477,7 @@ class ApplicationWebSocket(WebSocketHandler):
             if hasattr(app, 'authenticate'):
                 app.authenticate()
         # This is just so the client has a human-readable point of reference:
-        message = {'set_username': self.current_user['upn']}
+        message = {'go:set_username': self.current_user['upn']}
         self.write_message(json_encode(message))
         # Tell the client which applications are available
         enabled_applications = policy.get('enabled_applications', [])
@@ -1739,7 +1734,7 @@ class ApplicationWebSocket(WebSocketHandler):
         if filename in js_files.keys():
             with open(js_files[filename]) as f:
                 out_dict['data'] = f.read()
-        message = {'load_js': out_dict}
+        message = {'go:load_js': out_dict}
         self.write_message(message)
 
     def cache_cleanup(self, message):
@@ -1854,13 +1849,13 @@ class ApplicationWebSocket(WebSocketHandler):
         else:
             out_dict['data'] = get_or_cache(cache_dir, path, minify=True)
         if kind == 'js':
-            message = {'load_js': out_dict}
+            message = {'go:load_js': out_dict}
         elif kind == 'css':
             out_dict['css'] = True # So loadStyleAction() knows what to do
-            message = {'load_style': out_dict}
+            message = {'go:load_style': out_dict}
         elif kind == 'theme':
             out_dict['theme'] = True
-            message = {'load_theme': out_dict}
+            message = {'go:load_theme': out_dict}
         self.write_message(message)
 
     def send_js_or_css(self,
@@ -2113,7 +2108,7 @@ class ApplicationWebSocket(WebSocketHandler):
         themes = [a.replace('.css', '') for a in themes]
         colors = os.listdir(colors_path)
         colors = [a.replace('.css', '') for a in colors]
-        message = {'themes_list': {'themes': themes, 'colors': colors}}
+        message = {'go:themes_list': {'themes': themes, 'colors': colors}}
         self.write_message(message)
 
 # NOTE: This is not meant to be a chat application.  That is forthcoming :)

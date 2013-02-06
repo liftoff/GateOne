@@ -237,7 +237,7 @@ go.Base.update(GateOne.Terminal, {
                         termObj = u.getNode('#'+prefix+'term' + term),
                         sideInfo = u.getNode('#'+prefix+'sideinfo');
                     // Send a message to the server with the new title so it can stay in sync if the user reloads the page or reconnects from a different browser/machine
-                    go.ws.send(JSON.stringify({'manual_title': {'term': term, 'title': newTitle}}));
+                    go.ws.send(JSON.stringify({'terminal:manual_title': {'term': term, 'title': newTitle}}));
                     infoPanelH2.onclick = editTitle;
                     go.Terminal.displayTermInfo(term);
                     go.Terminal.Input.capture();
@@ -281,7 +281,7 @@ go.Base.update(GateOne.Terminal, {
         resetTermButton.innerHTML = "Rescue Terminal";
         resetTermButton.title = "Attempts to rescue a hung terminal by performing a terminal reset; the equivalent of executing the 'reset' command.";
         resetTermButton.onclick = function() {
-            go.ws.send(JSON.stringify({'reset_terminal': localStorage[prefix+'selectedTerminal']}));
+            go.ws.send(JSON.stringify({'terminal:reset_terminal': localStorage[prefix+'selectedTerminal']}));
         }
         div.appendChild(resetTermButton);
         // Register our keyboard shortcuts
@@ -303,20 +303,21 @@ go.Base.update(GateOne.Terminal, {
             go.prefs.webWorker = go.prefs.url + 'terminal/static/webworkers/term_ww.js';
         }
         logDebug("Attempting to download our WebWorker...");
-        go.ws.send(JSON.stringify({'get_webworker': null}));
+        go.ws.send(JSON.stringify({'terminal:get_webworker': null}));
         window.addEventListener('resize', go.Terminal.onResizeEvent, false);
         // Get shift-Insert working in a natural way (NOTE: Will only work when Gate One is the active element on the page)
         go.Input.registerShortcut('KEY_INSERT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': go.Terminal.paste, 'preventDefault': false});
         // Register our actions
         go.Net.addAction('terminal:terminals', go.Terminal.reattachTerminalsAction);
-        go.Net.addAction('termupdate', go.Terminal.updateTerminalAction);
-        go.Net.addAction('set_title', go.Visual.setTitleAction);
-        go.Net.addAction('term_ended', go.Terminal.closeTerminal);
-        go.Net.addAction('term_exists', go.Terminal.reconnectTerminalAction);
-        go.Net.addAction('term_moved', go.Terminal.moveTerminalAction);
+        go.Net.addAction('terminal:termupdate', go.Terminal.updateTerminalAction);
+        go.Net.addAction('terminal:set_title', go.Visual.setTitleAction);
+        go.Net.addAction('terminal:term_ended', go.Terminal.closeTerminal);
+        go.Net.addAction('terminal:term_exists', go.Terminal.reconnectTerminalAction);
+        go.Net.addAction('terminal:term_moved', go.Terminal.moveTerminalAction);
         go.Net.addAction('terminal:set_mode', go.Terminal.setModeAction); // For things like application cursor keys
-        go.Net.addAction('reset_terminal', go.Terminal.resetTerminalAction);
-        go.Net.addAction('load_webworker', go.Terminal.loadWebWorkerAction);
+        go.Net.addAction('terminal:reset_terminal', go.Terminal.resetTerminalAction);
+        go.Net.addAction('terminal:load_webworker', go.Terminal.loadWebWorkerAction);
+        go.Net.addAction('terminal:bell', go.Terminal.bellAction);
         // This ensures that whatever effects are applied to a terminal when switching to it get applied when resized too:
         E.on("go:update_dimensions", switchTerm);
         E.on("go:save_prefs", function() {
@@ -349,7 +350,6 @@ go.Base.update(GateOne.Terminal, {
             u.showElements(go.prefs.goDiv + ' .pastearea');
         });
         E.on("go:update_dimensions", go.Terminal.updateDimensions);
-        E.on("go:new_workspace", go.Terminal.Input.disableCapture);
         E.on("go:timeout", go.Terminal.timeoutEvent);
         go.Terminal.loadTextColors();
         setTimeout(function() {
@@ -456,14 +456,14 @@ go.Base.update(GateOne.Terminal, {
         var u = go.Utils,
             term = term || localStorage[go.prefs.prefix+'selectedTerminal'],
             message = {'chars': chars, 'term': term};
-        go.ws.send(JSON.stringify({'write_chars': message}));
+        go.ws.send(JSON.stringify({'terminal:write_chars': message}));
     },
     killTerminal: function(term) {
         /**:GateOne.Terminal.killTerminal(term)
 
         Tells the server got close the given *term*.
         */
-        go.ws.send(JSON.stringify({'kill_terminal': term}));
+        go.ws.send(JSON.stringify({'terminal:kill_terminal': term}));
     },
     refresh: function(term) {
         /**:GateOne.Terminal.refresh(term)
@@ -472,14 +472,14 @@ go.Base.update(GateOne.Terminal, {
 
         .. note:: This function is only here for debugging purposes.  Under normal circumstances difference-based screen refreshes are initiated at the server.
         */
-        go.ws.send(JSON.stringify({'refresh': term}));
+        go.ws.send(JSON.stringify({'terminal:refresh': term}));
     },
     fullRefresh: function(term) {
         /**:GateOne.Terminal.fullRefresh(term)
 
         Tells the Gate One server to send a full screen refresh to the client for the given *term*.
         */
-        go.ws.send(JSON.stringify({'full_refresh': term}));
+        go.ws.send(JSON.stringify({'terminal:full_refresh': term}));
     },
     loadTextColors: function(colors) {
         /**:GateOne.Terminal.loadTextColors(colors)
@@ -562,7 +562,7 @@ go.Base.update(GateOne.Terminal, {
             }
         }
         // Tell the server the new dimensions
-        go.ws.send(JSON.stringify({'resize': prefs}));
+        go.ws.send(JSON.stringify({'terminal:resize': prefs}));
     },
     setTitleAction: function(titleObj) {
         /**:GateOne.Terminal.setTitleAction(titleObj)
@@ -1240,7 +1240,7 @@ go.Base.update(GateOne.Terminal, {
                 }
             }, timeout);
         }
-        pastearea.onmousedown = function(e) {
+        pastearea.addEventListener('mousedown', function(e) {
             // When the user left-clicks assume they're trying to highlight text
             // so bring the terminal to the front and try to emulate normal
             // cursor-text action as much as possible.
@@ -1292,7 +1292,7 @@ go.Base.update(GateOne.Terminal, {
                     u.hideElement(pastearea);
                 }
             }
-        }
+        }, true);
         terminal.appendChild(pastearea);
         go.Terminal.terminals[term]['pasteNode'] = pastearea;
         u.getNode(where).appendChild(terminal);
@@ -1405,7 +1405,7 @@ go.Base.update(GateOne.Terminal, {
         */
         var term = parseInt(term); // Sometimes it will be a string
         localStorage[GateOne.prefs.prefix+'selectedTerminal'] = term;
-        GateOne.ws.send(JSON.stringify({'set_terminal': term}));
+        GateOne.ws.send(JSON.stringify({'terminal:set_terminal': term}));
         E.trigger('terminal:set_terminal', term);
     },
     switchTerminal: function(term) {
@@ -1498,6 +1498,15 @@ go.Base.update(GateOne.Terminal, {
         u.showElement('#'+prefix+'icon_closeterm');
         u.showElement('#'+prefix+'icon_info');
         u.showElement('#'+prefix+'icon_newterm');
+    },
+    bellAction: function(bellObj) {
+        /**:GateOne.Terminal.bellAction(bellObj)
+
+        Attached to the 'terminal:bell' WebSocket action; plays a bell sound and pops up a message indiciating which terminal issued a bell.
+        */
+        var term = bellObj['term'];
+        go.Visual.playBell();
+        go.Visual.displayMessage("Bell in " + term + ": " + go.Terminal.terminals[term]['title']);
     },
     updateDimensions: function() {
         /**:GateOne.Terminal.updateDimensions()
@@ -1637,7 +1646,7 @@ go.Base.update(GateOne.Terminal, {
             'term': term,
             'location': location
         }
-        go.ws.send(JSON.stringify({'move_terminal': settings}));
+        go.ws.send(JSON.stringify({'terminal:move_terminal': settings}));
     },
     reconnectTerminalAction: function(term) {
         // Called when the server reports that the terminal number supplied via 'new_terminal' already exists

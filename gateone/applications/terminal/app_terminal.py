@@ -329,20 +329,20 @@ class TerminalApplication(GOApplication):
         # Register our security policy function
         self.ws.security.update({'terminal': terminal_policies})
         # Register our WebSocket actions
-        self.ws.commands.update({
+        self.ws.actions.update({
             'terminal:new_terminal': self.new_terminal,
-            'set_terminal': self.set_terminal,
-            'move_terminal': self.move_terminal,
-            'kill_terminal': self.kill_terminal,
+            'terminal:set_terminal': self.set_terminal,
+            'terminal:move_terminal': self.move_terminal,
+            'terminal:kill_terminal': self.kill_terminal,
             'c': self.char_handler, # Just 'c' to keep the bandwidth down
-            'write_chars': self.write_chars,
-            'refresh': self.refresh_screen,
-            'full_refresh': self.full_refresh,
-            'resize': self.resize,
-            'get_bell': self.get_bell,
-            'manual_title': self.manual_title,
-            'reset_terminal': self.reset_terminal,
-            'get_webworker': self.get_webworker,
+            'terminal:write_chars': self.write_chars,
+            'terminal:refresh': self.refresh_screen,
+            'terminal:full_refresh': self.full_refresh,
+            'terminal:resize': self.resize,
+            'terminal:get_bell': self.get_bell,
+            'terminal:manual_title': self.manual_title,
+            'terminal:reset_terminal': self.reset_terminal,
+            'terminal:get_webworker': self.get_webworker,
             'terminal:get_colors': self.get_colors,
             'terminal:set_encoding': self.set_term_encoding,
             'terminal:get_terminals': self.terminals,
@@ -401,9 +401,9 @@ class TerminalApplication(GOApplication):
                         REGISTERED_HANDLERS.append(handler)
                         self.add_handler(handler[0], handler[1])
             if 'WebSocket' in hooks:
-                # Apply the plugin's WebSocket commands
+                # Apply the plugin's WebSocket actions
                 for ws_command, func in hooks['WebSocket'].items():
-                    self.ws.commands.update({ws_command: bind(func, self)})
+                    self.ws.actions.update({ws_command: bind(func, self)})
             if 'Escape' in hooks:
                 # Apply the plugin's Escape handler
                 self.on(
@@ -817,7 +817,7 @@ class TerminalApplication(GOApplication):
                 # It's ALIVE!!!
                 m.resize(
                     rows, cols, ctrl_l=False, em_dimensions=self.em_dimensions)
-                message = {'term_exists': term}
+                message = {'terminal:term_exists': term}
                 self.write_message(json_encode(message))
                 # This resets the screen diff
                 m.prev_output[self.ws.client_id] = [
@@ -986,7 +986,7 @@ class TerminalApplication(GOApplication):
         Tells the client to reset the terminal (clear the screen and remove
         scrollback).
         """
-        message = {'reset_client_terminal': term}
+        message = {'terminal:reset_client_terminal': term}
         self.write_message(json_encode(message))
         self.trigger("terminal:reset_client_terminal", term)
 
@@ -1031,14 +1031,14 @@ class TerminalApplication(GOApplication):
         if term_obj['manual_title']:
             if force:
                 title = term_obj['title']
-                title_message = {'set_title': {'term': term, 'title': title}}
+                title_message = {'terminal:set_title': {'term': term, 'title': title}}
                 self.write_message(json_encode(title_message))
             return
         title = term_obj['multiplex'].term.get_title()
         # Only send a title update if it actually changed
         if title != term_obj['title'] or force:
             term_obj['title'] = title
-            title_message = {'set_title': {'term': term, 'title': title}}
+            title_message = {'terminal:set_title': {'term': term, 'title': title}}
             self.write_message(json_encode(title_message))
         self.trigger("terminal:set_title", title)
 
@@ -1059,7 +1059,7 @@ class TerminalApplication(GOApplication):
         else:
             term_obj['manual_title'] = True
         term_obj['title'] = title
-        title_message = {'set_title': {'term': term, 'title': title}}
+        title_message = {'terminal:set_title': {'term': term, 'title': title}}
         self.write_message(json_encode(title_message))
         self.trigger("terminal:manual_title", title)
 
@@ -1071,7 +1071,7 @@ class TerminalApplication(GOApplication):
 
             {'bell': {'term': 1}}
         """
-        bell_message = {'bell': {'term': term}}
+        bell_message = {'terminal:bell': {'term': term}}
         self.write_message(json_encode(bell_message))
         self.trigger("terminal:bell", term)
 
@@ -1138,7 +1138,7 @@ class TerminalApplication(GOApplication):
             full=full, client_id=self.ws.client_id)
         if [a for a in screen if a]: # Checking for non-empty lines here
             output_dict = {
-                'termupdate': {
+                'terminal:termupdate': {
                     'term': term,
                     'scrollback': scrollback,
                     'screen' : screen,
@@ -1373,7 +1373,7 @@ class TerminalApplication(GOApplication):
             bell_data_uri = fallback_bell
         mimetype = bell_data_uri.split(';')[0].split(':')[1]
         message = {
-            'load_bell': {
+            'terminal:load_bell': {
                 'data_uri': bell_data_uri, 'mimetype': mimetype
             }
         }
@@ -1389,7 +1389,7 @@ class TerminalApplication(GOApplication):
         webworker_path = os.path.join(static_url, 'webworkers', 'term_ww.js')
         with open(webworker_path) as f:
             go_process = f.read()
-        message = {'load_webworker': go_process}
+        message = {'terminal:load_webworker': go_process}
         self.write_message(json_encode(message))
 
     def get_colors(self, settings):
@@ -1449,7 +1449,6 @@ class TerminalApplication(GOApplication):
         }
         message = {'go:file_sync': out_dict}
         self.write_message(message)
-        #self.write_message(json_encode({'load_style': out_dict}))
 
 # Terminal sharing TODO (not in any particular order or priority):
 #   * GUI elements that allow a user to share a terminal:
@@ -1657,7 +1656,7 @@ class TerminalApplication(GOApplication):
             share_obj = self.ws.persist['terminal']['shared'][share_id]
         except KeyError:
             error_msg = _("No terminal associated with the given share_id.")
-            message = {'notice': error_msg}
+            message = {'go:notice': error_msg}
             self.write_message(message)
             return
         if 'viewers' in share_obj:
@@ -1748,7 +1747,7 @@ class TerminalApplication(GOApplication):
                 'refresh_timeout': None
             }
         if multiplex.isalive():
-            message = {'term_exists': term}
+            message = {'terminal:term_exists': term}
             self.write_message(json_encode(message))
             # This resets the screen diff
             multiplex.prev_output[self.ws.client_id] = [

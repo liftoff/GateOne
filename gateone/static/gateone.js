@@ -421,7 +421,7 @@ var go = GateOne.Base.update(GateOne, {
             sideinfo = u.createElement('div', {'id': 'sideinfo', 'class':'sideinfo'}),
             themeList = [], // Gets filled out below
             colorsList = [],
-            updateCSSfunc = function() { go.ws.send(JSON.stringify({'enumerate_themes': null})) };
+            updateCSSfunc = function() { go.ws.send(JSON.stringify({'go:enumerate_themes': null})) };
         // Start the file synchronization process first because it operates asynchronously
 
         // Create our prefs panel
@@ -685,13 +685,14 @@ GateOne.Utils.benchmark = null; // Used in conjunction with the startBenchmark a
 GateOne.Utils.benchmarkCount = 0; // Ditto
 GateOne.Utils.benchmarkTotal = 0; // Ditto
 GateOne.Utils.benchmarkAvg = 0; // Ditto
+GateOne.Utils.failedRequirementsCounter = {}; // Used by loadJSAction() to keep track of how long a JS file has been waiting for a dependency
 GateOne.Base.update(GateOne.Utils, {
     init: function() {
-        go.Net.addAction('save_file', go.Utils.saveAsAction);
-        go.Net.addAction('load_style', go.Utils.loadStyleAction);
+        go.Net.addAction('go:save_file', go.Utils.saveAsAction);
+        go.Net.addAction('go:load_style', go.Utils.loadStyleAction);
         // Commented this out since it wasn't working out but may be useful in the future
-        go.Net.addAction('load_js', go.Utils.loadJSAction);
-        go.Net.addAction('themes_list', go.Utils.enumerateThemes);
+        go.Net.addAction('go:load_js', go.Utils.loadJSAction);
+        go.Net.addAction('go:themes_list', go.Utils.enumerateThemes);
     },
     // startBenchmark and stopBenchmark can be used to test the performance of various functions and code...
     startBenchmark: function() {
@@ -1081,7 +1082,7 @@ GateOne.Base.update(GateOne.Utils, {
 
         Loads a JavaScript file sent via the 'load_js' WebSocket action into a <script> tag inside of GateOne.prefs.goDiv (not that it matters where it goes).  To request that a .js file be loaded from the Gate One server one can use the following::
 
-            >>> GateOne.ws.send(JSON.stringify({'get_js': 'some_script.js'}));
+            >>> GateOne.ws.send(JSON.stringify({'go:get_js': 'some_script.js'}));
             >>> // NOTE: some_script.js can reside in Gate One's /static directory or any plugin's /static directory.
             >>> // Plugin .js files take precedence.
 
@@ -1090,9 +1091,32 @@ GateOne.Base.update(GateOne.Utils, {
         logDebug('loadJSAction()');
         var go = GateOne,
             u = go.Utils,
-            prefix = go.prefs.prefix;
+            prefix = go.prefs.prefix,
+            requires = false,
+            existing, s;
         if (message['result'] == 'Success') {
-            var existing, s;
+            if (message['requires']) {
+                message['requires'].forEach(function(requiredFile) {
+                    if (!go.Storage.loadedFiles[requiredFile]) {
+                        requires = true;
+                    }
+                });
+            }
+            if (requires) {
+                setTimeout(function() {
+                    if (u.failedRequirementsCounter[message['filename']] >= 20) { // ~2 seconds
+                        // Give up
+                        logError("Failed to load " + message['filename'] + ".  Took too long waiting for " + message['requires']);
+                        return;
+                    }
+                    // Try again in a moment or so
+                    u.loadJSAction(message, noCache);
+                    u.failedRequirementsCounter[message['filename']] += 1;
+                }, 100);
+                return;
+            } else {
+                logDebug("Dependency loaded!");
+            }
             if (message['element_id']) {
                 existing = u.getNode('#'+prefix+message['element_id']);
                 s = u.createElement('script', {'id': message['element_id']});
@@ -1120,10 +1144,16 @@ GateOne.Base.update(GateOne.Utils, {
                 clearTimeout(u.postInitDebounce);
                 u.postInitDebounce = null;
             }
-            u.postInitDebounce = setTimeout(function() {
-                u.runPostInit(); // Calls any init() and postInit() functions in the loaded JS.
-            }, 500); // This is hopefully fast enough to be nearly instantaneous to the user but also long enough for the biggest script to be loaded.
-            // NOTE:  runPostInit() will *not* re-run init() and postInit() functions if they've already been run once.  Even if the script is being replaced/updated.
+            // If this JS file requires no depdendencies call its init() and postInit() functions right away
+            if (!message['requires']) {
+                logDebug("Loading " + message['filename'] + " immediately because it has no dependencies.");
+                u.runPostInit();
+            } else {
+                u.postInitDebounce = setTimeout(function() {
+                    u.runPostInit(); // Calls any init() and postInit() functions in the loaded JS.
+                }, 500); // This is hopefully fast enough to be nearly instantaneous to the user but also long enough for the biggest script to be loaded.
+                // NOTE:  runPostInit() will *not* re-run init() and postInit() functions if they've already been run once.  Even if the script is being replaced/updated.
+            }
         }
     },
     loadStyleAction: function(message, /*opt*/noCache) {
@@ -1158,7 +1188,7 @@ GateOne.Base.update(GateOne.Utils, {
                 }
             }
             if (message['print']) {
-                var colors = u.getNode('#'+prefix+'colors'),
+                var colors = u.getNode('#'+prefix+'text_colors'),
                     existing = u.getNode('#'+prefix+'print'),
                     stylesheet = u.createElement('style', {'id': 'print', 'rel': 'stylesheet', 'type': 'text/css', 'media': 'print'});
                 stylesheet.textContent = message['print'];
@@ -1210,13 +1240,13 @@ GateOne.Base.update(GateOne.Utils, {
         */
         var u = go.Utils,
             container = go.prefs.goDiv.split('#')[1];
-        go.ws.send(JSON.stringify({'get_theme': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'theme': theme}}));
+        go.ws.send(JSON.stringify({'go:get_theme': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'theme': theme}}));
     },
     loadPluginCSS: function() {
         // Tells the Gate One server to send all the plugin CSS files to the client.
         var u = go.Utils,
             container = go.prefs.goDiv.split('#')[1];
-        go.ws.send(JSON.stringify({'get_style': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'plugins': true}}));
+        go.ws.send(JSON.stringify({'go:get_style': {'go_url': go.prefs.url, 'container': container, 'prefix': go.prefs.prefix, 'plugins': true}}));
     },
     loadScriptError: function(scriptTag, url, callback) {
         /**:GateOne.Utils.loadScriptError(url, scriptTag, callback)
@@ -1794,7 +1824,7 @@ GateOne.Base.update(GateOne.Net, {
         /**:GateOne.Net.init()
 
         */
-        GateOne.Net.addAction('timeout', GateOne.Net.timeoutAction);
+        GateOne.Net.addAction('go:timeout', GateOne.Net.timeoutAction);
     },
     sendChars: function() {
         /**:GateOne.Net.sendChars() DEPRECATED:  Use GateOne.Terminal.sendChars() instead. */
@@ -1821,7 +1851,7 @@ GateOne.Base.update(GateOne.Net, {
         var now = new Date(),
             timestamp = now.toISOString();
         logDebug("PING...");
-        GateOne.ws.send(JSON.stringify({'ping': timestamp}));
+        GateOne.ws.send(JSON.stringify({'go:ping': timestamp}));
     },
     pong: function(timestamp) {
         /**:GateOne.Net.pong(timestamp)
@@ -1985,7 +2015,7 @@ GateOne.Base.update(GateOne.Net, {
                     go.User.loadBell({'mimetype': go.prefs.bellSoundType, 'data_uri': go.prefs.bellSound});
                 } else {
                     logDebug("Attempting to download our bell sound...");
-                    go.ws.send(JSON.stringify({'get_bell': null}));
+                    go.ws.send(JSON.stringify({'go:get_bell': null}));
                 }
                 if (!go.prefs.auth) {
                     // If 'auth' isn't set that means we're not in API mode but we could still be embedded so check for the user's session info in localStorage
@@ -2002,7 +2032,7 @@ GateOne.Base.update(GateOne.Net, {
                         settings['auth'] = go.prefs.auth;
                     }
                 }
-                go.ws.send(JSON.stringify({'authenticate': settings}));
+                go.ws.send(JSON.stringify({'go:authenticate': settings}));
                 setTimeout(function() {
                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
                 }, 4000);
@@ -2103,7 +2133,6 @@ GateOne.Input.metaHeld = false; // Used to emulate the "meta" modifier since som
 GateOne.Input.shortcuts = {}; // Shortcuts added via registerShortcut() wind up here.
 GateOne.Input.globalShortcuts = {}; // Global shortcuts added via registerGlobalShortcut() wind up here.
 GateOne.Input.handledGlobal = false; // Used to detect when a global shortcut needs to override a local (regular) one.
-// TODO: Move the terminal-specific parts of GateOne.Input to GateOne.Terminal.  In fact, I'd imagine that *most* of GateOne.Input would go to Terminal.
 GateOne.Base.update(GateOne.Input, {
     // GateOne.Input is in charge of all keyboard input as well as copy & paste stuff
     init: function() {
@@ -2260,9 +2289,7 @@ GateOne.Base.update(GateOne.Input, {
         Used in conjunction with GateOne.Input.modifiers() and GateOne.Input.onKeyDown() to emulate the meta key modifier using KEY_WINDOWS_LEFT and KEY_WINDOWS_RIGHT since "meta" doesn't work as an actual modifier on some browsers/platforms.
         */
         var goIn = go.Input,
-            key = goIn.key(e),
-            modifiers = goIn.modifiers(e),
-            term = localStorage[go.prefs.prefix+'selectedTerminal'];
+            key = goIn.key(e);
         logDebug('onKeyUp()');
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
             goIn.metaHeld = false;
@@ -2283,8 +2310,7 @@ GateOne.Base.update(GateOne.Input, {
             u = go.Utils,
             container = go.node,
             key = goIn.key(e),
-            modifiers = goIn.modifiers(e),
-            term = localStorage[go.prefs.prefix+'selectedTerminal'];
+            modifiers = goIn.modifiers(e);
         logDebug("onKeyDown() key.string: " + key.string + ", key.code: " + key.code + ", modifiers: " + go.Utils.items(modifiers));
         if (goIn.handledGlobal) {
             // Global shortcuts take precedence
@@ -2543,7 +2569,7 @@ GateOne.Base.update(GateOne.Visual, {
         }
         // Stick it on the end (can go wherever--unlike GateOne.Terminal's icons)
         toolbar.appendChild(toolbarGrid);
-        // Register our keyboard shortcuts (Shift-<arrow keys> to switch terminals, ctrl-alt-G to toggle grid view)
+        // Register our keyboard shortcuts (Shift-<arrow keys> to switch workspaces, ctrl-alt-G to toggle grid view)
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_ARROW_LEFT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideLeft()'});
             go.Input.registerShortcut('KEY_ARROW_RIGHT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideRight()'});
@@ -2551,8 +2577,7 @@ GateOne.Base.update(GateOne.Visual, {
             go.Input.registerShortcut('KEY_ARROW_DOWN', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': 'GateOne.Visual.slideDown()'});
             go.Input.registerShortcut('KEY_G', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Visual.toggleGridView()'});
         }
-        go.Net.addAction('bell', v.bellAction);
-        go.Net.addAction('notice', v.serverMessageAction);
+        go.Net.addAction('go:notice', v.serverMessageAction);
         go.Events.on('go:switch_workspace', v.slideToWorkspace);
         go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
         // Forthcoming New Workspace Workspace :)
@@ -2769,9 +2794,6 @@ GateOne.Base.update(GateOne.Visual, {
                     }
                 }
             }
-            // Disable input into the terminal so we can type into forms and whatnot
-//             go.Input.disableCapture();
-//             go.Terminal.Input.disableCapture();
             // Make it so the user can press the ESC key to close the panel
             panel.onkeyup = function(e) {
                 if (e.keyCode == 27) { // ESC key
@@ -2785,9 +2807,6 @@ GateOne.Base.update(GateOne.Visual, {
         } else {
             // Send it away
             v.applyTransform(panel, 'scale(0)');
-            // Activate capturing of keystrokes so the user doesn't have to click on #gateone to start typing again
-//             go.Input.capture();
-//             go.Terminal.Input.capture();
             // Call any registered 'out' callbacks for all of these panels
             GateOne.Events.trigger("go:panel_toggle:out", panel);
             if (v.panelToggleCallbacks['out']['#'+panel.id]) {
@@ -2855,8 +2874,6 @@ GateOne.Base.update(GateOne.Visual, {
                 clearTimeout(v.noticeTimers[unique]);
             }
             u.removeElement(notice);
-//             go.Input.capture();
-//             go.Terminal.Input.capture();
         }
         notice.appendChild(messageSpan);
         notice.appendChild(closeX);
@@ -2876,12 +2893,6 @@ GateOne.Base.update(GateOne.Visual, {
         }
         v.lastMessage = message;
         v.sinceLastMessage = new Date();
-    },
-    bellAction: function(bellObj) {
-        // Plays a bell sound and pops up a message indiciating which terminal issued a bell
-        var term = bellObj['term'];
-        go.Visual.playBell();
-        go.Visual.displayMessage("Bell in " + term + ": " + go.Terminal.terminals[term]['title']);
     },
     playBell: function() {
         // Plays the bell sound without any visual notification.
@@ -4095,6 +4106,9 @@ GateOne.Storage.fileCacheModel = {
     'print': {keypath: 'filename'}
 }
 GateOne.Storage.deferLoadingTimers = {}; // Used to make sure we don't duplicate our efforts in retries
+GateOne.Storage.requiredFiles = [];
+GateOne.Storage.loadedFiles = {}; // This is used to queue up JavaScript files to ensure they load in the proper order.
+GateOne.Storage.failedRequirementsCounter = {}; // Used to detect when we've waited too long for a dependency.
 GateOne.Base.update(GateOne.Storage, {
     /**:GateOne.Base.Storage
 
@@ -4192,8 +4206,6 @@ GateOne.Base.update(GateOne.Storage, {
             fileCache.delete(kind, filename);
         });
     },
-    loadedFiles: {}, // This is used to queue up JavaScript files to ensure they load in the proper order.
-    failedRequirementsCounter: {}, // Used to detect when we've waited too long for a dependency.
     // TODO: Get this using an updateSequenceNum instead of modification times (it's more efficient)
     fileSyncAction: function(message) {
         /**:GateOne.Storage.fileCheckAction(message)
@@ -4237,6 +4249,12 @@ GateOne.Base.update(GateOne.Storage, {
                         if (remoteFileObj['kind'] == 'js') {
                             if (remoteFileObj['requires']) {
                                 logDebug("This file requires a certain script be loaded first: " + remoteFileObj['requires']);
+                                remoteFileObj['requires'].forEach(function(filename) {
+                                    if (S.requiredFiles.indexOf(filename) != -1) {
+                                        // This ensures we call the init() function of these files first
+                                        S.requiredFiles.push(filename);
+                                    }
+                                });
                                 if (!S.failedRequirementsCounter[remoteFileObj['filename']]) {
                                     S.failedRequirementsCounter[remoteFileObj['filename']] = 0;
                                 }
@@ -4489,9 +4507,9 @@ GateOne.Base.update(GateOne.User, {
             prefsPanelUserLogout.insertAdjacentHTML("afterEnd", ")");
         }
         // Register our actions
-        go.Net.addAction('gateone_user', go.User.storeSession);
-        go.Net.addAction('set_username', go.User.setUsername);
-        go.Net.addAction('load_bell', go.User.loadBell);
+        go.Net.addAction('go:gateone_user', go.User.storeSession);
+        go.Net.addAction('go:set_username', go.User.setUsername);
+        go.Net.addAction('go:load_bell', go.User.loadBell);
         go.Net.addAction('go:applications', go.User.applicationsAction);
     },
     setUsername: function(username) {
@@ -4587,7 +4605,7 @@ GateOne.Base.update(GateOne.User, {
         cancel.onclick = closeDialog;
         defaultBell.onclick = function(e) {
             e.preventDefault();
-            go.ws.send(JSON.stringify({'get_bell': null}));
+            go.ws.send(JSON.stringify({'terminal:get_bell': null}));
             closeDialog();
         }
         uploadBellForm.onsubmit = function(e) {

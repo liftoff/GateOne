@@ -2275,7 +2275,7 @@ class Terminal(object):
         if self.cursorX not in self.tabstops:
             for tabstop in self.tabstops:
                 if self.cursorX > tabstop:
-                    self.tabstops.append(self.cursorX)
+                    self.tabstops.add(self.cursorX)
                     self.tabstops.sort() # Put them in order :)
                     break
 
