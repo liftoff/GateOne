@@ -106,9 +106,13 @@ go.Base.update(GateOne.Terminal, {
             resetTermButton = u.createElement('button', {'id': 'reset_terminal', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
             toolbar = u.getNode('#'+prefix+'toolbar'),
+            cmdQueryString = u.getQueryVariable('terminal_cmd'),
             switchTerm = function() {
                 go.Terminal.switchTerminal(localStorage[prefix+'selectedTerminal'])
             };
+        if (cmdQueryString) {
+            go.Terminal.defaultCommand = cmdQueryString;
+        }
         // Create our info panel
         go.Icons['magnifyingGlass'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
         GateOne.Icons['info'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" y2="756.67" gradientUnits="userSpaceOnUse" x2="567.96" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" y1="674.11" x1="567.96"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g></svg>';
@@ -331,15 +335,15 @@ go.Base.update(GateOne.Terminal, {
                 };
             }, 3000);
         });
-        E.on('go:restore_defaults', function() {
+        E.on("go:restore_defaults", function() {
             go.prefs['colors'] = "default";
             go.prefs['disableTermTransitions'] = false;
             go.prefs['scrollback'] = 500;
             go.prefs['rows'] = null;
             go.prefs['cols'] = null;
         });
-        E.on('terminal:switch_terminal', go.Terminal.switchTerminalEvent);
-        E.on('go:switch_workspace', go.Terminal.switchWorkspaceEvent);
+        E.on("terminal:switch_terminal", go.Terminal.switchTerminalEvent);
+        E.on("go:switch_workspace", go.Terminal.switchWorkspaceEvent);
         E.on("go:connection_error", go.Terminal.connectionError);
         E.on("go:grid_view:open", function() {
             go.Terminal.disableScrollback();
@@ -361,6 +365,7 @@ go.Base.update(GateOne.Terminal, {
 
         Called when a user clicks on the Terminal Application in the New Workspace Workspace (or anything that happens to call __new__()).
         */
+        var command = settings['command'];
         go.Terminal.newTerminal(); // Just create a new terminal in a new workspace for now.
         // TODO: Make this take settings like "command", rows/cols, and *where*.
     },
@@ -970,8 +975,6 @@ go.Base.update(GateOne.Terminal, {
         // Takes the updated screen information from *termUpdateObj* and posts it to the term_ww.js Web Worker to be processed.
         // The Web Worker is important because it allows offloading of CPU-intensive tasks like linkification and text transforms so they don't block screen updates
         var t = go.Terminal,
-            v = go.Visual,
-            prefix = go.prefs.prefix,
             term = termUpdateObj['term'],
             ratelimiter = termUpdateObj['ratelimiter'],
             scrollback = go.Terminal.terminals[term]['scrollback'],
@@ -1024,7 +1027,10 @@ go.Base.update(GateOne.Terminal, {
 
         If *term* is provided, the created terminal will use that number.
 
-        If *settings* (associative array) are provided the given parameters will be applied to the created terminal's parameters in GateOne.Terminal.terminals[term] as well as sent as part of the 'terminal:new_terminal' WebSocket action.
+        If *settings* (associative array) are provided the given parameters will be applied to the created terminal's parameters in GateOne.Terminal.terminals[term] as well as sent as part of the 'terminal:new_terminal' WebSocket action.  This mechanism can be used to spawn terminals using different 'commands' that have been configured on the server.  For example::
+
+            > // Creates a new terminal that spawns whatever command is set as 'login' in Gate One's settings:
+            > GateOne.Terminal.newTerminal(null, {'command': 'login'});
 
         If *where* is provided, the new terminal element will be appended like so:  where.appendChild(<new terminal element>);  Otherwise the terminal will be added to the grid.
 
@@ -1033,7 +1039,6 @@ go.Base.update(GateOne.Terminal, {
         // TODO: Finish supporting terminal types.
         logDebug("newTerminal(" + term + ")");
         var t = go.Terminal,
-            v = go.Visual,
             currentTerm = null,
             terminal = null,
             termUndefined = false,
@@ -1088,8 +1093,8 @@ go.Base.update(GateOne.Terminal, {
             where: where,
             workspace: workspaceNum // NOTE: This will be (likely) be null when embedding
         };
-        for (var v in settings) {
-            go.Terminal.terminals[term][v] = settings[v];
+        for (var pref in settings) {
+            go.Terminal.terminals[term][pref] = settings[pref];
         }
         for (var i=0; i<dimensions.rows; i++) {
             // Fill out prevScreen with spaces
@@ -1107,6 +1112,7 @@ go.Base.update(GateOne.Terminal, {
         }
         if (!go.prefs.embedded) {
             // Prepare the terminal div for the grid
+            console.log(v.goDimensions);
             terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal', 'style': {'width': v.goDimensions.w + 'px', 'height': v.goDimensions.h + 'px'}});
             // Switch to the newly created workspace (if warranted)
             if (workspaceNum) {
@@ -1162,8 +1168,14 @@ go.Base.update(GateOne.Terminal, {
                 }, 1000);
             };
         // Update termSettings with *settings* (overriding with anything that was given)
-        for (var v in settings) {
-            termSettings[v] = settings[v];
+        for (var pref in settings) {
+            termSettings[pref] = settings[pref];
+        }
+        // Use the default command if set
+        if (go.Terminal.defaultCommand) {
+            if (!termSettings['command']) {
+                termSettings['command'] = go.Terminal.defaultCommand;
+            }
         }
         pastearea.oninput = pasteareaOnInput;
         pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
@@ -1649,7 +1661,10 @@ go.Base.update(GateOne.Terminal, {
         go.ws.send(JSON.stringify({'terminal:move_terminal': settings}));
     },
     reconnectTerminalAction: function(term) {
-        // Called when the server reports that the terminal number supplied via 'new_terminal' already exists
+        /**:GateOne.Terminal.reconnectTerminalAction(term)
+
+        Called when the server reports that the terminal number supplied via 'new_terminal' already exists.
+        */
         // NOTE: Might be useful to override if you're embedding Gate One into something else
         logDebug('reconnectTerminalAction(' + term + ')');
         // This gets called when a terminal is moved from one 'location' to another.  When that happens we need to open it up like it's new...
@@ -1679,8 +1694,8 @@ go.Base.update(GateOne.Terminal, {
 
         If this is a new session (and we're not in embedded mode), a new terminal will be created.
         */
-        var u = go.Utils,
-            prefix = go.prefs.prefix,
+        var newTermSettings,
+            cmdQueryString = u.getQueryVariable('terminal_cmd'),
             reattachCallbacks = false;
         logDebug("reattachTerminalsAction() terminals: " + terminals);
         // Clean up localStorage

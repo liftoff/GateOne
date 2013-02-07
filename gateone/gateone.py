@@ -388,10 +388,14 @@ def cleanup_user_logs():
     that particular setting.
     """
     logging.debug("cleanup_session_logs()")
-    settings = get_settings(os.path.join(GATEONE_DIR, 'settings'))
+    settings = get_settings(options.settings_dir)
     user_dir = settings['*']['gateone']['user_dir']
+    if 'user_dir' in options.keys(): # NOTE: options is global
+        user_dir = options.user_dir
     default = "30d"
     max_age_str = settings['*']['gateone'].get('user_logs_max_age', default)
+    if 'user_logs_max_age' in options.keys():
+        max_age_str = options.user_logs_max_age
     max_age = convert_to_timedelta(max_age_str)
     def descend(path):
         """
@@ -447,7 +451,18 @@ def policy_broadcast(cls, policy):
     by checking the `['gateone']['send_broadcasts']` policy.
     """
     cls.error = _("You do not have permission to broadcast messages.")
-    return policy.get('send_broadcasts', True)
+    return policy.get('send_broadcasts', False) # Default deny
+
+def policy_list_users(cls, policy):
+    """
+    Called by :func:`gateone_policies`, returns True if the user is
+    authorized to retrieve a list of the users currently connected to the Gate
+    One server via the :meth:`ApplicationWebSocket.list_server_users` method.
+    It makes this determination by checking the `['gateone']['list_users']`
+    policy.
+    """
+    cls.error = _("You do not have permission to list connected users.")
+    return policy.get('list_users', True)
 
 def gateone_policies(cls):
     """
@@ -470,6 +485,7 @@ def gateone_policies(cls):
     policy_functions = {
         'send_user_message': policy_send_user_message,
         'broadcast': policy_broadcast,
+        'list_server_users': policy_list_users
     }
     user = instance.current_user
     policy = applicable_policies('gateone', user, instance.ws.policies)
@@ -863,7 +879,8 @@ class ApplicationWebSocket(WebSocketHandler):
             'go:file_request': self.file_request,
             'go:cache_cleanup': self.cache_cleanup,
             'go:send_user_message': self.send_user_message,
-            'go:broadcast': self.broadcast
+            'go:broadcast': self.broadcast,
+            'go:list_users': self.list_server_users
         }
         self._events = {}
         # This is used to keep track of used API authentication signatures so
@@ -944,7 +961,7 @@ class ApplicationWebSocket(WebSocketHandler):
         logging.debug('ApplicationWebSocket.initialize(%s)' % apps)
         # Make sure we have all prefs ready for checking
         cls = ApplicationWebSocket
-        cls.prefs = get_settings(os.path.join(GATEONE_DIR, 'settings'))
+        cls.prefs = get_settings(options.settings_dir)
         if not apps:
             return
         for app in apps:
@@ -1144,11 +1161,11 @@ class ApplicationWebSocket(WebSocketHandler):
                             "Error running plugin WebSocket action: %s" % key))
                 else:
                     try:
-                        if value:
-                            self.actions[key](value)
+                        if value is None:
+                            self.actions[key]()
                         else:
                             # Try, try again
-                            self.actions[key]()
+                            self.actions[key](value)
                     except (KeyError, TypeError, AttributeError) as e:
                         import traceback
                         for frame in traceback.extract_tb(sys.exc_info()[2]):
@@ -1257,6 +1274,7 @@ class ApplicationWebSocket(WebSocketHandler):
                 # $authobj['signature'] = hash_hmac('sha1', $authobj['api_key'] . $authobj['upn'] . $authobj['timestamp'], '<secret>');
                 # Note that the order matters:  api_key -> upn -> timestamp
                 auth_obj = settings['auth']
+                from utils import create_signature
                 if 'api_key' in auth_obj:
                     # Assume everything else is present if the api_key is there
                     api_key = auth_obj['api_key']
@@ -1265,12 +1283,19 @@ class ApplicationWebSocket(WebSocketHandler):
                     signature = auth_obj['signature']
                     signature_method = auth_obj['signature_method']
                     api_version = auth_obj['api_version']
-                    if signature_method != 'HMAC-SHA1':
+                    supported_hmacs = {
+                        'HMAC-SHA1': hashlib.sha1,
+                        'HMAC-SHA256': hashlib.sha256,
+                        'HMAC-SHA384': hashlib.sha384,
+                        'HMAC-SHA512': hashlib.sha512,
+                    }
+                    if signature_method not in supported_hmacs:
                         logging.error(_(
                                 'AUTHENTICATION ERROR: Unsupported API auth '
                                 'signature method: %s' % signature_method))
                         self.write_message(json_encode(reauth))
                         return
+                    hmac_algo = supported_hmacs[signature_method]
                     if api_version != "1.0":
                         logging.error(_(
                                 'AUTHENTICATION ERROR: Unsupported API version:'
@@ -1285,8 +1310,8 @@ class ApplicationWebSocket(WebSocketHandler):
                         self.write_message(json_encode(reauth))
                         return
                     # Check the signature against existing API keys
-                    sig_check = tornado.web._create_signature(
-                        secret, api_key, upn, timestamp)
+                    sig_check = create_signature(
+                        secret, api_key, upn, timestamp, hmac_algo=hmac_algo)
                     if sig_check == signature:
                         # Everything matches (great!) so now we do due diligence
                         # by checking the timestamp against the
@@ -1615,8 +1640,10 @@ class ApplicationWebSocket(WebSocketHandler):
         out_dict = {'files': []}
         theme_filename = "%s.css" % theme
         theme_path = os.path.join(themes_path, theme_filename)
-        # This wierd little line empties Tornado's template cache:
-        tornado.web.RequestHandler._template_loaders['.'].reset()
+        template_loaders = tornado.web.RequestHandler._template_loaders
+        # This wierd little bit empties Tornado's template cache:
+        for web_template_path in template_loaders:
+            template_loaders[web_template_path].reset()
         rendered_path = self.render_style(
             theme_path, **template_args)
         filename = os.path.split(rendered_path)[1]
@@ -2023,8 +2050,10 @@ class ApplicationWebSocket(WebSocketHandler):
             return
         with open(css_path) as f:
             css_template = tornado.template.Template(f.read())
-        # This wierd little line empties Tornado's template cache:
-        tornado.web.RequestHandler._template_loaders['.'].reset()
+        template_loaders = tornado.web.RequestHandler._template_loaders
+        # This wierd little bit empties Tornado's template cache:
+        for web_template_path in template_loaders:
+            template_loaders[web_template_path].reset()
         rendered = self.render_string(
             css_path,
             container=self.container,
@@ -2111,7 +2140,7 @@ class ApplicationWebSocket(WebSocketHandler):
         message = {'go:themes_list': {'themes': themes, 'colors': colors}}
         self.write_message(message)
 
-# NOTE: This is not meant to be a chat application.  That is forthcoming :)
+# NOTE: This is not meant to be a chat application.  That'll come later :)
 #       The real purpose of send_user_message() and broadcast() are for
 #       programmatic use.  For example, when a user shares a terminal and it
 #       would be appropriate to notify certain users that the terminal is now
@@ -2168,6 +2197,32 @@ class ApplicationWebSocket(WebSocketHandler):
         self.send_message(message, upn="AUTHENTICATED")
         self.trigger('go:broadcast', message)
 
+    @require(authenticated(), policies('gateone'))
+    def list_server_users(self):
+        """
+        Returns a list of users currently connected to the Gate One server to
+        the client via the 'go:user_list' WebSocket action.  Only users with the
+        'list_users' policy are allowed to execute this action.
+        """
+        users = ApplicationWebSocket._list_connected_users()
+        print(users)
+        # Remove things that users should not see such as their session ID
+        filtered_users = []
+        policy = applicable_policies('gateone', self.current_user, self.prefs)
+        allowed_fields = policy.get('user_list_fields', False)
+        # If not set, just strip the session ID
+        if not allowed_fields:
+            allowed_fields = ('upn', 'ip_address')
+        for user in users:
+            user_dict = {}
+            for key, value in user.items():
+                if key in allowed_fields:
+                    user_dict[key] = value
+            filtered_users.append(user_dict)
+        message = {'go:user_list': filtered_users}
+        self.write_message(json_encode(message))
+        self.trigger('go:user_list', filtered_users)
+
     @classmethod
     def _deliver(cls, message, upn="AUTHENTICATED", session=None):
         """
@@ -2191,6 +2246,21 @@ class ApplicationWebSocket(WebSocketHandler):
                 instance.write_message(message)
             elif upn == user['upn']:
                 instance.write_message(message)
+
+    @classmethod
+    def _list_connected_users(cls):
+        """
+        Returns a tuple of user objects representing the users that are
+        currently connected (and authenticated) to this Gate One server.
+        """
+        logging.debug("_list_connected_users()")
+        out = []
+        for instance in cls.instances:
+            try: # We only care about authenticated users
+                out.append(instance.current_user)
+            except AttributeError:
+                continue
+        return tuple(out)
 
 class ErrorHandler(tornado.web.RequestHandler):
     """
@@ -2781,7 +2851,7 @@ def main():
             # These settings can actually be spread out into any number of .conf
             # files in the settings directory using whatever naming convention
             # you want.
-            settings_path = os.path.join(GATEONE_DIR, 'settings')
+            settings_path = settings_dir
             server_conf_path = os.path.join(settings_path, '10server.conf')
             # Using 20authentication.conf for authentication settings
             auth_conf_path = os.path.join(
@@ -2908,7 +2978,7 @@ def main():
         if not os.path.exists(config_defaults['log_file_prefix']):
             # Make sure the file is present
             open(config_defaults['log_file_prefix'], 'w').write('')
-        settings_path = os.path.join(GATEONE_DIR, 'settings')
+        settings_path = options.settings_dir
         server_conf_path = os.path.join(settings_path, '10server.conf')
         auth_conf_path = os.path.join(settings_path, '20authentication.conf')
         template_path = os.path.join(

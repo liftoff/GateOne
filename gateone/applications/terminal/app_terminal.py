@@ -80,7 +80,7 @@ def kill_session(session, kill_dtach=False):
     .. note:: This function gets appended to the `SESSIONS[session]["terminal_callbacks"]` list inside of :meth:`TerminalApplication.authenticate`.
     """
     logging.debug('kill_session(%s)' % session)
-    settings = get_settings(os.path.join(GATEONE_DIR, 'settings'))
+    settings = get_settings(options.settings_dir)
     if kill_dtach:
         from utils import kill_dtached_proc
     for location, terms in list(SESSIONS[session]['locations'].items()):
@@ -500,7 +500,8 @@ class TerminalApplication(GOApplication):
         user = self.current_user
         if not hasattr(self.ws, 'location'):
             return # Connection closed before authentication completed
-        if self.ws.location in SESSIONS[self.ws.session]['locations']:
+        session_locs = SESSIONS[self.ws.session]['locations']
+        if self.ws.location in session_locs and hasattr(self, 'loc_terms'):
             for term in self.loc_terms:
                 if isinstance(term, int):
                     term_obj = self.loc_terms[term]
@@ -1908,7 +1909,7 @@ def init(settings):
     if 'terminal' not in settings['*']:
         # Create some defaults and save the config as 50terminal.conf
         from utils import settings_template
-        settings_path = os.path.join(GATEONE_DIR, 'settings')
+        settings_path = options.settings_dir
         terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
         # TODO: Think about moving 50terminal.conf template into the terminal
         # application's directory.
@@ -1919,7 +1920,7 @@ def init(settings):
         default_command = (
             GATEONE_DIR +
             "/applications/terminal/plugins/ssh/scripts/ssh_connect.py -S "
-            r"'/tmp/gateone/%SESSION%/%SHORT_SOCKET%' --sshfp "
+            r"'%SESSION_DIR%/%SESSION%/%SHORT_SOCKET%' --sshfp "
             r"-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/.ssh/known_hosts\"'")
         settings['*']['terminal'].update({
             'dtach': True,

@@ -26,6 +26,7 @@ import logging
 import mimetypes
 import fcntl
 import cPickle
+import hmac, hashlib
 from datetime import timedelta
 
 # Import 3rd party stuff
@@ -630,14 +631,15 @@ def mkdir_p(path):
             pass
         else: raise
 
-def cmd_var_swap(cmd,
-        session=None, session_hash=None, user_dir=None, user=None, time=None):
+def cmd_var_swap(cmd, **kwargs):
     """
-    Returns *cmd* with special inline variables swapped out for their respective
-    argument values.  The special variables are as follows:
+    Returns *cmd* with %variable% replaced with the keys/values passed in via
+    *kwargs*.  This function is used by Gate One's Terminal application to
+    swap the following Gate One variables in defined terminal 'commands':
 
         ==============  ==============
         %SESSION%       *session*
+        %SESSION_DIR%   *session_dir*
         %SESSION_HASH%  *session_hash*
         %USERDIR%       *user_dir*
         %USER%          *user*
@@ -647,21 +649,24 @@ def cmd_var_swap(cmd,
     This allows for unique or user-specific values to be swapped into command
     line arguments like so::
 
-        ssh_connect.py -M -S '/tmp/gateone/%SESSION%/%r@%L:%p'
+        ssh_connect.py -M -S '%SESSION%/%SESSION%/%r@%L:%p'
 
-    The values passed into this function can be whatever you like.  They don't
-    necessarily have to match their intended values.
+    Could become::
+
+        ssh_connect.py -M -S '/tmp/gateone/NWI0YzYxNzAwMTA3NGYyZmI0OWJmODczYmQyMjQwMDYwM/%r@%L:%p'
+
+    Here's an example::
+
+        >>> cmd = "echo '%FOO% %BAR%'"
+        >>> cmd_var_swap(cmd, foo="FOOYEAH,", bar="BAR NONE!")
+        "echo 'FOOYEAH, BAR NONE!'"
+
+    .. note:: The variables passed into this function via *kwargs* are case insensitive.  `cmd_var_swap(cmd, session=var)` would produce the same output as `cmd_var_swap(cmd, SESSION=var)`.
     """
-    if session:
-        cmd = cmd.replace(r'%SESSION%', session)
-    if session_hash:
-        cmd = cmd.replace(r'%SESSION_HASH%', session_hash)
-    if user_dir:
-        cmd = cmd.replace(r'%USERDIR%', user_dir)
-    if user:
-        cmd = cmd.replace(r'%USER%', user)
-    if time:
-        cmd = cmd.replace(r'%TIME%', str(time))
+    for key, value in kwargs.items():
+        key = str(key) # Force to string in case of things like integers
+        value = str(value)
+        cmd = cmd.replace(r'%{key}%'.format(key=key.upper()), value)
     return cmd
 
 def short_hash(to_shorten):
@@ -1619,6 +1624,16 @@ def strip_xss(html, whitelist=None, replacement=u"\u2421"):
         for bad_tag in bad_tags:
             html = html.replace(bad_tag, u"\u2421")
     return (html, bad_tags)
+
+def create_signature(secret, hmac_algo=hashlib.sha1, *parts):
+    """
+    Creates an HMAC signature using the given *secret*, *hmac_algo*, and *parts*
+    (args). *hmac_algo* may be any HMAC algorithm present in the hashlib module.
+    """
+    hash = hmac.new(secret, digestmod=hmac_algo)
+    for part in parts:
+        hash.update(str(part))
+    return hash.hexdigest()
 
 # Misc
 _ = get_translation()

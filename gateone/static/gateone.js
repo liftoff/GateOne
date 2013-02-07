@@ -1535,10 +1535,10 @@ GateOne.Base.update(GateOne.Utils, {
             return bytes + "";
         }
     },
-    getQueryVariable: function(variable) {
-        /**:GateOne.Utils.getQueryVariable(variable)
+    getQueryVariable: function(variable, /*opt*/url) {
+        /**:GateOne.Utils.getQueryVariable(variable[, url])
 
-        Returns the value of a query string variable from :js:attr:`window.location.href`
+        Returns the value of a query string variable from :js:attr:`window.location`.
 
         If no matching variable is found, returns undefined.  Example::
 
@@ -1546,9 +1546,14 @@ GateOne.Base.update(GateOne.Utils, {
             > GateOne.Utils.getQueryVariable('foo');
             'bar,bar,bar'
             >
+
+        Optionally, a *url* may be specified to perform the same evaluation on *url* insead of :js:attr:`window.location`.
         */
-        var query = window.location.search.substring(1),
-            vars = query.split('&');
+        var query = window.location.search.substring(1), vars;
+        if (url) {
+            query = url.split('?').slice(1).join('?'); // Removes the leading URL up to the first question mark (preserving extra question marks)
+        }
+        vars = query.split('&');
         for (var i = 0; i < vars.length; i++) {
             var pair = vars[i].split('=');
             if (decodeURIComponent(pair[0]) == variable) {
@@ -2122,10 +2127,10 @@ GateOne.Base.update(GateOne.Net, {
 // Protocol actions
 GateOne.Net.actions = {
 // These are what will get called when the server sends us each respective action
-    'log': GateOne.Net.log,
-    'ping': GateOne.Net.ping,
-    'pong': GateOne.Net.pong,
-    'reauthenticate': GateOne.Net.reauthenticate
+    'go:log': GateOne.Net.log,
+    'go:ping': GateOne.Net.ping,
+    'go:pong': GateOne.Net.pong,
+    'go:reauthenticate': GateOne.Net.reauthenticate
 }
 GateOne.Base.module(GateOne, "Input", '1.1', ['Base', 'Utils']);
 // GateOne.Input.charBuffer = []; // Queue for sending characters to the server
@@ -4109,6 +4114,7 @@ GateOne.Storage.deferLoadingTimers = {}; // Used to make sure we don't duplicate
 GateOne.Storage.requiredFiles = [];
 GateOne.Storage.loadedFiles = {}; // This is used to queue up JavaScript files to ensure they load in the proper order.
 GateOne.Storage.failedRequirementsCounter = {}; // Used to detect when we've waited too long for a dependency.
+GateOne.Storage.fileCacheReady = false;
 GateOne.Base.update(GateOne.Storage, {
     /**:GateOne.Base.Storage
 
@@ -4121,7 +4127,14 @@ GateOne.Base.update(GateOne.Storage, {
         */
         go.Net.addAction('go:file_sync', go.Storage.fileSyncAction);
         go.Net.addAction('go:cache_expired', go.Storage.cacheExpiredAction);
-        go.Storage.openDB('fileCache', null, GateOne.Storage.fileCacheModel);
+        go.Storage.openDB('fileCache', go.Storage.cacheReady, go.Storage.fileCacheModel);
+    },
+    cacheReady: function() {
+        /**:GateOne.Storage.cacheReady()
+
+        Called when the fileCache DB has completed openining/initialization.  Just sets `GateOne.Storage.fileCacheReady` to `true`.
+        */
+        go.Storage.fileCacheReady = true;
     },
     cacheJS: function(fileObj) {
         /**:GateOne.Storage.cacheJS(fileObj)
@@ -4218,7 +4231,7 @@ GateOne.Base.update(GateOne.Storage, {
         //  {'files': [{'filename': 'foo.js', 'mtime': 1234567890123}]}
         var S = go.Storage,
             u = go.Utils;
-        if (!S.databases['fileCache']) {
+        if (!go.Storage.fileCacheReady) {
             // Database hasn't finished initializing yet.  Wait just a moment and retry...
             if (S.deferLoadingTimers[message['files'][0]['filename']]) {
                 clearTimeout(S.deferLoadingTimers[message['files'][0]['filename']]);
