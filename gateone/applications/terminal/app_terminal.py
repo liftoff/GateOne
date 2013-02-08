@@ -761,7 +761,7 @@ class TerminalApplication(GOApplication):
                 session=self.ws.session, # with their real-world values.
                 session_dir=self.ws.settings['session_dir'],
                 session_hash=short_hash(self.ws.session),
-                user_dir=user_dir,
+                userdir=user_dir,
                 user=user,
                 time=now
             )
