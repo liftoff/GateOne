@@ -759,6 +759,7 @@ class TerminalApplication(GOApplication):
                 user = 'ANONYMOUS' # Don't get on this guy's bad side
             cmd = cmd_var_swap(full_command,# Swap out variables like %USER%
                 session=self.ws.session, # with their real-world values.
+                session_dir=self.ws.settings['session_dir'],
                 session_hash=short_hash(self.ws.session),
                 user_dir=user_dir,
                 user=user,
