@@ -301,6 +301,7 @@ from utils import merge_handlers, none_fix, convert_to_timedelta
 from utils import FACILITIES, json_encode, recursive_chown, ChownError
 from utils import write_pid, read_pid, remove_pid, drop_privileges, minify
 from utils import check_write_permissions, get_applications, get_settings
+from onoff import OnOffMixin
 
 # Setup the locale functions before anything else
 locale.set_default_locale('en_US')
@@ -864,7 +865,7 @@ class GOApplication(object):
         # me.
         self.ws.application.handlers[0][1].append(spec)
 
-class ApplicationWebSocket(WebSocketHandler):
+class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     """
     The main WebSocket interface for Gate One, this class is setup to call
     'commands' (aka WebSocket Actions) which are methods registered in
@@ -979,71 +980,6 @@ class ApplicationWebSocket(WebSocketHandler):
             logging.debug("Initializing %s" % instance)
             if hasattr(instance, 'initialize'):
                 instance.initialize()
-
-    def on(self, events, callback, times=None):
-        """
-        Registers the given *callback* with the given *events* (string or list
-        of strings) that will get called whenever the given *event* is triggered
-        (using :meth:`ApplicationWebSocket.trigger`).  It works similarly to
-        :js:meth:`GateOne.Events.on` in gateone.js.
-
-        If *times* is given the *callback* will only be fired that many times
-        before it is automatically removed from
-        :attr:`ApplicationWebSocket._events`.
-        """
-        if isinstance(events, basestring):
-            events = [events]
-        callback_obj = {
-            'callback': callback,
-            'times': times,
-            'calls': 0
-        }
-        for event in events:
-            if event not in self._events:
-                self._events.update({event: [callback_obj.copy()]})
-            else:
-                self._events[event].append(callback_obj.copy())
-
-    def off(self, events, callback):
-        """
-        Removes the given *callback* from the given *events* (string or list of
-        strings).
-        """
-        if isinstance(events, basestring):
-            events = [events]
-        for event in events:
-            for callback_obj in self._events[event]:
-                if callback_obj['callback'] == callback:
-                    try:
-                        del self._events[event]
-                    except KeyError:
-                        pass # Nothing to do
-
-    def once(self, events, callback):
-        """
-        A shortcut for :meth:`self.on(events, callback, 1)`
-        """
-        self.on(events, callback, 1)
-
-    def trigger(self, events, *args, **kwargs):
-        """
-        Fires the given *events* (string or list of strings).  All callbacks
-        associated with these *events* will be called and if their respective
-        objects have a *times* value set it will be used to determine when to
-        remove the associated callback from the event.
-
-        If given, callbacks associated with the given *events* will be called
-        with *args* and *kwargs*.
-        """
-        if isinstance(events, basestring):
-            events = [events]
-        for event in events:
-            if event in self._events:
-                for callback_obj in self._events[event]:
-                    callback_obj['callback'](self, *args, **kwargs)
-                    callback_obj['calls'] += 1
-                    if callback_obj['calls'] == callback_obj['times']:
-                        self.off(event, callback_obj['callback'])
 
     def allow_draft76(self):
         """

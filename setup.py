@@ -84,6 +84,7 @@ gateone_files=[ # Start with the basics...
         os.path.join(setup_dir, 'gateone', 'gateone.py'),
         os.path.join(setup_dir, 'gateone', 'gopam.py'),
         os.path.join(setup_dir, 'gateone', 'logviewer.py'),
+        os.path.join(setup_dir, 'gateone', 'onoff.py'),
         os.path.join(setup_dir, 'gateone', 'sso.py'),
         os.path.join(setup_dir, 'gateone', 'terminal.py'),
         os.path.join(setup_dir, 'gateone', 'termio.py'),
