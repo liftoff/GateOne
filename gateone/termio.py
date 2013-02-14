@@ -396,7 +396,7 @@ class BaseMultiplex(object):
         self.debug = debug
         self.exitfunc = None
         self.cmd = cmd
-        if not terminal_emulator:
+        if terminal_emulator == None:
             # Why do this?  So you could use/write your own specialty emulator.
             # Whatever you use it just has to accept 'rows' and 'cols' as
             # keyword arguments in __init__()
@@ -1643,6 +1643,24 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 # thread.  It is absolutely wacky but it works and works well :)
                     pass
             self._checking_patterns = False
+
+    def read_raw(self, bytes=-1):
+        """
+        Reads the output from the underlying fd and returns the result.
+
+        .. note: This method does not send the output to the terminal emulator.
+        """
+        result = ""
+        try:
+            with io.open(self.fd, 'rb', closefd=False,buffering=1024) as reader:
+                result = reader.read(bytes)
+        except IOError as e:
+            # IOErrors can happen when self.fd is closed before we finish
+            # reading from it.  Not a big deal.
+            pass
+        except OSError as e:
+            logging.error("Got exception in read: %s" % repr(e))
+        return result
 
     def read(self, bytes=-1):
         """

@@ -1824,6 +1824,9 @@ GateOne.Base.module(GateOne, 'Net', '1.1', ['Base', 'Utils']);
 GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
 GateOne.Net.connectionSuccess = false; // Gets set after we connect successfully at least once
 GateOne.Net.sendDimensionsCallbacks = []; // DEPRECATED: A hook plugins can use if they want to call something whenever the terminal dimensions change
+GateOne.Net.binaryBuffer = {}; // Incoming binary data messages get stored here like so:
+// GateOne.Net.binaryBuffer[<ident>] = <binary message>
+// ...where <ident> is the data inside the binary message leading up to a semicolon
 GateOne.Base.update(GateOne.Net, {
     init: function() {
         /**:GateOne.Net.init()
@@ -1974,6 +1977,7 @@ GateOne.Base.update(GateOne.Net, {
         }
         logDebug("GateOne.Net.connect(" + go.wsURL + ")");
         go.ws = new WebSocket(go.wsURL); // For reference, I already tried Socket.IO and custom implementations of long-held HTTP streams...  Only WebSockets provide low enough latency for real-time terminal interaction.  All others were absolutely unacceptable in real-world testing (especially Flash-based...  Wow, really surprised me how bad it was).
+        go.ws.binaryType = 'arraybuffer'; // In case binary data comes over the wire it is much easier to deal with it in arrayBuffer form.
         go.ws.onopen = function(evt) {
             go.Net.onOpen(callback);
         }
@@ -2020,7 +2024,7 @@ GateOne.Base.update(GateOne.Net, {
                     go.User.loadBell({'mimetype': go.prefs.bellSoundType, 'data_uri': go.prefs.bellSound});
                 } else {
                     logDebug("Attempting to download our bell sound...");
-                    go.ws.send(JSON.stringify({'go:get_bell': null}));
+                    go.ws.send(JSON.stringify({'terminal:get_bell': null}));
                 }
                 if (!go.prefs.auth) {
                     // If 'auth' isn't set that means we're not in API mode but we could still be embedded so check for the user's session info in localStorage
@@ -2057,6 +2061,12 @@ GateOne.Base.update(GateOne.Net, {
             n = GateOne.Net,
             u = GateOne.Utils,
             messageObj = null;
+        if (typeof evt.data !== "string") {
+            var data = new Uint8Array(evt.data),
+                identifier = String.fromCharCode.apply(null, data.subarray(0, 1));
+            GateOne.Net.binaryBuffer[identifier] = data.subarray(1);
+            return;
+        }
         try {
             messageObj = JSON.parse(evt.data);
         } catch (e) {

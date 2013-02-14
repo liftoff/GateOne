@@ -253,6 +253,10 @@ import time
 from functools import wraps
 from datetime import datetime, timedelta
 
+# This is used as a way to ensure users get a friendly message about missing
+# dependencies:
+MISSING_DEPS = []
+
 # Tornado modules (yeah, we use all this stuff)
 try:
     import tornado.httpserver
@@ -269,15 +273,19 @@ try:
     from tornado import version as tornado_version
     from tornado import version_info as tornado_version_info
 except ImportError:
-    print("\x1b[31;1mERROR:\x1b[0m Gate One requires the Tornado framework.  "
-          "You probably want to run something like, \x1b[1m'pip install "
-          "--upgrade tornado'\x1b[0m.")
-    sys.exit(1)
+    MISSING_DEPS.append('tornado >= 2.4')
 
 if tornado_version_info[0] < 2 and tornado_version_info[1] < 4:
-    print("\x1b[31;1mERROR:\x1b[0m Gate One requires version 2.4+ of the "
-            "Tornado framework.  The installed version of Tornado is version "
-            "%s." % tornado_version)
+    if 'tornado >= 2.4' not in MISSING_DEPS:
+        MISSING_DEPS.append('tornado >= 2.4')
+
+if MISSING_DEPS:
+    print("\x1b[31;1mERROR:\x1b[0m: This host is missing dependencies:")
+    for dep in MISSING_DEPS:
+        print("    %s" % dep)
+    modules = [a.split()[0] for a in MISSING_DEPS]
+    print("\x1b[1m  sudo pip install --upgrade %s\x1b[0m." %
+        ' '.join(MISSING_DEPS))
     sys.exit(1)
 
 # We want this turned on right away
@@ -780,6 +788,7 @@ class GOApplication(object):
         self.ws = ws # WebSocket instance
         # Setup some shortcuts to make things more natural and convenient
         self.write_message = ws.write_message
+        self.write_binary = ws.write_binary
         self.close = ws.close
         self.get_current_user = ws.get_current_user
         self.current_user = ws.current_user
@@ -1063,6 +1072,13 @@ class ApplicationWebSocket(WebSocketHandler):
         user = json_decode(user_json)
         user['ip_address'] = self.request.remote_ip
         return user
+
+    def write_binary(self, message):
+        """
+        Writes the given *message* to the WebSocket in binary mode (opcode
+        0x02).
+        """
+        self.write_message(message, binary=True)
 
     def open(self):
         """
@@ -1900,6 +1916,8 @@ class ApplicationWebSocket(WebSocketHandler):
 
         Optionally, a *requires* string or list/tuple may be given which will
         ensure that the given file gets loaded after any dependencies.
+
+        .. note: If the slimit module is installed it will be used to minify the JS before being sent to the client.
         """
         if kind == 'js':
             send_js = self.prefs['*']['gateone'].get('send_js', True)

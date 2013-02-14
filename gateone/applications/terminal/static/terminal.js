@@ -1049,7 +1049,7 @@ go.Base.update(GateOne.Terminal, {
             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
             rows = Math.ceil(dimensions.rows - rowAdjust),
             cols = Math.ceil(dimensions.cols - colAdjust),
-            workspaceNum = null, // Set below (if any)
+            workspaceNum, // Set below (if any)
             // Firefox doesn't support 'mousewheel'
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
             prevScrollback = localStorage.getItem(prefix + "scrollback" + term);
@@ -1112,7 +1112,6 @@ go.Base.update(GateOne.Terminal, {
         }
         if (!go.prefs.embedded) {
             // Prepare the terminal div for the grid
-            console.log(v.goDimensions);
             terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal', 'style': {'width': v.goDimensions.w + 'px', 'height': v.goDimensions.h + 'px'}});
             // Switch to the newly created workspace (if warranted)
             if (workspaceNum) {
@@ -1411,13 +1410,13 @@ go.Base.update(GateOne.Terminal, {
     setTerminal: function(term) {
         /**:GateOne.Terminal.setTerminal(term)
 
-        Sets the 'selectedTerminal' value in `localStorage` and sends the 'set_terminal' WebSocket action to the server to let it know which terminal is currently active.
+        Sets the 'selectedTerminal' value in `localStorage` and sends the 'terminal:set_terminal' WebSocket action to the server to let it know which terminal is currently active.
 
         This function triggers the 'terminal:set_terminal' event passing the terminal number as the only argument.
         */
         var term = parseInt(term); // Sometimes it will be a string
-        localStorage[GateOne.prefs.prefix+'selectedTerminal'] = term;
-        GateOne.ws.send(JSON.stringify({'terminal:set_terminal': term}));
+        localStorage[prefix+'selectedTerminal'] = term;
+        go.ws.send(JSON.stringify({'terminal:set_terminal': term}));
         E.trigger('terminal:set_terminal', term);
     },
     switchTerminal: function(term) {

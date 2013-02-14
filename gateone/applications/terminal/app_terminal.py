@@ -557,7 +557,7 @@ class TerminalApplication(GOApplication):
         Sends the 'term_ended' message to the client letting it know that the
         given *term* is no more.
         """
-        message = {'term_ended': term}
+        message = {'terminal:term_ended': term}
         self.write_message(json_encode(message))
         self.trigger("terminal:term_ended", term)
 
@@ -943,10 +943,10 @@ class TerminalApplication(GOApplication):
             'term': term,
             'location': new_location
         }
-        message = {
-            'term_moved': details, # Closes the term in the current window/tab
+        message = { # Closes the term in the current window/tab
+            'terminal:term_moved': details,
         }
-        self.write_message(json_encode(message))
+        self.write_message(message)
         self.trigger("terminal:move_terminal", details)
 
     @require(authenticated())
@@ -1033,14 +1033,16 @@ class TerminalApplication(GOApplication):
         if term_obj['manual_title']:
             if force:
                 title = term_obj['title']
-                title_message = {'terminal:set_title': {'term': term, 'title': title}}
+                title_message = {
+                    'terminal:set_title': {'term': term, 'title': title}}
                 self.write_message(json_encode(title_message))
             return
         title = term_obj['multiplex'].term.get_title()
         # Only send a title update if it actually changed
         if title != term_obj['title'] or force:
             term_obj['title'] = title
-            title_message = {'terminal:set_title': {'term': term, 'title': title}}
+            title_message = {
+                'terminal:set_title': {'term': term, 'title': title}}
             self.write_message(json_encode(title_message))
         self.trigger("terminal:set_title", title)
 
@@ -1600,7 +1602,7 @@ class TerminalApplication(GOApplication):
         message = {'terminal:unshared_terminal': out_dict}
         self.write_message(json_encode(message))
         # TODO: Write logic here that kills the terminal of each viewer and sends them a message indicating that the sharing has ended.
-        message = {'term_ended': term}
+        message = {'terminal:term_ended': term}
         ApplicationWebSocket._deliver(json_encode(message), session=session)
         for share_id, share_dict in shared_terms.items():
             if share_dict['term_obj'] == term_obj:
