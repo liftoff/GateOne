@@ -24,7 +24,12 @@ authentication (PAM doesn't take a "realm" setting).
 import base64
 
 # Our modules
-import gopam
+try:
+    import gopam
+except Exception as e:
+    raise ImportError(
+        "Failed to import gopam module. PAM auth support will be disabled.  "
+        "Exception: %s" % e)
 
 # 3rd party modules
 import tornado.httpserver

@@ -952,7 +952,7 @@ go.Base.update(GateOne.Terminal, {
             ;;
         }
         // Obtain a blob URL reference to our worker 'file'.
-        if (blob && urlObj.createObjectURL) {
+        if (blob && urlObj && urlObj.createObjectURL) {
             try {
                 var blobURL = urlObj.createObjectURL(blob);
                 t.termUpdatesWorker = new Worker(blobURL);

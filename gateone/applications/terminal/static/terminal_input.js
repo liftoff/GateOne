@@ -146,7 +146,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                     go.node.onmousemove = function(e) {
                         var x = Math.ceil(e.clientX/(width/(columns))),
                             element_under = document.elementFromPoint(e.clientX, e.clientY),
-                            y = go.Input._getLineNo(element_under);
+                            y = go.Terminal.Input._getLineNo(element_under);
                         x = go.Terminal.xtermEncode(x);
                         if (y) {
                             y = go.Terminal.xtermEncode(y);
@@ -255,6 +255,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 Y = go.Terminal.xtermEncode(Y);
                 button = go.Terminal.xtermEncode(3); // 3 is always "release"
                 go.Terminal.sendString(ESC+'[M'+button+X+Y);
+                go.node.onmousemove = null; // Stop tracking mouse
             }
         }
         if (!go.Visual.gridView) {

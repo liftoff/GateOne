@@ -4034,8 +4034,8 @@ GateOne.Storage.dbObject = function(DB) {
                 callback(transaction.result); // If not found result will be undefined
             }
         } else {
-            var store = JSON.stringify(localStorage[go.prefs.prefix+self.DB])[storeName],
-                result = store[key];
+            var store = JSON.parse(localStorage[go.prefs.prefix+self.DB])[storeName],
+                result = store.data[key];
             callback(result);
         }
     }
@@ -4056,11 +4056,13 @@ GateOne.Storage.dbObject = function(DB) {
             };
             request.onerror = GateOne.Storage.onerror;
         } else {
-            var db = JSON.parse(localStorage[go.prefs.prefix+self.DB]);
-            db[storeName].push(value);
-            localStorage[go.prefs.prefix+self.DB] == JSON.stringify(db);
+            var db = JSON.parse(localStorage[go.prefs.prefix+self.DB]),
+                result = [];
+            for (var key in db[storeName].data) {
+                result.push(db[storeName].data[key]);
+            }
             if (callback) {
-                callback(bookmarkObj);
+                callback(result);
             }
         }
     }
@@ -4078,7 +4080,7 @@ GateOne.Storage.dbObject = function(DB) {
             }
         } else {
             var db = JSON.parse(localStorage[go.prefs.prefix+self.DB]);
-            delete db[storeName][key];
+            delete db[storeName].data[key];
             localStorage[go.prefs.prefix+self.DB] == JSON.stringify(db);
         }
         if (callback) {
@@ -4109,7 +4111,7 @@ GateOne.Storage.dbObject = function(DB) {
             cursorRequest.onerror = GateOne.Storage.onerror;
         } else {
             var db = JSON.parse(localStorage[go.prefs.prefix+self.DB]);
-            callback(db[storeName]);
+            callback(db[storeName].data);
         }
     }
     return self;
@@ -4454,7 +4456,11 @@ GateOne.Base.update(GateOne.Storage, {
             logDebug("GateOne.Storage.openDB(): IndexedDB is unavailable.  Falling back to localStorage...")
             if (!localStorage[go.prefs.prefix+DB]) {
                 // Start out with an empty object
-                localStorage[go.prefs.prefix+DB] = JSON.stringify(model);
+                var o = {};
+                for (var storeName in model) {
+                    o[storeName] = {autoIncrement: 0, data: {}};
+                }
+                localStorage[go.prefs.prefix+DB] = JSON.stringify(o);
             }
             if (callback) { callback(GateOne.Storage.dbObject(DB)); }
         }
