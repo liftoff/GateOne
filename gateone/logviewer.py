@@ -111,7 +111,7 @@ def get_frames(golog_path, chunk_size=131072):
     """
     encoded_separator = SEPARATOR.encode('UTF-8')
     golog = gzip.open(golog_path)
-    frame = ""
+    frame = b""
     while True:
         chunk = golog.read(chunk_size)
         frame += chunk

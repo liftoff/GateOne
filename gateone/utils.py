@@ -20,6 +20,7 @@ import signal
 import sys
 import random
 import re
+import io
 import errno
 import uuid
 import logging
@@ -31,11 +32,13 @@ from datetime import timedelta
 
 # Import 3rd party stuff
 from tornado import locale
+from tornado.options import options
 from tornado.escape import json_encode as _json_encode
 from tornado.escape import json_decode
 from tornado.escape import to_unicode, utf8
 
 # Globals
+GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 MACOS = os.uname()[0] == 'Darwin'
 OPENBSD = os.uname()[0] == 'OpenBSD'
 CSS_END = re.compile('\.css.*?$')
@@ -106,6 +109,14 @@ FACILITIES = {
     'uucp': 64
 }
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
+# Default to using the environment's locale with en_US fallback
+temp_locale = locale.get(os.environ.get('LANG', 'en_US').split('.')[0])
+_ = temp_locale.translate
+del temp_locale
+# The above is necessary because gateone.py won't have read in its settings
+# until after this file has loaded.  So get_settings() won't work properly
+# until later in the module loading process.  This lets us display translated
+# error messages in the event that Gate One never completed loading.
 
 # Exceptions
 class UnknownFacility(Exception):
@@ -220,7 +231,7 @@ def get_settings(path, add_default=True):
             filepath = os.path.join(path, fname)
         else:
             filepath = path
-        with open(filepath) as f:
+        with io.open(filepath, encoding='utf-8') as f:
             # Remove comments
             proper_json = re_comment.sub('', f.read())
             # Remove blank/empty lines
@@ -230,9 +241,9 @@ def get_settings(path, add_default=True):
                 settings.update(json_decode(proper_json))
             except ValueError as e:
                 # Something was wrong with the JSON (syntax error, usually)
-                logging.error(_(
+                logging.error(
                     "Error decoding JSON in settings file: %s"
-                    % os.path.join(path, fname)))
+                    % os.path.join(path, fname))
                 logging.error(e)
                 # Let's try to be as user-friendly as possible by pointing out
                 # *precisely* where the error occurred (if possible)...
@@ -317,7 +328,7 @@ def write_pid(path):
     """Writes our PID to *path*."""
     try:
         pid = os.getpid()
-        with open(path, 'w') as pidfile:
+        with io.open(path, mode='w', encoding='utf-8') as pidfile:
             # Get a non-blocking exclusive lock
             fcntl.flock(pidfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             pidfile.seek(0)
@@ -333,7 +344,7 @@ def write_pid(path):
 
 def read_pid(path):
     """Reads our current PID from *path*."""
-    return str(open(path).read())
+    return str(io.open(path, mode='r', encoding='utf-8').read())
 
 def remove_pid(path):
     """Removes the PID file at *path*."""
@@ -389,25 +400,32 @@ def json_encode(obj):
     """
     return to_unicode(_json_encode(obj))
 
-def get_translation():
+def get_translation(settings_dir=None):
     """
-    Looks inside GATEONE_DIR/server.conf to determine the configured locale and
-    returns a matching locale.get_translation function.  Meant to be used like
-    this:
+    Looks inside Gate One's settings to determine the configured locale and
+    returns a matching locale.get_translation function.  If no locale is set
+    (e.g. first time running Gate One) the local `$LANG` environment variable
+    will be used.
+
+    This function is meant to be used like so::
 
         >>> from utils import get_translation
         >>> _ = get_translation()
     """
-    gateone_dir = os.path.dirname(os.path.abspath(__file__))
-    server_conf = os.path.join(gateone_dir, 'server.conf')
+    if not settings_dir:
+        # Check the tornado options object first
+        if hasattr(options, 'settings_dir'):
+            settings_dir = options.settings_dir
+        else: # Fall back to the default settings dir
+            settings_dir = os.path.join(GATEONE_DIR, 'settings')
+    # If none of the above worked we can always just use en_US:
+    locale_str = os.environ.get('LANG', 'en_US').split('.')[0]
+    server_conf = os.path.join(settings_dir, '10server.conf')
     try:
-        locale_str = os.environ.get('LANG', 'en_US').split('.')[0]
-        with open(server_conf) as f:
-            for line in f:
-                if line.startswith('locale'):
-                    locale_str = line.split('=')[1].strip()
-                    locale_str = locale_str.strip('"').strip("'")
-                    break
+        settings = get_settings(settings_dir)
+        gateone_settings = settings['*'].get('gateone', None)
+        if gateone_settings: # All these checks are necessary for early startup
+            locale_str = settings['*']['gateone'].get('locale', locale_str)
     except IOError: # server.conf doesn't exist (yet).
         # Fall back to os.environ['LANG']
         # Already set above
@@ -543,7 +561,7 @@ def gen_self_signed_pyopenssl(notAfter=None, path=None):
     pkey = OpenSSL.crypto.PKey()
     pkey.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
     # Save the key as 'keyfile.pem':
-    with open(keyfile_path, 'w') as f:
+    with io.open(keyfile_path, mode='w', encoding='utf-8') as f:
         f.write(OpenSSL.crypto.dump_privatekey(
             OpenSSL.crypto.FILETYPE_PEM, pkey))
     cert = OpenSSL.crypto.X509()
@@ -559,7 +577,7 @@ def gen_self_signed_pyopenssl(notAfter=None, path=None):
     cert.get_issuer().O = 'Self-Signed'
     cert.set_pubkey(pkey)
     cert.sign(pkey, 'md5')
-    with open(certfile_path, 'w') as f:
+    with io.open(certfile_path, mode='w', encoding='utf-8') as f:
         f.write(OpenSSL.crypto.dump_certificate(
             OpenSSL.crypto.FILETYPE_PEM, cert))
 
@@ -796,7 +814,7 @@ def killall(session_dir, pid_file):
             cmdline_path = os.path.join(pid_dir, 'cmdline')
             if os.path.exists(cmdline_path):
                 try:
-                    with open(cmdline_path) as f:
+                    with io.open(cmdline_path, mode='r', encoding='utf-8') as f:
                         cmdline = f.read()
                 except IOError:
                     # Can happen if a process ended as we were looking at it
@@ -808,7 +826,7 @@ def killall(session_dir, pid_file):
                     except OSError:
                         pass # PID is already dead--great
     try:
-        go_pid = int(open(pid_file).read())
+        go_pid = int(io.open(pid_file, mode='r', encoding='utf-8').read())
     except:
         logging.warning(_(
             "Could not open pid_file (%s).  You may have to kill gateone.py "
@@ -1138,7 +1156,7 @@ def create_data_uri(filepath):
     mimetype = mimetypes.guess_type(filepath)[0]
     if not mimetype:
         raise MimeTypeFail("Could not guess mime type of: %s" % filepath)
-    with open(filepath, 'rb') as f:
+    with io.open(filepath, mode='rb') as f:
         data = f.read()
     encoded = str(base64.b64encode(data)).replace('\n', '')
     if len(encoded) > 65000:
@@ -1359,10 +1377,10 @@ def minify(path_or_fileobj, kind):
         cssmin = None
         logging.warning(_(
             "cssmin module not found.  CSS will not be minified."))
-        logging.info(_("To install slimit:  sudo pip install cssmin"))
+        logging.info(_("To install cssmin:  sudo pip install cssmin"))
     if isinstance(path_or_fileobj, basestring):
         filename = os.path.split(path_or_fileobj)[1]
-        with open(path_or_fileobj) as f:
+        with io.open(path_or_fileobj, mode='r', encoding='utf-8') as f:
             data = f.read()
     else:
         filename = os.path.split(path_or_fileobj.name)[1]
@@ -1407,7 +1425,7 @@ def get_or_cache(cache_dir, path, minify=True):
     # Check if the file has changed since last time and use the cached
     # version if it makes sense to do so.
     if os.path.exists(cached_file_path):
-        with open(cached_file_path) as f:
+        with io.open(cached_file_path, mode='r', encoding='utf-8') as f:
             data = f.read()
     elif minify:
         # Using regular expressions here because rendered filenames often end
@@ -1422,13 +1440,13 @@ def get_or_cache(cache_dir, path, minify=True):
         if kind:
             data = _minify(path, kind)
             # Cache it
-            with open(cached_file_path, 'w') as f:
+            with io.open(cached_file_path, mode='w', encoding='utf-8') as f:
                 f.write(data)
         else:
-            with open(path) as f:
+            with io.open(path, mode='r', encoding='utf-8') as f:
                 data = f.read()
     else:
-        with open(path) as f:
+        with io.open(path, mode='r', encoding='utf-8') as f:
             data = f.read()
     # Clean up old versions of this file (if present)
     for fname in os.listdir(cache_dir):
@@ -1506,11 +1524,17 @@ def settings_template(path, **kwargs):
     .. note:: Any blank lines in the rendered template will be removed.
     """
     from tornado.template import Template
-    with open(path) as f:
+    with io.open(path, mode='r', encoding='utf-8') as f:
         template_data = f.read()
     t = Template(template_data)
-    rendered = t.generate(**kwargs)
-    return "\n".join([a for a in rendered.splitlines() if a.strip()])
+    # NOTE: Tornado returns templates as bytes, not unicode.  That's why we need
+    # the decode() below...
+    rendered = t.generate(**kwargs).decode('utf-8')
+    out = ""
+    for line in rendered.splitlines():
+        if line.strip():
+            out += line + "\n"
+    return out
 
 class memoize:
     """

@@ -8,6 +8,7 @@ var go = GateOne,
     u = go.Utils,
     v = go.Visual,
     E = go.Events,
+    t = go.Terminal,
     urlObj = (window.URL || window.webkitURL),
     logFatal = GateOne.Logging.logFatal,
     logError = GateOne.Logging.logError,
@@ -962,19 +963,18 @@ go.Base.update(go.SSH, {
     handleConnect: function(connectString) {
         /**:GateOne.SSH.handleConnect(connectString)
 
-        Handles the 'sshjs_connect' WebSocket action which should provide an SSH *connectString* in the form of 'user@host:port'.
+        Handles the 'terminal:sshjs_connect' WebSocket action which should provide an SSH *connectString* in the form of 'user@host:port'.
 
         The *connectString* will be stored in `GateOne.Terminal.terminals[term]['sshConnectString']` which is meant to be used in duplicating terminals (because you can't rely on the title).
 
         Also requests the host's public SSH key so it can be displayed to the user.
         */
         logDebug('sshjs_connect: ' + connectString);
-        var go = GateOne,
-            host = connectString.split('@')[1].split(':')[0],
+        var host = connectString.split('@')[1].split(':')[0],
             port = connectString.split('@')[1].split(':')[1],
             message = {'host': host, 'port': port},
-            term = localStorage[go.prefs.prefix+'selectedTerminal'];
-        go.Terminal.terminals[term]['sshConnectString'] = connectString;
+            term = localStorage[prefix+'selectedTerminal'];
+        t.terminals[term]['sshConnectString'] = connectString;
         go.ws.send(JSON.stringify({'terminal:ssh_get_host_fingerprint': message}));
     },
     handleReconnect: function(jsonDoc) {
@@ -1030,7 +1030,7 @@ go.Base.update(go.SSH, {
                 // This gets attached to the "new_terminal" event
                 go.Terminal.sendString('ssh://' + connectString + '\n', term);
             }
-        if (!connectString.length) {
+        if (!connectString) {
             return; // Can't do anything without a connection string!
         }
         if (!go.prefs.autoConnectURL) {

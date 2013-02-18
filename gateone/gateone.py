@@ -242,6 +242,7 @@ Class Docstrings
 # Standard library modules
 import os
 import sys
+import io
 import logging
 import time
 import socket
@@ -665,7 +666,7 @@ class DownloadHandler(BaseHandler):
                 self.set_status(304)
                 return
         # Finally, deliver the file
-        with open(abspath, "rb") as file:
+        with io.open(abspath, "rb") as file:
             data = file.read()
             hasher = hashlib.sha1()
             hasher.update(data)
@@ -681,7 +682,7 @@ class DownloadHandler(BaseHandler):
         if status_code in [404, 500, 503, 403]:
             filename = os.path.join(self.settings['static_url'], '%d.html' % status_code)
             if os.path.exists(filename):
-                f = open(filename, 'r')
+                f = io.open(filename, 'r')
                 data = f.read()
                 f.close()
                 return data
@@ -747,7 +748,7 @@ class MainHandler(BaseHandler):
             prefs=prefs
         )
 
-class GOApplication(object):
+class GOApplication(OnOffMixin):
     """
     The base from which all Gate One Applications will inherit.  Applications
     are expected to be written like so::
@@ -790,14 +791,15 @@ class GOApplication(object):
         # Setup some shortcuts to make things more natural and convenient
         self.write_message = ws.write_message
         self.write_binary = ws.write_binary
+        self.render_and_send_css = ws.render_and_send_css
+        self.send_css = ws.send_css
+        self.send_js = ws.send_js
         self.close = ws.close
         self.get_current_user = ws.get_current_user
         self.current_user = ws.current_user
         self.security = ws.security
         self.request = ws.request
         self.settings = ws.settings
-        self.on = ws.on
-        self.off = ws.off
 
     def __repr__(self):
         return "GOApplication: %s" % self.__class__
@@ -825,25 +827,6 @@ class GOApplication(object):
         actions when the WebSocket is closed.
         """
         pass
-
-    def trigger(self, events, *args, **kwargs):
-        """
-        A clone of :meth:`ApplicationWebSocket.trigger` that calls registered
-        callbacks with `self` from :class:`GOApplication` (as opposed to the
-        `self` from :class:`ApplicationWebSocket`).  This gives Applications and
-        plugins the ability to call :meth:`self.trigger` or
-        :meth:`self.ws.trigger` depending on what is most appropriate for the
-        given event.
-        """
-        if isinstance(events, basestring):
-            events = [events]
-        for event in events:
-            if event in self.ws._events:
-                for callback_obj in self.ws._events[event]:
-                    callback_obj['callback'](self, *args, **kwargs)
-                    callback_obj['calls'] += 1
-                    if callback_obj['calls'] == callback_obj['times']:
-                        self.off(event, callback_obj['callback'])
 
     def add_handler(self, pattern, handler, **kwargs):
         """
@@ -950,14 +933,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         broadcast_file = os.path.join(session_dir, 'broadcast')
         broadcast_file = cls.prefs['*']['gateone'].get(
             'broadcast_file', broadcast_file)
-        with open(broadcast_file) as f:
+        with io.open(broadcast_file) as f:
             message = f.read()
         if message:
             message = message.rstrip()
             logging.info("Broadcast (via broadcast_file): %s" % message)
             message_dict = {'notice': message}
             cls._deliver(message_dict, upn="AUTHENTICATED")
-            open(broadcast_file, 'w').write('') # Empty it out
+            io.open(broadcast_file, 'w').write('') # Empty it out
 
     def initialize(self, apps=None, **kwargs):
         """
@@ -1314,10 +1297,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                             os.chmod(user_dir, 0o770)
                         session_file = os.path.join(user_dir, 'session')
                         if os.path.exists(session_file):
-                            session_data = open(session_file).read()
+                            session_data = io.open(session_file).read()
                             self.user = json_decode(session_data)
                         else:
-                            with open(session_file, 'w') as f:
+                            with io.open(session_file, 'w') as f:
                         # Save it so we can keep track across multiple clients
                                 self.user = {
                                     'upn': upn, # FYI: UPN == userPrincipalName
@@ -1507,7 +1490,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'broadcast_file', broadcast_file)
         if broadcast_file not in cls.watched_files:
             # No broadcast file means the file watcher isn't running
-            open(broadcast_file, 'w').write('') # Touch file
+            io.open(broadcast_file, 'w').write('') # Touch file
             check_time = self.prefs['*']['gateone'].get(
                 'file_check_interval', 5000)
             cls.watch_file(broadcast_file, cls.broadcast_file_update)
@@ -1537,7 +1520,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             )
             if bytes != str: # Python 3
                 style_css = str(style_css, 'UTF-8')
-            with open(rendered_path, 'w') as f:
+            with io.open(rendered_path, 'w') as f:
                 f.write(style_css)
             # Remove older versions of the rendered template if present
             for fname in os.listdir(cache_dir):
@@ -1647,9 +1630,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Don't need a hashed name for the theme:
         filename = 'theme.css'
         cached_theme_path = os.path.join(cache_dir, filename)
-        with open(cached_theme_path, 'w') as f:
+        with io.open(cached_theme_path, 'w') as f:
             for path in theme_files:
-                f.write(open(path).read())
+                f.write(io.open(path).read())
         mtime = os.stat(rendered_path).st_mtime
         if self.settings['debug']:
             # This makes sure that the files are always re-downloaded
@@ -1711,7 +1694,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         js_file_path = os.path.join(plugin_static_path, f)
                         js_files.update({f: js_file_path})
         if filename in js_files.keys():
-            with open(js_files[filename]) as f:
+            with io.open(js_files[filename]) as f:
                 out_dict['data'] = f.read()
         message = {'go:load_js': out_dict}
         self.write_message(message)
@@ -1731,7 +1714,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for filename in filenames:
             if filename.endswith('.js'):
                 # The file_cache uses hashes; convert it
-                filename = md5(filename.split('.')[0]).hexdigest()[:10]
+                filename = md5(
+                    filename.split('.')[0].encode('utf-8')).hexdigest()[:10]
             if filename not in self.file_cache:
                 expired.append(filename)
         if not expired:
@@ -1800,7 +1784,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             filename_hash = files_or_hash
         if filename_hash.endswith('.js'):
             # The file_cache uses hashes; convert it
-            filename_hash = md5(filename_hash.split('.')[0]).hexdigest()[:10]
+            filename_hash = md5(
+                filename_hash.split('.')[0].encode('utf-8')).hexdigest()[:10]
         # Get the file info out of the file_cache so we can send it
         element_id = self.file_cache[filename_hash].get('element_id', None)
         path = self.file_cache[filename_hash]['path']
@@ -1887,7 +1872,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     path = file_obj.name
                     filename = os.path.split(file_obj.name)[1]
                 mtime = os.stat(path).st_mtime
-                filename_hash = md5(filename.split('.')[0]).hexdigest()[:10]
+                filename_hash = md5(
+                    filename.split('.')[0].encode('utf-8')).hexdigest()[:10]
                 self.file_cache[filename_hash] = {
                     'filename': filename,
                     'kind': kind,
@@ -1929,7 +1915,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             return
         # Use a hash of the filename because these names can get quite long.
         # Also, we don't want to reveal the file structure on the server.
-        filename_hash = md5(filename.split('.')[0]).hexdigest()[:10]
+        filename_hash = md5(
+            filename.split('.')[0].encode('utf-8')).hexdigest()[:10]
         # NOTE: The .split('.') above is so the hash we generate is always the
         # same.  The tail end of the filename will have its modification date.
         # Cache the metadata for sync
@@ -2002,8 +1989,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if os.path.exists(rendered_path):
             self.send_css(rendered_path)
             return
-        with open(css_path) as f:
-            css_template = tornado.template.Template(f.read())
+        #with io.open(css_path) as f:
+            #css_template = tornado.template.Template(f.read())
         template_loaders = tornado.web.RequestHandler._template_loaders
         # This wierd little bit empties Tornado's template cache:
         for web_template_path in template_loaders:
@@ -2015,7 +2002,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             url_prefix=self.settings['url_prefix'],
             **kwargs
         )
-        with open(rendered_path, 'w') as f:
+        with io.open(rendered_path, 'wb') as f:
             f.write(rendered)
         self.send_css(rendered_path)
         # Remove older versions of the rendered template if present
@@ -2230,7 +2217,7 @@ class ErrorHandler(tornado.web.RequestHandler):
             filename = os.path.join(
                 self.settings['static_url'], '%d.html' % status_code)
             if os.path.exists(filename):
-                f = open(filename, 'r')
+                f = io.open(filename, 'r')
                 data = f.read()
                 f.close()
                 return data
@@ -2800,7 +2787,7 @@ def main():
         auth_settings = RUDict()
         terminal_settings = RUDict()
         api_keys = RUDict({"*": {"gateone": {"api_keys": {}}}})
-        with open(options.config) as f:
+        with io.open(options.config) as f:
             # Regular server-wide settings will go in 10server.conf by default.
             # These settings can actually be spread out into any number of .conf
             # files in the settings directory using whatever naming convention
@@ -2856,7 +2843,7 @@ def main():
                         api_keys['*']['gateone']['api_keys'].update(
                             {api_key: secret})
                     # API keys can be written right away
-                    with open(api_keys_conf, 'w') as conf:
+                    with io.open(api_keys_conf, 'w') as conf:
                         msg = _(
                             "// This file contains the key and secret pairs "
                             "used by Gate One's API authentication method.\n")
@@ -2868,13 +2855,13 @@ def main():
                 GATEONE_DIR, 'templates', 'settings', '10server.conf')
             new_settings = settings_template(template_path, settings=settings)
             if not os.path.exists(server_conf_path):
-                with open(server_conf_path, 'w') as s:
+                with io.open(server_conf_path, 'w') as s:
                     s.write(_("// This is Gate One's main settings file.\n"))
                     s.write(new_settings)
             new_auth_settings = settings_template(
                 template_path, settings=auth_settings)
             if not os.path.exists(auth_conf_path):
-                with open(auth_conf_path, 'w') as s:
+                with io.open(auth_conf_path, 'w') as s:
                     s.write(_(
                        "// This is Gate One's authentication settings file.\n"))
                     s.write(new_auth_settings)
@@ -2885,7 +2872,7 @@ def main():
             new_term_settings = settings_template(
                 template_path, settings=terminal_settings)
             if not os.path.exists(terminal_conf_path):
-                with open(terminal_conf_path, 'w') as s:
+                with io.open(terminal_conf_path, 'w') as s:
                     s.write(_(
                         "// This is Gate One's Terminal application settings "
                         "file.\n"))
@@ -2915,7 +2902,7 @@ def main():
         # Generate a new cookie_secret
         config_defaults['cookie_secret'] = generate_session_id()
         # Separate out the authentication settings
-        for key, value in config_defaults.items():
+        for key, value in list(config_defaults.items()):
             if key in authentication_options:
                 auth_settings.update({key: value})
                 del config_defaults[key]
@@ -2931,7 +2918,7 @@ def main():
             mkdir_p(web_log_dir)
         if not os.path.exists(config_defaults['log_file_prefix']):
             # Make sure the file is present
-            open(config_defaults['log_file_prefix'], 'w').write('')
+            io.open(config_defaults['log_file_prefix'], 'wb').write('')
         settings_path = options.settings_dir
         server_conf_path = os.path.join(settings_path, '10server.conf')
         auth_conf_path = os.path.join(settings_path, '20authentication.conf')
@@ -2942,13 +2929,13 @@ def main():
             template_path, settings=config_defaults)
         template_path = os.path.join(
             GATEONE_DIR, 'templates', 'settings', '10server.conf')
-        with open(server_conf_path, 'w') as s:
-            s.write(_("// This is Gate One's main settings file.\n"))
+        with io.open(server_conf_path, mode='w') as s:
+            s.write("// This is Gate One's main settings file.\n")
             s.write(new_settings)
         new_auth_settings = settings_template(
             template_path, settings=auth_settings)
-        with open(auth_conf_path, 'w') as s:
-            s.write(_("// This is Gate One's authentication settings file.\n"))
+        with io.open(auth_conf_path, mode='w') as s:
+            s.write("// This is Gate One's authentication settings file.\n")
             s.write(new_auth_settings)
         # Make sure these values get updated
         all_settings = get_settings(options.settings_dir)
@@ -3064,7 +3051,7 @@ def main():
         if os.path.exists(api_keys_conf):
             api_keys = get_settings(api_keys_conf)
         api_keys.update({"*": {"gateone": {"api_keys": new_keys}}})
-        with open(api_keys_conf, 'w') as conf:
+        with io.open(api_keys_conf, 'w') as conf:
             msg = _(
                 "// This file contains the key and secret pairs used by Gate "
                 "One's API authentication method.\n")
@@ -3082,10 +3069,10 @@ def main():
         applications_dir = os.path.join(GATEONE_DIR, 'applications')
         appslist = os.listdir(applications_dir)
         appslist.sort()
-        with open(options.combine_js, 'w') as f:
+        with io.open(options.combine_js, 'w') as f:
             # Start by adding gateone.js
             gateone_js = os.path.join(GATEONE_DIR, 'static', 'gateone.js')
-            with open(gateone_js) as go_js:
+            with io.open(gateone_js) as go_js:
                 f.write(go_js.read() + '\n')
             # Gate One plugins
             for plugin in pluginslist:
@@ -3098,7 +3085,7 @@ def main():
                     for filename in filelist:
                         filepath = os.path.join(static_dir, filename)
                         if filename.endswith('.js'):
-                            with open(filepath) as js_file:
+                            with io.open(filepath) as js_file:
                                 f.write(js_file.read() + '\n')
             # Gate One applications
             for application in appslist:
@@ -3115,7 +3102,7 @@ def main():
                     for filename in filelist:
                         filepath = os.path.join(static_dir, filename)
                         if filename.endswith('.js'):
-                            with open(filepath) as js_file:
+                            with io.open(filepath) as js_file:
                                 f.write(js_file.read() + '\n')
                 app_settings = all_settings['*'].get(application, None)
                 enabled_app_plugins = []
@@ -3138,7 +3125,7 @@ def main():
                             for filename in filelist:
                                 filepath = os.path.join(static_dir, filename)
                                 if filename.endswith('.js'):
-                                    with open(filepath) as js_file:
+                                    with io.open(filepath) as js_file:
                                         f.write(js_file.read() + '\n')
             f.flush()
         sys.exit(0)

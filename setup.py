@@ -13,6 +13,7 @@ except ImportError: # Python 3
     from subprocess import getstatusoutput
 
 # Globals
+PYTHON3 = False
 POSIX = 'posix' in sys.builtin_module_names
 version = '1.2.0'
 major, minor = sys.version_info[:2] # Python version
@@ -20,6 +21,7 @@ if major == 2 and minor <=5:
     print("Gate One requires Python 2.6+.  You are running %s" % sys.version)
     sys.exit(1)
 if major == 3:
+    PYTHON3 = True
     try:
         import lib2to3 # Just a check--the module is not actually used
     except ImportError:
@@ -221,17 +223,17 @@ def fix_shebang(filepath):
     *filepath*.  Returns True if a change was made.  False if no changes.
     """
     contents = []
-    with open(filepath, 'r') as f:
+    with open(filepath, mode='r', encoding="utf-8") as f:
         contents = f.readlines()
     if contents and contents[0].startswith('#!'): # Shebang
         if 'python3' in contents[0]:
             return False # Nothing to do
-        with open(filepath, 'w') as f:
+        with open(filepath, mode='w', encoding="utf-8") as f:
             contents[0] = contents[0].replace('python', 'python3')
             f.write("".join(contents))
             return True
 
-if major == 3:
+if PYTHON3:
     try:
         import html5lib
     except ImportError:

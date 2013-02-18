@@ -1063,7 +1063,7 @@ def send_ssh_css_template(self):
     'cache_dir'.
     """
     css_path = os.path.join(PLUGIN_PATH, 'templates', 'ssh.css')
-    self.ws.render_and_send_css(css_path)
+    self.render_and_send_css(css_path)
 
 def initialize(self):
     """
@@ -1076,8 +1076,8 @@ def initialize(self):
     # An alternative would be to write a single function say, on_auth() that
     # calls both of these functions then assign it to 'terminal:authenticate' in
     # the 'Events' hook.  I think this way is better since it is more explicit.
-    self.ws.on('terminal:authenticate', send_ssh_css_template)
-    self.ws.on('terminal:authenticate', create_user_ssh_dir)
+    self.on('terminal:authenticate', send_ssh_css_template)
+    self.on('terminal:authenticate', create_user_ssh_dir)
 
 hooks = {
     'Web': [(r"/ssh", KnownHostsHandler)],
@@ -1094,9 +1094,6 @@ hooks = {
         'terminal:ssh_set_default_identities': set_default_identities
     },
     'Escape': opt_esc_handler,
-    #'Events': {
-        #'terminal:authenticate': on_auth
-    #}
 }
 
 # Certificate information (as output by ssh-keygen) for reference:
