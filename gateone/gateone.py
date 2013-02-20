@@ -1520,10 +1520,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 style_path,
                 **kwargs
             )
-            if bytes != str: # Python 3
-                style_css = str(style_css, 'UTF-8')
             with io.open(rendered_path, 'w') as f:
-                f.write(style_css)
+                f.write(style_css.decode('utf-8'))
             # Remove older versions of the rendered template if present
             for fname in os.listdir(cache_dir):
                 if fname == rendered_filename:
@@ -2765,7 +2763,7 @@ def main():
                 web_handlers.extend(module.web_handlers)
         except AttributeError:
             pass # No apps--probably just a supporting .py file.
-    logging.debug(_("Imported applications: {0}".format(APPLICATIONS)))
+    logging.debug(_("Imported applications: {0}".format(str(APPLICATIONS))))
     authentication_options = [
         # These are here only for logical separation in the .conf files
         'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',

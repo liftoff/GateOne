@@ -1414,6 +1414,9 @@ go.Base.update(GateOne.Terminal, {
 
         This function triggers the 'terminal:set_terminal' event passing the terminal number as the only argument.
         */
+        if (!term) {
+            logError("GateOne.Terminal.setTerminal() got an invalid term number: " + term)
+        }
         var term = parseInt(term); // Sometimes it will be a string
         localStorage[prefix+'selectedTerminal'] = term;
         go.ws.send(JSON.stringify({'terminal:set_terminal': term}));
