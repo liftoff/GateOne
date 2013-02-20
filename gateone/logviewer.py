@@ -240,43 +240,84 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
     can be used with grep and similar search/filter tools.
     """
     import gzip
+    from terminal import Terminal, SPECIAL
+    term = Terminal(rows=100, cols=300, em_dimensions=0)
     encoded_separator = SEPARATOR.encode('UTF-8')
-    out_line = ""
+    out_line = u""
     cr = False
     # We skip the first frame, [1:] because it holds the recording metadata
     for count, frame in enumerate(get_frames(log_path)):
         if count == 0:
             # Skip the first frame (it's just JSON-encoded metadata)
             continue
-        frame = frame.decode('UTF-8', 'ignore')
-        frame_time = float(frame[:13]) # First 13 chars is the timestamp
+        # First 13 chars is the timestamp:
+        frame_time = float(frame.decode('UTF-8', 'ignore')[:13])
         # Convert to datetime object
         frame_time = datetime.fromtimestamp(frame_time/1000)
         if show_esc:
             frame_time = frame_time.strftime(u'\x1b[0m%b %m %H:%M:%S')
         else: # Renditions preserved == I want pretty.  Make the date bold:
-            frame_time = frame_time.strftime(
-                u'\x1b[0;1m%b %m %H:%M:%S\x1b[m')
+            frame_time = frame_time.strftime(u'\x1b[0;1m%b %m %H:%M:%S\x1b[m')
+        if not show_esc:
+            term.write(frame[14:])
+        if term.capture:
+            # Capturing a file...  Keep feeding it frames until complete
+            continue
+        elif term.captured_files:
+            for line in term.screen:
+                # Find all the characters that come before/after the capture
+                for char in line:
+                    if ord(char) >= SPECIAL:
+                        adjusted = escape_escape_seq(out_line, rstrip=True)
+                        adjusted = frame_time + u' %s\n' % adjusted
+                        file_like.write(adjusted.encode('utf-8'))
+                        out_line = u""
+                        if char in term.captured_files:
+                            captured_file = term.captured_files[char].file_obj
+                            captured_file.seek(0)
+                            file_like.write(captured_file.read())
+                            #file_like.write(
+                               #term.captured_files[char].html().encode('utf-8'))
+                            file_like.write(b'\n')
+                            #term.init_screen()
+                            #term.init_scrollback()
+                            #term.init_renditions()
+                            #term.cursorX = 0
+                            #term.cursorY = 0
+                            #term.clear_screen()
+                            #term.close_captured_fds()
+                            term = Terminal(rows=100, cols=300, em_dimensions=0)
+                    else:
+                        out_line += char
+            adjusted = frame_time + u' %s\n' % out_line.strip()
+            file_like.write(adjusted.encode('utf-8'))
+            out_line = u""
+            continue
+        else:
+            term.clear_screen()
+        frame = frame.decode('UTF-8', 'ignore')
         for char in frame[14:]:
             if '\x1b[H\x1b[2J' in out_line: # Clear screen sequence
                 # Handle the clear screen (usually ctrl-l) by outputting
                 # a new log entry line to avoid confusion regarding what
                 # happened at this time.
-                out_line += "^L" # Clear screen is a ctrl-l or equivalent
+                out_line += u"^L" # Clear screen is a ctrl-l or equivalent
                 if show_esc:
                     adjusted = raw(out_line)
                 else:
                     adjusted = escape_escape_seq(out_line, rstrip=True)
-                file_like.write(frame_time + ' %s\n' % adjusted)
-                out_line = ""
+                adjusted = frame_time + u' %s\n' % adjusted
+                file_like.write(adjusted.encode('utf-8'))
+                out_line = u""
                 continue
             if char == u'\n':
                 if show_esc:
                     adjusted = raw(out_line)
                 else:
                     adjusted = escape_escape_seq(out_line, rstrip=True)
-                file_like.write(frame_time + ' %s\n' % adjusted)
-                out_line = ""
+                adjusted = frame_time + u' %s\n' % adjusted
+                file_like.write(adjusted.encode('utf-8'))
+                out_line = u""
                 cr = False
             elif char == u'\r':
                 # Carriage returns need special handling.  Make a note of it
@@ -292,16 +333,17 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
                 # confusion over these events.
                 if cr:
                     out_line += "^M"
-                    file_like.write(frame_time + ' ')
+                    file_like.write((frame_time + u' ').encode('utf-8'))
                     if show_esc:
                         adjusted = raw(out_line)
                     else:
                         adjusted = escape_escape_seq(out_line, rstrip=True)
-                    file_like.write(adjusted + '\n')
-                    out_line = ""
+                    file_like.write((adjusted + u'\n').encode('utf-8'))
+                    out_line = u""
                 out_line += char
                 cr = False
         file_like.flush()
+    del term
 
 def get_terminal_size():
     """

@@ -317,16 +317,25 @@ def _retrieve_log_flat(queue, settings):
         out_dict['metadata'] = get_or_update_metadata(log_path, user)
         out_dict['metadata']['filename'] = log_filename
         out_dict['result'] = "Success"
-        import StringIO
+        from io import BytesIO
         # Use the terminal emulator to create nice HTML-formatted output
         from terminal import Terminal
-        term = Terminal(rows=100, cols=300)
-        io_obj = StringIO.StringIO()
+        term = Terminal(rows=100, cols=300, em_dimensions=0)
+        io_obj = BytesIO()
         flatten_log(log_path, io_obj)
         io_obj.seek(0)
         # Needed to emulate an actual term
-        flattened_log = io_obj.read().replace('\n', '\r\n')
-        term.write(flattened_log)
+        flattened_log = io_obj.read().replace(b'\n', b'\r\n')
+        # NOTE: Using chunking below to emulate how a stream might actually be
+        # written to the terminal emulator.  This is to prevent the emulator
+        # from thinking that any embedded files (like PDFs) are never going to
+        # end.
+        def chunker(s, n):
+            """Produce `n`-character chunks from `s`."""
+            for start in range(0, len(s), n):
+                yield s[start:start+n]
+        for chunk in chunker(flattened_log, 499):
+            term.write(chunk)
         scrollback, screen = term.dump_html()
         # Join them together
         log_lines = scrollback + screen

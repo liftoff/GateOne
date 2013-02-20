@@ -309,14 +309,13 @@ locale.set_default_locale('en_US')
 user_locale = None # Replaced with the actual user locale object in __main__
 def _(string):
     """
-    Wraps user_locale.translate so we can .encode('UTF-8') when writing to
-    stdout.  This function will get overridden by the regular translate()
-    function in __main__
+    Wraps user_locale.translate so we don't get errors if loading a locale fails
+    (or we output a message before it is initialized).
     """
     if user_locale:
-        return user_locale.translate(string).encode('UTF-8')
+        return user_locale.translate(string)
     else:
-        return string.encode('UTF-8')
+        return string
 
 # Globals
 SESSIONS = {} # We store the crux of most session info here
@@ -940,7 +939,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             logging.info("Broadcast (via broadcast_file): %s" % message)
             message_dict = {'notice': message}
             cls._deliver(message_dict, upn="AUTHENTICATED")
-            io.open(broadcast_file, 'w').write('') # Empty it out
+            io.open(broadcast_file, 'w').write(u'') # Empty it out
 
     def initialize(self, apps=None, **kwargs):
         """
@@ -1490,7 +1489,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'broadcast_file', broadcast_file)
         if broadcast_file not in cls.watched_files:
             # No broadcast file means the file watcher isn't running
-            io.open(broadcast_file, 'w').write('') # Touch file
+            io.open(broadcast_file, 'w').write(u'') # Touch file
             check_time = self.prefs['*']['gateone'].get(
                 'file_check_interval', 5000)
             cls.watch_file(broadcast_file, cls.broadcast_file_update)
@@ -2763,7 +2762,7 @@ def main():
                 web_handlers.extend(module.web_handlers)
         except AttributeError:
             pass # No apps--probably just a supporting .py file.
-    logging.debug(_("Imported applications: %s" % APPLICATIONS))
+    logging.debug(_("Imported applications: {0}".format(APPLICATIONS)))
     authentication_options = [
         # These are here only for logical separation in the .conf files
         'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
@@ -2845,8 +2844,8 @@ def main():
                     # API keys can be written right away
                     with io.open(api_keys_conf, 'w') as conf:
                         msg = _(
-                            "// This file contains the key and secret pairs "
-                            "used by Gate One's API authentication method.\n")
+                            u"// This file contains the key and secret pairs "
+                            u"used by Gate One's API authentication method.\n")
                         conf.write(msg)
                         conf.write(str(api_keys))
                 else:
@@ -2856,14 +2855,14 @@ def main():
             new_settings = settings_template(template_path, settings=settings)
             if not os.path.exists(server_conf_path):
                 with io.open(server_conf_path, 'w') as s:
-                    s.write(_("// This is Gate One's main settings file.\n"))
+                    s.write(_(u"// This is Gate One's main settings file.\n"))
                     s.write(new_settings)
             new_auth_settings = settings_template(
                 template_path, settings=auth_settings)
             if not os.path.exists(auth_conf_path):
                 with io.open(auth_conf_path, 'w') as s:
                     s.write(_(
-                       "// This is Gate One's authentication settings file.\n"))
+                       u"// This is Gate One's authentication settings file.\n"))
                     s.write(new_auth_settings)
             # Terminal uses a slightly different template; it converts 'command'
             # to the new 'commands' format.
@@ -2874,8 +2873,8 @@ def main():
             if not os.path.exists(terminal_conf_path):
                 with io.open(terminal_conf_path, 'w') as s:
                     s.write(_(
-                        "// This is Gate One's Terminal application settings "
-                        "file.\n"))
+                        u"// This is Gate One's Terminal application settings "
+                        u"file.\n"))
                     s.write(new_term_settings)
         # Rename the old server.conf so this logic doesn't happen again
         os.rename(options.config, "%s.old" % options.config)
@@ -2891,8 +2890,8 @@ def main():
         # Generate a default 10server.conf with a random cookie secret
         # NOTE: This will also generate a new 10server.conf if it is missing.
         logging.info(_(
-            "Gate One settings are incomplete.  A new settings/10server.conf"
-            " will be generated."))
+            u"Gate One settings are incomplete.  A new settings/10server.conf"
+            u" will be generated."))
         from utils import options_to_settings
         auth_settings = {} # Auth stuff goes in 20authentication.conf
         all_setttings = options_to_settings(options)
@@ -2918,7 +2917,9 @@ def main():
             mkdir_p(web_log_dir)
         if not os.path.exists(config_defaults['log_file_prefix']):
             # Make sure the file is present
-            io.open(config_defaults['log_file_prefix'], 'wb').write('')
+            io.open(
+                config_defaults['log_file_prefix'],
+                mode='w', encoding='utf-8').write(u'')
         settings_path = options.settings_dir
         server_conf_path = os.path.join(settings_path, '10server.conf')
         auth_conf_path = os.path.join(settings_path, '20authentication.conf')
@@ -2930,12 +2931,12 @@ def main():
         template_path = os.path.join(
             GATEONE_DIR, 'templates', 'settings', '10server.conf')
         with io.open(server_conf_path, mode='w') as s:
-            s.write("// This is Gate One's main settings file.\n")
+            s.write(u"// This is Gate One's main settings file.\n")
             s.write(new_settings)
         new_auth_settings = settings_template(
             template_path, settings=auth_settings)
         with io.open(auth_conf_path, mode='w') as s:
-            s.write("// This is Gate One's authentication settings file.\n")
+            s.write(u"// This is Gate One's authentication settings file.\n")
             s.write(new_auth_settings)
         # Make sure these values get updated
         all_settings = get_settings(options.settings_dir)
@@ -3053,13 +3054,13 @@ def main():
         api_keys.update({"*": {"gateone": {"api_keys": new_keys}}})
         with io.open(api_keys_conf, 'w') as conf:
             msg = _(
-                "// This file contains the key and secret pairs used by Gate "
-                "One's API authentication method.\n")
+                u"// This file contains the key and secret pairs used by Gate "
+                u"One's API authentication method.\n")
             conf.write(msg)
             conf.write(str(api_keys))
-        logging.info(_("A new API key has been generated: %s" % api_key))
-        logging.info(_("This key can now be used to embed Gate One into other "
-                "applications."))
+        logging.info(_(u"A new API key has been generated: %s" % api_key))
+        logging.info(_(u"This key can now be used to embed Gate One into other "
+                u"applications."))
         sys.exit(0)
     if options.combine_js:
         # Combine all JavaScript files into one big one.

@@ -146,7 +146,8 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import os, sys, re, logging, base64, StringIO, codecs, unicodedata, tempfile
+import os, sys, re, logging, base64, codecs, unicodedata, tempfile
+from io import BytesIO
 from array import array
 from datetime import datetime, timedelta
 from functools import partial
@@ -566,7 +567,7 @@ def unicode_counter():
                             if v == result: # Use the existing value
                                 some_array.append(k)
                 else:
-                    some_array.append(\x00) # \x00 == "not interesting" placeholder
+                    some_array.append('\x00') # \x00 == "not interesting" placeholder
         >>>
 
     Now we could iterate over 'some string' and some_array simultaneously using
@@ -682,7 +683,7 @@ class FileType(object):
         to make room for an image.
         """
         # Remove the extra \r's that the terminal adds:
-        data = str(data).replace('\r\n', '\n')
+        data = data.replace(b'\r\n', b'\n')
         logging.debug("capture() len(data): %s" % len(data))
         # Write the data to disk in a temporary location
         self.file_obj = tempfile.TemporaryFile()
@@ -711,14 +712,16 @@ class ImageFile(FileType):
         """
         logging.debug('ImageFile.capture()')
         # Image file formats don't usually like carriage returns:
-        data = str(data).replace('\r\n', '\n')
+        data = data.replace(b'\r\n', b'\n')
         if Image: # PIL is loaded--try to guess how many lines the image takes
-            i = StringIO.StringIO(data)
+            i = BytesIO(data)
             try:
                 im = Image.open(i)
-            except IOError:
+            except IOError as e:
                 # i.e. PIL couldn't identify the file
-                logging.error(_("PIL couldn't process the image"))
+                message = _("PIL couldn't process the image (%s)" % e)
+                logging.error(message)
+                term_instance.send_message(message)
                 return # Don't do anything--bad image
         else: # No PIL means no images.  Don't bother wasting memory.
             return
@@ -751,7 +754,7 @@ class ImageFile(FileType):
                 term_instance.screen[
                     term_instance.cursorY][term_instance.cursorX] = ref
                 term_instance.newline()
-        else:
+        elif term_instance.em_dimensions == None:
             # No way to calculate the number of lines the image will take
             term_instance.screen[img_Y][img_X] = u' ' # Empty old location
             term_instance.cursorY = term_instance.rows - 1 # Move to the end
@@ -761,6 +764,10 @@ class ImageFile(FileType):
                 term_instance.cursorY][term_instance.cursorX] = ref
             # Make some space at the bottom too just in case
             term_instance.newline()
+            term_instance.newline()
+        else:
+            # When em_dimensions are set to 0 assume the user intentionally
+            # wants things to be sized as inline as possible.
             term_instance.newline()
         # Write the captured image to disk
         if self.path:
@@ -807,8 +814,8 @@ class ImageFile(FileType):
         self.file_obj.seek(0)
         # Need to encode base64 to create a data URI
         encoded = base64.b64encode(self.file_obj.read())
-        data_uri = "data:image/%s;base64,%s" % (
-            im.format.lower(), encoded)
+        data_uri = "data:image/{type};base64,{encoded}".format(
+            type=im.format.lower(), encoded=encoded.decode('utf-8'))
         if self.thumbnail:
             return self.html_icon_template.format(
                 src=data_uri, width=im.size[0], height=im.size[1])
@@ -823,8 +830,8 @@ class PNGFile(ImageFile):
     name = _("PNG Image")
     mimetype = "image/png"
     suffix = ".png"
-    re_header = re.compile('.*\x89PNG\r', re.DOTALL)
-    re_capture = re.compile('(\x89PNG\r.+IEND\xaeB`\x82)', re.DOTALL)
+    re_header = re.compile(b'.*\x89PNG\r', re.DOTALL)
+    re_capture = re.compile(b'(\x89PNG\r.+IEND\xaeB`\x82)', re.DOTALL)
     html_template = '<img src="{src}" width="{width}" height="{height}">'
 
     def __init__(self, path="", **kwargs):
@@ -845,10 +852,8 @@ class JPEGFile(ImageFile):
     mimetype = "image/jpeg"
     suffix = ".jpeg"
     re_header = re.compile(
-        '.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
-    re_capture = re.compile(
-        '(\xff\xd8\xff.+\xff\xd9)', re.DOTALL
-    )
+        b'.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
+    re_capture = re.compile(b'(\xff\xd8\xff.+\xff\xd9)', re.DOTALL)
     html_template = '<img src="{src}" width="{width}" height="{height}">'
     def __init__(self, path="", **kwargs):
         """
@@ -870,8 +875,8 @@ class PDFFile(FileType):
     name = _("PDF Document")
     mimetype = "application/pdf"
     suffix = ".pdf"
-    re_header = re.compile(r'.*%PDF-[0-9]\.[0-9]{1,2}.+?obj', re.DOTALL)
-    re_capture = re.compile(r'(%PDF-[0-9]\.[0-9]{1,2}.+%%EOF)', re.DOTALL)
+    re_header = re.compile(br'.*%PDF-[0-9]\.[0-9]{1,2}.+?obj', re.DOTALL)
+    re_capture = re.compile(br'(%PDF-[0-9]\.[0-9]{1,2}.+%%EOF)', re.DOTALL)
     icon = "pdf.svg" # Name of the file inside of self.icondir
     # NOTE:  Using two separate links below so the whitespace doesn't end up
     # underlined.  Looks much nicer this way.
@@ -930,7 +935,7 @@ class PDFFile(FileType):
             thumb.close() # Make sure it gets removed now we've read it
             if data:
                 encoded = base64.b64encode(data)
-                data_uri = "data:image/jpeg;base64,%s" % encoded
+                data_uri = "data:image/jpeg;base64,%s" % encoded.decode('utf-8')
                 return '<img src="%s">' % data_uri
 
     def capture(self, data, term_instance):
@@ -942,7 +947,7 @@ class PDFFile(FileType):
         """
         logging.debug("PDFFile.capture()")
         # Remove the extra \r's that the terminal adds:
-        data = str(data).replace('\r\n', '\n')
+        data = data.replace(b'\r\n', b'\n')
         # Write the data to disk in a temporary location
         if self.path:
             if os.path.exists(self.path):
@@ -1078,7 +1083,7 @@ class Terminal(object):
     # The below regex is used to match our optional (non-standard) handler
     RE_OPT_SEQ = re.compile(r'\x1b\]_\;(.+?)(\x07|\x1b\\)')
     RE_NUMBERS = re.compile('\d*') # Matches any number
-    RE_SIGINT = re.compile('.*\^C', re.MULTILINE|re.DOTALL)
+    RE_SIGINT = re.compile(b'.*\^C', re.MULTILINE|re.DOTALL)
 
     def __init__(self, rows=24, cols=80, em_dimensions=None, temppath='/tmp',
         linkpath='/tmp', icondir=None, encoding='utf-8', debug=False):
@@ -1373,7 +1378,7 @@ class Terminal(object):
         self.saved_cursorX = 0
         self.saved_cursorY = 0
         self.saved_rendition = [None]
-        self.capture = ""
+        self.capture = b""
         self.captured_files = {}
         self.file_counter = pua_counter()
         # This is for creating a new point of reference every time there's a new
@@ -1485,7 +1490,8 @@ class Terminal(object):
         Replaces :attr:`self.renditions` with arrays of *rendition* (characters)
         using :attr:`self.cols` and :attr:`self.rows` for the dimenions.
         """
-        logging.debug("init_renditions(%s)" % repr(rendition))
+        logging.debug(
+            "init_renditions(%s)" % rendition.encode('unicode_escape'))
         # The actual renditions at various coordinates:
         self.renditions = [
             array('u', rendition * self.cols) for a in xrange(self.rows)]
@@ -1890,7 +1896,7 @@ class Terminal(object):
         """
         logging.debug('abort_capture()')
         self.cancel_capture = True
-        self.write('\x00') # This won't actually get written
+        self.write(b'\x00') # This won't actually get written
         self.send_update()
         self.send_message(_(u'File capture aborted.'))
 
@@ -1918,13 +1924,17 @@ class Terminal(object):
         # This is commented because of how noisy it is.  Uncomment to debug the
         # terminal emualtor:
         #logging.debug('handling chars: %s' % repr(chars))
+        # Only perform special checks (for FileTYpe stuff) if we're given bytes.
+        # Incoming unicode chars should NOT be binary data.
+        if not isinstance(chars, bytes):
+            special_checks = False
         if special_checks:
-            before_chars = ""
-            after_chars = ""
+            before_chars = b""
+            after_chars = b""
             if not self.capture:
                 for magic_header in magic:
                     try:
-                        if magic_header.match(str(chars)):
+                        if magic_header.match(chars):
                             self.matched_header = magic_header
                             self.capture_regex = magic[magic_header]
                             self.timeout_capture = datetime.now()
@@ -1943,7 +1953,7 @@ class Terminal(object):
                     # Try to split the garbage from the post-ctrl-c output
                     split_capture = self.RE_SIGINT.split(self.capture)
                     after_chars = split_capture[-1]
-                    self.capture = ''
+                    self.capture = b''
                     self.matched_header = None
                     self.cancel_capture = False
                     self.write(u'^C\r\n', special_checks=False)
@@ -1978,21 +1988,23 @@ class Terminal(object):
                     before_chars = split_capture[0]
                     capture_length = len(split_capture[1])
                     self.capture = split_capture[1]
-                    after_chars = "".join(split_capture[2:])
+                    after_chars = b"".join(split_capture[2:])
                 if after_chars:
                     if len(after_chars) > 500:
                         # Could be more to this file.  Let's wait until output
                         # slows down before attempting to perform a match
+                        logging.debug(
+                            "> 500 characters after capture.  Waiting for more")
                         return
                     else:
-                        # These needs to be written before the capture so that
+                        # These need to be written before the capture so that
                         # the FileType.capture() method can position things
                         # appropriately.
                         if before_chars:
                             # Empty out self.capture temporarily so these chars
                             # get handled properly
                             cap_temp = self.capture
-                            self.capture = ""
+                            self.capture = b""
                             self.write(before_chars, special_checks=False)
                             # Put it back for the rest of the processing
                             self.capture = cap_temp
@@ -2012,7 +2024,7 @@ class Terminal(object):
                                 ft, size, indicator))
                             self.notified = False
                             self.send_message(message)
-                        self.capture = "" # Empty it now that is is captured
+                        self.capture = b"" # Empty it now that is is captured
                         self.matched_header = None # Ditto
                     self.write(after_chars, special_checks=True)
                     return
@@ -2441,8 +2453,9 @@ class Terminal(object):
 
     def _captured_fd_watcher(self):
         """
-        Meant to be run inside of a thread, calls close_captured_fds() until there
-        are no more open image file descriptors.
+        Meant to be run inside of a thread, calls
+        :meth:`Terminal.close_captured_fds` until there are no more open image
+        file descriptors.
         """
         logging.debug("starting _captured_fd_watcher()")
         import time
@@ -2462,7 +2475,7 @@ class Terminal(object):
         """
         #logging.debug('close_captured_fds()') # Commented because it's kinda noisy
         if self.captured_files:
-            for ref in self.captured_files.keys():
+            for ref in list(self.captured_files.keys()):
                 found = False
                 for line in self.screen:
                     if ref in line:
@@ -2511,7 +2524,7 @@ class Terminal(object):
             return
         # At this point we've encountered something unusual
         logging.warning(_("Warning: No special ESC sequence handler for %s" %
-            `self.esc_buffer`))
+            repr(self.esc_buffer)))
         self.esc_buffer = ''
 
     def bell(self):
@@ -3607,6 +3620,13 @@ class Terminal(object):
             out.append(line_out)
         self.modified = False
         return out
+
+    def __del__(self):
+        """
+        Ensures any file objects get closed.
+        """
+        logging.debug("Terminal.__del__()")
+        self.close_captured_fds()
 
 # This is here to make it easier for someone to produce an HTML app that uses
 # terminal.py

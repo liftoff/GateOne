@@ -26,9 +26,12 @@ import uuid
 import logging
 import mimetypes
 import fcntl
-import cPickle
 import hmac, hashlib
 from datetime import timedelta
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle # Python 3
 
 # Import 3rd party stuff
 from tornado import locale
@@ -333,7 +336,7 @@ def write_pid(path):
             fcntl.flock(pidfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             pidfile.seek(0)
             pidfile.truncate(0)
-            pidfile.write(str(pid))
+            pidfile.write(unicode(pid))
     except:
         raise
     finally:
@@ -561,7 +564,7 @@ def gen_self_signed_pyopenssl(notAfter=None, path=None):
     pkey = OpenSSL.crypto.PKey()
     pkey.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
     # Save the key as 'keyfile.pem':
-    with io.open(keyfile_path, mode='w', encoding='utf-8') as f:
+    with io.open(keyfile_path, mode='wb') as f:
         f.write(OpenSSL.crypto.dump_privatekey(
             OpenSSL.crypto.FILETYPE_PEM, pkey))
     cert = OpenSSL.crypto.X509()
@@ -577,7 +580,7 @@ def gen_self_signed_pyopenssl(notAfter=None, path=None):
     cert.get_issuer().O = 'Self-Signed'
     cert.set_pubkey(pkey)
     cert.sign(pkey, 'md5')
-    with io.open(certfile_path, mode='w', encoding='utf-8') as f:
+    with io.open(certfile_path, mode='wb') as f:
         f.write(OpenSSL.crypto.dump_certificate(
             OpenSSL.crypto.FILETYPE_PEM, cert))
 
@@ -694,7 +697,7 @@ def short_hash(to_shorten):
 
     .. note:: Collisions are possible but *highly* unlikely because of how this method is used by Gate One.
     """
-    import hashlib, base64
+    import base64
     hashed = hashlib.sha1(to_shorten.encode('utf-8'))
     # Take the first eight characters to create a shortened version.
     return base64.urlsafe_b64encode(hashed.digest())[:8]
@@ -1362,6 +1365,7 @@ def minify(path_or_fileobj, kind):
     'js' or 'css'.  Works with JavaScript and CSS files using `slimit` and
     `cssmin`, respectively.
     """
+    print("minify(%s, %s)" % (path_or_fileobj, kind))
     out = None
     # Optional:  If slimit is installed Gate One will use it to minify JS and CSS
     try:
@@ -1428,6 +1432,7 @@ def get_or_cache(cache_dir, path, minify=True):
         with io.open(cached_file_path, mode='r', encoding='utf-8') as f:
             data = f.read()
     elif minify:
+        print("minify is True (%s)" % path)
         # Using regular expressions here because rendered filenames often end
         # like this: .css_1357311277
         # Hopefully this is a good enough classifier.
@@ -1438,6 +1443,7 @@ def get_or_cache(cache_dir, path, minify=True):
         else: # Just cache it as-is; no minification
             kind = False
         if kind:
+            print("kind: %s" % kind)
             data = _minify(path, kind)
             # Cache it
             with io.open(cached_file_path, mode='w', encoding='utf-8') as f:
@@ -1546,7 +1552,7 @@ class memoize:
         self.memo = {}
 
     def __call__(self, *args, **kwds):
-        str = cPickle.dumps(args, 1)+cPickle.dumps(kwds, 1)
+        str = pickle.dumps(args, 1)+pickle.dumps(kwds, 1)
         if not self.memo.has_key(str):
             logging.debug("memoize cache miss (%s)" % self.fn.__name__)
             self.memo[str] = self.fn(*args, **kwds)
@@ -1649,14 +1655,24 @@ def strip_xss(html, whitelist=None, replacement=u"\u2421"):
             html = html.replace(bad_tag, u"\u2421")
     return (html, bad_tags)
 
-def create_signature(secret, hmac_algo=hashlib.sha1, *parts):
+def create_signature(*parts, **kwargs):
     """
-    Creates an HMAC signature using the given *secret*, *hmac_algo*, and *parts*
-    (args). *hmac_algo* may be any HMAC algorithm present in the hashlib module.
+    Creates an HMAC signature using the given *parts* and *kwargs*.  The first
+    argument **must** be the 'secret' followed by any arguments that are to be
+    part of the hash.  The only *kwargs* that is used is 'hmac_algo'.
+    'hmac_algo' may be any HMAC algorithm present in the hashlib module.  If not
+    provided, `hashlib.sha1` will be used.  Example usage::
+
+        create_signature('secret', 'some-api-key', '1234567890123', 'user@somehost', hmac_algo=hashlib.sha1)
+
+    .. note:: The API 'secret' **must** be the first argument.
     """
+    secret = parts[0]
+    parts = parts[1:]
+    hmac_algo = kwargs.get('hmac_algo', hashlib.sha1) # Default to sha1
     hash = hmac.new(secret, digestmod=hmac_algo)
     for part in parts:
-        hash.update(str(part))
+        hash.update(str(part)) # str() in case of something like an int
     return hash.hexdigest()
 
 # Misc

@@ -1566,7 +1566,7 @@ GateOne.Base.update(GateOne.Utils, {
 
         Removes the given query string variable from window.location.href using window.history.replaceState().  Leaving all other query string variables alone.
 
-        Returns the new query string
+        Returns the new query string.
         */
         var query = window.location.search.substring(1),
             vars = query.split('&'),
@@ -4066,8 +4066,8 @@ GateOne.Storage.dbObject = function(DB) {
             }
         }
     }
-    self.delete = function(storeName, key, callback) {
-        /**:GateOne.Storage.dbObject.delete(storeName, key[, callback])
+    self.del = function(storeName, key, callback) {
+        /**:GateOne.Storage.dbObject.del(storeName, key[, callback])
 
         Deletes the object matching *key* from the given object store (*storeName*).  If given, calls *callback* when the transaction is complete.
         */
@@ -4181,7 +4181,7 @@ GateOne.Base.update(GateOne.Storage, {
             return;
         }
         var fileCache = GateOne.Storage.dbObject('fileCache');
-        fileCache.delete('js', fileObj['filename']);
+        fileCache.del('js', fileObj['filename']);
     },
     cacheStyle: function(fileObj, kind) {
         /**:GateOne.Storage.cacheStyle(fileObj)
@@ -4216,7 +4216,7 @@ GateOne.Base.update(GateOne.Storage, {
             return;
         }
         var fileCache = GateOne.Storage.dbObject('fileCache');
-        fileCache.delete(kind, fileObj['filename']);
+        fileCache.del(kind, fileObj['filename']);
     },
     cacheExpiredAction: function(message) {
         /**:GateOne.Storage.cacheExpiredAction(message)
@@ -4228,7 +4228,7 @@ GateOne.Base.update(GateOne.Storage, {
             kind = message['kind'];
         filenames.forEach(function(filename) {
             logDebug("Deleting expired file: " + filename);
-            fileCache.delete(kind, filename);
+            fileCache.del(kind, filename);
         });
     },
     // TODO: Get this using an updateSequenceNum instead of modification times (it's more efficient)
@@ -4466,7 +4466,7 @@ GateOne.Base.update(GateOne.Storage, {
         }
     },
     clearDatabase: function(DB, storeName) {
-        /**:GateOne.Storage.clearDatabase(DB)
+        /**:GateOne.Storage.clearDatabase(DB, storeName)
 
         Clears the contents of the given *storeName* in the given database (*DB*).  AKA "the nuclear option."
         */
