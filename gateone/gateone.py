@@ -3057,7 +3057,7 @@ def main():
                 u"// This file contains the key and secret pairs used by Gate "
                 u"One's API authentication method.\n")
             conf.write(msg)
-            conf.write(str(api_keys))
+            conf.write(unicode(api_keys))
         logging.info(_(u"A new API key has been generated: %s" % api_key))
         logging.info(_(u"This key can now be used to embed Gate One into other "
                 u"applications."))
