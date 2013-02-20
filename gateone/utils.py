@@ -1668,11 +1668,14 @@ def create_signature(*parts, **kwargs):
     .. note:: The API 'secret' **must** be the first argument.
     """
     secret = parts[0]
+    if bytes != str: # Python 3
+        secret = secret.encode('utf-8') # encode() because hmac only takes bytes
     parts = parts[1:]
     hmac_algo = kwargs.get('hmac_algo', hashlib.sha1) # Default to sha1
     hash = hmac.new(secret, digestmod=hmac_algo)
     for part in parts:
-        hash.update(str(part)) # str() in case of something like an int
+        part = str(part).encode('utf-8') # str() in case of an int
+        hash.update(part)
     return hash.hexdigest()
 
 # Misc

@@ -1107,6 +1107,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         logging.error(_(
                          "Error/Unknown WebSocket action, %s: %s (%s line %s)" %
                          (key, e, fname, lineno)))
+                        if self.settings['logging'] == 'debug':
+                            traceback.print_exc(file=sys.stdout)
 
     def on_close(self):
         """

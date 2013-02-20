@@ -204,10 +204,21 @@ def main():
         "keyfile": os.path.join(os.getcwd(), "keyfile.pem"),
     })
     print("For this to work you must add the following to Gate One's "
-          "server.conf:\n")
-    print('auth = "api"')
+          "settings/20authentication.conf (under the 'gateone' section):")
+    print('\n    "auth": "api"\n')
     # Using the cookie_secret as the API key here:
-    print(u'api_keys = "MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M:secret"')
+    print(u'You will also want to add the following to your 20api_keys.conf '
+           '(or just create a new file with this info inside it):')
+    print('''
+{
+    "*": {
+        "gateone": {
+            "api_keys": {
+                "MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M": "secret"
+            }
+        }
+    }
+}''')
     print("\n...and restart Gate One for the change to take effect.")
     # NOTE: Gate One will actually generate a nice and secure secret when you
     # use --new_api_key option.  Using 'secret' here to demonstrate that it can
