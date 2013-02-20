@@ -1365,7 +1365,6 @@ def minify(path_or_fileobj, kind):
     'js' or 'css'.  Works with JavaScript and CSS files using `slimit` and
     `cssmin`, respectively.
     """
-    print("minify(%s, %s)" % (path_or_fileobj, kind))
     out = None
     # Optional:  If slimit is installed Gate One will use it to minify JS and CSS
     try:
@@ -1432,7 +1431,6 @@ def get_or_cache(cache_dir, path, minify=True):
         with io.open(cached_file_path, mode='r', encoding='utf-8') as f:
             data = f.read()
     elif minify:
-        print("minify is True (%s)" % path)
         # Using regular expressions here because rendered filenames often end
         # like this: .css_1357311277
         # Hopefully this is a good enough classifier.
@@ -1443,7 +1441,6 @@ def get_or_cache(cache_dir, path, minify=True):
         else: # Just cache it as-is; no minification
             kind = False
         if kind:
-            print("kind: %s" % kind)
             data = _minify(path, kind)
             # Cache it
             with io.open(cached_file_path, mode='w', encoding='utf-8') as f:
@@ -1668,8 +1665,7 @@ def create_signature(*parts, **kwargs):
     .. note:: The API 'secret' **must** be the first argument.
     """
     secret = parts[0]
-    if bytes != str: # Python 3
-        secret = secret.encode('utf-8') # encode() because hmac only takes bytes
+    secret = str(secret).encode('utf-8') # encode() because hmac takes bytes
     parts = parts[1:]
     hmac_algo = kwargs.get('hmac_algo', hashlib.sha1) # Default to sha1
     hash = hmac.new(secret, digestmod=hmac_algo)

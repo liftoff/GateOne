@@ -497,7 +497,6 @@ class TerminalApplication(GOApplication):
     def on_close(self):
         # Remove all attached callbacks so we're not wasting memory/CPU on
         # disconnected clients
-        user = self.current_user
         if not hasattr(self.ws, 'location'):
             return # Connection closed before authentication completed
         session_locs = SESSIONS[self.ws.session]['locations']

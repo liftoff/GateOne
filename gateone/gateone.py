@@ -794,8 +794,6 @@ class GOApplication(OnOffMixin):
         self.send_css = ws.send_css
         self.send_js = ws.send_js
         self.close = ws.close
-        self.get_current_user = ws.get_current_user
-        self.current_user = ws.current_user
         self.security = ws.security
         self.request = ws.request
         self.settings = ws.settings
@@ -1265,6 +1263,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                             self.close()
                             return
                         window = self.settings['api_timestamp_window']
+                        window = convert_to_timedelta(window)
                         then = datetime.fromtimestamp(int(timestamp)/1000)
                         time_diff = datetime.now() - then
                         if time_diff > window:
@@ -1435,6 +1434,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.send_plugin_static_files(os.path.join(GATEONE_DIR, 'plugins'))
         # Call applications' authenticate() functions (if any)
         for app in self.apps:
+            # Set the current user for convenient access
+            app.current_user = self.current_user
             if hasattr(app, 'authenticate'):
                 app.authenticate()
         # This is just so the client has a human-readable point of reference:
