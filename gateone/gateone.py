@@ -3282,7 +3282,7 @@ def main():
         # First we have to make sure there's at least one pty present
         tempfd1, tempfd2 = pty.openpty()
         # Now check the owning group (doesn't matter which one so we use 0)
-        ptm = 'ptm' if os.path.exists('/dev/ptm') else '/dev/ptmx'
+        ptm = '/dev/ptm' if os.path.exists('/dev/ptm') else '/dev/ptmx'
         tty_gid = os.stat(ptm).st_gid
         # Close our temmporary pty/fds so we're not wasting them
         os.close(tempfd1)

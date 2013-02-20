@@ -979,7 +979,7 @@ class TerminalApplication(GOApplication):
         Sets `self.current_term = *term*` so we can determine where to send
         keystrokes.
         """
-        self.current_term = term
+        self.current_term = int(term)
         self.trigger("terminal:set_terminal", term)
 
     def reset_client_terminal(self, term):
@@ -1028,6 +1028,7 @@ class TerminalApplication(GOApplication):
         .. note:: Why the complexity on something as simple as setting the title?  Many prompts set the title.  This means we'd be sending a 'title' message to the client with nearly every screen update which is a pointless waste of bandwidth if the title hasn't changed.
         """
         logging.debug("set_title(%s, %s)" % (term, force))
+        term = int(term)
         term_obj = self.loc_terms[term]
         if term_obj['manual_title']:
             if force:
