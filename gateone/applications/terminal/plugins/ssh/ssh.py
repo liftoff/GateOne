@@ -117,7 +117,7 @@ def get_ssh_dir(self):
 
     .. note:: If the user's ssh directory doesn't start with a . (dot) it will be renamed.
     """
-    user = self.get_current_user()['upn']
+    user = self.current_user['upn']
     users_dir = os.path.join(self.ws.settings['user_dir'], user) # "User's dir"
     old_ssh_dir = os.path.join(users_dir, 'ssh')
     users_ssh_dir = os.path.join(users_dir, '.ssh')
@@ -311,7 +311,7 @@ def execute_command(self, term, cmd, callback=None):
     except SSHMultiplexingException as e:
         logging.error(_(
             "%s: Got an error trying to open sub-channel on term %s..." %
-            (self.get_current_user()['upn'], term)))
+            (self.current_user['upn'], term)))
         # Try to send an error response to the client
         message = {
             'terminal:sshjs_cmd_output': {
@@ -409,7 +409,7 @@ class KnownHostsHandler(BaseHandler):
 
     def _return_known_hosts(self):
         """Returns the user's known_hosts file in text/plain format."""
-        user = self.get_current_user()['upn']
+        user = self.current_user['upn']
         logging.debug("known_hosts requested by %s" % user)
         users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
         users_ssh_dir = os.path.join(users_dir, '.ssh')
@@ -422,7 +422,7 @@ class KnownHostsHandler(BaseHandler):
 
     def _save_known_hosts(self, known_hosts):
         """Save the given *known_hosts* file."""
-        user = self.get_current_user()['upn']
+        user = self.current_user['upn']
         users_dir = os.path.join(self.settings['user_dir'], user) # "User's dir"
         users_ssh_dir = os.path.join(users_dir, '.ssh')
         kh_path = os.path.join(users_ssh_dir, 'known_hosts')

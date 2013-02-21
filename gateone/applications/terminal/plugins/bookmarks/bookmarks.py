@@ -636,7 +636,7 @@ def save_bookmarks(self, bookmarks):
         'errors': []
     }
     try:
-        user = self.get_current_user()['upn']
+        user = self.current_user['upn']
         bookmarks_db = BookmarksDB(self.ws.settings['user_dir'], user)
         updates = bookmarks_db.sync_bookmarks(bookmarks)
         out_dict.update({
@@ -664,7 +664,7 @@ def get_bookmarks(self, updateSequenceNum):
     If *updateSequenceNum* resolves to False, all bookmarks will be sent to
     the client.
     """
-    user = self.get_current_user()['upn']
+    user = self.current_user['upn']
     bookmarks_db = BookmarksDB(self.settings['user_dir'], user)
     if updateSequenceNum:
         updateSequenceNum = int(updateSequenceNum)
@@ -678,7 +678,7 @@ def delete_bookmarks(self, deleted_bookmarks):
     """
     Handles deleting bookmars given a *deleted_bookmarks* list.
     """
-    user = self.get_current_user()['upn']
+    user = self.current_user['upn']
     bookmarks_db = BookmarksDB(self.ws.settings['user_dir'], user)
     out_dict = {
         'result': "",
@@ -703,7 +703,7 @@ def rename_tags(self, renamed_tags):
     """
     Handles renaming tags.
     """
-    user = self.get_current_user()['upn']
+    user = self.current_user['upn']
     bookmarks_db = BookmarksDB(self.ws.settings['user_dir'], user)
     out_dict = {
         'result': "",

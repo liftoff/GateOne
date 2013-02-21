@@ -276,17 +276,11 @@ def flatten_log(log_path, file_like, preserve_renditions=True, show_esc=False):
                             captured_file = term.captured_files[char].file_obj
                             captured_file.seek(0)
                             file_like.write(captured_file.read())
-                            #file_like.write(
-                               #term.captured_files[char].html().encode('utf-8'))
                             file_like.write(b'\n')
-                            #term.init_screen()
-                            #term.init_scrollback()
-                            #term.init_renditions()
-                            #term.cursorX = 0
-                            #term.cursorY = 0
-                            #term.clear_screen()
-                            #term.close_captured_fds()
-                            term = Terminal(rows=100, cols=300, em_dimensions=0)
+                            del captured_file
+                            term.clear_screen()
+                            term.close_captured_fds() # Instant cleanup
+                            #term = Terminal(rows=100, cols=300, em_dimensions=0)
                     else:
                         out_line += char
             adjusted = frame_time + u' %s\n' % out_line.strip()

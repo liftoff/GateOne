@@ -100,6 +100,7 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
                 continue
             scrollback, screen = term.dump_html()
             out_frames.append({'screen': screen, 'time': frame_time})
+    del term # Ensures any file capture fds are cleaned up
     return out_frames # Skip the first frame which is the metadata
 
 def get_256_colors(self):
@@ -149,7 +150,7 @@ def enumerate_logs(self, limit=None):
             "NOTE: Your access to the log viewer has been restricted.")}
         self.write_message(message)
         return # Nothing left to do
-    user = self.get_current_user()['upn']
+    user = self.current_user['upn']
     users_dir = os.path.join(self.ws.settings['user_dir'], user) # "User's dir"
     io_loop = tornado.ioloop.IOLoop.instance()
     global PROCS
@@ -252,7 +253,7 @@ def retrieve_log_flat(self, settings):
     """
     settings['container'] = self.ws.container
     settings['prefix'] = self.ws.prefix
-    settings['user'] = user = self.get_current_user()['upn']
+    settings['user'] = user = self.current_user['upn']
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
     settings['gateone_dir'] = GATEONE_DIR
     settings['256_colors'] = get_256_colors(self)
@@ -345,6 +346,8 @@ def _retrieve_log_flat(queue, settings):
         for i, line in enumerate(log_lines):
             out.append(spanstrip.sub("</span>", line))
         out_dict['log'] = out
+        term.clear_screen() # Ensure the function below works...
+        term.close_captured_fds() # Force clean up open file descriptors
     else:
         out_dict['result'] = _("ERROR: Log not found")
     message = {'terminal:logging_log_flat': out_dict}
@@ -358,7 +361,7 @@ def retrieve_log_playback(self, settings):
     """
     settings['container'] = self.ws.container
     settings['prefix'] = self.ws.prefix
-    settings['user'] = user = self.ws.get_current_user()['upn']
+    settings['user'] = user = self.current_user['upn']
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
     settings['gateone_dir'] = GATEONE_DIR
     settings['url_prefix'] = self.ws.settings['url_prefix']
@@ -495,7 +498,7 @@ def save_log_playback(self, settings):
     """
     settings['container'] = self.ws.container
     settings['prefix'] = self.ws.prefix
-    settings['user'] = user = self.ws.get_current_user()['upn']
+    settings['user'] = user = self.current_user['upn']
     settings['users_dir'] = os.path.join(self.ws.settings['user_dir'], user)
     settings['gateone_dir'] = GATEONE_DIR
     settings['url_prefix'] = self.ws.settings['url_prefix']
@@ -621,7 +624,7 @@ def _save_log_playback(queue, settings):
     #Returns the given *log_filename* (as a regular file) so the user can save it
     #to disk.
     #"""
-    #user = self.get_current_user()['upn']
+    #user = self.current_user['upn']
     #logging.debug("%s: get_log_file(%s)" % (user, log_filename))
     #users_dir = os.path.join(self.ws.settings['user_dir'], user) # "User's dir"
     #users_log_dir = os.path.join(users_dir, 'logs')

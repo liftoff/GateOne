@@ -1410,7 +1410,10 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         except IOError:
             # Process already ended--no big deal
             return
-        os.kill(self.pid, signal.SIGWINCH) # Send the resize signal
+        try:
+            os.kill(self.pid, signal.SIGWINCH) # Send the resize signal
+        except OSError:
+            return # Process is dead.  Can happen when things go quickly
         if ctrl_l:
             self.write(u'\x0c') # ctrl-l
 

@@ -2459,13 +2459,13 @@ class Terminal(object):
         """
         logging.debug("starting _captured_fd_watcher()")
         import time
-        quitting = False
-        while not quitting:
+        self.quitting = False
+        while not self.quitting:
             if self.captured_files:
                 self.close_captured_fds()
                 time.sleep(5)
             else:
-                quitting = True
+                self.quitting = True
         logging.debug('_captured_fd_watcher() quitting: No more images.')
 
     def close_captured_fds(self):
@@ -2487,7 +2487,7 @@ class Terminal(object):
                             found = True
                             break
                 if not found:
-                    #self.captured_files[ref].close()
+                    self.captured_files[ref].close()
                     del self.captured_files[ref]
 
     def _string_terminator(self):
@@ -3620,13 +3620,6 @@ class Terminal(object):
             out.append(line_out)
         self.modified = False
         return out
-
-    def __del__(self):
-        """
-        Ensures any file objects get closed.
-        """
-        logging.debug("Terminal.__del__()")
-        self.close_captured_fds()
 
 # This is here to make it easier for someone to produce an HTML app that uses
 # terminal.py
