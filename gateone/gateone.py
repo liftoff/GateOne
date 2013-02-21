@@ -509,6 +509,7 @@ def kill_all_sessions():
     """
     Calls all 'timeout_callbacks' attached to all `SESSIONS`.
     """
+    logging.debug(_("Killing all sessions..."))
     for session in SESSIONS.keys():
         if "timeout_callbacks" in SESSIONS[session]:
             if SESSIONS[session]["timeout_callbacks"]:

@@ -1427,9 +1427,17 @@ go.Base.update(GateOne.Terminal, {
 
         Calls `GateOne.Terminal.setTerminal(*term*)` then triggers the 'terminal:switch_terminal' event passing *term* as the only argument.
         */
-        logDebug('switchTerminal('+term+')');
-        go.Terminal.setTerminal(term);
-        E.trigger('terminal:switch_terminal', term);
+        // Many situations can cause a whole ton of switchTerminal() calls to happen all at once (resize the window while opening or closing a new terminal:  6 calls!).
+        // To prevent the 'terminal:switch_terminal' WebSocket action from firing half a dozen times all at once we wrap this function in a very short de-bounce timeout
+        if (go.Terminal.switchTermDebounce) {
+            clearTimeout(go.Terminal.switchTermDebounce);
+            go.Terminal.switchTermDebounce = null;
+        }
+        go.Terminal.switchTermDebounce = setTimeout(function() {
+            logDebug('switchTerminal('+term+')');
+            go.Terminal.setTerminal(term);
+            E.trigger('terminal:switch_terminal', term);
+        }, 100);
     },
     switchTerminalEvent: function(term) {
         /**:GateOne.Terminal.switchTerminalEvent(term)
