@@ -132,7 +132,7 @@ GateOne.Base.module = function (parent, name, version, deps) {
     GateOne.loadedModules.push(module.NAME);
     return module;
 };
-GateOne.Base.module(GateOne, "Base", "1.1", []);
+GateOne.Base.module(GateOne, "Base", "1.2", []);
 GateOne.Base.update = function (self, obj/*, ... */) {
     if (self === null || self === undefined) {
         self = {};

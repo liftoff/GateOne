@@ -953,6 +953,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Make sure we have all prefs ready for checking
         cls = ApplicationWebSocket
         cls.prefs = get_settings(options.settings_dir)
+        for plugin_name, hooks in PLUGIN_HOOKS.items():
+            if 'Events' in hooks:
+                for event, callback in hooks['Events'].items():
+                    self.on(event, callback)
         if not apps:
             return
         for app in apps:
@@ -1415,9 +1419,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # This check is to make sure there's no existing session so we don't
         # accidentally clobber it.
         if self.session not in SESSIONS:
-            # Old session is no good, start a new one:
+            # Start a new session:
             SESSIONS[self.session] = {
                 'last_seen': 'connected',
+                'user': self.current_user,
                 'timeout_callbacks': [],
                 # Locations are virtual containers that indirectly correlate
                 # with browser windows/tabs.  The point is to allow things like
