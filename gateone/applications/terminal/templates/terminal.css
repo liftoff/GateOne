@@ -17,8 +17,6 @@
     height: calc(100% - 1.3em);
     width: -webkit-calc(100% - 3.5em);
     height: -webkit-calc(100% - 1.3em);
-    /*width: 96%;*/ /* For whatever reason Firefox needs the width/height set */
-    /*height: 95%;*/ /* Make room at the bottom for playback controls */
 }
 #{{container}} .pastearea:hover {
     cursor: text;
@@ -26,16 +24,10 @@
 #{{container}} .terminal span.screen {
     word-wrap: break-word;
     white-space: pre-wrap;
-/*     display: block; */
-/*     width: calc(100% - 2em); */
-/*     width: -webkit-calc(100% - 2em); */
 }
 #{{container}} .terminal span.scrollback {
     word-wrap: break-word;
     white-space: pre-wrap;
-/*     display: block; */
-/*     width: calc(100% - 3.5em); */
-/*     width: -webkit-calc(100% - 3.5em); */
 }
 #{{container}} .terminal span.termline {
     width: 100%;

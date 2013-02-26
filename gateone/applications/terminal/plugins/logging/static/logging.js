@@ -61,23 +61,23 @@ go.Base.update(GateOne.TermLogging, {
         var l = go.TermLogging,
             prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_logs'),
-            logPanel = u.createElement('div', {'id': 'panel_logs', 'class': 'panel sectrans'}),
+            logPanel = u.createElement('div', {'id': 'panel_logs', 'class': 'panel panel_logs sectrans'}),
             logHeader = u.createElement('div', {'id': 'log_view_header', 'class': 'sectrans'}),
             logHeaderH2 = u.createElement('h2', {'id': 'logging_title'}),
             logHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
             logViewContent = u.createElement('div', {'id': 'logview_container', 'class': 'sectrans'}),
-            logPagination = u.createElement('div', {'id': 'log_pagination', 'class': 'sectrans'}),
-            logInfoContainer = u.createElement('div', {'id': 'log_info'}),
+            logPagination = u.createElement('div', {'id': 'log_pagination', 'class': 'log_pagination sectrans'}),
+            logInfoContainer = u.createElement('div', {'id': 'log_info', 'class': 'log_info'}),
             logListContainer = u.createElement('div', {'id': 'log_listcontainer'}),
-            logPreviewIframe = u.createElement('iframe', {'id': 'log_preview', 'style': {'display': 'none'}}), // Initial display:none to work around a (minor) IE 10 bug
+            logPreviewIframe = u.createElement('iframe', {'id': 'log_preview', 'class': 'log_preview', 'style': {'display': 'none'}}), // Initial display:none to work around a (minor) IE 10 bug
             hr = u.createElement('hr'),
-            logElemHeader = u.createElement('div', {'id': 'logitems_header', 'class':'table_header_row'}),
+            logElemHeader = u.createElement('div', {'id': 'logitems_header', 'class':'table_header_row logitems_header'}),
             titleSpan = u.createElement('span', {'id': 'log_titlespan', 'class':'table_cell table_header_cell'}),
             dateSpan = u.createElement('span', {'id': 'log_datespan', 'class':'table_cell table_header_cell'}),
             sizeSpan = u.createElement('span', {'id': 'log_sizespan', 'class':'table_cell table_header_cell'}),
             sortOrder = u.createElement('span', {'id': 'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
-            logMetadataDiv = u.createElement('div', {'id': 'log_metadata'});
+            logMetadataDiv = u.createElement('div', {'id': 'log_metadata', 'class': 'log_metadata'});
         logHeaderH2.innerHTML = 'Log Viewer: Loading...';
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
@@ -264,7 +264,7 @@ go.Base.update(GateOne.TermLogging, {
             paginationUL = u.getNode('#'+prefix+'log_pagination_ul'),
             logInfoContainer = u.getNode('#'+prefix+'log_info'),
             logListContainer = u.getNode('#'+prefix+'log_listcontainer'),
-            logElements = u.toArray(document.getElementsByClassName('table_row')),
+            logElements = u.toArray(u.getNodes('.logitem')),
             maxItems = l.getMaxLogItems(existingPanel) - 4; // -4 should account for the header with a bit of room at the bottom too
         l.delay = 500; // Reset it
         // Make sure the panel is visible
@@ -514,7 +514,7 @@ go.Base.update(GateOne.TermLogging, {
         */
         var l = go.TermLogging,
             prefix = go.prefs.prefix,
-            logElem = u.createElement('div', {'class':'halfsectrans table_row', 'name': prefix+'logitem'}),
+            logElem = u.createElement('div', {'class':'halfsectrans table_row', 'name': prefix+'logitem', 'class': 'logitem'}),
             titleSpan = u.createElement('span', {'class':'table_cell logitem_title'}),
             dateSpan = u.createElement('span', {'class':'table_cell'}),
             sizeSpan = u.createElement('span', {'class':'table_cell'}),
@@ -660,7 +660,7 @@ go.Base.update(GateOne.TermLogging, {
             logHTML = message['html'],
             where = message['where'],
             metadata = message['metadata'],
-            logViewContent = u.createElement('div', {'id': 'logview_container'}),
+            logViewContent = u.createElement('div', {'id': 'logview_container', 'class': 'logview_container'}),
             logContainer = u.createElement('div', {'id': 'logview', 'class': 'terminal', 'style': {'width': '100%', 'height': '100%'}});
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);

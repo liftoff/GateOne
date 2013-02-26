@@ -2710,6 +2710,23 @@ def define_options():
             "--combine_js=/tmp/gateone.js)"),
         type=basestring
     )
+    define(
+        "combine_css",
+        default="",
+        help=_(
+            "Combines all of Gate One's CSS Template files into one big file "
+            "and saves it at the given path (e.g. ./gateone.py "
+            "--combine_css=/tmp/gateone.css)."),
+        type=basestring
+    )
+    define(
+        "combine_css_container",
+        default="#gateone",
+        help=_(
+            "Use this setting in conjunction with --combine_css if the <div> "
+            "where Gate One lives is named something other than #gateone"),
+        type=basestring
+    )
 
 def main():
     global _
@@ -2774,9 +2791,11 @@ def main():
         'command', 'dtach', 'session_logging', 'session_logs_max_age',
         'syslog_session_logging'
     ]
+    # TODO: Add a way for applications/plugins to add to this list:
     non_options = [
         # These are things that don't really belong in settings
-        'new_api_key', 'help', 'kill', 'config'
+        'new_api_key', 'help', 'kill', 'config', 'combine_js', 'combine_css',
+        'combine_css_container'
     ]
     # Convert the old server.conf to the new settings file format and save it
     # as a number of distinct .conf files to keep things better organized.
@@ -2943,6 +2962,17 @@ def main():
         # Make sure these values get updated
         all_settings = get_settings(options.settings_dir)
         go_settings = all_settings['*']['gateone']
+    # NOTE: Here's how settings/command line args works:
+    #       * The 'options' object gets set from the arguments on the command
+    #         line.
+    #       * 'go_settings' gets set from the stuff in the 'settings_dir'
+    #       * Once both are parsed (on their own) we overwrite 'go_settings'
+    #         with what was given on the command line.
+    #       * Once 'go_settings' has been adjusted we overwrite 'options' with
+    #         any settings that directly correlate with command line options.
+    #         This ensures that the 'options' object (which controls Tornado'
+    #         settings) gets the stuff from 'settings_dir' if not provided on
+    #         the command line.
     # Figure out which options are being overridden on the command line
     arguments = []
     for arg in list(sys.argv)[1:]:
@@ -2955,10 +2985,23 @@ def main():
             continue
         elif argument in options.keys():
             go_settings[argument] = options[argument].value()
-    # Update Tornado's options from our settings
-    options['cookie_secret'].set(go_settings['cookie_secret'])
-    options['logging'].set(str(go_settings['logging']))
-    options['log_file_prefix'].set(str(go_settings['log_file_prefix']))
+    # Update Tornado's options from our settings.
+    # NOTE: For options given on the command line this step should be redundant.
+    for key, value in go_settings.items():
+        if key in non_options:
+            continue
+        elif key in options:
+            if str == bytes: # Python 2
+                if isinstance(value, unicode):
+                    # For whatever reason Tornado doesn't like unicode values
+                    # for its own settings unless you're using Python 3...
+                    value = str(value)
+            if key in ['origins']:
+                # Origins is special and taken care of further down...
+                continue
+            options[key].set(value)
+    # Setting the log level using go_settings requires an additional step:
+    logging.getLogger().setLevel(getattr(logging, options.logging.upper()))
     # Change the uid/gid strings into integers
     try:
         uid = int(go_settings['uid'])
@@ -3096,7 +3139,8 @@ def main():
                     # Only export JS of enabled apps
                     if application not in enabled_applications:
                         continue
-                static_dir = os.path.join(plugins_dir, application, 'static')
+                static_dir = os.path.join(GATEONE_DIR,
+                    'applications', application, 'static')
                 plugins_dir = os.path.join(
                     applications_dir, application, 'plugins')
                 if os.path.isdir(static_dir):
@@ -3131,6 +3175,108 @@ def main():
                                     with io.open(filepath) as js_file:
                                         f.write(js_file.read() + '\n')
             f.flush()
+        sys.exit(0)
+    if options.combine_css:
+        # Combine all CSS files into one big one.
+        plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
+        pluginslist = os.listdir(plugins_dir)
+        pluginslist.sort()
+        applications_dir = os.path.join(GATEONE_DIR, 'applications')
+        appslist = os.listdir(applications_dir)
+        appslist.sort()
+        # NOTE: We skip gateone.css because that isn't used when embedding
+        with io.open(options.combine_css, 'w') as f:
+            # Gate One plugins
+            for plugin in pluginslist:
+                if enabled_plugins and plugin not in enabled_plugins:
+                    continue
+                css_dir = os.path.join(plugins_dir, plugin, 'templates')
+                if os.path.isdir(css_dir):
+                    filelist = os.listdir(css_dir)
+                    filelist.sort()
+                    for filename in filelist:
+                        filepath = os.path.join(css_dir, filename)
+                        if filename.endswith('.css'):
+                            with io.open(filepath) as css_file:
+                                f.write(css_file.read() + '\n')
+            # Gate One applications
+            for application in appslist:
+                if enabled_applications:
+                    # Only export JS of enabled apps
+                    if application not in enabled_applications:
+                        continue
+                css_dir = os.path.join(GATEONE_DIR,
+                    'applications', application, 'templates')
+                subdirs = []
+                plugins_dir = os.path.join(
+                    applications_dir, application, 'plugins')
+                if os.path.isdir(css_dir):
+                    filelist = os.listdir(css_dir)
+                    filelist.sort()
+                    for filename in filelist:
+                        filepath = os.path.join(css_dir, filename)
+                        if filename.endswith('.css'):
+                            with io.open(filepath) as css_file:
+                                f.write(css_file.read() + '\n')
+                        elif os.path.isdir(filepath):
+                            subdirs.append(filepath)
+                while subdirs:
+                    subdir = subdirs.pop()
+                    filelist = os.listdir(subdir)
+                    filelist.sort()
+                    for filename in filelist:
+                        filepath = os.path.join(subdir, filename)
+                        if filename.endswith('.css'):
+                            with io.open(filepath) as css_file:
+                                f.write(css_file.read() + '\n')
+                        elif os.path.isdir(filepath):
+                            subdirs.append(filepath)
+                app_settings = all_settings['*'].get(application, None)
+                enabled_app_plugins = []
+                if app_settings:
+                    enabled_app_plugins = app_settings.get(
+                        'enabled_plugins', [])
+                if os.path.isdir(plugins_dir):
+                    pluginslist = os.listdir(plugins_dir)
+                    pluginslist.sort()
+                    # Gate One application plugins
+                    for plugin in pluginslist:
+                        # Only export JS of enabled app plugins
+                        if enabled_app_plugins:
+                            if plugin not in enabled_app_plugins:
+                                continue
+                        css_dir = os.path.join(
+                            plugins_dir, plugin, 'templates')
+                        if os.path.isdir(css_dir):
+                            filelist = os.listdir(css_dir)
+                            filelist.sort()
+                            for filename in filelist:
+                                filepath = os.path.join(css_dir, filename)
+                                if filename.endswith('.css'):
+                                    with io.open(filepath) as css_file:
+                                        f.write(css_file.read() + '\n')
+                                elif os.path.isdir(os.path.join(
+                                  css_dir, filename)):
+                                    subdirs.append(filepath)
+                        while subdirs:
+                            subdir = subdirs.pop()
+                            filelist = os.listdir(subdir)
+                            filelist.sort()
+                            for filename in filelist:
+                                filepath = os.path.join(subdir, filename)
+                                if filename.endswith('.css'):
+                                    with io.open(filepath) as css_file:
+                                        f.write(css_file.read() + '\n')
+                                elif os.path.isdir(filepath):
+                                    subdirs.append(filepath)
+            f.flush()
+        # Now perform a replacement of the {{container}} variable
+        with io.open(options.combine_css, 'r') as f:
+            css_data = f.read()
+            css_data = css_data.replace(
+                '#{{container}}', options.combine_css_container)
+        with io.open(options.combine_css, 'w') as f:
+            f.write(css_data)
         sys.exit(0)
     # Display the version in case someone sends in a log for for support
     logging.info(_("Gate One %s" % __version__))
