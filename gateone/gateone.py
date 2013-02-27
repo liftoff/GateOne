@@ -5,8 +5,6 @@
 #
 # For license information see LICENSE.txt
 
-# TODO:
-
 # Meta
 __version__ = '1.2.0'
 __version_info__ = (1, 2, 0)
@@ -1526,8 +1524,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 style_path,
                 **kwargs
             )
-            with io.open(rendered_path, 'w') as f:
-                f.write(style_css.decode('utf-8'))
+            # NOTE: Tornado templates are always rendered as bytes.  That is why
+            # we're using 'wb' below...
+            with io.open(rendered_path, 'wb') as f:
+                f.write(style_css)
             # Remove older versions of the rendered template if present
             for fname in os.listdir(cache_dir):
                 if fname == rendered_filename:
@@ -1633,8 +1633,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         #rendered_path = self.render_style(print_css_path, **template_args)
         # TODO: Do something about the print stylesheet (needs to go in terminal)
         # Combine the theme files into one
-        # Don't need a hashed name for the theme:
-        filename = 'theme.css'
+        filename = 'theme.css' # Don't need a hashed name for the theme
         cached_theme_path = os.path.join(cache_dir, filename)
         with io.open(cached_theme_path, 'w') as f:
             for path in theme_files:
@@ -3137,7 +3136,7 @@ def main():
                         filepath = os.path.join(static_dir, filename)
                         if filename.endswith('.js'):
                             with io.open(filepath) as js_file:
-                                f.write(js_file.read() + '\n')
+                                f.write(js_file.read() + u'\n')
             # Gate One applications
             for application in appslist:
                 if enabled_applications:
@@ -3155,7 +3154,7 @@ def main():
                         filepath = os.path.join(static_dir, filename)
                         if filename.endswith('.js'):
                             with io.open(filepath) as js_file:
-                                f.write(js_file.read() + '\n')
+                                f.write(js_file.read() + u'\n')
                 app_settings = all_settings['*'].get(application, None)
                 enabled_app_plugins = []
                 if app_settings:
@@ -3178,7 +3177,7 @@ def main():
                                 filepath = os.path.join(static_dir, filename)
                                 if filename.endswith('.js'):
                                     with io.open(filepath) as js_file:
-                                        f.write(js_file.read() + '\n')
+                                        f.write(js_file.read() + u'\n')
             f.flush()
         sys.exit(0)
     if options.combine_css:
@@ -3189,9 +3188,16 @@ def main():
         applications_dir = os.path.join(GATEONE_DIR, 'applications')
         appslist = os.listdir(applications_dir)
         appslist.sort()
+        themes = os.listdir(os.path.join(GATEONE_DIR, 'templates', 'themes'))
+        theme_writers = {}
+        for theme in themes:
+            combined_theme_path = "%s_theme_%s" % (
+                options.combine_css.split('.css')[0], theme)
+            theme_writers[theme] = io.open(combined_theme_path, 'w')
         # NOTE: We skip gateone.css because that isn't used when embedding
         with io.open(options.combine_css, 'w') as f:
             # Gate One plugins
+            # TODO: Add plugin theme files to this
             for plugin in pluginslist:
                 if enabled_plugins and plugin not in enabled_plugins:
                     continue
@@ -3203,11 +3209,11 @@ def main():
                         filepath = os.path.join(css_dir, filename)
                         if filename.endswith('.css'):
                             with io.open(filepath) as css_file:
-                                f.write(css_file.read() + '\n')
+                                f.write(css_file.read() + u'\n')
             # Gate One applications
             for application in appslist:
                 if enabled_applications:
-                    # Only export JS of enabled apps
+                    # Only export CSS of enabled apps
                     if application not in enabled_applications:
                         continue
                 css_dir = os.path.join(GATEONE_DIR,
@@ -3222,7 +3228,7 @@ def main():
                         filepath = os.path.join(css_dir, filename)
                         if filename.endswith('.css'):
                             with io.open(filepath) as css_file:
-                                f.write(css_file.read() + '\n')
+                                f.write(css_file.read() + u'\n')
                         elif os.path.isdir(filepath):
                             subdirs.append(filepath)
                 while subdirs:
@@ -3233,7 +3239,11 @@ def main():
                         filepath = os.path.join(subdir, filename)
                         if filename.endswith('.css'):
                             with io.open(filepath) as css_file:
-                                f.write(css_file.read() + '\n')
+                                combined = css_file.read() + u'\n'
+                                if os.path.split(subdir)[1] == 'themes':
+                                    theme_writers[filename].write(combined)
+                                else:
+                                    f.write(combined)
                         elif os.path.isdir(filepath):
                             subdirs.append(filepath)
                 app_settings = all_settings['*'].get(application, None)
@@ -3259,7 +3269,7 @@ def main():
                                 filepath = os.path.join(css_dir, filename)
                                 if filename.endswith('.css'):
                                     with io.open(filepath) as css_file:
-                                        f.write(css_file.read() + '\n')
+                                        f.write(css_file.read() + u'\n')
                                 elif os.path.isdir(os.path.join(
                                   css_dir, filename)):
                                     subdirs.append(filepath)
@@ -3271,10 +3281,20 @@ def main():
                                 filepath = os.path.join(subdir, filename)
                                 if filename.endswith('.css'):
                                     with io.open(filepath) as css_file:
-                                        f.write(css_file.read() + '\n')
+                                        with io.open(filepath) as css_file:
+                                            combined = css_file.read() + u'\n'
+                                            _dir = os.path.split(subdir)[1]
+                                            if _dir == 'themes':
+                                                theme_writers[filename].write(
+                                                    combined)
+                                            else:
+                                                f.write(combined)
                                 elif os.path.isdir(filepath):
                                     subdirs.append(filepath)
             f.flush()
+        for writer in theme_writers.values():
+            writer.flush()
+            writer.close()
         # Now perform a replacement of the {{container}} variable
         with io.open(options.combine_css, 'r') as f:
             css_data = f.read()
@@ -3282,6 +3302,21 @@ def main():
                 '#{{container}}', options.combine_css_container)
         with io.open(options.combine_css, 'w') as f:
             f.write(css_data)
+        logging.info(_(
+            "Non-theme CSS has been combined and saved to: %s"
+            % options.combine_css))
+        for theme in theme_writers.keys():
+            combined_theme_path = "%s_theme_%s" % (
+                options.combine_css.split('.css')[0], theme)
+            with io.open(combined_theme_path, 'r') as f:
+                css_data = f.read()
+                css_data = css_data.replace(
+                    '#{{container}}', options.combine_css_container)
+            with io.open(combined_theme_path, 'w') as f:
+                f.write(css_data)
+            logging.info(_(
+                "The %s theme CSS has been combined and saved to: %s"
+                % (theme.split('.css')[0], combined_theme_path)))
         sys.exit(0)
     # Display the version in case someone sends in a log for for support
     logging.info(_("Gate One %s" % __version__))

@@ -86,10 +86,7 @@ gateone_files=[ # Start with the basics...
         os.path.join(setup_dir, 'gateone', 'gateone.py'),
         os.path.join(setup_dir, 'gateone', 'gopam.py'),
         os.path.join(setup_dir, 'gateone', 'logviewer.py'),
-        os.path.join(setup_dir, 'gateone', 'onoff.py'),
         os.path.join(setup_dir, 'gateone', 'sso.py'),
-        os.path.join(setup_dir, 'gateone', 'terminal.py'),
-        os.path.join(setup_dir, 'gateone', 'termio.py'),
         os.path.join(setup_dir, 'gateone', 'utils.py'),
         os.path.join(setup_dir, 'gateone', 'authpam.py'),
         os.path.join(setup_dir, 'gateone', 'remote_syslog.py'),
@@ -178,6 +175,14 @@ if os.path.exists(old_webworker_loc):
     # Just keeping things tidy
     os.remove(old_webworker_loc)
 
+old_termio_path = os.path.join(prefix, 'gateone', 'termio.py')
+if os.path.exists(old_termio_path):
+    os.remove(old_termio_path)
+
+old_terminal_path = os.path.join(prefix, 'gateone', 'terminal.py')
+if os.path.exists(old_terminal_path):
+    os.remove(old_terminal_path)
+
 setup(
     name = 'gateone',
     license = 'AGPLv3 or Proprietary',
@@ -207,8 +212,13 @@ setup(
     url = "http:/liftoffsoftware.com/Products/GateOne",
     author = 'Dan McDougall',
     author_email = 'daniel.mcdougall@liftoffsoftware.com',
-    requires=["tornado (>=2.4)"],
+    requires = ["tornado (>=2.4)"],
     provides = ['gateone'],
+    entry_points="""\
+    [console_scripts]
+    gateone = gateone:main
+    """,
+    packages = ['gateone', 'termio', 'onoff'],
     data_files = data_files
 )
 

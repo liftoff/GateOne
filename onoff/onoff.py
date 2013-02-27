@@ -11,72 +11,70 @@ __version_info__ = (1, 0, 0)
 __license__ = "Apache 2.0 (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
-# NOTE: Docstring includes reStructuredText markup for use with Sphinx.
-__doc__ = '''\
-OnOff Mixin
-===========
-An easy way to add event support to any Python class.
 
-For an example, let's pretend we've got a basic WebSocket server that can
-perform a number of functions based on the incoming message::
-
-    class ActionWebSocket(WebSocketHandler):
-        def open(self):
-            print("WebSocket opened")
-
-        def on_message(self, message):
-            if message == 'hello':
-                self.hello()
-            elif message == 'ping':
-                self.pong()
-
-        def on_close(self):
-            print("WebSocket closed")
-
-        def pong(self, timestamp):
-            self.write_message('pong')
-
-        def hello(self):
-            self.write_message('Hey there!')
-
-This works OK for the most simple of stuff.  We could use string parsing of
-various sorts (startswith(), json, etc) to differentiate messages from each
-other but our conditionals will quickly grow into a giant mess.
-
-Here's a better way::
-
-    class ActionWebSocket(WebSocketHandler, OnOffMixin):
-        "Calls an appropriate 'action' based on the incoming message."
-        def __init__(self): # Ignoring parent __init__() for ths example
-            self.on("ping", self.pong)
-            self.on("hello", self.heythere)
-
-        def open(self):
-            print("WebSocket opened")
-
-        def on_message(self, message):
-            # Assume a json-encoded dict like {"ping": null}
-            message_obj = json.loads(message)
-            for key, value in message_obj.items():
-                self.trigger(key, value)
-
-        def on_close(self):
-            print("WebSocket closed")
-
-        def pong(self, timestamp):
-            self.write_message('pong')
-
-        def heythere(self):
-            self.write_message('Hey there!')
-
-In the above example we used the `OnOffMixin` to add :func:`on`, :func:`off`,
-and :func:`trigger` methods to our `ActionWebSocket` class.
-'''
+import logging
 
 class OnOffMixin(object):
     """
+    OnOff Mixin
+    ===========
     A mixin to add :func:`on`, :func:`off`, and :func:`trigger` event handling
     methods to any class.
+
+    For an example, let's pretend we've got a basic WebSocket server that can
+    perform a number of functions based on the incoming message::
+
+        class ActionWebSocket(WebSocketHandler):
+            def open(self):
+                print("WebSocket opened")
+
+            def on_message(self, message):
+                if message == 'hello':
+                    self.hello()
+                elif message == 'ping':
+                    self.pong()
+
+            def on_close(self):
+                print("WebSocket closed")
+
+            def pong(self, timestamp):
+                self.write_message('pong')
+
+            def hello(self):
+                self.write_message('Hey there!')
+
+    This works OK for the most simple of stuff.  We could use string parsing of
+    various sorts (startswith(), json, etc) to differentiate messages from each
+    other but our conditionals will quickly grow into a giant mess.
+
+    Here's a better way::
+
+        class ActionWebSocket(WebSocketHandler, OnOffMixin):
+            "Calls an appropriate 'action' based on the incoming message."
+            def __init__(self): # Ignoring parent __init__() for ths example
+                self.on("ping", self.pong)
+                self.on("hello", self.heythere)
+
+            def open(self):
+                print("WebSocket opened")
+
+            def on_message(self, message):
+                # Assume a json-encoded dict like {"ping": null}
+                message_obj = json.loads(message)
+                for key, value in message_obj.items():
+                    self.trigger(key, value)
+
+            def on_close(self):
+                print("WebSocket closed")
+
+            def pong(self, timestamp):
+                self.write_message('pong')
+
+            def heythere(self):
+                self.write_message('Hey there!')
+
+    In the above example we used the `OnOffMixin` to add :func:`on`,
+    :func:`off`, and :func:`trigger` methods to our `ActionWebSocket` class.
     """
     def on(self, events, callback, times=None):
         """
@@ -137,6 +135,7 @@ class OnOffMixin(object):
         # Make sure our _on_off_events dict is present (if first invokation)
         if not hasattr(self, '_on_off_events'):
             self._on_off_events = {}
+        logging.debug("OnOffMixin.triggering event(s): %s" % events)
         if isinstance(events, basestring):
             events = [events]
         for event in events:

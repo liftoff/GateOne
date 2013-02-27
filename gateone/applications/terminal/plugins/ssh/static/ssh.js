@@ -86,6 +86,7 @@ go.Base.update(go.SSH, {
                         if (go.Terminal.terminals[term]['title'] == 'Gate One') {
                             go.Terminal.sendString(sshQueryString + '\n', term);
                         }
+                        u.removeQueryVariable('ssh'); // Clean up the URL
                     }
                     go.Events.on("terminal:new_terminal", connect);
                 } else {

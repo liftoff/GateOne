@@ -507,7 +507,7 @@ go.Base.update(GateOne.Terminal, {
             return;
         }
         var displayText = termObj.id.split('term')[1] + ": " + go.Terminal.terminals[term]['title'],
-            termInfoDiv = u.createElement('div', {'id': 'terminfo'}),
+            termInfoDiv = u.createElement('div', {'id': 'terminfo', 'class': 'terminfo'}),
             marginFix = Math.round(go.Terminal.terminals[term]['title'].length/2),
             infoContainer = u.createElement('div', {'id': 'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
         termInfoDiv.innerHTML = displayText;

@@ -2280,7 +2280,7 @@ class Terminal(object):
                 self.cursorX = stop + 1
                 break
         else:
-            self.cursorX = self.columns - 1
+            self.cursorX = self.cols - 1
 
     def _set_tabstop(self):
         """Sets a tabstop at the current position of :attr:`self.cursorX`."""

@@ -46,7 +46,7 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 import os
 import re
 import logging
-import terminal
+from termio import terminal
 
 class HTMLOutput(terminal.FileType):
     """

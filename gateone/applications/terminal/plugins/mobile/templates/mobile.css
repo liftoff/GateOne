@@ -17,7 +17,7 @@
     #{{container}} .sideinfo {
         display: none; /* Not enough room for it on mobile */
     }
-    #{{container}} .✈playbackControls {
+    .✈playbackControls {
         display: none; /* Small screens really don't have room for this */
     }
 }

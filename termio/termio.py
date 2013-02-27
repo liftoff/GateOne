@@ -112,7 +112,6 @@ gettext.install('termio')
 SEPARATOR = u"\U000f0f0f" # The character used to separate frames in the log
 # NOTE: That unicode character was carefully selected from only the finest
 # of the PUA.  I hereby dub thee, "U+F0F0F0, The Separator."
-CALLBACK_THREAD = None # Used by add_callback()
 POSIX = 'posix' in sys.builtin_module_names
 MACOS = os.uname()[0] == 'Darwin'
 # Matches Gate One's special optional escape sequence (ssh plugin only)
@@ -1688,6 +1687,9 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
                 logging.debug("Starting self.scheduler to check for timeouts")
                 self.scheduler.start()
             self.isalive() # This just ensures the exitfunc is called (if necessary)
+            pid, status = os.waitpid(self.pid, os.WNOHANG)
+            if pid: # pid is 0 if the process is still running
+                self.exitstatus = os.WEXITSTATUS(status)
             return result
 
     def _write(self, chars):

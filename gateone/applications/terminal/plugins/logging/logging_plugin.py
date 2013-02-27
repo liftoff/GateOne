@@ -78,7 +78,7 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
     If *limit* is given, only return that number of frames (e.g. for preview)
     """
     out_frames = []
-    from terminal import Terminal
+    from termio.terminal import Terminal
     terminal_emulator = Terminal
     term = terminal_emulator(
         # 14/7 for the em_height should be OK for most browsers to ensure that
@@ -320,7 +320,7 @@ def _retrieve_log_flat(queue, settings):
         out_dict['result'] = "Success"
         from io import BytesIO
         # Use the terminal emulator to create nice HTML-formatted output
-        from terminal import Terminal
+        from termio.terminal import Terminal
         term = Terminal(rows=100, cols=300, em_dimensions=0)
         io_obj = BytesIO()
         flatten_log(log_path, io_obj)

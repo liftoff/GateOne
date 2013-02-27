@@ -40,7 +40,11 @@
     -o-transform-origin: left bottom;
     transform-origin: left bottom;
 }
-
+#{{container}} .✈terminfo {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1em;
+}
 /* The "reverse" default needs to be set in the theme since the background will vary */
 #{{container}} span.reverse { color: #002b36; background-color: #839496; }
 #{{container}} span.cursor { color: #002b36; background-color: #eee8d5; }

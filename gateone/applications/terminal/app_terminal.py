@@ -565,7 +565,7 @@ class TerminalApplication(GOApplication):
         Sets up all the callbacks associated with the given *term*, *multiplex*
         instance and *callback_id*.
         """
-        import terminal
+        from termio import terminal
         refresh = partial(self.refresh_screen, term)
         multiplex.add_callback(multiplex.CALLBACK_UPDATE, refresh, callback_id)
         ended = partial(self.term_ended, term)
