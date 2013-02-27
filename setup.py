@@ -214,10 +214,6 @@ setup(
     author_email = 'daniel.mcdougall@liftoffsoftware.com',
     requires = ["tornado (>=2.4)"],
     provides = ['gateone'],
-    entry_points="""\
-    [console_scripts]
-    gateone = gateone:main
-    """,
     packages = ['gateone', 'termio', 'onoff'],
     data_files = data_files
 )
