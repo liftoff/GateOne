@@ -2099,12 +2099,12 @@ class Terminal(object):
                 if self.cursorX >= self.cols:
                     # Non-autowrap has been disabled due to issues with browser
                     # wrapping.
-                    #if self.expanded_modes['7']:
-                    self.cursorX = 0
-                    self.newline()
-                    #else:
-                        #self.screen[self.cursorY].append(u' ') # Make room
-                        #self.renditions[self.cursorY].append(u' ')
+                    if self.expanded_modes['7']:
+                        self.cursorX = 0
+                        self.newline()
+                    else:
+                        self.screen[self.cursorY].append(u' ') # Make room
+                        self.renditions[self.cursorY].append(u' ')
                 try:
                     self.renditions[self.cursorY][
                         self.cursorX] = self.cur_rendition
@@ -2148,6 +2148,7 @@ class Terminal(object):
                     import traceback, sys
                     traceback.print_exc(file=sys.stdout)
                 self.cursorX += 1
+            self.prev_char = char
         if changed:
             self.modified = True
             # Execute our callbacks
@@ -2353,12 +2354,17 @@ class Terminal(object):
         Executes a carriage return (sets :attr:`self.cursorX` to 0).  In other
         words it moves the cursor back to position 0 on the line.
         """
-        # This autowrap magic stuff doesn't work so well so autowrap is now
-        # explicit until I figure out a way to differentiate between the type of
-        # long line output by something like 'ps axwww' and the type that gets
-        # output by, say, bash when you type a really long command.
-        #if self.cursorX >= self.cols and self.cursorX != self.cols:
-            #self.newline()
+        if divmod(self.cursorX, self.cols+1)[1] == 0:
+            # A carriage return at the precise end of line means the program is
+            # assuming vt100-style autowrap.  Since we let the browser handle
+            # that we need to discard this carriage return since we're not
+            # actually making a newline.
+            if self.prev_char not in [u'\x1b', u'\n']:
+                # These are special cases where the underlying shell is assuming
+                # autowrap so we have to emulate it.
+                self.newline()
+            else:
+                return
         if not self.capture:
             self.cursorX = 0
 

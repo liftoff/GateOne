@@ -318,6 +318,7 @@ class TerminalApplication(GOApplication):
         # So we can keep track and avoid sending unnecessary messages:
         self.titles = {}
         self.em_dimensions = None
+        self.race_check = False
         GOApplication.__init__(self, ws)
 
     def initialize(self):
@@ -557,7 +558,40 @@ class TerminalApplication(GOApplication):
         given *term* is no more.
         """
         message = {'terminal:term_ended': term}
-        self.write_message(json_encode(message))
+        if term in self.loc_terms:
+            timediff = datetime.now() - self.loc_terms[term]['created']
+            if self.race_check:
+                race_check_timediff = datetime.now() - self.race_check
+                if race_check_timediff < timedelta(seconds=1):
+                    # Definitely a race condition (command is failing to run).
+                    # Add a delay
+                    term_ended = partial(self.term_ended, term)
+                    ioloop = tornado.ioloop.IOLoop.instance()
+                    ioloop.add_timeout(timedelta(seconds=5), term_ended)
+                    self.race_check = False
+                    self.ws.send_message(_(
+                        "Warning: Terminals are closing too fast.  If you see "
+                        "this message multiple times it is likely that the "
+                        "configured command is failing to execute.  Please "
+                        "check your server settings."
+                    ))
+                    cmd = self.loc_terms[term]['multiplex'].cmd
+                    logging.warning(_(
+                        "Terminals are closing too quickly after being opened "
+                        "(command: %s).  Please check your 'commands' (usually "
+                        "in settings/50terminal.conf)." % repr(cmd)))
+                    return
+            elif timediff < timedelta(seconds=1):
+                # Potential race condition
+                # Alow the first one to go through immediately
+                self.race_check = datetime.now()
+        try:
+            self.write_message(json_encode(message))
+        except AttributeError:
+            # Because this function can be called after a timeout it is possible
+            # that the client will have disconnected in the mean time resulting
+            # in this exception.  Not a problem; ignore.
+            return
         self.trigger("terminal:term_ended", term)
 
     def add_terminal_callbacks(self, term, multiplex, callback_id):
@@ -722,7 +756,6 @@ class TerminalApplication(GOApplication):
             logging.error(_("%s: Attempted to execute invalid command (%s)." % (
                 self.current_user['upn'], command)))
             self.ws.send_message(_("Terminal: Invalid command: %s" % command))
-            self.term_ended(term)
             return
         if 'em_dimensions' in settings:
             self.em_dimensions = {
@@ -979,8 +1012,11 @@ class TerminalApplication(GOApplication):
         Sets `self.current_term = *term*` so we can determine where to send
         keystrokes.
         """
-        self.current_term = int(term)
-        self.trigger("terminal:set_terminal", term)
+        try:
+            self.current_term = int(term)
+            self.trigger("terminal:set_terminal", term)
+        except TypeError:
+            pass # Bad term given
 
     def reset_client_terminal(self, term):
         """

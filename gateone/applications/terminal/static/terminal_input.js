@@ -450,7 +450,6 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         var inputNode = t.Input.inputNode,
             value = inputNode.value;
         if (!t.Input.composition) {
-//             t.sendString(value);
             t.Input.queue(value);
             t.Input.sendChars();
             inputNode.value = "";
@@ -471,12 +470,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             // Global shortcuts take precedence
             return;
         }
-//         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
             if (document.activeElement != t.Input.inputNode) {
                 return; // Let the browser handle it if the user is editing something
-//                 // NOTE: This doesn't actually work so well so we have GateOne.Terminal.Input.disableCapture() as a fallback :)
             }
-//         }
         t.Input.execKeystroke(e);
     },
     execKeystroke: function(e) {

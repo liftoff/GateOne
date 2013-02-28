@@ -1,3 +1,4 @@
+// -*- coding: utf-8 -*-
 /*
 COPYRIGHT NOTICE
 ================
@@ -891,8 +892,10 @@ GateOne.Base.update(GateOne.Utils, {
         });
     },
     hideElements: function(elems) {
-        // Sets the 'display' style of the given element to 'none'
-        // Elements must be an iterable such as an HTMLCollection or an Array of DOM nodes
+        /**:GateOne.Utils.hideElements(elems)
+
+        Sets the 'display' style of the given elements (*elems*) to 'none'.  Elements must be an iterable such as an HTMLCollection, NodeList, or an Array of DOM nodes
+        */
         var u = GateOne.Utils,
             elems = u.toArray(u.getNodes(elems));
         elems.forEach(function(elem) {
@@ -902,28 +905,45 @@ GateOne.Base.update(GateOne.Utils, {
             }
         });
     },
-    getOffset: function(el) {
-        // Returns {top: <offsetTop>, left: <offsetLeft>}
-        var _x = 0;
-        var _y = 0;
-        while( el && !isNaN( el.offsetLeft ) && !isNaN( el.offsetTop ) ) {
-            _x += el.offsetLeft - el.scrollLeft;
-            _y += el.offsetTop - el.scrollTop;
-            el = el.offsetParent;
+    getOffset: function(elem) {
+        /**:GateOne.Utils.getOffset(elem)
+
+        Returns `{top: <offsetTop>, left: <offsetLeft>}` for the given *elem*.
+        */
+        var node = GateOne.Utils.getNode(elem), x = 0, y = 0;
+        while( node && !isNaN( node.offsetLeft ) && !isNaN( node.offsetTop ) ) {
+            x += node.offsetLeft - node.scrollLeft;
+            y += node.offsetTop - node.scrollTop;
+            node = node.offsetParent;
         }
-        return { top: _y, left: _x };
+        return { top: y, left: x };
     },
-    noop: function(a) { return a },
+    noop: function(a) {
+        /**:GateOne.Utils.noop(a)
+
+        This function does nothing.  It stands for 'no operation'.  Useful as a placeholder for objects and variables that will later be replaced with functions that actually do something.
+
+        Returns *a*.
+        */
+        return a;
+    },
     toArray: function (obj) {
+        /**:GateOne.Utils.toArray(obj)
+
+        Returns *obj* as a JavaScript array.  Primarily used to make it easier to iterate/manipulate things like NodeLists.
+        */
         var array = [];
-        // iterate backwards ensuring that length is an UInt32
+        // Iterate backwards ensuring that length is an UInt32
         for (var i = obj.length >>> 0; i--;) {
             array[i] = obj[i];
         }
         return array;
     },
     scrollLines: function(elem, lines) {
-        // Scrolls the given element by *lines* (positive or negative)
+        /**:GateOne.Utils.scrollLines(elem, lines)
+
+        Scrolls the given element (*elem*) by *lines* (positive or negative).
+        */
         // Lines are calculated based on the EM height of text in the element.
         logDebug('scrollLines(' + elem + ', ' + lines + ')');
         var node = GateOne.Utils.getNode(elem),
@@ -931,7 +951,10 @@ GateOne.Base.update(GateOne.Utils, {
         node.scrollTop = node.scrollTop + (emDimensions.h * lines);
     },
     scrollToBottom: function(elem) {
-        // Scrolls to the bottom of *elem*
+        /**:GateOne.Utils.scrollToBottom(elem)
+
+        Scrolls to the bottom of *elem*.
+        */
         var node = GateOne.Utils.getNode(elem);
         try {
             if (node) {
@@ -946,10 +969,18 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     replaceURLWithHTMLLinks: function(text) {
+        /**:GateOne.Utils.replaceURLWithHTMLLinks(text)
+
+        Returns *text* with embedded links (e.g. http://whatever) converted into anchor tags (e.g. <a href="http://whatever">http://whatever</a>).
+        */
         var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
         return text.replace(exp,"<a href='$1'>$1</a>");
     },
     isEven: function(someNumber){
+        /**:GateOne.Utils.isEven(someNumber)
+
+        Returns `true` if *someNumber* is even.
+        */
         return (someNumber%2 == 0) ? true : false;
     },
     isDescendant: function(parent, child) {
@@ -967,6 +998,10 @@ GateOne.Base.update(GateOne.Utils, {
         return false;
     },
     getSelText: function() {
+        /**:GateOne.Utils.getSelText()
+
+        Returns whatever text is currently selected in the browser.
+        */
         var txt = '';
         if (window.getSelection) {
             txt = window.getSelection();
@@ -980,23 +1015,32 @@ GateOne.Base.update(GateOne.Utils, {
         return txt.toString();
     },
     getEmDimensions: function(elem) {
-        // Returns the height and width of 1em inside the given elem (e.g. 'term1_pre')
-        // The returned object will be in the form of:
-        //      {'w': <width in px>, 'h': <height in px>}
-        var node = GateOne.Utils.getNode(elem),
+        /**:GateOne.Utils.getEmDimensions(elem)
+
+        Returns the height and width of 1em inside the given elem (e.g. 'term1_pre').  The returned object will be in the form of::
+
+             {'w': <width in px>, 'h': <height in px>}
+        */
+        var u = GateOne.Utils,
+            node = u.getNode(elem),
+            node = node.cloneNode(false), // Work on a clone so we can leave the original alone
             sizingDiv = document.createElement("div"),
             sizingPre = document.createElement("pre"),
             fillerX = '', fillerY = [],
             lineCounter = 0;
-        if (!GateOne.Utils.isVisible(node)) {
-            return; // Nothing to do
+        if (!u.isVisible(node)) {
+            // Reset so it is visible
+            node.style.display = '';
+            node.style.opacity = 1;
         }
-        // We need two lines so we can factor in the line height and character spacing (if it has been messed with).
+        // We need to place the cloned node into the DOM for the calculation to work properly
+        document.body.appendChild(node);
         sizingDiv.id = "go_sizingDiv";
         sizingDiv.className = "terminal";
         sizingDiv.style.wordWrap = 'normal';
+        // We need a number of lines so we can factor in the line height and character spacing (if it has been messed with either directly or indirectly via the font renderer).
         for (var i=0; i <= 63; i++) {
-            fillerX += "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  Using the \u syntax because minifiers don't seem to like unicode characters to be in the source as-is.
+            fillerX += "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  NOTE: Using the \u syntax because some minifiers break when they encounter unicode literals (besides, it can be tough to guess the encoding of a JavaScript file with no HTTP encoding header)
         }
         for (var i=0; i <= 63; i++) {
             fillerY.push(fillerX);
@@ -1012,7 +1056,9 @@ GateOne.Base.update(GateOne.Utils, {
             nodeWidth = sizingPre.getClientRects()[0].width;
         nodeHeight = parseInt(nodeHeight)/64;
         nodeWidth = parseInt(nodeWidth)/64;
+        // Clean up, clean up
         node.removeChild(sizingDiv);
+        document.body.removeChild(node);
         return {'w': nodeWidth, 'h': nodeHeight};
     },
     getRowsAndColumns: function(elem) {

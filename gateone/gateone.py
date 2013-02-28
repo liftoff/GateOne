@@ -1259,7 +1259,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                             "API authentication replay attack detected!  User: "
                             "%s, Remote IP: %s, Origin: %s" % (
                                 upn, self.request.remote_ip, origin)))
-                            message = {'notice': _(
+                            message = {'go:notice': _(
                                 'AUTH FAILED: Replay attack detected!  This '
                                 'event has been logged.')}
                             self.write_message(json_encode(message))
@@ -1278,11 +1278,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                             "the server's clock (either this server or the "
                             "server(s) embedding Gate One)."
                             ))
-                            message = {'notice': _(
+                            message = {'go:notice': _(
                                 'AUTH FAILED: Authentication object timed out. '
                                 'Try reloading this page (F5).')}
                             self.write_message(json_encode(message))
-                            message = {'notice': _(
+                            message = {'go:notice': _(
                                 'AUTH FAILED: If the problem persists after '
                                 'reloading this page please contact your server'
                                 ' administrator to notify them of the issue.')}
@@ -1363,7 +1363,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         "server is configured with 'auth = \"%s\".  Did you "
                         "forget to set 'auth = \"api\" in your settings?" %
                         self.settings['auth']))
-                    message = {'notice': _(
+                    message = {'go:notice': _(
                         "AUTHENTICATION ERROR: Server is not configured to "
                         "perform API-based authentication.  Did someone forget "
                         "to set 'auth = \"api\" in the settings?")}
@@ -2122,7 +2122,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
         if *upn* is 'AUTHENTICATED' all users will get the message.
         """
-        message_dict = {'notice': message}
+        message_dict = {'go:notice': message}
         if upn:
             ApplicationWebSocket._deliver(message_dict, upn=upn)
         elif session:
