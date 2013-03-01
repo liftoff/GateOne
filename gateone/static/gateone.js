@@ -423,8 +423,6 @@ var go = GateOne.Base.update(GateOne, {
             themeList = [], // Gets filled out below
             colorsList = [],
             updateCSSfunc = function() { go.ws.send(JSON.stringify({'go:enumerate_themes': null})) };
-        // Start the file synchronization process first because it operates asynchronously
-
         // Create our prefs panel
         u.hideElement(prefsPanel); // Start out hidden
         go.Visual.applyTransform(prefsPanel, 'scale(0)'); // So it scales back in real nice
@@ -4600,6 +4598,8 @@ GateOne.User.userLoginCallbacks = []; // Each of these will get called after the
 GateOne.Base.update(GateOne.User, {
     // The User module is for things like logging out, synchronizing preferences with the server, and it is also meant to provide hooks for plugins to tie into so that actions can be taken when user-specific events occur.
     init: function() {
+        // prefix gets changed inside of GateOne.initialize() so we need to reset it
+        prefix = go.prefs.prefix;
         var prefsPanel = u.getNode('#'+prefix+'panel_prefs'),
             prefsPanelForm = u.getNode('#'+prefix+'prefs_form'),
             prefsPanelUserInfo = u.createElement('div', {'id': 'user_info', 'class': '✈user_info'}),
@@ -4625,7 +4625,10 @@ GateOne.Base.update(GateOne.User, {
         go.Net.addAction('go:applications', go.User.applicationsAction);
     },
     setUsername: function(username) {
-        // Sets GateOne.User.username using *username*.  Also provides hooks that plugins can have called after a user has logged in successfully.
+        /**:GateOne.User.setUsername(username)
+
+        Sets GateOne.User.username using *username*.  Also provides hooks that plugins can have called after a user has logged in successfully.
+        */
         // NOTE:  Primarily here to present something more easy to understand than the session ID :)
         var prefsPanelUserID = u.getNode('#'+prefix+'user_info_id');
         logDebug("setUsername(" + username + ")");

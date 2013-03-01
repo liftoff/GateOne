@@ -1947,37 +1947,39 @@ def init(settings):
                 settings['*']['terminal'].update({key: value})
     if 'terminal' not in settings['*']:
         # Create some defaults and save the config as 50terminal.conf
-        from utils import settings_template
         settings_path = options.settings_dir
         terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
-        # TODO: Think about moving 50terminal.conf template into the terminal
-        # application's directory.
-        template_path = os.path.join(
-            GATEONE_DIR, 'templates', 'settings', '50terminal.conf')
-        settings['*']['terminal'] = {}
-        # Update the settings with defaults
-        default_command = (
-            GATEONE_DIR +
-            "/applications/terminal/plugins/ssh/scripts/ssh_connect.py -S "
-            r"'%SESSION_DIR%/%SESSION%/%SHORT_SOCKET%' --sshfp "
-            r"-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/.ssh/known_hosts\"'")
-        settings['*']['terminal'].update({
-            'dtach': True,
-            'session_logging': True,
-            'session_logs_max_age': "30d",
-            'syslog_session_logging': False,
-            'commands': {
-                'SSH': default_command
-            },
-            'default_command': 'SSH'
-        })
-        new_term_settings = settings_template(
-            template_path, settings=settings['*']['terminal'])
-        with open(terminal_conf_path, 'w') as s:
-            s.write(_(
-                "// This is Gate One's Terminal application settings "
-                "file.\n"))
-            s.write(new_term_settings)
+        if not os.path.exists(terminal_conf_path):
+            from utils import settings_template
+            # TODO: Think about moving 50terminal.conf template into the
+            # terminal application's directory.
+            template_path = os.path.join(
+                GATEONE_DIR, 'templates', 'settings', '50terminal.conf')
+            settings['*']['terminal'] = {}
+            # Update the settings with defaults
+            default_command = (
+              GATEONE_DIR +
+              "/applications/terminal/plugins/ssh/scripts/ssh_connect.py -S "
+              r"'%SESSION_DIR%/%SESSION%/%SHORT_SOCKET%' --sshfp "
+              r"-a '-oUserKnownHostsFile=\"%USERDIR%/%USER%/.ssh/known_hosts\"'"
+            )
+            settings['*']['terminal'].update({
+                'dtach': True,
+                'session_logging': True,
+                'session_logs_max_age': "30d",
+                'syslog_session_logging': False,
+                'commands': {
+                    'SSH': default_command
+                },
+                'default_command': 'SSH'
+            })
+            new_term_settings = settings_template(
+                template_path, settings=settings['*']['terminal'])
+            with open(terminal_conf_path, 'w') as s:
+                s.write(_(
+                    "// This is Gate One's Terminal application settings "
+                    "file.\n"))
+                s.write(new_term_settings)
     term_settings = settings['*']['terminal']
     if options.kill:
         from utils import killall

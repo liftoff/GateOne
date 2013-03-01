@@ -393,6 +393,7 @@ potential conflicts with other classes that may be on the page.
     border-radius: 0.5em;
 }
 #{{container}} .panel h2 {
+    width: 100%;
     font-size: 1.5em;
     border-bottom: 0.1em #000 solid;
     position: relative;
@@ -520,6 +521,7 @@ potential conflicts with other classes that may be on the page.
     font-size: 0.8em;
     padding-bottom: 0.25em;
     text-align: right;
+    margin-right: -1.2em;
 }
 .✈user_info a:hover {
     cursor: pointer;

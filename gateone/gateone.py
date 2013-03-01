@@ -369,6 +369,14 @@ locale_dir = os.path.join(GATEONE_DIR, 'i18n')
 locale.load_gettext_translations(locale_dir, 'gateone')
 # NOTE: The locale gets set in __main__
 
+# If Gate One was not installed (via setup.py) it won't have access to some
+# modules that get installed along with it.  We'll add them to sys.path if they
+# are missing.  This way users can use Gate One without *having* to install it.
+if os.path.exists(os.path.join(GATEONE_DIR, '../onoff')):
+    sys.path.append(os.path.join(GATEONE_DIR, '../onoff'))
+if os.path.exists(os.path.join(GATEONE_DIR, '../termio')):
+    sys.path.append(os.path.join(GATEONE_DIR, '../termio'))
+
 # Helper functions
 def require_auth(method):
     """
@@ -1538,7 +1546,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     os.remove(os.path.join(cache_dir, fname))
         return rendered_path
 
-# TODO:  Get this so that it only renders the theme if a theme file has changed
+# TODO:  Get this checking the modification time of all theme files and only
+#        rendering/sending a new theme if something has changed.
     def get_theme(self, settings):
         """
         Sends the theme stylesheets matching the properties specified in
@@ -1635,10 +1644,19 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # Combine the theme files into one
         filename = 'theme.css' # Don't need a hashed name for the theme
         cached_theme_path = os.path.join(cache_dir, filename)
-        with io.open(cached_theme_path, 'w') as f:
+        new_theme_path = os.path.join(cache_dir, filename+'.new')
+        with io.open(new_theme_path, 'w') as f:
             for path in theme_files:
-                f.write(io.open(path).read())
-        mtime = os.stat(rendered_path).st_mtime
+                f.write(io.open(path, 'r', encoding='utf-8').read())
+        new = open(new_theme_path, 'rb').read()
+        old = open(cached_theme_path, 'rb').read()
+        if new != old:
+            # They're different.  Replace the old one...
+            os.rename(new_theme_path, cached_theme_path)
+        else:
+            # Clean up
+            os.remove(new_theme_path)
+        mtime = os.stat(cached_theme_path).st_mtime
         if self.settings['debug']:
             # This makes sure that the files are always re-downloaded
             mtime = time.time()
@@ -2920,6 +2938,13 @@ def main():
         from utils import options_to_settings
         auth_settings = {} # Auth stuff goes in 20authentication.conf
         all_setttings = options_to_settings(options)
+        settings_path = options.settings_dir
+        server_conf_path = os.path.join(settings_path, '10server.conf')
+        if os.path.exists(server_conf_path):
+            logging.error(_(
+                "You have a 10server.conf but it is either invalid (syntax "
+                "error) or missing essential settings."))
+            sys.exit(1)
         config_defaults = all_setttings['*']['gateone']
         # Don't need this in the actual settings file:
         del config_defaults['settings_dir']
@@ -2945,8 +2970,6 @@ def main():
             io.open(
                 config_defaults['log_file_prefix'],
                 mode='w', encoding='utf-8').write(u'')
-        settings_path = options.settings_dir
-        server_conf_path = os.path.join(settings_path, '10server.conf')
         auth_conf_path = os.path.join(settings_path, '20authentication.conf')
         template_path = os.path.join(
             GATEONE_DIR, 'templates', 'settings', '10server.conf')
