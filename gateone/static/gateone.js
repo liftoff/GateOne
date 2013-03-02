@@ -1337,7 +1337,7 @@ GateOne.Base.update(GateOne.Utils, {
         }, 5000);
     },
     enumerateThemes: function(messageObj) {
-        // Attached to the 'themes_list' action, updates the preferences panel with the list of themes stored on the server.
+        // Attached to the 'go:themes_list' action, updates the preferences panel with the list of themes stored on the server.
         var u = go.Utils,
             prefix = go.prefs.prefix,
             themesList = messageObj['themes'],

@@ -194,10 +194,9 @@ class KerberosAuthMixin(tornado.web.RequestHandler):
 
         The browser will be informed that we support both Negotiate (GSSAPI/SSO)
         and Basic auth.
-
-        NOTE: I know this isn't technically a redirect but I wanted to make this
-        process as close as possible to how things work in tornado.auth.
         """
+        # NOTE: I know this isn't technically a redirect but I wanted to make
+        # this process as close as possible to how things work in tornado.auth.
         if self._headers_written:
             raise Exception(_('Headers have already been written'))
         self.set_status(401)

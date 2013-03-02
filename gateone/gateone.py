@@ -255,6 +255,8 @@ from datetime import datetime, timedelta
 # This is used as a way to ensure users get a friendly message about missing
 # dependencies:
 MISSING_DEPS = []
+# This is needed before other globals for certain checks:
+GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Tornado modules (yeah, we use all this stuff)
 try:
@@ -290,6 +292,14 @@ if MISSING_DEPS:
 # We want this turned on right away
 tornado.options.enable_pretty_logging()
 
+# If Gate One was not installed (via setup.py) it won't have access to some
+# modules that get installed along with it.  We'll add them to sys.path if they
+# are missing.  This way users can use Gate One without *having* to install it.
+setup_path = os.path.abspath(os.path.join(GATEONE_DIR, '../'))
+if os.path.exists(os.path.join(setup_path, 'onoff')):
+    sys.path.append(setup_path)
+del setup_path # Don't need this for anything else
+
 # Our own modules
 from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
 from auth import APIAuthHandler, SSLAuthHandler, PAMAuthHandler
@@ -323,7 +333,6 @@ TIMEOUT = timedelta(days=5) # Gets overridden by options.session_timeout
 # sessions that have timed out and takes care of cleaning them up.
 SESSION_WATCHER = None
 CLEANER = None # Log cleaner PeriodicCallback
-GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_CACHE = {}
 # PERSIST is a generic place for applications and plugins to store stuff in a
 # way that lasts between page loads.  USE RESPONSIBLY.
@@ -368,14 +377,6 @@ PLUGIN_NEW_MULTIPLEX_HOOKS = []
 locale_dir = os.path.join(GATEONE_DIR, 'i18n')
 locale.load_gettext_translations(locale_dir, 'gateone')
 # NOTE: The locale gets set in __main__
-
-# If Gate One was not installed (via setup.py) it won't have access to some
-# modules that get installed along with it.  We'll add them to sys.path if they
-# are missing.  This way users can use Gate One without *having* to install it.
-if os.path.exists(os.path.join(GATEONE_DIR, '../onoff')):
-    sys.path.append(os.path.join(GATEONE_DIR, '../onoff'))
-if os.path.exists(os.path.join(GATEONE_DIR, '../termio')):
-    sys.path.append(os.path.join(GATEONE_DIR, '../termio'))
 
 # Helper functions
 def require_auth(method):
@@ -899,23 +900,36 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             cls.file_checker.stop()
             # Also remove the broadcast file so we know to start up the
             # file_watcher again if a user connects.
-            session_dir = cls.prefs['*']['gateone']['session_dir']
+            session_dir = options.session_dir
             broadcast_file = os.path.join(session_dir, 'broadcast') # Default
             broadcast_file = cls.prefs['*']['gateone'].get(
                 'broadcast_file', broadcast_file) # If set, use that
             del cls.watched_files[broadcast_file]
             del cls.file_update_funcs[broadcast_file]
             os.remove(broadcast_file)
-        for path, mtime in cls.watched_files.items():
-            if os.stat(path).st_mtime == mtime:
+        for path, mtime in list(cls.watched_files.items()):
+            if not os.path.exists(path):
+                # Someone deleted something they shouldn't have
+                logging.error(_(
+                    "{path} has been removed.  Removing from file "
+                    "checker.".format(path=path)))
+                del cls.watched_files[path]
+                del cls.file_update_funcs[path]
+                continue
+            current_mtime = os.stat(path).st_mtime
+            if current_mtime == mtime:
                 continue
             try:
+                cls.watched_files[path] = current_mtime
                 cls.file_update_funcs[path]()
             except Exception as e:
                 logging.error(_(
                     "Exception encountered trying to execute the file update "
-                    "function for %s..." % path))
+                    "function for {path}...".format(path=path)))
                 logging.error(e)
+                if options.logging == 'debug':
+                    import traceback
+                    traceback.print_exc(file=sys.stdout)
 
     @classmethod
     def watch_file(cls, path, func):
@@ -924,6 +938,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         `ApplicationWebSocket.watched_files`.  The *func* will be called if the
         file at *path* is modified.
         """
+        logging.debug("watch_file('{path}', {func}())".format(
+            path=path, func=func.__name__))
         cls.watched_files.update({path: os.stat(path).st_mtime})
         cls.file_update_funcs.update({path: func})
 
@@ -933,7 +949,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         Called when there's an update to the 'broadcast_file', broadcasts its
         contents to all connected users.
         """
-        session_dir = cls.prefs['*']['gateone']['session_dir']
+        session_dir = options.session_dir
         broadcast_file = os.path.join(session_dir, 'broadcast')
         broadcast_file = cls.prefs['*']['gateone'].get(
             'broadcast_file', broadcast_file)
@@ -942,7 +958,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if message:
             message = message.rstrip()
             logging.info("Broadcast (via broadcast_file): %s" % message)
-            message_dict = {'notice': message}
+            message_dict = {'go:notice': message}
             cls._deliver(message_dict, upn="AUTHENTICATED")
             io.open(broadcast_file, 'w').write(u'') # Empty it out
 
@@ -1649,7 +1665,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             for path in theme_files:
                 f.write(io.open(path, 'r', encoding='utf-8').read())
         new = open(new_theme_path, 'rb').read()
-        old = open(cached_theme_path, 'rb').read()
+        old = ''
+        if os.path.exists(cached_theme_path):
+            old = open(cached_theme_path, 'rb').read()
         if new != old:
             # They're different.  Replace the old one...
             os.rename(new_theme_path, cached_theme_path)
@@ -2772,12 +2790,14 @@ def main():
     all_settings = get_settings(settings_dir)
     enabled_plugins = []
     enabled_applications = []
-    if 'gateone' in all_settings:
+    go_settings = {}
+    if 'gateone' in all_settings['*']:
         # The check above will fail in first-run situations
         enabled_plugins = all_settings['*']['gateone'].get(
             'enabled_plugins', [])
         enabled_applications = all_settings['*']['gateone'].get(
             'enabled_applications', [])
+        go_settings = all_settings['*']['gateone']
     PLUGINS = get_plugins(os.path.join(GATEONE_DIR, 'plugins'), enabled_plugins)
     imported = load_modules(PLUGINS['py'])
     for plugin in imported:
@@ -2787,23 +2807,25 @@ def main():
             pass # No hooks--probably just a supporting .py file.
     APPLICATIONS = get_applications(
         os.path.join(GATEONE_DIR, 'applications'), enabled_applications)
+    # NOTE: load_modules() imports all the .py files in applications.  This
+    # means that applications can place calls to tornado.options.define()
+    # anywhere in their .py files and they should automatically be usable by the
+    # user at this point in the startup process.
     app_modules = load_modules(APPLICATIONS)
     # Having parse_command_line() after loading applications in case an
     # application has additional calls to define().
     tornado.options.parse_command_line()
-    APPLICATIONS = [] # Replace it with a list of actual class instances
-    web_handlers = []
-    for module in app_modules:
-        module.SESSIONS = SESSIONS
-        try:
-            APPLICATIONS.extend(module.apps)
-            if hasattr(module, 'init'):
-                module.init(all_settings)
-            if hasattr(module, 'web_handlers'):
-                web_handlers.extend(module.web_handlers)
-        except AttributeError:
-            pass # No apps--probably just a supporting .py file.
-    logging.debug(_("Imported applications: {0}".format(str(APPLICATIONS))))
+    # NOTE: Here's how settings/command line args works:
+    #       * The 'options' object gets set from the arguments on the command
+    #         line (parse_command_line() above).
+    #       * 'go_settings' gets set from the stuff in the 'settings_dir'
+    #       * Once both are parsed (on their own) we overwrite 'go_settings'
+    #         with what was given on the command line.
+    #       * Once 'go_settings' has been adjusted we overwrite 'options' with
+    #         any settings that directly correlate with command line options.
+    #         This ensures that the 'options' object (which controls Tornado'
+    #         settings) gets the stuff from 'settings_dir' if not provided on
+    #         the command line.
     authentication_options = [
         # These are here only for logical separation in the .conf files
         'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
@@ -2819,6 +2841,59 @@ def main():
         'new_api_key', 'help', 'kill', 'config', 'combine_js', 'combine_css',
         'combine_css_container'
     ]
+    # Figure out which options are being overridden on the command line
+    arguments = []
+    for arg in list(sys.argv)[1:]:
+        if not arg.startswith('-'):
+            break
+        else:
+            arguments.append(arg.lstrip('-').split('=', 1)[0])
+    for argument in arguments:
+        if argument in non_options:
+            continue
+        elif argument in options.keys():
+            go_settings[argument] = options[argument].value()
+    # Update Tornado's options from our settings.
+    # NOTE: For options given on the command line this step should be redundant.
+    for key, value in go_settings.items():
+        if key in non_options:
+            continue
+        elif key in options:
+            if str == bytes: # Python 2
+                if isinstance(value, unicode):
+                    # For whatever reason Tornado doesn't like unicode values
+                    # for its own settings unless you're using Python 3...
+                    value = str(value)
+            if key in ['origins']:
+                # Origins is special and taken care of further down...
+                continue
+            options[key].set(value)
+    # Turn any API keys provided on the command line into a dict
+    api_keys = {}
+    if 'api_keys' in arguments:
+        if options.api_keys:
+            for pair in options.api_keys.value().split(','):
+                api_key, secret = pair.split(':')
+                if bytes == str:
+                    api_key = api_key.decode('UTF-8')
+                    secret = secret.decode('UTF-8')
+                api_keys.update({api_key: secret})
+        go_settings['api_keys'] = api_keys
+    # Setting the log level using go_settings requires an additional step:
+    logging.getLogger().setLevel(getattr(logging, options.logging.upper()))
+    APPLICATIONS = [] # Replace it with a list of actual class instances
+    web_handlers = []
+    for module in app_modules:
+        module.SESSIONS = SESSIONS
+        try:
+            APPLICATIONS.extend(module.apps)
+            if hasattr(module, 'init'):
+                module.init(all_settings)
+            if hasattr(module, 'web_handlers'):
+                web_handlers.extend(module.web_handlers)
+        except AttributeError:
+            pass # No apps--probably just a supporting .py file.
+    logging.debug(_("Imported applications: {0}".format(str(APPLICATIONS))))
     # Convert the old server.conf to the new settings file format and save it
     # as a number of distinct .conf files to keep things better organized.
     # NOTE: This logic will go away some day as it only applies when moving from
@@ -2890,7 +2965,7 @@ def main():
                             u"// This file contains the key and secret pairs "
                             u"used by Gate One's API authentication method.\n")
                         conf.write(msg)
-                        conf.write(str(api_keys))
+                        conf.write(unicode(api_keys))
                 else:
                     settings.update({key: value})
             template_path = os.path.join(
@@ -2921,12 +2996,9 @@ def main():
                     s.write(new_term_settings)
         # Rename the old server.conf so this logic doesn't happen again
         os.rename(options.config, "%s.old" % options.config)
-    all_settings = get_settings(settings_dir)
     if 'gateone' not in all_settings['*']:
         # User has yet to create a 10server.conf (or equivalent)
         all_settings['*']['gateone'] = {} # Will be filled out below
-    # Double check that we have all the necessary settings
-    go_settings = all_settings['*']['gateone']
     # If you want any missing config file entries re-generated just delete the
     # cookie_secret line...
     if 'cookie_secret' not in go_settings or not go_settings['cookie_secret']:
@@ -2989,46 +3061,6 @@ def main():
         # Make sure these values get updated
         all_settings = get_settings(options.settings_dir)
         go_settings = all_settings['*']['gateone']
-    # NOTE: Here's how settings/command line args works:
-    #       * The 'options' object gets set from the arguments on the command
-    #         line.
-    #       * 'go_settings' gets set from the stuff in the 'settings_dir'
-    #       * Once both are parsed (on their own) we overwrite 'go_settings'
-    #         with what was given on the command line.
-    #       * Once 'go_settings' has been adjusted we overwrite 'options' with
-    #         any settings that directly correlate with command line options.
-    #         This ensures that the 'options' object (which controls Tornado'
-    #         settings) gets the stuff from 'settings_dir' if not provided on
-    #         the command line.
-    # Figure out which options are being overridden on the command line
-    arguments = []
-    for arg in list(sys.argv)[1:]:
-        if not arg.startswith('-'):
-            break
-        else:
-            arguments.append(arg.lstrip('-').split('=', 1)[0])
-    for argument in arguments:
-        if argument in non_options:
-            continue
-        elif argument in options.keys():
-            go_settings[argument] = options[argument].value()
-    # Update Tornado's options from our settings.
-    # NOTE: For options given on the command line this step should be redundant.
-    for key, value in go_settings.items():
-        if key in non_options:
-            continue
-        elif key in options:
-            if str == bytes: # Python 2
-                if isinstance(value, unicode):
-                    # For whatever reason Tornado doesn't like unicode values
-                    # for its own settings unless you're using Python 3...
-                    value = str(value)
-            if key in ['origins']:
-                # Origins is special and taken care of further down...
-                continue
-            options[key].set(value)
-    # Setting the log level using go_settings requires an additional step:
-    logging.getLogger().setLevel(getattr(logging, options.logging.upper()))
     # Change the uid/gid strings into integers
     try:
         uid = int(go_settings['uid'])
@@ -3347,17 +3379,6 @@ def main():
     # Set our global session timeout
     global TIMEOUT
     TIMEOUT = convert_to_timedelta(go_settings['session_timeout'])
-    # Turn any API keys provided on the command line into a dict
-    api_keys = {}
-    if 'api_keys' in arguments:
-        if options.api_keys:
-            for pair in options.api_keys.value().split(','):
-                api_key, secret = pair.split(':')
-                if bytes == str:
-                    api_key = api_key.decode('UTF-8')
-                    secret = secret.decode('UTF-8')
-                api_keys.update({api_key: secret})
-        go_settings['api_keys'] = api_keys
     # Fix the url_prefix if the user forgot the trailing slash
     if not go_settings['url_prefix'].endswith('/'):
         go_settings['url_prefix'] += '/'
