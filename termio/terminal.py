@@ -1152,6 +1152,7 @@ class Terminal(object):
         # Used by cursor_left() and cursor_right() to handle double-width chars:
         self.double_width_right = False
         self.double_width_left = False
+        self.prev_char = u''
         self.initialize(rows, cols, em_dimensions)
 
     def initialize(self, rows=24, cols=80, em_dimensions=None):
