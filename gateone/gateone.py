@@ -1661,9 +1661,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         filename = 'theme.css' # Don't need a hashed name for the theme
         cached_theme_path = os.path.join(cache_dir, filename)
         new_theme_path = os.path.join(cache_dir, filename+'.new')
-        with io.open(new_theme_path, 'w') as f:
+        with io.open(new_theme_path, 'wb') as f:
             for path in theme_files:
-                f.write(io.open(path, 'r', encoding='utf-8').read())
+                f.write(io.open(path, 'rb').read())
         new = open(new_theme_path, 'rb').read()
         old = ''
         if os.path.exists(cached_theme_path):
