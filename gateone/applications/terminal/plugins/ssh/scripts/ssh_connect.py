@@ -19,6 +19,7 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
 import os, sys, errno, readline, tempfile, base64, binascii, struct, signal, re
+import urlparse, socket
 from subprocess import Popen
 from optparse import OptionParser
 # i18n support stuff
@@ -99,6 +100,7 @@ def valid_hostname(hostname, allow_underscore=False):
         * If an IDN, when converted to Punycode it must comply with the above.
 
     IP addresses will be validated according to their well-known specifications.
+    (from http://stackoverflow.com/questions/2532053/validate-a-hostname-string)
 
     Examples::
 
@@ -136,6 +138,7 @@ def valid_hostname(hostname, allow_underscore=False):
 def valid_ip(ipaddr):
     """
     Returns True if *ipaddr* is a valid IPv4 or IPv6 address.
+    (from http://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python)
     """
     import socket
     if ':' in ipaddr: # IPv6 address
@@ -462,39 +465,11 @@ def telnet_connect(user, host, port=23, env=None):
     os.execvpe(script_path, [], env)
     os._exit(0)
 
-def parse_telent_url(url):
+def parse_url(url):
     """
-    Parses a telnet URL like, 'telnet://user@host:23' and returns a tuple of::
+    Parses a URL like, 'ssh://user@host:22' and returns a tuple of::
 
-        (user, host, port)
-    """
-    user = None # Default
-    if '@' in url: # user@host[:port]
-        host = url.split('@')[1].split(':')[0]
-        user = url.split('@')[0][9:]
-        if ':' in user: # Password was included (not secure but it could be useful)
-            password = user.split(':')[1]
-            user = user.split(':')[0]
-        if len(url.split('@')[1].split(':')) == 1: # No port given, assume 22
-            port = '23'
-        else:
-            port = url.split('@')[1].split(':')[1]
-            port = port.split('/')[0] # In case there's a query string
-    else: # Just host[:port] (assume $GO_USER)
-        url = url[9:] # Remove the protocol
-        host = url.split(':')[0]
-        if len(url.split(':')) == 2: # There's a port #
-            port = url.split(':')[1]
-            port = port.split('/')[0] # In case there's a query string
-        else:
-            port = '23'
-    return (user, host, port)
-
-def parse_ssh_url(url):
-    """
-    Parses an ssh URL like, 'ssh://user@host:22' and returns a tuple of::
-
-        (user, host, port, password, identities)
+        (scheme, user, host, port, password, identities)
 
     .. note:: 'web+ssh://' URLs are also supported.
 
@@ -507,61 +482,30 @@ def parse_ssh_url(url):
 
     .. note:: *password* and *identities* may be returned as None and [], respectively.
     """
-    identities = []
-    password = None
-    ipv6 = False
-    # Remove the 'web+' part if present
-    if url.startswith('web+'):
-        url = url[4:]
-    if '@' in url: # user@host[:port]
-        if '[' in url and ']' in url: # IPv6 address.
-            ipv6 = True
-            ipv6_addr = re.compile('\[.+\]', re.DOTALL)
-            host = ipv6_addr.match(url.split('@')[1]).group()
-        else:
-            host = url.split('@')[1].split(':')[0]
-        user = url.split('@')[0][6:]
-        if ':' in user: # Password was included (not secure but it could be useful)
-            password = user.split(':')[1]
-            user = user.split(':')[0]
-        if ipv6:
-            port = ipv6_addr.split(url)[1][1:]
-            if not port:
-                port = '22'
-        else:
-            if len(url.split('@')[1].split(':')) == 1: # No port given
-                port = '22'
-            else:
-                port = url.split('@')[1].split(':')[1]
-                port = port.split('/')[0] # In case there's a query string
-    else: # Just host[:port] (assume $GO_USER)
-        # Commented these out since it is more user-friendly to let them type in
-        # their username (in case you might want to login using different names)
-        #try:
-            #user = os.environ['GO_USER']
-        #except KeyError: # Fall back to $USER
-            #user = os.environ['USER']
-        user = None
-        url = url[6:] # Remove the protocol
-        host = url.split(':')[0]
-        if len(url.split(':')) == 2: # There's a port #
-            port = url.split(':')[1]
-            port = port.split('/')[0] # In case there's a query string
-        else:
-            port = '22'
-    # Parse out any query string parameters
-    if "?" in url:
-        query_string = url.split('?')[1]
-        options = query_string.split('&') # Looking to the future here
-        options_dict = {}
-        for option in options:
-            # 'identities=id_rsa,id_ecdsa' -> ['identities', 'id_rsa,id_ecdsa']
-            key, value = option.split('=')
-            options_dict[key] = value
-        # Capture the provided identities (if any)
-        if 'identities' in options_dict:
-            identities = options_dict['identities'].split(',')
-    return (user, host, port, password, identities)
+    
+    identities = set()
+    o = urlparse.urlparse(url)
+    if o.query:
+        q_attrs = urlparse.parse_qs(o.query)
+        for ident in q_attrs.get('identities', []):
+            identities.update(value.split(','))
+
+    if o.port:
+        port = o.port
+    else:
+        port = socket.getservbyname(o.scheme, 'tcp')
+
+    if o.username:
+        username = o.username
+    elif os.environ.get('GO_USER'):
+        username = os.environ['GO_USER']
+    elif os.environ.get('USER'):
+        username = os.environ['USER']
+    else:
+        username = None
+
+    return (o.scheme, username, o.hostname, port, o.password, identities)
+
 
 if __name__ == "__main__":
     """Parse command line arguments and execute ssh_connect()"""
@@ -628,16 +572,19 @@ if __name__ == "__main__":
     #       usernames or passwords (if using autoConnectURL).
     try:
         if len(args) == 1:
-            (user, host, port, password, identities) = parse_ssh_url(args[0])
-            openssh_connect(user, host, port,
-                command=options.command,
-                password=password,
-                sshfp=options.sshfp,
-                randomart=options.randomart,
-                identities=identities,
-                additional_args=options.additional_args,
-                socket=options.socket
-            )
+            (scheme, user, host, port, password, identities) = parse_url(args[0])
+            if scheme == 'telnet':
+                telnet_connect(user, host, port)
+            else:
+                openssh_connect(user, host, port,
+                    command=options.command,
+                    password=password,
+                    sshfp=options.sshfp,
+                    randomart=options.randomart,
+                    identities=identities,
+                    additional_args=options.additional_args,
+                    socket=options.socket
+                )
         elif len(args) == 2: # No port given, assume 22
             openssh_connect(args[0], args[1], '22',
                 command=options.command,
@@ -654,7 +601,7 @@ if __name__ == "__main__":
                 additional_args=options.additional_args,
                 socket=options.socket
             )
-    except Exception:
+    except Exception, e:
         pass # Something ain't right.  Try the interactive entry method...
     password = None
     try:
@@ -701,17 +648,13 @@ if __name__ == "__main__":
                 else:
                     noop = raw_input(invalid_hostname_err)
                     continue
-            elif url.startswith('ssh://') or url.startswith('web+ssh'):
-                (user, host, port, password, identities) = parse_ssh_url(url)
-                protocol = 'ssh'
-            elif url.startswith('telnet://'): # This is a telnet URL
-                (user, host, port) = parse_telent_url(url)
-                protocol = 'telnet'
+            elif url.find('://') >= 0:
+                (protocol, user, host, port, password, identities) = parse_url(url)
             else:
                 # Always assume SSH unless given a telnet:// URL
                 protocol = 'ssh'
                 host = url
-            if valid_hostname(host):
+            if valid_hostname(host, allow_underscore=True):
                 validated = True
             else:
                 # Double-check: It might be an IPv6 address
@@ -779,6 +722,8 @@ if __name__ == "__main__":
                 # Set title
                 print("\x1b]0;telnet://%s\007" % host)
             telnet_connect(user, host, port)
+        else:
+            print(_('Unknown protocol "%s"' % protocol))
     except (KeyboardInterrupt, EOFError):
         print(_("\nUser requested exit.  Quitting..."))
     except Exception as e: # Catch all
