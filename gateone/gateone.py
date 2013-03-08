@@ -3462,7 +3462,7 @@ def main():
                 "authenticate the user that owns the gateone.py process." %
                 go_settings['pam_service']))
     try: # Start your engines!
-        if go_settings['enable_unix_socket']:
+        if go_settings.get('enable_unix_socket', False):
             https_server.add_socket(
                 tornado.netutil.bind_unix_socket(
                     go_settings['unix_socket_path']))

@@ -64,7 +64,7 @@ Class Docstrings
 """
 
 # Standard library modules
-import base64
+import logging, base64
 
 # Import our own stuff
 from utils import get_translation
@@ -150,17 +150,21 @@ class KerberosAuthMixin(tornado.web.RequestHandler):
         """
         auth_str = auth_header.split()[1]
         # Initialize Kerberos Context
-        result, context = kerberos.authGSSServerInit(
-            self.settings['sso_service'])
-        if result != 1:
+        try:
+            result, context = kerberos.authGSSServerInit(
+                self.settings['sso_service'])
+            if result != 1:
+                raise tornado.web.HTTPError(500, _("Kerberos Init failed"))
+            result = kerberos.authGSSServerStep(context, auth_str)
+            if result == 1:
+                gssstring = kerberos.authGSSServerResponse(context)
+            else: # Fall back to Basic auth
+                self.auth_basic(auth_header, callback)
+            # NOTE: The user we get from Negotiate is a full UPN (user@REALM)
+            user = kerberos.authGSSServerUserName(context)
+        except kerberos.GSSError as e:
+            logging.error(_("Kerberos Error: %s" % e))
             raise tornado.web.HTTPError(500, _("Kerberos Init failed"))
-        result = kerberos.authGSSServerStep(context, auth_str)
-        if result == 1:
-            gssstring = kerberos.authGSSServerResponse(context)
-        else: # Fall back to Basic auth
-            self.auth_basic(auth_header, callback)
-        # NOTE: The user we get from Negotiate is a full UPN (e.g. user@REALM)
-        user = kerberos.authGSSServerUserName(context)
         self.set_header('WWW-Authenticate', "Negotiate %s" % gssstring)
         kerberos.authGSSServerClean(context)
         callback(user)

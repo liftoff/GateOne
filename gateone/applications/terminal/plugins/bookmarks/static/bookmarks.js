@@ -7,6 +7,7 @@ var document = window.document; // Have to do this because we're sandboxed
 // Useful sandbox-wide stuff
 var go = GateOne,
     u = go.Utils,
+    t = go.Terminal,
     prefix = go.prefs.prefix,
     noop = u.noop,
     months = {
