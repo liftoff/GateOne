@@ -167,9 +167,6 @@ GateOne.prefs = { // Tunable prefs (things users can change)
     auth: null, // If using API authentication, this value will hold the user's auth object (see docs for the format).
     showTitle: true, // If false, the title will not be shown in the sidebar.
     showToolbar: true, // If false, the toolbar will now be shown in the sidebar.
-    audibleBell: true, // If false, the bell sound will not be played (visual notification will still occur),
-    bellSound: '', // Stores the bell sound data::URI (cached).
-    bellSoundType: '', // Stores the mimetype of the bell sound.
     skipChecks: false // Tells GateOne.init() to skip capabilities checks (in case you have your own or are happy with silent failures)
 }
 // Properties in this object will get ignored when GateOne.prefs is saved to localStorage
@@ -218,10 +215,7 @@ var go = GateOne.Base.update(GateOne, {
         // Restores all of Gate One's user-specific prefs to default values
         GateOne.prefs = {
             theme: 'black',
-            fontSize: '100%',
-            audibleBell: true,
-            bellSound: '',
-            bellSoundType: ''
+            fontSize: '100%'
         }
         GateOne.Events.trigger('go:restore_defaults');
         GateOne.Utils.savePrefs(true); // 'true' here skips the notification
@@ -379,40 +373,23 @@ var go = GateOne.Base.update(GateOne, {
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
             panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
-            prefsPanel = u.createElement('div', {'id': 'panel_prefs', 'class':'panel'}),
+            prefsPanel = u.createElement('div', {'id': 'panel_prefs', 'class':'panel ✈prefs_panel'}),
             prefsPanelH2 = u.createElement('h2'),
             prefsPanelForm = u.createElement('form', {'id': 'prefs_form', 'name': prefix+'prefs_form'}),
+            prefsList = u.createElement('div', {'id': 'prefs_list', 'class': '✈prefs_list'}),
+            prefsListUL = u.createElement('ul', {'id': 'prefs_list_ul'}),
+            prefsContent = u.createElement('div', {'id': 'prefs_content', 'class': '✈prefs_content'}),
             prefsPanelStyleRow1 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelStyleRow2 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelStyleRow3 = u.createElement('div', {'class':'paneltablerow'}),
             prefsPanelStyleRow4 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelStyleRow5 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelStyleRow6 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelRow1 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelRow2 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelRow4 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelRow5 = u.createElement('div', {'class':'paneltablerow'}),
             tableDiv = u.createElement('div', {'id': 'prefs_tablediv1', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            tableDiv2 = u.createElement('div', {'id': 'prefs_tablediv2', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             prefsPanelThemeLabel = u.createElement('span', {'id': 'prefs_theme_label', 'class':'paneltablelabel'}),
             prefsPanelTheme = u.createElement('select', {'id': 'prefs_theme', 'name': prefix+'prefs_theme', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelColorsLabel = u.createElement('span', {'id': 'prefs_colors_label', 'class':'paneltablelabel'}),
-            prefsPanelColors = u.createElement('select', {'id': 'prefs_colors', 'name':'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
             prefsPanelFontSizeLabel = u.createElement('span', {'id': 'prefs_fontsize_label', 'class':'paneltablelabel'}),
             prefsPanelFontSize = u.createElement('input', {'id': 'prefs_fontsize', 'name': prefix+'prefs_fontsize', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelDisableTermTransitionsLabel = u.createElement('span', {'id': 'prefs_disabletermtrans_label', 'class':'paneltablelabel'}),
-            prefsPanelDisableTermTransitions = u.createElement('input', {'id': 'prefs_disabletermtrans', 'name': prefix+'prefs_disabletermtrans', 'value': 'disabletermtrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelDisableAudibleBellLabel = u.createElement('span', {'id': 'prefs_disableaudiblebell_label', 'class':'paneltablelabel'}),
-            prefsPanelDisableAudibleBell = u.createElement('input', {'id': 'prefs_disableaudiblebell', 'name': prefix+'prefs_disableaudiblebell', 'value': 'disableaudiblebell', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelBellLabel = u.createElement('span', {'id': 'prefs_bell_label', 'class':'paneltablelabel'}),
-            prefsPanelBell = u.createElement('button', {'id': 'prefs_bell', 'value': 'bell', 'class': 'button black', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelScrollbackLabel = u.createElement('span', {'id': 'prefs_scrollback_label', 'class':'paneltablelabel'}),
-            prefsPanelScrollback = u.createElement('input', {'id': 'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelRowsLabel = u.createElement('span', {'id': 'prefs_rows_label', 'class':'paneltablelabel'}),
-            prefsPanelRows = u.createElement('input', {'id': 'prefs_rows', 'name': prefix+'prefs_rows', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelColsLabel = u.createElement('span', {'id': 'prefs_cols_label', 'class':'paneltablelabel'}),
-            prefsPanelCols = u.createElement('input', {'id': 'prefs_cols', 'name': prefix+'prefs_cols', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelSave = u.createElement('button', {'id': 'prefs_save', 'type': 'submit', 'value': 'Save', 'class': 'button black', 'style': {'float': 'right'}}),
+            prefsPanelDisableTransitionsLabel = u.createElement('span', {'id': 'prefs_disabletrans_label', 'class':'paneltablelabel'}),
+            prefsPanelDisableTransitions = u.createElement('input', {'id': 'prefs_disabletrans', 'name': prefix+'prefs_disabletrans', 'value': 'disabletrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelSave = u.createElement('button', {'id': 'prefs_save', 'type': 'submit', 'value': 'Save', 'class': 'button black ✈save_button'}),
             noticeContainer = u.createElement('div', {'id': 'noticecontainer', 'class': '✈noticecontainer'}),
             toolbar = u.createElement('div', {'id': 'toolbar', 'class': 'toolbar_container'}),
             toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'toolbar', 'title': "Preferences"}),
@@ -420,9 +397,11 @@ var go = GateOne.Base.update(GateOne, {
             // Firefox doesn't support 'mousewheel'
 //             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
             sideinfo = u.createElement('div', {'id': 'sideinfo', 'class':'sideinfo'}),
-            themeList = [], // Gets filled out below
-            colorsList = [],
-            updateCSSfunc = function() { go.ws.send(JSON.stringify({'go:enumerate_themes': null})) };
+            updateCSSfunc = function(panelNode) {
+                if (panelNode.id == prefix+'panel_prefs') {
+                    go.ws.send(JSON.stringify({'go:enumerate_themes': null}));
+                }
+            };
         // Create our prefs panel
         u.hideElement(prefsPanel); // Start out hidden
         go.Visual.applyTransform(prefsPanel, 'scale(0)'); // So it scales back in real nice
@@ -432,81 +411,43 @@ var go = GateOne.Base.update(GateOne, {
         panelClose.onclick = function(e) {
             go.Visual.togglePanel('#'+prefix+'panel_prefs'); // Scale away, scale away, scale away.
         }
-        prefsPanelBell.onclick = function(e) {
-            e.preventDefault(); // Just in case
-            go.User.uploadBellDialog();
-        }
         prefsPanel.appendChild(prefsPanelH2);
         prefsPanel.appendChild(panelClose);
         prefsPanelThemeLabel.innerHTML = "<b>Theme:</b> ";
-        prefsPanelColorsLabel.innerHTML = "<b>Color Scheme:</b> ";
         prefsPanelFontSizeLabel.innerHTML = "<b>Font Size:</b> ";
-        prefsPanelDisableTermTransitionsLabel.innerHTML = "<b>Disable Terminal Slide Effect:</b> ";
-        prefsPanelDisableAudibleBellLabel.innerHTML = "<b>Disable Bell Sound:</b> ";
-        prefsPanelBell.innerHTML = "Configure";
-        prefsPanelBellLabel.innerHTML = "<b>Bell Sound:</b> ";
+        prefsPanelDisableTransitionsLabel.innerHTML = "<b>Disable Workspace Slide Effect:</b> ";
         prefsPanelFontSize.value = go.prefs.fontSize;
-        prefsPanelDisableTermTransitions.checked = go.prefs.disableTermTransitions;
+        prefsPanelDisableTransitions.checked = go.prefs.disableTransitions;
         prefsPanelStyleRow1.appendChild(prefsPanelThemeLabel);
         prefsPanelStyleRow1.appendChild(prefsPanelTheme);
-        prefsPanelStyleRow2.appendChild(prefsPanelColorsLabel);
-        prefsPanelStyleRow2.appendChild(prefsPanelColors);
         prefsPanelStyleRow3.appendChild(prefsPanelFontSizeLabel);
         prefsPanelStyleRow3.appendChild(prefsPanelFontSize);
-        prefsPanelStyleRow4.appendChild(prefsPanelDisableTermTransitionsLabel);
-        prefsPanelStyleRow4.appendChild(prefsPanelDisableTermTransitions);
-        prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBellLabel);
-        prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBell);
-        prefsPanelStyleRow6.appendChild(prefsPanelBellLabel);
-        prefsPanelStyleRow6.appendChild(prefsPanelBell);
+        prefsPanelStyleRow4.appendChild(prefsPanelDisableTransitionsLabel);
+        prefsPanelStyleRow4.appendChild(prefsPanelDisableTransitions);
         tableDiv.appendChild(prefsPanelStyleRow1);
-        tableDiv.appendChild(prefsPanelStyleRow2);
         tableDiv.appendChild(prefsPanelStyleRow3);
         tableDiv.appendChild(prefsPanelStyleRow4);
-        tableDiv.appendChild(prefsPanelStyleRow5);
-        tableDiv.appendChild(prefsPanelStyleRow6);
-        prefsPanelScrollbackLabel.innerHTML = "<b>Scrollback Buffer Lines:</b> ";
-        prefsPanelScrollback.value = go.prefs.scrollback;
-        prefsPanelRowsLabel.innerHTML = "<b>Terminal Rows:</b> ";
-        prefsPanelRows.value = go.prefs.rows || "";
-        prefsPanelColsLabel.innerHTML = "<b>Terminal Columns:</b> ";
-        prefsPanelCols.value = go.prefs.cols || "";
-        prefsPanelRow1.appendChild(prefsPanelScrollbackLabel);
-        prefsPanelRow1.appendChild(prefsPanelScrollback);
-        prefsPanelRow4.appendChild(prefsPanelRowsLabel);
-        prefsPanelRow4.appendChild(prefsPanelRows);
-        prefsPanelRow5.appendChild(prefsPanelColsLabel);
-        prefsPanelRow5.appendChild(prefsPanelCols);
-        tableDiv2.appendChild(prefsPanelRow1);
-        tableDiv2.appendChild(prefsPanelRow2);
-        tableDiv2.appendChild(prefsPanelRow4);
-        tableDiv2.appendChild(prefsPanelRow5);
-        prefsPanelForm.appendChild(tableDiv);
-        prefsPanelForm.appendChild(tableDiv2);
+        prefsList.appendChild(prefsListUL);
+        prefsPanelForm.appendChild(prefsList);
+        prefsPanelForm.appendChild(prefsContent);
         prefsPanelSave.innerHTML = "Save";
         prefsPanelForm.appendChild(prefsPanelSave);
         prefsPanel.appendChild(prefsPanelForm);
         if (!go.prefs.embedded) {
             goDiv.appendChild(prefsPanel); // Doesn't really matter where it goes
         }
+        go.User.preference("Gate One", tableDiv);
         prefsPanelForm.onsubmit = function(e) {
             e.preventDefault(); // Don't actually submit
             var theme = u.getNode('#'+prefix+'prefs_theme').value,
-                colors = u.getNode('#'+prefix+'prefs_colors').value,
                 fontSize = u.getNode('#'+prefix+'prefs_fontsize').value,
-                scrollbackValue = u.getNode('#'+prefix+'prefs_scrollback').value,
-                rowsValue = u.getNode('#'+prefix+'prefs_rows').value,
-                colsValue = u.getNode('#'+prefix+'prefs_cols').value,
-                disableTermTransitions = u.getNode('#'+prefix+'prefs_disabletermtrans').checked,
-                disableAudibleBell = u.getNode('#'+prefix+'prefs_disableaudiblebell').checked;
+                disableTransitions = u.getNode('#'+prefix+'prefs_disabletrans').checked;
             // Grab the form values and set them in prefs
-            // TODO: Move the colors bits to terminal.js
-            if (theme != go.prefs.theme || colors != go.prefs.colors) {
-                // Start using the new CSS theme and colors
+            if (theme != go.prefs.theme) {
+                // Start using the new CSS theme
                 u.loadTheme(theme);
                 // Save the user's choice
                 go.prefs.theme = theme;
-                go.prefs.colors = colors;
             }
             if (fontSize) {
                 var scale = null,
@@ -529,35 +470,17 @@ var go = GateOne.Base.update(GateOne, {
                     go.Visual.applyTransform(toolbar, 'translateY('+translateY+'%) scale('+scale+')');
                 }
             }
-            if (scrollbackValue) {
-                go.prefs.scrollback = parseInt(scrollbackValue);
-            }
-            if (rowsValue) {
-                go.prefs.rows = parseInt(rowsValue);
-            } else {
-                go.prefs.rows = null;
-            }
-            if (colsValue) {
-                go.prefs.cols = parseInt(colsValue);
-            } else {
-                go.prefs.cols = null;
-            }
-            if (disableTermTransitions) {
-                var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
-                newStyle.innerHTML = go.prefs.goDiv + " .terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+            if (disableTransitions) {
+                var newStyle = u.createElement('style', {'id': 'disable_transitions'});
+                newStyle.innerHTML = go.prefs.goDiv + " .workspace {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
                 u.getNode(goDiv).appendChild(newStyle);
-                go.prefs.disableTermTransitions = true;
+                go.prefs.disableTransitions = true;
             } else {
-                var existing = u.getNode('#'+prefix+'disable_term_transitions');
+                var existing = u.getNode('#'+prefix+'disable_transitions');
                 if (existing) {
                     u.removeElement(existing);
                 }
-                go.prefs.disableTermTransitions = false;
-            }
-            if (disableAudibleBell) {
-                go.prefs.audibleBell = false;
-            } else {
-                go.prefs.audibleBell = true;
+                go.prefs.disableTransitions = false;
             }
             E.trigger("go:save_prefs");
             // savePrefsCallbacks is DEPRECATED.  Use GateOne.Events.on("go:save_prefs", yourFunc) instead
@@ -897,9 +820,10 @@ GateOne.Base.update(GateOne.Utils, {
         var u = GateOne.Utils,
             elems = u.toArray(u.getNodes(elems));
         elems.forEach(function(elem) {
-            u.getNode(elem).style.display = 'none';
-            if (elem.className.indexOf('go_none') == -1) {
-                u.getNode(elem).className += " go_none";
+            var node = u.getNode(elem);
+            node.style.display = 'none';
+            if (node.className.indexOf('go_none') == -1) {
+                node.className += " go_none";
             }
         });
     },
@@ -1096,7 +1020,10 @@ GateOne.Base.update(GateOne.Utils, {
         }
     },
     runPostInit: function() {
-        // Called after all the plugins have been loaded.
+        /**GateOne.Utils.runPostInit()
+
+        Called after all the plugins have been loaded; calls each plugin's init() and postInit() functions.
+        */
         // NOTE: Probably don't need a preInit() since modules can just put stuff inside their main .js for that.  If you can think of a use case let me know and I'll add it.
         // Go through all our loaded modules and run their init functions (if any)
         logDebug("Running runPostInit()");
@@ -1192,12 +1119,12 @@ GateOne.Base.update(GateOne.Utils, {
             if (!message['requires']) {
                 logDebug("Loading " + message['filename'] + " immediately because it has no dependencies.");
                 u.runPostInit();
-            } else {
-                u.postInitDebounce = setTimeout(function() {
-                    u.runPostInit(); // Calls any init() and postInit() functions in the loaded JS.
-                }, 500); // This is hopefully fast enough to be nearly instantaneous to the user but also long enough for the biggest script to be loaded.
-                // NOTE:  runPostInit() will *not* re-run init() and postInit() functions if they've already been run once.  Even if the script is being replaced/updated.
             }
+            u.postInitDebounce = setTimeout(function() {
+                u.runPostInit(); // Calls any init() and postInit() functions in the loaded JS.
+                go.Events.trigger("go:js_loaded");
+            }, 500); // This is hopefully fast enough to be nearly instantaneous to the user but also long enough for the biggest script to be loaded.
+            // NOTE:  runPostInit() will *not* re-run init() and postInit() functions if they've already been run once.  Even if the script is being replaced/updated.
         }
     },
     loadStyleAction: function(message, /*opt*/noCache) {
@@ -1337,25 +1264,19 @@ GateOne.Base.update(GateOne.Utils, {
         }, 5000);
     },
     enumerateThemes: function(messageObj) {
-        // Attached to the 'go:themes_list' action, updates the preferences panel with the list of themes stored on the server.
+        /**:GateOne.Utils.enumerateThemes(messageObj)
+
+        Attached to the 'go:themes_list' WebSocket action; updates the preferences panel with the list of themes stored on the server.
+        */
         var u = go.Utils,
             prefix = go.prefs.prefix,
             themesList = messageObj['themes'],
-            colorsList = messageObj['colors'],
-            prefsThemeSelect = u.getNode('#'+prefix+'prefs_theme'),
-            prefsColorsSelect = u.getNode('#'+prefix+'prefs_colors');
+            prefsThemeSelect = u.getNode('#'+prefix+'prefs_theme');
         prefsThemeSelect.options.length = 0;
-        prefsColorsSelect.options.length = 0;
         for (var i in themesList) {
             prefsThemeSelect.add(new Option(themesList[i], themesList[i]), null);
             if (go.prefs.theme == themesList[i]) {
                 prefsThemeSelect.selectedIndex = i;
-            }
-        }
-        for (var i in colorsList) {
-            prefsColorsSelect.add(new Option(colorsList[i], colorsList[i]), null);
-            if (go.prefs.colors == colorsList[i]) {
-                prefsColorsSelect.selectedIndex = i;
             }
         }
     },
@@ -1552,8 +1473,8 @@ GateOne.Base.update(GateOne.Utils, {
         } else if (parseInt(node.style.opacity) == 0) {
             return false;
         }
-        if (node.parentElement) {
-            return GateOne.Utils.isVisible(node.parentElement);
+        if (node.parentNode) {
+            return GateOne.Utils.isVisible(node.parentNode);
         } else {
             return true;
         }
@@ -1649,7 +1570,22 @@ GateOne.Base.update(GateOne.Utils, {
         } else {
             return iterable.slice(-1)[0];
         }
-    }
+    },
+    insertAfter: function(newElement, targetElement) {
+        /**:GateOne.Utils.insertAfter(newElement, targetElement)
+
+        The opposite of the DOM's built in `insertBefore()` function; inserts the given *newElement* after *targetElement*.
+
+        *targetElement* may be given as a pre-constructed node object or a querySelector-like string.
+        */
+        var targetElement = GateOne.Utils.getNode(targetElement),
+            parent = targetElement.parentNode;
+        if (parent.lastchild == targetElement) {
+            parent.appendChild(newElement);
+        } else {
+            parent.insertBefore(newElement, targetElement.nextSibling);
+        }
+}
 });
 
 // GateOne.Logging
@@ -2062,13 +1998,6 @@ GateOne.Base.update(GateOne.Net, {
                 // Clear the error message if it's still there
                 if (gridwrapper) {
                     gridwrapper.innerHTML = "";
-                }
-                // Load the bell sound from the cache.  If that fails ask the server to send us the file.
-                if (go.prefs.bellSound.length) {
-                    go.User.loadBell({'mimetype': go.prefs.bellSoundType, 'data_uri': go.prefs.bellSound});
-                } else {
-                    logDebug("Attempting to download our bell sound...");
-                    go.ws.send(JSON.stringify({'terminal:get_bell': null}));
                 }
                 if (!go.prefs.auth) {
                     // If 'auth' isn't set that means we're not in API mode but we could still be embedded so check for the user's session info in localStorage
@@ -2826,6 +2755,7 @@ GateOne.Base.update(GateOne.Visual, {
         */
         var v = go.Visual,
             u = go.Utils,
+            E = go.Events,
             panelID = panel,
             panel = u.getNode(panel),
             origState = null,
@@ -2853,10 +2783,10 @@ GateOne.Base.update(GateOne.Visual, {
         }
         // Start by scaling all panels out
         for (var i in u.toArray(panels)) {
-            if (panels[i] && go.Visual.getTransform(panels[i]) == "scale(1)") {
+            if (panels[i] && v.getTransform(panels[i]) == "scale(1)") {
                 v.applyTransform(panels[i], 'scale(0)');
                 // Call any registered 'out' callbacks for all of these panels
-                GateOne.Events.trigger("panel_toggle:out", panel);
+                E.trigger("panel_toggle:out", panel);
                 if (v.panelToggleCallbacks['out']['#'+panels[i].id]) {
                     for (var ref in v.panelToggleCallbacks['out']['#'+panels[i].id]) {
                         if (typeof(v.panelToggleCallbacks['out']['#'+panels[i].id][ref]) == "function") {
@@ -2881,7 +2811,7 @@ GateOne.Base.update(GateOne.Visual, {
                 v.applyTransform(panel, 'scale(1)');
             }, 1);
             // Call any registered 'in' callbacks for all of these panels
-            GateOne.Events.trigger("go:panel_toggle:in", panel)
+            E.trigger("go:panel_toggle:in", panel)
             if (v.panelToggleCallbacks['in']['#'+panel.id]) {
                 for (var ref in v.panelToggleCallbacks['in']['#'+panel.id]) {
                     if (typeof(v.panelToggleCallbacks['in']['#'+panel.id][ref]) == "function") {
@@ -2894,7 +2824,7 @@ GateOne.Base.update(GateOne.Visual, {
             panel.onkeyup = function(e) {
                 if (e.keyCode == 27) { // ESC key
                     e.preventDefault(); // Makes sure we don't send an ESC key to the terminal
-                    GateOne.Visual.togglePanel(panel);
+                    v.togglePanel(panel);
                     panel.onkeyup = null; // Reset
                     return false;
                 }
@@ -2904,7 +2834,7 @@ GateOne.Base.update(GateOne.Visual, {
             // Send it away
             v.applyTransform(panel, 'scale(0)');
             // Call any registered 'out' callbacks for all of these panels
-            GateOne.Events.trigger("go:panel_toggle:out", panel);
+            E.trigger("go:panel_toggle:out", panel);
             if (v.panelToggleCallbacks['out']['#'+panel.id]) {
                 for (var ref in v.panelToggleCallbacks['out']['#'+panel.id]) {
                     if (typeof(v.panelToggleCallbacks['out']['#'+panel.id][ref]) == "function") {
@@ -2989,15 +2919,6 @@ GateOne.Base.update(GateOne.Visual, {
         }
         v.lastMessage = message;
         v.sinceLastMessage = new Date();
-    },
-    playBell: function() {
-        // Plays the bell sound without any visual notification.
-        var snd = GateOne.Utils.getNode('#'+GateOne.prefs.prefix+'bell');
-        if (snd) {
-            if (GateOne.prefs.audibleBell) {
-                snd.play();
-            }
-        }
     },
     disableTransitions: function(elem) {
         /**:GateOne.Visual.disableTransitions(elem)
@@ -4621,7 +4542,6 @@ GateOne.Base.update(GateOne.User, {
         // Register our actions
         go.Net.addAction('go:gateone_user', go.User.storeSession);
         go.Net.addAction('go:set_username', go.User.setUsername);
-        go.Net.addAction('go:load_bell', go.User.loadBell);
         go.Net.addAction('go:applications', go.User.applicationsAction);
     },
     setUsername: function(username) {
@@ -4671,75 +4591,6 @@ GateOne.Base.update(GateOne.User, {
             }, 2000);
         });
     },
-    loadBell: function(message) {
-        // Loads the bell sound into the page as an <audio> element using the given *audioDataURI*.
-        var goDiv = u.getNode(go.prefs.goDiv),
-            audioDataURI = message['data_uri'],
-            mimetype = message['mimetype'],
-            existing = u.getNode('#'+go.prefs.prefix+'bell'),
-            audioElem = u.createElement('audio', {'id': 'bell', 'preload': 'auto'}),
-            sourceElem = u.createElement('source', {'id': 'bell_source', 'type': mimetype});
-        if (existing) {
-            u.removeElement(existing);
-        }
-        sourceElem.src = audioDataURI;
-        audioElem.appendChild(sourceElem);
-        goDiv.appendChild(audioElem);
-        // Cache it so we don't have to re-download it every time.
-        go.prefs.bellSound = audioDataURI;
-        go.prefs.bellSoundType = mimetype;
-        u.savePrefs(true);
-    },
-    uploadBellDialog: function() {
-        // Displays a dialog/form where the user can upload a replacement bell sound or use the default
-        var goDiv = u.getNode(go.prefs.goDiv),
-            playBell = u.createElement('button', {'id': 'play_bell', 'value': 'play_bell', 'class': 'button black'}),
-            defaultBell = u.createElement('button', {'id': 'default_bell', 'value': 'default_bell', 'class': 'button black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
-            uploadBellForm = u.createElement('form', {'name': prefix+'upload_bell_form', 'style': {'width': '25em'}}),
-            bellFile = u.createElement('input', {'type': 'file', 'id': 'upload_bell', 'name': prefix+'upload_bell'}),
-            bellFileLabel = u.createElement('label'),
-            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
-            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black', 'style': {'float': 'right'}});
-        submit.innerHTML = "Submit";
-        cancel.innerHTML = "Cancel";
-        defaultBell.innerHTML = "Reset Bell to Default";
-        playBell.innerHTML = "Play Current Bell";
-        playBell.onclick = function(e) {
-            e.preventDefault();
-            go.Visual.playBell();
-        }
-        bellFileLabel.innerHTML = "Select a Sound File";
-        bellFileLabel.htmlFor = prefix+'upload_bell';
-        uploadBellForm.appendChild(playBell);
-        uploadBellForm.appendChild(defaultBell);
-        uploadBellForm.appendChild(bellFileLabel);
-        uploadBellForm.appendChild(bellFile);
-        uploadBellForm.appendChild(submit);
-        uploadBellForm.appendChild(cancel);
-        var closeDialog = go.Visual.dialog('Upload Bell Sound', uploadBellForm);
-        cancel.onclick = closeDialog;
-        defaultBell.onclick = function(e) {
-            e.preventDefault();
-            go.ws.send(JSON.stringify({'terminal:get_bell': null}));
-            closeDialog();
-        }
-        uploadBellForm.onsubmit = function(e) {
-            // Don't actually submit it
-            e.preventDefault();
-            // Grab the form values
-            var bellFile = u.getNode('#'+prefix+'upload_bell').files[0],
-                bellReader = new FileReader(),
-                saveBell = function(evt) {
-                    var dataURI = evt.target.result,
-                        mimetype = bellFile.type;
-                    go.User.loadBell({'mimetype': mimetype, 'data_uri': dataURI});
-                };
-            // Get the data out of the files
-            bellReader.onload = saveBell;
-            bellReader.readAsDataURL(bellFile);
-            closeDialog();
-        }
-    },
     storeSession: function(message) {
         //  Stores the 'gateone_user' data in localStorage in a nearly identical fashion to how it gets stored in the 'gateone_user' cookie.
         localStorage[GateOne.prefs.prefix+'gateone_user'] = message;
@@ -4753,6 +4604,76 @@ GateOne.Base.update(GateOne.User, {
         Sets `GateOne.User.applications` to be the given list of *apps* (which is the list of applications the user is allowed to run).
         */
         GateOne.User.applications = apps;
+    },
+    preference: function(title, content, /*opt*/callback) {
+        /**:GateOne.User.preference(title, content)
+
+        Adds a new section to the preferences panel using the given *title* and *content*.  The *title* will be used to create a link that will bring up *content*.  The *content* will be placed inside the preferences form.
+
+        To place a preference under a subsection (e.g. Terminal -> SSH) provide the *title* like so:  "Terminal:SSH".
+
+        If *callback* is given it will be attacheed to the "go:save_prefs" event.
+        */
+        var parentTitle, parentItem, existingParentUL, u = go.Utils,
+            U = go.User,
+            E = go.Events,
+            prefix = go.prefs.prefix,
+            prefsList = u.getNode('#'+prefix+'prefs_list'),
+            prefsListUL = u.getNode('#'+prefix+'prefs_list_ul'),
+            sublistUL = u.createElement('ul', {'class': '✈sub1'}),
+            prefsContent = u.getNode('#'+prefix+'prefs_content'),
+            contentContainer = u.createElement('div', {'class': '✈prefs_content_item'}),
+            prefsItem = u.createElement('li'),
+            showHide = function(e) {
+                // Shows the clicked item's prefs and hides the others
+                var self = this,
+                    elem = U.prefsItems[self.title],
+                    items = u.toArray(u.getNodes('.✈prefs_content_item')),
+                    titles = u.toArray(u.getNodes('#'+prefix+'prefs_list_ul li'));
+                items.forEach(function(item) {
+                    item.style.display = 'none';
+                });
+                titles.forEach(function(item) {
+                    item.classList.remove('✈active');
+                });
+                setTimeout(function() {
+                    contentContainer.style.display = '';
+                    self.classList.add('✈active');
+                }, 10);
+            };
+        if (title.split(':').length > 1) {
+            parentTitle = title.split(':')[0],
+            title = title.split(':')[1];
+        }
+        prefsItem.innerHTML = title;
+        prefsItem.title = title;
+        prefsItem.addEventListener('click', showHide, false);
+        if (parentTitle) {
+            parentItem = u.getNode('#'+prefix+'prefs_list_ul [title='+parentTitle+']');
+            existingParentUL = parentItem.querySelector('ul');
+            if (!existingParentUL) {
+                // Add a <ul> container for sub-items
+                u.insertAfter(sublistUL, parentItem);
+                existingParentUL = sublistUL;
+            }
+            existingParentUL.appendChild(prefsItem);
+        } else {
+            prefsListUL.appendChild(prefsItem);
+        }
+        if (!U.prefsItems) {
+            U.prefsItems = {};
+        }
+        contentContainer.style.display = 'none'; // Hidden by default
+        U.prefsItems[title] = contentContainer;
+        if (typeof(content) == "string") {
+            contentContainer.innerHTML = content;
+        } else {
+            contentContainer.appendChild(content);
+        }
+        prefsContent.appendChild(contentContainer);
+        if (callback) {
+            E.on("go:save_prefs", callback);
+        }
     }
 });
 

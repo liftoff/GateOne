@@ -220,7 +220,7 @@
     z-index:600;
     position:absolute;
     top:0;
-    right:1.6em;
+    right:1em;
     color: #fff;
     text-align: right;
 }
@@ -362,7 +362,8 @@ potential conflicts with other classes that may be on the page.
     top:1em;
     right:3.4em;
     display: block;
-    background: #ccc; color: #000;
+    background: #002b36;
+    color: #839496;
     font-family: sans-serif;
     z-index: 700; /* Same as toolbar */
     overflow-x: hidden;
@@ -390,12 +391,8 @@ potential conflicts with other classes that may be on the page.
     transform-origin: top right;
     transition: all 0.5s ease-in-out;
     box-shadow: 0.2em 0.2em 0.5em #000;
-    background-image: -moz-linear-gradient(#eee, #999);
-    background-image: -webkit-linear-gradient(#eee, #999);
-    background-image: -o-linear-gradient(#eee, #999);
-    background-image: linear-gradient(#eee, #999);
     border: 0.1em #fff outset;
-    border-radius: 0.5em;
+    border-radius: 0.3em;
 }
 #{{container}} .panel h2 {
     width: 100%;
@@ -426,16 +423,9 @@ potential conflicts with other classes that may be on the page.
 #{{container}} .paneltable {
     position: relative;
     width: 100%;
-    background-color: #222;
-    color: #000;
     padding-bottom: 0.5em;
     margin-bottom: 0.2em;
-    border: 0.1em #000 solid;
-    box-shadow: 2px 2px 4px #888;
-    background-image: -moz-linear-gradient(#fff, #ccc);
-    background-image: -webkit-linear-gradient(#fff, #ccc);
-    background-image: -o-linear-gradient(#fff, #ccc);
-    background-image: linear-gradient(#fff, #ccc);
+    border: 0.1em #fff solid;
 }
 #{{container}} .paneltablerow {
     display: table-row;
@@ -461,6 +451,62 @@ potential conflicts with other classes that may be on the page.
 #{{container}} .panel_close_icon:hover {
     opacity: 1;
     cursor:pointer;
+}
+.✈prefs_panel {
+    min-width: 60%;
+}
+.✈prefs_list {
+    float: left;
+    margin-right: .7em;
+}
+.✈save_button {
+    float: right;
+    clear: both;
+}
+.✈prefs_list ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0 auto;
+}
+.✈prefs_list li {
+    font-weight: bold;
+    border: 1px #fff solid;
+    padding: .5em;
+    -webkit-transition: -webkit-transform 0.25s ease-in-out;
+    -moz-transition: -moz-transform 0.25s ease-in-out;
+    -o-transition-property: -o-transform;
+    -o-transition-duration: 0.5s;
+    -o-transition-timing-function: ease-in-out;
+    -ms-transition: -ms-transform 0.5s ease-in-out;
+    transition: transform 0.5s ease-in-out;
+}
+.✈prefs_list li:after {
+    content: "✷";
+    padding-left: 1.5em;
+    float: right;
+}
+.✈prefs_list li:hover {
+    cursor: pointer;
+    background-color: #000;
+}
+.✈prefs_list .✈active {
+    background-color: #002B36;
+    background-image: linear-gradient(#002B36, #000);
+    color: #fff;
+}
+.✈prefs_list .✈active:hover {
+    background-color: #002B36;
+    color: #fff;
+}
+.✈prefs_content {
+    float: left;
+    width: 67%;
+}
+.✈sub1 li {
+    padding-left: .9em;
+}
+.✈sub1 li:before {
+    content: "⛱ ";
 }
 #{{container}} form { margin: 0 0 1em; }
 #{{container}} label {
@@ -809,7 +855,7 @@ potential conflicts with other classes that may be on the page.
     width: 50%; /* Ensures things are centered */
 }
 /* SVG Styling */
-.✈svgplain { fill: #2A5BA6; }
+.✈svgplain { fill: #1F5470; }
 #{{container}} .stop1 { stop-color: #FFF; }
 #{{container}} .stop2 { stop-color: #E1E2E3; }
 #{{container}} .stop3 { stop-color: #D3D4D6; }

@@ -2290,7 +2290,6 @@ class Terminal(object):
             for tabstop in self.tabstops:
                 if self.cursorX > tabstop:
                     self.tabstops.add(self.cursorX)
-                    self.tabstops.sort() # Put them in order :)
                     break
 
     def linefeed(self):

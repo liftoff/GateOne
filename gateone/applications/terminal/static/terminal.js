@@ -23,6 +23,9 @@ go.prefs['webWorker'] = null; // This is the fallback path to the Terminal's scr
 go.prefs['scrollback'] = 500, // Amount of lines to keep in the scrollback buffer
 go.prefs['rows'] =  null; // Override the automatically calculated value (null means fill the window)
 go.prefs['cols'] =  null; // Ditto
+go.prefs['audibleBell'] = true; // If false, the bell sound will not be played (visual notification will still occur),
+go.prefs['bellSound'] = ''; // Stores the bell sound data::URI (cached).
+go.prefs['bellSoundType'] = ''; // Stores the mimetype of the bell sound.
 go.prefs['colors'] = 'default'; // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
 go.prefs['disableTermTransitions'] = false; // Disabled the sliding animation on terminals to make switching faster
 go.prefs['rowAdjust'] = 0;   // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
@@ -111,14 +114,19 @@ go.Base.update(GateOne.Terminal, {
                 if (localStorage[prefix+'selectedTerminal']) {
                     go.Terminal.switchTerminal(localStorage[prefix+'selectedTerminal']);
                 }
+            },
+            updateColorsfunc = function(panelNode) {
+                if (panelNode.id == prefix+'panel_prefs') {
+                    go.ws.send(JSON.stringify({'terminal:enumerate_colors': null}));
+                }
             };
         if (cmdQueryString) {
             go.Terminal.defaultCommand = cmdQueryString;
         }
-        // Create our info panel
+        // Create our Terminal panel
         go.Icons['magnifyingGlass'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
-        GateOne.Icons['info'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" y2="756.67" gradientUnits="userSpaceOnUse" x2="567.96" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" y1="674.11" x1="567.96"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g></svg>';
-        toolbarInfo.innerHTML = go.Icons['info'];
+        GateOne.Icons['terminal'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" x1="567.96" gradientUnits="userSpaceOnUse" y1="674.11" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" x2="567.96" y2="756.67"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="17.85666656px" transform="scale(1.0177209,0.98258768)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" class="✈svg"><path d="m4.3602,8.4883,0,0.75202-0.44794,0,0-0.72259c-0.49699,3E-7-0.8948-0.076292-1.1934-0.22888v-0.56238c0.42723,0.20054,0.82504,0.30081,1.1934,0.30081v-1.419c-0.4207-0.1394-0.7161-0.2975-0.8861-0.474-0.1679-0.1788-0.2518-0.4185-0.2518-0.7194,0-0.2855,0.1003-0.522,0.3008-0.7095,0.2006-0.1874,0.4796-0.303,0.8371-0.3466v-0.58854h0.44794v0.57546c0.40761,0.019622,0.77381,0.10463,1.0986,0.25503l-0.2158,0.4741c-0.3052-0.1351-0.5994-0.2136-0.8828-0.2354v1.3798c0.4338,0.1482,0.7379,0.3106,0.9122,0.4872,0.1766,0.1743,0.2649,0.4032,0.2649,0.6866,0,0.6103-0.3924,0.9754-1.1771,1.0953m-0.4479-2.4293v-1.2065c-0.37492,0.063217-0.56238,0.25286-0.56238,0.56892-0.0000012,0.17003,0.043594,0.3019,0.13079,0.39563,0.089369,0.093733,0.23323,0.17438,0.43159,0.24195m0.44794,0.71605,0,1.2196c0.4011-0.061,0.6016-0.2616,0.6016-0.6016,0-0.2768-0.2005-0.4828-0.6016-0.618"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="6.54116535px" transform="scale(0.84851886,1.1785242)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="Droid Sans Mono" class="✈svg"><path style="" d="m12.145,7.6556-4.0212,0,0-0.44715,4.0212,0,0,0.44715"/></g></svg>';
+        toolbarInfo.innerHTML = go.Icons['terminal'];
         toolbarClose.innerHTML = go.Icons['close'];
         go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="newTermGradient" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#newTermGradient)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/></g></g></svg>';
         toolbarNewTerm.innerHTML = go.Icons['newTerm'];
@@ -243,6 +251,7 @@ go.Base.update(GateOne.Terminal, {
                         sideInfo = u.getNode('#'+prefix+'sideinfo');
                     // Send a message to the server with the new title so it can stay in sync if the user reloads the page or reconnects from a different browser/machine
                     go.ws.send(JSON.stringify({'terminal:manual_title': {'term': term, 'title': newTitle}}));
+                    infoPanelH2.innerHTML = newTitle;
                     infoPanelH2.onclick = editTitle;
                     go.Terminal.displayTermInfo(term);
                     go.Terminal.Input.capture();
@@ -296,13 +305,20 @@ go.Base.update(GateOne.Terminal, {
             // Ctrl-Alt-W to close the current terminal
             go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
         }
-        // TODO: Get rid of the disableTermTransitions preference.  It will be a workspaces thing in the future.
-        // Disable terminal transitions if the user wants
-        if (go.prefs.disableTermTransitions) {
-            var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
-            newStyle.innerHTML = go.prefs.goDiv + " .terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
-            go.node.appendChild(newStyle);
+        // Load the bell sound from the cache.  If that fails ask the server to send us the file.
+        if (go.prefs.bellSound.length) {
+            logDebug("Existing bell sound found");
+            go.Terminal.loadBell({'mimetype': go.prefs.bellSoundType, 'data_uri': go.prefs.bellSound});
+        } else {
+            logDebug("Attempting to download our bell sound...");
+            go.ws.send(JSON.stringify({'terminal:get_bell': null}));
         }
+        // Disable terminal transitions if the user wants
+//         if (go.prefs.disableTermTransitions) {
+//             var newStyle = u.createElement('style', {'id': 'disable_term_transitions'});
+//             newStyle.innerHTML = go.prefs.goDiv + " .terminal {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+//             go.node.appendChild(newStyle);
+//         }
         // Load the Web Worker
         if (!go.prefs.webWorker) {
             go.prefs.webWorker = go.prefs.url + 'terminal/static/webworkers/term_ww.js';
@@ -313,9 +329,10 @@ go.Base.update(GateOne.Terminal, {
         // Get shift-Insert working in a natural way (NOTE: Will only work when Gate One is the active element on the page)
         go.Input.registerShortcut('KEY_INSERT', {'modifiers': {'ctrl': false, 'alt': false, 'meta': false, 'shift': true}, 'action': go.Terminal.paste, 'preventDefault': false});
         // Register our actions
+        go.Net.addAction('terminal:colors_list', go.Terminal.enumerateColors);
         go.Net.addAction('terminal:terminals', go.Terminal.reattachTerminalsAction);
         go.Net.addAction('terminal:termupdate', go.Terminal.updateTerminalAction);
-        go.Net.addAction('terminal:set_title', go.Visual.setTitleAction);
+        go.Net.addAction('terminal:set_title', go.Terminal.setTitleAction);
         go.Net.addAction('terminal:term_ended', go.Terminal.closeTerminal);
         go.Net.addAction('terminal:term_exists', go.Terminal.reconnectTerminalAction);
         go.Net.addAction('terminal:term_moved', go.Terminal.moveTerminalAction);
@@ -323,8 +340,9 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminal:reset_terminal', go.Terminal.resetTerminalAction);
         go.Net.addAction('terminal:load_webworker', go.Terminal.loadWebWorkerAction);
         go.Net.addAction('terminal:bell', go.Terminal.bellAction);
-        // This ensures that whatever effects are applied to a terminal when switching to it get applied when resized too:
-        E.on("go:update_dimensions", switchTerm);
+        go.Net.addAction('terminal:load_bell', go.Terminal.loadBell);
+        go.Terminal.createPrefsPanel();
+        go.Events.on("go:panel_toggle:in", updateColorsfunc);
         E.on("go:save_prefs", function() {
             // In case the user changed the rows/cols or the font/size changed:
             setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
@@ -342,6 +360,9 @@ go.Base.update(GateOne.Terminal, {
             go.prefs['scrollback'] = 500;
             go.prefs['rows'] = null;
             go.prefs['cols'] = null;
+            go.prefs['audibleBell'] = true;
+            go.prefs['bellSound'] = '';
+            go.prefs['bellSoundType'] = '';
         });
         E.on("terminal:switch_terminal", go.Terminal.switchTerminalEvent);
         E.on("go:switch_workspace", go.Terminal.switchWorkspaceEvent);
@@ -357,9 +378,11 @@ go.Base.update(GateOne.Terminal, {
         E.on("go:update_dimensions", go.Terminal.updateDimensions);
         E.on("go:timeout", go.Terminal.timeoutEvent);
         go.Terminal.loadTextColors();
-        setTimeout(function() {
-            go.Terminal.getOpenTerminals();
-        }, 500);
+        E.on("go:js_loaded", function() {
+            // This ensures that whatever effects are applied to a terminal applied when resized too:
+            E.on("go:update_dimensions", switchTerm); // go:update_dimensions gets called many times on page load so we attach this event a bit later in the process.
+            go.Terminal.getOpenTerminals(); // Tells the server to tell us what's already running (if anything)
+        });
     },
     __new__: function(settings) {
         /**:GateOne.Terminal.__new__(settings)
@@ -369,6 +392,122 @@ go.Base.update(GateOne.Terminal, {
         var command = settings['command'];
         go.Terminal.newTerminal(); // Just create a new terminal in a new workspace for now.
         // TODO: Make this take settings like "command", rows/cols, and *where*.
+    },
+    createPrefsPanel: function() {
+        /**:GateOne.Terminal.createPrefsPanel()
+
+        Creates the terminal preferences and adds them to the global preferences panel.
+        */
+        var contentContainer = u.createElement('div'),
+            prefsPanelStyleRow1 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelStyleRow2 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelStyleRow3 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelStyleRow4 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelStyleRow5 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelStyleRow6 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelRow1 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelRow2 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelRow4 = u.createElement('div', {'class':'paneltablerow'}),
+            prefsPanelRow5 = u.createElement('div', {'class':'paneltablerow'}),
+            tableDiv = u.createElement('div', {'id': 'prefs_tablediv1', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            tableDiv2 = u.createElement('div', {'id': 'prefs_tablediv2', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            prefsPanelColorsLabel = u.createElement('span', {'id': 'prefs_colors_label', 'class':'paneltablelabel'}),
+            prefsPanelColors = u.createElement('select', {'id': 'prefs_colors', 'name':'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelDisableAudibleBellLabel = u.createElement('span', {'id': 'prefs_disableaudiblebell_label', 'class':'paneltablelabel'}),
+            prefsPanelDisableAudibleBell = u.createElement('input', {'id': 'prefs_disableaudiblebell', 'name': prefix+'prefs_disableaudiblebell', 'value': 'disableaudiblebell', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelBellLabel = u.createElement('span', {'id': 'prefs_bell_label', 'class':'paneltablelabel'}),
+            prefsPanelBell = u.createElement('button', {'id': 'prefs_bell', 'value': 'bell', 'class': 'button black', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelScrollbackLabel = u.createElement('span', {'id': 'prefs_scrollback_label', 'class':'paneltablelabel'}),
+            prefsPanelScrollback = u.createElement('input', {'id': 'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelRowsLabel = u.createElement('span', {'id': 'prefs_rows_label', 'class':'paneltablelabel'}),
+            prefsPanelRows = u.createElement('input', {'id': 'prefs_rows', 'name': prefix+'prefs_rows', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            prefsPanelColsLabel = u.createElement('span', {'id': 'prefs_cols_label', 'class':'paneltablelabel'}),
+            prefsPanelCols = u.createElement('input', {'id': 'prefs_cols', 'name': prefix+'prefs_cols', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            colorsList = [],
+            savePrefsCallback = function() {
+                // Called when the user clicks the "Save" button in the preferences panel; grabs all the terminal-specific values and saves deals with them appropriately
+                var colors = u.getNode('#'+prefix+'prefs_colors').value,
+                    scrollbackValue = u.getNode('#'+prefix+'prefs_scrollback').value,
+                    rowsValue = u.getNode('#'+prefix+'prefs_rows').value,
+                    colsValue = u.getNode('#'+prefix+'prefs_cols').value,
+                    disableAudibleBell = u.getNode('#'+prefix+'prefs_disableaudiblebell').checked;
+                // Grab the form values and set them in prefs
+                if (colors != go.prefs.colors) {
+                    go.Terminal.loadTextColors(colors); // Load the colors right now
+                    go.prefs.colors = colors; // Save them for later
+                }
+                if (scrollbackValue) {
+                    go.prefs.scrollback = parseInt(scrollbackValue);
+                }
+                if (rowsValue) {
+                    go.prefs.rows = parseInt(rowsValue);
+                } else {
+                    go.prefs.rows = null;
+                }
+                if (colsValue) {
+                    go.prefs.cols = parseInt(colsValue);
+                } else {
+                    go.prefs.cols = null;
+                }
+                if (disableAudibleBell) {
+                    go.prefs.audibleBell = false;
+                } else {
+                    go.prefs.audibleBell = true;
+                }
+            };
+        prefsPanelBell.onclick = function(e) {
+            e.preventDefault(); // Just in case
+            go.Terminal.uploadBellDialog();
+        }
+        prefsPanelColorsLabel.innerHTML = "<b>Color Scheme:</b> ";
+        prefsPanelDisableAudibleBellLabel.innerHTML = "<b>Disable Bell Sound:</b> ";
+        prefsPanelBell.innerHTML = "Configure";
+        prefsPanelBellLabel.innerHTML = "<b>Bell Sound:</b> ";
+        prefsPanelStyleRow2.appendChild(prefsPanelColorsLabel);
+        prefsPanelStyleRow2.appendChild(prefsPanelColors);
+        prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBellLabel);
+        prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBell);
+        prefsPanelStyleRow6.appendChild(prefsPanelBellLabel);
+        prefsPanelStyleRow6.appendChild(prefsPanelBell);
+        tableDiv.appendChild(prefsPanelStyleRow2);
+        tableDiv.appendChild(prefsPanelStyleRow5);
+        tableDiv.appendChild(prefsPanelStyleRow6);
+        prefsPanelScrollbackLabel.innerHTML = "<b>Scrollback Buffer Lines:</b> ";
+        prefsPanelScrollback.value = go.prefs.scrollback;
+        prefsPanelRowsLabel.innerHTML = "<b>Terminal Rows:</b> ";
+        prefsPanelRows.value = go.prefs.rows || "";
+        prefsPanelColsLabel.innerHTML = "<b>Terminal Columns:</b> ";
+        prefsPanelCols.value = go.prefs.cols || "";
+        prefsPanelRow1.appendChild(prefsPanelScrollbackLabel);
+        prefsPanelRow1.appendChild(prefsPanelScrollback);
+        prefsPanelRow4.appendChild(prefsPanelRowsLabel);
+        prefsPanelRow4.appendChild(prefsPanelRows);
+        prefsPanelRow5.appendChild(prefsPanelColsLabel);
+        prefsPanelRow5.appendChild(prefsPanelCols);
+        tableDiv2.appendChild(prefsPanelRow1);
+        tableDiv2.appendChild(prefsPanelRow2);
+        tableDiv2.appendChild(prefsPanelRow4);
+        tableDiv2.appendChild(prefsPanelRow5);
+        contentContainer.appendChild(tableDiv);
+        contentContainer.appendChild(tableDiv2);
+        go.User.preference("Terminal", contentContainer, savePrefsCallback);
+    },
+    enumerateColors: function(messageObj) {
+        /**:GateOne.Terminal.enumerateColors(messageObj)
+
+        Attached to the 'terminal:colors_list' WebSocket action; updates the preferences panel with the list of text color schemes stored on the server.
+        */
+        var u = go.Utils,
+            prefix = go.prefs.prefix,
+            colorsList = messageObj['colors'],
+            prefsColorsSelect = u.getNode('#'+prefix+'prefs_colors');
+        prefsColorsSelect.options.length = 0;
+        for (var i in colorsList) {
+            prefsColorsSelect.add(new Option(colorsList[i], colorsList[i]), null);
+            if (go.prefs.colors == colorsList[i]) {
+                prefsColorsSelect.selectedIndex = i;
+            }
+        }
     },
     onResizeEvent: function(e) {
         // Update the Terminal if it is resized
@@ -450,6 +589,7 @@ go.Base.update(GateOne.Terminal, {
 
         Requests a list of open terminals on the server via the 'terminal:get_terminals' WebSocket action.  The server will respond with a 'terminal:terminals' WebSocket action message which calls :js:meth:`GateOne.Terminal.reattachTerminalsAction`.
         */
+        logDebug('getOpenTerminals()');
         go.ws.send(JSON.stringify({'terminal:get_terminals': null}));
     },
     sendString: function(chars, /*opt*/term) {
@@ -853,25 +993,25 @@ go.Base.update(GateOne.Terminal, {
                     });
                 }
                 // Adjust the toolbar so it isn't too close or too far from the scrollbar
-                setTimeout(function() {
-                    // This is wrapped in a long timeout to allow the browser to finish drawing everything (especially the scroll bars)
-                    if (!GateOne.Terminal.scrollbarWidth) { // Only need to do this once
-                        var pre = (existingPre || termPre); // Whatever was used in the code above
-                        GateOne.Terminal.scrollbarWidth = pre.offsetWidth - pre.clientWidth;
-                        if (GateOne.prefs.showToolbar) {
-                            // Normalize the toolbar's position
-                            var toolbar = u.getNode('#'+prefix+'toolbar');
-                            toolbar.style.right = (GateOne.Terminal.scrollbarWidth + 3) + 'px'; // +3 to put some space between the scrollbar and the toolbar
-                        }
-                        if (GateOne.prefs.showTitle) {
-                            // Normalize the side title as well
-                            var sideInfo = u.getNode('#'+prefix+'sideinfo');
-                            sideInfo.style.right = GateOne.Terminal.scrollbarWidth + 'px'; // The title on the side doesn't need the extra 3px ("right top" rotation)
-                            // Explanation: The height of the font box on the sideinfo div extends higher than the text which is why we don't need an extra 5px spacing.
-                            // Take a rectangular piece of paper and write some words across it in "landscape mode" so that the text covers the full width of the page.  Next rotate it 90deg clockwise along the "right top" axis (hold the "right top" with your thumb while rotating).  Voila!  Lots of space on the right.  No need to pad it.
-                        }
-                    }
-                }, 5000);
+//                 setTimeout(function() {
+//                     // This is wrapped in a long timeout to allow the browser to finish drawing everything (especially the scroll bars)
+//                     if (!GateOne.Terminal.scrollbarWidth) { // Only need to do this once
+//                         var pre = (existingPre || termPre); // Whatever was used in the code above
+//                         GateOne.Terminal.scrollbarWidth = pre.offsetWidth - pre.clientWidth;
+//                         if (GateOne.prefs.showToolbar) {
+//                             // Normalize the toolbar's position
+//                             var toolbar = u.getNode('#'+prefix+'toolbar');
+//                             toolbar.style.right = (GateOne.Terminal.scrollbarWidth + 3) + 'px'; // +3 to put some space between the scrollbar and the toolbar
+//                         }
+//                         if (GateOne.prefs.showTitle) {
+//                             // Normalize the side title as well
+//                             var sideInfo = u.getNode('#'+prefix+'sideinfo');
+//                             sideInfo.style.right = GateOne.Terminal.scrollbarWidth + 'px'; // The title on the side doesn't need the extra 3px ("right top" rotation)
+//                             // Explanation: The height of the font box on the sideinfo div extends higher than the text which is why we don't need an extra 5px spacing.
+//                             // Take a rectangular piece of paper and write some words across it in "landscape mode" so that the text covers the full width of the page.  Next rotate it 90deg clockwise along the "right top" axis (hold the "right top" with your thumb while rotating).  Voila!  Lots of space on the right.  No need to pad it.
+//                         }
+//                     }
+//                 }, 5000);
             } catch (e) { // Likely the terminal just closed
                 logDebug('Caught exception in termUpdateFromWorker: ' + e);
                 u.noop(); // Just ignore it.
@@ -1012,13 +1152,13 @@ go.Base.update(GateOne.Terminal, {
     notifyInactivity: function(term) {
         // Notifies the user of inactivity in *term*
         var message = "Inactivity in terminal " + term;
-        v.playBell();
+        go.Terminal.playBell();
         v.displayMessage(message);
     },
     notifyActivity: function(term) {
         // Notifies the user of activity in *term*
         var message = "Activity in terminal " + term;
-        v.playBell();
+        go.Terminal.playBell();
         v.displayMessage(message);
     },
     newTerminal: function(/*Opt:*/term, /*Opt:*/settings, /*Opt*/where) {
@@ -1526,14 +1666,93 @@ go.Base.update(GateOne.Terminal, {
         u.showElement('#'+prefix+'icon_info');
         u.showElement('#'+prefix+'icon_newterm');
     },
+    loadBell: function(message) {
+        // Loads the bell sound into the page as an <audio> element using the given *audioDataURI*.
+        var audioDataURI = message['data_uri'],
+            mimetype = message['mimetype'],
+            existing = u.getNode('#'+go.prefs.prefix+'bell'),
+            audioElem = u.createElement('audio', {'id': 'bell', 'preload': 'auto'}),
+            sourceElem = u.createElement('source', {'id': 'bell_source', 'type': mimetype});
+        if (existing) {
+            u.removeElement(existing);
+        }
+        sourceElem.src = audioDataURI;
+        audioElem.appendChild(sourceElem);
+        go.node.appendChild(audioElem);
+        // Cache it so we don't have to re-download it every time.
+        go.prefs.bellSound = audioDataURI;
+        go.prefs.bellSoundType = mimetype;
+        go.Terminal.bellNode = audioElem; // For quick reference later
+        u.savePrefs(true);
+    },
+    uploadBellDialog: function() {
+        // Displays a dialog/form where the user can upload a replacement bell sound or use the default
+        var playBell = u.createElement('button', {'id': 'play_bell', 'value': 'play_bell', 'class': 'button black'}),
+            defaultBell = u.createElement('button', {'id': 'default_bell', 'value': 'default_bell', 'class': 'button black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
+            uploadBellForm = u.createElement('form', {'name': prefix+'upload_bell_form', 'style': {'width': '25em'}}),
+            bellFile = u.createElement('input', {'type': 'file', 'id': 'upload_bell', 'name': prefix+'upload_bell'}),
+            bellFileLabel = u.createElement('label'),
+            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black', 'style': {'float': 'right'}});
+        submit.innerHTML = "Submit";
+        cancel.innerHTML = "Cancel";
+        defaultBell.innerHTML = "Reset Bell to Default";
+        playBell.innerHTML = "Play Current Bell";
+        playBell.onclick = function(e) {
+            e.preventDefault();
+            go.Terminal.playBell();
+        }
+        bellFileLabel.innerHTML = "Select a Sound File";
+        bellFileLabel.htmlFor = prefix+'upload_bell';
+        uploadBellForm.appendChild(playBell);
+        uploadBellForm.appendChild(defaultBell);
+        uploadBellForm.appendChild(bellFileLabel);
+        uploadBellForm.appendChild(bellFile);
+        uploadBellForm.appendChild(submit);
+        uploadBellForm.appendChild(cancel);
+        var closeDialog = go.Visual.dialog('Upload Bell Sound', uploadBellForm);
+        cancel.onclick = closeDialog;
+        defaultBell.onclick = function(e) {
+            e.preventDefault();
+            go.ws.send(JSON.stringify({'terminal:get_bell': null}));
+            closeDialog();
+        }
+        uploadBellForm.onsubmit = function(e) {
+            // Don't actually submit it
+            e.preventDefault();
+            // Grab the form values
+            var bellFile = u.getNode('#'+prefix+'upload_bell').files[0],
+                bellReader = new FileReader(),
+                saveBell = function(evt) {
+                    var dataURI = evt.target.result,
+                        mimetype = bellFile.type;
+                    go.Terminal.loadBell({'mimetype': mimetype, 'data_uri': dataURI});
+                };
+            // Get the data out of the files
+            bellReader.onload = saveBell;
+            bellReader.readAsDataURL(bellFile);
+            closeDialog();
+        }
+    },
     bellAction: function(bellObj) {
         /**:GateOne.Terminal.bellAction(bellObj)
 
         Attached to the 'terminal:bell' WebSocket action; plays a bell sound and pops up a message indiciating which terminal issued a bell.
         */
         var term = bellObj['term'];
-        go.Visual.playBell();
-        go.Visual.displayMessage("Bell in " + term + ": " + go.Terminal.terminals[term]['title']);
+        go.Terminal.playBell();
+        v.displayMessage("Bell in " + term + ": " + go.Terminal.terminals[term]['title']);
+    },
+    playBell: function() {
+        /**:GateOne.Terminal.playBell()
+
+        Plays the bell sound without any visual notification.
+        */
+        if (go.Terminal.bellNode) {
+            if (go.prefs.audibleBell) {
+                go.Terminal.bellNode.play();
+            }
+        }
     },
     updateDimensions: function() {
         /**:GateOne.Terminal.updateDimensions()
@@ -1748,9 +1967,9 @@ go.Base.update(GateOne.Terminal, {
             } else {
                 // Create a new terminal
                 go.Terminal.lastTermNumber = 0; // Reset to 0
-                setTimeout(function() {
+//                 setTimeout(function() {
                     go.Terminal.newTerminal();
-                }, 1000); // Give everything a moment to settle so the dimensions are set properly
+//                 }, 1000); // Give everything a moment to settle so the dimensions are set properly
             }
         }
         E.trigger("terminal:term_reattach", terminals);

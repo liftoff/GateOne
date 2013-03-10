@@ -220,7 +220,7 @@
     z-index:600;
     position:absolute;
     top:0;
-    right:1.6em;
+    right:1em;
     color: #fff;
     text-align: right;
 }
@@ -456,7 +456,65 @@ potential conflicts with other classes that may be on the page.
 }
 #{{container}} .panel_close_icon:hover {
     opacity: 1;
-    cursor:pointer;
+    cursor: pointer;
+}
+.✈prefs_panel {
+    min-width: 60%;
+}
+.✈prefs_list {
+    float: left;
+    margin-right: .7em;
+}
+.✈save_button {
+    float: right;
+    clear: both;
+}
+.✈prefs_list ul {
+    list-style-type: none;
+    box-shadow: 2px 2px 4px #888;
+    padding: 0;
+    margin: 0 auto;
+}
+.✈prefs_list li {
+    font-weight: bold;
+    border: 1px #555 solid;
+    padding: .5em;
+    background-image: linear-gradient(#FFF, #CCC);
+    -webkit-transition: -webkit-transform 0.25s ease-in-out;
+    -moz-transition: -moz-transform 0.25s ease-in-out;
+    -o-transition-property: -o-transform;
+    -o-transition-duration: 0.5s;
+    -o-transition-timing-function: ease-in-out;
+    -ms-transition: -ms-transform 0.5s ease-in-out;
+    transition: transform 0.5s ease-in-out;
+}
+.✈prefs_list li:after {
+    content: "➤";
+    padding-left: 1.5em;
+    float: right;
+}
+.✈prefs_list li:hover {
+    cursor: pointer;
+    background-color: #ccc;
+}
+.✈prefs_list .✈active {
+    background-color: #2A5BA6;
+    background-image: linear-gradient(#2A5BA6, #2A5BA6);
+    color: #fff;
+}
+.✈prefs_list .✈active:hover {
+    background-color: #2A5BA6;
+    color: #fff;
+}
+.✈prefs_content {
+    float: left;
+    width: 67%;
+}
+.✈sub1 li {
+    padding-left: 1.2em;
+}
+.✈sub1 li:before {
+    content: "❭ ";
 }
 #{{container}} form { margin: 0 0 1em; }
 #{{container}} label {
@@ -776,6 +834,7 @@ potential conflicts with other classes that may be on the page.
 }
 /* SVG Styling */
 .✈svgplain { fill: #2A5BA6; }
+.✈svg { fill: #FFF; }
 #{{container}} .stop1 { stop-color: #FFF; }
 #{{container}} .stop2 { stop-color: #E1E2E3; }
 #{{container}} .stop3 { stop-color: #D3D4D6; }

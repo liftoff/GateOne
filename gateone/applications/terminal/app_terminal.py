@@ -350,6 +350,7 @@ class TerminalApplication(GOApplication):
             'terminal:share_terminal': self.share_terminal,
             'terminal:share_user_list': self.share_user_list,
             'terminal:unshare_terminal': self.unshare_terminal,
+            'terminal:enumerate_colors': self.enumerate_colors,
             'terminal:list_shared_terminals': self.list_shared_terminals,
             'terminal:attach_shared_terminal': self.attach_shared_terminal,
             'terminal:set_sharing_permissions': self.set_sharing_permissions,
@@ -474,10 +475,13 @@ class TerminalApplication(GOApplication):
                 js_file_path = os.path.join(static_dir, fname)
                 if fname == 'terminal.js':
                     self.ws.send_js(js_file_path)
+                elif fname == 'terminal_input.js':
+                    self.ws.send_js(js_file_path, requires="terminal.js")
                 else:
-                    self.ws.send_js(js_file_path, requires='terminal.js')
+                    self.ws.send_js(js_file_path, requires='terminal_input.js')
         self.ws.send_plugin_static_files(
-            os.path.join(APPLICATION_PATH, 'plugins'), requires="terminal.js")
+            os.path.join(
+                APPLICATION_PATH, 'plugins'), requires="terminal_input.js")
         # Send the client the 256-color style information
         self.send_256_colors()
         sess = SESSIONS[self.ws.session]
@@ -492,7 +496,8 @@ class TerminalApplication(GOApplication):
         # NOTE: The user will often be authenticated before terminal.js is
         # loaded.  This means that self.terminals() will be ignored in most
         # cases (only when the connection lost and re-connected without a page
-        # reload).  For this reason GateOne.Terminal.init() calls getTerminals()
+        # reload).  For this reason GateOne.Terminal.init() calls
+        # getOpenTerminals().
         self.trigger("terminal:authenticate")
 
     def on_close(self):
@@ -521,6 +526,17 @@ class TerminalApplication(GOApplication):
                         if self.ws.client_id in term_obj:
                             del term_obj[self.ws.client_id]
         self.trigger("terminal:on_close")
+
+    def enumerate_colors(self):
+        """
+        Returns a JSON-encoded object containing the installed text color
+        schemes.
+        """
+        colors_path = os.path.join(APPLICATION_PATH, 'templates', 'term_colors')
+        colors = os.listdir(colors_path)
+        colors = [a.replace('.css', '') for a in colors]
+        message = {'terminal:colors_list': {'colors': colors}}
+        self.write_message(message)
 
     def terminals(self):
         """
@@ -1399,7 +1415,7 @@ class TerminalApplication(GOApplication):
         """
         Sends the bell sound data to the client in in the form of a data::URI.
         """
-        bell_path = os.path.join(GATEONE_DIR, 'static')
+        bell_path = os.path.join(APPLICATION_PATH, 'static')
         bell_path = os.path.join(bell_path, 'bell.ogg')
         fallback_path = os.path.join(APPLICATION_PATH, 'fallback_bell.txt')
         if os.path.exists(bell_path):

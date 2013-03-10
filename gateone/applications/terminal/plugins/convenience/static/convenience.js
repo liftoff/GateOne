@@ -60,31 +60,53 @@ GateOne.Base.update(GateOne.Convenience, {
             SyslogPrefsLabel = u.createElement('span', {'id': 'prefs_sylog_label', 'class':'paneltablelabel'}),
             SyslogPrefs = u.createElement('input', {'id': 'prefs_disableSyslogtt', 'name': prefix+'prefs_disableSyslogtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             IPPrefsLabel = u.createElement('span', {'id': 'prefs_IP_label', 'class':'paneltablelabel'}),
-            IPPrefs = u.createElement('input', {'id': 'prefs_disableIPtt', 'name': prefix+'prefs_disableIPtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            conveniencesTitle = u.createElement('h3', {'style': {'margin-bottom': '0.2em'}});
-        if (prefsPanelForm) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
-            conveniencesTitle.innerHTML = "<b>Convenience Plugin</b>";
-            prefsPanelForm.insertBefore(conveniencesTitle, saveButton);
-            tableDiv.appendChild(LSRow);
-            LSPrefsLabel.innerHTML = "<b>Disable 'ls -l' Convenience:</b> ";
-            LSPrefs.checked = go.prefs.disableLSConvenience;
-            LSRow.appendChild(LSPrefsLabel);
-            LSRow.appendChild(LSPrefs);
-            tableDiv.appendChild(LSRow);
-            SyslogPrefsLabel.innerHTML = "<b>Disable Syslog Convenience:</b> ";
-            SyslogPrefs.checked = go.prefs.disableSyslogConvenience;
-            SyslogRow.appendChild(SyslogPrefsLabel);
-            SyslogRow.appendChild(SyslogPrefs);
-            tableDiv.appendChild(SyslogRow);
-            IPPrefsLabel.innerHTML = "<b>Disable IP Address Convenience:</b> ";
-            IPPrefs.checked = go.prefs.disableIPConvenience;
-            IPRow.appendChild(IPPrefsLabel);
-            IPRow.appendChild(IPPrefs);
-            tableDiv.appendChild(IPRow);
-            prefsPanelForm.insertBefore(tableDiv, saveButton);
-            // This makes sure our prefs get saved along with everything else
-            go.Events.on('go:save_prefs', go.Convenience.savePrefsCallback);
-        }
+            IPPrefs = u.createElement('input', {'id': 'prefs_disableIPtt', 'name': prefix+'prefs_disableIPtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}});
+//         conveniencesTitle = u.createElement('h3', {'style': {'margin-bottom': '0.2em'}});
+//         conveniencesTitle.innerHTML = "<b>Convenience Plugin</b>";
+//         prefsPanelForm.insertBefore(conveniencesTitle, saveButton);
+        tableDiv.appendChild(LSRow);
+        LSPrefsLabel.innerHTML = "<b>Disable 'ls -l' Convenience:</b> ";
+        LSPrefs.checked = go.prefs.disableLSConvenience;
+        LSRow.appendChild(LSPrefsLabel);
+        LSRow.appendChild(LSPrefs);
+        tableDiv.appendChild(LSRow);
+        SyslogPrefsLabel.innerHTML = "<b>Disable Syslog Convenience:</b> ";
+        SyslogPrefs.checked = go.prefs.disableSyslogConvenience;
+        SyslogRow.appendChild(SyslogPrefsLabel);
+        SyslogRow.appendChild(SyslogPrefs);
+        tableDiv.appendChild(SyslogRow);
+        IPPrefsLabel.innerHTML = "<b>Disable IP Address Convenience:</b> ";
+        IPPrefs.checked = go.prefs.disableIPConvenience;
+        IPRow.appendChild(IPPrefsLabel);
+        IPRow.appendChild(IPPrefs);
+        tableDiv.appendChild(IPRow);
+        go.User.preference("Terminal:Convenience Plugin", tableDiv);
+//         prefsPanelForm.insertBefore(tableDiv, saveButton);
+        // This makes sure our prefs get saved along with everything else
+        go.Events.on('go:save_prefs', go.Convenience.savePrefsCallback);
+//         if (prefsPanelForm) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
+//             conveniencesTitle.innerHTML = "<b>Convenience Plugin</b>";
+//             prefsPanelForm.insertBefore(conveniencesTitle, saveButton);
+//             tableDiv.appendChild(LSRow);
+//             LSPrefsLabel.innerHTML = "<b>Disable 'ls -l' Convenience:</b> ";
+//             LSPrefs.checked = go.prefs.disableLSConvenience;
+//             LSRow.appendChild(LSPrefsLabel);
+//             LSRow.appendChild(LSPrefs);
+//             tableDiv.appendChild(LSRow);
+//             SyslogPrefsLabel.innerHTML = "<b>Disable Syslog Convenience:</b> ";
+//             SyslogPrefs.checked = go.prefs.disableSyslogConvenience;
+//             SyslogRow.appendChild(SyslogPrefsLabel);
+//             SyslogRow.appendChild(SyslogPrefs);
+//             tableDiv.appendChild(SyslogRow);
+//             IPPrefsLabel.innerHTML = "<b>Disable IP Address Convenience:</b> ";
+//             IPPrefs.checked = go.prefs.disableIPConvenience;
+//             IPRow.appendChild(IPPrefsLabel);
+//             IPRow.appendChild(IPPrefs);
+//             tableDiv.appendChild(IPRow);
+//             prefsPanelForm.insertBefore(tableDiv, saveButton);
+//             // This makes sure our prefs get saved along with everything else
+//             go.Events.on('go:save_prefs', go.Convenience.savePrefsCallback);
+//         }
     },
     savePrefsCallback: function() {
         /**:GateOne.Convenience.savePrefsCallback()

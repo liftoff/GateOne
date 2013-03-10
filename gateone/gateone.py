@@ -2187,7 +2187,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         'list_users' policy are allowed to execute this action.
         """
         users = ApplicationWebSocket._list_connected_users()
-        print(users)
+        logging.debug('list_server_users(): %s' % users)
         # Remove things that users should not see such as their session ID
         filtered_users = []
         policy = applicable_policies('gateone', self.current_user, self.prefs)
