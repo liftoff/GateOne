@@ -488,7 +488,7 @@ def parse_url(url):
     if o.query:
         q_attrs = urlparse.parse_qs(o.query)
         for ident in q_attrs.get('identities', []):
-            identities.update(value.split(','))
+            identities.update(ident.split(','))
 
     if o.port:
         port = o.port
