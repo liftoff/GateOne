@@ -870,8 +870,7 @@ class TerminalApplication(GOApplication):
                 message = {'terminal:term_exists': term}
                 self.write_message(json_encode(message))
                 # This resets the screen diff
-                m.prev_output[self.ws.client_id] = [
-                    None for a in xrange(rows-1)]
+                m.prev_output[self.ws.client_id] = [None] * rows
                 # Remind the client about this terminal's title
                 self.set_title(term, force=True)
             else:
