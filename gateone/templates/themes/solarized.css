@@ -88,7 +88,7 @@
     margin: 0 auto;
 }
 #{{container}} .application {
-    width: 20%;
+    width: 15%;
     background: linear-gradient(to bottom, #333, #191919);
     border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
     border: 1px solid rgba(0, 0, 0, 0);
@@ -220,7 +220,7 @@
     z-index:600;
     position:absolute;
     top:0;
-    right:1em;
+    right:0;
     color: #fff;
     text-align: right;
 }
@@ -315,7 +315,7 @@ potential conflicts with other classes that may be on the page.
     -o-transform-origin: right top;
     transform: rotate(90deg);
     transform-origin: right top;
-    right: 1em; /* This will get overridden by a px value calculated based on the width of the scrollbar */
+    right: 3px; /* This will get overridden by a px value calculated based on the width of the scrollbar */
     bottom: 0;
     color: white;
     position: absolute;
@@ -856,6 +856,16 @@ potential conflicts with other classes that may be on the page.
 }
 /* SVG Styling */
 .✈svgplain { fill: #1F5470; }
+.✈svg { fill: #FFF; }
+div.✈appicon { padding-top: 1em; }
+div.✈appicon:hover {
+    -webkit-filter: drop-shadow( .1em .1em .4em #000 );
+    -moz-filter: drop-shadow( .1em .1em .4em #000 );
+    -ms-filter: drop-shadow( .1em .1em .4em #000 );
+    -o-filter: drop-shadow( .1em .1em .4em #000 );
+    filter: drop-shadow( .1em .1em .4em #000 );
+}
+div.✈appicon svg { fill: #fff; width: 6em; height: 6em; }
 #{{container}} .stop1 { stop-color: #FFF; }
 #{{container}} .stop2 { stop-color: #E1E2E3; }
 #{{container}} .stop3 { stop-color: #D3D4D6; }

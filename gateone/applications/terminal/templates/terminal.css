@@ -25,13 +25,13 @@
     word-wrap: break-word;
     white-space: pre-wrap;
     display: block;
-    width: calc(100% - 2em);
+/*     width: calc(100% - 2em); */
 }
 #{{container}} .terminal span.scrollback {
     word-wrap: break-word;
     white-space: pre-wrap;
     display: block;
-    width: calc(100% - 3.5em);
+/*     width: calc(100% - 3.5em); */
 }
 #{{container}} .terminal span.termline {
     width: 100%;

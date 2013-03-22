@@ -80,10 +80,10 @@ var logFatal = noop,
 
 // Define GateOne
 var GateOne = GateOne || function() {};
-GateOne.NAME = "GateOne";
-GateOne.VERSION = "1.2";
+GateOne.__name__ = "GateOne";
+GateOne.__version__ = "1.2";
 GateOne.__repr__ = function () {
-    return "[" + this.NAME + " " + this.VERSION + "]";
+    return "[" + this.__name__ + " " + this.__version__ + "]";
 };
 GateOne.toString = function () {
     return this.__repr__();
@@ -97,10 +97,11 @@ var seed1 = null, seed2 = null; // NOTE: Not used yet.
 //      Other functions copied from MochiKit are indicated individually throughout this file
 GateOne.Base = GateOne.Base || {}; // "Base" contains the basic functions used to create/update Gate One modules/plugins
 GateOne.loadedModules = [];
+GateOne.loadedApplications = {};
 GateOne.initializedModules = []; // So we don't accidentally call a plugin's init() or postInit() functions twice
 /**
  * Creates a new module in a parent namespace. This function will
- * create a new empty module object with "NAME", "VERSION",
+ * create a new empty module object with "__name__", "__version__",
  * "toString" and "__repr__" properties. This object will be inserted into the parent object
  * using the specified name (i.e. parent[name] = module). It will
  * also verify that all the dependency modules are defined in the
@@ -115,22 +116,22 @@ GateOne.initializedModules = []; // So we don't accidentally call a plugin's ini
 
 GateOne.Base.module = function (parent, name, version, deps) {
     var module = parent[name] = parent[name] || {},
-        prefix = (parent.NAME ? parent.NAME + "." : "");
-    module.NAME = prefix + name;
-    module.VERSION = version;
-    module.parent = parent;
+        prefix = (parent.__name__ ? parent.__name__ + "." : "");
+    module.__name__ = prefix + name;
+    module.__version__ = version;
+    module.__parent__ = parent;
     module.__repr__ = function () {
-        return "[" + this.NAME + " " + this.VERSION + "]";
+        return "[" + this.__name__ + " " + this.__version__ + "]";
     };
     module.toString = function () {
         return this.__repr__();
     };
     for (var i = 0; deps != null && i < deps.length; i++) {
         if (!(deps[i] in parent)) {
-            throw module.NAME + ' depends on ' + prefix + deps[i] + '!';
+            throw module.__name__ + ' depends on ' + prefix + deps[i] + '!';
         }
     }
-    GateOne.loadedModules.push(module.NAME);
+    GateOne.loadedModules.push(module.__name__);
     return module;
 };
 GateOne.Base.module(GateOne, "Base", "1.2", []);
@@ -144,8 +145,8 @@ GateOne.Base.update = function (self, obj/*, ... */) {
             for (var k in o) {
                 self[k] = o[k];
                 if (self[k]) {
-                    self[k].NAME = k
-                    self[k].parent = self;
+                    self[k].__name__ = k
+                    self[k].__parent__ = self;
                 }
             }
         }
@@ -155,33 +156,40 @@ GateOne.Base.update = function (self, obj/*, ... */) {
 
 // GateOne Settings
 GateOne.location = "default"; // Yes, the default location is called "default" :)
-GateOne.prefs = { // Tunable prefs (things users can change)
-    url: null, // URL of the GateOne server.  Will default to whatever is in window.location
-    fillContainer: true, // If set to true, #gateone will fill itself out to the full size of its parent element
-    style: {}, // Whatever CSS the user wants to apply to #gateone.  NOTE: Width and height will be skipped if fillContainer is true
-    goDiv: '#gateone', // Default element to place gateone inside
-    prefix: 'go_', // What to prefix element IDs with (in case you need to avoid a name conflict).  NOTE: There are a few classes that use the prefix too.
-    theme: 'black', // The theme to use by default (e.g. 'black', 'white', etc)
-    fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
-    embedded: false, // Equivalent to {showTitle: false, showToolbar: false} and certain keyboard shortcuts won't be registered
+GateOne.prefs = {
+    /**:GateOne.prefs
+
+    This object holds all of Gate One's preferences.  Both those things that are meant to be user-controlled (e.g. `theme`) and those things that are globally configured (e.g. `url`).  Applications and plugins can store their own preferences here.
+    */
     auth: null, // If using API authentication, this value will hold the user's auth object (see docs for the format).
+    embedded: false, // Equivalent to {showTitle: false, showToolbar: false} and certain keyboard shortcuts won't be registered
+    fillContainer: true, // If set to true, #gateone will fill itself out to the full size of its parent element
+    fontSize: '100%', // The font size that will be applied to the goDiv element (so users can adjust it on-the-fly)
+    goDiv: '#gateone', // Default element to place gateone inside
+    keepaliveInterval: 15000, // How often we try to ping the Gate One server to check for a connection problem.
+    prefix: 'go_', // What to prefix element IDs with (in case you need to avoid a name conflict).  NOTE: There are a few classes that use the prefix too.
     showTitle: true, // If false, the title will not be shown in the sidebar.
     showToolbar: true, // If false, the toolbar will now be shown in the sidebar.
-    skipChecks: false // Tells GateOne.init() to skip capabilities checks (in case you have your own or are happy with silent failures)
+    skipChecks: false, // Tells GateOne.init() to skip capabilities checks (in case you have your own or are happy with silent failures)
+    style: {}, // Whatever CSS the user wants to apply to #gateone.  NOTE: Width and height will be skipped if fillContainer is true
+    theme: 'black', // The theme to use by default (e.g. 'black', 'white', etc)
+    pingTimeout: 5000, // How long to wait before we declare that the connection with the Gate One server has timed out (via a ping/pong response)
+    url: null // URL of the GateOne server.  Will default to whatever is in window.location
 }
 // Properties in this object will get ignored when GateOne.prefs is saved to localStorage
 GateOne.noSavePrefs = {
     // Plugin authors:  If you want to have your own property in GateOne.prefs but it isn't a per-user setting, add your property here
-    url: null,
+    auth: null,
+    embedded: null,
     fillContainer: null,
-    style: null,
     goDiv: null, // Why an object and not an array?  So the logic is simpler:  "for (var objName in noSavePrefs) ..."
     prefix: null,
-    embedded: null,
-    auth: null,
     showTitle: null,
     showToolbar: null,
-    skipChecks: null
+    skipChecks: null,
+    style: null,
+    pingTimeout: null,
+    url: null
 }
 // Example 'auth' object:
 // {
@@ -353,7 +361,6 @@ var go = GateOne.Base.update(GateOne, {
     // Empty out anything that might be already-existing in goDiv
         go.node.innerHTML = '';
     },
-    // TODO: Move the terminal-specific stuff out of this and into GateOne.Terminal.init()
     initialize: function() {
         if (GateOne.initialized) {
             // If we've already called initialize() we don't need to re-create all these panels and whatnot
@@ -747,12 +754,6 @@ GateOne.Base.update(GateOne.Utils, {
         var node = GateOne.Utils.getNode(elem);
         if (node.parentNode) { // This check ensures that we don't throw an exception if the element has already been removed.
             node.parentNode.removeChild(node);
-            // Also remove this element from the node cache so it can be reaped by the garbage collector
-            for (var n in GateOne.Utils._nodeCache) {
-                if (GateOne.Utils._nodeCache[n] == node) {
-                    delete GateOne.Utils._nodeCache[n];
-                }
-            }
         }
     },
     createElement: function(tagname, properties, noprefix) {
@@ -936,30 +937,84 @@ GateOne.Base.update(GateOne.Utils, {
         }
         return txt.toString();
     },
-    getEmDimensions: function(elem) {
-        /**:GateOne.Utils.getEmDimensions(elem)
+//     getEmDimensions: function(elem) {
+//         /**:GateOne.Utils.getEmDimensions(elem)
+//
+//         Returns the height and width of 1em inside the given elem (e.g. 'term1_pre').  The returned object will be in the form of::
+//
+//              {'w': <width in px>, 'h': <height in px>}
+//         */
+//         var u = GateOne.Utils,
+//             node = u.getNode(elem),
+//             node = node.cloneNode(false), // Work on a clone so we can leave the original alone
+//             sizingDiv = document.createElement("div"),
+//             sizingPre = document.createElement("pre"),
+//             fillerX = '', fillerY = [],
+//             lineCounter = 0;
+//         if (!u.isVisible(node)) {
+//             // Reset so it is visible
+//             node.style.display = '';
+//             node.style.opacity = 1;
+//         }
+//         // We need to place the cloned node into the DOM for the calculation to work properly
+//         document.body.appendChild(node);
+//         sizingDiv.id = "go_sizingDiv";
+//         sizingDiv.className = "terminal";
+//         sizingDiv.style.wordWrap = 'normal';
+//         // We need a number of lines so we can factor in the line height and character spacing (if it has been messed with either directly or indirectly via the font renderer).
+//         for (var i=0; i <= 63; i++) {
+//             fillerX += "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  NOTE: Using the \u syntax because some minifiers break when they encounter unicode literals (besides, it can be tough to guess the encoding of a JavaScript file with no HTTP encoding header)
+//         }
+//         for (var i=0; i <= 63; i++) {
+//             fillerY.push(fillerX);
+//         }
+//         sizingPre.innerHTML = fillerY.join('\n');
+//         // Set the attributes of our copy to reflect a minimal-size block element
+//         sizingPre.style.width = 'auto';
+//         sizingPre.style.height = 'auto';
+//         // Add in our sizingDiv and grab its height
+//         sizingDiv.appendChild(sizingPre);
+//         node.appendChild(sizingDiv);
+//         var nodeHeight = sizingPre.getClientRects()[0].height,
+//             nodeWidth = sizingPre.getClientRects()[0].width;
+//         nodeHeight = parseInt(nodeHeight)/64;
+//         nodeWidth = parseInt(nodeWidth)/64;
+//         // Clean up, clean up
+//         node.removeChild(sizingDiv);
+//         document.body.removeChild(node);
+//         return {'w': nodeWidth, 'h': nodeHeight};
+//     },
+    getEmDimensions: function(elem, /*opt*/where) {
+        /**:GateOne.Utils.getEmDimensions(elem[, where])
 
         Returns the height and width of 1em inside the given elem (e.g. 'term1_pre').  The returned object will be in the form of::
 
              {'w': <width in px>, 'h': <height in px>}
+
+        If *where* (element) is given, the EM dimensions calculation will be based on what sizes would apply if the given *elem* were placed inside *where*.
         */
+//         logDebug('getEmDimensions('+elem+', id: '+elem.id+')');
         var u = GateOne.Utils,
             node = u.getNode(elem),
+            parent = node.parentNode,
             node = node.cloneNode(false), // Work on a clone so we can leave the original alone
-            sizingDiv = document.createElement("div"),
             sizingPre = document.createElement("pre"),
             fillerX = '', fillerY = [],
             lineCounter = 0;
+        // We need to place the cloned node into the DOM for the calculation to work properly
+        node.id = 'sizingNode';
+        if (where) {
+            where = u.getNode(where);
+            where.appendChild(node);
+        } else {
+            document.body.appendChild(node);
+        }
         if (!u.isVisible(node)) {
             // Reset so it is visible
             node.style.display = '';
             node.style.opacity = 1;
         }
-        // We need to place the cloned node into the DOM for the calculation to work properly
-        document.body.appendChild(node);
-        sizingDiv.id = "go_sizingDiv";
-        sizingDiv.className = "terminal";
-        sizingDiv.style.wordWrap = 'normal';
+        node.className = "terminal";
         // We need a number of lines so we can factor in the line height and character spacing (if it has been messed with either directly or indirectly via the font renderer).
         for (var i=0; i <= 63; i++) {
             fillerX += "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  NOTE: Using the \u syntax because some minifiers break when they encounter unicode literals (besides, it can be tough to guess the encoding of a JavaScript file with no HTTP encoding header)
@@ -969,36 +1024,65 @@ GateOne.Base.update(GateOne.Utils, {
         }
         sizingPre.innerHTML = fillerY.join('\n');
         // Set the attributes of our copy to reflect a minimal-size block element
+        node.style.position = 'fixed';
+        node.style.top = 0;
+        node.style.left = 0;
+        node.style.bottom = 'auto';
+        node.style.right = 'auto';
+        node.style.width = 'auto';
+        node.style.height = 'auto';
+        sizingPre.style.position = 'absolute';
+        sizingPre.style.top = 0;
+        sizingPre.style.left = 0;
+        sizingPre.style.bottom = 'auto';
+        sizingPre.style.right = 'auto';
         sizingPre.style.width = 'auto';
         sizingPre.style.height = 'auto';
         // Add in our sizingDiv and grab its height
-        sizingDiv.appendChild(sizingPre);
-        node.appendChild(sizingDiv);
+        node.appendChild(sizingPre);
         var nodeHeight = sizingPre.getClientRects()[0].height,
             nodeWidth = sizingPre.getClientRects()[0].width;
         nodeHeight = parseInt(nodeHeight)/64;
         nodeWidth = parseInt(nodeWidth)/64;
         // Clean up, clean up
-        node.removeChild(sizingDiv);
-        document.body.removeChild(node);
+        node.removeChild(sizingPre);
+        if (where) {
+            where.removeChild(node);
+        } else {
+            document.body.removeChild(node);
+        }
         return {'w': nodeWidth, 'h': nodeHeight};
     },
     getRowsAndColumns: function(elem) {
-    /*  Calculates and returns the number of text rows and colunmns that will fit in the given element ID (elem).
-        Important:  elem must be a basic block element such as DIV, SPAN, P, PRE, etc.
-                    Elements that require sub-elements such as TABLE (requires TRs and TDs) probably won't work.
-        Note:  This function only works properly with monospaced fonts but it does work with high-resolution displays.
-            (so users with properly-configured high-DPI displays will be happy =).
-            Other similar functions I've found on the web had hard-coded pixel widths for known fonts
-            at certain point sizes.  These break on any display with a resolution higher than 96dpi.
-    */
-        var node = GateOne.Utils.getNode(elem),
-            style = window.getComputedStyle(node, ':line-marker');
-        var elementDimensions = {
-                h: parseInt(style.height.split('px')[0]),
-                w: parseInt(style.width.split('px')[0])
+        /**:GateOne.Utils.getRowsAndColumns(elem)
+
+        Calculates and returns the number of text rows and colunmns that will fit in the given element ID (elem).
+
+        **Important:**  *elem* must be a basic block element such as DIV, SPAN, P, PRE, etc.  Elements that require sub-elements such as TABLE (requires TRs and TDs) probably won't work.
+
+        .. note::  This function only works properly with monospaced fonts but it does work with high-resolution displays (so users with properly-configured high-DPI displays will be happy =). Other similar functions on the web have hard-coded pixel widths for known fonts at certain point sizes.  These break on any display with a resolution higher than 96dpi.
+        */
+//         logDebug('getRowsAndColumns('+elem+')');
+        var u = go.Utils,
+            node = u.getNode(elem),
+            elementDimensions = {
+                h: node.clientHeight,
+                w: node.clientWidth
             },
-            textDimensions = GateOne.Utils.getEmDimensions(elem);
+            textDimensions = u.getEmDimensions(elem, go.node);
+        if (!u.isVisible(node)) {
+            node = node.cloneNode(false); // Work on a clone so we can leave the original alone
+            // Reset so it is visible
+            node.style.display = '';
+            node.style.opacity = 1;
+            go.node.appendChild(node, true);
+            elementDimensions = {
+                h: node.clientHeight,
+                w: node.clientWidth
+            },
+            textDimensions = u.getEmDimensions(elem, go.node);
+            go.node.removeChild(node);
+        }
         if (!textDimensions) {
             return; // Nothing to do
         }
@@ -1029,19 +1113,23 @@ GateOne.Base.update(GateOne.Utils, {
         logDebug("Running runPostInit()");
         go.loadedModules.forEach(function(module) {
             var moduleObj = eval(module);
-            if (go.initializedModules.indexOf(moduleObj.NAME) == -1) {
-                logDebug('Running: ' + moduleObj.NAME + '.init()');
+            if (go.initializedModules.indexOf(moduleObj.__name__) == -1) {
+                logDebug('Running: ' + moduleObj.__name__ + '.init()');
                 if (typeof(moduleObj.init) == "function") {
                     moduleObj.init();
                 }
-                go.initializedModules.push(moduleObj.NAME)
+                if (moduleObj.__appinfo__) {
+                    // This is an application
+                    go.loadedApplications[moduleObj.__appinfo__.name] = moduleObj;
+                }
+                go.initializedModules.push(moduleObj.__name__);
             }
         });
         // Go through all our loaded modules and run their postInit functions (if any)
         go.loadedModules.forEach(function(module) {
             var moduleObj = eval(module);
-            if (go.initializedModules.indexOf(moduleObj.NAME) == -1) {
-                logDebug('Running: ' + moduleObj.NAME + '.postInit()');
+            if (go.initializedModules.indexOf(moduleObj.__name__) == -1) {
+                logDebug('Running: ' + moduleObj.__name__ + '.postInit()');
                 if (typeof(moduleObj.postInit) == "function") {
                     moduleObj.postInit();
                 }
@@ -1467,10 +1555,14 @@ GateOne.Base.update(GateOne.Utils, {
     isVisible: function(elem) {
         // Returns true if *elem* is visible (checks parent nodes recursively too).  *elem* may be a DOM node or a selector string.
         // NOTE: Relies on checking elem.style.opacity and elem.style.display.  Does NOT check transforms.
-        var node = GateOne.Utils.getNode(elem);
-        if (node.style.display == 'none') {
+        var node = GateOne.Utils.getNode(elem), style;
+        if (!node) {
             return false;
-        } else if (parseInt(node.style.opacity) == 0) {
+        }
+        style = window.getComputedStyle(node, null);
+        if (style && style.display == 'none') {
+            return false;
+        } else if (style && parseInt(style.opacity) == 0) {
             return false;
         }
         if (node.parentNode) {
@@ -1812,34 +1904,50 @@ GateOne.Base.update(GateOne.Net, {
         /**:GateOne.Net.init()
 
         */
-        GateOne.Net.addAction('go:timeout', GateOne.Net.timeoutAction);
+        go.Net.addAction('go:timeout', go.Net.timeoutAction);
+        go.Events.on("go:ping_timeout", function() {
+            go.Visual.displayMessage("A keepalive ping has timed out.  Attempting to reconnect...");
+        });
     },
     sendChars: function() {
         /**:GateOne.Net.sendChars() DEPRECATED:  Use GateOne.Terminal.sendChars() instead. */
-        GateOne.Logging.deprecated("GateOne.Net.sendChars", "Use GateOne.Terminal.Input.sendChars() instead.");
-        GateOne.Terminal.sendChars();
+        go.Logging.deprecated("GateOne.Net.sendChars", "Use GateOne.Terminal.Input.sendChars() instead.");
+        go.Terminal.sendChars();
     },
     sendString: function(chars, term) {
         /**:GateOne.Net.sendString() DEPRECATED:  Use GateOne.Terminal.sendString() instead. */
-        GateOne.Logging.deprecated("GateOne.Net.sendString", "Use GateOne.Terminal.sendString() instead.");
-        GateOne.Terminal.sendString(chars, term);
+        go.Logging.deprecated("GateOne.Net.sendString", "Use GateOne.Terminal.sendString() instead.");
+        go.Terminal.sendString(chars, term);
     },
     log: function(message) {
         /**:GateOne.Net.log(msg)
 
         Logs the given *message* via :js:meth:`GateOne.Logging.logInfo` (for debugging plugins and whatnot).
         */
-        GateOne.Logging.logInfo(message);
+        go.Logging.logInfo(message);
     },
     ping: function() {
         /**:GateOne.Net.ping()
 
         Sends a 'ping' to the server over the WebSocket.  The response from the server is handled by :js:meth:`GateOne.Net.pong`.
+
+        If a response is not received within a certain amount of time (milliseconds, controlled via `GateOne.prefs.pingTimeout`) the WebSocket will be closed and a 'go:ping_timeout' event will be triggered.
+
+        .. note:: The default value for `GateOne.prefs.pingTimeout` is 5 seconds.  You can change this setting via the ``js_init`` option like so: ``--js_init='{pingTimeout: "5000"}'`` (command line) or in your 10server.conf ("js_init": "{pingTimeout: '5000'}").
         */
         var now = new Date(),
+            timeout = parseInt(go.prefs.pingTimeout),
             timestamp = now.toISOString();
         logDebug("PING...");
-        GateOne.ws.send(JSON.stringify({'go:ping': timestamp}));
+        go.ws.send(JSON.stringify({'go:ping': timestamp}));
+        if (go.Utils.pingTimeout) {
+            clearTimeout(go.Utils.pingTimeout);
+            go.Utils.pingTimeout = null;
+        }
+        go.Utils.pingTimeout = setTimeout(function() {
+            go.ws.close();
+            go.Events.trigger('go:ping_timeout');
+        }, timeout);
     },
     pong: function(timestamp) {
         /**:GateOne.Net.pong(timestamp)
@@ -1850,6 +1958,10 @@ GateOne.Base.update(GateOne.Net, {
             now = new Date(),
             latency = now.getMilliseconds() - dateObj.getMilliseconds();
         logInfo('PONG: Gate One server round-trip latency: ' + latency + 'ms');
+        if (go.Utils.pingTimeout) {
+            clearTimeout(go.Utils.pingTimeout);
+            go.Utils.pingTimeout = null;
+        }
         return latency;
     },
     reauthenticate: function() {
@@ -1890,6 +2002,8 @@ GateOne.Base.update(GateOne.Net, {
         // Displays an error in the browser indicating that there was a problem with the connection.
         // if *msg* is given, it will be added to the standard error.
         go.Net.connectionProblem = true;
+        // Stop trying to ping the server since we're no longer connected
+        clearInterval(go.Net.keepalivePing);
         var u = go.Utils,
             v = go.Visual,
             errorElem = u.createElement('div', {'id': 'error_message'}),
@@ -2015,15 +2129,19 @@ GateOne.Base.update(GateOne.Net, {
                     }
                 }
                 go.ws.send(JSON.stringify({'go:authenticate': settings}));
-                setTimeout(function() {
-                    go.Net.ping(); // Check latency (after things have calmed down a bit =)
-                }, 4000);
+//                 setTimeout(function() {
+//                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
+//                 }, 4000);
                 // NOTE: This event can't be used by applications (and their plugins) since their JS won't have been loaded yet:
                 go.Events.trigger("go:connnection_established");
                 go.initialize();
                 if (callback) {
                     callback();
                 }
+                // Start our keepalive process to check for timeouts
+                go.Net.keepalivePing = setInterval(function() {
+                    go.Net.ping();
+                }, go.prefs.keepaliveInterval);
             }, 100);
         }
     },
@@ -2070,7 +2188,7 @@ GateOne.Base.update(GateOne.Net, {
     timeoutAction: function() {
         /**:GateOne.Net.timeoutAction()
 
-        Writes a message to the screen indicating a timeout has occurred and closes the WebSocket.
+        Writes a message to the screen indicating a session timeout has occurred (on the server) and closes the WebSocket.
         */
         var u = go.Utils;
         logError("Session timed out.");
@@ -2139,7 +2257,7 @@ GateOne.Base.update(GateOne.Input, {
         go.node.addEventListener('keyup', go.Input.onKeyUp, true);
         // Add some useful touchscreen events
         if ('ontouchstart' in document.documentElement) { // Touch-enabled devices only
-            v.displayMessage("Touch screen detected:<br>Swipe left/right/up/down to switch terminals.");
+            v.displayMessage("Touch screen detected:<br>Swipe left/right/up/down to switch workspaces.");
             var style = window.getComputedStyle(go.node, null);
             go.node.addEventListener('touchstart', function(e) {
                 v.displayMessage("touchstart");
@@ -2605,6 +2723,7 @@ GateOne.Base.update(GateOne.Visual, {
         go.Net.addAction('go:notice', v.serverMessageAction);
         go.Events.on('go:switch_workspace', v.slideToWorkspace);
         go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
+        window.addEventListener('resize', v.updateDimensions, false);
         // Forthcoming New Workspace Workspace :)
 //         if (!go.prefs.embedded) {
 //             setTimeout(function() {
@@ -2634,9 +2753,15 @@ GateOne.Base.update(GateOne.Visual, {
         wsContainer.appendChild(titleH2);
         wsContainer.appendChild(wsAppGrid);
         apps.forEach(function(appName) {
-            var appSquare = u.createElement('div', {'class': 'superfasttrans application'}),
+            var icon, appSquare = u.createElement('div', {'class': 'superfasttrans application'}),
+                appIcon = u.createElement('div', {'class': '✈appicon'}),
                 appText = u.createElement('p', {'class': 'application_text'});
             appText.innerHTML = appName;
+            if (go.loadedApplications[appName] && go.loadedApplications[appName].__appinfo__) {
+                icon = go.loadedApplications[appName].__appinfo__.icon || go.Icons['application'];
+            }
+            appIcon.innerHTML = icon || go.Icons['application'];
+            appSquare.appendChild(appIcon);
             appSquare.appendChild(appText);
             wsAppGrid.appendChild(appSquare);
         });
@@ -2983,7 +3108,7 @@ GateOne.Base.update(GateOne.Visual, {
             v = go.Visual,
             prefix = go.prefs.prefix;
         u.removeElement('#'+prefix+'workspace' + workspace);
-        // Now find out what the previous terminal was and move to it
+        // Now find out what the previous workspace was and move to it
         var workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace'));
         if (message) { v.displayMessage(message); }
         workspaces.forEach(function(wsObj) {
@@ -2996,9 +3121,14 @@ GateOne.Base.update(GateOne.Visual, {
             if (!go.prefs.embedded) {
                 if (go.ws.readyState == 1) {
                     // There are no other workspaces and we're still connected.  Open a new one...
-                    v.newTerminal();
+//                     v.newTerminal();
                     // This is coming soon:
-//                     v.newWorkspaceWorkspace();
+                    if (go.User.applications.length > 1) {
+                        v.newWorkspaceWorkspace();
+                    } else {
+                        // Just launch the default application
+                        go.applicationModules[go.User.applications[0]].__new__();
+                    }
                 }
             }
         }
@@ -3116,15 +3246,17 @@ GateOne.Base.update(GateOne.Visual, {
             count = 0,
             workspace = 0,
             workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace'));
-        workspaces.forEach(function(wsObj) {
-            if (wsObj.id == prefix + 'workspace' + localStorage[prefix+'selectedWorkspace']) {
-                workspace = count;
+        if (workspaces.length > 1) {
+            workspaces.forEach(function(wsObj) {
+                if (wsObj.id == prefix + 'workspace' + localStorage[prefix+'selectedWorkspace']) {
+                    workspace = count;
+                }
+                count += 1;
+            });
+            if (u.isEven(workspace+1)) {
+                var slideTo = workspaces[workspace-1].id.split(prefix+'workspace')[1];
+                go.Visual.switchWorkspace(slideTo);
             }
-            workspace = count + 1;
-        });
-        if (u.isEven(workspace+1)) {
-            var slideTo = workspaces[workspace-1].id.split(prefix+'workspace')[1];
-            go.Visual.switchWorkspace(slideTo);
         }
     },
     slideRight: function() {
@@ -3142,7 +3274,7 @@ GateOne.Base.update(GateOne.Visual, {
                 if (wsObj.id == prefix + 'workspace' + localStorage[prefix+'selectedWorkspace']) {
                     workspace = count;
                 }
-                count = count + 1;
+                count += 1;
             });
             if (!u.isEven(workspace+1)) {
                 var slideTo = workspaces[workspace+1].id.split(prefix+'workspace')[1];
@@ -3341,12 +3473,6 @@ GateOne.Base.update(GateOne.Visual, {
 //                             infoContainer.style.opacity = 0;
 //                         }, 1000);
 //                     }
-//                     if (pastearea) {
-//                         // Wrapped in a timeout to ensure it gets called after other events that might make it reappear (e.g. goDiv.onmousedown)
-//                         setTimeout(function() {
-//                             u.hideElement(pastearea);
-//                         }, 250);
-//                     }
                 });
             }, 1);
         }
@@ -3427,7 +3553,6 @@ GateOne.Base.update(GateOne.Visual, {
                 // Remove the event that called us so we're not constantly looping over the dialogs array
                 dialogContainer.removeEventListener("mousedown", dialogToForeground, true);
                 go.Events.trigger('go:dialog_to_foreground', dialogContainer);
-//                 go.Terminal.Input.disableCapture();
             },
             containerMouseUp = function(e) {
                 // Reattach our mousedown function since it auto-removes itself the first time it runs (so we're not wasting cycles constantly looping over the dialogs array)
@@ -3507,11 +3632,7 @@ GateOne.Base.update(GateOne.Visual, {
                     v.dialogs[0].style.opacity = 1; // Set the new-first dialog back to fully visible
                 }
                 // Return focus to the previously-active element
-//                 if (prevActiveElement == goDiv) {
-//                     go.Terminal.Input.capture();
-//                 } else {
-                    prevActiveElement.focus();
-//                 }
+                prevActiveElement.focus();
             };
         // Keep track of all open dialogs so we can determine the foreground order
         if (!v.dialogs) {
@@ -3567,7 +3688,6 @@ GateOne.Base.update(GateOne.Visual, {
         }
         messageContainer.appendChild(OKButton);
         var closeDialog = go.Visual.dialog(title, messageContainer);
-//         go.Terminal.Input.disableCapture();
         OKButton.tabIndex = 1;
         OKButton.onclick = function(e) {
             e.preventDefault();
@@ -3575,33 +3695,38 @@ GateOne.Base.update(GateOne.Visual, {
             if (callback) {
                 callback();
             }
-//             go.Terminal.Input.capture();
         }
         setTimeout(function() {
             OKButton.focus();
         }, 250);
         go.Events.trigger('go:alert', title, message, closeDialog);
     },
-    // TODO: Change this to use 'workspace' references instead of 'terminal' or 'term'
     widget: function(title, content, /*opt*/options) {
-        // Creates an on-screen widget with the given *title* and *content*.  Returns a function that will remove the widget when called.
-        // Widgets differ from dialogs in that they don't have a visible title and are meant to be persistent on the screen without getting in the way.  They are transparent by default and the user can move them at-will by clicking and dragging anywhere within the widget (not just the title).
-        // Widgets can be attached to a specific element by specifying a DOM object or querySelector string in *options*['where'].  Otherwise the widget will be attached to the currently-selected terminal.
-        // Widgets can be 'global' (attached to document.body) by setting *options*['where'] to 'global'.
-        // By default widgets will appear in the upper-right corner of a given terminal.
-        // *title* - string: Will appear at the top of the widget when the mouse cursor is hovering over it for more than 2 seconds.
-        // *content* - HTML string or JavaScript DOM node:  The content of the widget.
-        // *options* - An associative array of parameters that change the look and/or behavior of the widget.  Here's the possibilities:
-        //      options['onopen'] - Assign a function to this option and it will be called when the widget is opened with the widget parent element (widgetContainer) being passed in as the only argument.
-        //      options['onclose'] - Assign a function to this option and it will be called when the widget is closed.
-        //      options['onconfig'] - If a function is assigned to this parameter a gear icon will be visible in the title bar that when clicked will call this function.
-        //      options['where'] - The terminal number to attach this widget to or 'global' to add the widget to document.body.
+        /**GateOne.Visual.widget(title, content[, options])
+
+        Creates an on-screen widget with the given *title* and *content*.  Returns a function that will remove the widget when called.
+
+        Widgets differ from dialogs in that they don't have a visible title and are meant to be persistent on the screen without getting in the way.  They are transparent by default and the user can move them at-will by clicking and dragging anywhere within the widget (not just the title).
+
+        Widgets can be attached to a specific element by specifying a DOM object or querySelector string in *options*['where'].  Otherwise the widget will be attached to the currently-selected workspace.
+
+        Widgets can be 'global' (attached to document.body) by setting *options*['where'] to 'global'.
+
+        By default widgets will appear in the upper-right corner of a given workspace.
+        *title* - string: Will appear at the top of the widget when the mouse cursor is hovering over it for more than 2 seconds.
+        *content* - HTML string or JavaScript DOM node:  The content of the widget.
+        *options* - An associative array of parameters that change the look and/or behavior of the widget.  Here's the possibilities:
+             options['onopen'] - Assign a function to this option and it will be called when the widget is opened with the widget parent element (widgetContainer) being passed in as the only argument.
+             options['onclose'] - Assign a function to this option and it will be called when the widget is closed.
+             options['onconfig'] - If a function is assigned to this parameter a gear icon will be visible in the title bar that when clicked will call this function.
+             options['where'] - The node where we'll be attaching this widget or 'global' to add the widget to document.body.
+        */
         options = options || {};
         // Here are all the options
         options.onopen = options.onopen || null;
         options.onclose = options.onclose || null;
         options.onconfig = options.onconfig || null;
-        options.term = options.term || localStorage[GateOne.prefs.prefix+'selectedTerminal'];
+        options.where = options.where || localStorage[GateOne.prefs.prefix+'selectedWorkspace'];
         var prefix = go.prefs.prefix,
             u = go.Utils,
             v = go.Visual,
@@ -3610,7 +3735,6 @@ GateOne.Base.update(GateOne.Visual, {
             widgetContainer = u.createElement('div', {'id': 'widgetcontainer_' + unique, 'class': 'halfsectrans ✈widgetcontainer', 'name': 'widget', 'title': title}),
             widgetDiv = u.createElement('div', {'id': 'widgetdiv', 'class': '✈widgetdiv'}),
             widgetContent = u.createElement('div', {'id': 'widgetcontent', 'class': '✈widgetcontent'}),
-            termDiv = u.getNode('#'+prefix+'term'+options['term']), // Assigned below
             widgetTitle = u.createElement('h3', {'id': 'widgettitle', 'class': 'halfsectrans originbottommiddle ✈widgettitle'}),
             close = u.createElement('div', {'id': 'widget_close', 'class': '✈widget_close'}),
             configure = u.createElement('div', {'id': 'widget_configure', 'class': '✈widget_configure'}),
@@ -3784,14 +3908,12 @@ GateOne.Base.update(GateOne.Visual, {
             widgetContent.appendChild(content);
         }
         widgetContainer.appendChild(widgetDiv);
-        // Determine where we should put this widget (a terminal or global?)
+        // Determine where we should put this widget
         if (options['where'] == 'global') {
-            // global widgets are fixed to the page--not the terminal.
+            // global widgets are fixed to the page as a whole
             document.body.appendChild(widgetContainer);
         } else if (options['where']) {
             u.getNode(options['where']).appendChild(widgetContainer);
-        } else {
-            termDiv.appendChild(widgetContainer);
         }
         v.widgetZIndex = parseInt(getComputedStyle(widgetContainer).zIndex); // Right now this is 750 in the themes but that could change in the future so I didn't want to hard-code that value
         widgetToForeground();
@@ -3818,26 +3940,67 @@ GateOne.Base.update(GateOne.Visual, {
             :param options['node'] node: A DOM node or querySelector string.
         */
         // Enforce 'new' to ensure unique instances
-        if (!(this instanceof GateOne.Visual.Pane)) {return new GateOne.Visual.Pane(options);}
+        if (!(this instanceof GateOne.Visual.Pane)) {return new GateOne.Visual.Pane(elem, options);}
         options = (options || {});
         var self = this,
             u = GateOne.Utils;
-        self.node = (options['node'] || u.createElement('div', {'class': 'gopane'}));
+        self.node = u.getNode(elem);
         self.title = (options['title'] || null);
         self.scroll = (options['scroll'] || false);
-        if (!('gopane' in self.node.classList)) {
-            // Converting existing element into a Pane.
-            self.node.classList.push('gopane');
-            // TODO: Probably need to add more stuff here
-        }
+//         if (!('✈pane' in self.node.classList)) {
+//             // Converting existing element into a Pane.
+//             self.node.classList.add('✈pane');
+//             // TODO: Probably need to add more stuff here
+//         }
         self.split = function(axis, way) {
             /**:GateOne.Visual.Pane.split(axis)
 
             Split this Pane into two.  The *axis* argument may be 'vertical', 'horizontal', or 'evil'.  Actually, just those first two make sense.
 
             The *way* argument controls left/right (vertical split) or top/bottom (horizontal split).  If not provided the default is have the existing pane wind up on the left or on the top, respectively.
-            */
 
+            .. note:: If you can't remember how to use this function just use the vsplit() or hsplit() shortcuts.
+            */
+            var barWidth = 6, // TODO: Change this to figure out what the width of the splitbar is based on the theme
+                node = self.node,
+                paneContainer = u.createElement('div', {'class': '✈pane'}),
+                newWidth = parseInt(node.clientWidth/2) - parseInt(barWidth/2),
+                newHeight = parseInt(node.clientHeight/2) - parseInt(barWidth/2),
+                bar = u.createElement('div');
+            node.style.position = 'absolute';
+            node.style.top = 0;
+            node.style.left = 0;
+            if (axis == 'vertical') {
+                bar.className = '✈vsplitbar';
+                way = way || 'left';
+                node.style.width = newWidth + 'px';
+            } else {
+                bar.className = '✈hsplitbar';
+                way = way || 'top';
+                node.style.height = newHeight + 'px';
+            }
+            var duplicated = node.cloneNode(false);
+            if (way == 'left') {
+                duplicated.style.left = (newWidth + barWidth) + 'px';
+                bar.style.left = newWidth + 'px';
+            } else {
+                duplicated.style.top = (newHeight + barWidth) + 'px';
+                bar.style.left = newHeight + 'px';
+            }
+            node.parentNode.appendChild(paneContainer);
+//             u.removeElement(node);
+            if (way == 'left' || way == 'top') {
+                paneContainer.appendChild(node);
+                paneContainer.appendChild(bar);
+                paneContainer.appendChild(duplicated);
+            } else {
+                paneContainer.appendChild(duplicated);
+                paneContainer.appendChild(bar);
+                paneContainer.appendChild(node);
+            }
+            // NOTE: TEMP:
+            duplicated.innerHTML = "This is the duplicated container";
+            return duplicated;
         }
         self.vsplit = function() {
             /**:GateOne.Visual.Pane.vsplit()
@@ -3873,10 +4036,11 @@ GateOne.Base.update(GateOne.Visual, {
             u.removeElement(self.node);
             // TODO: Add logic here to remove the splitbar(s)
         }
+        return self;
     },
     // PANE TYPE 2
     pane: function(title, workspace, /*opt*/options) {
-        /**:GateOne.Visual.panel(title, workspace, [options])
+        /**:GateOne.Visual.panel(title, workspace[, options])
 
         Creates a new pane element inside of the given *workspace* and adds a pane object to :js:attr:`GateOne.Visual.workspaces`.  Panes can be docked or undocked (hover/pseudo pop-up) depending on *options*.  Returns the DOM node that winds up being created.
 
@@ -4594,16 +4758,16 @@ GateOne.Base.update(GateOne.User, {
     storeSession: function(message) {
         //  Stores the 'gateone_user' data in localStorage in a nearly identical fashion to how it gets stored in the 'gateone_user' cookie.
         localStorage[GateOne.prefs.prefix+'gateone_user'] = message;
-        // Delete the cookie just in case (it might be a leftover from testing during development; or something like that)
-        // Commented out the following because it still needs testing...  Probably won't work in many embedded situations since the browser won't let the client access a cookie belonging to a different FQDN.
-//         GateOne.Utils.deleteCookie('gateone_user');
     },
     applicationsAction: function(apps) {
         /**:GateOne.User.applicationsAction()
 
         Sets `GateOne.User.applications` to be the given list of *apps* (which is the list of applications the user is allowed to run).
         */
+        // NOTE: Unlike GateOne.loadedApplications--which may hold applications this user may not have access to--this tells us which applications the user can actually use.  That way we can show/hide just those things that the user has access on the server.
         GateOne.User.applications = apps;
+        // NOTE: In most cases applications' JavaScript will not be sent to the user if that user is not allowed to run it but this does not cover all use case scenarios.  For example, a user that has access to an application only if certain conditions are met (e.g. during a specific time window).  In those instances we don't want to force the user to reload the page...  We'll just send a new applications list when it changes (which is a feature that's on the way).
+        GateOne.Events.trigger("go:applications", apps);
     },
     preference: function(title, content, /*opt*/callback) {
         /**:GateOne.User.preference(title, content)
@@ -4693,8 +4857,8 @@ GateOne.Base.update(GateOne.Events, {
         // Why not just call this on every function automatically?  Memory/resources.  No reason to attach empty arrays to every method.
         // NOTE: Only works on objects that were created/updated via GateOne.Base.update();
         var self = this;
-        if (!f.parent) {
-            logError('_setupCallbacks: Cannot attach to provided function (no parent!).');
+        if (!f.__parent__) {
+            logError('_setupCallbacks: Cannot attach to provided function (no __parent__!).');
         }
         var newFunc = function() {
             var args = arguments,
@@ -4723,7 +4887,7 @@ GateOne.Base.update(GateOne.Events, {
         }
         newFunc.callBefore = [];
         newFunc.callAfter = [];
-        f.parent[f.NAME] = newFunc; // Update in place (because it's awesome)
+        f.__parent__[f.__name__] = newFunc; // Update in place (because it's awesome)
         return newFunc;
     },
     before: function(f, callback, context) {
@@ -4822,7 +4986,7 @@ GateOne.Base.update(GateOne.Events, {
         if (!arguments.length) {
             E.callbacks = {}; // Clear all events/callbacks
         } else {
-            eventList = events ? events.split(/\s+/) : keys(self.callbacks);
+            eventList = events ? events.split(/\s+/) : keys(E.callbacks);
             for (i in eventList) {
                 var event = eventList[i],
                     callList = E.callbacks[event];
@@ -4842,7 +5006,7 @@ GateOne.Base.update(GateOne.Events, {
                         }
                     }
                 }
-                self.callbacks[event] = newList;
+                E.callbacks[event] = newList;
             }
         }
         return this;
@@ -4898,10 +5062,11 @@ GateOne.Base.update(GateOne.Events, {
         return this;
     }
 });
-go.Icons['close'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="closeGradient" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#closeGradient)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
-GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="prefsGradient" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#prefsGradient)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
-GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="backGradient" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#backGradient)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
-GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" class="✈svgplain"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
+go.Icons['close'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="closeGradient" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#closeGradient)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
+go.Icons['application'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
+GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="prefsGradient" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#prefsGradient)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
+GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="backGradient" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#backGradient)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
+GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" class="✈svgplain"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
 
 })(window);
 

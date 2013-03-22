@@ -1470,29 +1470,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         message = {'go:set_username': self.current_user['upn']}
         self.write_message(json_encode(message))
         # Tell the client which applications are available
-        enabled_applications = policy.get('enabled_applications', [])
-        if not enabled_applications:
-            for app in self.apps: # Use the app's name attribute
-                name = str(app)
-                if hasattr(app, 'name'):
-                    name = app.name
-                enabled_applications.append(name)
-        # I've been using these for testing stuff...  Ignore
-        #enabled_applications.append("Bookmarks")
-        #enabled_applications.append("Terminal: Nethack")
-        #enabled_applications.append("Terminal: Login")
-        #enabled_applications.append("Admin")
-        #enabled_applications.append("IRC")
-        #enabled_applications.append("Log Viewer")
-        #enabled_applications.append("Help")
-        #enabled_applications.append("X11 Desktop")
-        #enabled_applications.append("RDP")
-        #enabled_applications.append("VNC")
-        enabled_applications.sort()
-        # Use this user's specific allowed list of applications if possible:
-        user_apps = policy.get('user_applications', enabled_applications)
-        message = {'go:applications': user_apps}
-        self.write_message(json_encode(message))
+        self.list_applications()
         # Startup the session watcher if it isn't already running
         global SESSION_WATCHER
         if not SESSION_WATCHER:
@@ -1529,6 +1507,35 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 cls.file_checker, check_time, io_loop=io_loop)
             cls.file_watcher.start()
         self.trigger('go:authenticate')
+
+    def list_applications(self):
+        """
+        Sends a message to the client indiciating which applications are
+        available to the user.
+        """
+        policy = applicable_policies("gateone", self.current_user, self.prefs)
+        enabled_applications = policy.get('enabled_applications', [])
+        if not enabled_applications:
+            for app in self.apps: # Use the app's name attribute
+                name = str(app)
+                if hasattr(app, 'name'):
+                    name = app.name
+                enabled_applications.append(name)
+        # I've been using these for testing stuff...  Ignore
+        enabled_applications.append("Bookmarks")
+        enabled_applications.append("Terminal: Nethack")
+        enabled_applications.append("Terminal: Login")
+        enabled_applications.append("Admin")
+        enabled_applications.append("IRC")
+        enabled_applications.append("Log Viewer")
+        enabled_applications.append("Help")
+        enabled_applications.append("RDP")
+        enabled_applications.append("VNC")
+        enabled_applications.sort()
+        # Use this user's specific allowed list of applications if possible:
+        user_apps = policy.get('user_applications', enabled_applications)
+        message = {'go:applications': user_apps}
+        self.write_message(json_encode(message))
 
     def render_style(self, style_path, **kwargs):
         """

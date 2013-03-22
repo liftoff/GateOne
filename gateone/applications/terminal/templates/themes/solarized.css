@@ -1,10 +1,10 @@
 /* Terminal solarized theme */
 #{{container}} .terminal {
     line-height: 1;
+    height: 100%; /* NOTE: This is important for the getRowsAndColumns() calculation */
+    position: absolute;
     * { color:#839496; }
     h1,h2,h3,h4,h5,h6 { color:#93a1a1; border-color: #839496; }
-    position: static;
-    float: left;
     -webkit-transition: -webkit-transform 1s ease-in-out;
     -moz-transition: -moz-transform 1s ease-in-out;
     -ms-transition: -ms-transform 1s ease-in-out;
@@ -23,10 +23,12 @@
     color: #839496;
     font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */
     line-height: 1;
-    width: 100%;
+    width: calc(100% - 2em);
     overflow-y: auto;
     overflow-x: hidden;
     position: absolute;
+    left: 0;
+    right: 0;
     bottom: 0;
     margin: 0;
     padding: 0;

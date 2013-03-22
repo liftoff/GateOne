@@ -124,7 +124,7 @@ go.Base.update(go.SSH, {
             go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
         }
     },
-    autoConnect: function() {
+    autoConnect: function(term, termUndefined) {
         /**:GateOne.SSH.autoConnect()
 
         Automatically connects to `GateOne.prefs.autoConnectURL` if it set.

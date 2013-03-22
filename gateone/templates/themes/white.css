@@ -73,27 +73,26 @@
 #{{container}} .new_workspace_workspace {
     width: 100%;
     height: 100%;
-    background-color: #000;
 }
 #{{container}} .new_workspace_workspace_title {
     text-align: center;
     width: 80%;
-    background-color: #000;
     font-family: Ubuntu, Arial Black, sans-serif;
-    border-bottom: 1px solid #222;
+    border-bottom: 1px solid #ccc;
     margin: 0 auto;
+    color: #000;
 }
 #{{container}} .app_grid {
     width: 80%;
     margin: 0 auto;
 }
 #{{container}} .application {
-    width: 20%;
-    background: linear-gradient(to bottom, #333, #191919);
+    width: 15%;
+    background: linear-gradient(to bottom, #ccc, #fff);
     border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(0, 0, 0, 0);
+    border: 1px solid rgba(0, 0, 0, 0.33);
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-    color: #fff;
+    color: #000;
     font-weight: bold;
     float: left;
     text-align: center;
@@ -103,7 +102,7 @@
 }
 #{{container}} .application:hover {
     box-shadow: 0 0 0.6em #444;
-    background: linear-gradient(to bottom, #333, #686868);
+    background: linear-gradient(to bottom, #fff, #ccc);
     cursor: pointer;
     text-shadow: .1em .1em .4em #000;
 }
@@ -220,7 +219,7 @@
     z-index:600;
     position:absolute;
     top:0;
-    right:1em;
+    right:0;
     color: #000;
     text-align: right;
 }
@@ -315,7 +314,7 @@ potential conflicts with other classes that may be on the page.
     -o-transform-origin: right top;
     transform: rotate(90deg);
     transform-origin: right top;
-    right: 1em; /* This will get overridden by a px value calculated based on the width of the scrollbar */
+    right: 3px; /* This will get overridden by a px value calculated based on the width of the scrollbar */
     bottom: 0;
     color: black;
     position: absolute;
@@ -500,6 +499,7 @@ potential conflicts with other classes that may be on the page.
 .✈prefs_list li:hover {
     cursor: pointer;
     background-color: #ccc;
+    background-image: linear-gradient(#ccc, #fff);
 }
 .✈prefs_list .✈active {
     background-color: #2A5BA6;
@@ -508,6 +508,7 @@ potential conflicts with other classes that may be on the page.
 }
 .✈prefs_list .✈active:hover {
     background-color: #2A5BA6;
+    background-image: linear-gradient(#2A5BA6, #2A5BA6);
     color: #fff;
 }
 .✈prefs_content {
@@ -515,10 +516,7 @@ potential conflicts with other classes that may be on the page.
     width: 67%;
 }
 .✈sub1 li {
-    padding-left: 1.2em;
-}
-.✈sub1 li:before {
-    content: "❭ ";
+    padding-left: 1.5em;
 }
 #{{container}} form { margin: 0 0 1em; }
 #{{container}} label {
@@ -867,6 +865,16 @@ potential conflicts with other classes that may be on the page.
 }
 /* SVG Styling */
 .✈svgplain { fill: #2A5BA6; }
+.✈svg { fill: #000; }
+div.✈appicon { padding-top: 1em; }
+div.✈appicon:hover {
+    -webkit-filter: drop-shadow( .1em .1em .4em #000 );
+    -moz-filter: drop-shadow( .1em .1em .4em #000 );
+    -ms-filter: drop-shadow( .1em .1em .4em #000 );
+    -o-filter: drop-shadow( .1em .1em .4em #000 );
+    filter: drop-shadow( .1em .1em .4em #000 );
+}
+div.✈appicon svg { fill: #000; width: 6em; height: 6em; }
 #{{container}} .stop1 { stop-color: #636466; }
 #{{container}} .stop2 { stop-color: #464648; }
 #{{container}} .stop3 { stop-color: #5D5E60; }

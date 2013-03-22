@@ -165,8 +165,9 @@ class KerberosAuthMixin(tornado.web.RequestHandler):
         except kerberos.GSSError as e:
             logging.error(_("Kerberos Error: %s" % e))
             raise tornado.web.HTTPError(500, _("Kerberos Init failed"))
+        finally:
+            kerberos.authGSSServerClean(context)
         self.set_header('WWW-Authenticate', "Negotiate %s" % gssstring)
-        kerberos.authGSSServerClean(context)
         callback(user)
 
     def auth_basic(self, auth_header, callback):
