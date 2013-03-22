@@ -1254,18 +1254,18 @@ go.Base.update(GateOne.Terminal, {
             }
             go.Terminal.terminals[term]['scrollback'] = blankLines;
         }
+        terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal'});
         if (!go.prefs.embedded) {
-            // Prepare the terminal div for the grid
-//             terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal', 'style': {'width': v.goDimensions.w + 'px', 'height': v.goDimensions.h + 'px'}});
-            terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal'});
             // Switch to the newly created workspace (if warranted)
             if (workspaceNum) {
                 v.switchWorkspace(workspaceNum);
             }
-        } else {
-            terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal'});
         }
-        u.getNode(where).appendChild(terminal);
+        if (where.className == 'terminal') {
+            terminal = where;
+        } else {
+            u.getNode(where).appendChild(terminal);
+        }
         emDimensions = u.getEmDimensions(terminal, go.node);
         dimensions = u.getRowsAndColumns(terminal);
         rows = Math.ceil(dimensions.rows - rowAdjust);

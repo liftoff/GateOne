@@ -3,6 +3,7 @@
     line-height: 1;
     height: 100%; /* NOTE: This is important for the getRowsAndColumns() calculation */
     width: calc(100% - 2em);
+    width: -webkit-calc(100% - 2em);
     position: absolute;
     -webkit-transition: -webkit-transform 1s ease-in-out;
     -moz-transition: -moz-transform 1s ease-in-out;
@@ -22,7 +23,6 @@
     color: #eee;
     font-size: 0.9em; /* For some reason when you use a .woff font it seems to show up slightly larger than it would normally */
     line-height: 1;
-/*     width: calc(100% - 2em); */
     overflow-y: auto;
     overflow-x: hidden;
     position: absolute;
