@@ -1193,7 +1193,7 @@ go.Base.update(GateOne.Terminal, {
         // TODO: Get this calculating/sizing the terminal based on where it is being put instead of go.node
         logDebug("newTerminal(" + term + ")");
         var t = go.Terminal,
-            currentTerm, terminal, emDimensions, dimensions, rows, cols,
+            currentTerm, terminal, emDimensions, dimensions, rows, cols, switchTermFunc,
             termUndefined = false,
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
@@ -1218,6 +1218,7 @@ go.Base.update(GateOne.Terminal, {
             term = t.lastTermNumber;
             currentTerm = 'term' + t.lastTermNumber;
         }
+        switchTermFunc = u.partial(go.Terminal.switchTerminal, term);
         if (!where) {
             if (gridwrapper) {
                 where = v.newWorkspace(); // Use the gridwrapper (grid) by default
@@ -1282,6 +1283,7 @@ go.Base.update(GateOne.Terminal, {
         }
         // This ensures that we re-enable input if the user clicked somewhere else on the page then clicked back on the terminal:
 //         terminal.addEventListener('click', go.Terminal.Input.capture, false);
+        terminal.addEventListener('click', switchTermFunc, false);
         // Get any previous term's dimensions so we can use them for the new terminal
         var termSettings = {
                 'term': term,
@@ -1426,7 +1428,12 @@ go.Base.update(GateOne.Terminal, {
                 m = go.Input.mouse(e), // Get the properties of the mouse event
                 X = e.clientX,
                 Y = e.clientY,
-                selectedTerm = localStorage[prefix+'selectedTerminal'];
+                selectedTerm = (this.id + '').split('pastearea')[1];
+//                 selectedTerm = localStorage[prefix+'selectedTerminal'];
+            if (localStorage[prefix+'selectedTerminal'] != selectedTerm) {
+                // Switch terminals
+                go.Terminal.switchTerminal(selectedTerm);
+            }
             if (m.button.left) { // Left button depressed
                 u.hideElement(pastearea);
                 if (go.Terminal.pasteAreaTimer) {
@@ -1608,6 +1615,7 @@ go.Base.update(GateOne.Terminal, {
         */
         logDebug('switchTerminalEvent('+term+')');
         var termNode = null,
+            cursors = u.toArray(u.getNodes(go.prefs.goDiv + ' .cursor')),
             termTitleH2 = u.getNode('#'+prefix+'termtitle'),
             displayText = "Gate One",
             sideinfo = u.getNode('#'+prefix+'sideinfo'),

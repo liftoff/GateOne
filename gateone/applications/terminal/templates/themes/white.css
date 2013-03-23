@@ -5,11 +5,19 @@
     position: absolute;
     width: calc(100% - 2em);
     width: -webkit-calc(100% - 2em);
-    -webkit-transition: -webkit-transform 1s ease-in-out;
-    -moz-transition: -moz-transform 1s ease-in-out;
-    -ms-transition: -ms-transform 1s ease-in-out;
-    -o-transition: -o-transform 1s ease-in-out;
-    transition: transform 1s ease-in-out;
+    right: 2em;
+    -webkit-transition-property: -webkit-transform, height, width;
+    -webkit-transition-duration: 1s;
+    -webkit-transition-timing-function: ease-in-out;
+    -moz-transition-property: -webkit-transform, height, width;
+    -moz-transition-duration: 1s;
+    -moz-transition-timing-function: ease-in-out;
+    -ms-transition-property: -webkit-transform, height, width;
+    -ms-transition-duration: 1s;
+    -ms-transition-timing-function: ease-in-out;
+    transition-property: -webkit-transform, height, width;
+    transition-duration: 1s;
+    transition-timing-function: ease-in-out;
 }
 #{{container}} .terminal a {
     color: maroon;

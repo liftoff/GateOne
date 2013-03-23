@@ -3952,12 +3952,14 @@ GateOne.Base.update(GateOne.Visual, {
 //             self.node.classList.add('✈pane');
 //             // TODO: Probably need to add more stuff here
 //         }
-        self.split = function(axis, way) {
-            /**:GateOne.Visual.Pane.split(axis)
+        self.split = function(axis, way, /*opt*/newNode) {
+            /**:GateOne.Visual.Pane.split(axis, way[, newNode])
 
             Split this Pane into two.  The *axis* argument may be 'vertical', 'horizontal', or 'evil'.  Actually, just those first two make sense.
 
             The *way* argument controls left/right (vertical split) or top/bottom (horizontal split).  If not provided the default is have the existing pane wind up on the left or on the top, respectively.
+
+            If provided, the given *newNode* will be placed in the new container that results from the split.  Otherwise a new node will be created from the existing one (using `cloneNode(false)`).
 
             .. note:: If you can't remember how to use this function just use the vsplit() or hsplit() shortcuts.
             */
@@ -3979,12 +3981,14 @@ GateOne.Base.update(GateOne.Visual, {
                 way = way || 'top';
                 node.style.height = newHeight + 'px';
             }
-            var duplicated = node.cloneNode(false);
+            if (!newNode) {
+                newNode = node.cloneNode(false);
+            }
             if (way == 'left') {
-                duplicated.style.left = (newWidth + barWidth) + 'px';
+                newNode.style.left = (newWidth + barWidth) + 'px';
                 bar.style.left = newWidth + 'px';
             } else {
-                duplicated.style.top = (newHeight + barWidth) + 'px';
+                newNode.style.top = (newHeight + barWidth) + 'px';
                 bar.style.left = newHeight + 'px';
             }
             node.parentNode.appendChild(paneContainer);
@@ -3992,29 +3996,33 @@ GateOne.Base.update(GateOne.Visual, {
             if (way == 'left' || way == 'top') {
                 paneContainer.appendChild(node);
                 paneContainer.appendChild(bar);
-                paneContainer.appendChild(duplicated);
+                paneContainer.appendChild(newNode);
             } else {
-                paneContainer.appendChild(duplicated);
+                paneContainer.appendChild(newNode);
                 paneContainer.appendChild(bar);
                 paneContainer.appendChild(node);
             }
             // NOTE: TEMP:
-            duplicated.innerHTML = "This is the duplicated container";
-            return duplicated;
+//             duplicated.innerHTML = "This is the duplicated container";
+            setTimeout(function() {
+                u.scrollToBottom(node);
+                u.scrollToBottom(newNode);
+            }, 10);
+            return newNode;
         }
-        self.vsplit = function() {
-            /**:GateOne.Visual.Pane.vsplit()
+        self.vsplit = function(/*opt*/newNode) {
+            /**:GateOne.Visual.Pane.vsplit([newNode])
 
             A shortcut for `GateOne.Visual.Pane.split('vertical')`
             */
-            GateOne.Visual.Pane.split('vertical');
+            go.Visual.Pane.split('vertical', null, newNode);
         }
-        self.hsplit = function() {
-            /**:GateOne.Visual.Pane.hsplit()
+        self.hsplit = function(/*opt*/newNode) {
+            /**:GateOne.Visual.Pane.hsplit([newNode])
 
             A shortcut for `GateOne.Visual.Pane.split('horizontal')`
             */
-            GateOne.Visual.Pane.split('horizontal');
+            go.Visual.Pane.split('horizontal', null, newNode);
         }
         self.relocate = function(where, /*opt*/splitAxis) {
             /**:GateOne.Visual.Pane.relocate(where)
@@ -4169,6 +4177,17 @@ GateOne.Base.update(GateOne.Visual, {
 
             }
         }
+    },
+    nodeThumb: function(elem, scale) {
+        /**:GateOne.Visual.nodeThumb(elem, scale)
+
+        Returns a miniature clone of the given *elem* that is reduced in size by the amount given by *scale* (e.g. 0.25 for 1/4 size).
+        */
+        var u = go.Utils,
+            clone = u.getNode(elem).cloneNode(true);
+        go.Visual.applyTransform(clone, 'scale('+scale+')');
+        clone.id = clone.id + '_mini';
+        return clone;
     }
 });
 

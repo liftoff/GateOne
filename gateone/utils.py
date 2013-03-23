@@ -835,9 +835,11 @@ def killall(session_dir, pid_file):
             "Could not open pid_file (%s).  You may have to kill gateone.py "
             "manually." % pid_file))
 
-def killall_bsd(session_dir):
+def killall_bsd(session_dir, pid_file=None):
     """
     A BSD-specific version of `killall` since Macs don't have /proc.
+
+    .. note:: *pid_file* is not used by this function.  It is simply here to provide compatibility with `killall`.
     """
     # TODO: See if there's a better way to keep track of subprocesses so we
     # don't have to enumerate the process table at all.

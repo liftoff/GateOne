@@ -183,15 +183,15 @@ def parse_bookmarks_html(html):
                 name += unescape(token['data'])
     return out_list
 
-def get_json_tags(json_dict, url):
+def get_json_tags(bookmarks, url):
     """
-    Recursively looks inside *json_dict* trying to find tags associated with the
+    Iterates over *bookmarks* (dict) trying to find tags associated with the
     given *url*.  Returns the tags found as a list.
     """
     tags = []
     # This function has been brought to you by your favorite stock symbol
-    if json_dict.has_key('root') and json_dict.has_key('children'):
-        for item in json_dict['children']:
+    if bookmarks.has_key('root') and bookmarks.has_key('children'):
+        for item in bookmarks['children']:
             if item['title'] == 'Tags':
                 for child in item['children']:
                     if child['type'] == 'text/x-moz-place-container':

@@ -36,7 +36,7 @@
 .✈progressBarContainer {
     position: absolute;
     bottom: 0;
-    right: 5em;
+    right: 6em;
     left: 1.4em;
     margin-bottom: 0.25em;
     background: #fff;
@@ -48,6 +48,6 @@
     opacity: 0.7;
     font-size: 0.7em;
     position: absolute;
-    right: 1.1em;
+    right: 2em;
     bottom: 0.1em;
 }

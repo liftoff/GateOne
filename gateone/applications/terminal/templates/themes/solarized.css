@@ -5,13 +5,21 @@
     position: absolute;
     width: calc(100% - 2em);
     width: -webkit-calc(100% - 2em);
+    right: 2em;
     * { color:#839496; }
     h1,h2,h3,h4,h5,h6 { color:#93a1a1; border-color: #839496; }
-    -webkit-transition: -webkit-transform 1s ease-in-out;
-    -moz-transition: -moz-transform 1s ease-in-out;
-    -ms-transition: -ms-transform 1s ease-in-out;
-    -o-transition: -o-transform 1s ease-in-out;
-    transition: transform 1s ease-in-out;
+    -webkit-transition-property: -webkit-transform, height, width;
+    -webkit-transition-duration: 1s;
+    -webkit-transition-timing-function: ease-in-out;
+    -moz-transition-property: -webkit-transform, height, width;
+    -moz-transition-duration: 1s;
+    -moz-transition-timing-function: ease-in-out;
+    -ms-transition-property: -webkit-transform, height, width;
+    -ms-transition-duration: 1s;
+    -ms-transition-timing-function: ease-in-out;
+    transition-property: -webkit-transform, height, width;
+    transition-duration: 1s;
+    transition-timing-function: ease-in-out;
 }
 #{{container}} .terminal a {
     color: #93a1a1;
