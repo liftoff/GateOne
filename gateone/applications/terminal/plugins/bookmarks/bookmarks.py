@@ -17,10 +17,13 @@ This Python plugin file implements the following hooks::
             (r"/bookmarks/import", ImportHandler),
         ],
         'WebSocket': {
-            'bookmarks_sync': save_bookmarks,
-            'bookmarks_get': get_bookmarks,
-            'bookmarks_deleted': delete_bookmarks,
-            'bookmarks_rename_tags': rename_tags,
+            'terminal:bookmarks_sync': save_bookmarks,
+            'terminal:bookmarks_get': get_bookmarks,
+            'terminal:bookmarks_deleted': delete_bookmarks,
+            'terminal:bookmarks_rename_tags': rename_tags,
+        },
+        'Events': {
+            'terminal:authenticate': send_bookmarks_css_template
         }
     }
 
@@ -470,7 +473,7 @@ class FaviconHandler(BaseHandler):
         """
         Parses *html* looking for a favicon URL.  Returns a tuple of::
 
-            (<url>, <mimetime>)
+            (<url>, <mimetype>)
 
         If no favicon can be found, returns::
 
@@ -676,7 +679,7 @@ def get_bookmarks(self, updateSequenceNum):
 
 def delete_bookmarks(self, deleted_bookmarks):
     """
-    Handles deleting bookmars given a *deleted_bookmarks* list.
+    Handles deleting bookmarks given a *deleted_bookmarks* list.
     """
     user = self.current_user['upn']
     bookmarks_db = BookmarksDB(self.ws.settings['user_dir'], user)
