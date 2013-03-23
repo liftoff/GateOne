@@ -210,7 +210,7 @@ def get_json_tags(bookmarks, url):
 
 def get_ns_json_bookmarks(json_dict, bookmarks):
     """
-    Given a *json_dict*, updates *urls_list* with each URL as it is found
+    Given a *json_dict*, updates *bookmarks* with each URL as it is found
     within.
 
     .. note:: Only works with Netscape-style bookmarks.json files.
