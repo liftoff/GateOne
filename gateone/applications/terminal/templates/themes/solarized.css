@@ -21,6 +21,10 @@
     transition-duration: 1s;
     transition-timing-function: ease-in-out;
 }
+#{{container}} .✈inactive span.cursor {
+    border: 1px #fff solid;
+    background-color: transparent;
+}
 #{{container}} .terminal a {
     color: #93a1a1;
 }

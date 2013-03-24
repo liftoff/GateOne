@@ -1198,10 +1198,6 @@ go.Base.update(GateOne.Terminal, {
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
             colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
-//             emDimensions = u.getEmDimensions(go.prefs.goDiv),
-//             dimensions = u.getRowsAndColumns(go.prefs.goDiv),
-//             rows = Math.ceil(dimensions.rows - rowAdjust),
-//             cols = Math.ceil(dimensions.cols - colAdjust),
             workspaceNum, // Set below (if any)
             // Firefox doesn't support 'mousewheel'
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
@@ -1264,6 +1260,7 @@ go.Base.update(GateOne.Terminal, {
         }
         if (where.className == 'terminal') {
             terminal = where;
+            terminal.id = currentTerm;
         } else {
             u.getNode(where).appendChild(terminal);
         }
@@ -1615,7 +1612,8 @@ go.Base.update(GateOne.Terminal, {
         */
         logDebug('switchTerminalEvent('+term+')');
         var termNode = null,
-            cursors = u.toArray(u.getNodes(go.prefs.goDiv + ' .cursor')),
+//             cursors = u.toArray(u.getNodes(go.prefs.goDiv + ' .cursor')),
+            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             termTitleH2 = u.getNode('#'+prefix+'termtitle'),
             displayText = "Gate One",
             sideinfo = u.getNode('#'+prefix+'sideinfo'),
@@ -1636,6 +1634,13 @@ go.Base.update(GateOne.Terminal, {
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
+        terms.forEach(function(terminalNode) {
+            if (terminalNode == termNode) {
+                terminalNode.classList.remove('✈inactive');
+            } else {
+                terminalNode.classList.add('✈inactive');
+            }
+        });
         sideinfo.innerHTML = displayText;
         go.Terminal.displayTermInfo(term);
         if (go.Terminal.alignTimer) {
