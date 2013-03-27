@@ -1546,7 +1546,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
         This method also cleans up older versions of the same rendered template.
         """
-        cache_dir = self.prefs['*']['gateone']['cache_dir']
+        cache_dir = self.settings['cache_dir']
         mtime = os.stat(style_path).st_mtime
         shortened_path = short_hash(style_path)
         rendered_filename = 'rendered_%s_%s' % (shortened_path, int(mtime))
@@ -1594,7 +1594,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             return
         use_client_cache = self.prefs['*']['gateone'].get(
             'use_client_cache', True)
-        cache_dir = self.prefs['*']['gateone']['cache_dir']
+        cache_dir = self.settings['cache_dir']
         if not os.path.exists(cache_dir):
             mkdir_p(cache_dir)
         templates_path = os.path.join(GATEONE_DIR, 'templates')
@@ -1857,7 +1857,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # client knows the filename.  The path-is-information-disclosure
             # problem really only applies to rendered CSS template files anyway
             out_dict['filename'] = filename
-        cache_dir = self.prefs['*']['gateone']['cache_dir']
+        cache_dir = self.settings['cache_dir']
         if self.settings['debug']:
             out_dict['data'] = get_or_cache(cache_dir, path, minify=False)
         else:
@@ -2031,7 +2031,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # So we don't repeat this message a zillion times in the logs:
             self.logged_css_message = True
             return
-        cache_dir = self.prefs['*']['gateone']['cache_dir']
+        cache_dir = self.settings['cache_dir']
         mtime = os.stat(css_path).st_mtime
         safe_path = css_path.replace('/', '_') # So we can name the file safely
         rendered_filename = 'rendered_%s_%s' % (safe_path, int(mtime))
