@@ -1425,7 +1425,8 @@ def get_or_cache(cache_dir, path, minify=True):
     # Also, we're using the full path in the cached filename in the event
     # that two files have the same name but at different paths.
     mtime = os.stat(path).st_mtime
-    cached_filename = "%s:%s" % (path.replace('/', '_'), mtime)
+    shortened_path = short_hash(path)
+    cached_filename = "%s:%s" % (shortened_path, mtime)
     cached_file_path = os.path.join(cache_dir, cached_filename)
     # Check if the file has changed since last time and use the cached
     # version if it makes sense to do so.

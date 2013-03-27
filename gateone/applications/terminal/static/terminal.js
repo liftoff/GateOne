@@ -525,8 +525,11 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.resizeEventTimer = setTimeout(function() {
             // Wrapped in a timeout to de-bounce
             var term = localStorage[prefix+'selectedTerminal'],
-                terminalObj = go.Terminal.terminals[term],
-                terminalNode = terminalObj['terminal'],
+                terminalObj = go.Terminal.terminals[term];
+            if (!terminalObj) {
+                return; // Nothing to do (terminal not open yet or was already removed)
+            }
+            var terminalNode = terminalObj['terminal'],
                 termPre = terminalObj['node'],
                 screenNode = terminalObj['screenNode'],
                 emHeight = u.getEmDimensions(terminalNode, go.node).h;
@@ -686,8 +689,11 @@ go.Base.update(GateOne.Terminal, {
         if (typeof(ctrl_l) == 'undefined') {
             ctrl_l = true;
         }
-        var termObj = go.Terminal.terminals[term],
-            termNode = termObj['terminal'],
+        var termObj = go.Terminal.terminals[term];
+        if (!termObj) {
+            return; // Nothing to do (terminal has not been created yet or was just closed)
+        }
+        var termNode = termObj['terminal'],
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
             colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
             emDimensions = u.getEmDimensions(termNode, go.node),
@@ -1612,7 +1618,6 @@ go.Base.update(GateOne.Terminal, {
         */
         logDebug('switchTerminalEvent('+term+')');
         var termNode = null,
-//             cursors = u.toArray(u.getNodes(go.prefs.goDiv + ' .cursor')),
             terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
             termTitleH2 = u.getNode('#'+prefix+'termtitle'),
             displayText = "Gate One",

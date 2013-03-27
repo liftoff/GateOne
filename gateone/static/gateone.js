@@ -5,7 +5,7 @@ COPYRIGHT NOTICE
 
 gateone.js and all related original code...
 
-Copyright 2012 Liftoff Software Corporation
+Copyright 2013 Liftoff Software Corporation
 
 Gate One Client - JavaScript
 ============================
@@ -23,7 +23,7 @@ this file.
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
 // TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated with the base themes.
 // TODO: Make it so that variables like GateOne.Terminal.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
-// TODO: Make it so that you can press the ESC key to close panels and dialog boxes even if GateOne.Input.disableCapture() has been called.
+// TODO: This is a big one:  Re-write most of this to use Underscore.js and Backbone.js (as a more well-constructed way to support multiple simultaneous Gate One server connections/instances).  Will require overriding some aspects of Backbone.js but this is easier than re-inventing the wheel with Models.
 
 // Everything goes in GateOne
 (function(window, undefined) {
@@ -346,8 +346,7 @@ var go = GateOne.Base.update(GateOne, {
         if (!u.endsWith('/', go.prefs.url)) {
             go.prefs.url = go.prefs.url + '/';
         }
-        var combined_js = go.prefs.url + 'combined_js',
-            authCheck = go.prefs.url + 'auth?check=True';
+        var authCheck = go.prefs.url + 'auth?check=True';
         if (go.prefs.auth) {
             // API authentication doesn't need to use the /auth URL.
             logDebug("Using API authentiation object: " + go.prefs.auth);
@@ -440,9 +439,9 @@ var go = GateOne.Base.update(GateOne, {
         prefsPanelSave.innerHTML = "Save";
         prefsPanelForm.appendChild(prefsPanelSave);
         prefsPanel.appendChild(prefsPanelForm);
-        if (!go.prefs.embedded) {
+//         if (!go.prefs.embedded) {
             goDiv.appendChild(prefsPanel); // Doesn't really matter where it goes
-        }
+//         }
         go.User.preference("Gate One", tableDiv);
         prefsPanelForm.onsubmit = function(e) {
             e.preventDefault(); // Don't actually submit
@@ -609,7 +608,6 @@ if (!localStorage[GateOne.prefs.prefix+GateOne.location+'_selectedWorkspace']) {
 
 // GateOne.Utils (generic utility functions)
 GateOne.Base.module(GateOne, "Utils", "1.2", ['Base']);
-GateOne.Utils.scriptsLoaded = false; // Used to track whether or not combined_js loaded or not
 GateOne.Utils.benchmark = null; // Used in conjunction with the startBenchmark and stopBenchmark functions
 GateOne.Utils.benchmarkCount = 0; // Ditto
 GateOne.Utils.benchmarkTotal = 0; // Ditto
@@ -1312,24 +1310,22 @@ GateOne.Base.update(GateOne.Utils, {
 
         Called when :js:meth:`GateOne.Utils.loadScript` fails to load the .js file at the given *url*.  Under the assumption that the user has yet to accept the Gate One server's SSL certificate, it will pop-up an alert that instructs the user they will be redirected to a page where they can accept Gate One's SSL certificate (when they click OK).
         */
-        var u = go.Utils;
-        if (!u.scriptsLoaded) {
-            var acceptURL = go.prefs.url + 'static/accept_certificate.html',
-                okCallback = function() {
-                    // Called when the user clicks OK
-                    u.acceptWindow = window.open(acceptURL, 'accept');
-                    u.windowChecker = setInterval(function() {
-                        if (u.acceptWindow.closed) {
-                            // Re-proceed
-                            u.removeElement(scriptTag);
-                            u.loadScript(url, callback);
-                            clearInterval(u.windowChecker);
-                        }
-                    }, 100);
-                };
-            // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
-            GateOne.Visual.alert("JavaScript Load Error", "This can happen if you haven't accepted Gate One's SSL certificate yet.  Click OK to open a new tab/window where you can accept the Gate One server's SSL certificate.  If the page doesn't load it means the Gate One server is currently unavailable.", okCallback);
-        }
+        var u = go.Utils,
+            acceptURL = go.prefs.url + 'static/accept_certificate.html',
+            okCallback = function() {
+                // Called when the user clicks OK
+                u.acceptWindow = window.open(acceptURL, 'accept');
+                u.windowChecker = setInterval(function() {
+                    if (u.acceptWindow.closed) {
+                        // Re-proceed
+                        u.removeElement(scriptTag);
+                        u.loadScript(url, callback);
+                        clearInterval(u.windowChecker);
+                    }
+                }, 100);
+            };
+        // Redirect the user to a page where they can accept the SSL certificate (it will redirect back)
+        GateOne.Visual.alert("JavaScript Load Error", "This can happen if you haven't accepted Gate One's SSL certificate yet.  Click OK to open a new tab/window where you can accept the Gate One server's SSL certificate.  If the page doesn't load it means the Gate One server is currently unavailable.", okCallback);
     },
     loadScript: function(url, callback){
         // Imports the given JS *url*
@@ -1341,7 +1337,6 @@ GateOne.Base.update(GateOne.Utils, {
         tag.src = url;
         if (callback) {
             tag.onload = function() {
-                u.scriptsLoaded = true;
                 callback();
             }
         }

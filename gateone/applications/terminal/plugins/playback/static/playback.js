@@ -112,7 +112,7 @@ go.Base.update(GateOne.Playback, {
         var p = go.Playback,
             termPre, screenSpan,
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
-            extraSpace = u.createElement('span'); // This goes at the bottom of terminals to fill the space where the playback controls go
+            extraSpace = u.createElement('span', {'class': 'playback_spacer'}); // This goes at the bottom of terminals to fill the space where the playback controls go
         if (t.terminals[term]) {
             termPre = t.terminals[term]['node'];
             screenSpan = t.terminals[term]['screenNode'];
@@ -122,18 +122,20 @@ go.Base.update(GateOne.Playback, {
         if (go.prefs.showPlaybackControls) {
             extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
             if (termPre) {
-                termPre.appendChild(extraSpace);
-                if (u.isVisible(termPre)) {
-                    if (go.prefs.rows) {
-                        // Have to reset the current transform in order to take an accurate measurement:
-                        v.applyTransform(termPre, '');
-                        // Now we can proceed to measure and adjust the size of the terminal accordingly
-                        var nodeHeight = screenSpan.getClientRects()[0].top,
-                            transform = null;
-                        if (nodeHeight < go.node.clientHeight) { // Resize to fit
-                            var scale = go.node.clientHeight / (go.node.clientHeight - nodeHeight);
-                            transform = "scale(" + scale + ", " + scale + ")";
-                            v.applyTransform(termPre, transform);
+                if (!termPre.querySelector('.playback_spacer')) {
+                    termPre.appendChild(extraSpace);
+                    if (u.isVisible(termPre)) {
+                        if (go.prefs.rows) {
+                            // Have to reset the current transform in order to take an accurate measurement:
+                            v.applyTransform(termPre, '');
+                            // Now we can proceed to measure and adjust the size of the terminal accordingly
+                            var nodeHeight = screenSpan.getClientRects()[0].top,
+                                transform = null;
+                            if (nodeHeight < go.node.clientHeight) { // Resize to fit
+                                var scale = go.node.clientHeight / (go.node.clientHeight - nodeHeight);
+                                transform = "scale(" + scale + ", " + scale + ")";
+                                v.applyTransform(termPre, transform);
+                            }
                         }
                     }
                 }

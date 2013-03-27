@@ -249,6 +249,7 @@ import atexit
 import ssl
 import hashlib
 import time
+import tempfile
 from functools import wraps
 from datetime import datetime, timedelta
 
@@ -306,7 +307,7 @@ from auth import APIAuthHandler, SSLAuthHandler, PAMAuthHandler
 from auth import require, authenticated, policies, applicable_policies
 from utils import generate_session_id, mkdir_p
 from utils import gen_self_signed_ssl, killall, get_plugins, load_modules
-from utils import merge_handlers, none_fix, convert_to_timedelta
+from utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from utils import FACILITIES, json_encode, recursive_chown, ChownError
 from utils import write_pid, read_pid, remove_pid, drop_privileges, minify
 from utils import check_write_permissions, get_applications, get_settings
@@ -1081,8 +1082,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # NOTE: Why store prefs in the class itself?  No need for redundancy.
         if 'cache_dir' not in cls.prefs['*']['gateone']:
             # Set the cache dir to a default if not set in the prefs
-            import tempfile
-            cache_dir = os.path.join(tempfile.gettempdir(), 'gateone_cache')
+            #cache_dir = os.path.join(tempfile.gettempdir(), 'gateone_cache')
+            cache_dir = self.settings['cache_dir']
             cls.prefs['*']['gateone']['cache_dir'] = cache_dir
             if self.settings['debug']:
                 # Clean out the cache_dir every page reload when in debug mode
@@ -1547,8 +1548,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         """
         cache_dir = self.prefs['*']['gateone']['cache_dir']
         mtime = os.stat(style_path).st_mtime
-        safe_path = style_path.replace('/', '_')
-        rendered_filename = 'rendered_%s_%s' % (safe_path, int(mtime))
+        shortened_path = short_hash(style_path)
+        rendered_filename = 'rendered_%s_%s' % (shortened_path, int(mtime))
         rendered_path = os.path.join(cache_dir, rendered_filename)
         if not os.path.exists(rendered_path):
             style_css = self.render_string(
@@ -1563,7 +1564,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             for fname in os.listdir(cache_dir):
                 if fname == rendered_filename:
                     continue
-                elif safe_path in fname:
+                elif shortened_path in fname:
                     # Older version present.
                     # Remove it (and it's minified counterpart).
                     os.remove(os.path.join(cache_dir, fname))
@@ -1608,7 +1609,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         template_args = dict(
             container=container,
             prefix=prefix,
-            url_prefix=go_url
+            url_prefix=go_url,
+            embedded=self.settings['embedded']
         )
         out_dict = {'files': []}
         theme_filename = "%s.css" % theme
@@ -2497,6 +2499,14 @@ def define_options():
         type=basestring
     )
     define(
+        "cache_dir",
+        default=os.path.join(tempfile.gettempdir(), 'gateone_cache'),
+        help=_(
+            "Path where Gate One should store temporary global files (e.g. "
+            "rendered templates, CSS, JS, etc)."),
+        type=basestring
+    )
+    define(
         "debug",
         default=False,
         help=_("Enable debugging features such as auto-restarting when files "
@@ -2673,7 +2683,8 @@ def define_options():
     define(
         "embedded",
         default=False,
-        help=_("Doesn't do anything (yet).")
+        help=_(
+            "When embedding Gate One, this option is available to templates.")
     )
     define(
         "locale",
@@ -2879,7 +2890,7 @@ def main():
     api_keys = {}
     if 'api_keys' in arguments:
         if options.api_keys:
-            for pair in options.api_keys.value().split(','):
+            for pair in options.api_keys.split(','):
                 api_key, secret = pair.split(':')
                 if bytes == str:
                     api_key = api_key.decode('UTF-8')
@@ -3449,6 +3460,9 @@ def main():
         ssl_options = None
     else:
         proto = "https://"
+    for option in options:
+        if option not in go_settings:
+            go_settings[option] = options[option].value()
     https_server = tornado.httpserver.HTTPServer(
         GateOneApp(settings=go_settings, web_handlers=web_handlers),
         ssl_options=ssl_options)
