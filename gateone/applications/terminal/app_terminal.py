@@ -831,7 +831,7 @@ class TerminalApplication(GOApplication):
                     resumed_dtach = True
                 else: # No existing dtach session...  Make a new one
                     cmd = "dtach -c %s -E -z -r none %s" % (dtach_path, cmd)
-            logging.debug(_("new_multiplex cmd: %s" % cmd))
+            logging.debug(_("new_terminal cmd: %s" % cmd))
             m = term_obj['multiplex'] = self.new_multiplex(
                 cmd, term, encoding=encoding)
             # Set some environment variables so the programs we execute can use
@@ -1858,7 +1858,7 @@ class TerminalApplication(GOApplication):
         #        has yet to be implemented but this function will enable use to
         #        eventually do that.
         # Use the get_settings() function to import our 256 colors (convenient)
-        cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
+        cache_dir = self.ws.settings['cache_dir']
         cached_256_colors = os.path.join(cache_dir, '256_colors.css')
         if os.path.exists(cached_256_colors):
             return cached_256_colors

@@ -111,7 +111,7 @@ def get_256_colors(self):
     filename = os.path.split(colors_256_path)[1]
     mtime = os.stat(colors_256_path).st_mtime
     cached_filename = "%s:%s" % (colors_256_path.replace('/', '_'), mtime)
-    cache_dir = self.ws.prefs['*']['gateone']['cache_dir']
+    cache_dir = self.ws.settings['cache_dir']
     cached_file_path = os.path.join(cache_dir, cached_filename)
     if os.path.exists(cached_file_path):
         with open(cached_file_path) as f:
