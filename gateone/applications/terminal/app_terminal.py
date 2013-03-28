@@ -553,7 +553,7 @@ class TerminalApplication(GOApplication):
             if isinstance(term, int): # Only terminals are integers in the dict
                 terminals.append(term)
         # Check for any dtach'd terminals we might have missed
-        if self.policy['dtach'] and which('dtach'):
+        if self.ws.settings['dtach'] and which('dtach'):
             session_dir = self.ws.settings['session_dir']
             session_dir = os.path.join(session_dir, self.ws.session)
             if not os.path.exists(session_dir):
@@ -821,7 +821,7 @@ class TerminalApplication(GOApplication):
             if not os.path.exists(session_dir):
                 mkdir_p(session_dir)
                 os.chmod(session_dir, 0o770)
-            if self.policy['dtach'] and which('dtach'):
+            if self.ws.settings['dtach'] and which('dtach'):
                 # Wrap in dtach (love this tool!)
                 dtach_path = "%s/dtach_%s" % (session_dir, term)
                 if os.path.exists(dtach_path):
@@ -831,6 +831,7 @@ class TerminalApplication(GOApplication):
                     resumed_dtach = True
                 else: # No existing dtach session...  Make a new one
                     cmd = "dtach -c %s -E -z -r none %s" % (dtach_path, cmd)
+            logging.debug(_("new_multiplex cmd: %s" % cmd))
             m = term_obj['multiplex'] = self.new_multiplex(
                 cmd, term, encoding=encoding)
             # Set some environment variables so the programs we execute can use
@@ -1010,7 +1011,7 @@ class TerminalApplication(GOApplication):
         # Remove the EXIT callback so the terminal doesn't restart itself
         multiplex.remove_callback(multiplex.CALLBACK_EXIT, self.callback_id)
         try:
-            if self.policy['dtach']: # dtach needs special love
+            if self.ws.settings['dtach']: # dtach needs special love
                 from utils import kill_dtached_proc
                 kill_dtached_proc(self.ws.session, term)
             if multiplex.isalive():
