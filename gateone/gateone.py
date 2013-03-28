@@ -2086,8 +2086,16 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             self.logged_js_message = True
             return
         policy = applicable_policies(application, self.current_user, self.prefs)
+        globally_enabled_plugins = policy.get('enabled_plugins', [])
         # This controls the client-side plugins that will be sent
         allowed_client_side_plugins = policy.get('user_plugins', [])
+        # Remove non-globally-enabled plugins from user_plugins (if set)
+        if globally_enabled_plugins and list(allowed_client_side_plugins):
+            for p in allowed_client_side_plugins:
+                if p not in globally_enabled_plugins:
+                    del allowed_client_side_plugins[p]
+        elif globally_enabled_plugins and not allowed_client_side_plugins:
+            allowed_client_side_plugins = globally_enabled_plugins
         # Build a list of plugins
         plugins = []
         if not os.path.exists(plugins_dir):
@@ -2113,7 +2121,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                         css_file_path = os.path.join(plugin_static_path, f)
                         self.send_css(css_file_path)
 
-# TODO:  Separate generic Gate One css from the terminal-specific stuff.
+# TODO:  Add support for a setting that can control which themes are visible to users.
     def enumerate_themes(self):
         """
         Returns a JSON-encoded object containing the installed themes and text
@@ -2882,8 +2890,8 @@ def main():
                     # For whatever reason Tornado doesn't like unicode values
                     # for its own settings unless you're using Python 3...
                     value = str(value)
-            if key in ['origins']:
-                # Origins is special and taken care of further down...
+            if key in ['origins', 'api_keys']:
+                # These two settings are special and taken care of further down.
                 continue
             options[key].set(value)
     # Turn any API keys provided on the command line into a dict
@@ -3038,6 +3046,10 @@ def main():
         config_defaults = all_setttings['*']['gateone']
         # Don't need this in the actual settings file:
         del config_defaults['settings_dir']
+        # Don't need non-options in there either:
+        for non_option in non_options:
+            if non_option in config_defaults:
+                del config_defaults[non_option]
         # Generate a new cookie_secret
         config_defaults['cookie_secret'] = generate_session_id()
         # Separate out the authentication settings
@@ -3461,6 +3473,8 @@ def main():
     else:
         proto = "https://"
     for option in options:
+        if option in non_options:
+            continue # These don't belong
         if option not in go_settings:
             go_settings[option] = options[option].value()
     https_server = tornado.httpserver.HTTPServer(

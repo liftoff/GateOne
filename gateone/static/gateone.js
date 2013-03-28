@@ -1554,6 +1554,9 @@ GateOne.Base.update(GateOne.Utils, {
         if (!node) {
             return false;
         }
+        if (node === document) {
+            return true;
+        }
         style = window.getComputedStyle(node, null);
         if (style && style.display == 'none') {
             return false;

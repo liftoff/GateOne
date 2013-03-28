@@ -480,8 +480,9 @@ class TerminalApplication(GOApplication):
                 else:
                     self.ws.send_js(js_file_path, requires='terminal_input.js')
         self.ws.send_plugin_static_files(
-            os.path.join(
-                APPLICATION_PATH, 'plugins'), requires="terminal_input.js")
+            os.path.join(APPLICATION_PATH, 'plugins'),
+            application="terminal",
+            requires="terminal_input.js")
         # Send the client the 256-color style information
         self.send_256_colors()
         sess = SESSIONS[self.ws.session]
