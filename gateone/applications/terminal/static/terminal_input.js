@@ -24,7 +24,6 @@ var go = GateOne,
 
 GateOne.Base.module(GateOne.Terminal, "Input", '1.0');
 t.Input.charBuffer = []; // Queue for sending characters to the server
-// t.Input.metaHeld = false; // Used to emulate the "meta" modifier since some browsers/platforms don't get it right.
 // F11 toggles fullscreen mode in most browsers.  If F11 is pressed once it will act as a regular F11 keystroke in the terminal.  If it is pressed twice rapidly in succession (within 0.750 seconds) it will execute the regular browser keystroke (enabling or disabling fullscreen mode).
 // Why did I code it this way?  If the user is unaware of this feature when they enter fullscreen mode, they might panic and hit F11 a bunch of times and it's likely they'll break out of fullscreen mode as an instinct :).  The message indicating the behavior will probably help too :D
 t.Input.F11 = false;
@@ -327,7 +326,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             termNode.oncopy = null;
         });
         // TODO: Check to see if this should stay in GateOne.Input:
-        t.Input.metaHeld = false; // This can get stuck at 'true' if the uses does something like command-tab to switch applications.
+        i.metaHeld = false; // This can get stuck at 'true' if the uses does something like command-tab to switch applications.
     },
     onPaste: function(e) {
         /**GateOne.Terminal.Input.onPaste(e)

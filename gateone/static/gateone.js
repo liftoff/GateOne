@@ -2487,6 +2487,11 @@ GateOne.Base.update(GateOne.Input, {
         }
         if (key.string == 'KEY_WINDOWS_LEFT' || key.string == 'KEY_WINDOWS_RIGHT') {
             goIn.metaHeld = true; // Lets us emulate the "meta" modifier on browsers/platforms that don't get it right.
+            setTimeout(function() {
+                // Reset it after three seconds regardless of whether or not we get a keyup event.
+                // This is necessary because when Macs execute meta-tab (Cmnd-tab) the keyup event never fires and Gate One can get stuck thinking meta is down.
+                goIn.metaHeld = false;
+            }, 3000);
             return true; // Save some CPU
         }
         if (goIn.composition) {
