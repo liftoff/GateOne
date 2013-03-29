@@ -453,7 +453,7 @@ potential conflicts with other classes that may be on the page.
     cursor:pointer;
 }
 .✈prefs_panel {
-    min-width: 60%;
+    min-width: 70%;
 }
 .✈prefs_list {
     float: left;

@@ -1597,7 +1597,11 @@ go.Base.update(GateOne.Terminal, {
         Calls `GateOne.Terminal.setTerminal(*term*)` then triggers the 'terminal:switch_terminal' event passing *term* as the only argument.
         */
         if (!term) {
-            return; // Sometimes this can happen if certain things get called a bit too early or out-of-order.  Not a big deal since everything will catch up eventually.
+            return true; // Sometimes this can happen if certain things get called a bit too early or out-of-order.  Not a big deal since everything will catch up eventually.
+        }
+        var selectedTerm = localStorage[prefix+'selectedTerminal'];
+        if (term == selectedTerm) {
+            return true; // Nothing to do
         }
         // Many situations can cause a whole ton of switchTerminal() calls to happen all at once (resize the window while opening or closing a new terminal:  6 calls!).
         // To prevent the 'terminal:switch_terminal' WebSocket action from firing half a dozen times all at once we wrap this function in a very short de-bounce timeout

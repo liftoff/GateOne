@@ -513,7 +513,6 @@ potential conflicts with other classes that may be on the page.
 }
 .✈prefs_content {
     float: left;
-    width: 67%;
 }
 .✈sub1 li {
     padding-left: 1.5em;

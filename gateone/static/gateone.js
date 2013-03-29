@@ -583,14 +583,15 @@ var go = GateOne.Base.update(GateOne, {
         // Even though panels may start out at 'scale(0)' this makes sure they're all display:none as well to prevent them from messing with people's ability to tab between fields
         go.Visual.togglePanel(); // Scales them all away
         document.addEventListener(visibilityChange, go.Input.handleVisibility, false);
-        goDiv.addEventListener('blur', function(e) {
-            setTimeout(function() {
-                // NOTE:  This is wrapped in a timeout because--for whatever reason--document.body will be the activeElement at the beginning of onmouseup (always!).
-                if (!u.isDescendant(go.node, document.activeElement)) {
-                    go.Visual.enableOverlay();
-                }
-            }, 100);
-        }, false);
+//         goDiv.addEventListener('blur', function(e) {
+//             setTimeout(function() {
+//                 console.log('goDiv blur: ' + document.activeElement.id);
+//                 // NOTE:  This is wrapped in a timeout because--for whatever reason--document.body will be the activeElement at the beginning of onmouseup (always!).
+//                 if (!u.isDescendant(go.node, document.activeElement)) {
+//                     go.Visual.enableOverlay();
+//                 }
+//             }, 100);
+//         }, false);
         goDiv.addEventListener('focus', go.Visual.disableOverlay, false);
         go.initialized = true;
         go.Events.trigger("go:initialized");
@@ -1943,6 +1944,7 @@ GateOne.Base.update(GateOne.Net, {
             go.Utils.pingTimeout = null;
         }
         go.Utils.pingTimeout = setTimeout(function() {
+            logError("Pinging Gate One server took longer than " + timeout + "ms.  Attempting to reconnect...");
             go.ws.close();
             go.Events.trigger('go:ping_timeout');
         }, timeout);

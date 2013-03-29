@@ -457,7 +457,7 @@ potential conflicts with other classes that may be on the page.
     cursor:pointer;
 }
 .✈prefs_panel {
-    min-width: 60%;
+    min-width: 70%;
 }
 .✈prefs_list {
     float: left;
@@ -505,7 +505,6 @@ potential conflicts with other classes that may be on the page.
 }
 .✈prefs_content {
     float: left;
-    width: 67%;
 }
 .✈sub1 li {
     padding-left: 1.3em;

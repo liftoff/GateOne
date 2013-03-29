@@ -43,6 +43,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
         t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
         E.on("go:new_workspace", go.Terminal.Input.disableCapture);
+        E.on("terminal:new_terminal", go.Terminal.Input.capture);
     },
     sendChars: function() {
         /**:GateOne.Terminal.Input.sendChars()
@@ -213,7 +214,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             selectedText = u.getSelText(),
             X, Y, button, className, // Used by mouse coordinates/tracking stuff
             elementUnder = document.elementFromPoint(e.clientX, e.clientY);
-        logDebug("goDiv.onmouseup: e.button: " + e.button + ", e.which: " + e.which);
+        logDebug("GateOne.Terminal.Input.onMouseUp: e.button: " + e.button + ", e.which: " + e.which);
         // Once the user is done pasting (or clicking), set it back to false for speed
         t.Input.mouseDown = false;
         if (selectedText) {
@@ -284,8 +285,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         }
         t.Input.inputNode.oninput = t.Input.onInput;
         t.Input.inputNode.tabIndex = 1; // Just in case--this is necessary to set focus
-        t.Input.inputNode.addEventListener('keydown', t.Input.onKeyDown, true);
-        t.Input.inputNode.addEventListener('keyup', t.Input.onKeyUp, true);
+        go.node.addEventListener('keydown', t.Input.onKeyDown, true);
+        go.node.addEventListener('keyup', t.Input.onKeyUp, true);
         terms.forEach(function(termNode) {
             termNode.onpaste = t.Input.onPaste;
             termNode.onmousedown = t.Input.onMouseDown;
@@ -317,8 +318,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.inputNode.oninput = null;
         t.Input.inputNode.tabIndex = null;
         t.Input.inputNode.onkeypress = null;
-        t.Input.inputNode.removeEventListener('keydown', t.Input.onKeyDown, true);
-        t.Input.inputNode.removeEventListener('keyup', t.Input.onKeyUp, true);
+        go.node.removeEventListener('keydown', t.Input.onKeyDown, true);
+        go.node.removeEventListener('keyup', t.Input.onKeyUp, true);
         terms.forEach(function(termNode) {
             termNode.onpaste = null;
             termNode.onmousedown = null;
@@ -469,9 +470,10 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             // Global shortcuts take precedence
             return;
         }
-            if (document.activeElement != t.Input.inputNode) {
-                return; // Let the browser handle it if the user is editing something
-            }
+//             if (document.activeElement != t.Input.inputNode) {
+//                 console.log('activeElement did not equal inputNode');
+//                 return; // Let the browser handle it if the user is editing something
+//             }
         t.Input.execKeystroke(e);
     },
     execKeystroke: function(e) {
@@ -613,6 +615,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                         if (u.getSelText()) {
                             // Something is slected, let the native keystroke do its thing (it will automatically de-select the text afterwards)
                             v.displayMessage("Text copied to clipboard.");
+                            setTimeout(function() { t.Input.inputNode.focus(); }, 10);
                             return;
                         } else {
                             q(String.fromCharCode(key.code - 64)); // Send normal Ctrl-C
