@@ -853,12 +853,10 @@ class TerminalApplication(GOApplication):
             if not os.path.exists(m.term.temppath):
                 os.mkdir(m.term.temppath)
             # Tell it how to serve them up (origin ensures correct link)
-            print(self.request)
             m.term.linkpath = "{protocol}://{host}{url_prefix}downloads".format(
                 protocol=self.request.protocol,
                 host=self.request.host,
                 url_prefix=self.settings['url_prefix'])
-            print(m.term.linkpath)
             # Make sure it can generate pretty icons for file downloads
             m.term.icondir = os.path.join(GATEONE_DIR, 'static', 'icons')
             if resumed_dtach:
