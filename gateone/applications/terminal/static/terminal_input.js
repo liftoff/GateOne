@@ -217,6 +217,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         logDebug("GateOne.Terminal.Input.onMouseUp: e.button: " + e.button + ", e.which: " + e.which);
         // Once the user is done pasting (or clicking), set it back to false for speed
         t.Input.mouseDown = false;
+        go.Terminal.setActive(selectedTerm);
         if (selectedText) {
             // Don't show the pastearea as it will prevent the user from right-clicking to copy.
             return;
@@ -287,6 +288,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.inputNode.tabIndex = 1; // Just in case--this is necessary to set focus
         go.node.addEventListener('keydown', t.Input.onKeyDown, true);
         go.node.addEventListener('keyup', t.Input.onKeyUp, true);
+        t.Input.inputNode.addEventListener('blur', t.Input.disableCapture, true);
         terms.forEach(function(termNode) {
             termNode.onpaste = t.Input.onPaste;
             termNode.onmousedown = t.Input.onMouseDown;
@@ -308,23 +310,28 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         logDebug('go.Terminal.Input.disableCapture()');
         var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
         if (t.Input.mouseDown) {
+            logDebug('disableCapture() cancelled due to mouseDown.');
             return; // Work around Firefox's occasional inability to properly register mouse events (WTF Firefox!)
         }
         if (t.Input.handlingPaste) {
+            logDebug('disableCapture() cancelled due to paste event.');
             // The 'blur' event can be called when focus shifts around for pasting.
             return; // Act as if we were never called to avoid flashing the overlay
         }
-        logDebug('go.Terminal.Input.disableCapture()');
         t.Input.inputNode.oninput = null;
         t.Input.inputNode.tabIndex = null;
         t.Input.inputNode.onkeypress = null;
         go.node.removeEventListener('keydown', t.Input.onKeyDown, true);
         go.node.removeEventListener('keyup', t.Input.onKeyUp, true);
-        terms.forEach(function(termNode) {
-            termNode.onpaste = null;
-            termNode.onmousedown = null;
-            termNode.onmouseup = null;
-            termNode.oncopy = null;
+        t.Input.inputNode.removeEventListener('blur', t.Input.disableCapture, true);
+        terms.forEach(function(terminalNode) {
+            terminalNode.onpaste = null;
+            terminalNode.onmousedown = null;
+            terminalNode.onmouseup = null;
+            terminalNode.oncopy = null;
+            if (!terminalNode.classList.contains('✈inactive')) {
+                terminalNode.classList.add('✈inactive');
+            }
         });
         // TODO: Check to see if this should stay in GateOne.Input:
         i.metaHeld = false; // This can get stuck at 'true' if the uses does something like command-tab to switch applications.

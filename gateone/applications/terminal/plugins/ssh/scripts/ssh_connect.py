@@ -482,28 +482,26 @@ def parse_url(url):
 
     .. note:: *password* and *identities* may be returned as None and [], respectively.
     """
-    
     identities = set()
     o = urlparse.urlparse(url)
     if o.query:
         q_attrs = urlparse.parse_qs(o.query)
         for ident in q_attrs.get('identities', []):
             identities.update(ident.split(','))
-
     if o.port:
         port = o.port
     else:
         port = socket.getservbyname(o.scheme, 'tcp')
-
+    username = None
     if o.username:
         username = o.username
-    elif os.environ.get('GO_USER'):
-        username = os.environ['GO_USER']
-    elif os.environ.get('USER'):
-        username = os.environ['USER']
-    else:
-        username = None
-
+    # Commented these out so that users can enter an arbitrary username.  It is
+    # more user-friendly this way since users won't have to have multiple
+    # bookmarks to the same host just to connect with different usernames.
+    #elif os.environ.get('GO_USER'):
+        #username = os.environ['GO_USER']
+    #elif os.environ.get('USER'):
+        #username = os.environ['USER']
     return (o.scheme, username, o.hostname, port, o.password, identities)
 
 
@@ -572,7 +570,7 @@ if __name__ == "__main__":
     #       usernames or passwords (if using autoConnectURL).
     try:
         if len(args) == 1:
-            (scheme, user, host, port, password, identities) = parse_url(args[0])
+            scheme, user, host, port, password, identities = parse_url(args[0])
             if scheme == 'telnet':
                 telnet_connect(user, host, port)
             else:
@@ -649,7 +647,7 @@ if __name__ == "__main__":
                     noop = raw_input(invalid_hostname_err)
                     continue
             elif url.find('://') >= 0:
-                (protocol, user, host, port, password, identities) = parse_url(url)
+               protocol, user, host, port, password, identities = parse_url(url)
             else:
                 # Always assume SSH unless given a telnet:// URL
                 protocol = 'ssh'

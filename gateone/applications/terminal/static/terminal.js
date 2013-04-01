@@ -1599,6 +1599,8 @@ go.Base.update(GateOne.Terminal, {
         if (!term) {
             return true; // Sometimes this can happen if certain things get called a bit too early or out-of-order.  Not a big deal since everything will catch up eventually.
         }
+        // Always run setActive
+        go.Terminal.setActive(term);
         var selectedTerm = localStorage[prefix+'selectedTerminal'];
         if (term == selectedTerm) {
             return true; // Nothing to do
@@ -1614,6 +1616,21 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.setTerminal(term);
             E.trigger('terminal:switch_terminal', term);
         }, 100);
+    },
+    setActive: function(term) {
+        /**:GateOne.Terminal.setActive(term)
+
+        Removes the '✈inactive' class from the given *term*.
+        */
+        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
+            termNode = go.Terminal.terminals[term]['terminal'];
+        terms.forEach(function(terminalNode) {
+            if (terminalNode == termNode) {
+                terminalNode.classList.remove('✈inactive');
+            } else {
+                terminalNode.classList.add('✈inactive');
+            }
+        });
     },
     switchTerminalEvent: function(term) {
         /**:GateOne.Terminal.switchTerminalEvent(term)
@@ -1643,13 +1660,6 @@ go.Base.update(GateOne.Terminal, {
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
-        terms.forEach(function(terminalNode) {
-            if (terminalNode == termNode) {
-                terminalNode.classList.remove('✈inactive');
-            } else {
-                terminalNode.classList.add('✈inactive');
-            }
-        });
         sideinfo.innerHTML = displayText;
         go.Terminal.displayTermInfo(term);
         if (go.Terminal.alignTimer) {

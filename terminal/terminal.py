@@ -1924,7 +1924,7 @@ class Terminal(object):
         changed = False
         # This is commented because of how noisy it is.  Uncomment to debug the
         # terminal emualtor:
-        #logging.debug('handling chars: %s' % repr(chars))
+        logging.debug('handling chars: %s' % repr(chars))
         # Only perform special checks (for FileTYpe stuff) if we're given bytes.
         # Incoming unicode chars should NOT be binary data.
         if not isinstance(chars, bytes):
@@ -2354,6 +2354,8 @@ class Terminal(object):
         Executes a carriage return (sets :attr:`self.cursorX` to 0).  In other
         words it moves the cursor back to position 0 on the line.
         """
+        if self.cursorX == 0:
+            return # Nothing to do
         if divmod(self.cursorX, self.cols+1)[1] == 0:
             # A carriage return at the precise end of line means the program is
             # assuming vt100-style autowrap.  Since we let the browser handle

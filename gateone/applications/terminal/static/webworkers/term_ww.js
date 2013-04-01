@@ -11,7 +11,7 @@ var transformText = function(text, pattern, newString) {
     // Here's an example of replacing hypothetical ticket numbers with clickable links:
     //      transformText("Please see ticket IM123456789", /(\bIM\d{9,10}\b)/g, "<a href='https://support.company.com/tracker?ticket=$1' target='new'>$1</a>")
     if (!pattern) {
-        pattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+        pattern = /(\b(https?|web+ssh|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])(?!.*a\>)/ig;
     }
     if (!newString) {
         newString = "<a href='$1' target='new'>$1</a>";
