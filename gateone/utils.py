@@ -149,6 +149,12 @@ class ChownError(Exception):
     """
     pass
 
+class SettingsError(Exception):
+    """
+    Raised when we encounter an error parsing .conf files in the settings dir.
+    """
+    pass
+
 class RUDict(dict):
     """
     A dict that will recursively update keys and values in a safe manner so that
@@ -202,6 +208,25 @@ def noop(*args, **kwargs):
     """Do nothing (i.e. "No Operation")"""
     pass
 
+# The following was taken from:
+# http://stackoverflow.com/questions/241327/python-snippet-to-remove-c-and-c-comments
+# Thank you Markus Jarderot!
+def remove_comments(text):
+    """
+    Removes C-style comments from *text* and returns the result.
+    """
+    def replacer(match):
+        s = match.group(0)
+        if s.startswith('/'):
+            return ""
+        else:
+            return s
+    pattern = re.compile(
+        r'//.*?$|/\*.*?\*/|\'(?:\\.|[^\\\'])*\'|"(?:\\.|[^\\"])*"',
+        re.DOTALL | re.MULTILINE
+    )
+    return re.sub(pattern, replacer, text)
+
 def get_settings(path, add_default=True):
     """
     Reads any and all *.conf files containing JSON (JS-style comments are OK)
@@ -212,10 +237,6 @@ def get_settings(path, add_default=True):
     which indicates "all users".  This behavior can be skipped by setting the
     *add_default* keyword argument to `False`.
     """
-    re_comment = re.compile( # This removes JavaScript-style comments
-        r'(^)?[^\S\n]*/(?:\*(.*?)\*/[^\S\n]*|/[^\n]*)($)?',
-        re.DOTALL | re.MULTILINE
-    )
     settings = RUDict()
     if add_default:
         settings['*'] = {}
@@ -236,7 +257,7 @@ def get_settings(path, add_default=True):
             filepath = path
         with io.open(filepath, encoding='utf-8') as f:
             # Remove comments
-            proper_json = re_comment.sub('', f.read())
+            proper_json = remove_comments(f.read())
             # Remove blank/empty lines
             proper_json = os.linesep.join([
                 s for s in proper_json.splitlines() if s.strip()])
@@ -263,6 +284,7 @@ def get_settings(path, add_default=True):
                             break
                         else:
                             print(line)
+                    raise SettingsError()
                 except (ValueError, IndexError):
                     print(_(
                         "Got an exception trying to display precisely where "
@@ -1458,7 +1480,7 @@ def get_or_cache(cache_dir, path, minify=True):
     for fname in os.listdir(cache_dir):
         if fname == cached_filename:
             continue
-        elif fname.split(':', 1)[0] == path.replace('/', '_'):
+        elif fname.startswith(shortened_path):
             # Older version present.  Remove it.
             os.remove(os.path.join(cache_dir, fname))
     return data

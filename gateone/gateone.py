@@ -305,7 +305,7 @@ del setup_path # Don't need this for anything else
 from auth import NullAuthHandler, KerberosAuthHandler, GoogleAuthHandler
 from auth import APIAuthHandler, SSLAuthHandler, PAMAuthHandler
 from auth import require, authenticated, policies, applicable_policies
-from utils import generate_session_id, mkdir_p
+from utils import generate_session_id, mkdir_p, SettingsError
 from utils import gen_self_signed_ssl, killall, get_plugins, load_modules
 from utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from utils import FACILITIES, json_encode, recursive_chown, ChownError
@@ -2813,7 +2813,11 @@ def main():
             logging.error(_(
                "Could not find/create settings directory at %s" % settings_dir))
             sys.exit(1)
-    all_settings = get_settings(settings_dir)
+    try:
+        all_settings = get_settings(settings_dir)
+    except SettingsError as e:
+        # The error will be logged to stdout inside all_settings
+        sys.exit(2)
     enabled_plugins = []
     enabled_applications = []
     go_settings = {}

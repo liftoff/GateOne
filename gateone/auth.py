@@ -102,7 +102,7 @@ def applicable_policies(application, user, policies):
     """
     # Start with the default policy
     try:
-        policy = RUDict(policies['*'][application])
+        policy = RUDict(policies['*'][application].copy())
     except KeyError:
         # No default policy--not good but not mandatory
         policy = RUDict()
