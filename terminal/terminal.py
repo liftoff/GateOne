@@ -1924,7 +1924,7 @@ class Terminal(object):
         changed = False
         # This is commented because of how noisy it is.  Uncomment to debug the
         # terminal emualtor:
-        logging.debug('handling chars: %s' % repr(chars))
+        #logging.debug('handling chars: %s' % repr(chars))
         # Only perform special checks (for FileTYpe stuff) if we're given bytes.
         # Incoming unicode chars should NOT be binary data.
         if not isinstance(chars, bytes):

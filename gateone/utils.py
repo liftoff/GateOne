@@ -1700,6 +1700,246 @@ def create_signature(*parts, **kwargs):
         hash.update(part)
     return hash.hexdigest()
 
+def combine_javascript(path, settings_dir=None):
+    """
+    Combines all application and plugin .js files into one big one; saved to the
+    given *path*.  If given, *settings_dir* will be used to determine which
+    applications and plugins should be included in the dump based on what is
+    enabled.
+    """
+    if not settings_dir:
+        settings_dir = os.path.join(GATEONE_DIR, 'settings')
+    all_settings = get_settings(settings_dir)
+    enabled_plugins = []
+    enabled_applications = []
+    if 'gateone' in all_settings['*']:
+        # The check above will fail in first-run situations
+        enabled_plugins = all_settings['*']['gateone'].get(
+            'enabled_plugins', [])
+        enabled_applications = all_settings['*']['gateone'].get(
+            'enabled_applications', [])
+    plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
+    pluginslist = os.listdir(plugins_dir)
+    pluginslist.sort()
+    applications_dir = os.path.join(GATEONE_DIR, 'applications')
+    appslist = os.listdir(applications_dir)
+    appslist.sort()
+    with io.open(path, 'w') as f:
+        # Start by adding gateone.js
+        gateone_js = os.path.join(GATEONE_DIR, 'static', 'gateone.js')
+        with io.open(gateone_js) as go_js:
+            f.write(go_js.read() + '\n')
+        # Gate One plugins
+        for plugin in pluginslist:
+            if enabled_plugins and plugin not in enabled_plugins:
+                continue
+            static_dir = os.path.join(plugins_dir, plugin, 'static')
+            if os.path.isdir(static_dir):
+                filelist = os.listdir(static_dir)
+                filelist.sort()
+                for filename in filelist:
+                    filepath = os.path.join(static_dir, filename)
+                    if filename.endswith('.js'):
+                        with io.open(filepath) as js_file:
+                            f.write(js_file.read() + u'\n')
+        # Gate One applications
+        for application in appslist:
+            if enabled_applications:
+                # Only export JS of enabled apps
+                if application not in enabled_applications:
+                    continue
+            static_dir = os.path.join(GATEONE_DIR,
+                'applications', application, 'static')
+            plugins_dir = os.path.join(
+                applications_dir, application, 'plugins')
+            if os.path.isdir(static_dir):
+                filelist = os.listdir(static_dir)
+                filelist.sort()
+                for filename in filelist:
+                    filepath = os.path.join(static_dir, filename)
+                    if filename.endswith('.js'):
+                        with io.open(filepath) as js_file:
+                            f.write(js_file.read() + u'\n')
+            app_settings = all_settings['*'].get(application, None)
+            enabled_app_plugins = []
+            if app_settings:
+                enabled_app_plugins = app_settings.get(
+                    'enabled_plugins', [])
+            if os.path.isdir(plugins_dir):
+                pluginslist = os.listdir(plugins_dir)
+                pluginslist.sort()
+                # Gate One application plugins
+                for plugin in pluginslist:
+                    # Only export JS of enabled app plugins
+                    if enabled_app_plugins:
+                        if plugin not in enabled_app_plugins:
+                            continue
+                    static_dir = os.path.join(plugins_dir, plugin, 'static')
+                    if os.path.isdir(static_dir):
+                        filelist = os.listdir(static_dir)
+                        filelist.sort()
+                        for filename in filelist:
+                            filepath = os.path.join(static_dir, filename)
+                            if filename.endswith('.js'):
+                                with io.open(filepath) as js_file:
+                                    f.write(js_file.read() + u'\n')
+        f.flush()
+
+def combine_css(path, container, settings_dir=None):
+    """
+    Combines all application and plugin .css template files into one big one;
+    saved to the given *path*.  Templates will be rendered using the given
+    *container* as the replacement for templates use of '#{{container}}'.
+
+    If given, *settings_dir* will be used to determine which applications and
+    plugins should be included in the dump based on what is enabled.
+    """
+    if not settings_dir:
+        settings_dir = os.path.join(GATEONE_DIR, 'settings')
+    all_settings = get_settings(settings_dir)
+    enabled_plugins = []
+    enabled_applications = []
+    if 'gateone' in all_settings['*']:
+        # The check above will fail in first-run situations
+        enabled_plugins = all_settings['*']['gateone'].get(
+            'enabled_plugins', [])
+        enabled_applications = all_settings['*']['gateone'].get(
+            'enabled_applications', [])
+    plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
+    pluginslist = os.listdir(plugins_dir)
+    pluginslist.sort()
+    applications_dir = os.path.join(GATEONE_DIR, 'applications')
+    appslist = os.listdir(applications_dir)
+    appslist.sort()
+    themes = os.listdir(os.path.join(GATEONE_DIR, 'templates', 'themes'))
+    theme_writers = {}
+    for theme in themes:
+        combined_theme_path = "%s_theme_%s" % (
+            path.split('.css')[0], theme)
+        theme_writers[theme] = io.open(combined_theme_path, 'w')
+    # NOTE: We skip gateone.css because that isn't used when embedding
+    with io.open(path, 'w') as f:
+        # Gate One plugins
+        # TODO: Add plugin theme files to this
+        for plugin in pluginslist:
+            if enabled_plugins and plugin not in enabled_plugins:
+                continue
+            css_dir = os.path.join(plugins_dir, plugin, 'templates')
+            if os.path.isdir(css_dir):
+                filelist = os.listdir(css_dir)
+                filelist.sort()
+                for filename in filelist:
+                    filepath = os.path.join(css_dir, filename)
+                    if filename.endswith('.css'):
+                        with io.open(filepath) as css_file:
+                            f.write(css_file.read() + u'\n')
+        # Gate One applications
+        for application in appslist:
+            if enabled_applications:
+                # Only export CSS of enabled apps
+                if application not in enabled_applications:
+                    continue
+            css_dir = os.path.join(GATEONE_DIR,
+                'applications', application, 'templates')
+            subdirs = []
+            plugins_dir = os.path.join(
+                applications_dir, application, 'plugins')
+            if os.path.isdir(css_dir):
+                filelist = os.listdir(css_dir)
+                filelist.sort()
+                for filename in filelist:
+                    filepath = os.path.join(css_dir, filename)
+                    if filename.endswith('.css'):
+                        with io.open(filepath) as css_file:
+                            f.write(css_file.read() + u'\n')
+                    elif os.path.isdir(filepath):
+                        subdirs.append(filepath)
+            while subdirs:
+                subdir = subdirs.pop()
+                filelist = os.listdir(subdir)
+                filelist.sort()
+                for filename in filelist:
+                    filepath = os.path.join(subdir, filename)
+                    if filename.endswith('.css'):
+                        with io.open(filepath) as css_file:
+                            combined = css_file.read() + u'\n'
+                            if os.path.split(subdir)[1] == 'themes':
+                                theme_writers[filename].write(combined)
+                            else:
+                                f.write(combined)
+                    elif os.path.isdir(filepath):
+                        subdirs.append(filepath)
+            app_settings = all_settings['*'].get(application, None)
+            enabled_app_plugins = []
+            if app_settings:
+                enabled_app_plugins = app_settings.get(
+                    'enabled_plugins', [])
+            if os.path.isdir(plugins_dir):
+                pluginslist = os.listdir(plugins_dir)
+                pluginslist.sort()
+                # Gate One application plugins
+                for plugin in pluginslist:
+                    # Only export JS of enabled app plugins
+                    if enabled_app_plugins:
+                        if plugin not in enabled_app_plugins:
+                            continue
+                    css_dir = os.path.join(
+                        plugins_dir, plugin, 'templates')
+                    if os.path.isdir(css_dir):
+                        filelist = os.listdir(css_dir)
+                        filelist.sort()
+                        for filename in filelist:
+                            filepath = os.path.join(css_dir, filename)
+                            if filename.endswith('.css'):
+                                with io.open(filepath) as css_file:
+                                    f.write(css_file.read() + u'\n')
+                            elif os.path.isdir(os.path.join(
+                                css_dir, filename)):
+                                subdirs.append(filepath)
+                    while subdirs:
+                        subdir = subdirs.pop()
+                        filelist = os.listdir(subdir)
+                        filelist.sort()
+                        for filename in filelist:
+                            filepath = os.path.join(subdir, filename)
+                            if filename.endswith('.css'):
+                                with io.open(filepath) as css_file:
+                                    with io.open(filepath) as css_file:
+                                        combined = css_file.read() + u'\n'
+                                        _dir = os.path.split(subdir)[1]
+                                        if _dir == 'themes':
+                                            theme_writers[filename].write(
+                                                combined)
+                                        else:
+                                            f.write(combined)
+                            elif os.path.isdir(filepath):
+                                subdirs.append(filepath)
+        f.flush()
+    for writer in theme_writers.values():
+        writer.flush()
+        writer.close()
+    # Now perform a replacement of the {{container}} variable
+    with io.open(path, 'r') as f:
+        css_data = f.read()
+        css_data = css_data.replace(
+            '#{{container}}', container)
+    with io.open(path, 'w') as f:
+        f.write(css_data)
+    logging.info(_(
+        "Non-theme CSS has been combined and saved to: %s"
+        % path))
+    for theme in theme_writers.keys():
+        combined_theme_path = "%s_theme_%s" % (
+            path.split('.css')[0], theme)
+        with io.open(combined_theme_path, 'r') as f:
+            css_data = f.read()
+            css_data = css_data.replace(
+                '#{{container}}', container)
+        with io.open(combined_theme_path, 'w') as f:
+            f.write(css_data)
+        logging.info(_(
+            "The %s theme CSS has been combined and saved to: %s"
+            % (theme.split('.css')[0], combined_theme_path)))
 # Misc
 _ = get_translation()
 if MACOS or OPENBSD: # Apply BSD-specific stuff

@@ -83,8 +83,9 @@ def kill_session(session, kill_dtach=False):
     settings = get_settings(options.settings_dir)
     if kill_dtach:
         from utils import kill_dtached_proc
-    for location, terms in list(SESSIONS[session]['locations'].items()):
+    for location, apps in list(SESSIONS[session]['locations'].items()):
         loc = SESSIONS[session]['locations'][location]['terminal']
+        terms = apps['terminal']
         for term in terms:
             if isinstance(term, int):
                 if loc[term]['multiplex'].isalive():

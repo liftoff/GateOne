@@ -265,6 +265,7 @@ try:
     import tornado.ioloop
     import tornado.options
     import tornado.web
+    import tornado.log
     import tornado.auth
     import tornado.template
     import tornado.netutil
@@ -275,11 +276,11 @@ try:
     from tornado import version as tornado_version
     from tornado import version_info as tornado_version_info
 except ImportError:
-    MISSING_DEPS.append('tornado >= 2.4')
+    MISSING_DEPS.append('tornado >= 3.0')
 
-if tornado_version_info[0] < 2 and tornado_version_info[1] < 4:
-    if 'tornado >= 2.4' not in MISSING_DEPS:
-        MISSING_DEPS.append('tornado >= 2.4')
+if tornado_version_info[0] < 3:
+    if 'tornado >= 3.0' not in MISSING_DEPS:
+        MISSING_DEPS.append('tornado >= 3.0')
 
 if MISSING_DEPS:
     print("\x1b[31;1mERROR:\x1b[0m: This host is missing dependencies:")
@@ -291,7 +292,7 @@ if MISSING_DEPS:
     sys.exit(1)
 
 # We want this turned on right away
-tornado.options.enable_pretty_logging()
+tornado.log.enable_pretty_logging()
 
 # If Gate One was not installed (via setup.py) it won't have access to some
 # modules that get installed along with it.  We'll add them to sys.path if they
@@ -407,11 +408,11 @@ def cleanup_user_logs():
     logging.debug("cleanup_session_logs()")
     settings = get_settings(options.settings_dir)
     user_dir = settings['*']['gateone']['user_dir']
-    if 'user_dir' in options.keys(): # NOTE: options is global
+    if 'user_dir' in options._options.keys(): # NOTE: options is global
         user_dir = options.user_dir
     default = "30d"
     max_age_str = settings['*']['gateone'].get('user_logs_max_age', default)
-    if 'user_logs_max_age' in options.keys():
+    if 'user_logs_max_age' in options._options.keys():
         max_age_str = options.user_logs_max_age
     max_age = convert_to_timedelta(max_age_str)
     def descend(path):
@@ -2794,6 +2795,210 @@ def define_options():
         type=basestring
     )
 
+def generate_server_conf():
+    """
+    Generates a fresh settings/10server.conf file using the arguments provided
+    on the command line to override defaults.
+    """
+    logging.info(_(
+        u"Gate One settings are incomplete.  A new settings/10server.conf"
+        u" will be generated."))
+    from utils import options_to_settings
+    auth_settings = {} # Auth stuff goes in 20authentication.conf
+    all_setttings = options_to_settings(options) # NOTE: options is global
+    settings_path = options.settings_dir
+    server_conf_path = os.path.join(settings_path, '10server.conf')
+    if os.path.exists(server_conf_path):
+        logging.error(_(
+            "You have a 10server.conf but it is either invalid (syntax "
+            "error) or missing essential settings."))
+        sys.exit(1)
+    config_defaults = all_setttings['*']['gateone']
+    # Don't need this in the actual settings file:
+    del config_defaults['settings_dir']
+    # Don't need non-options in there either:
+    for non_option in non_options:
+        if non_option in config_defaults:
+            del config_defaults[non_option]
+    # Generate a new cookie_secret
+    config_defaults['cookie_secret'] = generate_session_id()
+    # Separate out the authentication settings
+    for key, value in list(config_defaults.items()):
+        if key in authentication_options:
+            auth_settings.update({key: value})
+            del config_defaults[key]
+    # Make sure we have a valid log_file_prefix
+    if config_defaults['log_file_prefix'] == None:
+        web_log_dir = os.path.join(GATEONE_DIR, 'logs')
+        web_log_path = os.path.join(web_log_dir, 'webserver.log')
+        config_defaults['log_file_prefix'] = web_log_path
+    else:
+        web_log_dir = os.path.split(config_defaults['log_file_prefix'])[0]
+    if not os.path.exists(web_log_dir):
+        # Make sure the directory exists
+        mkdir_p(web_log_dir)
+    if not os.path.exists(config_defaults['log_file_prefix']):
+        # Make sure the file is present
+        io.open(
+            config_defaults['log_file_prefix'],
+            mode='w', encoding='utf-8').write(u'')
+    auth_conf_path = os.path.join(settings_path, '20authentication.conf')
+    template_path = os.path.join(
+        GATEONE_DIR, 'templates', 'settings', '10server.conf')
+    from utils import settings_template
+    new_settings = settings_template(
+        template_path, settings=config_defaults)
+    template_path = os.path.join(
+        GATEONE_DIR, 'templates', 'settings', '10server.conf')
+    with io.open(server_conf_path, mode='w') as s:
+        s.write(u"// This is Gate One's main settings file.\n")
+        s.write(new_settings)
+    new_auth_settings = settings_template(
+        template_path, settings=auth_settings)
+    with io.open(auth_conf_path, mode='w') as s:
+        s.write(u"// This is Gate One's authentication settings file.\n")
+        s.write(new_auth_settings)
+
+def convert_old_server_conf():
+    """
+    Converts old-style server.conf files to the new settings/10server.conf
+    format.
+    """
+    from utils import settings_template, RUDict
+    settings = RUDict()
+    auth_settings = RUDict()
+    terminal_settings = RUDict()
+    api_keys = RUDict({"*": {"gateone": {"api_keys": {}}}})
+    with io.open(options.config) as f:
+        # Regular server-wide settings will go in 10server.conf by default.
+        # These settings can actually be spread out into any number of .conf
+        # files in the settings directory using whatever naming convention
+        # you want.
+        settings_path = options.settings_dir
+        server_conf_path = os.path.join(settings_path, '10server.conf')
+        # Using 20authentication.conf for authentication settings
+        auth_conf_path = os.path.join(
+            settings_path, '20authentication.conf')
+        terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
+        api_keys_conf = os.path.join(settings_path, '20api_keys.conf')
+        # NOTE: Using a separate file for authentication stuff for no other
+        #       reason than it seems like a good idea.  Don't want one
+        #       gigantic config file for everything (by default, anyway).
+        logging.info(_(
+            "Old server.conf file found.  Converting to the new format as "
+            "%s, %s, and %s" % (
+                server_conf_path, auth_conf_path, terminal_conf_path)))
+        for line in f:
+            if line.startswith('#'):
+                continue
+            key = line.split('=', 1)[0].strip()
+            value = eval(line.split('=', 1)[1].strip())
+            if key in terminal_options:
+                if key == 'command':
+                    # Fix the path to ssh_connect.py if present
+                    if 'ssh_connect.py' in value:
+                        value = value.replace(
+                            '/plugins/', '/applications/terminal/plugins/')
+                if key == 'session_logs_max_age':
+                    # This is now user_logs_max_age.  Put it in 'gateone'
+                    settings.update({'user_logs_max_age': value})
+                terminal_settings.update({key: value})
+            elif key in authentication_options:
+                auth_settings.update({key: value})
+            elif key == 'origins':
+                # Convert to the new format (a list with no http://)
+                origins = value.split(';')
+                converted_origins = []
+                for origin in origins:
+                    # The new format doesn't bother with http:// or https://
+                    origin = origin.split('://')[1]
+                    if origin not in converted_origins:
+                        converted_origins.append(origin)
+                settings.update({key: converted_origins})
+            elif key == 'api_keys':
+                # Move these to the new location/format (20api_keys.conf)
+                for pair in value.split(','):
+                    api_key, secret = pair.split(':')
+                    if bytes == str:
+                        api_key = api_key.decode('UTF-8')
+                        secret = secret.decode('UTF-8')
+                    api_keys['*']['gateone']['api_keys'].update(
+                        {api_key: secret})
+                # API keys can be written right away
+                with io.open(api_keys_conf, 'w') as conf:
+                    msg = _(
+                        u"// This file contains the key and secret pairs "
+                        u"used by Gate One's API authentication method.\n")
+                    conf.write(msg)
+                    conf.write(unicode(api_keys))
+            else:
+                settings.update({key: value})
+        template_path = os.path.join(
+            GATEONE_DIR, 'templates', 'settings', '10server.conf')
+        new_settings = settings_template(template_path, settings=settings)
+        if not os.path.exists(server_conf_path):
+            with io.open(server_conf_path, 'w') as s:
+                s.write(_(u"// This is Gate One's main settings file.\n"))
+                s.write(new_settings)
+        new_auth_settings = settings_template(
+            template_path, settings=auth_settings)
+        if not os.path.exists(auth_conf_path):
+            with io.open(auth_conf_path, 'w') as s:
+                s.write(_(
+                    u"// This is Gate One's authentication settings file.\n"))
+                s.write(new_auth_settings)
+        # Terminal uses a slightly different template; it converts 'command'
+        # to the new 'commands' format.
+        template_path = os.path.join(
+            GATEONE_DIR, 'templates', 'settings', '50terminal.conf')
+        new_term_settings = settings_template(
+            template_path, settings=terminal_settings)
+        if not os.path.exists(terminal_conf_path):
+            with io.open(terminal_conf_path, 'w') as s:
+                s.write(_(
+                    u"// This is Gate One's Terminal application settings "
+                    u"file.\n"))
+                s.write(new_term_settings)
+    # Rename the old server.conf so this logic doesn't happen again
+    os.rename(options.config, "%s.old" % options.config)
+
+def apply_cli_overrides(go_settings):
+    """
+    Updates *go_settings* in-place with values given on the command line.
+    """
+    # Figure out which options are being overridden on the command line
+    arguments = []
+    non_options = [
+        # These are things that don't really belong in settings
+        'new_api_key', 'help', 'kill', 'config', 'combine_js', 'combine_css',
+        'combine_css_container'
+    ]
+    for arg in list(sys.argv)[1:]:
+        if not arg.startswith('-'):
+            break
+        else:
+            arguments.append(arg.lstrip('-').split('=', 1)[0])
+    for argument in arguments:
+        if argument in non_options:
+            continue
+        if argument in options._options.keys():
+            go_settings[argument] = options._options[argument].value()
+    # Update Tornado's options from our settings.
+    # NOTE: For options given on the command line this step should be redundant.
+    for key, value in go_settings.items():
+        if key in non_options:
+            continue
+        if key in options._options:
+            if str == bytes: # Python 2
+                if isinstance(value, unicode):
+                    # For whatever reason Tornado doesn't like unicode values
+                    # for its own settings unless you're using Python 3...
+                    value = str(value)
+            if key in ['origins', 'api_keys']:
+                # These two settings are special and taken care of further down.
+                continue
+            options._options[key].set(value)
+
 def main():
     global _
     global PLUGINS
@@ -2872,32 +3077,13 @@ def main():
         'combine_css_container'
     ]
     # Figure out which options are being overridden on the command line
+    apply_cli_overrides(go_settings)
     arguments = []
     for arg in list(sys.argv)[1:]:
         if not arg.startswith('-'):
             break
         else:
             arguments.append(arg.lstrip('-').split('=', 1)[0])
-    for argument in arguments:
-        if argument in non_options:
-            continue
-        elif argument in options.keys():
-            go_settings[argument] = options[argument].value()
-    # Update Tornado's options from our settings.
-    # NOTE: For options given on the command line this step should be redundant.
-    for key, value in go_settings.items():
-        if key in non_options:
-            continue
-        elif key in options:
-            if str == bytes: # Python 2
-                if isinstance(value, unicode):
-                    # For whatever reason Tornado doesn't like unicode values
-                    # for its own settings unless you're using Python 3...
-                    value = str(value)
-            if key in ['origins', 'api_keys']:
-                # These two settings are special and taken care of further down.
-                continue
-            options[key].set(value)
     # Turn any API keys provided on the command line into a dict
     api_keys = {}
     if 'api_keys' in arguments:
@@ -2929,103 +3115,7 @@ def main():
     # NOTE: This logic will go away some day as it only applies when moving from
     #       Gate One 1.1 (or older) to newer versions.
     if os.path.exists(options.config):
-        from utils import settings_template, RUDict
-        settings = RUDict()
-        auth_settings = RUDict()
-        terminal_settings = RUDict()
-        api_keys = RUDict({"*": {"gateone": {"api_keys": {}}}})
-        with io.open(options.config) as f:
-            # Regular server-wide settings will go in 10server.conf by default.
-            # These settings can actually be spread out into any number of .conf
-            # files in the settings directory using whatever naming convention
-            # you want.
-            settings_path = settings_dir
-            server_conf_path = os.path.join(settings_path, '10server.conf')
-            # Using 20authentication.conf for authentication settings
-            auth_conf_path = os.path.join(
-                settings_path, '20authentication.conf')
-            terminal_conf_path = os.path.join(settings_path, '50terminal.conf')
-            api_keys_conf = os.path.join(settings_path, '20api_keys.conf')
-            # NOTE: Using a separate file for authentication stuff for no other
-            #       reason than it seems like a good idea.  Don't want one
-            #       gigantic config file for everything (by default, anyway).
-            logging.info(_(
-                "Old server.conf file found.  Converting to the new format as "
-                "%s, %s, and %s" % (
-                    server_conf_path, auth_conf_path, terminal_conf_path)))
-            for line in f:
-                if line.startswith('#'):
-                    continue
-                key = line.split('=', 1)[0].strip()
-                value = eval(line.split('=', 1)[1].strip())
-                if key in terminal_options:
-                    if key == 'command':
-                        # Fix the path to ssh_connect.py if present
-                        if 'ssh_connect.py' in value:
-                            value = value.replace(
-                                '/plugins/', '/applications/terminal/plugins/')
-                    if key == 'session_logs_max_age':
-                        # This is now user_logs_max_age.  Put it in 'gateone'
-                        settings.update({'user_logs_max_age': value})
-                    terminal_settings.update({key: value})
-                elif key in authentication_options:
-                    auth_settings.update({key: value})
-                elif key == 'origins':
-                    # Convert to the new format (a list with no http://)
-                    origins = value.split(';')
-                    converted_origins = []
-                    for origin in origins:
-                        # The new format doesn't bother with http:// or https://
-                        origin = origin.split('://')[1]
-                        if origin not in converted_origins:
-                            converted_origins.append(origin)
-                    settings.update({key: converted_origins})
-                elif key == 'api_keys':
-                    # Move these to the new location/format (20api_keys.conf)
-                    for pair in value.split(','):
-                        api_key, secret = pair.split(':')
-                        if bytes == str:
-                            api_key = api_key.decode('UTF-8')
-                            secret = secret.decode('UTF-8')
-                        api_keys['*']['gateone']['api_keys'].update(
-                            {api_key: secret})
-                    # API keys can be written right away
-                    with io.open(api_keys_conf, 'w') as conf:
-                        msg = _(
-                            u"// This file contains the key and secret pairs "
-                            u"used by Gate One's API authentication method.\n")
-                        conf.write(msg)
-                        conf.write(unicode(api_keys))
-                else:
-                    settings.update({key: value})
-            template_path = os.path.join(
-                GATEONE_DIR, 'templates', 'settings', '10server.conf')
-            new_settings = settings_template(template_path, settings=settings)
-            if not os.path.exists(server_conf_path):
-                with io.open(server_conf_path, 'w') as s:
-                    s.write(_(u"// This is Gate One's main settings file.\n"))
-                    s.write(new_settings)
-            new_auth_settings = settings_template(
-                template_path, settings=auth_settings)
-            if not os.path.exists(auth_conf_path):
-                with io.open(auth_conf_path, 'w') as s:
-                    s.write(_(
-                       u"// This is Gate One's authentication settings file.\n"))
-                    s.write(new_auth_settings)
-            # Terminal uses a slightly different template; it converts 'command'
-            # to the new 'commands' format.
-            template_path = os.path.join(
-                GATEONE_DIR, 'templates', 'settings', '50terminal.conf')
-            new_term_settings = settings_template(
-                template_path, settings=terminal_settings)
-            if not os.path.exists(terminal_conf_path):
-                with io.open(terminal_conf_path, 'w') as s:
-                    s.write(_(
-                        u"// This is Gate One's Terminal application settings "
-                        u"file.\n"))
-                    s.write(new_term_settings)
-        # Rename the old server.conf so this logic doesn't happen again
-        os.rename(options.config, "%s.old" % options.config)
+        convert_old_server_conf()
     if 'gateone' not in all_settings['*']:
         # User has yet to create a 10server.conf (or equivalent)
         all_settings['*']['gateone'] = {} # Will be filled out below
@@ -3034,64 +3124,7 @@ def main():
     if 'cookie_secret' not in go_settings or not go_settings['cookie_secret']:
         # Generate a default 10server.conf with a random cookie secret
         # NOTE: This will also generate a new 10server.conf if it is missing.
-        logging.info(_(
-            u"Gate One settings are incomplete.  A new settings/10server.conf"
-            u" will be generated."))
-        from utils import options_to_settings
-        auth_settings = {} # Auth stuff goes in 20authentication.conf
-        all_setttings = options_to_settings(options)
-        settings_path = options.settings_dir
-        server_conf_path = os.path.join(settings_path, '10server.conf')
-        if os.path.exists(server_conf_path):
-            logging.error(_(
-                "You have a 10server.conf but it is either invalid (syntax "
-                "error) or missing essential settings."))
-            sys.exit(1)
-        config_defaults = all_setttings['*']['gateone']
-        # Don't need this in the actual settings file:
-        del config_defaults['settings_dir']
-        # Don't need non-options in there either:
-        for non_option in non_options:
-            if non_option in config_defaults:
-                del config_defaults[non_option]
-        # Generate a new cookie_secret
-        config_defaults['cookie_secret'] = generate_session_id()
-        # Separate out the authentication settings
-        for key, value in list(config_defaults.items()):
-            if key in authentication_options:
-                auth_settings.update({key: value})
-                del config_defaults[key]
-        # Make sure we have a valid log_file_prefix
-        if config_defaults['log_file_prefix'] == None:
-            web_log_dir = os.path.join(GATEONE_DIR, 'logs')
-            web_log_path = os.path.join(web_log_dir, 'webserver.log')
-            config_defaults['log_file_prefix'] = web_log_path
-        else:
-            web_log_dir = os.path.split(config_defaults['log_file_prefix'])[0]
-        if not os.path.exists(web_log_dir):
-            # Make sure the directory exists
-            mkdir_p(web_log_dir)
-        if not os.path.exists(config_defaults['log_file_prefix']):
-            # Make sure the file is present
-            io.open(
-                config_defaults['log_file_prefix'],
-                mode='w', encoding='utf-8').write(u'')
-        auth_conf_path = os.path.join(settings_path, '20authentication.conf')
-        template_path = os.path.join(
-            GATEONE_DIR, 'templates', 'settings', '10server.conf')
-        from utils import settings_template
-        new_settings = settings_template(
-            template_path, settings=config_defaults)
-        template_path = os.path.join(
-            GATEONE_DIR, 'templates', 'settings', '10server.conf')
-        with io.open(server_conf_path, mode='w') as s:
-            s.write(u"// This is Gate One's main settings file.\n")
-            s.write(new_settings)
-        new_auth_settings = settings_template(
-            template_path, settings=auth_settings)
-        with io.open(auth_conf_path, mode='w') as s:
-            s.write(u"// This is Gate One's authentication settings file.\n")
-            s.write(new_auth_settings)
+        generate_server_conf()
         # Make sure these values get updated
         all_settings = get_settings(options.settings_dir)
         go_settings = all_settings['*']['gateone']
@@ -3127,8 +3160,9 @@ def main():
         try:
             recursive_chown(go_settings['user_dir'], uid, gid)
         except (ChownError, OSError) as e:
-            logging.error("user_dir: %s, uid: %s, gid: %s" % (
-                go_settings['user_dir'], uid, gid))
+            logging.error(_(
+                "Failed to recursively change permissions of user_dir: %s, "
+                "uid: %s, gid: %s" % (go_settings['user_dir'], uid, gid)))
             logging.error(e)
             sys.exit(1)
     if not os.path.exists(go_settings['session_dir']): # Make our session_dir
@@ -3201,211 +3235,15 @@ def main():
                 u"applications."))
         sys.exit(0)
     if options.combine_js:
-        # Combine all JavaScript files into one big one.
-        plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
-        pluginslist = os.listdir(plugins_dir)
-        pluginslist.sort()
-        applications_dir = os.path.join(GATEONE_DIR, 'applications')
-        appslist = os.listdir(applications_dir)
-        appslist.sort()
-        with io.open(options.combine_js, 'w') as f:
-            # Start by adding gateone.js
-            gateone_js = os.path.join(GATEONE_DIR, 'static', 'gateone.js')
-            with io.open(gateone_js) as go_js:
-                f.write(go_js.read() + '\n')
-            # Gate One plugins
-            for plugin in pluginslist:
-                if enabled_plugins and plugin not in enabled_plugins:
-                    continue
-                static_dir = os.path.join(plugins_dir, plugin, 'static')
-                if os.path.isdir(static_dir):
-                    filelist = os.listdir(static_dir)
-                    filelist.sort()
-                    for filename in filelist:
-                        filepath = os.path.join(static_dir, filename)
-                        if filename.endswith('.js'):
-                            with io.open(filepath) as js_file:
-                                f.write(js_file.read() + u'\n')
-            # Gate One applications
-            for application in appslist:
-                if enabled_applications:
-                    # Only export JS of enabled apps
-                    if application not in enabled_applications:
-                        continue
-                static_dir = os.path.join(GATEONE_DIR,
-                    'applications', application, 'static')
-                plugins_dir = os.path.join(
-                    applications_dir, application, 'plugins')
-                if os.path.isdir(static_dir):
-                    filelist = os.listdir(static_dir)
-                    filelist.sort()
-                    for filename in filelist:
-                        filepath = os.path.join(static_dir, filename)
-                        if filename.endswith('.js'):
-                            with io.open(filepath) as js_file:
-                                f.write(js_file.read() + u'\n')
-                app_settings = all_settings['*'].get(application, None)
-                enabled_app_plugins = []
-                if app_settings:
-                    enabled_app_plugins = app_settings.get(
-                        'enabled_plugins', [])
-                if os.path.isdir(plugins_dir):
-                    pluginslist = os.listdir(plugins_dir)
-                    pluginslist.sort()
-                    # Gate One application plugins
-                    for plugin in pluginslist:
-                        # Only export JS of enabled app plugins
-                        if enabled_app_plugins:
-                            if plugin not in enabled_app_plugins:
-                                continue
-                        static_dir = os.path.join(plugins_dir, plugin, 'static')
-                        if os.path.isdir(static_dir):
-                            filelist = os.listdir(static_dir)
-                            filelist.sort()
-                            for filename in filelist:
-                                filepath = os.path.join(static_dir, filename)
-                                if filename.endswith('.js'):
-                                    with io.open(filepath) as js_file:
-                                        f.write(js_file.read() + u'\n')
-            f.flush()
+        from utils import combine_javascript
+        combine_javascript(options.combine_js, options.settings_dir)
         sys.exit(0)
     if options.combine_css:
-        # Combine all CSS files into one big one.
-        plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
-        pluginslist = os.listdir(plugins_dir)
-        pluginslist.sort()
-        applications_dir = os.path.join(GATEONE_DIR, 'applications')
-        appslist = os.listdir(applications_dir)
-        appslist.sort()
-        themes = os.listdir(os.path.join(GATEONE_DIR, 'templates', 'themes'))
-        theme_writers = {}
-        for theme in themes:
-            combined_theme_path = "%s_theme_%s" % (
-                options.combine_css.split('.css')[0], theme)
-            theme_writers[theme] = io.open(combined_theme_path, 'w')
-        # NOTE: We skip gateone.css because that isn't used when embedding
-        with io.open(options.combine_css, 'w') as f:
-            # Gate One plugins
-            # TODO: Add plugin theme files to this
-            for plugin in pluginslist:
-                if enabled_plugins and plugin not in enabled_plugins:
-                    continue
-                css_dir = os.path.join(plugins_dir, plugin, 'templates')
-                if os.path.isdir(css_dir):
-                    filelist = os.listdir(css_dir)
-                    filelist.sort()
-                    for filename in filelist:
-                        filepath = os.path.join(css_dir, filename)
-                        if filename.endswith('.css'):
-                            with io.open(filepath) as css_file:
-                                f.write(css_file.read() + u'\n')
-            # Gate One applications
-            for application in appslist:
-                if enabled_applications:
-                    # Only export CSS of enabled apps
-                    if application not in enabled_applications:
-                        continue
-                css_dir = os.path.join(GATEONE_DIR,
-                    'applications', application, 'templates')
-                subdirs = []
-                plugins_dir = os.path.join(
-                    applications_dir, application, 'plugins')
-                if os.path.isdir(css_dir):
-                    filelist = os.listdir(css_dir)
-                    filelist.sort()
-                    for filename in filelist:
-                        filepath = os.path.join(css_dir, filename)
-                        if filename.endswith('.css'):
-                            with io.open(filepath) as css_file:
-                                f.write(css_file.read() + u'\n')
-                        elif os.path.isdir(filepath):
-                            subdirs.append(filepath)
-                while subdirs:
-                    subdir = subdirs.pop()
-                    filelist = os.listdir(subdir)
-                    filelist.sort()
-                    for filename in filelist:
-                        filepath = os.path.join(subdir, filename)
-                        if filename.endswith('.css'):
-                            with io.open(filepath) as css_file:
-                                combined = css_file.read() + u'\n'
-                                if os.path.split(subdir)[1] == 'themes':
-                                    theme_writers[filename].write(combined)
-                                else:
-                                    f.write(combined)
-                        elif os.path.isdir(filepath):
-                            subdirs.append(filepath)
-                app_settings = all_settings['*'].get(application, None)
-                enabled_app_plugins = []
-                if app_settings:
-                    enabled_app_plugins = app_settings.get(
-                        'enabled_plugins', [])
-                if os.path.isdir(plugins_dir):
-                    pluginslist = os.listdir(plugins_dir)
-                    pluginslist.sort()
-                    # Gate One application plugins
-                    for plugin in pluginslist:
-                        # Only export JS of enabled app plugins
-                        if enabled_app_plugins:
-                            if plugin not in enabled_app_plugins:
-                                continue
-                        css_dir = os.path.join(
-                            plugins_dir, plugin, 'templates')
-                        if os.path.isdir(css_dir):
-                            filelist = os.listdir(css_dir)
-                            filelist.sort()
-                            for filename in filelist:
-                                filepath = os.path.join(css_dir, filename)
-                                if filename.endswith('.css'):
-                                    with io.open(filepath) as css_file:
-                                        f.write(css_file.read() + u'\n')
-                                elif os.path.isdir(os.path.join(
-                                  css_dir, filename)):
-                                    subdirs.append(filepath)
-                        while subdirs:
-                            subdir = subdirs.pop()
-                            filelist = os.listdir(subdir)
-                            filelist.sort()
-                            for filename in filelist:
-                                filepath = os.path.join(subdir, filename)
-                                if filename.endswith('.css'):
-                                    with io.open(filepath) as css_file:
-                                        with io.open(filepath) as css_file:
-                                            combined = css_file.read() + u'\n'
-                                            _dir = os.path.split(subdir)[1]
-                                            if _dir == 'themes':
-                                                theme_writers[filename].write(
-                                                    combined)
-                                            else:
-                                                f.write(combined)
-                                elif os.path.isdir(filepath):
-                                    subdirs.append(filepath)
-            f.flush()
-        for writer in theme_writers.values():
-            writer.flush()
-            writer.close()
-        # Now perform a replacement of the {{container}} variable
-        with io.open(options.combine_css, 'r') as f:
-            css_data = f.read()
-            css_data = css_data.replace(
-                '#{{container}}', options.combine_css_container)
-        with io.open(options.combine_css, 'w') as f:
-            f.write(css_data)
-        logging.info(_(
-            "Non-theme CSS has been combined and saved to: %s"
-            % options.combine_css))
-        for theme in theme_writers.keys():
-            combined_theme_path = "%s_theme_%s" % (
-                options.combine_css.split('.css')[0], theme)
-            with io.open(combined_theme_path, 'r') as f:
-                css_data = f.read()
-                css_data = css_data.replace(
-                    '#{{container}}', options.combine_css_container)
-            with io.open(combined_theme_path, 'w') as f:
-                f.write(css_data)
-            logging.info(_(
-                "The %s theme CSS has been combined and saved to: %s"
-                % (theme.split('.css')[0], combined_theme_path)))
+        from utils import combine_css
+        combine_css(
+            options.combine_css,
+            options.combine_css_container,
+            options.settings_dir)
         sys.exit(0)
     # Display the version in case someone sends in a log for for support
     logging.info(_("Gate One %s" % __version__))
@@ -3476,11 +3314,12 @@ def main():
         ssl_options = None
     else:
         proto = "https://"
-    for option in options:
+    # Fill out our settings with command line args if any are missing
+    for option in options._options.keys():
         if option in non_options:
             continue # These don't belong
         if option not in go_settings:
-            go_settings[option] = options[option].value()
+            go_settings[option] = options._options[option].value()
     https_server = tornado.httpserver.HTTPServer(
         GateOneApp(settings=go_settings, web_handlers=web_handlers),
         ssl_options=ssl_options)

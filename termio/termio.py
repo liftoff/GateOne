@@ -1201,7 +1201,7 @@ class MultiplexPOSIXIOLoop(BaseMultiplex):
         iteration (which is thread safe).  If the IOLoop isn't started
         *callback* will get called immediately and directly.
         """
-        if self.io_loop.running():
+        if self.io_loop._running:
             self.io_loop.add_callback(callback)
         else:
             callback()
