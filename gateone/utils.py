@@ -1574,15 +1574,14 @@ class memoize:
         self.memo = {}
 
     def __call__(self, *args, **kwds):
-        str = pickle.dumps(args, 1) + pickle.dumps(kwds, 1)
-        if not self.memo.has_key(str):
+        string = pickle.dumps(args, 1) + pickle.dumps(kwds, 1)
+        if string not in self.memo:
             # Commented out because it is REALLY noisy.  Uncomment to debug
             #logging.debug("memoize cache miss (%s)" % self.fn.__name__)
-            self.memo[str] = self.fn(*args, **kwds)
+            self.memo[string] = self.fn(*args, **kwds)
         #else:
             #logging.debug("memoize cache hit (%s)" % self.fn.__name__)
-
-        return self.memo[str]
+        return self.memo[string]
 
 def strip_xss(html, whitelist=None, replacement=u"\u2421"):
     """

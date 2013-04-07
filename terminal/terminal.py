@@ -1153,6 +1153,7 @@ class Terminal(object):
         self.double_width_right = False
         self.double_width_left = False
         self.prev_char = u''
+        self.max_scrollback = 1000 # Max number of lines kept in the buffer
         self.initialize(rows, cols, em_dimensions)
 
     def initialize(self, rows=24, cols=80, em_dimensions=None):
@@ -2177,10 +2178,9 @@ class Terminal(object):
         for x in xrange(int(n)):
             line = self.screen.pop(self.top_margin) # Remove the top line
             self.scrollback_buf.append(line) # Add it to the scrollback buffer
-            if len(self.scrollback_buf) > 1000:
-                # 1000 lines ought to be enough for anybody
+            if len(self.scrollback_buf) > self.max_scrollback:
                 self.init_scrollback()
-                # NOTE:  This would only be if 1000 lines piled up before the
+                # NOTE:  This would only be the # of lines piled up before the
                 # next dump_html() or dump().
             # Add it to the bottom of the window:
             self.screen.insert(self.bottom_margin, empty_line[:]) # A copy
