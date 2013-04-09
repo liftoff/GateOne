@@ -28,6 +28,7 @@ import mimetypes
 import fcntl
 import hmac, hashlib
 from datetime import timedelta
+from functools import partial
 try:
     import cPickle as pickle
 except ImportError:
@@ -311,7 +312,7 @@ def options_to_settings(options):
         # These are things that don't really belong in settings
         'new_api_key', 'help', 'kill', 'config'
     ]
-    for key, value in options.items():
+    for key, value in options._options.items():
         value = value.value() # These are of type, tornado.options._Option
         if key in terminal_options:
             settings['*']['terminal'].update({key: value})
@@ -1380,7 +1381,6 @@ def bind(function, self):
 
     ...outside of the construct of a class.
     """
-    from functools import partial
     return partial(function, self)
 
 def minify(path_or_fileobj, kind):

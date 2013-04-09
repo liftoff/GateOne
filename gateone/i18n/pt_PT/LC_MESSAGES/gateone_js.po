@@ -1,0 +1,71 @@
+# Portuguese (Portugal) translations for PROJECT.
+# Copyright (C) 2013 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2013.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2013-04-08 14:43-0400\n"
+"PO-Revision-Date: 2013-04-08 14:12-0400\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: pt_PT <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 0.9.6\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"Translated-By: po_translator 0.1\n"
+
+#: gateone/static/gateone.js:445 gateone/static/gateone.js:459
+#: gateone/tests/chat/static/gateone.js:445
+#: gateone/tests/chat/static/gateone.js:459
+#: gateone/tests/hello_embedded/static/gateone.js:445
+#: gateone/tests/hello_embedded/static/gateone.js:459
+msgid "Preferences"
+msgstr "Preferências"
+
+#: gateone/static/gateone.js:466 gateone/tests/chat/static/gateone.js:466
+#: gateone/tests/hello_embedded/static/gateone.js:466
+msgid "<b>Theme:</b> "
+msgstr "<b>Tema:</b> "
+
+#: gateone/static/gateone.js:467 gateone/tests/chat/static/gateone.js:467
+#: gateone/tests/hello_embedded/static/gateone.js:467
+msgid "<b>Font Size:</b> "
+msgstr "<b>Tamanho da Fonte</b>"
+
+#: gateone/static/gateone.js:468 gateone/tests/chat/static/gateone.js:468
+#: gateone/tests/hello_embedded/static/gateone.js:468
+msgid "<b>Disable Workspace Slide Effect:</b> "
+msgstr "<b>Desativar efeito de slide Workspace:</b> "
+
+#: gateone/static/gateone.js:2035 gateone/tests/chat/static/gateone.js:2035
+#: gateone/tests/hello_embedded/static/gateone.js:2035
+msgid "API Authentication Failure"
+msgstr "API Falha de autenticação"
+
+#: gateone/static/gateone.js:2035 gateone/tests/chat/static/gateone.js:2035
+#: gateone/tests/hello_embedded/static/gateone.js:2035
+msgid ""
+"The API authentication object was denied by the server.  Click OK to reload "
+"the page."
+msgstr ""
+"O objeto de autenticação API foi negada pelo servidor. Clique em OK para "
+"recarregar a página."
+
+#: gateone/static/gateone.js:2037 gateone/tests/chat/static/gateone.js:2037
+#: gateone/tests/hello_embedded/static/gateone.js:2037
+msgid "Authentication Failure"
+msgstr "Falha de autenticação"
+
+#: gateone/static/gateone.js:2037 gateone/tests/chat/static/gateone.js:2037
+#: gateone/tests/hello_embedded/static/gateone.js:2037
+msgid ""
+"You must re-authenticate with the Gate One server.  The page will now be "
+"reloaded."
+msgstr ""
+"Você deve re-autenticar com o servidor Gate One. A página irá agora ser "
+"recarregado."

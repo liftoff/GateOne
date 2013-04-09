@@ -50,7 +50,7 @@ from functools import partial
 # Our stuff
 from gateone import BaseHandler
 from utils import get_translation, mkdir_p, shell_command, which, json_encode
-from utils import noop
+from utils import noop, bind
 
 _ = get_translation()
 
@@ -1076,8 +1076,8 @@ def initialize(self):
     # An alternative would be to write a single function say, on_auth() that
     # calls both of these functions then assign it to 'terminal:authenticate' in
     # the 'Events' hook.  I think this way is better since it is more explicit.
-    self.on('terminal:authenticate', send_ssh_css_template)
-    self.on('terminal:authenticate', create_user_ssh_dir)
+    self.on('terminal:authenticate', bind(send_ssh_css_template, self))
+    self.on('terminal:authenticate', bind(create_user_ssh_dir, self))
 
 hooks = {
     'Web': [(r"/ssh", KnownHostsHandler)],

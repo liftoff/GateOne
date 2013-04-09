@@ -23,7 +23,7 @@ this file.
 // TODO: Separate creation of the various panels into their own little functions so we can efficiently neglect to execute them if in embedded mode.
 // TODO: Add a nice tooltip function to GateOne.Visual that all plugins can use that is integrated with the base themes.
 // TODO: Make it so that variables like GateOne.Terminal.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
-// TODO: This is a big one:  Re-write most of this to use Underscore.js and Backbone.js (as a more well-constructed way to support multiple simultaneous Gate One server connections/instances).  Will require overriding some aspects of Backbone.js but this is easier than re-inventing the wheel with Models.
+// TODO: This is a big one:  Re-write most of this to use Underscore.js (as a more well-constructed way to support multiple simultaneous Gate One server connections/instances).  Will require overriding some aspects of Backbone.js but this is easier than re-inventing the wheel with Models.
 
 // Everything goes in GateOne
 (function(window, undefined) {
@@ -69,9 +69,9 @@ if (typeof document.hidden !== "undefined") {
 
 // Sandbox-wide shortcuts
 var noop = function(a) { return a }, // Let's us reference functions that may or may not be available (see logging shortcuts below).
-    ESC = String.fromCharCode(27); // Saves a lot of typing and it's easy to read
+    ESC = String.fromCharCode(27), // Saves a lot of typing and it's easy to read
 // Log level shortcuts for each log level (these get properly assigned in GateOne.initialize() if GateOne.Logging is available)
-var logFatal = noop,
+    logFatal = noop,
     logError = noop,
     logWarning = noop,
     logInfo = noop,
@@ -114,7 +114,7 @@ GateOne.initializedModules = []; // So we don't accidentally call a plugin's ini
  * @param {Array} [deps] the array of module dependencies (as strings)
  */
 
-GateOne.Base.module = function (parent, name, version, deps) {
+GateOne.Base.module = function(parent, name, version, deps) {
     var module = parent[name] = parent[name] || {},
         prefix = (parent.__name__ ? parent.__name__ + "." : "");
     module.__name__ = prefix + name;
@@ -135,7 +135,7 @@ GateOne.Base.module = function (parent, name, version, deps) {
     return module;
 };
 GateOne.Base.module(GateOne, "Base", "1.2", []);
-GateOne.Base.update = function (self, obj/*, ... */) {
+GateOne.Base.update = function(self, obj/*, ... */) {
     if (self === null || self === undefined) {
         self = {};
     }
@@ -153,6 +153,44 @@ GateOne.Base.update = function (self, obj/*, ... */) {
     }
     return self;
 };
+GateOne.Base.module(GateOne, "i18n", "1.0");
+GateOne.i18n.translations = {}; // Stores the localized translation of various strings
+/**:GateOne.i18n
+
+A module to store and retrieve localized translations of strings.
+*/
+GateOne.Base.update(GateOne.i18n, {
+    gettext: function(string) {
+        /**:GateOne.Base.gettext(string)
+
+        Returns a localized translation of *string* if available.  Returns *string* if no translation is available.
+        */
+        if (GateOne.i18n.translations[string]) {
+            return GateOne.i18n.translations[string][1];
+        }
+        return string;
+    },
+    registerTranslationAction: function(table) {
+        /**:GateOne.i18n.registerTranslationAction(table)
+
+        Attached to the 'go:register_translation' WebSocket action; stores the translation *table* in `GateOne.i18n.translations`.
+        */
+        GateOne.i18n.translations = table;
+    },
+    setLocale: function(locale) {
+        /**:GateOne.i18n.setLocale(locale)
+
+        Tells the Gate One server to set the user's locale to *locale*.  Example::
+
+            >>> GateOne.i18n.setLocale('fr_FR');
+        */
+        GateOne.ws.send(JSON.stringify({'go:set_locale': locale}));
+    }
+});
+
+
+// Global (within the sandbox) gettext shortcut:
+var gettext = GateOne.i18n.gettext;
 
 // GateOne Settings
 GateOne.location = "default"; // Yes, the default location is called "default" :)
@@ -398,7 +436,7 @@ var go = GateOne.Base.update(GateOne, {
             prefsPanelSave = u.createElement('button', {'id': 'prefs_save', 'type': 'submit', 'value': 'Save', 'class': 'button black ✈save_button'}),
             noticeContainer = u.createElement('div', {'id': 'noticecontainer', 'class': '✈noticecontainer'}),
             toolbar = u.createElement('div', {'id': 'toolbar', 'class': 'toolbar_container'}),
-            toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'toolbar', 'title': "Preferences"}),
+            toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'toolbar', 'title': gettext("Preferences")}),
             panels = u.getNodes(go.prefs.goDiv + ' .panel'),
             // Firefox doesn't support 'mousewheel'
 //             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
@@ -412,16 +450,16 @@ var go = GateOne.Base.update(GateOne, {
         u.hideElement(prefsPanel); // Start out hidden
         go.Visual.applyTransform(prefsPanel, 'scale(0)'); // So it scales back in real nice
         toolbarIconPrefs.innerHTML = go.Icons.prefs;
-        prefsPanelH2.innerHTML = "Preferences";
+        prefsPanelH2.innerHTML = gettext("Preferences");
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
             go.Visual.togglePanel('#'+prefix+'panel_prefs'); // Scale away, scale away, scale away.
         }
         prefsPanel.appendChild(prefsPanelH2);
         prefsPanel.appendChild(panelClose);
-        prefsPanelThemeLabel.innerHTML = "<b>Theme:</b> ";
-        prefsPanelFontSizeLabel.innerHTML = "<b>Font Size:</b> ";
-        prefsPanelDisableTransitionsLabel.innerHTML = "<b>Disable Workspace Slide Effect:</b> ";
+        prefsPanelThemeLabel.innerHTML = gettext("<b>Theme:</b> ");
+        prefsPanelFontSizeLabel.innerHTML = gettext("<b>Font Size:</b> ");
+        prefsPanelDisableTransitionsLabel.innerHTML = gettext("<b>Disable Workspace Slide Effect:</b> ");
         prefsPanelFontSize.value = go.prefs.fontSize;
         prefsPanelDisableTransitions.checked = go.prefs.disableTransitions;
         prefsPanelStyleRow1.appendChild(prefsPanelThemeLabel);
@@ -1988,9 +2026,9 @@ GateOne.Base.update(GateOne.Net, {
             }
         }, 500);
         if (go.prefs.auth) {
-            v.alert('API Authentication Failure', "The API authentication object was denied by the server.  Usually this means that one of the following is true:<ul style='width: 75%; margin-left: auto; margin-right: auto; text-align: left;'><li>The server's cookie_secret has changed and you must reauthenticate.  Simply reloading the page <i>once</i> will correct this.  Note that it is considered best practices to change the server's cookie_secret from time to time.</li><li>The api_keys parameter in Gate One's server.conf is not set correctly.</li><li>The Gate One server isn't configured to use API authentication ('auth = \"api\"' in the server.conf).</li><li>The API authentication object has expired.  This usually means the Gate One server was restarted or the clocks on one (or more) servers are set incorrectly (e.g. due to drift).</li><li>You are the victim of a Man-in-the-Middle attack.  Someone or <i>something</i> may have intercepted your API authentication object and already used it gain access to your session.  If this was the case you would have seen a message like, \"API authentication replay attack detected!\" appear as a notification at least once with similar messages logged on the server.  If you didn't see any such notification then it is highly likely that the problem is due to one of the aforementioned items.</li></ul><br><br>Click OK to reload the page.", redirect);
+            v.alert(gettext('API Authentication Failure'), gettext("The API authentication object was denied by the server.  Click OK to reload the page."), redirect);
         } else {
-            v.alert('Authentication Failure', 'You must re-authenticate with the Gate One server.  The page will now be reloaded.', redirect);
+            v.alert(gettext('Authentication Failure'), gettext('You must re-authenticate with the Gate One server.  The page will now be reloaded.'), redirect);
         }
     },
     sendDimensions: function(term, /*opt*/ctrl_l) {
@@ -2231,7 +2269,9 @@ GateOne.Net.actions = {
     'go:log': GateOne.Net.log,
     'go:ping': GateOne.Net.ping,
     'go:pong': GateOne.Net.pong,
-    'go:reauthenticate': GateOne.Net.reauthenticate
+    'go:reauthenticate': GateOne.Net.reauthenticate,
+ // This is here because it needs to happen before most calls to init()
+    'go:register_translation': GateOne.i18n.registerTranslationAction
 }
 GateOne.Base.module(GateOne, "Input", '1.1', ['Base', 'Utils']);
 // GateOne.Input.charBuffer = []; // Queue for sending characters to the server
@@ -4693,7 +4733,8 @@ window.GateOne = GateOne; // Make everything usable
 var go = GateOne,
     u = go.Utils,
     v = go.Visual,
-    prefix = go.prefs.prefix;
+    prefix = go.prefs.prefix,
+    gettext = go.i18n.gettext;
 
 // Shortcuts for each log level
 var logFatal = go.Logging.logFatal,

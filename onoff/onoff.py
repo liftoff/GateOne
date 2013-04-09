@@ -141,7 +141,17 @@ class OnOffMixin(object):
         for event in events:
             if event in self._on_off_events:
                 for callback_obj in self._on_off_events[event]:
-                    callback_obj['callback'](self, *args, **kwargs)
+                    try:
+                        callback_obj['callback'](*args, **kwargs)
+                    except TypeError:
+                        logging.warning(
+                            "trigger() failed trying to call %s.  Attempting to"
+                            " call with automatic 'self' applied..." %
+                            callback_obj['callback'].__name__)
+                        callback_obj['callback'](self, *args, **kwargs)
+                        logging.warning(
+                            "You probably want to update your code to bind "
+                            "'self' to that function using functools.partial()")
                     callback_obj['calls'] += 1
                     if callback_obj['calls'] == callback_obj['times']:
                         self.off(event, callback_obj['callback'])

@@ -434,7 +434,7 @@ class TerminalApplication(GOApplication):
                 self.plugin_env_hooks.update(hooks['Environment'])
             if 'Events' in hooks:
                 for event, callback in hooks['Events'].items():
-                    self.on(event, callback)
+                    self.on(event, bind(callback, self))
 
     def open(self):
         """

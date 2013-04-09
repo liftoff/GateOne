@@ -880,7 +880,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'go:cache_cleanup': self.cache_cleanup,
             'go:send_user_message': self.send_user_message,
             'go:broadcast': self.broadcast,
-            'go:list_users': self.list_server_users
+            'go:list_users': self.list_server_users,
+            'go:set_locale': self.set_locale,
         }
         self._events = {}
         # This is used to keep track of used API authentication signatures so
@@ -1091,6 +1092,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 for fname in os.listdir(cache_dir):
                     filepath = os.path.join(cache_dir, fname)
                     os.remove(filepath)
+        # NOTE: This is here so that the client will have all the necessary
+        # strings *before* the calls to various init() functions.
+        self.send_js_translation()
         for app in self.apps: # Call applications' open() functions (if any)
             if hasattr(app, 'open'):
                 app.open()
@@ -1386,9 +1390,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     # with a helpful error message...
                     logging.error(_(
                         "Client tried to use API-based authentication but this "
-                        "server is configured with 'auth = \"%s\".  Did you "
+                        "server is configured with 'auth = \"{0}\".  Did you "
                         "forget to set 'auth = \"api\" in your settings?" %
-                        self.settings['auth']))
+                        ).format(self.settings['auth']))
                     message = {'go:notice': _(
                         "AUTHENTICATION ERROR: Server is not configured to "
                         "perform API-based authentication.  Did someone forget "
@@ -2140,6 +2144,47 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         message = {'go:themes_list': {'themes': themes, 'colors': colors}}
         self.write_message(message)
 
+    @require(authenticated())
+    def set_locale(self, message):
+        """
+        Sets the client's locale to *message['locale']*.
+        """
+        self.prefs['*']['gateone']['locale'] = message['locale']
+        self.send_js_translation()
+
+    def send_js_translation(self, path=None):
+        """
+        Sends a message to the client containing a JSON-encoded table of strings
+        that have been translated to the user's locale.
+
+        If a *path* is given it will be used to send the client that file.  If
+        more than one JSON translation is sent to the client the new translation
+        will be merged into the existing one.
+
+        .. note:: Translation files must be the result of a `pojson /path/to/translation.po` conversion.
+        """
+        chosen_locale = self.prefs['*']['gateone'].get('locale', 'en_US')
+        json_translation = os.path.join(
+            GATEONE_DIR,
+            'i18n',
+            chosen_locale,
+            'LC_MESSAGES',
+            'gateone_js.json')
+        if path:
+            if os.path.exists(path):
+                with io.open(path, 'r', encoding="utf-8") as f:
+                    decoded = json_decode(f.read())
+                    message = {'go:register_translation': decoded}
+                    self.write_message(message)
+            else:
+                logging.error(
+                    _("Translation file, %s could not be found") % path)
+        elif os.path.exists(json_translation):
+            with io.open(json_translation, 'r', encoding="utf-8") as f:
+                decoded = json_decode(f.read())
+                message = {'go:register_translation': decoded}
+                self.write_message(message)
+
 # NOTE: This is not meant to be a chat application.  That'll come later :)
 #       The real purpose of send_user_message() and broadcast() are for
 #       programmatic use.  For example, when a user shares a terminal and it
@@ -2329,7 +2374,7 @@ class GateOneApp(tornado.web.Application):
                 AuthHandler = SSLAuthHandler
             elif settings['auth'] == 'api':
                 AuthHandler = APIAuthHandler
-            logging.info(_("Using %s authentication" % settings['auth']))
+            logging.info(_("Using %s authentication") % settings['auth'])
         else:
             logging.info(_(
                 "No authentication method configured. All users will be "
@@ -2448,7 +2493,7 @@ class GateOneApp(tornado.web.Application):
                 css_plugins.append(i.split('/')[1])
         plugin_list = list(set(PLUGINS['py'] + js_plugins + css_plugins))
         plugin_list.sort() # So there's consistent ordering
-        logging.info(_("Loaded plugins: %s" % ", ".join(plugin_list)))
+        logging.info(_("Loaded plugins: %s") % ", ".join(plugin_list))
         tornado.web.Application.__init__(self, handlers, **tornado_settings)
 
 def define_options():
@@ -3265,8 +3310,9 @@ def main():
                 if origin not in real_origins:
                     real_origins.append(origin)
             go_settings['origins'] = real_origins
-    logging.info("Connections to this server will be allowed from the following"
-                 " origins: '%s'" % " ".join(go_settings['origins']))
+    logging.info(_(
+        "Connections to this server will be allowed from the following"
+        " origins: '%s'") % " ".join(go_settings['origins']))
     # Normalize settings
     api_timestamp_window = convert_to_timedelta(
         go_settings['api_timestamp_window'])
