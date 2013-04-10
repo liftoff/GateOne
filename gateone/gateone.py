@@ -900,7 +900,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         #logging.debug("file_checker()") # Kinda noisy so I've commented it out
         if not SESSIONS:
             # No connected sessions; no point in watching files
-            cls.file_checker.stop()
+            cls.file_watcher.stop()
             # Also remove the broadcast file so we know to start up the
             # file_watcher again if a user connects.
             session_dir = options.session_dir
@@ -1390,8 +1390,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     # with a helpful error message...
                     logging.error(_(
                         "Client tried to use API-based authentication but this "
-                        "server is configured with 'auth = \"{0}\".  Did you "
-                        "forget to set 'auth = \"api\" in your settings?" %
+                        "server is configured with 'auth = \"{0}\"'.  Did you "
+                        "forget to set 'auth = \"api\" in your settings?"
                         ).format(self.settings['auth']))
                     message = {'go:notice': _(
                         "AUTHENTICATION ERROR: Server is not configured to "
