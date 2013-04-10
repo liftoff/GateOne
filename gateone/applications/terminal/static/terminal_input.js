@@ -738,16 +738,16 @@ GateOne.Base.update(GateOne.Terminal.Input, {
     keyTable: {
         // Keys that need special handling.  'default' means vt100/vt220 (for the most part).  These can get overridden by plugins or the user (GUI forthcoming)
         // NOTE: If a key is set to null that means it won't send anything to the server onKeyDown (at all).
-        'KEY_1': {'alt': ESC+"1", 'ctrl': "1"},
-        'KEY_2': {'alt': ESC+"2", 'ctrl': String.fromCharCode(0)},
-        'KEY_3': {'alt': ESC+"3", 'ctrl': ESC},
-        'KEY_4': {'alt': ESC+"4", 'ctrl': String.fromCharCode(28)},
-        'KEY_5': {'alt': ESC+"5", 'ctrl': String.fromCharCode(29)},
-        'KEY_6': {'alt': ESC+"6", 'ctrl': String.fromCharCode(30)},
-        'KEY_7': {'alt': ESC+"7", 'ctrl': String.fromCharCode(31)},
-        'KEY_8': {'alt': ESC+"8", 'ctrl': String.fromCharCode(32)},
-        'KEY_9': {'alt': ESC+"9", 'ctrl': "9"},
-        'KEY_0': {'alt': ESC+"0", 'ctrl': "0"},
+        'KEY_1': {'alt': ESC+"1", 'ctrl': "1", 'ctrl-shift': "1"},
+        'KEY_2': {'alt': ESC+"2", 'ctrl': String.fromCharCode(0), 'ctrl-shift': String.fromCharCode(0)},
+        'KEY_3': {'alt': ESC+"3", 'ctrl': ESC, 'ctrl-shift': ESC},
+        'KEY_4': {'alt': ESC+"4", 'ctrl': String.fromCharCode(28), 'ctrl-shift': String.fromCharCode(28)},
+        'KEY_5': {'alt': ESC+"5", 'ctrl': String.fromCharCode(29), 'ctrl-shift': String.fromCharCode(29)},
+        'KEY_6': {'alt': ESC+"6", 'ctrl': String.fromCharCode(30), 'ctrl-shift': String.fromCharCode(30)},
+        'KEY_7': {'alt': ESC+"7", 'ctrl': String.fromCharCode(31), 'ctrl-shift': String.fromCharCode(31)},
+        'KEY_8': {'alt': ESC+"8", 'ctrl': String.fromCharCode(32), 'ctrl-shift': String.fromCharCode(32)},
+        'KEY_9': {'alt': ESC+"9", 'ctrl': "9", 'ctrl-shift': "9"},
+        'KEY_0': {'alt': ESC+"0", 'ctrl': "0", 'ctrl-shift': "0"},
         // NOTE to self: xterm/vt100/vt220, for 'linux' (and possibly others) use [[A, [[B, [[C, [[D, and [[E
         'KEY_F1': {'default': ESC+"OP", 'alt': ESC+"O3P", 'sco': ESC+"[M", 'sco-ctrl': ESC+"[k"},
         'KEY_F2': {'default': ESC+"OQ", 'alt': ESC+"O3Q", 'sco': ESC+"[N", 'sco-ctrl': ESC+"[l"},
