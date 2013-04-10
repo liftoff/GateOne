@@ -21,7 +21,6 @@ go.Base.module(GateOne, "SSH", "1.1", ['Base']);
 go.SSH.identities = []; // SSH identity objects end up in here
 go.SSH.remoteCmdCallbacks = {};
 go.SSH.remoteCmdErrorbacks = {};
-go.prefs['autoConnectURL'] = null; // This is a URL that will be automatically connected to whenever a terminal is loaded. TODO: Move this to the ssh plugin.
 go.noSavePrefs['autoConnectURL'] = null; // So it doesn't get saved in localStorage
 go.Base.update(go.SSH, {
     init: function() {
