@@ -630,7 +630,7 @@ var go = GateOne.Base.update(GateOne, {
 //                 }
 //             }, 100);
 //         }, false);
-        goDiv.addEventListener('focus', go.Visual.disableOverlay, false);
+//         goDiv.addEventListener('focus', go.Visual.disableOverlay, false);
         go.initialized = true;
         go.Events.trigger("go:initialized");
         setTimeout(function() {

@@ -273,6 +273,13 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         }
         t.Input.inputNode.focus();
     },
+    onCopy: function() {
+        /**:GateOne.Terminal.Input.onCopy()
+
+        Returns all 'pastearea' elements to a visible state after a copy operation so that the browser's regular context menu will be usable again (for pasting).
+        */
+        u.showElements('.pastearea');
+    },
     capture: function() {
         /**GateOne.Terminal.Input.capture()
 
@@ -284,19 +291,16 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             t.Input.inputNode = u.createElement('input', {'class': 'IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
             go.node.appendChild(t.Input.inputNode);
         }
-        t.Input.inputNode.oninput = t.Input.onInput;
+        t.Input.inputNode.addEventListener('input', t.Input.onInput, false);
         t.Input.inputNode.tabIndex = 1; // Just in case--this is necessary to set focus
         go.node.addEventListener('keydown', t.Input.onKeyDown, true);
         go.node.addEventListener('keyup', t.Input.onKeyUp, true);
         t.Input.inputNode.addEventListener('blur', t.Input.disableCapture, true);
         terms.forEach(function(termNode) {
-            termNode.onpaste = t.Input.onPaste;
-            termNode.onmousedown = t.Input.onMouseDown;
-            termNode.onmouseup = t.Input.onMouseUp;
-            termNode.oncopy = function(e) {
-                // After the copy we need to bring the pastearea back up so the context menu will work to paste again
-                u.showElements('.pastearea');
-            }
+            termNode.addEventListener('paste', t.Input.onPaste, false);
+            termNode.addEventListener('mousedown', t.Input.onMouseDown, false);
+            termNode.addEventListener('mouseup', t.Input.onMouseUp, false);
+            termNode.addEventListener('copy', t.Input.onCopy, false);
         });
         if (document.activeElement != t.Input.inputNode) {
             t.Input.inputNode.focus();
@@ -318,19 +322,18 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             // The 'blur' event can be called when focus shifts around for pasting.
             return; // Act as if we were never called to avoid flashing the overlay
         }
-        t.Input.inputNode.oninput = null;
+        t.Input.inputNode.removeEventListener('input', t.Input.onInput, false);
         t.Input.inputNode.tabIndex = null;
-        t.Input.inputNode.onkeypress = null;
         go.node.removeEventListener('keydown', t.Input.onKeyDown, true);
         go.node.removeEventListener('keyup', t.Input.onKeyUp, true);
         t.Input.inputNode.removeEventListener('blur', t.Input.disableCapture, true);
-        terms.forEach(function(terminalNode) {
-            terminalNode.onpaste = null;
-            terminalNode.onmousedown = null;
-            terminalNode.onmouseup = null;
-            terminalNode.oncopy = null;
-            if (!terminalNode.classList.contains('✈inactive')) {
-                terminalNode.classList.add('✈inactive');
+        terms.forEach(function(termNode) {
+            termNode.removeEventListener('paste', t.Input.onPaste, false);
+            termNode.removeEventListener('mousedown', t.Input.onMouseDown, false);
+            termNode.removeEventListener('mouseup', t.Input.onMouseUp, false);
+            termNode.removeEventListener('copy', t.Input.onCopy, false);
+            if (!termNode.classList.contains('✈inactive')) {
+                termNode.classList.add('✈inactive');
             }
         });
         // TODO: Check to see if this should stay in GateOne.Input:

@@ -109,6 +109,7 @@ go.Base.update(GateOne.Playback, {
 
         It also calls :js:meth:`GateOne.Playback.addPlaybackControls` to make sure they're present only after a new terminal is open.
         */
+        console.log("GateOne.Playback.newTerminalCallback("+term+")");
         var p = go.Playback,
             termPre, screenSpan,
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
@@ -123,6 +124,7 @@ go.Base.update(GateOne.Playback, {
             extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
             if (termPre) {
                 if (!termPre.querySelector('.playback_spacer')) {
+                    console.log("Appending extra space");
                     termPre.appendChild(extraSpace);
                     if (u.isVisible(termPre)) {
                         if (go.prefs.rows) {
@@ -321,6 +323,8 @@ go.Base.update(GateOne.Playback, {
         /**:GateOne.Playback.addPlaybackControls()
 
         Adds the session playback controls to Gate One's element (:js:attr:`GateOne.prefs.goDiv`).
+
+        .. note:: Will not add playback controls if they're already present.
         */
         var p = go.Playback,
             existingControls = u.getNode('#'+prefix+'playbackControls'),

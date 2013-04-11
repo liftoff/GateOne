@@ -1246,7 +1246,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     # Assume everything else is present if the api_key is there
                     api_key = auth_obj['api_key']
                     upn = auth_obj['upn']
-                    timestamp = str(auth_obj['timestamp'])
+                    timestamp = str(auth_obj['timestamp']) # str in case integer
                     signature = auth_obj['signature']
                     signature_method = auth_obj['signature_method']
                     api_version = auth_obj['api_version']

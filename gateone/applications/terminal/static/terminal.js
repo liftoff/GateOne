@@ -16,7 +16,9 @@ var go = GateOne,
     logError = GateOne.Logging.logError,
     logWarning = GateOne.Logging.logWarning,
     logInfo = GateOne.Logging.logInfo,
-    logDebug = GateOne.Logging.logDebug;
+    logDebug = GateOne.Logging.logDebug,
+    // Firefox doesn't support 'mousewheel'
+    mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
 
 // Icons used in this application:
 go.Icons['terminal'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" x1="567.96" gradientUnits="userSpaceOnUse" y1="674.11" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" x2="567.96" y2="756.67"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="17.85666656px" transform="scale(1.0177209,0.98258768)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" class="✈svg"><path d="m4.3602,8.4883,0,0.75202-0.44794,0,0-0.72259c-0.49699,3E-7-0.8948-0.076292-1.1934-0.22888v-0.56238c0.42723,0.20054,0.82504,0.30081,1.1934,0.30081v-1.419c-0.4207-0.1394-0.7161-0.2975-0.8861-0.474-0.1679-0.1788-0.2518-0.4185-0.2518-0.7194,0-0.2855,0.1003-0.522,0.3008-0.7095,0.2006-0.1874,0.4796-0.303,0.8371-0.3466v-0.58854h0.44794v0.57546c0.40761,0.019622,0.77381,0.10463,1.0986,0.25503l-0.2158,0.4741c-0.3052-0.1351-0.5994-0.2136-0.8828-0.2354v1.3798c0.4338,0.1482,0.7379,0.3106,0.9122,0.4872,0.1766,0.1743,0.2649,0.4032,0.2649,0.6866,0,0.6103-0.3924,0.9754-1.1771,1.0953m-0.4479-2.4293v-1.2065c-0.37492,0.063217-0.56238,0.25286-0.56238,0.56892-0.0000012,0.17003,0.043594,0.3019,0.13079,0.39563,0.089369,0.093733,0.23323,0.17438,0.43159,0.24195m0.44794,0.71605,0,1.2196c0.4011-0.061,0.6016-0.2616,0.6016-0.6016,0-0.2768-0.2005-0.4828-0.6016-0.618"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="6.54116535px" transform="scale(0.84851886,1.1785242)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="Droid Sans Mono" class="✈svg"><path style="" d="m12.145,7.6556-4.0212,0,0-0.44715,4.0212,0,0,0.44715"/></g></svg>';
@@ -959,47 +961,6 @@ go.Base.update(GateOne.Terminal, {
                             u.scrollToBottom(existingPre);
                         }, 100);
                     }
-                } else { // Create the elements necessary to display the screen
-                    var screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': 'screen'});
-                    for (var i=0; i < screen.length; i++) {
-                        var classes = 'termline ' + prefix + 'line_' + i,
-                            lineSpan = u.createElement('span', {'class': classes});
-                        lineSpan.innerHTML = screen[i] + '\n';
-                        screenSpan.appendChild(lineSpan);
-                        // Update the existing screen array in-place to cut down on GC
-                        go.Terminal.terminals[term]['screen'][i] = screen[i];
-                    }
-                    go.Terminal.terminals[term]['screenNode'] = screenSpan;
-                    if (existingPre) {
-                        existingPre.appendChild(screenSpan);
-                        u.scrollToBottom(existingPre);
-                    } else {
-                        var termContainer = go.Terminal.terminals[term]['terminal'],
-                            termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
-                        termPre.appendChild(screenSpan);
-                        termContainer.appendChild(termPre);
-                        u.scrollToBottom(termPre);
-                        termPre.oncopy = function(e) {
-                            // Convert to plaintext before copying
-                            // NOTE: This doesn't work in Firefox.  In fact, in Firefox it makes it impossible to copy anything!
-                            if (navigator.userAgent.indexOf('Firefox') != -1) {
-                                return true; // Firefox doesn't appear to copy formatting anyway so right now this isn't necessary
-                            }
-                            var text = u.rtrim(u.getSelText()),
-                                selection = window.getSelection(),
-                                tempTextArea = u.createElement('textarea', {'style': {'left': '-999999px', 'top': '-999999px'}});
-                            tempTextArea.value = text;
-                            document.body.appendChild(tempTextArea);
-                            tempTextArea.select();
-                            setTimeout(function() {
-                                // Get rid of it once the copy operation is complete
-                                u.removeElement(tempTextArea);
-                                go.Terminal.Input.capture(); // Re-focus on the terminal and start accepting keyboard input again
-                            }, 100);
-                            return true;
-                        }
-                        go.Terminal.terminals[term]['node'] = termPre; // For faster access
-                    }
                 }
                 screenUpdate = true;
                 go.Terminal.terminals[term]['scrollbackVisible'] = false;
@@ -1010,26 +971,6 @@ go.Base.update(GateOne.Terminal, {
                         eval(tag.innerHTML);
                     });
                 }
-                // Adjust the toolbar so it isn't too close or too far from the scrollbar
-//                 setTimeout(function() {
-//                     // This is wrapped in a long timeout to allow the browser to finish drawing everything (especially the scroll bars)
-//                     if (!GateOne.Terminal.scrollbarWidth) { // Only need to do this once
-//                         var pre = (existingPre || termPre); // Whatever was used in the code above
-//                         GateOne.Terminal.scrollbarWidth = pre.offsetWidth - pre.clientWidth;
-//                         if (GateOne.prefs.showToolbar) {
-//                             // Normalize the toolbar's position
-//                             var toolbar = u.getNode('#'+prefix+'toolbar');
-//                             toolbar.style.right = (GateOne.Terminal.scrollbarWidth + 3) + 'px'; // +3 to put some space between the scrollbar and the toolbar
-//                         }
-//                         if (GateOne.prefs.showTitle) {
-//                             // Normalize the side title as well
-//                             var sideInfo = u.getNode('#'+prefix+'sideinfo');
-//                             sideInfo.style.right = GateOne.Terminal.scrollbarWidth + 'px'; // The title on the side doesn't need the extra 3px ("right top" rotation)
-//                             // Explanation: The height of the font box on the sideinfo div extends higher than the text which is why we don't need an extra 5px spacing.
-//                             // Take a rectangular piece of paper and write some words across it in "landscape mode" so that the text covers the full width of the page.  Next rotate it 90deg clockwise along the "right top" axis (hold the "right top" with your thumb while rotating).  Voila!  Lots of space on the right.  No need to pad it.
-//                         }
-//                     }
-//                 }, 5000);
             } catch (e) { // Likely the terminal just closed
                 logDebug('Caught exception in termUpdateFromWorker: ' + e);
                 u.noop(); // Just ignore it.
@@ -1179,128 +1120,15 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.playBell();
         v.displayMessage(message);
     },
-    newTerminal: function(/*Opt:*/term, /*Opt:*/settings, /*Opt*/where) {
-        /**:GateOne.Terminal.newTerminal([term[, settings[, where]]])
+    newPastearea: function(term) {
+        /**:GateOne.Terminal.newPastearea()
 
-        Adds a new terminal to the grid and starts updates with the server.
-
-        If *term* is provided, the created terminal will use that number.
-
-        If *settings* (associative array) are provided the given parameters will be applied to the created terminal's parameters in GateOne.Terminal.terminals[term] as well as sent as part of the 'terminal:new_terminal' WebSocket action.  This mechanism can be used to spawn terminals using different 'commands' that have been configured on the server.  For example::
-
-            > // Creates a new terminal that spawns whatever command is set as 'login' in Gate One's settings:
-            > GateOne.Terminal.newTerminal(null, {'command': 'login'});
-
-        If *where* is provided, the new terminal element will be appended like so:  where.appendChild(<new terminal element>);  Otherwise the terminal will be added to the grid.
-
-        Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
+        Returns a 'pastearea' (textarea) element meant for placement above terminals for the purpose of enabling proper copy & paste.
         */
-        // TODO: Finish supporting terminal types.
-        // TODO: Get this calculating/sizing the terminal based on where it is being put instead of go.node
-        logDebug("newTerminal(" + term + ")");
-        var t = go.Terminal,
-            currentTerm, terminal, emDimensions, dimensions, rows, cols, switchTermFunc,
-            termUndefined = false,
-            gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
-            rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
-            colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
-            workspaceNum, // Set below (if any)
-            // Firefox doesn't support 'mousewheel'
-            mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
-            prevScrollback = localStorage.getItem(prefix + "scrollback" + term);
-        if (term) {
-            currentTerm = 'term' + term;
-            t.lastTermNumber = term;
-        } else {
-            termUndefined = true;
-            if (!t.lastTermNumber) {
-                t.lastTermNumber = 0; // Start at 0 so the first increment will be 1
-            }
-            t.lastTermNumber = t.lastTermNumber + 1;
-            term = t.lastTermNumber;
-            currentTerm = 'term' + t.lastTermNumber;
-        }
-        switchTermFunc = u.partial(go.Terminal.switchTerminal, term);
-        if (!where) {
-            if (gridwrapper) {
-                where = v.newWorkspace(); // Use the gridwrapper (grid) by default
-                where.innerHTML = ""; // Empty it out before we use it
-                workspaceNum = parseInt(where.id.split(prefix+'workspace')[1]);
-            } else {
-                where = go.prefs.goDiv;
-            }
-        }
-        // Create the terminal record scaffold
-        go.Terminal.terminals[term] = {
-            created: new Date(), // So we can keep track of how long it has been open
-            mode: 'default', // e.g. 'appmode', 'xterm', etc
-            backspace: String.fromCharCode(127), // ^?
-            encoding: 'utf-8',
-            screen: [],
-            prevScreen: [],
-            title: 'Gate One',
-            scrollback: [],
-            scrollbackTimer: null, // Controls re-adding scrollback buffer
-            where: where,
-            workspace: workspaceNum // NOTE: This will be (likely) be null when embedding
-        };
-        for (var pref in settings) {
-            go.Terminal.terminals[term][pref] = settings[pref];
-        }
-        if (prevScrollback) {
-            go.Terminal.terminals[term]['scrollback'] = prevScrollback.split('\n');
-        } else { // No previous scrollback buffer
-            // Fill it with empty strings so that the current line stays at the bottom of the screen when scrollback is re-enabled after screen updates.
-            var blankLines = [];
-            for (var i=0; i<go.prefs.scrollback; i++) {
-                blankLines.push("");
-            }
-            go.Terminal.terminals[term]['scrollback'] = blankLines;
-        }
-        terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal'});
-        if (!go.prefs.embedded) {
-            // Switch to the newly created workspace (if warranted)
-            if (workspaceNum) {
-                v.switchWorkspace(workspaceNum);
-            }
-        }
-        if (where.className == 'terminal') {
-            terminal = where;
-            terminal.id = currentTerm;
-        } else {
-            u.getNode(where).appendChild(terminal);
-        }
-        emDimensions = u.getEmDimensions(terminal, go.node);
-        dimensions = u.getRowsAndColumns(terminal);
-        rows = Math.ceil(dimensions.rows - rowAdjust);
-        cols = Math.ceil(dimensions.cols - colAdjust);
-//         if (go.prefs.showToolbar || go.prefs.showTitle) {
-//             cols = cols - 4; // Leave some empty space on the right if the toolbar or title are present
-//         }
-        go.Terminal.terminals[term]['rows'] = rows;
-        go.Terminal.terminals[term]['columns'] = cols;
-        go.Terminal.terminals[term]['terminal'] = terminal; // Cache it for quicker access later
-        for (var i=0; i<dimensions.rows; i++) {
-            // Fill out prevScreen with spaces
-            go.Terminal.terminals[term]['prevScreen'].push(' ');
-        }
-        // This ensures that we re-enable input if the user clicked somewhere else on the page then clicked back on the terminal:
-//         terminal.addEventListener('click', go.Terminal.Input.capture, false);
-        terminal.addEventListener('click', switchTermFunc, false);
-        // Get any previous term's dimensions so we can use them for the new terminal
-        var termSettings = {
-                'term': term,
-                'rows': rows,
-                'cols': cols,
-                'em_dimensions': emDimensions
-            },
-            mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
-            slide = u.partial(go.Terminal.switchTerminal, term),
-            pastearea = u.createElement('textarea', {'id': 'pastearea'+term, 'class': 'pastearea'}),
+        var pastearea = u.createElement('textarea', {'id': 'pastearea'+term, 'class': 'pastearea'}),
         // The following functions control the copy & paste capability
             pasteareaOnInput = function(e) {
-                var go = GateOne,
-                    pasted = pastearea.value,
+                var pasted = pastearea.value,
                     lines = pasted.split('\n');
                 if (go.Terminal.Input.handlingPaste) {
                     return;
@@ -1319,8 +1147,7 @@ go.Base.update(GateOne.Terminal, {
             pasteareaScroll = function(e) {
                 // We have to hide the pastearea so we can scroll the terminal underneath
                 e.preventDefault();
-                var go = GateOne,
-                    pasteArea = u.getNode('#'+prefix+'pastearea');
+                var pasteArea = u.getNode('#'+prefix+'pastearea');
                 u.hideElement(pastearea);
                 if (go.scrollTimeout) {
                     clearTimeout(go.scrollTimeout);
@@ -1330,16 +1157,6 @@ go.Base.update(GateOne.Terminal, {
                     u.showElement(pastearea);
                 }, 1000);
             };
-        // Update termSettings with *settings* (overriding with anything that was given)
-        for (var pref in settings) {
-            termSettings[pref] = settings[pref];
-        }
-        // Use the default command if set
-        if (go.Terminal.defaultCommand) {
-            if (!termSettings['command']) {
-                termSettings['command'] = go.Terminal.defaultCommand;
-            }
-        }
         pastearea.oninput = pasteareaOnInput;
         pastearea.addEventListener(mousewheelevt, pasteareaScroll, true);
         pastearea.onpaste = function(e) {
@@ -1356,10 +1173,7 @@ go.Base.update(GateOne.Terminal, {
             pastearea.focus();
         }
         pastearea.onmousemove = function(e) {
-            var go = GateOne,
-                u = go.Utils,
-                prefix = go.prefs.prefix,
-                termline = null,
+            var termline = null,
                 elem = null,
                 maxRecursion = 10,
                 count = 0,
@@ -1425,10 +1239,7 @@ go.Base.update(GateOne.Terminal, {
             //       context menu.  As a convenient shortcut/workaround, the user
             //       can middle-click to paste the current selection.
             logDebug('pastearea.onmousedown button: ' + e.button + ', which: ' + e.which);
-            var go = GateOne,
-                u = go.Utils,
-                prefix = go.prefs.prefix,
-                m = go.Input.mouse(e), // Get the properties of the mouse event
+            var m = go.Input.mouse(e), // Get the properties of the mouse event
                 X = e.clientX,
                 Y = e.clientY,
                 selectedTerm = (this.id + '').split('pastearea')[1];
@@ -1473,6 +1284,154 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
         }, true);
+        return pastearea;
+    },
+    newTerminal: function(/*Opt:*/term, /*Opt:*/settings, /*Opt*/where) {
+        /**:GateOne.Terminal.newTerminal([term[, settings[, where]]])
+
+        Adds a new terminal to the grid and starts updates with the server.
+
+        If *term* is provided, the created terminal will use that number.
+
+        If *settings* (associative array) are provided the given parameters will be applied to the created terminal's parameters in GateOne.Terminal.terminals[term] as well as sent as part of the 'terminal:new_terminal' WebSocket action.  This mechanism can be used to spawn terminals using different 'commands' that have been configured on the server.  For example::
+
+            > // Creates a new terminal that spawns whatever command is set as 'login' in Gate One's settings:
+            > GateOne.Terminal.newTerminal(null, {'command': 'login'});
+
+        If *where* is provided, the new terminal element will be appended like so:  where.appendChild(<new terminal element>);  Otherwise the terminal will be added to the grid.
+
+        Terminal types are sent from the server via the 'terminal_types' action which sets up GateOne.terminalTypes.  This variable is an associative array in the form of:  {'term type': {'description': 'Description of terminal type', 'default': true/false, <other, yet-to-be-determined metadata>}}.
+        */
+        // TODO: Finish supporting terminal types.
+        // TODO: Get this calculating/sizing the terminal based on where it is being put instead of go.node
+        logDebug("newTerminal(" + term + ")");
+        var t = go.Terminal,
+            currentTerm, terminal, emDimensions, dimensions, rows, cols, pastearea,
+            termUndefined = false,
+            gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
+            rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
+            colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
+            workspaceNum, // Set below (if any)
+            prevScrollback = localStorage.getItem(prefix + "scrollback" + term),
+            switchTermFunc = u.partial(go.Terminal.switchTerminal, term),
+            termPre = u.createElement('pre', {'id': 'term'+term+'_pre'}),
+            screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': 'screen'}),
+            wheelFunc = function(e) {
+                var m = go.Input.mouse(e),
+                    modifiers = go.Input.modifiers(e);
+                if (!modifiers.shift && !modifiers.ctrl && !modifiers.alt) { // Only for basic scrolling
+                    if (go.Terminal.terminals[term]) {
+                        var term = localStorage[prefix+'selectedTerminal'],
+                            terminalObj = go.Terminal.terminals[term],
+                            screen = terminalObj['screen'],
+                            scrollback = terminalObj['scrollback'],
+                            sbT = terminalObj['scrollbackTimer'];
+                        if (sbT) {
+                            clearTimeout(sbT);
+                            sbT = null;
+                        }
+                        if (!terminalObj['scrollbackVisible']) {
+                            // Immediately re-enable the scrollback buffer
+                            go.Terminal.enableScrollback(term);
+                        }
+                    }
+                } else {
+                    e.preventDefault();
+                }
+            };
+        if (term) {
+            currentTerm = 'term' + term;
+            t.lastTermNumber = term;
+        } else {
+            termUndefined = true;
+            if (!t.lastTermNumber) {
+                t.lastTermNumber = 0; // Start at 0 so the first increment will be 1
+            }
+            t.lastTermNumber = t.lastTermNumber + 1;
+            term = t.lastTermNumber;
+            currentTerm = 'term' + t.lastTermNumber;
+        }
+        if (!where) {
+            if (gridwrapper) {
+                where = v.newWorkspace(); // Use the gridwrapper (grid) by default
+                where.innerHTML = ""; // Empty it out before we use it
+                workspaceNum = parseInt(where.id.split(prefix+'workspace')[1]);
+            } else {
+                where = go.prefs.goDiv;
+            }
+        }
+        // Create the terminal record scaffold
+        go.Terminal.terminals[term] = {
+            created: new Date(), // So we can keep track of how long it has been open
+            mode: 'default', // e.g. 'appmode', 'xterm', etc
+            backspace: String.fromCharCode(127), // ^?
+            encoding: 'utf-8',
+            screen: [],
+            prevScreen: [],
+            title: 'Gate One',
+            scrollback: [],
+            scrollbackTimer: null, // Controls re-adding scrollback buffer
+            where: where,
+            workspace: workspaceNum // NOTE: This will be (likely) be null when embedding
+        };
+        for (var pref in settings) {
+            go.Terminal.terminals[term][pref] = settings[pref];
+        }
+        if (prevScrollback) {
+            go.Terminal.terminals[term]['scrollback'] = prevScrollback.split('\n');
+        } else { // No previous scrollback buffer
+            // Fill it with empty strings so that the current line stays at the bottom of the screen when scrollback is re-enabled after screen updates.
+            var blankLines = [];
+            for (var i=0; i<go.prefs.scrollback; i++) {
+                blankLines.push("");
+            }
+            go.Terminal.terminals[term]['scrollback'] = blankLines;
+        }
+        terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal'});
+        if (!go.prefs.embedded) {
+            // Switch to the newly created workspace (if warranted)
+            if (workspaceNum) {
+                v.switchWorkspace(workspaceNum);
+            }
+        }
+        if (where.className == 'terminal') {
+            terminal = where;
+            terminal.id = currentTerm;
+        } else {
+            u.getNode(where).appendChild(terminal);
+        }
+        emDimensions = u.getEmDimensions(terminal, go.node);
+        dimensions = u.getRowsAndColumns(terminal);
+        rows = Math.ceil(dimensions.rows - rowAdjust);
+        cols = Math.ceil(dimensions.cols - colAdjust);
+        go.Terminal.terminals[term]['rows'] = rows;
+        go.Terminal.terminals[term]['columns'] = cols;
+        go.Terminal.terminals[term]['terminal'] = terminal; // Cache it for quicker access later
+        for (var i=0; i<dimensions.rows; i++) {
+            // Fill out prevScreen with spaces
+            go.Terminal.terminals[term]['prevScreen'].push(' ');
+        }
+        // This ensures that we re-enable input if the user clicked somewhere else on the page then clicked back on the terminal:
+        terminal.addEventListener('click', switchTermFunc, false);
+        // Get any previous term's dimensions so we can use them for the new terminal
+        var termSettings = {
+                'term': term,
+                'rows': rows,
+                'cols': cols,
+                'em_dimensions': emDimensions
+            },
+            slide = u.partial(go.Terminal.switchTerminal, term);
+        // Update termSettings with *settings* (overriding with anything that was given)
+        for (var pref in settings) {
+            termSettings[pref] = settings[pref];
+        }
+        // Use the default command if set
+        if (go.Terminal.defaultCommand) {
+            if (!termSettings['command']) {
+                termSettings['command'] = go.Terminal.defaultCommand;
+            }
+        }
+        pastearea = go.Terminal.newPastearea(term);
         terminal.appendChild(pastearea);
         go.Terminal.terminals[term]['pasteNode'] = pastearea;
         // Apply user-defined rows and cols (if set)
@@ -1481,30 +1440,40 @@ go.Base.update(GateOne.Terminal, {
         // Tell the server to create a new terminal process
         go.ws.send(JSON.stringify({'terminal:new_terminal': termSettings}));
         // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)
-        var wheelFunc = function(e) {
-            var m = go.Input.mouse(e),
-                modifiers = go.Input.modifiers(e);
-            if (!modifiers.shift && !modifiers.ctrl && !modifiers.alt) { // Only for basic scrolling
-                if (go.Terminal.terminals[term]) {
-                    var term = localStorage[prefix+'selectedTerminal'],
-                        terminalObj = go.Terminal.terminals[term],
-                        screen = terminalObj['screen'],
-                        scrollback = terminalObj['scrollback'],
-                        sbT = terminalObj['scrollbackTimer'];
-                    if (sbT) {
-                        clearTimeout(sbT);
-                        sbT = null;
-                    }
-                    if (!terminalObj['scrollbackVisible']) {
-                        // Immediately re-enable the scrollback buffer
-                        go.Terminal.enableScrollback(term);
-                    }
-                }
-            } else {
-                e.preventDefault();
-            }
-        };
         terminal.addEventListener(mousewheelevt, wheelFunc, true);
+        // Add the scaffold of the screen and scrollback
+        for (var i=0; i < rows; i++) {
+            var classes = 'termline ' + prefix + 'line_' + i,
+                lineSpan = u.createElement('span', {'class': classes});
+            lineSpan.innerHTML = screen[i] + '\n';
+            screenSpan.appendChild(lineSpan);
+            // Update the existing screen array in-place to cut down on GC
+            go.Terminal.terminals[term]['screen'][i] = screen[i];
+        }
+        go.Terminal.terminals[term]['screenNode'] = screenSpan;
+        termPre.appendChild(screenSpan);
+        terminal.appendChild(termPre);
+        u.scrollToBottom(termPre);
+        termPre.oncopy = function(e) {
+            // Convert to plaintext before copying
+            // NOTE: This process doesn't work in Firefox...  It will auto-empty the clipboard if you try.
+            if (navigator.userAgent.indexOf('Firefox') != -1) {
+                return true; // Firefox doesn't appear to copy formatting anyway so fortunately this function isn't necessary
+            }
+            var text = u.rtrim(u.getSelText()),
+                selection = window.getSelection(),
+                tempTextArea = u.createElement('textarea', {'style': {'left': '-999999px', 'top': '-999999px'}});
+            tempTextArea.value = text;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            setTimeout(function() {
+                // Get rid of it once the copy operation is complete
+                u.removeElement(tempTextArea);
+                go.Terminal.Input.capture(); // Re-focus on the terminal and start accepting keyboard input again
+            }, 100);
+            return true;
+        }
+        go.Terminal.terminals[term]['node'] = termPre; // For faster access
         // Switch to our new terminal if *term* is set (no matter where it is)
         if (termUndefined) {
             // Only slide for terminals that are actually *new* (as opposed to ones that we're re-attaching to)
