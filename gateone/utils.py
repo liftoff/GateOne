@@ -1301,7 +1301,7 @@ def valid_hostname(hostname, allow_underscore=False):
     allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
     if allow_underscore:
         allowed = re.compile("(?!-)[_A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
-    return all(allowed.match(x) for x in hostname.split("."))
+    return all(allowed.match(x) for x in hostname.split(b"."))
 
 def recursive_chown(path, uid, gid):
     """Emulates 'chown -R *uid*:*gid* *path*' in pure Python"""
@@ -1480,7 +1480,7 @@ def get_or_cache(cache_dir, path, minify=True):
     for fname in os.listdir(cache_dir):
         if fname == cached_filename:
             continue
-        elif fname.startswith(shortened_path):
+        elif fname.startswith(shortened_path.decode('utf-8')):
             # Older version present.  Remove it.
             os.remove(os.path.join(cache_dir, fname))
     return data

@@ -2861,6 +2861,10 @@ def generate_server_conf():
     config_defaults = all_setttings['*']['gateone']
     # Don't need this in the actual settings file:
     del config_defaults['settings_dir']
+    non_options = [
+        # These are things that don't really belong in settings
+        'new_api_key', 'help', 'kill', 'config'
+    ]
     # Don't need non-options in there either:
     for non_option in non_options:
         if non_option in config_defaults:
@@ -2868,6 +2872,11 @@ def generate_server_conf():
     # Generate a new cookie_secret
     config_defaults['cookie_secret'] = generate_session_id()
     # Separate out the authentication settings
+    authentication_options = [
+        # These are here only for logical separation in the .conf files
+        'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
+        'sso_realm', 'sso_service'
+    ]
     for key, value in list(config_defaults.items()):
         if key in authentication_options:
             auth_settings.update({key: value})
@@ -3352,9 +3361,10 @@ def main():
     ssl_options = {
         "certfile": go_settings['certificate'],
         "keyfile": go_settings['keyfile'],
-        "ca_certs": go_settings['ca_certs'],
         "cert_reqs": cert_reqs
     }
+    if go_settings['ca_certs']:
+        ssl_options['ca_certs'] = go_settings['ca_certs']
     if go_settings['disable_ssl']:
         proto = "http://"
         ssl_options = None

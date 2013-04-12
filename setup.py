@@ -11,17 +11,24 @@ try:
     from commands import getstatusoutput
 except ImportError: # Python 3
     from subprocess import getstatusoutput
+try:
+   from distutils.command.build_py import build_py_2to3 as build_py
+except ImportError:
+   from distutils.command.build_py import build_py
 
 # Globals
 PYTHON3 = False
 POSIX = 'posix' in sys.builtin_module_names
 version = '1.2.0'
+extra = {}
 major, minor = sys.version_info[:2] # Python version
 if major == 2 and minor <=5:
     print("Gate One requires Python 2.6+.  You are running %s" % sys.version)
     sys.exit(1)
 if major == 3:
+    from setuptools import setup
     PYTHON3 = True
+    extra['use_2to3'] = True
     try:
         import lib2to3 # Just a check--the module is not actually used
     except ImportError:
@@ -185,6 +192,7 @@ if os.path.exists(old_terminal_path):
 
 setup(
     name = 'gateone',
+    cmdclass = {'build_py': build_py},
     license = 'AGPLv3 or Proprietary',
     version = version,
     description = 'Web-based Terminal Emulator and SSH Client',
@@ -215,7 +223,8 @@ setup(
     requires = ["tornado (>=2.4)"],
     provides = ['gateone'],
     packages = ['gateone', 'termio', 'terminal', 'onoff'],
-    data_files = data_files
+    data_files = data_files,
+    **extra
 )
 
 # TODO: This is a work-in-progress
