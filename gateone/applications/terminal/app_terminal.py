@@ -411,7 +411,7 @@ class TerminalApplication(GOApplication):
                 # Apply the plugin's Escape handler
                 self.on(
                     "terminal:opt_esc_handler:%s" %
-                    plugin_name, hooks['Escape'])
+                    plugin_name, bind(hooks['Escape'], self))
             if 'Command' in hooks:
                 # Apply the plugin's 'Command' hooks (called by new_multiplex)
                 if isinstance(hooks['Command'], (list, tuple)):
