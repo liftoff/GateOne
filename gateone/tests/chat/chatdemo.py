@@ -100,7 +100,7 @@ class MainHandler(BaseHandler):
             api_key,
             upn,
             timestamp
-        )
+        ).decode('utf-8')
         auth_obj.update({'signature': signature})
         auth = json.dumps(auth_obj)
         self.render(

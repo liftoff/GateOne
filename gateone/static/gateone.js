@@ -2066,21 +2066,15 @@ GateOne.Base.update(GateOne.Net, {
         // Called when we fail to connect due to an SSL error (user must accept the SSL certificate).  It opens a dialog where the user can click accept
         // *callback* will be called when the user closes the dialog
         GateOne.Net.connectionProblem = true;
+        if (GateOne.Net.sslDialogOpened) {
+            return; // Don't need to open more than one
+        }
+        GateOne.Net.sslDialogOpened = true;
         // NOTE:  Only likely to happen in situations where Gate One is embedded into another application
         var go = GateOne,
             u = go.Utils,
-            acceptURL = go.prefs.url + 'static/accept_certificate.html',
-            sslAcceptIframe = u.createElement('iframe', {'id': 'ssl_accept', 'src': acceptURL, 'style': {'width': '80%', 'height': '93%'}}),
-            container = u.createElement('div', {'style': {'text-align': 'center', 'width': '40em', 'height': '20em'}}),
-            done = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            closeDialog = go.Visual.dialog('Please accept the SSL certificate', container);
-        done.innerHTML = "Done";
-        container.appendChild(sslAcceptIframe);
-        container.appendChild(done);
-        done.onclick = function(e) {
-            callback();
-            closeDialog();
-        }
+            acceptURL = go.prefs.url + 'static/accept_certificate.html';
+        go.Visual.displayMessage(gettext("An SSL certificate must be accepted by your browser to continue.  Please click <a href='"+acceptURL+"' target='_blank'>here</a> to be redirected."));
     },
     connect: function(/*opt*/callback) {
         // Connects to the WebSocket defined in GateOne.prefs.url
@@ -2167,9 +2161,6 @@ GateOne.Base.update(GateOne.Net, {
                     }
                 }
                 go.ws.send(JSON.stringify({'go:authenticate': settings}));
-//                 setTimeout(function() {
-//                     go.Net.ping(); // Check latency (after things have calmed down a bit =)
-//                 }, 4000);
                 // NOTE: This event can't be used by applications (and their plugins) since their JS won't have been loaded yet:
                 go.Events.trigger("go:connnection_established");
                 go.initialize();
@@ -2202,18 +2193,7 @@ GateOne.Base.update(GateOne.Net, {
             // Non-JSON messages coming over the WebSocket are assumed to be errors, display them as-is (could be handy shortcut to display a message instead of using the 'notice' action).
             var noticeContainer = u.getNode('#'+prefix+'noticecontainer'),
                 msg = '<b>Message From Gate One Server:</b> ' + evt.data;
-            if (noticeContainer) {
-                // This only works if Gate One loaded successfuly
-                v.displayMessage(msg, 10000); // Give it plenty of time
-            } else {
-                // Fallback to this:
-                var msgContainer = u.createElement('div', {'id': 'noticecontainer', 'style': {'font-size': '1.5em', 'background-color': '#000', 'color': '#fff', 'display': 'block', 'position': 'fixed', 'bottom': '1em', 'right': '2em', 'left': '2em', 'z-index': 9999}}); // Have to use 'style' since CSS may not have been loaded
-                msgContainer.innerHTML = msg;
-                document.body.appendChild(msgContainer);
-                setTimeout(function() {
-                    u.removeElement(msgContainer);
-                }, 10000);
-            }
+            v.displayMessage(msg, 10000); // Give it plenty of time
         }
         // Execute each respective action
         for (var key in messageObj) {
@@ -3062,6 +3042,16 @@ GateOne.Base.update(GateOne.Visual, {
         }
         if (!removeTimeout) {
             removeTimeout = 5000;
+        }
+        if (!noticeContainer) {
+            // Use a fallback (Gate One probably hasn't loaded yet; error situation)
+            var msgContainer = u.createElement('div', {'id': 'noticecontainer', 'style': {'font-size': '1.5em', 'background-color': '#000', 'color': '#fff', 'display': 'block', 'position': 'fixed', 'bottom': '1em', 'right': '2em', 'z-index': 999999}}); // Have to use 'style' since CSS may not have been loaded
+            msgContainer.innerHTML = message;
+            document.body.appendChild(msgContainer);
+            setTimeout(function() {
+                u.removeElement(msgContainer);
+            }, 10000);
+            return;
         }
         messageSpan.innerHTML = message;
         closeX.innerHTML = go.Icons['close'].replace('closeGradient', 'miniClose'); // replace() here works around a browser bug where SVGs will disappear if you remove one that has the same gradient name as another.

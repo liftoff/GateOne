@@ -1674,7 +1674,7 @@ def strip_xss(html, whitelist=None, replacement=u"\u2421"):
             html = html.replace(bad_tag, escaped)
     else:
         for bad_tag in bad_tags:
-            html = html.replace(bad_tag, u"\u2421")
+            html = html.replace(bad_tag, replacement)
     return (html, bad_tags)
 
 def create_signature(*parts, **kwargs):

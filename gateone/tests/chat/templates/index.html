@@ -42,7 +42,7 @@
         var authObj = {% raw auth %};
         // Init Gate One (client) using a specific Gate One server (url):
         GateOne.init({
-            url: 'https://localhost/',
+            url: 'https://' + window.location.hostname + '/',
             fillContainer: true,
             auth: authObj,
             showToolbar: false,

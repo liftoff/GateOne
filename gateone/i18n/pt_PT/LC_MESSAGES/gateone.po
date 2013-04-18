@@ -2,7 +2,7 @@
 # Copyright (C) 2013 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2013.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
