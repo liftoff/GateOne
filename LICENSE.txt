@@ -2,7 +2,7 @@ COPYRIGHT NOTICE
 ================
 Gate One and all bundled original code...
 
-    Copyright 2011 Liftoff Software Corporation
+    Copyright 2013 Liftoff Software Corporation
 
 Gate One is dual-licensed:  AGPLv3 or Commercial Licensing.
 
