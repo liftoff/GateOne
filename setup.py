@@ -185,10 +185,26 @@ if os.path.exists(old_webworker_loc):
 old_termio_path = os.path.join(prefix, 'gateone', 'termio.py')
 if os.path.exists(old_termio_path):
     os.remove(old_termio_path)
+    try:
+        os.remove(old_termio_path+'c') # termio.pyc
+    except Exception:
+        pass
 
 old_terminal_path = os.path.join(prefix, 'gateone', 'terminal.py')
 if os.path.exists(old_terminal_path):
     os.remove(old_terminal_path)
+    try:
+        os.remove(old_terminal_path+'c') # termio.pyc
+    except Exception:
+        pass
+
+old_onoff_path = os.path.join(prefix, 'gateone', 'onoff.py')
+if os.path.exists(old_onoff_path):
+    os.remove(old_onoff_path)
+    try:
+        os.remove(old_onoff_path+'c') # termio.pyc
+    except Exception:
+        pass
 
 setup(
     name = 'gateone',
@@ -209,6 +225,9 @@ setup(
         "Intended Audience :: System Administrators",
         # NOTE: Wish there was a "Tornado" framework option
         "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.2",
+        "Programming Language :: Python :: 3.3",
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "License :: Other/Proprietary License",
         "Topic :: Internet :: WWW/HTTP",
@@ -220,8 +239,8 @@ setup(
     url = "http:/liftoffsoftware.com/Products/GateOne",
     author = 'Dan McDougall',
     author_email = 'daniel.mcdougall@liftoffsoftware.com',
-    requires = ["tornado (>=2.4)"],
-    provides = ['gateone'],
+    requires = ["tornado (>=3.0)"],
+    provides = ['gateone', 'termio', 'terminal'],
     packages = ['gateone', 'termio', 'terminal', 'onoff'],
     data_files = data_files,
     **extra

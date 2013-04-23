@@ -21,7 +21,7 @@ authentication (PAM doesn't take a "realm" setting).
 """
 
 # Standard library modules
-import base64
+import base64, logging
 
 # Our modules
 try:
@@ -61,14 +61,14 @@ class PAMAuthMixin(tornado.web.RequestHandler):
         """
         Perform Basic authentication using self.settings['pam_realm'].
         """
-        auth_decoded = base64.decodestring(auth_header[6:])
-        username, password = auth_decoded.split(':', 1)
+        auth_decoded = base64.decodestring(auth_header[6:].encode('ascii'))
+        username, password = auth_decoded.decode('utf-8').split(':', 1)
         try:
             result = gopam.authenticate(
                 username,
                 password,
                 service=self.settings['pam_service'],
-                tty="console",
+                tty=b"console",
                 PAM_RHOST=self.request.remote_ip) # RHOST so it shows up in logs
             if not result:
                 return self.authenticate_redirect()

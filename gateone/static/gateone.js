@@ -2149,6 +2149,7 @@ GateOne.Base.update(GateOne.Net, {
                     // If 'auth' isn't set that means we're not in API mode but we could still be embedded so check for the user's session info in localStorage
                     var goCookie = u.getCookie('gateone_user');
                     if (goCookie) {
+                        console.log("goCookie");
                         // Prefer the cookie
                         if (goCookie[0] == '"') {
                             goCookie = eval(goCookie); // Wraped in quotes; this removes them
@@ -2156,6 +2157,7 @@ GateOne.Base.update(GateOne.Net, {
                         go.prefs.auth = goCookie;
                         settings['auth'] = go.prefs.auth;
                     } else if (localStorage[prefix+'gateone_user']) {
+                        console.log("using localStorage");
                         go.prefs.auth = localStorage[prefix+'gateone_user'];
                         settings['auth'] = go.prefs.auth;
                     }
@@ -2695,7 +2697,6 @@ GateOne.Base.update(GateOne.Input, {
 
     /* for KEY_F1 - KEY_F12 */
     for (var i = 112; i <= 123; i++) {
-        // no F0
         specialKeys[i] = 'KEY_F' + (i - 112 + 1);
     }
 })();
@@ -2703,7 +2704,6 @@ GateOne.Base.update(GateOne.Input, {
 (function () {
     var specialMacKeys = GateOne.Input.specialMacKeys;
     for (var i = 63236; i <= 63242; i++) {
-        // no F0
         specialMacKeys[i] = 'KEY_F' + (i - 63236 + 1);
     }
 })();

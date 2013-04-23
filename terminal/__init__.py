@@ -7,4 +7,4 @@
 # Meta
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
-from terminal import *
+from .terminal import *

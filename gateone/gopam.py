@@ -128,16 +128,27 @@ def authenticate(username, password, service='login', tty="console", **kwargs):
 
         PAM_SET_ITEM(handle, 4, "myhost") # PAM_RHOST (4) taken from the global
     """
+    encoding = 'utf-8'
+    if isinstance(password, str):
+        password = password.encode(encoding)
+    if isinstance(username, str):
+        username = username.encode(encoding)
+    if isinstance(service, str):
+        service = service.encode(encoding)
+    if isinstance(tty, str):
+        tty = tty.encode(encoding)
     @CONV_FUNC
     def my_conv(n_messages, messages, p_response, app_data):
-        """Simple conversation function that responds to any
-        prompt where the echo is off with the supplied password"""
+        """
+        Simple conversation function that responds to any prompt where the echo
+        is off with the supplied password.
+        """
         # Create an array of n_messages response objects
         addr = CALLOC(n_messages, sizeof(PamResponse))
         p_response[0] = cast(addr, POINTER(PamResponse))
         for i in range(n_messages):
             if messages[i].contents.msg_style == PAM_PROMPT_ECHO_OFF:
-                pw_copy = STRDUP(str(password))
+                pw_copy = STRDUP(password)
                 p_response.contents[i].resp = cast(pw_copy, c_char_p)
                 p_response.contents[i].resp_retcode = 0
         return 0
@@ -147,6 +158,8 @@ def authenticate(username, password, service='login', tty="console", **kwargs):
     PAM_SET_ITEM(handle, PAM_TTY, tty)
     for key, value in kwargs.items():
         if key.startswith('PAM_') and key in globals():
+            if isinstance(value, str):
+                value = value.encode(encoding)
             PAM_SET_ITEM(handle, globals()[key], value)
     if retval != 0:
         # TODO: This is not an authentication error, something
@@ -157,4 +170,4 @@ def authenticate(username, password, service='login', tty="console", **kwargs):
 
 if __name__ == "__main__":
     import getpass
-    print authenticate(getpass.getuser(), getpass.getpass())
+    print(authenticate(getpass.getuser(), getpass.getpass()))

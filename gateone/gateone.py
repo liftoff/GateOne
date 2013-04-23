@@ -2923,6 +2923,15 @@ def convert_old_server_conf():
     auth_settings = RUDict()
     terminal_settings = RUDict()
     api_keys = RUDict({"*": {"gateone": {"api_keys": {}}}})
+    terminal_options = [ # These are now terminal-app-specific setttings
+        'command', 'dtach', 'session_logging', 'session_logs_max_age',
+        'syslog_session_logging'
+    ]
+    authentication_options = [
+        # These are here only for logical separation in the .conf files
+        'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
+        'sso_realm', 'sso_service'
+    ]
     with io.open(options.config) as f:
         # Regular server-wide settings will go in 10server.conf by default.
         # These settings can actually be spread out into any number of .conf
@@ -3119,10 +3128,6 @@ def main():
         # These are here only for logical separation in the .conf files
         'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
         'sso_realm', 'sso_service'
-    ]
-    terminal_options = [ # These are now terminal-app-specific setttings
-        'command', 'dtach', 'session_logging', 'session_logs_max_age',
-        'syslog_session_logging'
     ]
     # TODO: Add a way for applications/plugins to add to this list:
     non_options = [

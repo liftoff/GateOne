@@ -1630,7 +1630,8 @@ class Terminal(object):
         self.prev_dump_rend = []
         self.html_cache = []
         try:
-            self.callbacks[CALLBACK_RESET]()
+            for callback in self.callbacks[CALLBACK_RESET].values():
+                callback()
         except TypeError:
             pass
 

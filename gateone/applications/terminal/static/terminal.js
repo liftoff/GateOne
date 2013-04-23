@@ -345,7 +345,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminal:term_exists', go.Terminal.reconnectTerminalAction);
         go.Net.addAction('terminal:term_moved', go.Terminal.moveTerminalAction);
         go.Net.addAction('terminal:set_mode', go.Terminal.setModeAction); // For things like application cursor keys
-        go.Net.addAction('terminal:reset_terminal', go.Terminal.resetTerminalAction);
+        go.Net.addAction('terminal:reset_client_terminal', go.Terminal.resetTerminalAction);
         go.Net.addAction('terminal:load_webworker', go.Terminal.loadWebWorkerAction);
         go.Net.addAction('terminal:bell', go.Terminal.bellAction);
         go.Net.addAction('terminal:load_bell', go.Terminal.loadBell);
@@ -801,8 +801,9 @@ go.Base.update(GateOne.Terminal, {
     applyScreen: function(screen, term) {
         /**:GateOne.Terminal.applyScreen(screen, term)
 
-        Uses *screen* (array of HTML-formatted lines) to update *term*
-        If *term* isn't given, will use localStorage[prefix+selectedTerminal]
+        Uses *screen* (array of HTML-formatted lines) to update *term*.
+
+        If *term* isn't given, will use `localStorage[prefix+selectedTerminal]`.
 
         .. note::  Lines in *screen* that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line).
         */
@@ -1900,6 +1901,34 @@ go.Base.update(GateOne.Terminal, {
             t.scrollbackToggle = true;
         }
     },
+    clearScrollback: function(term) {
+        /**:GateOne.Terminal.clearScrollback(term)
+
+        Empties the scrollback buffer for the given *term* in memory, in localStorage, and in the DOM.
+        */
+        var scrollbackNode = go.Terminal.terminals[term]['scrollbackNode'];
+        go.Terminal.terminals[term]['scrollback'] = [];
+        localStorage[prefix+"scrollback" + term] = '';
+        if (scrollbackNode) {
+            scrollbackNode.innerHTML = '';
+        }
+    },
+    clearScreen: function(term) {
+        /**:GateOne.Terminal.clearScreen(term)
+
+        Clears the screen of the given *term* in memory and in the DOM.
+
+        .. note:: The next incoming screen update from the server will likely re-populate most if not all of the screen.
+        */
+        console.log('clearScreen('+term+')');
+        var screenLength = go.Terminal.terminals[term]['screen'].length,
+            screenNode = go.Terminal.terminals[term]['screenNode'],
+            emptyScreen = [];
+        for (var i=0; i < screenLength; i++) {
+            emptyScreen[i] = ' '; // Using a space so that applyScreen doesn't ignore these lines
+        }
+        go.Terminal.applyScreen(emptyScreen, term);
+    },
     moveTerminalLocation: function(term, location) {
         /**:GateOne.Terminal.moveTerminalLocation(term, location)
 
@@ -2089,13 +2118,11 @@ go.Base.update(GateOne.Terminal, {
     resetTerminalAction: function(term) {
         /**:GateOne.Terminal.resetTerminalAction(term)
 
-        Clears the screen and the scrollback buffer of the given *term* (in memory and in localStorage).
+        Clears the screen and the scrollback buffer of the given *term* (in memory, localStorage, and in the DOM).
         */
-        var prefix = go.prefs.prefix;
         logDebug("resetTerminalAction term: " + term);
-        go.Terminal.terminals[term]['scrollback'] = [];
-        go.Terminal.terminals[term]['screen'] = [];
-        localStorage[prefix+"scrollback" + term] = '';
+        go.Terminal.clearScrollback(term);
+        go.Terminal.clearScreen(term);
     },
     termEncodingAction: function(message) {
         /**:GateOne.Terminal.termEncodingAction(message)
