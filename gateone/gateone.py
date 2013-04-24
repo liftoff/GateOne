@@ -1041,6 +1041,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             origin = self.request.headers['Sec-Websocket-Origin']
         origin = origin.lower() # hostnames are case-insensitive
         origin = origin.split('://', 1)[1]
+        self.origin = origin
         logging.debug("open() origin: %s" % origin)
         if '*' not in valid_origins:
             if origin not in valid_origins:
@@ -1184,10 +1185,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         can exist in a different browser tab/window.
         """
         logging.debug("authenticate(): %s" % settings)
-        if 'Origin' in self.request.headers:
-            origin = self.request.headers['Origin']
-        elif 'Sec-Websocket-Origin' in self.request.headers: # Old version
-            origin = self.request.headers['Sec-Websocket-Origin']
         # Make sure the client is authenticated if authentication is enabled
         reauth = {'go:reauthenticate': True}
         if self.settings['auth'] and self.settings['auth'] != 'api':
@@ -1288,7 +1285,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                             logging.error(_(
                             "API authentication replay attack detected!  User: "
                             "%s, Remote IP: %s, Origin: %s" % (
-                                upn, self.request.remote_ip, origin)))
+                                upn, self.request.remote_ip, self.origin)))
                             message = {'go:notice': _(
                                 'AUTH FAILED: Replay attack detected!  This '
                                 'event has been logged.')}
@@ -1417,6 +1414,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 return
         try:
             user = self.current_user
+            logging.info(
+                _("User %s authenticated successfully via origin %s.") % (
+                    user['upn'], self.origin))
             if user and 'session' in user:
                 self.session = user['session']
             else:
@@ -1552,6 +1552,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         This method also cleans up older versions of the same rendered template.
         """
         cache_dir = self.settings['cache_dir']
+        print('cache_dir: %s' % repr(cache_dir))
         mtime = os.stat(style_path).st_mtime
         shortened_path = short_hash(style_path)
         rendered_filename = 'rendered_%s_%s' % (shortened_path, int(mtime))
@@ -2875,7 +2876,7 @@ def generate_server_conf():
     authentication_options = [
         # These are here only for logical separation in the .conf files
         'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
-        'sso_realm', 'sso_service'
+        'sso_realm', 'sso_service', 'ssl_auth'
     ]
     for key, value in list(config_defaults.items()):
         if key in authentication_options:
@@ -2930,7 +2931,7 @@ def convert_old_server_conf():
     authentication_options = [
         # These are here only for logical separation in the .conf files
         'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
-        'sso_realm', 'sso_service'
+        'sso_realm', 'sso_service', 'ssl_auth'
     ]
     with io.open(options.config) as f:
         # Regular server-wide settings will go in 10server.conf by default.
@@ -2974,6 +2975,9 @@ def convert_old_server_conf():
                 converted_origins = []
                 for origin in origins:
                     # The new format doesn't bother with http:// or https://
+                    if origin == '*':
+                        converted_origins.append(origin)
+                        continue
                     origin = origin.split('://')[1]
                     if origin not in converted_origins:
                         converted_origins.append(origin)
@@ -3124,11 +3128,6 @@ def main():
     #         This ensures that the 'options' object (which controls Tornado'
     #         settings) gets the stuff from 'settings_dir' if not provided on
     #         the command line.
-    authentication_options = [
-        # These are here only for logical separation in the .conf files
-        'api_timestamp_window', 'auth', 'pam_realm', 'pam_service',
-        'sso_realm', 'sso_service'
-    ]
     # TODO: Add a way for applications/plugins to add to this list:
     non_options = [
         # These are things that don't really belong in settings
@@ -3355,10 +3354,11 @@ def main():
         logging.warning(_(
             "Logging is set to DEBUG.  Be aware that this will record the "
             "keystrokes of all users.  Don't be evil!"))
-    if go_settings['ssl_auth'].lower() == 'required':
+    ssl_auth = go_settings.get('ssl_auth', 'none').lower()
+    if ssl_auth == 'required':
         # Convert to an integer using the ssl module
         cert_reqs = ssl.CERT_REQUIRED
-    elif go_settings['ssl_auth'].lower() == 'optional':
+    elif ssl_auth == 'optional':
         cert_reqs = ssl.CERT_OPTIONAL
     else:
         cert_reqs = ssl.CERT_NONE
@@ -3368,9 +3368,11 @@ def main():
         "keyfile": go_settings['keyfile'],
         "cert_reqs": cert_reqs
     }
-    if go_settings['ca_certs']:
-        ssl_options['ca_certs'] = go_settings['ca_certs']
-    if go_settings['disable_ssl']:
+    ca_certs = go_settings.get('ca_certs', None)
+    if ca_certs:
+        ssl_options['ca_certs'] = ca_certs
+    disable_ssl = go_settings.get('disable_ssl', False)
+    if disable_ssl:
         proto = "http://"
         ssl_options = None
     else:

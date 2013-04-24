@@ -4343,7 +4343,6 @@ GateOne.Storage.fileCacheModel = {
     'print': {keypath: 'filename'}
 }
 GateOne.Storage.deferLoadingTimers = {}; // Used to make sure we don't duplicate our efforts in retries
-GateOne.Storage.requiredFiles = [];
 GateOne.Storage.loadedFiles = {}; // This is used to queue up JavaScript files to ensure they load in the proper order.
 GateOne.Storage.failedRequirementsCounter = {}; // Used to detect when we've waited too long for a dependency.
 GateOne.Storage.fileCacheReady = false;
@@ -4494,12 +4493,6 @@ GateOne.Base.update(GateOne.Storage, {
                         if (remoteFileObj['kind'] == 'js') {
                             if (remoteFileObj['requires']) {
                                 logDebug("This file requires a certain script be loaded first: " + remoteFileObj['requires']);
-                                remoteFileObj['requires'].forEach(function(filename) {
-                                    if (S.requiredFiles.indexOf(filename) != -1) {
-                                        // This ensures we call the init() function of these files first
-                                        S.requiredFiles.push(filename);
-                                    }
-                                });
                                 if (!S.failedRequirementsCounter[remoteFileObj['filename']]) {
                                     S.failedRequirementsCounter[remoteFileObj['filename']] = 0;
                                 }

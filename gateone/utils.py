@@ -662,15 +662,15 @@ def mkdir_p(path):
     """
     Pythonic version of "mkdir -p".  Example equivalents::
 
-        >>> import commands
-        >>> mkdir_p('/tmp/test/testing') # Does the same thing as below:
-        >>> commands.getstatusoutput('mkdir -p /tmp/test/testing')
+        >>> mkdir_p('/tmp/test/testing') # Does the same thing as...
+        >>> from subprocess import call
+        >>> call('mkdir -p /tmp/test/testing')
 
     .. note:: This doesn't actually call any external commands.
     """
     try:
         os.makedirs(path)
-    except OSError as exc: # Python >2.5
+    except OSError as exc:
         if exc.errno == errno.EEXIST:
             pass
         else: raise
@@ -1498,11 +1498,20 @@ def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
     This would change the current process owner to gateone/gateone with 'tty' as
     its only supplemental group.
 
-    .. note:: On most Unix systems users must belong to the 'tty' group to create new controlling TTYs which is necessary for 'pty.fork()' to work.
+    .. note::
 
-    .. tip:: If you get errors like, "OSError: out of pty devices" it likely means that your OS uses something other than 'tty' as the group owner of the devpts filesystem.  'mount | grep pts' will tell you the owner (look for gid=<owner>).
+        On most Unix systems users must belong to the 'tty' group to create new
+        controlling TTYs which is necessary for 'pty.fork()' to work.
+
+    .. tip::
+
+        If you get errors like, "OSError: out of pty devices" it likely means
+        that your OS uses something other than 'tty' as the group owner of the
+        devpts filesystem.  'mount | grep pts' will tell you the owner (look for
+        gid=<owner>).
     """
     import pwd, grp
+    human_supl_groups = []
     running_gid = gid
     if not isinstance(uid, int):
         # Get the uid/gid from the name
@@ -1511,10 +1520,11 @@ def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
     if not isinstance(gid, int):
         running_gid = grp.getgrnam(gid).gr_gid
     if supl_groups:
-        for i, group in enumerate(supl_groups):
+        for i, group in enumerate(list(supl_groups)):
             # Just update in-place
             if not isinstance(group, int):
                 supl_groups[i] = grp.getgrnam(group).gr_gid
+            human_supl_groups.append(grp.getgrgid(supl_groups[i]).gr_name)
         try:
             os.setgroups(supl_groups)
         except OSError as e:
@@ -1536,9 +1546,6 @@ def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
     old_umask = os.umask(new_umask)
     final_uid = os.getuid()
     final_gid = os.getgid()
-    human_supl_groups = []
-    for group in supl_groups:
-        human_supl_groups.append(grp.getgrgid(group).gr_name)
     logging.info(_(
         'Running as user/group, "%s/%s" with the following supplemental groups:'
         ' %s' % (pwd.getpwuid(final_uid)[0], grp.getgrgid(final_gid)[0],

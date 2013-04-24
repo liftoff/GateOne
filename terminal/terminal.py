@@ -617,6 +617,13 @@ def pua_counter():
             else:
                 n += 1
 
+# Exceptions
+class InvalidParameters(Exception):
+    """
+    Raised when `Terminal` is passed invalid parameters.
+    """
+    pass
+
 # Classes
 class FileType(object):
     """
@@ -1095,7 +1102,7 @@ class Terminal(object):
         If *em_dimensions* are provided they will be used to determine how many
         lines images will take when they're drawn in the terminal.  This is to
         prevent images that are written to the top of the screen from having
-        their tops cut off.  *em_dimensions* should be a dict in the form of::
+        their tops cut off.  *em_dimensions* must be a dict in the form of::
 
             {'height': <px>, 'width': <px>}
 
@@ -1136,6 +1143,27 @@ class Terminal(object):
 
         If *debug* is True, the root logger will have its level set to DEBUG.
         """
+        if rows < 2 or cols < 2:
+            raise InvalidParameters(_(
+                "Invalid value(s) given for rows ({rows}) and/or cols "
+                "({cols}).  Both must be > 1.").format(rows=rows, cols=cols))
+        if em_dimensions:
+            if not isinstance(em_dimensions, dict):
+                raise InvalidParameters(_(
+                    "The em_dimensions keyword argument must be a dict.  "
+                    "Here's what was given instead: {0}").format(
+                        repr(em_dimensions)))
+            if 'width' not in em_dimensions or 'height' not in em_dimensions:
+                raise InvalidParameters(_(
+                    "The given em_dimensions dict ({0}) is missing either "
+                    "'height' or 'width'").format(repr(em_dimensions)))
+        if not os.path.exists(temppath):
+            raise InvalidParameters(_(
+                "The given temppath ({0}) does not exist.").format(temppath))
+        if icondir:
+            if not os.path.exists(icondir):
+                logging.warning(_(
+                    "The given icondir ({0}) does not exist.").format(icondir))
         if debug:
             logger = logging.getLogger()
             logger.level = logging.DEBUG
@@ -3445,7 +3473,7 @@ class Terminal(object):
                 self.html_cache[linecount] = outline
             else:
                 results.append(None) # 'null' is shorter than 4 spaces
-                self.html_cache[linecount] = None
+                self.html_cache[linecount] = u''
             # NOTE: The client has been programmed to treat None (aka null in
             #       JavaScript) as blank lines.
         for whatever in xrange(spancount): # Bit of cleanup to be safe

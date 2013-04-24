@@ -749,8 +749,12 @@ class TerminalApplication(GOApplication):
             self.current_user['upn'], settings))
         term = int(settings['term'])
         # TODO: Make these specific to each terminal:
-        self.rows = rows = settings['rows']
-        self.cols = cols = settings['cols']
+        rows = settings['rows']
+        cols = settings['cols']
+        if rows < 2 or cols < 2: # Something went wrong calculating term size
+            # Fall back to a standard default
+            rows = 24
+            cols = 80
         encoding = settings.get('encoding', 'utf-8')
         # NOTE: 'command' here is actually just the short name of the command.
         #       ...which maps to what's configured the 'commands' part of your
@@ -1296,8 +1300,8 @@ class TerminalApplication(GOApplication):
                 term = int(resize_obj['term'])
             except ValueError:
                 return # Got bad value, skip this resize
-        self.rows = resize_obj['rows']
-        self.cols = resize_obj['cols']
+        rows = resize_obj['rows']
+        cols = resize_obj['cols']
         self.em_dimensions = {
             'height': resize_obj['em_dimensions']['h'],
             'width': resize_obj['em_dimensions']['w']
@@ -1305,17 +1309,17 @@ class TerminalApplication(GOApplication):
         ctrl_l = False
         if 'ctrl_l' in resize_obj:
             ctrl_l = resize_obj['ctrl_l']
-        if self.rows < 2 or self.cols < 2:
+        if rows < 2 or cols < 2:
             # Fall back to a standard default:
-            self.rows = 24
-            self.cols = 80
+            rows = 24
+            cols = 80
         # If the user already has a running session, set the new terminal size:
         try:
             if term:
                 m = self.loc_terms[term]['multiplex']
                 m.resize(
-                    self.rows,
-                    self.cols,
+                    rows,
+                    cols,
                     self.em_dimensions,
                     ctrl_l=ctrl_l
                 )
@@ -1323,8 +1327,8 @@ class TerminalApplication(GOApplication):
                 for term in list(self.loc_terms.keys()):
                     if isinstance(term, int): # Skip the TidyThread
                         self.loc_terms[term]['multiplex'].resize(
-                            self.rows,
-                            self.cols,
+                            rows,
+                            cols,
                             self.em_dimensions
                         )
         except KeyError: # Session doesn't exist yet, no biggie
