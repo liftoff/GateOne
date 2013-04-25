@@ -4247,7 +4247,7 @@ GateOne.Storage.dbObject = function(DB) {
         */
         if (indexedDB) {
             var db = GateOne.Storage.databases[self.DB],
-                trans = db.transaction(storeName, 'readonly'),
+                trans = db.transaction(storeName, window.webkitIDBTransaction.READ_ONLY || 'readonly'),
                 store = trans.objectStore(storeName),
                 transaction = store.get(key);
             trans.oncomplete = function(e) {
@@ -4266,7 +4266,7 @@ GateOne.Storage.dbObject = function(DB) {
         */
         if (indexedDB) {
             var db = GateOne.Storage.databases[self.DB],
-                trans = db.transaction([storeName], 'readwrite'),
+                trans = db.transaction([storeName], window.webkitIDBTransaction.READ_WRITE || 'readwrite'),
                 store = trans.objectStore(storeName),
                 request = store.put(value);
             request.onsuccess = function(e) {
@@ -4294,7 +4294,7 @@ GateOne.Storage.dbObject = function(DB) {
         if (indexedDB) {
             try {
                 var db = GateOne.Storage.databases[self.DB],
-                    trans = db.transaction(storeName, 'readwrite').objectStore(storeName)["delete"](key);
+                    trans = db.transaction(storeName, window.webkitIDBTransaction.READ_WRITE || 'readwrite').objectStore(storeName)["delete"](key);
             } catch (e) {
                 logDebug(key + " does not exist in " + storeName);
             }
@@ -4314,7 +4314,7 @@ GateOne.Storage.dbObject = function(DB) {
         */
         if (indexedDB) {
             var db = GateOne.Storage.databases[self.DB],
-                trans = db.transaction(storeName, 'readonly'),
+                trans = db.transaction(storeName, window.webkitIDBTransaction.READ_ONLY || 'readonly'),
                 store = trans.objectStore(storeName),
                 keyRange = IDBKeyRange.lowerBound(0), // Get everything in the store;
                 cursorRequest = store.openCursor(keyRange),
@@ -4687,7 +4687,7 @@ GateOne.Base.update(GateOne.Storage, {
         if (indexedDB) {
             logDebug('clearing indexedDB: ' + DB);
             var db = GateOne.Storage.databases[DB],
-                trans = db.transaction(storeName, 'readwrite'),
+                trans = db.transaction(storeName, window.webkitIDBTransaction.READ_WRITE || 'readwrite'),
                 store = trans.objectStore(storeName),
                 request = store.clear();
             trans.oncomplete = function(e) {
