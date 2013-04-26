@@ -16,8 +16,6 @@ import logging
 
 class OnOffMixin(object):
     """
-    OnOff Mixin
-    ===========
     A mixin to add :func:`on`, :func:`off`, and :func:`trigger` event handling
     methods to any class.
 
@@ -80,15 +78,15 @@ class OnOffMixin(object):
         """
         Registers the given *callback* with the given *events* (string or list
         of strings) that will get called whenever the given *event* is triggered
-        (using :meth:`Getr.trigger`).
+        (using :meth:`self.trigger`).
 
         If *times* is given the *callback* will only be fired that many times
-        before it is automatically removed from :attr:`Getr._on_off_events`.
+        before it is automatically removed from :attr:`self._on_off_events`.
         """
         # Make sure our _on_off_events dict is present (if first invokation)
         if not hasattr(self, '_on_off_events'):
             self._on_off_events = {}
-        if isinstance(events, basestring):
+        if isinstance(events, str):
             events = [events]
         callback_obj = {
             'callback': callback,
@@ -106,7 +104,7 @@ class OnOffMixin(object):
         Removes the given *callback* from the given *events* (string or list of
         strings).
         """
-        if isinstance(events, basestring):
+        if isinstance(events, str):
             events = [events]
         for event in events:
             for callback_obj in self._on_off_events[event]:
@@ -118,7 +116,7 @@ class OnOffMixin(object):
 
     def once(self, events, callback):
         """
-        A shortcut for :meth:`self.on(events, callback, 1)`
+        A shortcut for `self.on(events, callback, 1)`
         """
         self.on(events, callback, 1)
 
@@ -136,7 +134,7 @@ class OnOffMixin(object):
         if not hasattr(self, '_on_off_events'):
             self._on_off_events = {}
         logging.debug("OnOffMixin.triggering event(s): %s" % events)
-        if isinstance(events, basestring):
+        if isinstance(events, str):
             events = [events]
         for event in events:
             if event in self._on_off_events:

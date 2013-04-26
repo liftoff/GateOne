@@ -1976,7 +1976,6 @@ go.Base.update(GateOne.Terminal, {
         If this is a new session (and we're not in embedded mode), a new terminal will be created.
         */
         var newTermSettings,
-            cmdQueryString = u.getQueryVariable('terminal_cmd'),
             reattachCallbacks = false;
         logDebug("reattachTerminalsAction() terminals: " + terminals);
         // Clean up localStorage

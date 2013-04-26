@@ -1552,7 +1552,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         This method also cleans up older versions of the same rendered template.
         """
         cache_dir = self.settings['cache_dir']
-        print('cache_dir: %s' % repr(cache_dir))
+        if not isinstance(cache_dir, str):
+            cache_dir = cache_dir.decode('utf-8')
+        if not isinstance(style_path, str):
+            style_path = style_path.decode('utf-8')
         mtime = os.stat(style_path).st_mtime
         shortened_path = short_hash(style_path)
         rendered_filename = 'rendered_%s_%s' % (shortened_path, int(mtime))
