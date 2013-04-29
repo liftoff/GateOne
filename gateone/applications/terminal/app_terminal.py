@@ -27,15 +27,14 @@ from functools import partial
 import termio
 from gateone import GATEONE_DIR, BaseHandler, GOApplication
 from auth import require, authenticated, applicable_policies, policies
-from utils import cmd_var_swap, RUDict, json_encode, get_settings, short_hash
+from utils import cmd_var_swap, json_encode, get_settings, short_hash
 from utils import mkdir_p, string_to_syslog_facility, get_plugins, load_modules
 from utils import process_opt_esc_sequence, bind, MimeTypeFail, create_data_uri
-from utils import convert_to_timedelta, which
+from utils import which
 
 # 3rd party imports
 import tornado.ioloop
 import tornado.web
-from tornado.escape import json_decode
 from tornado.options import options, define
 
 # Globals
@@ -252,6 +251,7 @@ def terminal_policies(cls):
     policy = applicable_policies('terminal', user, instance.ws.prefs)
     if not policy: # Empty RUDict
         return True # A world without limits!
+    # TODO: Move the "allow" logic into gateone.py or auth.py
     # Start by determining if the user can even login to the terminal app
     if 'allow' in policy:
         if not policy['allow']:

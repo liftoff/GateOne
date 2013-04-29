@@ -76,7 +76,7 @@ import os, logging, re
 
 # Import our own stuff
 from utils import mkdir_p, generate_session_id, noop, RUDict
-from utils import get_translation, memoize
+from utils import get_translation, memoize, get_settings
 
 # 3rd party imports
 import tornado.web
@@ -272,6 +272,17 @@ class policies(object):
             return security[self.app](self)
         return True # Nothing is registered for this application so it's OK
 
+def additional_attributes(user, settings_dir=None):
+    """
+    Given a *user* dict, return a dict containing any additional attributes
+    defined in Gate One's attribute repositories.
+    """
+    # Doesn't do anything yet
+    if not settings_dir:
+        settings_dir = os.path.join(GATEONE_DIR, 'settings')
+    settings = get_settings(settings_dir)
+    return user
+
 # Authentication stuff
 class BaseAuthHandler(tornado.web.RequestHandler):
     """The base class for all Gate One authentication handlers."""
@@ -293,6 +304,7 @@ class BaseAuthHandler(tornado.web.RequestHandler):
         values will be attached to the user object/cookie.
         """
         logging.debug("user_login(%s)" % user['upn'])
+        user.update(additional_attributes(user))
         # Make a directory to store this user's settings/files/logs/etc
         user_dir = os.path.join(self.settings['user_dir'], user['upn'])
         if not os.path.exists(user_dir):
@@ -403,6 +415,7 @@ class APIAuthHandler(BaseAuthHandler):
         backwards compatibility.
         """
         # Get rid of the cookie no matter what (API auth doesn't use cookies)
+        user = self.current_user
         self.clear_cookie('gateone_user')
         check = self.get_argument("check", None)
         if check:

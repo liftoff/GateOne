@@ -274,11 +274,10 @@ try:
     from tornado.options import define, options
     from tornado import locale
     from tornado import version as tornado_version
-    from tornado import version_info as tornado_version_info
 except ImportError:
     MISSING_DEPS.append('tornado >= 3.0')
 
-if tornado_version_info[0] < 3:
+if not tornado_version.startswith('3'):
     if 'tornado >= 3.0' not in MISSING_DEPS:
         MISSING_DEPS.append('tornado >= 3.0')
 

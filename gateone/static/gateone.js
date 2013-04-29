@@ -2149,7 +2149,7 @@ GateOne.Base.update(GateOne.Net, {
                     // If 'auth' isn't set that means we're not in API mode but we could still be embedded so check for the user's session info in localStorage
                     var goCookie = u.getCookie('gateone_user');
                     if (goCookie) {
-                        console.log("goCookie");
+                        logDebug("Using cookie for auth");
                         // Prefer the cookie
                         if (goCookie[0] == '"') {
                             goCookie = eval(goCookie); // Wraped in quotes; this removes them
@@ -2157,7 +2157,7 @@ GateOne.Base.update(GateOne.Net, {
                         go.prefs.auth = goCookie;
                         settings['auth'] = go.prefs.auth;
                     } else if (localStorage[prefix+'gateone_user']) {
-                        console.log("using localStorage");
+                        logDebug("Using localStorage for auth");
                         go.prefs.auth = localStorage[prefix+'gateone_user'];
                         settings['auth'] = go.prefs.auth;
                     }

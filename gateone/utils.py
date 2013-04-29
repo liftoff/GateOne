@@ -446,7 +446,6 @@ def get_translation(settings_dir=None):
             settings_dir = os.path.join(GATEONE_DIR, 'settings')
     # If none of the above worked we can always just use en_US:
     locale_str = os.environ.get('LANG', 'en_US').split('.')[0]
-    server_conf = os.path.join(settings_dir, '10server.conf')
     try:
         settings = get_settings(settings_dir)
         gateone_settings = settings['*'].get('gateone', None)
@@ -633,7 +632,7 @@ def str2bool(val):
         False
         >>> str2bool('1')
         True
-        >>> st2bool('whatever')
+        >>> str2bool('whatever')
         False
     """
     if isinstance(val, basestring) and val.lower() in ['1', 'true', 'yes']:
@@ -723,7 +722,7 @@ def short_hash(to_shorten):
     import base64
     hashed = hashlib.sha1(to_shorten.encode('utf-8'))
     # Take the first eight characters to create a shortened version.
-    return base64.urlsafe_b64encode(hashed.digest())[:8]
+    return base64.urlsafe_b64encode(hashed.digest())[:8].decode('ascii')
 
 def get_process_tree(parent_pid):
     """
@@ -776,11 +775,8 @@ def kill_dtached_proc(session, term):
                 if cmdline and session in cmdline:
                     if dtach_socket_name in cmdline:
                         to_kill.append(pid)
-            except Exception as e:
-                #logging.debug("Couldn't read the cmdline of PID %s" % pid)
-                #logging.debug(e)
+            except Exception:
                 pass # Already dead, no big deal.
-                # Uncomment above if you're having problems or think otherwise.
     for pid in to_kill:
         kill_pids = get_process_tree(pid)
         for _pid in kill_pids:
@@ -857,6 +853,10 @@ def killall(session_dir, pid_file):
         logging.warning(_(
             "Could not open pid_file (%s).  You may have to kill gateone.py "
             "manually." % pid_file))
+    try:
+        os.kill(go_pid, signal.SIGTERM)
+    except OSError:
+        pass # PID is already dead--great
 
 def killall_bsd(session_dir, pid_file=None):
     """
@@ -1138,7 +1138,7 @@ def process_opt_esc_sequence(chars):
     text = ""
     try:
         plugin, text = chars.split('|')
-    except Exception as e:
+    except Exception:
         pass # Something went horribly wrong!
     return (plugin, text)
 
@@ -1186,7 +1186,7 @@ def create_data_uri(filepath):
         raise MimeTypeFail("Could not guess mime type of: %s" % filepath)
     with io.open(filepath, mode='rb') as f:
         data = f.read()
-    encoded = str(base64.b64encode(data)).replace('\n', '')
+    encoded = base64.b64encode(data).decode('ascii').replace('\n', '')
     if len(encoded) > 65000:
         logging.warn(
             "WARNING: Data URI > 65,000 characters.  You're pushing it buddy!")
@@ -1480,7 +1480,7 @@ def get_or_cache(cache_dir, path, minify=True):
     for fname in os.listdir(cache_dir):
         if fname == cached_filename:
             continue
-        elif fname.startswith(shortened_path.decode('utf-8')):
+        elif fname.startswith(shortened_path):
             # Older version present.  Remove it.
             os.remove(os.path.join(cache_dir, fname))
     return data
@@ -1543,7 +1543,7 @@ def drop_privileges(uid='nobody', gid='nogroup', supl_groups=None):
         exit()
     # Ensure a very convervative umask
     new_umask = 0o77
-    old_umask = os.umask(new_umask)
+    os.umask(new_umask)
     final_uid = os.getuid()
     final_gid = os.getgid()
     logging.info(_(
