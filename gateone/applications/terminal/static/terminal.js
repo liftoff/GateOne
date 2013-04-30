@@ -2004,8 +2004,10 @@ go.Base.update(GateOne.Terminal, {
                             go.Terminal.switchTerminal(termNum);
                         }, 100); // Without this timeout the code that performs a translateY() to move the scrollback buffer out of view won't work properly
                     }
-                    go.Terminal.newTerminal(termNum);
-                    go.Terminal.lastTermNumber = termNum;
+                    if (!go.Terminal.terminals[termNum]) {
+                        go.Terminal.newTerminal(termNum);
+                        go.Terminal.lastTermNumber = termNum;
+                    }
                 });
                 if (!selectedMatch) {
                     go.Terminal.switchTerminal(go.Terminal.lastTermNumber);
@@ -2013,9 +2015,7 @@ go.Base.update(GateOne.Terminal, {
             } else {
                 // Create a new terminal
                 go.Terminal.lastTermNumber = 0; // Reset to 0
-//                 setTimeout(function() {
                     go.Terminal.newTerminal();
-//                 }, 1000); // Give everything a moment to settle so the dimensions are set properly
             }
         }
         E.trigger("terminal:term_reattach", terminals);

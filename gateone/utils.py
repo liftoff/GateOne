@@ -853,6 +853,7 @@ def killall(session_dir, pid_file):
         logging.warning(_(
             "Could not open pid_file (%s).  You may have to kill gateone.py "
             "manually." % pid_file))
+        return
     try:
         os.kill(go_pid, signal.SIGTERM)
     except OSError:

@@ -183,7 +183,10 @@ Executing Gate One is as simple as:
 
     \x1b[1;31mroot\x1b[0m@host\x1b[1;34m:~ $\x1b[0m ./gateone.py
 
-.. note:: By default Gate One will run on port 443 which requires root on most systems.  Use `--port=(something higher than 1024)` for non-root users.
+.. note::
+
+    By default Gate One will run on port 443 which requires root on most
+    systems.  Use `--port=(something higher than 1024)` for non-root users.
 
 Plugins
 -------
@@ -248,7 +251,6 @@ import pty
 import atexit
 import ssl
 import hashlib
-import time
 import tempfile
 from functools import wraps
 from datetime import datetime, timedelta
@@ -309,7 +311,7 @@ from utils import generate_session_id, mkdir_p, SettingsError
 from utils import gen_self_signed_ssl, killall, get_plugins, load_modules
 from utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from utils import FACILITIES, json_encode, recursive_chown, ChownError
-from utils import write_pid, read_pid, remove_pid, drop_privileges, minify
+from utils import write_pid, read_pid, remove_pid, drop_privileges
 from utils import check_write_permissions, get_applications, get_settings
 from onoff import OnOffMixin
 
@@ -492,13 +494,14 @@ def gateone_policies(cls):
     This function will keep track of and place limmits on the following:
 
         * Who can send messages to other users (including broadcasts).
+        * Who can retrieve a list of connected users.
 
     If no 'terminal' policies are defined this function will always return True.
     """
     instance = cls.instance # ApplicationWebSocket instance
     function = cls.function # Wrapped function
-    f_args = cls.f_args     # Wrapped function's arguments
-    f_kwargs = cls.f_kwargs # Wrapped function's keyword arguments
+    #f_args = cls.f_args     # Wrapped function's arguments
+    #f_kwargs = cls.f_kwargs # Wrapped function's keyword arguments
     policy_functions = {
         'send_user_message': policy_send_user_message,
         'broadcast': policy_broadcast,
@@ -1179,9 +1182,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         equivalent properties (self.container and self.prefix).
 
         If *settings['location']* is something other than 'default' all new
-        terminals will be associated with the given (string) value.  These
-        terminals will be treated separately from the usual terminals so they
-        can exist in a different browser tab/window.
+        application instances will be associated with the given (string) value.
+        These applications will be treated separately so they can exist in a
+        different browser tab/window.
         """
         logging.debug("authenticate(): %s" % settings)
         # Make sure the client is authenticated if authentication is enabled
@@ -1272,6 +1275,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                             'AUTHENTICATION ERROR: API Key not found.'))
                         self.write_message(json_encode(reauth))
                         return
+                    # TODO: Make API version 1.1 that signs *all* attributes--not just the known ones
                     # Check the signature against existing API keys
                     sig_check = create_signature(
                         secret, api_key, upn, timestamp, hmac_algo=hmac_algo)
@@ -1292,7 +1296,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                             self.close()
                             return
                         window = self.settings['api_timestamp_window']
-                        window = convert_to_timedelta(window)
                         then = datetime.fromtimestamp(int(timestamp)/1000)
                         time_diff = datetime.now() - then
                         if time_diff > window:
@@ -1413,9 +1416,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 return
         try:
             user = self.current_user
-            logging.info(
-                _("User %s authenticated successfully via origin %s.") % (
-                    user['upn'], self.origin))
             if user and 'session' in user:
                 self.session = user['session']
             else:
@@ -1443,6 +1443,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.location = 'default'
         if 'location' in settings:
             self.location = settings['location']
+        logging.info(
+            _("User {upn} authenticated successfully via origin {origin}"
+              " (location: {location}).").format(
+                  upn=user['upn'], origin=self.origin, location=self.location))
         # This check is to make sure there's no existing session so we don't
         # accidentally clobber it.
         if self.session not in SESSIONS:
@@ -1462,7 +1466,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 SESSIONS[self.session]['locations'][self.location] = {}
         # A shortcut for SESSIONS[self.session]['locations']:
         self.locations = SESSIONS[self.session]['locations']
-        policy = applicable_policies("gateone", self.current_user, self.prefs)
         # Send our plugin .js and .css files to the client
         self.send_plugin_static_files(os.path.join(GATEONE_DIR, 'plugins'))
         # Call applications' authenticate() functions (if any)
@@ -1635,7 +1638,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         theme_files.append(rendered_path)
         # Now enumerate all applications/plugins looking for their own
         # implementations of this theme (must have same name).
-        theme_paths = []
         plugins_dir = os.path.join(GATEONE_DIR, 'plugins')
         # Find plugin's theme-specific CSS files
         for plugin in os.listdir(plugins_dir):
@@ -1781,10 +1783,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 "No expired %s files at client %s" %
                 (kind, self.request.remote_ip)))
             return
-        out_dict = {
-            'filenames': expired,
-            'kind': message['kind']
-        }
+        #out_dict = {
+            #'filenames': expired,
+            #'kind': message['kind']
+        #}
         logging.debug(_(
             "Requesting deletion of expired files at client %s: %s" % (
             self.request.remote_ip, filenames)))
@@ -3328,8 +3330,8 @@ def main():
     logging.info(_(
         "Connections to this server will be allowed from the following"
         " origins: '%s'") % " ".join(go_settings['origins']))
-    # Normalize settings
-    api_timestamp_window = convert_to_timedelta(
+    # Normalize certain settings
+    go_settings['api_timestamp_window'] = convert_to_timedelta(
         go_settings['api_timestamp_window'])
     go_settings['auth'] = none_fix(go_settings['auth'])
     go_settings['settings_dir'] = settings_dir

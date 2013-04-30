@@ -34,7 +34,6 @@ go.Playback.frameRate = 15; // Approximate
 go.Playback.frameInterval = Math.round(1000/go.Playback.frameRate); // Needs to be converted to ms
 go.Playback.frameObj = {'screen': null, 'time': null}; // Used to prevent garbage from building up
 go.Base.update(GateOne.Playback, {
-    // TODO: Figure out why the bottom of the terminal ends up under the playback bar.
     init: function() {
         /**:GateOne.Playback.init()
 
@@ -109,7 +108,7 @@ go.Base.update(GateOne.Playback, {
 
         It also calls :js:meth:`GateOne.Playback.addPlaybackControls` to make sure they're present only after a new terminal is open.
         */
-        console.log("GateOne.Playback.newTerminalCallback("+term+")");
+        logDebug("GateOne.Playback.newTerminalCallback("+term+")");
         var p = go.Playback,
             termPre, screenSpan,
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
@@ -124,7 +123,6 @@ go.Base.update(GateOne.Playback, {
             extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
             if (termPre) {
                 if (!termPre.querySelector('.playback_spacer')) {
-                    console.log("Appending extra space");
                     termPre.appendChild(extraSpace);
                     if (u.isVisible(termPre)) {
                         if (go.prefs.rows) {

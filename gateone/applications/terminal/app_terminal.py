@@ -30,7 +30,8 @@ from auth import require, authenticated, applicable_policies, policies
 from utils import cmd_var_swap, json_encode, get_settings, short_hash
 from utils import mkdir_p, string_to_syslog_facility, get_plugins, load_modules
 from utils import process_opt_esc_sequence, bind, MimeTypeFail, create_data_uri
-from utils import which
+from utils import which, get_translation
+import terminal
 
 # 3rd party imports
 import tornado.ioloop
@@ -43,6 +44,10 @@ SESSIONS = {} # This will get replaced with gateone.py's SESSIONS dict
 # This is in case we have relative imports, templates, or whatever:
 APPLICATION_PATH = os.path.split(__file__)[0] # Path to our application
 REGISTERED_HANDLERS = [] # So we don't accidentally re-add handlers
+web_handlers = [] # Assigned in init()
+
+# Localization support
+_ = get_translation()
 
 # Terminal-specific command line options.  These become options you can pass to
 # gateone.py (e.g. --session_logging)
@@ -79,7 +84,6 @@ def kill_session(session, kill_dtach=False):
     .. note:: This function gets appended to the `SESSIONS[session]["terminal_callbacks"]` list inside of :meth:`TerminalApplication.authenticate`.
     """
     logging.debug('kill_session(%s)' % session)
-    settings = get_settings(options.settings_dir)
     if kill_dtach:
         from utils import kill_dtached_proc
     for location, apps in list(SESSIONS[session]['locations'].items()):
@@ -162,13 +166,11 @@ def policy_share_terminal(cls, policy):
     Called by :func:`terminal_policies`, returns True if the user is
     authorized to execute :func:`share_terminal`.
     """
-    instance = cls.instance
     try:
-        term = cls.f_args[0]['term']
+        cls.f_args[0]['term']
     except (KeyError, IndexError):
         # share_terminal got bad *settings*.  Deny
         return False
-    user = instance.current_user
     can_share = policy.get('share_terminals', True)
     if not can_share:
         return False
@@ -240,8 +242,8 @@ def terminal_policies(cls):
     """
     instance = cls.instance # ApplicationWebSocket instance
     function = cls.function # Wrapped function
-    f_args = cls.f_args     # Wrapped function's arguments
-    f_kwargs = cls.f_kwargs # Wrapped function's keyword arguments
+    #f_args = cls.f_args     # Wrapped function's arguments
+    #f_kwargs = cls.f_kwargs # Wrapped function's keyword arguments
     policy_functions = {
         'new_terminal': policy_new_terminal,
         'share_terminal': policy_share_terminal,
@@ -388,7 +390,8 @@ class TerminalApplication(GOApplication):
             except AttributeError:
                 pass # No hooks--probably just a supporting .py file.
         # Hook up the hooks
-        # NOTE:  Most of these will soon be replaced with on() and off() events and maybe some functions related to initialization.
+        # NOTE:  Most of these will soon be replaced with on() and off() events
+        # and maybe some functions related to initialization.
         self.plugin_esc_handlers = {}
         self.plugin_auth_hooks = []
         self.plugin_command_hooks = []
@@ -396,13 +399,6 @@ class TerminalApplication(GOApplication):
         self.plugin_new_term_hooks = {}
         self.plugin_env_hooks = {}
         for plugin_name, hooks in self.plugin_hooks.items():
-            if 'Web' in hooks:
-                for handler in hooks['Web']:
-                    if handler in REGISTERED_HANDLERS:
-                        continue # Already registered this one
-                    else:
-                        REGISTERED_HANDLERS.append(handler)
-                        self.add_handler(handler[0], handler[1])
             if 'WebSocket' in hooks:
                 # Apply the plugin's WebSocket actions
                 for ws_command, func in hooks['WebSocket'].items():
@@ -545,6 +541,7 @@ class TerminalApplication(GOApplication):
         Sends a list of the current open terminals to the client using the
         'terminal:get_terminals' WebSocket action.
         """
+        logging.debug('terminals()')
         terminals = []
         # Create an application-specific storage space in the locations dict
         if 'terminal' not in self.ws.locations[self.ws.location]:
@@ -563,9 +560,12 @@ class TerminalApplication(GOApplication):
                 os.chmod(session_dir, 0o770)
             for item in os.listdir(session_dir):
                 if item.startswith('dtach_'):
-                    term = int(item.split('_')[1])
-                    if term not in terminals:
-                        terminals.append(term)
+                    split = item.split('_')
+                    location = split[1]
+                    if location == self.ws.location:
+                        term = int(split[2])
+                        if term not in terminals:
+                            terminals.append(term)
         terminals.sort() # Put them in order so folks don't get confused
         message = {'terminal:terminals': terminals}
         self.write_message(json_encode(message))
@@ -617,7 +617,6 @@ class TerminalApplication(GOApplication):
         Sets up all the callbacks associated with the given *term*, *multiplex*
         instance and *callback_id*.
         """
-        import terminal
         refresh = partial(self.refresh_screen, term)
         multiplex.add_callback(multiplex.CALLBACK_UPDATE, refresh, callback_id)
         ended = partial(self.term_ended, term)
@@ -785,7 +784,6 @@ class TerminalApplication(GOApplication):
                 'width': settings['em_dimensions']['w']
             }
         user_dir = self.settings['user_dir']
-        needs_full_refresh = False
         if term not in self.loc_terms:
             # Setup the requisite dict
             self.loc_terms[term] = {
@@ -829,7 +827,10 @@ class TerminalApplication(GOApplication):
                 os.chmod(session_dir, 0o770)
             if self.ws.settings['dtach'] and which('dtach'):
                 # Wrap in dtach (love this tool!)
-                dtach_path = "%s/dtach_%s" % (session_dir, term)
+                dtach_path = "{session_dir}/dtach_{location}_{term}".format(
+                    session_dir=session_dir,
+                    location=self.ws.location,
+                    term=term)
                 if os.path.exists(dtach_path):
                     # Using 'none' for the refresh because the EVIL termio
                     # likes to manage things like that on his own...
@@ -922,7 +923,6 @@ class TerminalApplication(GOApplication):
                 " target='new'>Standard Encodings</a>"
             ))
             return
-        session_obj = SESSIONS[self.ws.session]
         term_obj = self.loc_terms[term]
         m = term_obj['multiplex']
         m.set_encoding(encoding)
@@ -1025,7 +1025,7 @@ class TerminalApplication(GOApplication):
                 kill_dtached_proc(self.ws.session, term)
             if multiplex.isalive():
                 multiplex.terminate()
-        except KeyError as e:
+        except KeyError:
             pass # The EVIL termio has killed my child!  Wait, that's good...
                     # Because now I don't have to worry about it!
         finally:
@@ -1597,7 +1597,7 @@ class TerminalApplication(GOApplication):
         shared_terms = self.ws.persist['terminal']['shared']
         term_obj = self.loc_terms[term]
         read = settings.get('read', 'ANONYMOUS') # List of who to share with
-        write = settings.get('write', list()) # List of who can write
+        #write = settings.get('write', list()) # List of who can write
         # "broadcast" mode allows anonymous access without a password
         broadcast = settings.get('broadcast', False)
         # ANONYMOUS (auto-gen URL), user.attr=(regex), and "AUTHENTICATED"
@@ -1665,7 +1665,8 @@ class TerminalApplication(GOApplication):
         self.write_message(json_encode(message))
         # TODO: Write logic here that kills the terminal of each viewer and sends them a message indicating that the sharing has ended.
         message = {'terminal:term_ended': term}
-        ApplicationWebSocket._deliver(json_encode(message), session=session)
+        # TODO: Per the above TODO, this needs to be changed to notify each user:
+        self.ws.send_message(message, upn=self.current_user['upn'])
         for share_id, share_dict in shared_terms.items():
             if share_dict['term_obj'] == term_obj:
                 del shared_terms[share_id]
@@ -2027,12 +2028,34 @@ def init(settings):
                 "update your settings to use '/.ssh/known_hosts' instead of "
                 "'/ssh/known_hosts'.  Applying a termporary fix..."))
             term_settings['commands'][name] = command.replace('/ssh/', '/.ssh/')
+    # Initialize plugins so we can add their 'Web' handlers
+    enabled_plugins = settings['*']['terminal'].get('enabled_plugins', [])
+    plugins = get_plugins(
+        os.path.join(APPLICATION_PATH, 'plugins'), enabled_plugins)
+    # Attach plugin hooks
+    plugin_hooks = {}
+    imported = load_modules(plugins['py'])
+    for plugin in imported:
+        try:
+            plugin_hooks.update({plugin.__name__: plugin.hooks})
+        except AttributeError:
+            pass # No hooks, no problem
+    # Hook up the 'Web' handlers so those URLs are immediately available
+    for hooks in plugin_hooks.values():
+        if 'Web' in hooks:
+            for handler in hooks['Web']:
+                if handler in REGISTERED_HANDLERS:
+                    continue # Already registered this one
+                else:
+                    REGISTERED_HANDLERS.append(handler)
+                    web_handlers.append(handler)
+
 
 # Tell Gate One which classes are applications
 apps = [TerminalApplication]
-# Tell Gate One about our static file handler
-web_handlers = [(
+# Tell Gate One about our terminal-specific static file handler
+web_handlers.append((
     r'terminal/static/(.*)',
     TermStaticFiles,
     {"path": os.path.join(APPLICATION_PATH, 'static')}
-)]
+))
