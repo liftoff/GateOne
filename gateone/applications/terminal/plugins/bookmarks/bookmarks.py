@@ -38,7 +38,7 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Python stdlib
-import os, sys, logging, time
+import os, sys, logging, time, json, socket
 from functools import partial
 
 # Our stuff
@@ -98,7 +98,6 @@ def parse_bookmarks_html(html):
     url = None
     icon = None
     name = ""
-    notes = ""
     for token in stream:
         if 'name' in token:
             if token['name'] == 'dl':
@@ -218,7 +217,6 @@ def get_ns_json_bookmarks(json_dict, bookmarks):
 
     .. note:: Only works with Netscape-style bookmarks.json files.
     """
-    children = []
     if json_dict.has_key('children'):
         for child in json_dict['children']:
             if child['type'] == 'text/x-moz-place':
@@ -322,7 +320,7 @@ class BookmarksDB(object):
             if bm['url'] == "web+deleted:bookmarks/":
                 # Remove the existing deleted entry if it exists
                 for j, deleted_bm in enumerate(bm['notes']):
-                    if deleted_bm['url'] == bookmark['url']:
+                    if deleted_bm['url'] == bm['url']:
                         # Remove the deleted bookmark entry
                         bm['notes'].pop(j)
             found_existing = False
@@ -359,7 +357,7 @@ class BookmarksDB(object):
         for i, db_bookmark in enumerate(self.bookmarks):
             if bookmark['url'] == db_bookmark['url']:
                 # Remove it
-                deleted = self.bookmarks.pop(i)
+                self.bookmarks.pop(i)
                 # Add it to the list of deleted bookmarks
                 special_deleted_bm = None
                 for bm in self.bookmarks:
@@ -488,14 +486,12 @@ class FaviconHandler(BaseHandler):
         fetch_url = None
         mimetype = None
         icon = False
-        found_token = None
         for token in stream:
             if 'name' in token:
                 if token['name'] == 'link':
                     for attr in token['data']:
                         if attr[0] == 'rel':
                             if 'shortcut icon' in attr[1].lower():
-                                found_token = token
                                 icon = True
                         elif attr[0] == 'href':
                             fetch_url = attr[1]
@@ -546,7 +542,7 @@ class FaviconHandler(BaseHandler):
                 connect_timeout=5.0,
                 request_timeout=5.0
             )
-        except gaierror: # No address associated with hostname
+        except socket.gaierror: # No address associated with hostname
             self.write('Unable to fetch icon.')
             self.finish()
             return
@@ -564,7 +560,7 @@ class FaviconHandler(BaseHandler):
                 callback = partial(self.icon_multifetch, urls)
                 try:
                     http.fetch(url, callback)
-                except gaierror:
+                except socket.gaierror:
                     raise tornado.web.HTTPError(404)
             else:
                 raise tornado.web.HTTPError(404)
