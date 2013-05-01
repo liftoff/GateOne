@@ -305,6 +305,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (document.activeElement != t.Input.inputNode) {
             t.Input.inputNode.focus();
         }
+        GateOne.Terminal.setActive(localStorage[prefix+'selectedTerminal']);
     },
     disableCapture: function(e) {
         /**GateOne.Terminal.Input.disableCapture(e)

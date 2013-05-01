@@ -26,17 +26,17 @@ go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-n
 
 // Setup some defaults for our terminal-specific prefs
 go.prefs['webWorker'] = null; // This is the fallback path to the Terminal's screen processing Web Worker (term_ww.js).  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.  In such situations you'd want to copy term_ww.js to some location on your server and set this variable to that path (e.g. 'https://your-app.company.com/static/term_ww.js').
-go.prefs['scrollback'] = 500, // Amount of lines to keep in the scrollback buffer
-go.prefs['rows'] =  null; // Override the automatically calculated value (null means fill the window)
-go.prefs['cols'] =  null; // Ditto
-go.prefs['audibleBell'] = true; // If false, the bell sound will not be played (visual notification will still occur),
-go.prefs['bellSound'] = ''; // Stores the bell sound data::URI (cached).
-go.prefs['bellSoundType'] = ''; // Stores the mimetype of the bell sound.
-go.prefs['colors'] = 'default'; // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
-go.prefs['disableTermTransitions'] = false; // Disabled the sliding animation on terminals to make switching faster
-go.prefs['rowAdjust'] = 0;   // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
+go.prefs['scrollback'] = go.prefs['scrollback'] || 500, // Amount of lines to keep in the scrollback buffer
+go.prefs['rows'] = go.prefs['rows'] || null; // Override the automatically calculated value (null means fill the window)
+go.prefs['cols'] = go.prefs['cols'] || null; // Ditto
+go.prefs['audibleBell'] = go.prefs['audibleBell'] || true; // If false, the bell sound will not be played (visual notification will still occur),
+go.prefs['bellSound'] = go.prefs['bellSound'] || ''; // Stores the bell sound data::URI (cached).
+go.prefs['bellSoundType'] = go.prefs['bellSoundType'] || ''; // Stores the mimetype of the bell sound.
+go.prefs['colors'] = go.prefs['colors'] || 'default'; // The color scheme to use (e.g. 'default', 'gnome-terminal', etc)
+go.prefs['disableTermTransitions'] = go.prefs['disableTermTransitions'] || false; // Disabled the sliding animation on terminals to make switching faster
+go.prefs['rowAdjust'] = go.prefs['rowAdjust'] || 0;   // When the terminal rows are calculated they will be decreased by this amount (e.g. to make room for the playback controls).
                             // rowAdjust is necessary so that plugins can increment it if they're adding things to the top or bottom of GateOne.
-go.prefs['colAdjust'] = 0;  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
+go.prefs['colAdjust'] = go.prefs['colAdjust'] || 0;  // Just like rowAdjust but it controls how many columns are removed from the calculated terminal dimensions before they're sent to the server.
 // This ensures that the webWorker setting isn't stored in the user's prefs in localStorage:
 go.noSavePrefs['webWorker'] = null;
 go.noSavePrefs['rowAdjust'] = null;
@@ -550,26 +550,7 @@ go.Base.update(GateOne.Terminal, {
                     }
                 }, 100);
                 // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
-                if (!go.prefs.embedded) {
-                    // In embedded mode this kind of adjustment can be unreliable
-                    v.applyTransform(termPre, ''); // Need to reset before we do calculations
-                    go.Terminal.resizeAdjustTimer = setTimeout(function() {
-                        var distance = go.node.clientHeight - screenNode.offsetHeight;
-                        distance -= (emHeight * go.prefs.rowAdjust); // Have to adjust for the extra row we add for the playback controls
-                        if (go.Utils.isVisible(termPre)) {
-                            var transform = "translateY(-" + distance + "px)";
-                            v.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
-                        }
-                    }, 1000);
-                }
-                if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
-                    var nodeHeight = screenNode.getClientRects()[0].top;
-                    if (nodeHeight < go.node.clientHeight) { // Resize to fit
-                        var scale = go.node.clientHeight / (go.node.clientHeight - nodeHeight),
-                            transform = "scale(" + scale + ", " + scale + ")";
-                        v.applyTransform(termPre, transform);
-                    }
-                }
+                go.Terminal.alignTerminal(term);
                 u.scrollToBottom(termPre);
             }
         }, 750);
@@ -844,11 +825,14 @@ go.Base.update(GateOne.Terminal, {
             return;
         }
         if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
-            var nodeHeight = screenSpan.getClientRects()[0].top;
-            if (nodeHeight < go.node.clientHeight) { // Resize to fit
-                var scale = go.node.clientHeight / (go.node.clientHeight - nodeHeight),
-                    transform = "scale(" + scale + ", " + scale + ")";
-                v.applyTransform(termPre, transform);
+            if (screenSpan.getClientRects()[0]) {
+                v.applyTransform(termPre, ''); // Have to reset in order to perform calculations
+                var nodeHeight = screenSpan.getClientRects()[0].top;
+                if (nodeHeight < go.node.clientHeight) { // Resize to fit
+                    var scale = go.node.clientHeight / (go.node.clientHeight - nodeHeight),
+                        transform = "scale(" + scale + ", " + scale + ")";
+                    v.applyTransform(termPre, transform);
+                }
             }
         } else {
             if (!go.prefs.embedded) {
@@ -1638,7 +1622,7 @@ go.Base.update(GateOne.Terminal, {
         }
         go.Terminal.alignTimer = setTimeout(function() {
             go.Terminal.alignTerminal(term);
-        }, 1100);
+        }, 1100); // Just a moment after the switch completes
         go.Terminal.Input.capture();
     },
     switchWorkspaceEvent: function(workspace) {
@@ -1920,7 +1904,7 @@ go.Base.update(GateOne.Terminal, {
 
         .. note:: The next incoming screen update from the server will likely re-populate most if not all of the screen.
         */
-        console.log('clearScreen('+term+')');
+        logDebug('clearScreen('+term+')');
         var screenLength = go.Terminal.terminals[term]['screen'].length,
             screenNode = go.Terminal.terminals[term]['screenNode'],
             emptyScreen = [];
@@ -1995,28 +1979,22 @@ go.Base.update(GateOne.Terminal, {
         if (!go.prefs.embedded && !reattachCallbacks) { // Only perform the default action if not in embedded mode and there are no registered reattach callbacks.
             if (terminals.length) {
                 // Reattach the running terminals
-                var selectedMatch = false;
+                var selectedTerm = localStorage[prefix+'selectedTerminal'] + '';
                 terminals.forEach(function(termNum) {
-                    if (termNum == localStorage[prefix+'selectedTerminal']) {
-                        selectedMatch = true;
-                        setTimeout(function() {
-                            v.switchWorkspace(go.Terminal.terminals[termNum]['workspace']);
-                            go.Terminal.switchTerminal(termNum);
-                        }, 100); // Without this timeout the code that performs a translateY() to move the scrollback buffer out of view won't work properly
-                    }
                     if (!go.Terminal.terminals[termNum]) {
                         go.Terminal.newTerminal(termNum);
                         go.Terminal.lastTermNumber = termNum;
                     }
                 });
-                if (!selectedMatch) {
-                    go.Terminal.switchTerminal(go.Terminal.lastTermNumber);
-                }
             } else {
                 // Create a new terminal
                 go.Terminal.lastTermNumber = 0; // Reset to 0
-                    go.Terminal.newTerminal();
+                go.Terminal.newTerminal();
             }
+            setTimeout(function() {
+                v.switchWorkspace(go.Terminal.terminals[selectedTerm]['workspace']);
+                go.Terminal.switchTerminal(go.Terminal.lastTermNumber);
+            }, 100);
         }
         E.trigger("terminal:term_reattach", terminals);
         if (go.Terminal.reattachTerminalsCallbacks.length) {
