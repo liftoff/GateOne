@@ -152,9 +152,11 @@ go.Base.update(GateOne.Terminal, {
         infoPanelBackspaceLabel.innerHTML = "<b>Backspace Key:</b> ";
         infoPanelBackspaceCheckQ.checked = true;
         infoPanelBackspaceCheckQ.onclick = function(e) {
+            var term = localStorage[prefix+'selectedTerminal'];
             go.Terminal.terminals[term]['backspace'] = String.fromCharCode(127);
         }
         infoPanelBackspaceCheckH.onclick = function(e) {
+            var term = localStorage[prefix+'selectedTerminal'];
             go.Terminal.terminals[term]['backspace'] = String.fromCharCode(8);
         }
         infoPanelBackspace.appendChild(infoPanelBackspaceCheckH);
@@ -162,6 +164,7 @@ go.Base.update(GateOne.Terminal, {
         infoPanelEncodingLabel.innerHTML = "<b>Encoding:</b> ";
         infoPanelEncoding.onblur = function(e) {
             // When the user is done editing their encoding make the change immediately
+            var term = localStorage[prefix+'selectedTerminal'];
             go.Terminal.terminals[term]['encoding'] = this.value;
             go.ws.send(JSON.stringify({'terminal:set_encoding': {'term': term, 'encoding': this.value}}));
         }
@@ -312,6 +315,7 @@ go.Base.update(GateOne.Terminal, {
             go.Input.registerShortcut('KEY_N', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.newTerminal()'});
             // Ctrl-Alt-W to close the current terminal
             go.Input.registerShortcut('KEY_W', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.Terminal.closeTerminal(localStorage["'+prefix+'selectedTerminal"], false)'});
+            go.Input.registerShortcut('KEY_P', {'modifiers': {'ctrl': false, 'alt': false, 'meta': true, 'shift': false}, 'action': 'go.Terminal.printScreen()'});
         }
         // Load the bell sound from the cache.  If that fails ask the server to send us the file.
         if (go.prefs.bellSound.length) {
@@ -377,6 +381,8 @@ go.Base.update(GateOne.Terminal, {
         E.on("go:connection_error", go.Terminal.connectionError);
         E.on("go:grid_view:open", function() {
             go.Terminal.disableScrollback();
+            // Ensure any scaled terminals are un-scaled so there's no overlap:
+            v.applyTransform(u.getNodes(go.prefs.goDiv + ' .terminal pre'), '');
             u.hideElements(go.prefs.goDiv + ' .pastearea');
         });
         E.on("go:grid_view:close", function() {
@@ -788,9 +794,7 @@ go.Base.update(GateOne.Terminal, {
 
         .. note::  Lines in *screen* that are empty strings or null will be ignored (so it is safe to pass a full array with only a single updated line).
         */
-        var u = GateOne.Utils,
-            prefix = GateOne.prefs.prefix,
-            existingPre = go.Terminal.terminals[term]['node'],
+        var existingPre = go.Terminal.terminals[term]['node'],
             existingScreen = go.Terminal.terminals[term]['screenNode'];
         if (!term) {
             term = localStorage[prefix+'selectedTerminal'];
@@ -1550,8 +1554,12 @@ go.Base.update(GateOne.Terminal, {
 
         Calls `GateOne.Terminal.setTerminal(*term*)` then triggers the 'terminal:switch_terminal' event passing *term* as the only argument.
         */
+        logDebug('switchTerminal('+ term + ')');
         if (!term) {
             return true; // Sometimes this can happen if certain things get called a bit too early or out-of-order.  Not a big deal since everything will catch up eventually.
+        }
+        if (!go.Terminal.terminals[term]) {
+            return true; // This can happen if the user clicks on a terminal in the moments before it has completed initializing.
         }
         // Always run setActive
         go.Terminal.setActive(term);
@@ -1650,6 +1658,31 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.showIcons();
         }
     },
+    printScreen: function(term) {
+        /**GateOne.Terminal.printScreen(term)
+
+        Prints *just* the screen (no scrollback) of the given *term*.  If *term* is not provided the currently-selected terminal will be used.
+        */
+        var term = term || localStorage[prefix+'selectedTerminal'],
+            scrollbackHTML = "",
+            scrollbackNode = go.Terminal.terminals[term]['scrollbackNode'];
+        if (scrollbackNode) {
+            scrollbackHTML = scrollbackNode.innerHTML;
+            scrollbackNode.innerHTML = ""; // Empty it out
+        }
+        // The print dialog does strange things to the order of things in terms of input/key events so we have to temporarily disableCapture()
+        go.Terminal.Input.disableCapture();
+        window.print();
+        if (scrollbackNode) {
+            scrollbackNode.innerHTML = scrollbackHTML; // Put it back
+        }
+        // Re-enable capturing of keyboard input
+        go.Terminal.Input.capture();
+        setTimeout(function() {
+            go.Terminal.Input.inputNode.value = ""; // Empty it because there's a good chance it will contain 'p'
+            go.Terminal.alignTerminal(term); // Fix any alignment issues
+        }, 1500);
+    },
     hideIcons: function() {
         /**:GateOne.Terminal.hideIcons()
 
@@ -1664,7 +1697,6 @@ go.Base.update(GateOne.Terminal, {
 
         Shows (unhides) the Terminal's toolbar icons (i.e. when another application is running).
         */
-        u.showElement('#'+prefix+'icon_closepanel');
         u.showElement('#'+prefix+'icon_closeterm');
         u.showElement('#'+prefix+'icon_info');
         u.showElement('#'+prefix+'icon_newterm');

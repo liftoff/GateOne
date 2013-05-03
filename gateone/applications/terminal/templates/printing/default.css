@@ -56,6 +56,11 @@ textarea {
     padding: 0;
     float: none;
     white-space: pre-wrap;
+    -webkit-transform: none !important;
+    -moz-transform: none !important;
+    -ms-transform: none !important;
+    -o-transform: none !important;
+    transform: none !important;
 }
 span.cursor { color: #fff; background-color: #000; }
 span.reverse { background-color: #aaa; color: #fff; }
@@ -63,6 +68,9 @@ span.reverse { background-color: #aaa; color: #fff; }
     display: none;
 }
 .toolbar {
+    display: none;
+}
+.toolbar_container {
     display: none;
 }
 .✈infocontainer {
@@ -77,7 +85,7 @@ span.reverse { background-color: #aaa; color: #fff; }
     font-size: 1.1em;
 }
 .pastearea {
-    display: none;
+    display: none !important;
 }
 .go_none { /* No prefix on this one because of issues with that in the JS code */
     display: none;
@@ -122,7 +130,7 @@ span.reverse { background-color: #aaa; color: #fff; }
 .✈user_info a:hover {
     cursor: pointer;
 }
-  .dialogcontainer {
+.✈dialogcontainer {
     display: none;
 }
 .✈dialogdiv {

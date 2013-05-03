@@ -1266,14 +1266,15 @@ GateOne.Base.update(GateOne.Utils, {
             // This is for handling any given CSS file
             if (message['css']) {
                 if (message['data'].length) {
-                    var stylesheet, existing, themeStyle = u.getNode('#'+prefix+'theme');
+                    var stylesheet, existing, themeStyle = u.getNode('#'+prefix+'theme'),
+                        media = message['media'] || 'screen';
                     if (message['element_id']) {
                         // Use the element ID that was provided
                         existing = u.getNode('#'+prefix+message['element_id']);
-                        stylesheet = u.createElement('style', {'id': message['element_id'], 'rel': 'stylesheet', 'type': 'text/css', 'media': 'screen'});
+                        stylesheet = u.createElement('style', {'id': message['element_id'], 'rel': 'stylesheet', 'type': 'text/css', 'media': media});
                     } else {
                         existing = u.getNode('#'+prefix+message['filename']+"_css");
-                        stylesheet = u.createElement('style', {'id': message['filename']+"_css", 'rel': 'stylesheet', 'type': 'text/css', 'media': 'screen'});
+                        stylesheet = u.createElement('style', {'id': message['filename']+"_css", 'rel': 'stylesheet', 'type': 'text/css', 'media': media});
                     }
                     stylesheet.textContent = message['data'];
                     if (existing) {
@@ -1283,17 +1284,17 @@ GateOne.Base.update(GateOne.Utils, {
                     }
                 }
             }
-            if (message['print']) {
-                var colors = u.getNode('#'+prefix+'text_colors'),
-                    existing = u.getNode('#'+prefix+'print'),
-                    stylesheet = u.createElement('style', {'id': 'print', 'rel': 'stylesheet', 'type': 'text/css', 'media': 'print'});
-                stylesheet.textContent = message['print'];
-                if (existing) {
-                    existing.textContent = message['print'];
-                } else { // Print stylesheet needs to come before everything else which means above 'colors'
-                    u.getNode("head").insertBefore(stylesheet, colors);
-                }
-            }
+//             if (message['print']) {
+//                 var colors = u.getNode('#'+prefix+'text_colors'),
+//                     existing = u.getNode('#'+prefix+'print'),
+//                     stylesheet = u.createElement('style', {'id': 'print', 'rel': 'stylesheet', 'type': 'text/css', 'media': 'print'});
+//                 stylesheet.textContent = message['print'];
+//                 if (existing) {
+//                     existing.textContent = message['print'];
+//                 } else { // Print stylesheet needs to come before everything else which means above 'colors'
+//                     u.getNode("head").insertBefore(stylesheet, colors);
+//                 }
+//             }
         }
         delete message['result'];
         if (noCache === undefined && message['cache'] != false) {
@@ -2830,9 +2831,12 @@ GateOne.Base.update(GateOne.Visual, {
         go.Events.trigger("go:update_dimensions", go.Visual.goDimensions);
     },
     applyTransform: function (obj, transform) {
-        // Applys the given CSS3 *transform* to *obj* for all known vendor prefixes (e.g. -<whatever>-transform)
-        // *obj* can be a string, a node, an array of nodes, or a NodeList.  In the case that *obj* is a string,
-        // GateOne.Utils.getNode(*obj*) will be performed under the assumption that the string represents a CSS selector.
+        /**:GateOne.Visual.applyTransform(obj, transform)
+
+        Applies the given CSS3 *transform* to *obj* for all known vendor prefixes (e.g. -<whatever>-transform).
+
+        *obj* can be a string, a node, an array of nodes, or a NodeList.  In the case that *obj* is a string, GateOne.Utils.getNode(*obj*) will be performed under the assumption that the string represents a CSS selector.
+        */
 //         logDebug('applyTransform(' + typeof(obj) + ', ' + transform + ')');
         var transforms = {
             '-webkit-transform': '', // Chrome/Safari/Webkit-based stuff
@@ -4521,7 +4525,7 @@ GateOne.Base.update(GateOne.Storage, {
                             }
                         } else if (remoteFileObj['kind'] == 'css') {
                             // Emulate an incoming message from the server to load this CSS
-                            var messageObj = {'result': 'Success', 'css': true, 'kind': localFileObj['kind'], 'filename': localFileObj['filename'], 'data': localFileObj['data'], 'element_id': remoteFileObj['element_id']};
+                            var messageObj = {'result': 'Success', 'css': true, 'kind': localFileObj['kind'], 'filename': localFileObj['filename'], 'data': localFileObj['data'],  'element_id': remoteFileObj['element_id'], 'media': localFileObj['media']};
                             u.loadStyleAction(messageObj, true); // true here indicates "don't cache" (already cached)
                         }
                     }

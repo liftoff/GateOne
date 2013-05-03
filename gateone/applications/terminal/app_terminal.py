@@ -480,8 +480,9 @@ class TerminalApplication(GOApplication):
             os.path.join(APPLICATION_PATH, 'plugins'),
             application="terminal",
             requires="terminal_input.js")
-        # Send the client the 256-color style information
+        # Send the client the 256-color style information and our printing CSS
         self.send_256_colors()
+        self.send_print_stylesheet()
         sess = SESSIONS[self.ws.session]
         # Create a place to store app-specific stuff related to this session
         # (but not necessarily this 'location')
@@ -1497,9 +1498,6 @@ class TerminalApplication(GOApplication):
         filename = "term_colors.css" # Make sure it's the same every time
         mtime = os.stat(rendered_path).st_mtime
         kind = 'css'
-        #print_css_path = os.path.join(printing_path, "default.css")
-        #rendered_path = self.render_style(print_css_path, **template_args)
-        # TODO: Do something about the print stylesheet (needs to go in terminal)
         out_dict['files'].append({
             'filename': filename,
             'mtime': mtime,
@@ -1899,6 +1897,17 @@ class TerminalApplication(GOApplication):
         Sends the client the CSS to handle 256 color support.
         """
         self.ws.send_css(self.render_256_colors())
+
+    def send_print_stylesheet(self):
+        """
+        Sends the 'templates/printing/default.css' stylesheet to the client
+        using `ApplicationWebSocket.ws.send_css` with the "media" set to
+        "print".
+        """
+        print_css_path = os.path.join(
+            APPLICATION_PATH, 'templates', 'printing', 'default.css')
+        self.ws.send_css(
+            print_css_path, element_id="terminal_print_css", media="print")
 
     @require(authenticated())
     def debug_terminal(self, term):

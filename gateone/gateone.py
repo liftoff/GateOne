@@ -1673,9 +1673,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 rendered_path = self.render_style(
                     theme_css_file, **template_args)
                 theme_files.append(rendered_path)
-        #print_css_path = os.path.join(printing_path, "default.css")
-        #rendered_path = self.render_style(print_css_path, **template_args)
-        # TODO: Do something about the print stylesheet (needs to go in terminal)
         # Combine the theme files into one
         filename = 'theme.css' # Don't need a hashed name for the theme
         cached_theme_path = os.path.join(cache_dir, filename)
@@ -1783,10 +1780,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                 "No expired %s files at client %s" %
                 (kind, self.request.remote_ip)))
             return
-        #out_dict = {
-            #'filenames': expired,
-            #'kind': message['kind']
-        #}
         logging.debug(_(
             "Requesting deletion of expired files at client %s: %s" % (
             self.request.remote_ip, filenames)))
@@ -1853,6 +1846,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         kind = self.file_cache[filename_hash]['kind']
         mtime = self.file_cache[filename_hash]['mtime']
         requires = self.file_cache[filename_hash].get('requires', None)
+        media = self.file_cache[filename_hash].get('media', 'screen')
         out_dict = {
             'result': 'Success',
             'cache': use_client_cache,
@@ -1860,7 +1854,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'filename': filename_hash,
             'kind': kind,
             'element_id': element_id,
-            'requires': requires
+            'requires': requires,
+            'media': media
         }
         if filename.endswith('.js'):
             # JavaScript files can have dependencies which require that the
@@ -1883,7 +1878,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         self.write_message(message)
 
     def send_js_or_css(self,
-        paths_or_fileobj, kind, element_id=None, requires=None):
+        paths_or_fileobj, kind, element_id=None, requires=None, media="screen"):
         """
         Initiates a file synchronization of the given *paths_or_fileobj* with
         the client to ensure it has the latest version of the file(s).
@@ -1897,6 +1892,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
         Optionally, a *requires* string or list/tuple may be given which will
         ensure that the given file gets loaded after any dependencies.
+
+        Optionally, a *media* string may be provided to specify the 'media='
+        value when creating a <style> tag to hold the given CSS.
 
         .. note: If the slimit module is installed it will be used to minify the JS before being sent to the client.
         """
@@ -1940,7 +1938,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     'path': path,
                     'mtime': mtime,
                     'element_id': element_id,
-                    'requires': requires
+                    'requires': requires,
+                    'media': media # NOTE: Ignored if JS
                 }
                 if self.settings['debug']:
                     # This makes sure that the files are always re-downloaded
@@ -1952,7 +1951,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
                     'filename': filename,
                     'mtime': mtime,
                     'kind': kind,
-                    'requires': requires
+                    'requires': requires,
+                    'media': media # NOTE: Ignored if JS
                 })
             if use_client_cache:
                 message = {'go:file_sync': out_dict}
@@ -1986,7 +1986,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'path': path,
             'mtime': mtime,
             'element_id': element_id,
-            'requires': requires
+            'requires': requires,
+            'media': media # NOTE: Ignored if JS
         }
         if self.settings['debug']:
             # This makes sure that the files are always re-downloaded
@@ -1998,7 +1999,8 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'filename': filename,
             'mtime': mtime,
             'kind': kind,
-            'requires': requires
+            'requires': requires,
+            'media': media # NOTE: Ignored if JS
         }]}
         if use_client_cache:
             message = {'go:file_sync': out_dict}
@@ -2007,19 +2009,22 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             files = [a['filename'] for a in out_dict['files']]
             self.file_request(files, use_client_cache=use_client_cache)
 
-    def send_js(self, path, requires=None):
+    def send_js(self, path, element_id=None, requires=None):
         """
         A shortcut for `self.send_js_or_css(path, 'js', requires=requires)`.
         """
-        self.send_js_or_css(path, 'js', requires=requires)
+        self.send_js_or_css(
+            path, 'js', element_id=element_id, requires=requires)
 
-    def send_css(self, path):
+    def send_css(self, path, element_id=None, media="screen"):
         """
-        A shortcut for `self.send_js_or_css(path, 'css')`
+        A shortcut for
+        `self.send_js_or_css(path, 'css', element_id=element_id, media=media)`
         """
-        self.send_js_or_css(path, 'css')
+        self.send_js_or_css(path, 'css', element_id=element_id, media=media)
 
-    def render_and_send_css(self, css_path, **kwargs):
+    def render_and_send_css(self,
+            css_path, element_id=None, media="screen", **kwargs):
         """
         Renders, caches (in the `cache_dir`), and sends a stylesheet template at
         the given *css_path*.  The template will be rendered with the following
@@ -2032,7 +2037,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
         Returns the path to the rendered template.
 
-        .. note:: If you want to serve Gate One's CSS via a different mechanism (e.g. nginx) this functionality can be completely disabled by adding `'send_css': false` to gateone/settings/10server.conf
+        .. note::
+
+            If you want to serve Gate One's CSS via a different mechanism
+            (e.g. nginx) this functionality can be completely disabled by adding
+            `'send_css': false` to gateone/settings/10server.conf
         """
         send_css = self.prefs['*']['gateone'].get('send_css', True)
         if not send_css:
@@ -2049,8 +2058,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if os.path.exists(rendered_path):
             self.send_css(rendered_path)
             return
-        #with io.open(css_path) as f:
-            #css_template = tornado.template.Template(f.read())
         template_loaders = tornado.web.RequestHandler._template_loaders
         # This wierd little bit empties Tornado's template cache:
         for web_template_path in template_loaders:
@@ -3209,7 +3216,7 @@ def main():
         except OSError:
             import pwd
             logging.error(_(
-                "Error: Gate One could not create %s.  Please ensure that user,"
+                "Gate One could not create %s.  Please ensure that user,"
                 " %s has permission to create this directory or create it "
                 "yourself and make user, %s its owner." % (go_settings['user_dir'],
                 repr(pwd.getpwuid(os.geteuid())[0]),
