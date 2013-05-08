@@ -831,7 +831,7 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
             if (screenSpan.getClientRects()[0]) {
                 v.applyTransform(termPre, ''); // Have to reset in order to perform calculations
-                var emDimensions = u.getEmDimensions(GateOne.Terminal.terminals[term]['screenNode'], GateOne.node),
+                var emDimensions = u.getEmDimensions(go.Terminal.terminals[term]['screenNode'], go.node),
                     nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
                     nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
                 if (nodeHeight < go.node.offsetHeight) { // Resize to fit
