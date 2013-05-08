@@ -831,10 +831,14 @@ go.Base.update(GateOne.Terminal, {
         if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
             if (screenSpan.getClientRects()[0]) {
                 v.applyTransform(termPre, ''); // Have to reset in order to perform calculations
-                var nodeHeight = screenSpan.getClientRects()[0].top;
-                if (nodeHeight < go.node.clientHeight) { // Resize to fit
-                    var scale = go.node.clientHeight / (go.node.clientHeight - nodeHeight),
-                        transform = "scale(" + scale + ", " + scale + ")";
+                var emDimensions = u.getEmDimensions(GateOne.Terminal.terminals[1]['screenNode'], GateOne.node),
+                    nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
+                    nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
+                if (nodeHeight < go.node.offsetHeight) { // Resize to fit
+                    var scaleY = go.node.offsetHeight / nodeHeight,
+                        scaleX = go.node.offsetWidth / nodeWidth,
+                        scale = Math.min(scaleX, scaleY), // Use the lesser of the two so the terminal doesn't stretch in odd ways
+                        transform = transform = "scale(" + scale + ", " + scale + ")";
                     v.applyTransform(termPre, transform);
                 }
             }
