@@ -76,7 +76,7 @@ import os, logging, re
 
 # Import our own stuff
 from utils import mkdir_p, generate_session_id, noop, RUDict
-from utils import get_translation, memoize, get_settings
+from utils import get_translation, memoize
 
 # 3rd party imports
 import tornado.web
@@ -280,7 +280,6 @@ def additional_attributes(user, settings_dir=None):
     # Doesn't do anything yet
     if not settings_dir:
         settings_dir = os.path.join(GATEONE_DIR, 'settings')
-    settings = get_settings(settings_dir)
     return user
 
 # Authentication stuff

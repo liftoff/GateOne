@@ -1,5 +1,5 @@
 /* Terminal white theme */
-#{{container}} .terminal {
+.✈terminal {
     line-height: 1;
     height: 100%; /* NOTE: This is important for the getRowsAndColumns() calculation */
     position: absolute;
@@ -24,17 +24,17 @@
     transition-duration: 1s;
     transition-timing-function: ease-in-out;
 }
-#{{container}} .✈inactive span.cursor {
+.✈inactive span.cursor {
     border: 1px #000 solid;
     background-color: transparent;
 }
-#{{container}} .terminal a {
+.✈terminal a {
     color: maroon;
 }
-#{{container}} .terminal a:visited {
+.✈terminal a:visited {
     color: maroon;
 }
-#{{container}} .terminal pre {
+.✈terminal pre {
     font-family: 'Ubuntu Mono', monospace;
     background-color: #fff;
     color: #000;
@@ -58,12 +58,12 @@
     -o-transform-origin: left bottom;
     transform-origin: left bottom;
 }
-#{{container}} .✈terminfo {
+.✈terminfo {
     color: #000;
     font-weight: bold;
     font-size: 1.1em;
 }
 /* The "reverse" default needs to be set in the theme since the background will vary */
-#{{container}} span.reverse { color: #000; background-color: #fff; }
-#{{container}} span.cursor { color: #fff; background-color: #000; }
-#{{container}} span.reverse { background-color: #aaa; color: #fff; }
+span.reverse { color: #000; background-color: #fff; }
+span.cursor { color: #fff; background-color: #000; }
+span.reverse { background-color: #aaa; color: #fff; }

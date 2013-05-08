@@ -47,6 +47,9 @@ import os
 import re
 import logging
 import terminal
+from utils import get_translation
+
+_ = get_translation()
 
 class HTMLOutput(terminal.FileType):
     """
@@ -101,7 +104,6 @@ class HTMLOutput(terminal.FileType):
         html = str(data).replace('\r\n', '\n')
         # Get rid of the '\x90;HTML|' and '\x90' parts
         html = html[7:-1]
-        bad_tag = False
         for tag in self.re_html_tag.finditer(html):
             tag_lower = tag.group().lower()
             short_tag = tag_lower.split()[0].lstrip('</').rstrip('>')

@@ -333,7 +333,7 @@ var go = GateOne.Base.update(GateOne, {
                     if (!localStorage[go.prefs.prefix+'disableWarning']) {
                         // Warn the user about their browser's missing capabilities if they haven't checked off "Don't display this warning again"
                         var container = u.createElement('div', {'style': {'text-align': 'left', 'margin-left': '1.5em', 'margin-right': '1.5em'}}),
-                            done = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+                            done = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
                             disableWarning = u.createElement('input', {'type': 'checkbox', 'id': 'disableWarning', 'style': {'margin-top': '1em', 'display': 'inline', 'width': 'auto'}}),
                             disableWarningLabel = u.createElement('label', {'style': {'font-size': '1em', 'font-weight': 'normal', 'display': 'inline', 'width': 'auto'}}),
                             missingList = u.createElement('ul');
@@ -416,31 +416,31 @@ var go = GateOne.Base.update(GateOne, {
             E = go.Events,
             prefix = go.prefs.prefix,
             goDiv = u.getNode(go.prefs.goDiv),
-            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
-            prefsPanel = u.createElement('div', {'id': 'panel_prefs', 'class':'panel ✈prefs_panel'}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
+            prefsPanel = u.createElement('div', {'id': 'panel_prefs', 'class':'✈panel ✈prefs_panel'}),
             prefsPanelH2 = u.createElement('h2'),
             prefsPanelForm = u.createElement('form', {'id': 'prefs_form', 'name': prefix+'prefs_form'}),
             prefsList = u.createElement('div', {'id': 'prefs_list', 'class': '✈prefs_list'}),
             prefsListUL = u.createElement('ul', {'id': 'prefs_list_ul'}),
             prefsContent = u.createElement('div', {'id': 'prefs_content', 'class': '✈prefs_content'}),
-            prefsPanelStyleRow1 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelStyleRow3 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelStyleRow4 = u.createElement('div', {'class':'paneltablerow'}),
-            tableDiv = u.createElement('div', {'id': 'prefs_tablediv1', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            prefsPanelThemeLabel = u.createElement('span', {'id': 'prefs_theme_label', 'class':'paneltablelabel'}),
+            prefsPanelStyleRow1 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelStyleRow3 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelStyleRow4 = u.createElement('div', {'class':'✈paneltablerow'}),
+            tableDiv = u.createElement('div', {'id': 'prefs_tablediv1', 'class':'✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            prefsPanelThemeLabel = u.createElement('span', {'id': 'prefs_theme_label', 'class':'✈paneltablelabel'}),
             prefsPanelTheme = u.createElement('select', {'id': 'prefs_theme', 'name': prefix+'prefs_theme', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelFontSizeLabel = u.createElement('span', {'id': 'prefs_fontsize_label', 'class':'paneltablelabel'}),
+            prefsPanelFontSizeLabel = u.createElement('span', {'id': 'prefs_fontsize_label', 'class':'✈paneltablelabel'}),
             prefsPanelFontSize = u.createElement('input', {'id': 'prefs_fontsize', 'name': prefix+'prefs_fontsize', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelDisableTransitionsLabel = u.createElement('span', {'id': 'prefs_disabletrans_label', 'class':'paneltablelabel'}),
+            prefsPanelDisableTransitionsLabel = u.createElement('span', {'id': 'prefs_disabletrans_label', 'class':'✈paneltablelabel'}),
             prefsPanelDisableTransitions = u.createElement('input', {'id': 'prefs_disabletrans', 'name': prefix+'prefs_disabletrans', 'value': 'disabletrans', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelSave = u.createElement('button', {'id': 'prefs_save', 'type': 'submit', 'value': 'Save', 'class': 'button black ✈save_button'}),
+            prefsPanelSave = u.createElement('button', {'id': 'prefs_save', 'type': 'submit', 'value': 'Save', 'class': '✈button ✈black ✈save_button'}),
             noticeContainer = u.createElement('div', {'id': 'noticecontainer', 'class': '✈noticecontainer'}),
-            toolbar = u.createElement('div', {'id': 'toolbar', 'class': 'toolbar_container'}),
-            toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'toolbar', 'title': gettext("Preferences")}),
-            panels = u.getNodes(go.prefs.goDiv + ' .panel'),
+            toolbar = u.createElement('div', {'id': 'toolbar', 'class': '✈toolbar_container'}),
+            toolbarIconPrefs = u.createElement('div', {'id': 'icon_prefs', 'class':'✈toolbar', 'title': gettext("Preferences")}),
+            panels = u.getNodes('.✈panel'),
             // Firefox doesn't support 'mousewheel'
 //             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel",
-            sideinfo = u.createElement('div', {'id': 'sideinfo', 'class':'sideinfo'}),
+            sideinfo = u.createElement('div', {'id': 'sideinfo', 'class':'✈sideinfo'}),
             updateCSSfunc = function(panelNode) {
                 if (panelNode.id == prefix+'panel_prefs') {
                     go.ws.send(JSON.stringify({'go:enumerate_themes': null}));
@@ -477,9 +477,7 @@ var go = GateOne.Base.update(GateOne, {
         prefsPanelSave.innerHTML = "Save";
         prefsPanelForm.appendChild(prefsPanelSave);
         prefsPanel.appendChild(prefsPanelForm);
-//         if (!go.prefs.embedded) {
-            goDiv.appendChild(prefsPanel); // Doesn't really matter where it goes
-//         }
+        goDiv.appendChild(prefsPanel); // Doesn't really matter where it goes
         go.User.preference("Gate One", tableDiv);
         prefsPanelForm.onsubmit = function(e) {
             e.preventDefault(); // Don't actually submit
@@ -516,7 +514,7 @@ var go = GateOne.Base.update(GateOne, {
             }
             if (disableTransitions) {
                 var newStyle = u.createElement('style', {'id': 'disable_transitions'});
-                newStyle.innerHTML = go.prefs.goDiv + " .workspace {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
+                newStyle.innerHTML = ".✈workspace {-webkit-transition: none; -moz-transition: none; -ms-transition: none; -o-transition: none; transition: none;}";
                 u.getNode(goDiv).appendChild(newStyle);
                 go.prefs.disableTransitions = true;
             } else {
@@ -635,7 +633,7 @@ var go = GateOne.Base.update(GateOne, {
         go.Events.trigger("go:initialized");
         setTimeout(function() {
             // Make sure all the panels have their style set to 'display:none' to prevent their form elements from gaining focus when the user presses the tab key (only matters when a dialog or other panel is open)
-            u.hideElements(go.prefs.goDiv+' .panel');
+            u.hideElements('.✈panel');
         }, 500);
     }
 });
@@ -828,15 +826,15 @@ GateOne.Base.update(GateOne.Utils, {
         var u = GateOne.Utils,
             node = u.getNode(elem);
         node.style.display = 'block';
-        node.className = node.className.replace(/(?:^|\s)go_none(?!\S)/, '');
+        node.className = node.className.replace(/(?:^|\s)✈go_none(?!\S)/, '');
     },
     hideElement: function(elem) {
         // Sets the 'display' style of the given element to 'none'
         var u = GateOne.Utils,
             node = u.getNode(elem);
         node.style.display = 'none';
-        if (node.className.indexOf('go_none') == -1) {
-            node.className += " go_none";
+        if (node.className.indexOf('✈go_none') == -1) {
+            node.className += " ✈go_none";
         }
     },
     showElements: function(elems) {
@@ -847,7 +845,7 @@ GateOne.Base.update(GateOne.Utils, {
         elems.forEach(function(elem) {
             var node = u.getNode(elem);
             node.style.display = ''; // Reset
-            node.className = node.className.replace(/(?:^|\s)go_none(?!\S)/, '');
+            node.className = node.className.replace(/(?:^|\s)✈go_none(?!\S)/, '');
         });
     },
     hideElements: function(elems) {
@@ -860,8 +858,8 @@ GateOne.Base.update(GateOne.Utils, {
         elems.forEach(function(elem) {
             var node = u.getNode(elem);
             node.style.display = 'none';
-            if (node.className.indexOf('go_none') == -1) {
-                node.className += " go_none";
+            if (node.className.indexOf('✈go_none') == -1) {
+                node.className += " ✈go_none";
             }
         });
     },
@@ -974,53 +972,7 @@ GateOne.Base.update(GateOne.Utils, {
         }
         return txt.toString();
     },
-//     getEmDimensions: function(elem) {
-//         /**:GateOne.Utils.getEmDimensions(elem)
-//
-//         Returns the height and width of 1em inside the given elem (e.g. 'term1_pre').  The returned object will be in the form of::
-//
-//              {'w': <width in px>, 'h': <height in px>}
-//         */
-//         var u = GateOne.Utils,
-//             node = u.getNode(elem),
-//             node = node.cloneNode(false), // Work on a clone so we can leave the original alone
-//             sizingDiv = document.createElement("div"),
-//             sizingPre = document.createElement("pre"),
-//             fillerX = '', fillerY = [],
-//             lineCounter = 0;
-//         if (!u.isVisible(node)) {
-//             // Reset so it is visible
-//             node.style.display = '';
-//             node.style.opacity = 1;
-//         }
-//         // We need to place the cloned node into the DOM for the calculation to work properly
-//         document.body.appendChild(node);
-//         sizingDiv.id = "go_sizingDiv";
-//         sizingDiv.className = "terminal";
-//         sizingDiv.style.wordWrap = 'normal';
-//         // We need a number of lines so we can factor in the line height and character spacing (if it has been messed with either directly or indirectly via the font renderer).
-//         for (var i=0; i <= 63; i++) {
-//             fillerX += "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  NOTE: Using the \u syntax because some minifiers break when they encounter unicode literals (besides, it can be tough to guess the encoding of a JavaScript file with no HTTP encoding header)
-//         }
-//         for (var i=0; i <= 63; i++) {
-//             fillerY.push(fillerX);
-//         }
-//         sizingPre.innerHTML = fillerY.join('\n');
-//         // Set the attributes of our copy to reflect a minimal-size block element
-//         sizingPre.style.width = 'auto';
-//         sizingPre.style.height = 'auto';
-//         // Add in our sizingDiv and grab its height
-//         sizingDiv.appendChild(sizingPre);
-//         node.appendChild(sizingDiv);
-//         var nodeHeight = sizingPre.getClientRects()[0].height,
-//             nodeWidth = sizingPre.getClientRects()[0].width;
-//         nodeHeight = parseInt(nodeHeight)/64;
-//         nodeWidth = parseInt(nodeWidth)/64;
-//         // Clean up, clean up
-//         node.removeChild(sizingDiv);
-//         document.body.removeChild(node);
-//         return {'w': nodeWidth, 'h': nodeHeight};
-//     },
+    prevEmDimensions: {'w': 7, 'h': 13}, // Used if something goes wrong doing the calculation.  These are just reasonable defaults that will be overwritten
     getEmDimensions: function(elem, /*opt*/where) {
         /**:GateOne.Utils.getEmDimensions(elem[, where])
 
@@ -1038,57 +990,71 @@ GateOne.Base.update(GateOne.Utils, {
             sizingPre = document.createElement("pre"),
             fillerX = '', fillerY = [],
             lineCounter = 0;
-        // We need to place the cloned node into the DOM for the calculation to work properly
-        node.id = 'sizingNode';
-        if (where) {
-            where = u.getNode(where);
-            where.appendChild(node);
-        } else {
-            document.body.appendChild(node);
+        if (!node.style) { // This can happen if the user clicks back and forth really quickly in the middle of running this function
+            return u.prevEmDimensions;
         }
-        if (!u.isVisible(node)) {
-            // Reset so it is visible
-            node.style.display = '';
-            node.style.opacity = 1;
+        try {
+            // We need to place the cloned node into the DOM for the calculation to work properly
+            node.id = 'sizingNode';
+            if (where) {
+                where = u.getNode(where);
+                where.appendChild(node);
+            } else {
+                document.body.appendChild(node);
+            }
+            if (!u.isVisible(node)) {
+                // Reset so it is visible
+                node.style.display = '';
+                node.style.opacity = 1;
+            }
+            node.className = "✈terminal";
+            // We need a number of lines so we can factor in the line height and character spacing (if it has been messed with either directly or indirectly via the font renderer).
+            for (var i=0; i <= 63; i++) {
+                fillerX += "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  NOTE: Using the \u syntax because some minifiers break when they encounter unicode literals (besides, it can be tough to guess the encoding of a JavaScript file with no HTTP encoding header)
+            }
+            for (var i=0; i <= 63; i++) {
+                fillerY.push(fillerX);
+            }
+            sizingPre.innerHTML = fillerY.join('\n');
+            // Set the attributes of our copy to reflect a minimal-size block element
+            node.style.position = 'fixed';
+            node.style.top = 0;
+            node.style.left = 0;
+            node.style.bottom = 'auto';
+            node.style.right = 'auto';
+            node.style.width = 'auto';
+            node.style.height = 'auto';
+            sizingPre.style.position = 'absolute';
+            sizingPre.style.top = 0;
+            sizingPre.style.left = 0;
+            sizingPre.style.bottom = 'auto';
+            sizingPre.style.right = 'auto';
+            sizingPre.style.width = 'auto';
+            sizingPre.style.height = 'auto';
+            // Add in our sizingDiv and grab its height
+            node.appendChild(sizingPre);
+            var nodeHeight = sizingPre.getClientRects()[0].height,
+                nodeWidth = sizingPre.getClientRects()[0].width;
+            nodeHeight = parseInt(nodeHeight)/64;
+            nodeWidth = parseInt(nodeWidth)/64;
+            // Clean up, clean up
+            node.removeChild(sizingPre);
+            if (where) {
+                where.removeChild(node);
+            } else {
+                document.body.removeChild(node);
+            }
+            u.prevEmDimensions = {'w': nodeWidth, 'h': nodeHeight};
+        } catch(e) {
+            logError("Error getting em dimensions: " + e);
+            // Cleanup
+            if (where) {
+                where.removeChild(node);
+            } else {
+                document.body.removeChild(node);
+            }
         }
-        node.className = "terminal";
-        // We need a number of lines so we can factor in the line height and character spacing (if it has been messed with either directly or indirectly via the font renderer).
-        for (var i=0; i <= 63; i++) {
-            fillerX += "\u2588"; // Fill it with a single character (this is a unicode "full block": █).  NOTE: Using the \u syntax because some minifiers break when they encounter unicode literals (besides, it can be tough to guess the encoding of a JavaScript file with no HTTP encoding header)
-        }
-        for (var i=0; i <= 63; i++) {
-            fillerY.push(fillerX);
-        }
-        sizingPre.innerHTML = fillerY.join('\n');
-        // Set the attributes of our copy to reflect a minimal-size block element
-        node.style.position = 'fixed';
-        node.style.top = 0;
-        node.style.left = 0;
-        node.style.bottom = 'auto';
-        node.style.right = 'auto';
-        node.style.width = 'auto';
-        node.style.height = 'auto';
-        sizingPre.style.position = 'absolute';
-        sizingPre.style.top = 0;
-        sizingPre.style.left = 0;
-        sizingPre.style.bottom = 'auto';
-        sizingPre.style.right = 'auto';
-        sizingPre.style.width = 'auto';
-        sizingPre.style.height = 'auto';
-        // Add in our sizingDiv and grab its height
-        node.appendChild(sizingPre);
-        var nodeHeight = sizingPre.getClientRects()[0].height,
-            nodeWidth = sizingPre.getClientRects()[0].width;
-        nodeHeight = parseInt(nodeHeight)/64;
-        nodeWidth = parseInt(nodeWidth)/64;
-        // Clean up, clean up
-        node.removeChild(sizingPre);
-        if (where) {
-            where.removeChild(node);
-        } else {
-            document.body.removeChild(node);
-        }
-        return {'w': nodeWidth, 'h': nodeHeight};
+        return u.prevEmDimensions;
     },
     getRowsAndColumns: function(elem) {
         /**:GateOne.Utils.getRowsAndColumns(elem)
@@ -1284,17 +1250,6 @@ GateOne.Base.update(GateOne.Utils, {
                     }
                 }
             }
-//             if (message['print']) {
-//                 var colors = u.getNode('#'+prefix+'text_colors'),
-//                     existing = u.getNode('#'+prefix+'print'),
-//                     stylesheet = u.createElement('style', {'id': 'print', 'rel': 'stylesheet', 'type': 'text/css', 'media': 'print'});
-//                 stylesheet.textContent = message['print'];
-//                 if (existing) {
-//                     existing.textContent = message['print'];
-//                 } else { // Print stylesheet needs to come before everything else which means above 'colors'
-//                     u.getNode("head").insertBefore(stylesheet, colors);
-//                 }
-//             }
         }
         delete message['result'];
         if (noCache === undefined && message['cache'] != false) {
@@ -2046,7 +2001,7 @@ GateOne.Base.update(GateOne.Net, {
         var u = go.Utils,
             v = go.Visual,
             errorElem = u.createElement('div', {'id': 'error_message'}),
-            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace')),
+            workspaces = u.toArray(u.getNodes('.✈workspace')),
             message = "<p>The WebSocket connection was closed.  Will attempt to reconnect every 5 seconds...</p><p>NOTE: Some web proxies do not work properly with WebSockets.</p>";
         logError("Error communicating with server... ");
         workspaces.forEach(function(wsObj) {
@@ -2303,7 +2258,7 @@ GateOne.Base.update(GateOne.Input, {
                 e.preventDefault();
             }, true);
             setTimeout(function() {
-                u.hideElements('.pastearea');
+                u.hideElements('.✈pastearea');
             }, 3000);
         }
     },
@@ -2722,10 +2677,10 @@ GateOne.Base.update(GateOne.Visual, {
     init: function() {
         var u = go.Utils,
             v = go.Visual,
-            toolbarGrid = u.createElement('div', {'id': go.prefs.prefix+'icon_grid', 'class': 'toolbar', 'title': "Grid View"}),
+            toolbarGrid = u.createElement('div', {'id': go.prefs.prefix+'icon_grid', 'class': '✈toolbar', 'title': "Grid View"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
         // Add our grid icon to the icons list
-        GateOne.Icons['grid'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="gridGradient" y2="255.75" gradientUnits="userSpaceOnUse" x2="311.03" gradientTransform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,261.98407,-149.06549)" y1="227.75" x1="311.03"><stop class="stop1" offset="0"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.66103562,-0.67114094,0.66103562,0.67114094,-611.1013,-118.18392)"><g fill="url(#gridGradient)" transform="translate(63.353214,322.07725)"><polygon points="311.03,255.22,304.94,249.13,311.03,243.03,317.13,249.13"/><polygon points="318.35,247.91,312.25,241.82,318.35,235.72,324.44,241.82"/><polygon points="303.52,247.71,297.42,241.61,303.52,235.52,309.61,241.61"/><polygon points="310.83,240.39,304.74,234.3,310.83,228.2,316.92,234.3"/></g></g></svg>';
+        GateOne.Icons['grid'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="gridGradient" y2="255.75" gradientUnits="userSpaceOnUse" x2="311.03" gradientTransform="matrix(0.70710678,0.70710678,-0.70710678,0.70710678,261.98407,-149.06549)" y1="227.75" x1="311.03"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.66103562,-0.67114094,0.66103562,0.67114094,-611.1013,-118.18392)"><g fill="url(#gridGradient)" transform="translate(63.353214,322.07725)"><polygon points="311.03,255.22,304.94,249.13,311.03,243.03,317.13,249.13"/><polygon points="318.35,247.91,312.25,241.82,318.35,235.72,324.44,241.82"/><polygon points="303.52,247.71,297.42,241.61,303.52,235.52,309.61,241.61"/><polygon points="310.83,240.39,304.74,234.3,310.83,228.2,316.92,234.3"/></g></g></svg>';
         // Setup our toolbar icons and actions
         toolbarGrid.innerHTML = GateOne.Icons['grid'];
         var gridToggle = function() {
@@ -2754,7 +2709,7 @@ GateOne.Base.update(GateOne.Visual, {
 //         if (!go.prefs.embedded) {
 //             setTimeout(function() {
 //                 // If there's no workspaces after a while make the new workspace workspace
-//                 var workspaces = u.getNodes(go.prefs.goDiv + ' .workspace');
+//                 var workspaces = u.getNodes('.✈workspace');
 //                 if (!workspaces.length) {v.newWorkspaceWorkspace();}
 //             }, 250);
 //         }
@@ -2769,9 +2724,9 @@ GateOne.Base.update(GateOne.Visual, {
             E = go.Events,
             prefix = go.prefs.prefix,
             apps = go.User.applications,
-            titleH2 = u.createElement('h2', {'class': 'new_workspace_workspace_title'}),
-            wsContainer = u.createElement('div', {'class': 'centertrans sectrans new_workspace_workspace'}),
-            wsAppGrid = u.createElement('div', {'class': 'app_grid'}),
+            titleH2 = u.createElement('h2', {'class': '✈new_workspace_workspace_title'}),
+            wsContainer = u.createElement('div', {'class': '✈centertrans ✈sectrans ✈new_workspace_workspace'}),
+            wsAppGrid = u.createElement('div', {'class': '✈app_grid'}),
             workspace = v.newWorkspace(),
             workspaceNum = workspace.id.split(prefix+'workspace')[1];
         titleH2.innerHTML = "Gate One - Applications";
@@ -2779,9 +2734,9 @@ GateOne.Base.update(GateOne.Visual, {
         wsContainer.appendChild(titleH2);
         wsContainer.appendChild(wsAppGrid);
         apps.forEach(function(appName) {
-            var icon, appSquare = u.createElement('div', {'class': 'superfasttrans application'}),
+            var icon, appSquare = u.createElement('div', {'class': '✈superfasttrans ✈application'}),
                 appIcon = u.createElement('div', {'class': '✈appicon'}),
-                appText = u.createElement('p', {'class': 'application_text'});
+                appText = u.createElement('p', {'class': '✈application_text'});
             appText.innerHTML = appName;
             if (go.loadedApplications[appName] && go.loadedApplications[appName].__appinfo__) {
                 icon = go.loadedApplications[appName].__appinfo__.icon || go.Icons['application'];
@@ -2807,7 +2762,7 @@ GateOne.Base.update(GateOne.Visual, {
         var u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = go.node,
-            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace')),
+            workspaces = u.toArray(u.getNodes('.✈workspace')),
             wrapperDiv = u.getNode('#'+prefix+'gridwrapper'),
             style = window.getComputedStyle(goDiv, null),
             rightAdjust = 0,
@@ -2913,7 +2868,7 @@ GateOne.Base.update(GateOne.Visual, {
             panelID = panel,
             panel = u.getNode(panel),
             origState = null,
-            panels = u.getNodes(go.prefs.goDiv + ' .panel'),
+            panels = u.getNodes('.✈panel'),
             deprecatedMsg = "Use GateOne.Events.on('go:panel_toggle:in', func) or GateOne.Events.on('go:panel_toggle:out', func) instead.",
             setHideTimeout = function(panel) {
                 // Just used to get around the closure issue below
@@ -3024,7 +2979,7 @@ GateOne.Base.update(GateOne.Visual, {
             noticeContainer = u.getNode('#'+prefix+'noticecontainer'),
             notice = u.createElement('div', {'id': prefix+id, 'class': '✈notice'}),
             messageSpan = u.createElement('span'),
-            closeX = u.createElement('span', {'class': 'close_notice'}),
+            closeX = u.createElement('span', {'class': '✈close_notice'}),
             unique = u.randomPrime(),
             removeFunc = function(now) {
                 v.noticeTimers[unique] = setTimeout(function() {
@@ -3092,8 +3047,8 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             node = u.getNode(elem);
-        if (node.className.indexOf('noanimate') == -1) {
-            node.className += " noanimate";
+        if (node.className.indexOf('✈noanimate') == -1) {
+            node.className += " ✈noanimate";
         }
     },
     enableTransitions: function(elem) {
@@ -3104,7 +3059,7 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = go.Utils,
             node = u.getNode(elem);
-        node.className = node.className.replace(/(?:^|\s)noanimate(?!\S)/, '');
+        node.className = node.className.replace(/(?:^|\s)✈noanimate(?!\S)/, '');
     },
     newWorkspace: function() {
         /**:GateOne.Visual.newWorkspace()
@@ -3125,9 +3080,9 @@ GateOne.Base.update(GateOne.Visual, {
         currentWorkspace = prefix+'workspace' + v.lastWorkspaceNumber;
         if (!go.prefs.embedded) {
             // Prepare the workspace div for the grid
-            workspace = u.createElement('div', {'id': currentWorkspace, 'class': 'workspace', 'style': {'width': v.goDimensions.w + 'px', 'height': v.goDimensions.h + 'px'}});
+            workspace = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace', 'style': {'width': v.goDimensions.w + 'px', 'height': v.goDimensions.h + 'px'}});
         } else {
-            workspace = u.createElement('div', {'id': currentWorkspace, 'class': 'workspace'});
+            workspace = u.createElement('div', {'id': currentWorkspace, 'class': '✈workspace'});
         }
         gridwrapper.appendChild(workspace);
         workspace.focus();
@@ -3148,7 +3103,7 @@ GateOne.Base.update(GateOne.Visual, {
             prefix = go.prefs.prefix;
         u.removeElement('#'+prefix+'workspace' + workspace);
         // Now find out what the previous workspace was and move to it
-        var workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace'));
+        var workspaces = u.toArray(u.getNodes('.✈workspace'));
         if (message) { v.displayMessage(message); }
         workspaces.forEach(function(wsObj) {
             v.lastWorkspaceNumber = parseInt(wsObj.id.split('workspace')[1]);
@@ -3190,7 +3145,7 @@ GateOne.Base.update(GateOne.Visual, {
         This gets attached to the 'go:cleanup_workspaces' event and should be triggered by any function that may leave a workspace empty.  It walks through all the workspaces and removes any that are empty.
         */
         var u = go.Utils,
-            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace'));
+            workspaces = u.toArray(u.getNodes('.✈workspace'));
         workspaces.forEach(function(wsNode) {
             var workspaceNum = wsNode.id.split(go.prefs.prefix+'workspace')[1];
             if (!wsNode.innerHTML.length) {
@@ -3210,7 +3165,7 @@ GateOne.Base.update(GateOne.Visual, {
             count = 0,
             wPX = 0,
             hPX = 0,
-            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace')),
+            workspaces = u.toArray(u.getNodes('.✈workspace')),
             style = window.getComputedStyle(go.node, null),
             rightAdjust = 0,
             bottomAdjust = 0,
@@ -3284,7 +3239,7 @@ GateOne.Base.update(GateOne.Visual, {
             prefix = go.prefs.prefix,
             count = 0,
             workspace = 0,
-            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace'));
+            workspaces = u.toArray(u.getNodes('.✈workspace'));
         if (workspaces.length > 1) {
             workspaces.forEach(function(wsObj) {
                 if (wsObj.id == prefix + 'workspace' + localStorage[prefix+'selectedWorkspace']) {
@@ -3305,7 +3260,7 @@ GateOne.Base.update(GateOne.Visual, {
         */
         var u = go.Utils,
             prefix = go.prefs.prefix,
-            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace')),
+            workspaces = u.toArray(u.getNodes('.✈workspace')),
             count = 0,
             workspace = 0;
         if (workspaces.length > 1) {
@@ -3328,7 +3283,7 @@ GateOne.Base.update(GateOne.Visual, {
         */
         var u = go.Utils,
             prefix = go.prefs.prefix,
-            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace')),
+            workspaces = u.toArray(u.getNodes('.✈workspace')),
             count = 0,
             workspace = 0;
         if (workspaces.length > 2) {
@@ -3351,7 +3306,7 @@ GateOne.Base.update(GateOne.Visual, {
         */
         var u = go.Utils,
             prefix = go.prefs.prefix,
-            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace')),
+            workspaces = u.toArray(u.getNodes('.✈workspace')),
             count = 0,
             workspace = 0;
         if (localStorage[prefix+'selectedWorkspace'] > 1) {
@@ -3381,7 +3336,7 @@ GateOne.Base.update(GateOne.Visual, {
             hPX = 0,
             count = 0,
             currentWorkspace = localStorage[prefix+'selectedWorkspace'],
-            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace')),
+            workspaces = u.toArray(u.getNodes('.✈workspace')),
             style = window.getComputedStyle(go.node, null),
             rightAdjust = 0,
             bottomAdjust = 0,
@@ -3428,7 +3383,7 @@ GateOne.Base.update(GateOne.Visual, {
         var u = go.Utils,
             v = go.Visual,
             prefix = go.prefs.prefix,
-            workspaces = u.toArray(u.getNodes(go.prefs.goDiv + ' .workspace'));
+            workspaces = u.toArray(u.getNodes('.✈workspace'));
         if (goBack == null) {
             goBack == true;
         }
@@ -3439,7 +3394,7 @@ GateOne.Base.update(GateOne.Visual, {
             workspaces.forEach(function(wsNode) {
                 wsNode.onclick = undefined;
                 wsNode.onmouseover = undefined;
-                wsNode.classList.remove('wsshadow');
+                wsNode.classList.remove('✈wsshadow');
             });
             go.node.style.overflow = 'hidden';
             v.noReset = true; // Make sure slideToWorkspace doesn't reset the grid before applying transitions
@@ -3460,7 +3415,7 @@ GateOne.Base.update(GateOne.Visual, {
             setTimeout(function() {
                 workspaces.forEach(function(wsNode) {
                     wsNode.style.display = ''; // Make sure they're all visible
-                    wsNode.classList.add('wsshadow');
+                    wsNode.classList.add('✈wsshadow');
                     v.enableTransitions(wsNode);
                 });
                 v.applyTransform(workspaces, 'translate(0px, 0px)');
@@ -3519,7 +3474,7 @@ GateOne.Base.update(GateOne.Visual, {
     addSquare: function(squareName) {
         // Only called by createGrid; creates a workspace div and appends it to go.Visual.squares
         logDebug('creating: ' + squareName);
-        var workspace = GateOne.Utils.createElement('div', {'id': squareName, 'class': 'workspace', 'style': {'width': GateOne.Visual.goDimensions.w + 'px', 'height': GateOne.Visual.goDimensions.h + 'px'}});
+        var workspace = GateOne.Utils.createElement('div', {'id': squareName, 'class': '✈workspace', 'style': {'width': GateOne.Visual.goDimensions.w + 'px', 'height': GateOne.Visual.goDimensions.h + 'px'}});
         GateOne.Visual.squares.push(workspace);
     },
     createGrid: function(id, workspaceNames) {
@@ -3557,7 +3512,7 @@ GateOne.Base.update(GateOne.Visual, {
             goDiv = go.node,
             prevActiveElement = document.activeElement,
             unique = u.randomPrime(), // Need something unique to enable having more than one dialog on the same page.
-            dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': 'halfsectrans ✈dialogcontainer', 'title': title}),
+            dialogContainer = u.createElement('div', {'id': 'dialogcontainer_' + unique, 'class': '✈halfsectrans ✈dialogcontainer', 'title': title}),
             // dialogContent is wrapped by dialogDiv with "float: left; position: relative; left: 50%" and "float: left; position: relative; left: -50%" to ensure the content stays centered (see the theme CSS).
             dialogDiv = u.createElement('div', {'id': 'dialogdiv', 'class': '✈dialogdiv'}),
             dialogConent = u.createElement('div', {'id': 'dialogcontent', 'class': '✈dialogcontent'}),
@@ -3653,7 +3608,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             closeDialog = function(e) {
                 if (e) { e.preventDefault() }
-                dialogContainer.className = 'halfsectrans ✈dialogcontainer';
+                dialogContainer.className = '✈halfsectrans ✈dialogcontainer';
                 dialogContainer.style.opacity = 0;
                 setTimeout(function() {
                     u.removeElement(dialogContainer);
@@ -3717,7 +3672,7 @@ GateOne.Base.update(GateOne.Visual, {
         var go = GateOne,
             u = GateOne.Utils,
             v = GateOne.Visual,
-            OKButton = u.createElement('button', {'id': 'ok_button', 'type': 'reset', 'value': 'OK', 'class': 'button black', 'style': {'margin-top': '1em', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '4em'}}), // NOTE: Using a width here because I felt the regular button styling didn't make it wide enough when innerHTML is only two characters
+            OKButton = u.createElement('button', {'id': 'ok_button', 'type': 'reset', 'value': 'OK', 'class': '✈button ✈black', 'style': {'margin-top': '1em', 'margin-left': 'auto', 'margin-right': 'auto', 'width': '4em'}}), // NOTE: Using a width here because I felt the regular button styling didn't make it wide enough when innerHTML is only two characters
             messageContainer = u.createElement('p', {'id': 'ok_message', 'style': {'text-align': 'center'}});
         OKButton.innerHTML = "OK";
         if (message instanceof HTMLElement) {
@@ -3771,10 +3726,10 @@ GateOne.Base.update(GateOne.Visual, {
             v = go.Visual,
             goDiv = u.getNode(go.prefs.goDiv),
             unique = u.randomPrime(), // Need something unique to enable having more than one widget on the same page.
-            widgetContainer = u.createElement('div', {'id': 'widgetcontainer_' + unique, 'class': 'halfsectrans ✈widgetcontainer', 'name': 'widget', 'title': title}),
+            widgetContainer = u.createElement('div', {'id': 'widgetcontainer_' + unique, 'class': '✈halfsectrans ✈widgetcontainer', 'name': 'widget', 'title': title}),
             widgetDiv = u.createElement('div', {'id': 'widgetdiv', 'class': '✈widgetdiv'}),
             widgetContent = u.createElement('div', {'id': 'widgetcontent', 'class': '✈widgetcontent'}),
-            widgetTitle = u.createElement('h3', {'id': 'widgettitle', 'class': 'halfsectrans originbottommiddle ✈widgettitle'}),
+            widgetTitle = u.createElement('h3', {'id': 'widgettitle', 'class': '✈halfsectrans ✈originbottommiddle ✈widgettitle'}),
             close = u.createElement('div', {'id': 'widget_close', 'class': '✈widget_close'}),
             configure = u.createElement('div', {'id': 'widget_configure', 'class': '✈widget_configure'}),
             widgetToForeground = function(e) {
@@ -3885,7 +3840,7 @@ GateOne.Base.update(GateOne.Visual, {
             },
             closeWidget = function(e) {
                 if (e) { e.preventDefault() }
-                widgetContainer.className = 'halfsectrans ✈widgetcontainer';
+                widgetContainer.className = '✈halfsectrans ✈widgetcontainer';
                 widgetContainer.style.opacity = 0;
                 setTimeout(function() {
                     u.removeElement(widgetContainer);
@@ -5114,10 +5069,10 @@ GateOne.Base.update(GateOne.Events, {
         return this;
     }
 });
-go.Icons['close'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="closeGradient" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#closeGradient)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
-go.Icons['application'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
-GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="prefsGradient" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#prefsGradient)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
-GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="backGradient" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="panelstop1" offset="0"/><stop class="panelstop2" offset="0.4944"/><stop class="panelstop3" offset="0.5"/><stop class="panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#backGradient)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
+go.Icons['close'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="closeGradient" y2="252.75" gradientUnits="userSpaceOnUse" y1="232.75" x2="487.8" x1="487.8"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" fill="url(#closeGradient)"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
+go.Icons['application'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="infoGradient" y2="294.5" gradientUnits="userSpaceOnUse" x2="253.59" gradientTransform="translate(244.48201,276.279)" y1="276.28" x1="253.59"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-396.60679,-820.39654)"><g transform="translate(152.12479,544.11754)"><path fill="url(#infoGradient)" d="m257.6,278.53c-3.001-3-7.865-3-10.867,0-3,3.001-3,7.868,0,10.866,2.587,2.59,6.561,2.939,9.53,1.062l4.038,4.039,2.397-2.397-4.037-4.038c1.878-2.969,1.527-6.943-1.061-9.532zm-1.685,9.18c-2.07,2.069-5.426,2.069-7.494,0-2.071-2.069-2.071-5.425,0-7.494,2.068-2.07,5.424-2.07,7.494,0,2.068,2.069,2.068,5.425,0,7.494z"/></g></g></svg>';
+GateOne.Icons['prefs'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="prefsGradient" x1="85.834" gradientUnits="userSpaceOnUse" x2="85.834" gradientTransform="translate(288.45271,199.32483)" y1="363.23" y2="388.56"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.71050762,0,0,0.71053566,-256.93092,-399.71681)"><path fill="url(#prefsGradient)" d="m386.95,573.97c0-0.32-0.264-0.582-0.582-0.582h-1.069c-0.324,0-0.662-0.25-0.751-0.559l-1.455-3.395c-0.155-0.277-0.104-0.69,0.123-0.918l0.723-0.723c0.227-0.228,0.227-0.599,0-0.824l-1.74-1.741c-0.226-0.228-0.597-0.228-0.828,0l-0.783,0.787c-0.23,0.228-0.649,0.289-0.931,0.141l-2.954-1.18c-0.309-0.087-0.561-0.423-0.561-0.742v-1.096c0-0.319-0.264-0.581-0.582-0.581h-2.464c-0.32,0-0.583,0.262-0.583,0.581v1.096c0,0.319-0.252,0.657-0.557,0.752l-3.426,1.467c-0.273,0.161-0.683,0.106-0.912-0.118l-0.769-0.77c-0.226-0.226-0.597-0.226-0.824,0l-1.741,1.742c-0.229,0.228-0.229,0.599,0,0.825l0.835,0.839c0.23,0.228,0.293,0.642,0.145,0.928l-1.165,2.927c-0.085,0.312-0.419,0.562-0.742,0.562h-1.162c-0.319,0-0.579,0.262-0.579,0.582v2.463c0,0.322,0.26,0.585,0.579,0.585h1.162c0.323,0,0.66,0.249,0.753,0.557l1.429,3.369c0.164,0.276,0.107,0.688-0.115,0.916l-0.802,0.797c-0.226,0.227-0.226,0.596,0,0.823l1.744,1.741c0.227,0.228,0.598,0.228,0.821,0l0.856-0.851c0.227-0.228,0.638-0.289,0.925-0.137l2.987,1.192c0.304,0.088,0.557,0.424,0.557,0.742v1.141c0,0.32,0.263,0.582,0.583,0.582h2.464c0.318,0,0.582-0.262,0.582-0.582v-1.141c0-0.318,0.25-0.654,0.561-0.747l3.34-1.418c0.278-0.157,0.686-0.103,0.916,0.122l0.753,0.758c0.227,0.225,0.598,0.225,0.825,0l1.743-1.744c0.227-0.226,0.227-0.597,0-0.822l-0.805-0.802c-0.223-0.228-0.285-0.643-0.134-0.926l1.21-3.013c0.085-0.31,0.423-0.559,0.747-0.562h1.069c0.318,0,0.582-0.262,0.582-0.582v-2.461zm-12.666,5.397c-2.29,0-4.142-1.855-4.142-4.144s1.852-4.142,4.142-4.142c2.286,0,4.142,1.854,4.142,4.142s-1.855,4.144-4.142,4.144z"/></g></svg>';
+GateOne.Icons['back_arrow'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="backGradient" y2="449.59" gradientUnits="userSpaceOnUse" x2="235.79" y1="479.59" x1="235.79"><stop class="✈panelstop1" offset="0"/><stop class="✈panelstop2" offset="0.4944"/><stop class="✈panelstop3" offset="0.5"/><stop class="✈panelstop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-360.00001,-529.36218)"><g transform="matrix(0.6,0,0,0.6,227.52721,259.60639)"><circle d="m 250.78799,464.59299 c 0,8.28427 -6.71572,15 -15,15 -8.28427,0 -15,-6.71573 -15,-15 0,-8.28427 6.71573,-15 15,-15 8.28428,0 15,6.71573 15,15 z" cy="464.59" cx="235.79" r="15" fill="url(#backGradient)"/><path fill="#FFF" d="m224.38,464.18,11.548,6.667v-3.426h5.003c2.459,0,5.24,3.226,5.24,3.226s-0.758-7.587-3.54-8.852c-2.783-1.265-6.703-0.859-6.703-0.859v-3.425l-11.548,6.669z"/></g></g></svg>';
 GateOne.Icons['panelclose'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(1.115933,0,0,1.1152416,-461.92317,-695.12248)"><g transform="translate(-61.7655,388.61318)" class="✈svgplain"><polygon points="483.76,240.02,486.5,242.75,491.83,237.42,489.1,234.68"/><polygon points="478.43,250.82,483.77,245.48,481.03,242.75,475.7,248.08"/><polygon points="491.83,248.08,486.5,242.75,483.77,245.48,489.1,250.82"/><polygon points="475.7,237.42,481.03,242.75,483.76,240.02,478.43,234.68"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/><polygon points="483.77,245.48,486.5,242.75,483.76,240.02,481.03,242.75"/></g></g></svg>';
 
 })(window);

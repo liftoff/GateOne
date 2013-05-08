@@ -37,7 +37,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         Creates GateOne.Terminal.Input.inputNode to capture keys/IME composition and attaches appropriate events.
         */
-        t.Input.inputNode = u.createElement('input', {'class': 'IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
+        t.Input.inputNode = u.createElement('input', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
         go.node.appendChild(t.Input.inputNode);
         t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
         t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
@@ -75,7 +75,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         // An internal function that just gets the line number (if any) by recursively moving up the DOM from *elementUnder*
         var className = elementUnder.className + '', // Ensure it's a string for Firefox
             lineno;
-        if (className && className.indexOf('termline') == -1) {
+        if (className && className.indexOf('✈termline') == -1) {
             while (elementUnder.parentNode) {
                 elementUnder = elementUnder.parentNode;
                 if (elementUnder.className === undefined) {
@@ -84,7 +84,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                     break;
                 }
                 className = elementUnder.className + ''; // Ensure it's a string for Firefox
-                if (className.indexOf('termline') != -1) {
+                if (className.indexOf('✈termline') != -1) {
                     break;
                 }
             }
@@ -113,7 +113,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             selectedPastearea = t.terminals[selectedTerm]['pasteNode'];
         }
         className = elementUnder.className + ''; // Ensure it's a string for Firefox
-        if (className && className.indexOf('termline') == -1) {
+        if (className && className.indexOf('✈termline') == -1) {
             while (elementUnder.parentNode) {
                 elementUnder = elementUnder.parentNode;
                 if (elementUnder.className === undefined) {
@@ -122,7 +122,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                     break;
                 }
                 className = elementUnder.className + ''; // Ensure it's a string for Firefox
-                if (className.indexOf('termline') != -1) {
+                if (className.indexOf('✈termline') != -1) {
                     break;
                 }
             }
@@ -226,7 +226,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
         }
         className = elementUnder.className + ''; // Ensure it's a string for Firefox
-        if (className && className.indexOf('termline') == -1) {
+        if (className && className.indexOf('✈termline') == -1) {
             while (elementUnder.parentNode) {
                 elementUnder = elementUnder.parentNode;
                 if (elementUnder.className === undefined) {
@@ -235,7 +235,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                     break;
                 }
                 className = elementUnder.className + ''; // Ensure it's a string for Firefox
-                if (className.indexOf('termline') != -1) {
+                if (className.indexOf('✈termline') != -1) {
                     break;
                 }
             }
@@ -278,7 +278,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         Returns all 'pastearea' elements to a visible state after a copy operation so that the browser's regular context menu will be usable again (for pasting).
         */
-        u.showElements('.pastearea');
+        u.showElements('.✈pastearea');
     },
     capture: function() {
         /**GateOne.Terminal.Input.capture()
@@ -286,9 +286,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         Sets focus on the terminal and attaches all the relevant events (mousedown, mouseup, keydown, etc).
         */
         logDebug('go.Terminal.Input.capture()');
-        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+        var terms = u.toArray(u.getNodes('.✈terminal'));
         if (!t.Input.inputNode) {
-            t.Input.inputNode = u.createElement('input', {'class': 'IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
+            t.Input.inputNode = u.createElement('input', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
             go.node.appendChild(t.Input.inputNode);
         }
         t.Input.inputNode.addEventListener('input', t.Input.onInput, false);
@@ -313,7 +313,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         Disables the various input events that capture mouse and keystroke events.  This allows things like input elements and forms to work properly (so keystrokes can pass through without intervention).
         */
         logDebug('go.Terminal.Input.disableCapture()');
-        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+        var terms = u.toArray(u.getNodes('.✈terminal'));
         if (t.Input.mouseDown) {
             logDebug('disableCapture() cancelled due to mouseDown.');
             return; // Work around Firefox's occasional inability to properly register mouse events (WTF Firefox!)

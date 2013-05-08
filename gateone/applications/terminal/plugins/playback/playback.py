@@ -43,7 +43,6 @@ def get_256_colors(self):
     Returns the rendered 256-color CSS.
     """
     colors_256_path = self.render_256_colors()
-    filename = os.path.split(colors_256_path)[1]
     mtime = os.stat(colors_256_path).st_mtime
     cached_filename = "%s:%s" % (colors_256_path.replace('/', '_'), mtime)
     cache_dir = self.ws.settings['cache_dir']

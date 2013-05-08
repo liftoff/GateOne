@@ -53,10 +53,10 @@ go.Base.update(GateOne.Playback, {
         var p = go.Playback,
             pTag = u.getNode('#'+prefix+'info_actions'),
             prefsTableDiv2 = u.getNode('#'+prefix+'prefs_tablediv2'),
-            prefsPanelRow = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelPlaybackLabel = u.createElement('span', {'id': 'prefs_playback_label', 'class': 'paneltablelabel'}),
+            prefsPanelRow = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelPlaybackLabel = u.createElement('span', {'id': 'prefs_playback_label', 'class': '✈paneltablelabel'}),
             prefsPanelPlayback = u.createElement('input', {'id': 'prefs_playback', 'name': prefix+'prefs_playback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
+            infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'});
         if (prefsTableDiv2) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
             prefsPanelPlaybackLabel.innerHTML = "<b>Playback Frames:</b> ";
             prefsPanelPlayback.value = go.prefs.playbackFrames;
@@ -112,7 +112,7 @@ go.Base.update(GateOne.Playback, {
         var p = go.Playback,
             termPre, screenSpan,
             emDimensions = u.getEmDimensions(go.prefs.goDiv),
-            extraSpace = u.createElement('span', {'class': 'playback_spacer'}); // This goes at the bottom of terminals to fill the space where the playback controls go
+            extraSpace = u.createElement('span', {'class': '✈playback_spacer'}); // This goes at the bottom of terminals to fill the space where the playback controls go
         if (t.terminals[term]) {
             termPre = t.terminals[term]['node'];
             screenSpan = t.terminals[term]['screenNode'];
@@ -332,7 +332,7 @@ go.Base.update(GateOne.Playback, {
                 'id': 'progressBarContainer', 'class': '✈progressBarContainer', 'onmouseover': 'this.style.cursor = "col-resize"'}),
             clock = u.createElement('div', {'id': 'clock', 'class': '✈clock'}),
             playbackControls = u.createElement('div', {'id': 'playbackControls', 'class': '✈playbackControls'}),
-            controlsContainer = u.createElement('div', {'id': 'controlsContainer', 'class': 'centertrans ✈controlsContainer'}),
+            controlsContainer = u.createElement('div', {'id': 'controlsContainer', 'class': '✈centertrans ✈controlsContainer'}),
             // Firefox doesn't support 'mousewheel'
             mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
         if (existingControls) {

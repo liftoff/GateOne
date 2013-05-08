@@ -1,8 +1,8 @@
-#{{container}} .panel_bookmarks {
+.✈panel_bookmarks {
     width: 90%;
     height: 85%; /* A bit off the bottom so you can see if something scrolls */
 }
-#{{container}} .sectransform {
+.✈sectransform {
     /* For only transform effects */
     /* WebKit */
     -webkit-transform-origin: center center;
@@ -22,7 +22,7 @@
     transform-origin: center center;
     transition: transform 1s ease-in-out;
 }
-#{{container}} .openbookmarktrans {
+.✈openbookmarktrans {
     /* For only transform effects */
     /* WebKit */
     -webkit-transform-origin: center right;
@@ -42,7 +42,7 @@
     transform-origin: center center;
     transition: transform 1s ease-in-out;
 }
-#{{container}} .bookmark.beforeopen {
+.✈bookmark.✈beforeopen {
     -webkit-transform: translateX(2%);
     -moz-transform: translateX(2%);
     -ms-transform: translateX(2%);
@@ -50,7 +50,7 @@
     transform: translateX(2%);
     opacity: 1;
 }
-#{{container}} .openbookmark {
+.✈openbookmark {
     -webkit-transform: translate(800%, 0px) scale(10);
     -moz-transform: translate(800%, 0px) scale(10);
     -ms-transform: translate(800%, 0px) scale(10);
@@ -61,7 +61,7 @@
     opacity: 1;
     box-shadow: 0.2em 0.2em 0.5em #000;
 }
-#{{container}} .bookmark {
+.✈bookmark {
     font-family: 'Istok Web', Dejavu Sans, Verdana, Arial, sans-serif;
     position: relative;
     height: 2.5em;
@@ -81,22 +81,22 @@
    /* IE 10+ */
    background: linear-gradient(top,  #fff, rgba(255, 255, 255, 0.5));
 }
-#{{container}} .bookmark.over {
+.✈bookmark.✈over {
    border: 0.1em red solid;
 }
-#{{container}} .bookmark a {
+.✈bookmark a {
     color: #1F5470;
     cursor: pointer;
     text-decoration: none;
     font-weight: bold;
 }
-#{{container}} .bookmark a:hover {
+.✈bookmark a:hover {
     color: maroon;
 }
-#{{container}} .bookmark a:visited {
+.✈bookmark a:visited {
     color: #1F5470;
 }
-#{{container}} .bm_confirm_delete {
+.✈bm_confirm_delete {
     text-align: center;
     position: absolute;
     top: 0px;
@@ -113,10 +113,10 @@
     opacity: 1;
     background-color: white;
 }
-#{{container}} .bm_taglist_label {
+.✈bm_taglist_label {
     font-weight: bold;
 }
-#{{container}} ul.bm_taglist {
+ul.✈bm_taglist {
     display: inline;
     font-size: 0.8em;
     position: absolute;
@@ -125,7 +125,7 @@
     z-index: 5;
     font-family: 'Varela Round', Dejavu Sans, Verdana, Arial, sans-serif;
 }
-#{{container}} ul.bm_taglist li {
+ul.✈bm_taglist li {
     margin-left: 0.2em;
     padding-left: 0.2em;
     padding-right: 0.2em;
@@ -136,19 +136,19 @@
     background-color: #333;
     color: white;
 }
-#{{container}} ul.bm_taglist li:hover {
+ul.✈bm_taglist li:hover {
     color: #fff;
     background-color: #1F5470;
     cursor: pointer;
 }
-#{{container}} ul.bm_taglist li.first {
+ul.✈bm_taglist li.first {
     margin-left: 0;
     border-left: none;
     list-style: none;
     background-color: #333;
     color: white;
 }
-#{{container}} ul.bm_taglist li.bm_autotag {
+ul.✈bm_taglist li.bm_autotag {
     margin-left: 0.2em;
     margin-top: 0.2em;
     padding-left: 0.2em;
@@ -160,12 +160,12 @@
     background-color: #1F5470;
     font-size: 0.95em;
 }
-#{{container}} ul.bm_taglist li.bm_autotag:hover {
+ul.✈bm_taglist li.bm_autotag:hover {
     color: #fff;
     background-color: maroon;
     cursor: pointer;
 }
-#{{container}} .bm_context {
+.✈bm_context {
     position: fixed;
     font-size: 0.8em;
     background-color: #eee;
@@ -173,23 +173,23 @@
     padding: 0.2em;
     border: 1px #000 solid;
 }
-#{{container}} .bm_context a {
+.✈bm_context a {
     color: #000;
     background-color: #eee;
     float: left;
     clear: both;
 }
-#{{container}} .bm_context a:hover {
+.✈bm_context a:hover {
     color: #fff;
     background-color: #1F5470;
 }
-#{{container}} .bm_options {
+.✈bm_options {
     float: right;
     font-weight: bold;
     color: #1F5470;
     padding-right: 0.5em;
 }
-#{{container}} .bm_container {
+.✈bm_container {
     width: 60%;
     position: absolute;
     top: 4.8em;
@@ -203,7 +203,7 @@
     background-size: 100% 100%;
     margin-left: 9%;
 }
-#{{container}} .bm_tagcloud {
+.✈bm_tagcloud {
     width: 29%;
     float: right;
     display: block;
@@ -212,20 +212,20 @@
     color: #000;
     font-family: 'Varela Round', Dejavu Sans, Verdana, Arial, sans-serif;
 }
-#{{container}} .bm_tagcloud h3 {
+.✈bm_tagcloud h3 {
     font-family: 'Istok Web', Dejavu Sans, Verdana, Arial, sans-serif;
 }
-#{{container}} .bm_tagcloud a.inactive {
+.✈bm_tagcloud a.✈inactive {
     color: #777;
 }
-#{{container}} .bm_tagcloud a.inactive:hover {
+.✈bm_tagcloud a.✈inactive:hover {
     color: #1F5470;
 }
-#{{container}} .bm_tagcloud_ul {
+.✈bm_tagcloud_ul {
     display: inline;
     padding-left: 0;
 }
-#{{container}} .bm_tag {
+.✈bm_tag {
     margin-left: 0.2em;
     padding-left: 0.2em;
     padding-right: 0.2em;
@@ -236,7 +236,7 @@
     font-size: 0.95em;
     cursor: move;
 }
-#{{container}} .bm_autotag {
+.✈bm_autotag {
     color: #fff;
     background-color: #1F5470;
     margin-left: 0.2em;
@@ -247,18 +247,18 @@
     font-size: 0.95em;
     cursor: pointer;
 }
-#{{container}} .bm_autotag:hover {
+.✈bm_autotag:hover {
     color: #fff;
     background-color: maroon;
     cursor: pointer;
 }
-#{{container}} .bm_urltype_tag {
+.✈bm_urltype_tag {
     font-style: italic;
 }
-#{{container}} .bm_urltype_tag:before {
+.✈bm_urltype_tag:before {
     content: "★";
 }
-#{{container}} .bm_tag:hover {
+.✈bm_tag:hover {
     color: #fff;
     background-color: #1F5470;
     cursor: move;
@@ -270,17 +270,17 @@
     -ms-transition: -webkit-transform 0s ease-in-out;
     transition: -webkit-transform 0s ease-in-out;
 }
-#{{container}} .bm_tag.inactive {
+.✈bm_tag.✈inactive {
     background-color: #777;
 }
-#{{container}} .untagged {
+.✈untagged {
     background-color: maroon;
 }
-#{{container}} .searches {
+.✈searches {
     background-color: #fff;
     color: #000;
 }
-#{{container}} .bm_controls {
+.✈bm_controls {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -288,25 +288,25 @@
     text-transform: uppercase;
     z-index: 5;
 }
-#{{container}} .bm_controls a {
+.✈bm_controls a {
     padding-left: 0.3em;
     padding-right: 0.3em;
 }
-#{{container}} .bm_content {
+.✈bm_content {
     top: 0;
     left: 0;
     position: absolute;
     z-index: 5;
 }
-#{{container}} .bm_content a:hover {
+.✈bm_content a:hover {
     color: maroon;
 }
-#{{container}} .bm_url {
+.✈bm_url {
     font-weight: bold;
     vertical-align: top;
     padding-left: 0.1em;
 }
-#{{container}} .bm_visited {
+.✈bm_visited {
     top: 0;
     right: 0;
     padding: 0.2em;
@@ -316,11 +316,11 @@
     z-index: 5;
     position: absolute;
 }
-#{{container}} .bm_visited:hover {
+.✈bm_visited:hover {
     background-color: #000;
     cursor: pointer;
 }
-#{{container}} .bm_created {
+.✈bm_created {
     top: 0;
     right: 2em;
     padding: 0.2em;
@@ -330,11 +330,11 @@
     z-index: 5;
     position: absolute;
 }
-#{{container}} .bm_created:hover {
+.✈bm_created:hover {
     background-color: #000;
     cursor: pointer;
 }
-#{{container}} .bm_tags {
+.✈bm_tags {
     width: 100%;
     position: relative;
     float: left;
@@ -342,12 +342,12 @@
     font-size: 0.9em;
     border-bottom: 0.1em #000 solid;
 }
-#{{container}} .bm_tags ul {
+.✈bm_tags ul {
     margin-left: 0;
     padding-left: 0;
     display: inline;
 }
-#{{container}} .bm_tags ul li {
+.✈bm_tags ul li {
     margin-right: -0.7em;
     padding-left: 0.2em;
     padding-right: 1.6em;
@@ -356,18 +356,18 @@
     background-color: #1F5470;
     color: #fff;
 }
-#{{container}} .bm_tags ul li:hover {
+.✈bm_tags ul li:hover {
     background-color: #fff;
     cursor: pointer;
     color: #000;
 }
-#{{container}} .bm_tags ul li:hover:after {
+.✈bm_tags ul li:hover:after {
     content: "X";
     font-size: 1.5em;
     bottom: 0.5em;
     color: maroon;
 }
-#{{container}} .bm_tags ul li:after {
+.✈bm_tags ul li:after {
     font-size: 1.5em;
     font-weight: bold;
     content: "/";
@@ -377,16 +377,16 @@
     color: #DDD;
     margin-left: 0.2em;
 }
-#{{container}} .bm_tags ul li:last-child {
+.✈bm_tags ul li:last-child {
     padding-right: 0.3em;
 }
-#{{container}} .bm_tags ul li:last-child:hover:after {
+.✈bm_tags ul li:last-child:hover:after {
     content: "X";
     font-size: 1.5em;
     bottom: 0.5em;
     color: maroon;
 }
-#{{container}} .bm_tags ul li:last-child:after {
+.✈bm_tags ul li:last-child:after {
     content: " ";
     font-size: 1.75em;
     margin-left: 0.2em;
@@ -394,34 +394,34 @@
     position: absolute;
     bottom: 0.5em;
 }
-#{{container}} .bm_display_opts {
+.✈bm_display_opts {
     width: 69%;
     text-align: right;
     font-size: 0.9em;
     margin-left: 0.45em;
 }
-#{{container}} .bm_display_opts a {
+.✈bm_display_opts a {
     font-size: 0.8em;
 }
-#{{container}} .bm_desc {
+.✈bm_desc {
     padding-left: 0.3em;
     vertical-align: top;
 }
-#{{container}} .bm_sort_options a {
+.✈bm_sort_options a {
     font-weight: normal;
 }
-#{{container}} .bm_sort_options a:hover {
+.✈bm_sort_options a:hover {
     cursor: pointer;
 }
-#{{container}} .bm_sort_options a.active {
+.✈bm_sort_options a.✈active {
     font-weight: normal;
     cursor: default;
     color: #000;
 }
-#{{container}} .bm_sort_options a.active:hover {
+.✈bm_sort_options a.✈active:hover {
     color: #000;
 }
-#{{container}} .bm_sort_direction {
+.✈bm_sort_direction {
     float: right;
     margin-left: 0.5em;
     -webkit-transition: -webkit-transform 0.5s ease-in-out;
@@ -433,23 +433,23 @@
     transition: -webkit-transform 0.5s ease-in-out;
     cursor: pointer;
 }
-#{{container}} .bm_sort_direction:hover {
+.✈bm_sort_direction:hover {
     color: #fff;
 }
-#{{container}} .bm_search {
+.✈bm_search {
     position: absolute;
     top: 0;
     right: 1.5em;
     font-size: 0.7em;
     margin-right: 0;
 }
-#{{container}} .bm_new {
+.✈bm_new {
     float: left;
     font-size: 0.9em;
     font-weight: bold;
     padding-left: 0.2em;
 }
-#{{container}} .bm_new:hover {
+.✈bm_new:hover {
     -webkit-transition: -webkit-transform 0.1s ease-in-out;
     -moz-transition: -webkit-transform 0.1s ease-in-out;
     -o-transition-property: all;
@@ -458,7 +458,7 @@
     -ms-transition: -webkit-transform 0.1s ease-in-out;
     transition: -webkit-transform 0.1s ease-in-out;
 }
-#{{container}} .linkfloat {
+.✈linkfloat {
     color: transparent;
     background-color: transparent;
     position: absolute;
@@ -468,29 +468,29 @@
     height: 2em; /* Just big enough to cover most of the bookmark element but not enough to cover the tags */
     z-index: 100;
 }
-#{{container}} .linkfloat:hover {
+.✈linkfloat:hover {
     cursor: pointer;
 }
-#{{container}} .bm_preview {
+.✈bm_preview {
     float: right;
     width: 29%;
     height: 50%;
     overflow: hidden;
     margin-top: -1.4em;
 }
-#{{container}} .bm_preview iframe {
+.✈bm_preview iframe {
     width: 100%;
     height: 100%;
     background-color: #fff;
     border: 0.1em #000 solid;
 }
-#{{container}} .bm_favicon {
+.✈bm_favicon {
     padding-right: 0.1em;
 }
-#{{container}} .bm_buttons {
+.✈bm_buttons {
     text-align: center;
 }
-#{{container}} .bm_pagination {
+.✈bm_pagination {
     width: 29%;
     float: right;
     display: block;
@@ -498,13 +498,13 @@
     clear: right;
     margin-top: -1.2em;
 }
-#{{container}} .bm_pagination ul {
+.✈bm_pagination ul {
     border: 0;
     margin: 0;
     padding: 0;
     width: 100%;
 }
-#{{container}} .bm_pagination li {
+.✈bm_pagination li {
     border: 0;
     margin:0;
     padding:0;
@@ -512,12 +512,12 @@
     list-style: none;
     margin-right: 0.1em;
 }
-#{{container}} .bm_pagination a {
+.✈bm_pagination a {
     border: solid 1px #9aafe5;
     margin-right: 0.1em;
 }
-#{{container}} .bm_pagination .previous-off,
-#{{container}} .bm_pagination .next-off {
+.✈bm_pagination .✈previous-off,
+.✈bm_pagination .✈next-off {
     border: solid 1px #DEDEDE;
     color: #888888;
     display: block;
@@ -526,34 +526,34 @@
     margin-right: 0.1em;
     padding: 0 0.1em;
 }
-#{{container}} .bm_pagination .next a,
-#{{container}} .bm_pagination .previous a {
+.✈bm_pagination .✈next a,
+.✈bm_pagination .✈previous a {
     font-weight:bold;
 }
-#{{container}} .bm_pagination a:link,
-#{{container}} .bm_pagination a:visited {
+.✈bm_pagination a:link,
+.✈bm_pagination a:visited {
     float: left;
 }
-#{{container}} .bm_pagination a:hover{
+.✈bm_pagination a:hover{
     border: solid 1px #1F5470;
 }
-#{{container}} #{{container}} .bm_pagination .active {
+.✈bm_pagination .✈active {
     background: #1F5470;
     color: #FFF;
 }
-#{{container}} #{{container}} .bm_pagination .inactive a {
+.✈bm_pagination .✈inactive a {
     border: solid 1px #DEDEDE;
     color: #888;
 }
-#{{container}} .search {
+.✈search {
     color: maroon;
 }
-#{{container}} .background_svg { /* Just used to center everything inside */
+.✈background_svg { /* Just used to center everything inside */
     width: 100%;
     height: 95%;
     overflow: hidden;
 }
-#{{container}} .bm_progresscontainer {
+.✈bm_progresscontainer {
     /* WebKit */
     -webkit-transition: all 5s ease-in-out;
     /* Firefox */
@@ -573,7 +573,7 @@
     float: right;
     clear: both;
 }
-#{{container}} .bm_progressbarcontainer {
+.✈bm_progressbarcontainer {
     background-color: #000;
     height: 0.4em;
     /* WebKit */
@@ -595,22 +595,22 @@
     margin: 0.2em;
     width: 15em;
 }
-#{{container}} .bm_progressbar {
+.✈bm_progressbar {
     background-color: #1F5470;
     height: 100%;
 }
-#{{container}} .bookmarks_upload {
+.✈bookmarks_upload {
     height: 2.5em;
 }
-#{{container}} .bm_new_form input {
+.✈bm_new_form input {
     width: 25em;
 }
-#{{container}} .bm_new_form textarea {
+.✈bm_new_form textarea {
     width: 25em;
     height: 8em;
 }
 /* Effects */
-#{{container}} div.bookmark:hover {
+div.✈bookmark:hover {
     background-color: rgba(0, 0, 0, 0.2);
     cursor: pointer;
     -webkit-transform-origin: center center;
@@ -626,7 +626,7 @@
     transform-origin: top left;
     transition: all 0.05s ease-in-out;
 }
-#{{container}} div.bmfocus {
+div.✈bmfocus {
     text-decoration: underline;
     cursor: pointer;
     -webkit-transform-origin: center center;

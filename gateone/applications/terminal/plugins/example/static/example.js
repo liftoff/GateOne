@@ -41,8 +41,8 @@ go.Base.update(go.Example, { // Everything that we want to be available under Ga
         */
         var infoPanel = u.getNode('#'+prefix+'panel_info'), // Need this since we're going to be adding a button here
             h3 = u.createElement('h3'), // We'll add an "Example Plugin" header to the info panel just like the SSH plugin has
-            infoPanelLoadGraph = u.createElement('button', {'id': 'load_g', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            infoPanelTopButton = u.createElement('button', {'id': 'load_top', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
+            infoPanelLoadGraph = u.createElement('button', {'id': 'load_g', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            infoPanelTopButton = u.createElement('button', {'id': 'load_top', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'});
         h3.innerHTML = "Example Plugin"; // Sing it with me: My plugin has a first name, it's E X A M P L E
         infoPanelLoadGraph.innerHTML = "Load Graph"; // My plugin has a button name, it's...  Yeah, you get the idea
         infoPanelLoadGraph.onclick = function(e) { // Make it do something when clicked

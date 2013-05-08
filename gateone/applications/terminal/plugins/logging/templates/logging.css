@@ -1,11 +1,11 @@
-#{{container}} .logitem_title {
+.✈logitem_title {
     width: 15em;
 }
-#{{container}} .panel_logs {
+.✈panel_logs {
     width: 90%;
     height: 85%; /* A bit off the bottom so you can see if something scrolls */
 }
-#{{container}} .logview_container {
+.✈logview_container {
     position: absolute;
     top: 2.5em;
     bottom: 0;
@@ -14,52 +14,52 @@
     left: 0;
     right: 0;
 }
-#{{container}} .logview_options {
+.✈logview_options {
     display: table-cell;
     text-transform: uppercase;
     background-image: none;
     padding-left: 0.5em;
 }
-#{{container}} .logitems_header {
+.✈logitems_header {
     color: #1F5470;
 }
-#{{container}} .logitem_header_cell {
+.✈logitem_header_cell {
     color: #1F5470;
     background-image: none;
     background: none;
 }
-#{{container}} .logitem_header_cell.active {
+.✈logitem_header_cell.✈active {
     color: maroon;
 }
-#{{container}} .logitem_header_cell:hover {
+.✈logitem_header_cell:hover {
     color: maroon;
     cursor: pointer;
     background-color: #fff;
 }
-#{{container}} .logitem {
+.✈logitem {
     display: table-row;
     height: 1.2em;
     overflow: hidden;
     font-size: .9em;
     white-space: nowrap;
 }
-#{{container}} .log_metadata {
+.✈log_metadata {
     width: 100%;
     display: table;
 }
-#{{container}} .log_info {
+.✈log_info {
     float: right;
     width: 47%;
     margin-right: 0.5em;
     margin-top: 1.5em;
 }
-#{{container}} .log_preview {
+.✈log_preview {
     width: 100%;
     height: 50%;
     border: 1px #000 solid;
 }
 /* Effects */
-#{{container}} .logitem:hover {
+.✈logitem:hover {
     cursor: pointer;
     background-color: rgba(0, 0, 0, 0.2);
     -webkit-transform-origin: center center;
@@ -77,7 +77,7 @@
     transform-origin: top left;
     transition: all 0.05s ease-in-out;
 }
-#{{container}} .log_pagination {
+.✈log_pagination {
     width: 100%;
     float: right;
     display: block;
@@ -86,12 +86,12 @@
     margin-top: -1.2em;
     padding-bottom: .5em;
 }
-#{{container}} .log_pagination ul {
+.✈log_pagination ul {
     border: 0;
     margin: 0;
     padding: 0;
 }
-#{{container}} .log_pagination li {
+.✈log_pagination li {
     border: 0;
     margin:0;
     padding:0;
@@ -99,12 +99,12 @@
     list-style: none;
     margin-right: 0.1em;
 }
-#{{container}} .log_pagination a {
+.✈log_pagination a {
     border: solid 1px #9aafe5;
     margin-right: 0.1em;
 }
-#{{container}} .log_pagination .previous-off,
-#{{container}} .log_pagination .next-off {
+.✈log_pagination .✈previous-off,
+.✈log_pagination .✈next-off {
     border: solid 1px #DEDEDE;
     color: #888888;
     display: block;
@@ -113,26 +113,26 @@
     margin-right: 0.1em;
     padding: 0 0.1em;
 }
-#{{container}} .log_pagination .next a,
-#{{container}} .log_pagination .previous a {
+.✈log_pagination .✈next a,
+.✈log_pagination .✈previous a {
     font-weight:bold;
 }
-#{{container}} .log_pagination a:link,
-#{{container}} .log_pagination a:visited {
+.✈log_pagination a:link,
+.✈log_pagination a:visited {
     float: left;
 }
-#{{container}} .log_pagination a:hover{
+.✈log_pagination a:hover{
     border: solid 1px #1F5470;
 }
-#{{container}} .log_pagination .active {
+.✈log_pagination .✈active {
     background: #1F5470;
     color: #FFF;
 }
-#{{container}} .log_pagination .inactive a {
+.✈log_pagination .✈inactive a {
     border: solid 1px #DEDEDE;
     color: #888;
 }
-#{{container}} .log_actions_title {
+.✈log_actions_title {
     display: table-cell;
     font-weight: bold;
     padding-right: 0.5em;

@@ -111,17 +111,14 @@ class ExampleHandler(BaseHandler):
         """
         # If data is POSTed to this handler via an XMLHTTPRequest send() it
         # will show up like this:
-        posted_as_a_whole = self.request.body # xhr.send()
+        #posted_as_a_whole = self.request.body # xhr.send()
         # If data was POSTed as arguments (i.e. traditional form) it will show
         # up as individual arguments like this:
-        posted_as_argument = self.get_argument("arg") # Form elem 'name="arg"'
+        #posted_as_argument = self.get_argument("arg") # Form elem 'name="arg"'
         # This is how you can parse JSON:
-        parsed = tornado.escape.json_decode(posted_as_an_argument)
-        # For writing JSON it is recommended to use the json_encode() function
-        # from Gate One's utils.py (since it takes care of Python 3 support):
-        from utils import json_encode
+        #parsed = tornado.escape.json_decode(posted_as_an_argument)
         json_output = {'result': 'Success!'}
-        self.write(json_encode(json_output))
+        self.write(json_output)
         # You'd put self.finish() here if post() was wrapped with tornado's
         # asynchronous decorator.
 
@@ -169,16 +166,16 @@ def example_websocket_action(self, message):
     plugin's 'static' dir).
     """
     message = {'terminal:example_pong': timestamp}
-    self.write_message(json_encode(message))
+    self.write_message(message)
     # WebSockets are asynchronous so you can send as many messages as you want
     message2 = {'go:notice': 'You just executed the "example_action" action.'}
-    self.write_message(json_encode(message2))
+    self.write_message(message2)
     # Alternatively, you can combine multiple messages/actions into one message:
     combined = {
         'go:notice': 'Hurray!',
         'terminal:bell': {'term': self.current_term}
     }
-    self.write_message(json_encode(combined))
+    self.write_message(combined)
 
 # Now for some special sauce...  The Special Optional Escape Sequence Handler!
 def example_opt_esc_handler(self, message):

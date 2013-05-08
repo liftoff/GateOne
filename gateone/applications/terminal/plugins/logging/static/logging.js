@@ -36,7 +36,7 @@ go.Base.update(GateOne.TermLogging, {
         var l = go.TermLogging,
             prefix = go.prefs.prefix,
             pTag = u.getNode('#'+prefix+'info_actions'),
-            infoPanelViewLogs = u.createElement('button', {'id': 'logging_viewlogs', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
+            infoPanelViewLogs = u.createElement('button', {'id': 'logging_viewlogs', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'});
         infoPanelViewLogs.innerHTML = "Log Viewer";
         infoPanelViewLogs.title = "Opens a panel where you can browse, preview, and open all of your server-side session logs.";
         infoPanelViewLogs.onclick = function() {
@@ -61,23 +61,23 @@ go.Base.update(GateOne.TermLogging, {
         var l = go.TermLogging,
             prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_logs'),
-            logPanel = u.createElement('div', {'id': 'panel_logs', 'class': 'panel panel_logs sectrans'}),
-            logHeader = u.createElement('div', {'id': 'log_view_header', 'class': 'sectrans'}),
+            logPanel = u.createElement('div', {'id': 'panel_logs', 'class': '✈panel ✈panel_logs ✈sectrans'}),
+            logHeader = u.createElement('div', {'id': 'log_view_header', 'class': '✈sectrans'}),
             logHeaderH2 = u.createElement('h2', {'id': 'logging_title'}),
             logHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
-            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
-            logViewContent = u.createElement('div', {'id': 'logview_container', 'class': 'sectrans'}),
-            logPagination = u.createElement('div', {'id': 'log_pagination', 'class': 'log_pagination sectrans'}),
-            logInfoContainer = u.createElement('div', {'id': 'log_info', 'class': 'log_info'}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
+            logViewContent = u.createElement('div', {'id': 'logview_container', 'class': '✈sectrans'}),
+            logPagination = u.createElement('div', {'id': 'log_pagination', 'class': '✈log_pagination ✈sectrans'}),
+            logInfoContainer = u.createElement('div', {'id': 'log_info', 'class': '✈log_info'}),
             logListContainer = u.createElement('div', {'id': 'log_listcontainer'}),
-            logPreviewIframe = u.createElement('iframe', {'id': 'log_preview', 'class': 'log_preview', 'style': {'display': 'none'}}), // Initial display:none to work around a (minor) IE 10 bug
+            logPreviewIframe = u.createElement('iframe', {'id': 'log_preview', 'class': '✈log_preview', 'style': {'display': 'none'}}), // Initial display:none to work around a (minor) IE 10 bug
             hr = u.createElement('hr'),
-            logElemHeader = u.createElement('div', {'id': 'logitems_header', 'class':'table_header_row logitems_header'}),
-            titleSpan = u.createElement('span', {'id': 'log_titlespan', 'class':'table_cell table_header_cell'}),
-            dateSpan = u.createElement('span', {'id': 'log_datespan', 'class':'table_cell table_header_cell'}),
-            sizeSpan = u.createElement('span', {'id': 'log_sizespan', 'class':'table_cell table_header_cell'}),
+            logElemHeader = u.createElement('div', {'id': 'logitems_header', 'class':'✈table_header_row ✈logitems_header'}),
+            titleSpan = u.createElement('span', {'id': 'log_titlespan', 'class':'✈table_cell ✈table_header_cell'}),
+            dateSpan = u.createElement('span', {'id': 'log_datespan', 'class':'✈table_cell ✈table_header_cell'}),
+            sizeSpan = u.createElement('span', {'id': 'log_sizespan', 'class':'✈table_cell ✈table_header_cell'}),
             sortOrder = u.createElement('span', {'id': 'logs_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
-            logMetadataDiv = u.createElement('div', {'id': 'log_metadata', 'class': 'log_metadata'});
+            logMetadataDiv = u.createElement('div', {'id': 'log_metadata', 'class': '✈log_metadata'});
         logHeaderH2.innerHTML = 'Log Viewer: Loading...';
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
@@ -125,10 +125,10 @@ go.Base.update(GateOne.TermLogging, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(logElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
-                item.className = 'table_cell table_header_cell';
+            u.toArray(logElemHeader.getElementsByClassName('✈table_header_cell')).forEach(function(item) {
+                item.className = '✈table_cell ✈table_header_cell';
             });
-            this.className = 'table_cell table_header_cell active';
+            this.className = '✈table_cell ✈table_header_cell ✈active';
             if (l.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -155,10 +155,10 @@ go.Base.update(GateOne.TermLogging, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(logElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
-                item.className = 'table_cell table_header_cell';
+            u.toArray(logElemHeader.getElementsByClassName('✈table_header_cell')).forEach(function(item) {
+                item.className = '✈table_cell ✈table_header_cell';
             });
-            this.className = 'table_cell table_header_cell active';
+            this.className = '✈table_cell ✈table_header_cell ✈active';
             if (l.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -185,10 +185,10 @@ go.Base.update(GateOne.TermLogging, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(logElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
-                item.className = 'table_cell table_header_cell';
+            u.toArray(logElemHeader.getElementsByClassName('✈table_header_cell')).forEach(function(item) {
+                item.className = '✈table_cell ✈table_header_cell';
             });
-            this.className = 'table_cell table_header_cell active';
+            this.className = '✈table_cell ✈table_header_cell ✈active';
             if (l.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -201,13 +201,13 @@ go.Base.update(GateOne.TermLogging, {
         dateSpan.innerHTML = "Date";
         sizeSpan.innerHTML = "Size";
         if (localStorage[prefix+'logs_sort'] == 'alpha') {
-            titleSpan.className = 'table_cell table_header_cell active';
+            titleSpan.className = '✈table_cell ✈table_header_cell ✈active';
             titleSpan.appendChild(sortOrder);
         } else if (localStorage[prefix+'logs_sort'] == 'date') {
-            dateSpan.className = 'table_cell table_header_cell active';
+            dateSpan.className = '✈table_cell ✈table_header_cell ✈active';
             dateSpan.appendChild(sortOrder);
         } else if (localStorage[prefix+'logs_sort'] == 'size') {
-            sizeSpan.className = 'table_cell table_header_cell active';
+            sizeSpan.className = '✈table_cell ✈table_header_cell ✈active';
             sizeSpan.appendChild(sortOrder);
         }
         logElemHeader.appendChild(titleSpan);
@@ -264,7 +264,7 @@ go.Base.update(GateOne.TermLogging, {
             paginationUL = u.getNode('#'+prefix+'log_pagination_ul'),
             logInfoContainer = u.getNode('#'+prefix+'log_info'),
             logListContainer = u.getNode('#'+prefix+'log_listcontainer'),
-            logElements = u.toArray(u.getNodes('.logitem')),
+            logElements = u.toArray(u.getNodes('.✈logitem')),
             maxItems = l.getMaxLogItems(existingPanel) - 4; // -4 should account for the header with a bit of room at the bottom too
         l.delay = 500; // Reset it
         // Make sure the panel is visible
@@ -373,18 +373,18 @@ go.Base.update(GateOne.TermLogging, {
         var l = go.TermLogging,
             prefix = go.prefs.prefix,
             existingPanel = u.getNode('#'+prefix+'panel_logs'),
-            logPaginationUL = u.createElement('ul', {'id': 'log_pagination_ul', 'class': 'log_pagination halfsectrans'}),
+            logPaginationUL = u.createElement('ul', {'id': 'log_pagination_ul', 'class': '✈log_pagination ✈halfsectrans'}),
             logViewContent = u.getNode('#'+prefix+'logview_container'),
             maxItems = l.getMaxLogItems(existingPanel) - 4,
             logPages = Math.ceil(logItems.length/maxItems),
-            prev = u.createElement('li', {'class': 'log_page halfsectrans'}),
-            next = u.createElement('li', {'class': 'log_page halfsectrans'});
+            prev = u.createElement('li', {'class': '✈log_page ✈halfsectrans'}),
+            next = u.createElement('li', {'class': '✈log_page ✈halfsectrans'});
         // Add the paginator
         if (typeof(page) == 'undefined' || page == null) {
             page = 0;
         }
         if (page == 0) {
-            prev.className = 'log_page halfsectrans inactive';
+            prev.className = '✈log_page ✈halfsectrans ✈inactive';
         } else {
             prev.onclick = function(e) {
                 e.preventDefault();
@@ -396,9 +396,9 @@ go.Base.update(GateOne.TermLogging, {
         logPaginationUL.appendChild(prev);
         if (logPages > 0) {
             for (var i=0; i<=(logPages-1); i++) {
-                var li = u.createElement('li', {'class': 'log_page halfsectrans'});
+                var li = u.createElement('li', {'class': '✈log_page ✈halfsectrans'});
                 if (i == page) {
-                    li.innerHTML = '<a class="active" href="javascript:void(0)">'+(i+1)+'</a>';
+                    li.innerHTML = '<a class="✈active" href="javascript:void(0)">'+(i+1)+'</a>';
                 } else {
                     li.innerHTML = '<a href="javascript:void(0)">'+(i+1)+'</a>';
                     li.title = i+1;
@@ -411,12 +411,12 @@ go.Base.update(GateOne.TermLogging, {
                 logPaginationUL.appendChild(li);
             }
         } else {
-            var li = u.createElement('li', {'class': 'log_page halfsectrans'});
-            li.innerHTML = '<a href="javascript:void(0)" class="active">1</a>';
+            var li = u.createElement('li', {'class': '✈log_page ✈halfsectrans'});
+            li.innerHTML = '<a href="javascript:void(0)" class="✈active">1</a>';
             logPaginationUL.appendChild(li);
         }
         if (page == logPages-1 || logPages == 0) {
-            next.className = 'log_page halfsectrans inactive';
+            next.className = '✈log_page ✈halfsectrans ✈inactive';
         } else {
             next.onclick = function(e) {
                 e.preventDefault();
@@ -439,11 +439,11 @@ go.Base.update(GateOne.TermLogging, {
             logMetadataDiv = u.getNode('#'+prefix+'log_metadata'),
             previewIframe = u.getNode('#'+prefix+'log_preview'),
             existingButtonRow = u.getNode('#'+prefix+'log_actions_row'),
-            buttonRowTitle = u.createElement('div', {'class':'log_actions_title'}),
-            buttonRow = u.createElement('div', {'id': 'log_actions_row', 'class': 'metadata_row'}),
-            viewFlatButton = u.createElement('button', {'id': 'log_view_flat', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            viewPlaybackButton = u.createElement('button', {'id': 'log_view_playback', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            downloadButton = u.createElement('button', {'id': 'log_download', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            buttonRowTitle = u.createElement('div', {'class':'✈log_actions_title'}),
+            buttonRow = u.createElement('div', {'id': 'log_actions_row', 'class': '✈metadata_row'}),
+            viewFlatButton = u.createElement('button', {'id': 'log_view_flat', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            viewPlaybackButton = u.createElement('button', {'id': 'log_view_playback', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            downloadButton = u.createElement('button', {'id': 'log_download', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             logObj = null;
         if (existingButtonRow) {
             u.removeElement(existingButtonRow);
@@ -495,9 +495,9 @@ go.Base.update(GateOne.TermLogging, {
         buttonRow.appendChild(downloadButton);
         infoDiv.insertBefore(buttonRow, previewIframe);
         for (var i in metadataNames) {
-            var row = u.createElement('div', {'class': 'metadata_row'}),
-                title = u.createElement('div', {'class':'metadata_title'}),
-                value = u.createElement('div', {'class':'metadata_value'});
+            var row = u.createElement('div', {'class': '✈metadata_row'}),
+                title = u.createElement('div', {'class':'✈metadata_title'}),
+                value = u.createElement('div', {'class':'✈metadata_value'});
             title.innerHTML = i;
             value.innerHTML = metadataNames[i];
             row.appendChild(title);
@@ -514,10 +514,10 @@ go.Base.update(GateOne.TermLogging, {
         */
         var l = go.TermLogging,
             prefix = go.prefs.prefix,
-            logElem = u.createElement('div', {'class':'halfsectrans table_row', 'name': prefix+'logitem', 'class': 'logitem'}),
-            titleSpan = u.createElement('span', {'class':'table_cell logitem_title'}),
-            dateSpan = u.createElement('span', {'class':'table_cell'}),
-            sizeSpan = u.createElement('span', {'class':'table_cell'}),
+            logElem = u.createElement('div', {'class':'✈halfsectrans ✈table_row ✈logitem', 'name': prefix+'logitem'}),
+            titleSpan = u.createElement('span', {'class':'✈table_cell ✈logitem_title'}),
+            dateSpan = u.createElement('span', {'class':'✈table_cell'}),
+            sizeSpan = u.createElement('span', {'class':'✈table_cell'}),
             dateObj = new Date(parseInt(logObj['start_date'])),
             dateString = go.Logging.dateFormatter(dateObj);
         titleSpan.innerHTML = "<b>" + logObj['connect_string'] + "</b>";
@@ -531,11 +531,11 @@ go.Base.update(GateOne.TermLogging, {
                 var previewIframe = u.getNode('#'+prefix+'log_preview'),
                     iframeDoc = previewIframe.contentWindow.document;
                 // Highlight the selected row and show the metadata
-                u.toArray(u.getNodes('.table_row')).forEach(function(node) {
+                u.toArray(u.getNodes('.✈table_row')).forEach(function(node) {
                     // Reset them all before we apply the 'active' class to just the one
-                    node.className = 'halfsectrans table_row';
+                    node.className = '✈halfsectrans ✈table_row';
                 });
-                this.className = 'halfsectrans table_row active';
+                this.className = '✈halfsectrans ✈table_row ✈active';
                 iframeDoc.open();
                 iframeDoc.write('<html><head><title>Preview Iframe</title></head><body style="background-color: #000; background-image: none; color: #fff; font-size: 1.2em; font-weight: bold; font-style: italic;">Loading Preview...</body></html');
                 iframeDoc.close();
@@ -575,7 +575,7 @@ go.Base.update(GateOne.TermLogging, {
             pagination = u.getNode('#'+prefix+'log_pagination'),
             existingPaginationUL = u.getNode('#'+prefix+'log_pagination_ul'),
             logListContainer = u.getNode('#'+prefix+'log_listcontainer'),
-            logItems = document.getElementsByClassName('table_row'),
+            logItems = document.getElementsByClassName('✈table_row'),
             maxItems = l.getMaxLogItems(existingPanel) - 4; // -4 should account for the header with a bit of room at the bottom too
         if (message['log']) {
             if (!message['log']['connect_string']) {
@@ -593,7 +593,7 @@ go.Base.update(GateOne.TermLogging, {
                 // De-bouncing this so it doesn't get called 1000 times/sec causing the browser to hang while the loads load.
                 var paginationUL = l.loadPagination(l.serverLogs, l.page);
                 if (existingPaginationUL) {
-                    if (existingPaginationUL.getElementsByClassName('log_page').length < paginationUL.getElementsByClassName('log_page').length) {
+                    if (existingPaginationUL.getElementsByClassName('✈log_page').length < paginationUL.getElementsByClassName('✈log_page').length) {
                         pagination.replaceChild(paginationUL, existingPaginationUL);
                     }
                 } else {
@@ -626,7 +626,7 @@ go.Base.update(GateOne.TermLogging, {
             logLines = message['log'],
             metadata = message['metadata'],
             logViewContent = u.createElement('div', {'id': 'logview_content'}),
-            logContainer = u.createElement('div', {'id': 'logview', 'class': 'terminal'});
+            logContainer = u.createElement('div', {'id': 'logview', 'class': '✈terminal'});
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
         } else {
@@ -660,8 +660,8 @@ go.Base.update(GateOne.TermLogging, {
             logHTML = message['html'],
             where = message['where'],
             metadata = message['metadata'],
-            logViewContent = u.createElement('div', {'id': 'logview_container', 'class': 'logview_container'}),
-            logContainer = u.createElement('div', {'id': 'logview', 'class': 'terminal', 'style': {'width': '100%', 'height': '100%'}});
+            logViewContent = u.createElement('div', {'id': 'logview_container', 'class': '✈logview_container'}),
+            logContainer = u.createElement('div', {'id': 'logview', 'class': '✈terminal', 'style': {'width': '100%', 'height': '100%'}});
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
         } else {

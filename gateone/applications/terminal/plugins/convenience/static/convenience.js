@@ -51,15 +51,15 @@ GateOne.Base.update(GateOne.Convenience, {
         */
         var prefsPanelForm = u.getNode('#'+prefix+'prefs_form'),
             saveButton = u.getNode('#'+prefix+'prefs_save'),
-            LSRow = u.createElement('div', {'class':'paneltablerow'}),
-            SyslogRow = u.createElement('div', {'class':'paneltablerow'}),
-            IPRow = u.createElement('div', {'class':'paneltablerow'}),
-            tableDiv = u.createElement('div', {'id': 'prefs_convenience', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            LSPrefsLabel = u.createElement('span', {'id': 'prefs_ls_label', 'class':'paneltablelabel'}),
+            LSRow = u.createElement('div', {'class':'✈paneltablerow'}),
+            SyslogRow = u.createElement('div', {'class':'✈paneltablerow'}),
+            IPRow = u.createElement('div', {'class':'✈paneltablerow'}),
+            tableDiv = u.createElement('div', {'id': 'prefs_convenience', 'class':'✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            LSPrefsLabel = u.createElement('span', {'id': 'prefs_ls_label', 'class':'✈paneltablelabel'}),
             LSPrefs = u.createElement('input', {'id': 'prefs_disableLStt', 'name': prefix+'prefs_disableLStt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            SyslogPrefsLabel = u.createElement('span', {'id': 'prefs_sylog_label', 'class':'paneltablelabel'}),
+            SyslogPrefsLabel = u.createElement('span', {'id': 'prefs_sylog_label', 'class':'✈paneltablelabel'}),
             SyslogPrefs = u.createElement('input', {'id': 'prefs_disableSyslogtt', 'name': prefix+'prefs_disableSyslogtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            IPPrefsLabel = u.createElement('span', {'id': 'prefs_IP_label', 'class':'paneltablelabel'}),
+            IPPrefsLabel = u.createElement('span', {'id': 'prefs_IP_label', 'class':'✈paneltablelabel'}),
             IPPrefs = u.createElement('input', {'id': 'prefs_disableIPtt', 'name': prefix+'prefs_disableIPtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}});
 //         conveniencesTitle = u.createElement('h3', {'style': {'margin-bottom': '0.2em'}});
 //         conveniencesTitle.innerHTML = "<b>Convenience Plugin</b>";
@@ -139,16 +139,16 @@ GateOne.Base.update(GateOne.Convenience, {
         Registers a number of text transforms to add conveniences to the output of 'ls -l'.
         */
         var bytesPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+[A-Za-z0-9\-._@]+\s+)([0-9]+(?![0-9,.KMGTP]))/g,
-            bytesReplacementString = "$1<span class='clickable' onclick='GateOne.Visual.displayMessage(this.innerHTML + \" bytes is \" + GateOne.Utils.humanReadableBytes(parseInt(this.innerHTML), 2))'>$2</span>";
+            bytesReplacementString = "$1<span class='✈clickable' onclick='GateOne.Visual.displayMessage(this.innerHTML + \" bytes is \" + GateOne.Utils.humanReadableBytes(parseInt(this.innerHTML), 2))'>$2</span>";
         t.registerTextTransform("ls-lbytes", bytesPattern, bytesReplacementString);
         var groupPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+[A-Za-z0-9\-._@]+\s+)([A-Za-z0-9\-._@]+)/g,
-            groupReplacementString = "$1<span class='clickable' onclick='GateOne.Convenience.groupInfo(this)'>$2</span>";
+            groupReplacementString = "$1<span class='✈clickable' onclick='GateOne.Convenience.groupInfo(this)'>$2</span>";
         t.registerTextTransform("ls-lgroup", groupPattern, groupReplacementString);
         var userPattern = /([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?\s+[0-9]+\s+)([A-Za-z0-9\-._@]+)/g,
-            userReplacementString = "$1<span class='clickable' onclick='GateOne.Convenience.userInfo(this)'>$2</span>";
+            userReplacementString = "$1<span class='✈clickable' onclick='GateOne.Convenience.userInfo(this)'>$2</span>";
         t.registerTextTransform("ls-luser", userPattern, userReplacementString);
         var permissionsPattern = /^([bcdlpsS\-][r\-][w\-][xsS\-][r\-][w\-][xsS\-][r\-][w\-][xtT\-][+]?) /mg,
-            permissionsReplacementString = "<span class='clickable' onclick='GateOne.Convenience.permissionsInfo(this)'>$1</span> ";
+            permissionsReplacementString = "<span class='✈clickable' onclick='GateOne.Convenience.permissionsInfo(this)'>$1</span> ";
         t.registerTextTransform("ls-lperms", permissionsPattern, permissionsReplacementString);
     },
     unregisterLSConvenience: function() {
@@ -167,11 +167,11 @@ GateOne.Base.update(GateOne.Convenience, {
         Registers a text transform that makes IPv4 addresses into spans that will execute `host <IP address>` when clicked.
         */
         var IPv4Pattern = /(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b)(?![\.\w-_])/g,
-            IPv4ReplacementString = "<span class='clickable' onclick='GateOne.Convenience.IPInfo(this)'>$1</span>";
+            IPv4ReplacementString = "<span class='✈clickable' onclick='GateOne.Convenience.IPInfo(this)'>$1</span>";
         t.registerTextTransform("IPv4", IPv4Pattern, IPv4ReplacementString);
         // Just a little regex to capture IPv6...
         var IPv6Pattern = /(\b((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\b)(?![\:])/g,
-            IPv6ReplacementString = "<span class='clickable' onclick='GateOne.Convenience.IPInfo(this)'>$1</span>";
+            IPv6ReplacementString = "<span class='✈clickable' onclick='GateOne.Convenience.IPInfo(this)'>$1</span>";
         t.registerTextTransform("IPv6", IPv6Pattern, IPv6ReplacementString);
     },
     unregisterIPConvenience: function() {
@@ -403,7 +403,7 @@ GateOne.Base.update(GateOne.Convenience, {
         Registers a text transform that makes standard syslog output easier on the eyes.
         */
         var timeRegex = /^((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+[0-9]+(st|th|nd)?)\s+([0-9][0-9]\:[0-9][0-9]\:[0-9][0-9])\s+(\w+)\s+(.+?\:)?(.*?)$/mg,
-            timeReplacementString = "<span class='row' onclick='GateOne.Convenience.toggleBackground(this)'><span class='date' onclick='this.parentElement.onclick()'>$1</span> <span class='time' onclick='this.parentElement.onclick(this.parentElement)'>$4</span> <span class='hostname' onclick='this.parentElement.onclick(this.parentElement)'>$5</span> <span class='service' onclick='this.parentElement.onclick(this.parentElement)'>$6</span><span class='message' onclick='this.parentElement.onclick(this.parentElement)'>$7</span></span>";
+            timeReplacementString = "<span class='✈row' onclick='GateOne.Convenience.toggleBackground(this)'><span class='✈date' onclick='this.parentElement.onclick()'>$1</span> <span class='✈time' onclick='this.parentElement.onclick(this.parentElement)'>$4</span> <span class='✈hostname' onclick='this.parentElement.onclick(this.parentElement)'>$5</span> <span class='✈service' onclick='this.parentElement.onclick(this.parentElement)'>$6</span><span class='✈message' onclick='this.parentElement.onclick(this.parentElement)'>$7</span></span>";
         t.registerTextTransform("sysloglines", timeRegex, timeReplacementString);
     },
     unregisterSyslogConvenience: function() {
@@ -426,10 +426,10 @@ GateOne.Base.update(GateOne.Convenience, {
             return; // Only once per click thanks :)
         }
         go.Convenience.togglingBackground = true;
-        if (elem.className.indexOf('selectedrow') == -1) {
-            elem.className += ' selectedrow';
+        if (elem.className.indexOf('✈selectedrow') == -1) {
+            elem.className += ' ✈selectedrow';
         } else {
-            elem.className = elem.className.replace('selectedrow', '');
+            elem.className = elem.className.replace('✈selectedrow', '');
         }
         setTimeout(function() {
             go.Convenience.togglingBackground = false;

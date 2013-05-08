@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#       Copyright 2011 Liftoff Software Corporation
+#       Copyright 2013 Liftoff Software Corporation
 #
 
 # TODO: Make it so that a username can have an @ sign in it.
@@ -18,8 +18,8 @@ __version_info__ = (1, 2)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # Import Python stdlib stuff
-import os, sys, errno, readline, tempfile, base64, binascii, struct, signal, re
-import urlparse, socket
+import os, sys, errno, readline, tempfile, signal, re
+import urlparse, socket, base64, hashlib
 from subprocess import Popen
 from optparse import OptionParser
 # i18n support stuff
@@ -78,11 +78,15 @@ def short_hash(to_shorten):
     """
     Converts *to_shorten* into a really short hash depenendent on the length of
     *to_shorten*.  The result will be safe for use as a file name.
+
+    .. note::
+
+        Collisions are possible but *highly* unlikely because of how this
+        method is used.
     """
-    if bytes != str: # Python 3
-        to_shorten = bytes(to_shorten, 'UTF-8')
-    packed = struct.pack('q', binascii.crc32(to_shorten))
-    return str(base64.urlsafe_b64encode(packed)).replace('=', '')
+    hashed = hashlib.sha1(to_shorten.encode('utf-8'))
+    # Take the first eight characters to create a shortened version.
+    return base64.urlsafe_b64encode(hashed.digest())[:8].decode('utf-8')
 
 def valid_hostname(hostname, allow_underscore=False):
     """
@@ -140,7 +144,6 @@ def valid_ip(ipaddr):
     Returns True if *ipaddr* is a valid IPv4 or IPv6 address.
     (from http://stackoverflow.com/questions/319279/how-to-validate-ip-address-in-python)
     """
-    import socket
     if ':' in ipaddr: # IPv6 address
         try:
             socket.inet_pton(socket.AF_INET6, ipaddr)

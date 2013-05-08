@@ -46,25 +46,25 @@ body {
 {{colors}}
 {{colors_256}}
 /* Need a few custom overrides of the defaults for session playback since it isn't being controlled by gateone.js */
-.terminal pre {
+.✈terminal pre {
     height: 100%;
     width: 100%;
 }
-#{{container}} .terminal {
+.✈terminal {
     position:absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
 }
-.sidetitle {
+.✈sidetitle {
     right: 1.3em;
     top: 4.5em;
     bottom: auto;
     left: auto;
     font-size: 2em;
 }
-.full {
+.✈full {
     width: 100%;
     height: 100%;
 }
@@ -133,7 +133,7 @@ function addPlaybackControls() {
     }
     var playPause = document.createElement("div");
     playPause.id = "{{prefix}}playPause";
-    playPause.className = "centertrans ✈playPause";
+    playPause.className = "✈centertrans ✈playPause";
     playPause.innerHTML = "▶";
     playPause.onclick = function (e) {
         clearInterval(frameUpdater);
@@ -394,7 +394,7 @@ window.onload = function() {
         dateTime = new Date(selectedFrame['time']);
     terminal.id = '{{prefix}}term1';
     terminal.title = 'Recorded Session';
-    terminal.className = 'terminal termcontainer full';
+    terminal.className = '✈terminal ✈termcontainer ✈full';
     document.getElementById('{{prefix}}gridwrapper').appendChild(terminal);
     addPlaybackControls();
     document.getElementById('{{prefix}}term1').innerHTML = '<pre id="{{prefix}}term1_pre">' + selectedFrame['screen'].join('\n') + "\n\n</pre>";
@@ -402,10 +402,10 @@ window.onload = function() {
     scrollToBottom('{{prefix}}term1_pre');
     // Add the sidebar text
     sideinfo.id = '{{prefix}}sideinfo';
-    sideinfo.className = 'sideinfo';
+    sideinfo.className = '✈sideinfo';
     sidetitle.style.right = "0"; // No scrollbar so no need to make room for it
     sidetitle.id = '{{prefix}}sidetitle';
-    sidetitle.className = 'sideinfo sidetitle';
+    sidetitle.className = '✈sideinfo ✈sidetitle';
     sidetitle.innerHTML = "Gate One \u25B8 Playback";
     sidetitle.style.top = "11.5em"; // Slightly different from a standard Gate One theme
     sidetitle.style.right = "0"; // No scrollbar here either

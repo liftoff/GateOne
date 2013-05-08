@@ -79,7 +79,7 @@ go.Base.update(GateOne.Bookmarks, {
         */
         var b = go.Bookmarks,
             goDiv = u.getNode(go.prefs.goDiv),
-            toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': 'toolbar icon_bookmarks', 'title': "Bookmarks"}),
+            toolbarBookmarks = u.createElement('div', {'id': go.prefs.prefix+'icon_bookmarks', 'class': '✈toolbar ✈icon_bookmarks', 'title': "Bookmarks"}),
             toolbar = u.getNode('#'+go.prefs.prefix+'toolbar');
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
         if (go.Logging) {
@@ -104,7 +104,7 @@ go.Base.update(GateOne.Bookmarks, {
             }
         }
         // Setup our toolbar icons and actions
-        go.Icons['bookmark'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="17.117" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop class="stop1" offset="0"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>';
+        go.Icons['bookmark'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="17.117" width="18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient15649" y2="545.05" gradientUnits="userSpaceOnUse" x2="726.49" y1="545.05" x1="748.51"><stop class="✈stop1" offset="0"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="matrix(0.81743869,0,0,0.81743869,-310.96927,-428.95367)"><polygon points="726.49,542.58,734.1,541.47,737.5,534.58,740.9,541.47,748.51,542.58,743,547.94,744.3,555.52,737.5,551.94,730.7,555.52,732,547.94" fill="url(#linearGradient15649)" transform="translate(-346.07093,-9.8266745)"/></g></svg>';
         toolbarBookmarks.innerHTML = go.Icons['bookmark'];
         // This is the favicon that gets used for SSH URLs (used by updateIcon())
         go.Icons['ssh'] = 'data:image/x-icon;base64,AAABAAIABQkAAAEAIAAAAQAAJgAAABAQAAABAAgAaAUAACYBAAAoAAAABQAAABIAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////SP///0j///9I////SP///w////8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wD///8A+AAAAPgAAAD4AAAA+AAAAPgAAAD4AAAA+AAAAPgAAAD4AAAAKAAAABAAAAAgAAAAAQAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACcnJwAoKSkAKikpACorKgArKysAKywrACwtLAAtLi0ALi4tAC0uLgAuLy4ALi8vAC8wLwAwMC8AMDAwADAxMAAxMjAAMTIxADIzMQAyMzIAMjMzADI0MgAyNDMAMzQ0ADQ0NAAzNTQANDU0ADQ2NAA0NjUANTY1ADU2NgA1NzUANjc2ADY3NwA3ODcANjg4ADc5NwA3OTgAODk4ADg5OQA4OjkAOTo5ADk6OgA5OzoAOjs6ADo7OwA6PDsAOzw7ADw9PAA8PjwAPD49ADw+PgA9Pz4APT8/AD1APgA/QD8AP0E/AEBBQQBAQkAAQEJBAEFCQQBBQ0IAQkRCAEJEQwBDRUMAREZFAEZIRwBGSUYAR0lHAEdKSABHSkkASEtJAElMSgBKTUsAS05MAE5QTwBnaGcAkXBUAG1wbgB+f34AgoOCAMOLWgDQlmMAj5CQAJCRkQChoqEAsrOyALO0swC3t7cAvL29AL29vQC+v74AxcXFAMbGxgDHx8cAyMjIAMrKygDLy8sAzMzMAM3NzQDOzs4Az8/PANHR0QDS0tIA1NTUANbW1gDb29sA39/fAOTk5ADo6OgA6enpAO3t7QDv7+8A8fHxAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABzc3Nzc3Nzc3Nzc3Nzc3Nzc1xoaGhoaGhoaGhoaGhac3NlNjEtJiEYEQ0IBQIAXXNzZDk0MC4kHxcRDAcEAV1zc2M9ODRPKSQdFBALBgNdc3NiQExVW1AoIhsVDwoGXnNzYUE/O1NXLighGRMOCV9zc2FDS1ZYNDAsJh0aEgxgc3NhRk5XNDQ0LyojHBYRYnNzYUhFVFlUODMvKCEcFGVzc2FKR0RUQDw3MiwnIBpmc3NhSklHQkE+OjUyKyUeZ3NzaGZpamtsbW9wbmxramhzc2hNcnJycnJycnJycmhNc3NRYWFhYXFRUVFRUVFRUXNzUVFRUVFRUVFRUVFRUlJz//8AAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAA==';
@@ -507,18 +507,18 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             bookmarks = b.bookmarks.slice(0), // Make a local copy since we're going to mess with it
             bmCount = 0, // Starts at 1 for the ad
-            bmMax = b.getMaxBookmarks('.bm_container'),
-            bmContainer = u.getNode('.bm_container'),
+            bmMax = b.getMaxBookmarks('.✈bm_container'),
+            bmContainer = u.getNode('.✈bm_container'),
             bmPanel = u.getNode('#'+prefix+'panel_bookmarks'),
             pagination = u.getNode('#'+prefix+'bm_pagination'),
             paginationUL = u.getNode('#'+prefix+'bm_pagination_ul'),
             tagCloud = u.getNode('#'+prefix+'bm_tagcloud'),
             bmSearch = u.getNode('#'+prefix+'bm_search'),
             bmTaglist = u.getNode('#'+prefix+'bm_taglist'),
-            cloudTags = u.toArray(tagCloud.getElementsByClassName('bm_tag')),
+            cloudTags = u.toArray(tagCloud.getElementsByClassName('✈bm_tag')),
             allTags = [],
             filteredBookmarks = [],
-            bookmarkElements = u.toArray(goDiv.getElementsByClassName('bookmark'));
+            bookmarkElements = u.toArray(goDiv.getElementsByClassName('✈bookmark'));
         bmPanel.style['overflow-y'] = "hidden"; // Only temporary while we're loading bookmarks
         setTimeout(function() {
             bmPanel.style['overflow-y'] = "auto"; // Set it back after everything is loaded
@@ -584,7 +584,7 @@ go.Base.update(GateOne.Bookmarks, {
         // Now recreate it...
         if (b.dateTags) {
             for (var i in b.dateTags) {
-                var tag = u.createElement('li', {'class': 'bm_autotag'});
+                var tag = u.createElement('li', {'class': '✈bm_autotag'});
                 tag.onclick = function(e) {
                     b.removeFilterDateTag(bookmarks, this.innerHTML);
                 };
@@ -594,7 +594,7 @@ go.Base.update(GateOne.Bookmarks, {
         }
         if (b.URLTypeTags) {
             for (var i in b.URLTypeTags) {
-                var tag = u.createElement('li', {'class': 'bm_autotag bm_urltype_tag'});
+                var tag = u.createElement('li', {'class': '✈bm_autotag ✈bm_urltype_tag'});
                 tag.onclick = function(e) {
                     b.removeFilterURLTypeTag(bookmarks, this.innerHTML);
                 };
@@ -604,7 +604,7 @@ go.Base.update(GateOne.Bookmarks, {
         }
         if (b.tags.length) {
             for (var i in b.tags) { // Recreate the tag filter list
-                var tag = u.createElement('li', {'class': 'bm_tag'});
+                var tag = u.createElement('li', {'class': '✈bm_tag'});
                 tag.innerHTML = b.tags[i];
                 tag.onclick = function(e) {
                     b.removeFilterTag(bookmarks, this.innerHTML);
@@ -730,7 +730,7 @@ go.Base.update(GateOne.Bookmarks, {
             if (allTags.indexOf(tagNode.innerHTML) == -1) { // Tag isn't in the new list of bookmarks
                 // Make it appear inactive
                 setTimeout(function() {
-                    tagNode.className = 'bm_tag sectrans inactive';
+                    tagNode.className = '✈bm_tag ✈sectrans ✈inactive';
                 }, delay);
             }
         });
@@ -742,11 +742,11 @@ go.Base.update(GateOne.Bookmarks, {
                 setTimeout(function unTrans() {
                     setTimeout(function reClass() {
                         if (tagNode.innerHTML == "Untagged") {
-                            tagNode.className = 'bm_tag sectrans untagged';
+                            tagNode.className = '✈bm_tag ✈sectrans ✈untagged';
                         } else if (tagNode.innerHTML == "Searches") {
-                            tagNode.className = 'bm_tag sectrans searches';
+                            tagNode.className = '✈bm_tag ✈sectrans ✈searches';
                         } else {
-                            tagNode.className = 'bm_tag sectrans'; // So we don't have slow mouseovers
+                            tagNode.className = '✈bm_tag ✈sectrans'; // So we don't have slow mouseovers
                         }
                     }, 500);
                 }, delay);
@@ -876,7 +876,7 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             iconQueue = localStorage[prefix+'iconQueue'].split('\n'),
             goDiv = u.getNode(go.prefs.goDiv),
-            visibleBookmarks = u.toArray(goDiv.getElementsByClassName('bookmark')),
+            visibleBookmarks = u.toArray(goDiv.getElementsByClassName('✈bookmark')),
             removed = null;
         if (u.startsWith("data:", dataURI)) {
             bookmark.images = {'favicon': dataURI};
@@ -892,7 +892,7 @@ go.Base.update(GateOne.Bookmarks, {
         // TODO:  Get this working...
 //         visibleBookmarks.forEach(function(bookmark) {
 //             // Update the favicon of this bookmark in-place (if it is visible)
-//             var bmURL = bookmark.getElementsByClassName('bm_url');
+//             var bmURL = bookmark.getElementsByClassName('✈bm_url');
 //             if (bmURL.href == bookmark.url) {
 //                 // Add the favicon
 //
@@ -934,19 +934,19 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             twoSec = null,
             bmPanel = u.getNode('#'+prefix+'panel_bookmarks'),
-            bmStats = u.createElement('div', {'class': 'bm_stats superfasttrans', 'style': {'opacity': 0}}),
+            bmStats = u.createElement('div', {'class': '✈bm_stats ✈superfasttrans', 'style': {'opacity': 0}}),
             dateObj = new Date(parseInt(bookmark.created)),
-            bmElement = u.createElement('div', {'class': 'bookmark halfsectrans', 'name': 'bookmark'}),
-            bmLinkFloat = u.createElement('div', {'class': 'linkfloat'}), // So the user can click anywhere on a bookmark to open it
-            bmContent = u.createElement('span', {'class': 'bm_content'}),
-            bmFavicon = u.createElement('span', {'class': 'bm_favicon'}),
-            bmLink = u.createElement('a', {'href': bookmark.url, 'class': 'bm_url', 'tabindex': 2}),
+            bmElement = u.createElement('div', {'class': '✈bookmark ✈halfsectrans', 'name': 'bookmark'}),
+            bmLinkFloat = u.createElement('div', {'class': '✈linkfloat'}), // So the user can click anywhere on a bookmark to open it
+            bmContent = u.createElement('span', {'class': '✈bm_content'}),
+            bmFavicon = u.createElement('span', {'class': '✈bm_favicon'}),
+            bmLink = u.createElement('a', {'href': bookmark.url, 'class': '✈bm_url', 'tabindex': 2}),
             bmEdit = u.createElement('a'),
             bmDelete = u.createElement('a'),
-            bmControls = u.createElement('span', {'class': 'bm_controls'}),
-            bmDesc = u.createElement('span', {'class': 'bm_desc'}),
-            bmVisited = u.createElement('span', {'class': 'bm_visited', 'title': 'Number of visits'}),
-            bmTaglist = u.createElement('ul', {'class': 'bm_taglist'});
+            bmControls = u.createElement('span', {'class': '✈bm_controls'}),
+            bmDesc = u.createElement('span', {'class': '✈bm_desc'}),
+            bmVisited = u.createElement('span', {'class': '✈bm_visited', 'title': 'Number of visits'}),
+            bmTaglist = u.createElement('ul', {'class': '✈bm_taglist'});
             bmElement.addEventListener('dragstart', b.handleDragStart, false);
             bmElement.addEventListener('dragenter', b.handleDragEnter, false);
             bmElement.addEventListener('dragover', b.handleDragOver, false);
@@ -969,7 +969,7 @@ go.Base.update(GateOne.Bookmarks, {
         bmElement.title = bookmark.url;
         if (bookmark.url.indexOf('%s') != -1) {
             // This is a keyword search URL.  Mark it as such.
-            bmLink.innerHTML = '<span class="search">Search:</span> ' + bookmark.name;
+            bmLink.innerHTML = '<span class="✈search">Search:</span> ' + bookmark.name;
         } else {
             bmLink.innerHTML = bookmark.name;
         }
@@ -978,10 +978,10 @@ go.Base.update(GateOne.Bookmarks, {
             b.openBookmark(this.href);
         };
         bmLink.onfocus = function(e) {
-            bmElement.className = "bookmark halfsectrans bmfocus";
+            bmElement.className = "✈bookmark ✈halfsectrans ✈bmfocus";
         }
         bmLink.onblur = function(e) {
-            bmElement.className = "bookmark halfsectrans";
+            bmElement.className = "✈bookmark ✈halfsectrans";
         }
         if (ad) {
             bmLink.innerHTML = "AD: " + bmLink.innerHTML;
@@ -1001,8 +1001,8 @@ go.Base.update(GateOne.Bookmarks, {
         bmDesc.innerHTML = bookmark.notes;
         bmContent.appendChild(bmDesc);
         if (!ad && b.bookmarks.length) {
-            var bmDateTag = u.createElement('li', {'class': 'bm_autotag'}),
-                goTag = u.createElement('li', {'class': 'bm_autotag bm_urltype_tag'}),
+            var bmDateTag = u.createElement('li', {'class': '✈bm_autotag'}),
+                goTag = u.createElement('li', {'class': '✈bm_autotag ✈bm_urltype_tag'}),
                 urlType = bookmark.url.split(':')[0],
                 dateTag = b.getDateTag(dateObj);
             bmVisited.innerHTML = bookmark.visits;
@@ -1010,7 +1010,7 @@ go.Base.update(GateOne.Bookmarks, {
             bmElement.appendChild(bmControls);
             bookmark.tags.sort(); // Make them alphabetical
             bookmark.tags.forEach(function(tag) {
-                var bmTag = u.createElement('li', {'class': 'bm_tag'});
+                var bmTag = u.createElement('li', {'class': '✈bm_tag'});
                 bmTag.innerHTML = tag;
                 bmTag.onclick = function(e) {
                     b.addFilterTag(b.filteredBookmarks, tag);
@@ -1069,28 +1069,28 @@ go.Base.update(GateOne.Bookmarks, {
             b = go.Bookmarks,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            bmSortOpts = u.createElement('span', {'id': 'bm_sort_options', 'class': 'bm_sort_options'}),
-            bmSortAlpha = u.createElement('a', {'id': 'bm_sort_alpha', 'class': 'bm_sort_alpha'}),
-            bmSortDate = u.createElement('a', {'id': 'bm_sort_date', 'class': 'bm_sort_date'}),
-            bmSortVisits = u.createElement('a', {'id': 'bm_sort_visits', 'class': 'bm_sort_visits'}),
-            bmSortDirection = u.createElement('div', {'id': 'bm_sort_direction', 'class': 'bm_sort_direction'});
+            bmSortOpts = u.createElement('span', {'id': 'bm_sort_options', 'class': '✈bm_sort_options'}),
+            bmSortAlpha = u.createElement('a', {'id': 'bm_sort_alpha', 'class': '✈bm_sort_alpha'}),
+            bmSortDate = u.createElement('a', {'id': 'bm_sort_date', 'class': '✈bm_sort_date'}),
+            bmSortVisits = u.createElement('a', {'id': 'bm_sort_visits', 'class': '✈bm_sort_visits'}),
+            bmSortDirection = u.createElement('div', {'id': 'bm_sort_direction', 'class': '✈bm_sort_direction'});
         bmSortAlpha.innerHTML = 'Alphabetical ';
         bmSortDate.innerHTML = 'Date ';
         bmSortVisits.innerHTML = 'Visits ';
         bmSortDirection.innerHTML = '▼';
         bmSortOpts.innerHTML = '<b>Sort:</b> ';
         if (localStorage[prefix+'sort'] == 'alpha') {
-            bmSortAlpha.className = 'active';
+            bmSortAlpha.className = '✈active';
         } else if (localStorage[prefix+'sort'] == 'date') {
-            bmSortDate.className = 'active';
+            bmSortDate.className = '✈active';
         } else if (localStorage[prefix+'sort'] == 'visits') {
-            bmSortVisits.className = 'active';
+            bmSortVisits.className = '✈active';
         }
         bmSortAlpha.onclick = function(e) {
             if (localStorage[prefix+'sort'] != 'alpha') {
                 b.sortfunc = b.sortFunctions.alphabetical;
                 u.getNode('#'+prefix+'bm_sort_' + localStorage[prefix+'sort']).className = null;
-                u.getNode('#'+prefix+'bm_sort_alpha').className = 'active';
+                u.getNode('#'+prefix+'bm_sort_alpha').className = '✈active';
                 b.loadBookmarks();
                 localStorage[prefix+'sort'] = 'alpha';
             }
@@ -1099,7 +1099,7 @@ go.Base.update(GateOne.Bookmarks, {
             if (localStorage[prefix+'sort'] != 'date') {
                 b.sortfunc = b.sortFunctions.created;
                 u.getNode('#'+prefix+'bm_sort_' + localStorage[prefix+'sort']).className = null;
-                u.getNode('#'+prefix+'bm_sort_date').className = 'active';
+                u.getNode('#'+prefix+'bm_sort_date').className = '✈active';
                 b.loadBookmarks();
                 localStorage[prefix+'sort'] = 'date';
             }
@@ -1108,7 +1108,7 @@ go.Base.update(GateOne.Bookmarks, {
             if (localStorage[prefix+'sort'] != 'visits') {
                 b.sortfunc = b.sortFunctions.visits;
                 u.getNode('#'+prefix+'bm_sort_' + localStorage[prefix+'sort']).className = null;
-                u.getNode('#'+prefix+'bm_sort_visits').className = 'active';
+                u.getNode('#'+prefix+'bm_sort_visits').className = '✈active';
                 b.loadBookmarks();
                 localStorage[prefix+'sort'] = 'visits';
             }
@@ -1132,23 +1132,23 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             delay = 1000, // Pretty much everything has the 'sectrans' class for 1-second transition effects
             existingPanel = u.getNode('#'+prefix+'panel_bookmarks'),
-            bmPanel = u.createElement('div', {'id': 'panel_bookmarks', 'class': 'panel sectrans panel_bookmarks'}),
-            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
-            bmHeader = u.createElement('div', {'id': 'bm_header', 'class': 'sectrans'}),
-            bmContainer = u.createElement('div', {'id': 'bm_container', 'class': 'bm_container sectrans'}),
-            bmPagination = u.createElement('div', {'id': 'bm_pagination', 'class': 'bm_pagination sectrans'}),
-            bmTags = u.createElement('div', {'id': 'bm_tags', 'class': 'bm_tags sectrans'}),
-            bmNew = u.createElement('a', {'id': 'bm_new', 'class': 'bm_new quartersectrans', 'tabindex': 3}),
+            bmPanel = u.createElement('div', {'id': 'panel_bookmarks', 'class': '✈panel ✈sectrans ✈panel_bookmarks'}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
+            bmHeader = u.createElement('div', {'id': 'bm_header', 'class': '✈sectrans'}),
+            bmContainer = u.createElement('div', {'id': 'bm_container', 'class': '✈bm_container ✈sectrans'}),
+            bmPagination = u.createElement('div', {'id': 'bm_pagination', 'class': '✈bm_pagination ✈sectrans'}),
+            bmTags = u.createElement('div', {'id': 'bm_tags', 'class': '✈bm_tags ✈sectrans'}),
+            bmNew = u.createElement('a', {'id': 'bm_new', 'class': '✈bm_new ✈quartersectrans', 'tabindex': 3}),
             bmHRFix = u.createElement('hr', {'style': {'opacity': 0, 'margin-bottom': 0}}),
-            bmDisplayOpts = u.createElement('div', {'id': 'bm_display_opts', 'class': 'bm_display_opts sectransform'}),
+            bmDisplayOpts = u.createElement('div', {'id': 'bm_display_opts', 'class': '✈bm_display_opts ✈sectransform'}),
             bmSortOpts = b.createSortOpts(),
-            bmOptions = u.createElement('div', {'id': 'bm_options', 'class': 'bm_options'}),
+            bmOptions = u.createElement('div', {'id': 'bm_options', 'class': '✈bm_options'}),
             bmExport = u.createElement('a', {'id': 'bm_export', 'title': 'Save your bookmarks to a file'}),
             bmImport = u.createElement('a', {'id': 'bm_import', 'title': 'Import bookmarks from another application'}),
             bmSync = u.createElement('a', {'id': 'bm_sync', 'title': 'Synchronize your bookmarks with the server.'}),
             bmH2 = u.createElement('h2'),
             bmHeaderImage = u.createElement('span', {'id': 'bm_header_star'}),
-            bmSearch = u.createElement('input', {'id': 'bm_search', 'class': 'bm_search', 'name': prefix+'search', 'type': 'search', 'tabindex': 1, 'placeholder': 'Search Bookmarks'}),
+            bmSearch = u.createElement('input', {'id': 'bm_search', 'class': '✈bm_search', 'name': prefix+'search', 'type': 'search', 'tabindex': 1, 'placeholder': 'Search Bookmarks'}),
             toggleSort = u.partial(b.toggleSortOrder, b.bookmarks);
         bmH2.innerHTML = 'Bookmarks';
         panelClose.innerHTML = go.Icons['panelclose'];
@@ -1170,7 +1170,7 @@ go.Base.update(GateOne.Bookmarks, {
         }
         bmHeader.appendChild(bmH2);
         bmHeader.appendChild(panelClose);
-        bmTags.innerHTML = '<span id="'+prefix+'bm_taglist_label" class="bm_taglist_label">Tag Filter:</span> <ul id="'+prefix+'bm_taglist"></ul> ';
+        bmTags.innerHTML = '<span id="'+prefix+'bm_taglist_label" class="✈bm_taglist_label">Tag Filter:</span> <ul id="'+prefix+'bm_taglist"></ul> ';
         bmSync.innerHTML = 'Sync Bookmarks | ';
         bmImport.innerHTML = 'Import | ';
         bmExport.innerHTML = 'Export';
@@ -1272,13 +1272,13 @@ go.Base.update(GateOne.Bookmarks, {
             existingTip = u.getNode('#'+prefix+'bm_tagcloud_tip'),
             existingTagsLink = u.getNode('#'+prefix+'bm_tags_header_link'),
             existingAutotagsLink = u.getNode('#'+prefix+'bm_autotags_header_link'),
-            bmTagCloud = u.createElement('div', {'id': 'bm_tagcloud', 'class': 'sectrans bm_tagcloud'}),
-            bmTagCloudUL = u.createElement('ul', {'id': 'bm_tagcloud_ul', 'class': 'bm_tagcloud_ul'}),
-            bmTagCloudTip = u.createElement('span', {'id': 'bm_tagcloud_tip', 'class': 'sectrans bm_tagcloud_tip'}),
-            bmTagsHeader = u.createElement('h3', {'class': 'sectrans'}),
+            bmTagCloud = u.createElement('div', {'id': 'bm_tagcloud', 'class': '✈sectrans ✈bm_tagcloud'}),
+            bmTagCloudUL = u.createElement('ul', {'id': 'bm_tagcloud_ul', 'class': '✈bm_tagcloud_ul'}),
+            bmTagCloudTip = u.createElement('span', {'id': 'bm_tagcloud_tip', 'class': '✈sectrans ✈bm_tagcloud_tip'}),
+            bmTagsHeader = u.createElement('h3', {'class': '✈sectrans'}),
             pipeSeparator = u.createElement('span'),
-            bmTagsHeaderTagsLink = u.createElement('a', {'id': 'bm_tags_header_link', 'class': 'bm_tags_header_link'}),
-            bmTagsHeaderAutotagsLink = u.createElement('a', {'id': 'bm_autotags_header_link', 'class': 'bm_autotags_header_link'}),
+            bmTagsHeaderTagsLink = u.createElement('a', {'id': 'bm_tags_header_link', 'class': '✈bm_tags_header_link'}),
+            bmTagsHeaderAutotagsLink = u.createElement('a', {'id': 'bm_autotags_header_link', 'class': '✈bm_autotags_header_link'}),
             allTags = b.getTags(b.bookmarks),
             allAutotags = b.getAutotags(b.bookmarks);
         bmTagsHeaderTagsLink.onclick = function(e) {
@@ -1291,16 +1291,16 @@ go.Base.update(GateOne.Bookmarks, {
             if (active == 'tags') {
                 if (existingAutotagsLink) {
                     existingTagsLink.className = '';
-                    existingAutotagsLink.className = 'inactive';
+                    existingAutotagsLink.className = '✈inactive';
                 } else {
-                    bmTagsHeaderAutotagsLink.className = 'inactive';
+                    bmTagsHeaderAutotagsLink.className = '✈inactive';
                 }
             } else if (active == 'autotags') {
                 if (existingTagsLink) {
-                    existingTagsLink.className = 'inactive';
+                    existingTagsLink.className = '✈inactive';
                     existingAutotagsLink.className = '';
                 } else {
-                    bmTagsHeaderTagsLink.className = 'inactive';
+                    bmTagsHeaderTagsLink.className = '✈inactive';
                 }
             }
         }
@@ -1351,7 +1351,7 @@ go.Base.update(GateOne.Bookmarks, {
         }
         if (active == 'tags') {
             allTags.forEach(function(tag) {
-                var li = u.createElement('li', {'class': 'bm_tag sectrans', 'title': 'Click to filter or drop on a bookmark to tag it.', 'draggable': true});
+                var li = u.createElement('li', {'class': '✈bm_tag ✈sectrans', 'title': 'Click to filter or drop on a bookmark to tag it.', 'draggable': true});
                 li.innerHTML = tag;
                 li.addEventListener('dragstart', b.handleDragStart, false);
                 go.Visual.applyTransform(li, 'translateX(700px)');
@@ -1365,7 +1365,7 @@ go.Base.update(GateOne.Bookmarks, {
                 }
                 bmTagCloudUL.appendChild(li);
                 if (tag == "Untagged") {
-                    li.className = 'bm_tag sectrans untagged';
+                    li.className = '✈bm_tag ✈sectrans ✈untagged';
                 }
                 setTimeout(function unTrans() {
                     go.Visual.applyTransform(li, '');
@@ -1378,25 +1378,25 @@ go.Base.update(GateOne.Bookmarks, {
                 li.innerHTML = tag;
                 go.Visual.applyTransform(li, 'translateX(700px)');
                 if (u.startsWith('<', tag) || u.startsWith('>', tag)) { // Date tag
-                    li.className = 'bm_autotag sectrans';
+                    li.className = '✈bm_autotag ✈sectrans';
                     li.onclick = function(e) {
                         b.addFilterDateTag(b.bookmarks, tag);
                     };
                     setTimeout(function unTrans() {
                         go.Visual.applyTransform(li, '');
                         setTimeout(function() {
-                            li.className = 'bm_autotag';
+                            li.className = '✈bm_autotag';
                         }, 1000);
                     }, delay);
                 } else { // URL type tag
-                    li.className = 'bm_autotag bm_urltype_tag sectrans';
+                    li.className = '✈bm_autotag ✈bm_urltype_tag ✈sectrans';
                     li.onclick = function(e) {
                         b.addFilterURLTypeTag(b.bookmarks, tag);
                     }
                     setTimeout(function unTrans() {
                         go.Visual.applyTransform(li, '');
                         setTimeout(function() {
-                            li.className = 'bm_autotag bm_urltype_tag';
+                            li.className = '✈bm_autotag ✈bm_urltype_tag';
                         }, 1000);
                     }, delay);
                 }
@@ -1669,12 +1669,12 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             u = go.Utils,
             b = go.Bookmarks,
-            bmForm = u.createElement('form', {'name': prefix+'bm_import_form', 'id': 'bm_import_form', 'class': 'bm_import_form sectrans', 'enctype': 'multipart/form-data'}),
+            bmForm = u.createElement('form', {'name': prefix+'bm_import_form', 'id': 'bm_import_form', 'class': '✈bm_import_form ✈sectrans', 'enctype': 'multipart/form-data'}),
             importLabel = u.createElement('label', {'style': {'text-align': 'center'}}),
-            importFile = u.createElement('input', {'type': 'file', 'id': 'bookmarks_upload', 'class': 'bookmarks_upload', 'name': prefix+'bookmarks_upload'}),
-            buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': 'bm_buttons'}),
-            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': 'bm_submit button black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'bm_submit button black'}),
+            importFile = u.createElement('input', {'type': 'file', 'id': 'bookmarks_upload', 'class': '✈bookmarks_upload', 'name': prefix+'bookmarks_upload'}),
+            buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
+            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈bm_submit ✈button ✈black'}),
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈bm_submit ✈button ✈black'}),
             bmHelp = u.createElement('p');
         bmSubmit.innerHTML = "Submit";
         bmCancel.innerHTML = "Cancel";
@@ -1814,18 +1814,18 @@ go.Base.update(GateOne.Bookmarks, {
             b = go.Bookmarks,
             prefix = go.prefs.prefix,
             formTitle = "",
-            bmForm = u.createElement('form', {'name': prefix+'bm_new_form', 'id': 'bm_new_form', 'class': 'bm_new_form sectrans'}),
-            urlInput = u.createElement('input', {'type': 'url', 'id': 'bm_newurl', 'class': 'bm_newurl', 'name': prefix+'bm_newurl', 'placeholder': 'ssh://user@host:22 or http://webhost/path', 'required': 'required'}),
+            bmForm = u.createElement('form', {'name': prefix+'bm_new_form', 'id': 'bm_new_form', 'class': '✈bm_new_form ✈sectrans'}),
+            urlInput = u.createElement('input', {'type': 'url', 'id': 'bm_newurl', 'class': '✈bm_newurl', 'name': prefix+'bm_newurl', 'placeholder': 'ssh://user@host:22 or http://webhost/path', 'required': 'required'}),
             urlLabel = u.createElement('label'),
-            nameInput = u.createElement('input', {'type': 'text', 'id': 'bm_new_name', 'class': 'bm_new_name', 'name': prefix+'bm_new_name', 'placeholder': 'Web App Server 2', 'required': 'required'}),
+            nameInput = u.createElement('input', {'type': 'text', 'id': 'bm_new_name', 'class': '✈bm_new_name', 'name': prefix+'bm_new_name', 'placeholder': 'Web App Server 2', 'required': 'required'}),
             nameLabel = u.createElement('label'),
-            tagsInput = u.createElement('input', {'type': 'text', 'id': 'bm_newurl_tags', 'class': 'bm_newurl_tags', 'name': prefix+'bm_newurl_tags', 'placeholder': 'Linux, New York, Production'}),
+            tagsInput = u.createElement('input', {'type': 'text', 'id': 'bm_newurl_tags', 'class': '✈bm_newurl_tags', 'name': prefix+'bm_newurl_tags', 'placeholder': 'Linux, New York, Production'}),
             tagsLabel = u.createElement('label'),
             notesTextarea = u.createElement('textarea', {'id': 'bm_new_notes', 'name': prefix+'bm_new_notes', 'placeholder': 'e.g. Supported by Global Ops'}),
             notesLabel = u.createElement('label'),
-            buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': 'bm_buttons'}),
-            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': 'bm_submit button black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'bm_submit button black'});
+            buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
+            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈bm_submit ✈button ✈black'}),
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈bm_submit ✈button ✈black'});
         bmSubmit.innerHTML = "Submit";
         bmCancel.innerHTML = "Cancel";
         urlLabel.innerHTML = "URL";
@@ -1984,7 +1984,7 @@ go.Base.update(GateOne.Bookmarks, {
         .. note:: Only meant to be called from a 'bm_edit' anchor tag (as the *obj*).
         */
         var go = GateOne,
-            url = obj.parentNode.parentNode.getElementsByClassName("bm_url")[0].href;
+            url = obj.parentNode.parentNode.getElementsByClassName("✈bm_url")[0].href;
         go.Bookmarks.openNewBookmarkForm(url);
     },
     highestUSN: function() {
@@ -2042,15 +2042,15 @@ go.Base.update(GateOne.Bookmarks, {
             url = null,
             count = 0,
             remove = null,
-            confirmElement = u.createElement('div', {'id': 'bm_confirm_delete', 'class': 'bookmark halfsectrans bm_confirm_delete'}),
-            yes = u.createElement('button', {'id': 'bm_yes', 'class': 'bm_yes button black'}),
-            no = u.createElement('button', {'id': 'bm_no', 'class': 'bm_yes button black'}),
+            confirmElement = u.createElement('div', {'id': 'bm_confirm_delete', 'class': '✈bookmark ✈halfsectrans ✈bm_confirm_delete'}),
+            yes = u.createElement('button', {'id': 'bm_yes', 'class': '✈bm_yes ✈button ✈black'}),
+            no = u.createElement('button', {'id': 'bm_no', 'class': '✈bm_yes ✈button ✈black'}),
             bmPanel = u.getNode('#'+prefix+'panel_bookmarks');
         if (typeof(obj) == "string") {
             url = obj;
         } else {
             // Assume this is an anchor tag from the onclick event
-            url = obj.parentNode.parentNode.getElementsByClassName("bm_url")[0].href;
+            url = obj.parentNode.parentNode.getElementsByClassName("✈bm_url")[0].href;
         }
         yes.innerHTML = "Yes";
         no.innerHTML = "No";
@@ -2213,18 +2213,18 @@ go.Base.update(GateOne.Bookmarks, {
             b = go.Bookmarks,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            bmPaginationUL = u.createElement('ul', {'id': 'bm_pagination_ul', 'class': 'bm_pagination bm_pagination_ul halfsectrans'}),
-            bmContainer = u.getNode('.bm_container'),
-            bmMax = b.getMaxBookmarks('.bm_container'),
+            bmPaginationUL = u.createElement('ul', {'id': 'bm_pagination_ul', 'class': '✈bm_pagination ✈bm_pagination_ul ✈halfsectrans'}),
+            bmContainer = u.getNode('.✈bm_container'),
+            bmMax = b.getMaxBookmarks('.✈bm_container'),
             bmPages = Math.ceil(bookmarks.length/bmMax),
-            prev = u.createElement('li', {'class': 'bm_page halfsectrans'}),
-            next = u.createElement('li', {'class': 'bm_page halfsectrans'});
+            prev = u.createElement('li', {'class': '✈bm_page ✈halfsectrans'}),
+            next = u.createElement('li', {'class': '✈bm_page ✈halfsectrans'});
         // Add the paginator
         if (typeof(page) == 'undefined' || page == null) {
             page = 0;
         }
         if (page == 0) {
-            prev.className = 'bm_page halfsectrans inactive';
+            prev.className = '✈bm_page ✈halfsectrans ✈inactive';
         } else {
             prev.onclick = function(e) {
                 e.preventDefault();
@@ -2236,9 +2236,9 @@ go.Base.update(GateOne.Bookmarks, {
         bmPaginationUL.appendChild(prev);
         if (bmPages > 0) {
             for (var i=0; i<=(bmPages-1); i++) {
-                var li = u.createElement('li', {'class': 'bm_page halfsectrans'});
+                var li = u.createElement('li', {'class': '✈bm_page ✈halfsectrans'});
                 if (i == page) {
-                    li.innerHTML = '<a class="active" href="javascript:void(0)">'+(i+1)+'</a>';
+                    li.innerHTML = '<a class="✈active" href="javascript:void(0)">'+(i+1)+'</a>';
                 } else {
                     li.innerHTML = '<a href="javascript:void(0)">'+(i+1)+'</a>';
                     li.title = i+1;
@@ -2251,12 +2251,12 @@ go.Base.update(GateOne.Bookmarks, {
                 bmPaginationUL.appendChild(li);
             }
         } else {
-            var li = u.createElement('li', {'class': 'bm_page halfsectrans'});
-            li.innerHTML = '<a href="javascript:void(0)" class="active">1</a>';
+            var li = u.createElement('li', {'class': '✈bm_page ✈halfsectrans'});
+            li.innerHTML = '<a href="javascript:void(0)" class="✈active">1</a>';
             bmPaginationUL.appendChild(li);
         }
         if (page == bmPages-1 || bmPages == 0) {
-            next.className = 'bm_page halfsectrans inactive';
+            next.className = '✈bm_page ✈halfsectrans ✈inactive';
         } else {
             next.onclick = function(e) {
                 e.preventDefault();
@@ -2291,7 +2291,7 @@ go.Base.update(GateOne.Bookmarks, {
             b = go.Bookmarks,
             u = go.Utils,
             goDiv = u.getNode(go.prefs.goDiv),
-            visibleBookmarks = u.toArray(goDiv.getElementsByClassName('bookmark'));
+            visibleBookmarks = u.toArray(goDiv.getElementsByClassName('✈bookmark'));
         for (var i in b.bookmarks) {
             if (b.bookmarks[i].url == URL) {
                 b.bookmarks[i].tags.push(tag);
@@ -2306,11 +2306,11 @@ go.Base.update(GateOne.Bookmarks, {
             }
         }
         visibleBookmarks.forEach(function(bookmark) {
-            var bmURL = bookmark.getElementsByClassName('bm_url')[0].href,
-                bmTaglist = bookmark.getElementsByClassName('bm_taglist')[0];
+            var bmURL = bookmark.getElementsByClassName('✈bm_url')[0].href,
+                bmTaglist = bookmark.getElementsByClassName('✈bm_taglist')[0];
             if (URL == bmURL) {
                 // This is our bookmark, append this tag to bm_tags
-                var bmTag = u.createElement('li', {'class': 'bm_tag'});
+                var bmTag = u.createElement('li', {'class': '✈bm_tag'});
                 bmTag.innerHTML = tag;
                 bmTag.onclick = function(e) {
                     b.addFilterTag(b.filteredBookmarks, tag);
@@ -2383,9 +2383,9 @@ go.Base.update(GateOne.Bookmarks, {
             offset = u.getOffset(elem),
             bmPanel = u.getNode('#'+prefix+'panel_bookmarks'),
             bmPanelWidth = bmPanel.offsetWidth,
-            rename = u.createElement('a', {'id': 'bm_context_rename', 'class': 'pointer'}),
-            cancel = u.createElement('a', {'id': 'bm_context_cancel', 'class': 'pointer'}),
-            menu = u.createElement('div', {'id': 'bm_context', 'class': 'quartersectrans bm_context'});
+            rename = u.createElement('a', {'id': 'bm_context_rename', 'class': '✈pointer'}),
+            cancel = u.createElement('a', {'id': 'bm_context_cancel', 'class': '✈pointer'}),
+            menu = u.createElement('div', {'id': 'bm_context', 'class': '✈quartersectrans ✈bm_context'});
         // Close any existing context menu before we do anything else
         if (existing) {
             existing.style.opacity = 0;
@@ -2431,9 +2431,9 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             u = go.Utils,
             b = go.Bookmarks,
-            bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': 'sectrans'}),
-            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'value': 'Cancel', 'class': 'button black'});
+            bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': '✈sectrans'}),
+            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'value': 'Cancel', 'class': '✈button ✈black'});
         bmForm.innerHTML = '<label for="'+prefix+'bm_newtagname">New Name</label><input type="text" name="'+prefix+'bm_newtagname" id="'+prefix+'bm_newtagname" autofocus required>';
         bmCancel.onclick = closeDialog;
         bmForm.appendChild(bmSubmit);
@@ -2462,11 +2462,11 @@ go.Base.update(GateOne.Bookmarks, {
             prefix = go.prefs.prefix,
             u = go.Utils,
             b = go.Bookmarks,
-            bmForm = u.createElement('form', {'name': prefix+'bm_export_form', 'id': 'bm_export_form', 'class': 'sectrans'}),
-            buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': 'bm_buttons'}),
-            bmExportAll = u.createElement('button', {'id': 'bm_export_all', 'type': 'submit', 'value': 'all', 'class': 'button black'}),
-            bmExportFiltered = u.createElement('button', {'id': 'bm_export_filtered', 'type': 'submit', 'value': 'all', 'class': 'button black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'});
+            bmForm = u.createElement('form', {'name': prefix+'bm_export_form', 'id': 'bm_export_form', 'class': '✈sectrans'}),
+            buttonContainer = u.createElement('div', {'id': 'bm_buttons', 'class': '✈bm_buttons'}),
+            bmExportAll = u.createElement('button', {'id': 'bm_export_all', 'type': 'submit', 'value': 'all', 'class': '✈button ✈black'}),
+            bmExportFiltered = u.createElement('button', {'id': 'bm_export_filtered', 'type': 'submit', 'value': 'all', 'class': '✈button ✈black'}),
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         bmForm.innerHTML = '<p>You can export all bookmarks or just bookmarks within the current filter/search</p>';
         buttonContainer.appendChild(bmExportAll);
         buttonContainer.appendChild(bmExportFiltered);
@@ -2497,9 +2497,9 @@ go.Base.update(GateOne.Bookmarks, {
             b = go.Bookmarks,
             u = go.Utils,
             prefix = go.prefs.prefix,
-            bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': 'sectrans'}),
-            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'});
+            bmForm = u.createElement('form', {'name': prefix+'bm_dialog_form', 'id': 'bm_dialog_form', 'class': '✈sectrans'}),
+            bmSubmit = u.createElement('button', {'id': 'bm_submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            bmCancel = u.createElement('button', {'id': 'bm_cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         bmForm.innerHTML = '<label for='+prefix+'"bm_keyword_seach">Search</label><input type="text" name="'+prefix+'bm_searchstring" id="'+prefix+'bm_searchstring" autofocus required>';
         bmForm.appendChild(bmSubmit);
         bmForm.appendChild(bmCancel);
@@ -2542,9 +2542,9 @@ go.Base.update(GateOne.Bookmarks, {
             existing = u.getNode('#' + name),
             existingBar = u.getNode('#' + name + 'bar'),
             progress = Math.round((num/total)*100),
-            progressContainer = u.createElement('div', {'class': 'bm_progresscontainer', 'id': name}),
-            progressBarContainer = u.createElement('div', {'class': 'bm_progressbarcontainer'}),
-            progressBar = u.createElement('div', {'class': 'bm_progressbar', 'id': name+'bar'});
+            progressContainer = u.createElement('div', {'class': '✈bm_progresscontainer', 'id': name}),
+            progressBarContainer = u.createElement('div', {'class': '✈bm_progressbarcontainer'}),
+            progressBar = u.createElement('div', {'class': '✈bm_progressbar', 'id': name+'bar'});
         if (existing) {
             existingBar.style.width = progress + '%';
         } else {
@@ -2577,15 +2577,15 @@ go.Base.update(GateOne.Bookmarks, {
             e.preventDefault(); // Necessary. Allows us to drop.
         }
         e.dataTransfer.dropEffect = 'move';  // See the section on the DataTransfer object.
-        this.className = 'bookmark over';
+        this.className = '✈bookmark ✈over';
         return false;
     },
     handleDragEnter: function(e) {
         // this / e.target is the current hover target.
-        this.className = 'bookmark over';
+        this.className = '✈bookmark ✈over';
     },
     handleDragLeave: function(e) {
-        this.className = 'bookmark sectrans';
+        this.className = '✈bookmark ✈sectrans';
     },
     handleDrop: function(e) {
         // this / e.target is current target element.
@@ -2595,17 +2595,17 @@ go.Base.update(GateOne.Bookmarks, {
         // Don't do anything if dropping the same column we're dragging.
         if (GateOne.Bookmarks.temp != this) {
             // Add the tag to the bookmark it was dropped on.
-            var url = this.getElementsByClassName('bm_url')[0].href;
+            var url = this.getElementsByClassName('✈bm_url')[0].href;
             GateOne.Bookmarks.addTagToBookmark(url, e.dataTransfer.getData('text/html'));
         }
-        this.className = 'bookmark halfsectrans';
+        this.className = '✈bookmark ✈halfsectrans';
         GateOne.Bookmarks.temp = "";
         return false;
     },
     handleDragEnd: function(e) {
         // this/e.target is the source node.
 //         [].forEach.call(bmElement, function (bmElement) {
-//             bmElement.className = 'bookmark sectrans';
+//             bmElement.className = '✈bookmark ✈sectrans';
 //         });
     }
 });

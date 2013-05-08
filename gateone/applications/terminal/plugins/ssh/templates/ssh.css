@@ -1,30 +1,30 @@
 .✈ssh_ids_listcontainer {
     margin-left: 0.5em;
 }
-#{{container}} .ssh_id {
+.✈ssh_id {
     display: table-row;
     height: 1.2em;
     overflow: hidden;
     font-size: 0.9em;
     white-space: nowrap;
 }
-#{{container}} .active.ssh_id {
+.✈active.✈ssh_id {
     -webkit-transform: skew(-10deg) translate(0.5%);
 }
-#{{container}} .ssh_id_title {
+.✈ssh_id_title {
     width: 15em;
 }
-#{{container}} .ssh_id_metadata_value {
+.✈ssh_id_metadata_value {
     display: table-cell;
     padding-right: 0.5em;
     font-family: monospace;
     white-space: pre-wrap;
 }
-#{{container}} .ssh_id_pubkey_value {
+.✈ssh_id_pubkey_value {
     width: 100%;
     height: 4em;
 }
-#{{container}} .ssh_id_metadata_title {
+.✈ssh_id_metadata_title {
     display: table-cell;
     font-weight: bold;
     padding-right: 0.5em;
@@ -32,7 +32,7 @@
     width: 24%;
     font-size: 0.9em;
 }
-#{{container}} .ssh_id_default {
+.✈ssh_id_default {
     text-align: center;
     padding-left: 1.2em;
 }
@@ -52,7 +52,7 @@
     left: 0;
     right: 0;
 }
-#{{container}} .ssh_ids_options {
+.✈ssh_ids_options {
     display: table-cell;
     text-transform: uppercase;
     background-image: none;
@@ -68,14 +68,14 @@
     margin-right: 0.5em;
     margin-top: -1.5em;
 }
-#{{container}} .ssh_id_form {
+.✈ssh_id_form {
     width: 20em;
     margin-right: 1em;
 }
-#{{container}} .ssh_id_form input {
+.✈ssh_id_form input {
     width: 98%;
 }
-#{{container}} .ssh_id_form select {
+.✈ssh_id_form select {
     font-size: 0.9em;
     display: inline-block;
     padding: 0.2em 0.2em;
@@ -85,7 +85,7 @@
     margin-bottom: 0.4em;
     margin-left: 0.4em;
 }
-#{{container}} .ssh_id:hover {
+.✈ssh_id:hover {
     cursor: pointer;
     background-color: rgba(0, 0, 0, 0.2);
     -webkit-transform-origin: center center;
@@ -103,13 +103,13 @@
     transform-origin: top left;
     transition: background-color 0.05s ease-in-out;
 }
-#{{container}} .ssh_panel_link {
+.✈ssh_panel_link {
     float: left;
     font-size: 0.9em;
     font-weight: bold;
     margin-right: 0.5em;
 }
-#{{container}} .ssh_panel_link:hover {
+.✈ssh_panel_link:hover {
     cursor: pointer;
     -webkit-transition: -webkit-transform 0.1s ease-in-out;
     -moz-transition: -webkit-transform 0.1s ease-in-out;

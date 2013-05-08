@@ -43,9 +43,9 @@ go.Base.update(go.SSH, {
             infoPanel = u.getNode('#'+prefix+'panel_info'),
             h3 = u.createElement('h3'),
             sshQueryString = u.getQueryVariable('ssh'),
-            infoPanelDuplicateSession = u.createElement('button', {'id': 'duplicate_session', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            infoPanelManageIdentities = u.createElement('button', {'id': 'manage_identities', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            prefsPanelKnownHosts = u.createElement('button', {'id': 'edit_kh', 'type': 'submit', 'value': 'Submit', 'class': 'button black'});
+            infoPanelDuplicateSession = u.createElement('button', {'id': 'duplicate_session', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            infoPanelManageIdentities = u.createElement('button', {'id': 'manage_identities', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            prefsPanelKnownHosts = u.createElement('button', {'id': 'edit_kh', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'});
         // Assign our logging function shortcuts if the Logging module is available with a safe fallback
         if (go.Logging) {
             logFatal = go.Logging.logFatal;
@@ -144,25 +144,25 @@ go.Base.update(go.SSH, {
         */
         var ssh = go.SSH,
             existingPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
-            sshIDPanel = u.createElement('div', {'id': 'panel_ssh_ids', 'class': 'panel sectrans ✈panel_ssh_ids'}),
-            sshIDHeader = u.createElement('div', {'id': 'ssh_ids_header', 'class': 'sectrans'}),
-            sshIDHeaderH2 = u.createElement('h2', {'id': 'ssh_ids_title', 'class': 'sectrans'}),
-            sshNewID = u.createElement('a', {'id': 'ssh_new_id', 'class': 'halfsectrans ssh_panel_link'}),
-            sshUploadID = u.createElement('a', {'id': 'ssh_upload_id', 'class': 'halfsectrans ssh_panel_link'}),
+            sshIDPanel = u.createElement('div', {'id': 'panel_ssh_ids', 'class': '✈panel ✈sectrans ✈panel_ssh_ids'}),
+            sshIDHeader = u.createElement('div', {'id': 'ssh_ids_header', 'class': '✈sectrans'}),
+            sshIDHeaderH2 = u.createElement('h2', {'id': 'ssh_ids_title', 'class': '✈sectrans'}),
+            sshNewID = u.createElement('a', {'id': 'ssh_new_id', 'class': '✈halfsectrans ✈ssh_panel_link'}),
+            sshUploadID = u.createElement('a', {'id': 'ssh_upload_id', 'class': '✈halfsectrans ✈ssh_panel_link'}),
             sshIDHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
-            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
-            sshIDContent = u.createElement('div', {'id': 'ssh_ids_container', 'class': 'sectrans ✈ssh_ids_container'}),
-            sshIDInfoContainer = u.createElement('div', {'id': 'ssh_id_info', 'class': 'sectrans ✈ssh_id_info'}),
-            sshIDListContainer = u.createElement('div', {'id': 'ssh_ids_listcontainer', 'class': 'sectrans ✈ssh_ids_listcontainer'}),
-            sshIDElemHeader = u.createElement('div', {'id': 'ssh_id_header', 'class':'table_header_row sectrans'}),
-            defaultSpan = u.createElement('span', {'id': 'ssh_id_defaultspan', 'class':'table_cell table_header_cell'}),
-            nameSpan = u.createElement('span', {'id': 'ssh_id_namespan', 'class':'table_cell table_header_cell'}),
-            keytypeSpan = u.createElement('span', {'id': 'ssh_id_keytypespan', 'class':'table_cell table_header_cell'}),
-            commentSpan = u.createElement('span', {'id': 'ssh_id_commentspan', 'class':'table_cell table_header_cell'}),
-            bitsSpan = u.createElement('span', {'id': 'ssh_id_bitsspan', 'class':'table_cell table_header_cell'}),
-            certSpan = u.createElement('span', {'id': 'ssh_id_certspan', 'class':'table_cell table_header_cell'}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
+            sshIDContent = u.createElement('div', {'id': 'ssh_ids_container', 'class': '✈sectrans ✈ssh_ids_container'}),
+            sshIDInfoContainer = u.createElement('div', {'id': 'ssh_id_info', 'class': '✈sectrans ✈ssh_id_info'}),
+            sshIDListContainer = u.createElement('div', {'id': 'ssh_ids_listcontainer', 'class': '✈sectrans ✈ssh_ids_listcontainer'}),
+            sshIDElemHeader = u.createElement('div', {'id': 'ssh_id_header', 'class':'✈table_header_row ✈sectrans'}),
+            defaultSpan = u.createElement('span', {'id': 'ssh_id_defaultspan', 'class':'✈table_cell ✈table_header_cell'}),
+            nameSpan = u.createElement('span', {'id': 'ssh_id_namespan', 'class':'✈table_cell ✈table_header_cell'}),
+            keytypeSpan = u.createElement('span', {'id': 'ssh_id_keytypespan', 'class':'✈table_cell ✈table_header_cell'}),
+            commentSpan = u.createElement('span', {'id': 'ssh_id_commentspan', 'class':'✈table_cell ✈table_header_cell'}),
+            bitsSpan = u.createElement('span', {'id': 'ssh_id_bitsspan', 'class':'✈table_cell ✈table_header_cell'}),
+            certSpan = u.createElement('span', {'id': 'ssh_id_certspan', 'class':'✈table_cell ✈table_header_cell'}),
             sortOrder = u.createElement('span', {'id': 'ssh_ids_sort_order', 'style': {'float': 'right', 'margin-left': '.3em', 'margin-top': '-.2em'}}),
-            sshIDMetadataDiv = u.createElement('div', {'id': 'ssh_id_metadata', 'class': 'sectrans ✈ssh_id_metadata'});
+            sshIDMetadataDiv = u.createElement('div', {'id': 'ssh_id_metadata', 'class': '✈sectrans ✈ssh_id_metadata'});
         sshIDHeaderH2.innerHTML = 'SSH Identity Manager: Loading...';
         panelClose.innerHTML = go.Icons['panelclose'];
         panelClose.onclick = function(e) {
@@ -207,10 +207,10 @@ go.Base.update(go.SSH, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(sshIDElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
-                item.className = 'table_cell table_header_cell';
+            u.toArray(sshIDElemHeader.getElementsByClassName('✈table_header_cell')).forEach(function(item) {
+                item.className = '✈table_cell ✈table_header_cell';
             });
-            this.className = 'table_cell table_header_cell active';
+            this.className = '✈table_cell ✈table_header_cell ✈active';
             if (ssh.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -237,10 +237,10 @@ go.Base.update(go.SSH, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(sshIDElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
-                item.className = 'table_cell table_header_cell';
+            u.toArray(sshIDElemHeader.getElementsByClassName('✈table_header_cell')).forEach(function(item) {
+                item.className = '✈table_cell ✈table_header_cell';
             });
-            this.className = 'table_cell table_header_cell active';
+            this.className = '✈table_cell ✈table_header_cell ✈active';
             if (ssh.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -267,10 +267,10 @@ go.Base.update(go.SSH, {
             if (existingOrder) {
                 u.removeElement(existingOrder);
             }
-            u.toArray(sshIDElemHeader.getElementsByClassName('table_header_cell')).forEach(function(item) {
-                item.className = 'table_cell table_header_cell';
+            u.toArray(sshIDElemHeader.getElementsByClassName('✈table_header_cell')).forEach(function(item) {
+                item.className = '✈table_cell ✈table_header_cell';
             });
-            this.className = 'table_cell table_header_cell active';
+            this.className = '✈table_cell ✈table_header_cell ✈active';
             if (ssh.sortToggle) {
                 order.innerHTML = "▴";
             } else {
@@ -292,13 +292,13 @@ go.Base.update(go.SSH, {
         commentSpan.innerHTML = "Comment";
         commentSpan.title = "This field will contain the comment from the identity's public key.  It comes after the key itself inside its .pub file and if the key was generated by OpenSSH it will typically be something like, 'user@host'.";
         if (localStorage[prefix+'ssh_ids_sort'] == 'alpha') {
-            nameSpan.className = 'table_cell table_header_cell active';
+            nameSpan.className = '✈table_cell ✈table_header_cell ✈active';
             nameSpan.appendChild(sortOrder);
         } else if (localStorage[prefix+'ssh_ids_sort'] == 'date') {
-            bitsSpan.className = 'table_cell table_header_cell active';
+            bitsSpan.className = '✈table_cell ✈table_header_cell ✈active';
             bitsSpan.appendChild(sortOrder);
         } else if (localStorage[prefix+'ssh_ids_sort'] == 'size') {
-            keytypeSpan.className = 'table_cell table_header_cell active';
+            keytypeSpan.className = '✈table_cell ✈table_header_cell ✈active';
             keytypeSpan.appendChild(sortOrder);
         }
         sshIDElemHeader.appendChild(defaultSpan);
@@ -352,7 +352,7 @@ go.Base.update(go.SSH, {
             sshIDHeaderH2 = u.getNode('#'+prefix+'ssh_ids_title'),
             sshIDMetadataDiv = u.getNode('#'+prefix+'ssh_id_metadata'),
             sshIDListContainer = u.getNode('#'+prefix+'ssh_ids_listcontainer'),
-            IDElements = u.toArray(u.getNodes('.ssh_id'));
+            IDElements = u.toArray(u.getNodes('.✈ssh_id'));
         if (message['identities']) {
             ssh.identities = message['identities'];
         }
@@ -401,9 +401,9 @@ go.Base.update(go.SSH, {
         Displays the information about the given *identity* (its name) in the SSH identities metadata area (on the right).  Also displays the buttons that allow the user to delete the identity or upload a certificate.
         */
         var ssh = go.SSH,
-            downloadButton = u.createElement('button', {'id': 'ssh_id_download', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            deleteIDButton = u.createElement('button', {'id': 'ssh_id_delete', 'class': '✈ssh_id_delete', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            uploadCertificateButton = u.createElement('button', {'id': 'ssh_id_upload_cert', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            downloadButton = u.createElement('button', {'id': 'ssh_id_download', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            deleteIDButton = u.createElement('button', {'id': 'ssh_id_delete', 'class': '✈ssh_id_delete', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            uploadCertificateButton = u.createElement('button', {'id': 'ssh_id_upload_cert', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             sshIDMetadataDiv = u.getNode('#'+prefix+'ssh_id_metadata'),
             IDObj = null;
         // Retreive the metadata on the log in question
@@ -426,8 +426,8 @@ go.Base.update(go.SSH, {
         deleteIDButton.onclick = function(e) {
             // Display a confirmation dialog
             var container = u.createElement('div', {'style': {'text-align': 'center'}}),
-                yes = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-                no = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': 'button black'});
+                yes = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+                no = u.createElement('button', {'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'});
             yes.innerHTML = "Yes";
             no.innerHTML = "No";
             container.appendChild(yes);
@@ -464,17 +464,17 @@ go.Base.update(go.SSH, {
         while (sshIDMetadataDiv.childNodes.length >= 1 ) {
             sshIDMetadataDiv.removeChild(sshIDMetadataDiv.firstChild);
         }
-        var actionsrow = u.createElement('div', {'class': 'metadata_row'}),
-            actionstitle = u.createElement('div', {'class':'ssh_id_metadata_title'});
+        var actionsrow = u.createElement('div', {'class': '✈metadata_row'}),
+            actionstitle = u.createElement('div', {'class':'✈ssh_id_metadata_title'});
         actionstitle.innerHTML = 'Actions';
         actionsrow.appendChild(actionstitle);
         actionsrow.appendChild(downloadButton);
         actionsrow.appendChild(deleteIDButton);
         actionsrow.appendChild(uploadCertificateButton);
         sshIDMetadataDiv.appendChild(actionsrow);
-        var pubkeyrow = u.createElement('div', {'class': 'metadata_row'}),
-            pubkeytitle = u.createElement('div', {'class':'ssh_id_metadata_title'}),
-            pubkeyvalue = u.createElement('textarea', {'class':'ssh_id_pubkey_value'});
+        var pubkeyrow = u.createElement('div', {'class': '✈metadata_row'}),
+            pubkeytitle = u.createElement('div', {'class':'✈ssh_id_metadata_title'}),
+            pubkeyvalue = u.createElement('textarea', {'class':'✈ssh_id_pubkey_value'});
         pubkeytitle.innerHTML = 'Public Key';
         pubkeyvalue.innerHTML = IDObj['public'];
         pubkeyvalue.title = "Click me to select all";
@@ -487,9 +487,9 @@ go.Base.update(go.SSH, {
         pubkeyrow.appendChild(pubkeyvalue);
         sshIDMetadataDiv.appendChild(pubkeyrow);
         for (var i in metadataNames) {
-            var row = u.createElement('div', {'class': 'metadata_row'}),
-                title = u.createElement('div', {'class':'ssh_id_metadata_title'}),
-                value = u.createElement('div', {'class':'ssh_id_metadata_value'});
+            var row = u.createElement('div', {'class': '✈metadata_row'}),
+                title = u.createElement('div', {'class':'✈ssh_id_metadata_title'}),
+                value = u.createElement('div', {'class':'✈ssh_id_metadata_value'});
             title.innerHTML = i;
             value.innerHTML = metadataNames[i];
             row.appendChild(title);
@@ -505,16 +505,16 @@ go.Base.update(go.SSH, {
         *delay* controls how long it will wait before using a CSS3 effect to move it into view.
         */
         var ssh = go.SSH,
-            elem = u.createElement('div', {'class':'sectrans ssh_id', 'name': '✈ssh_id'}),
-            IDViewOptions = u.createElement('span', {'class': 'ssh_id_options'}),
+            elem = u.createElement('div', {'class':'✈sectrans ✈ssh_id', 'name': '✈ssh_id'}),
+            IDViewOptions = u.createElement('span', {'class': '✈ssh_id_options'}),
             viewPubKey = u.createElement('a'),
-            defaultSpan = u.createElement('span', {'class':'table_cell ssh_id_default'}),
+            defaultSpan = u.createElement('span', {'class':'✈table_cell ✈ssh_id_default'}),
             defaultCheckbox = u.createElement('input', {'type': 'checkbox', 'name': 'ssh_id_default', 'value': IDObj['name']}),
-            nameSpan = u.createElement('span', {'class':'table_cell ssh_id_name'}),
-            keytypeSpan = u.createElement('span', {'class':'table_cell'}),
-            certSpan = u.createElement('span', {'class':'table_cell'}),
-            bitsSpan = u.createElement('span', {'class':'table_cell'}),
-            commentSpan = u.createElement('span', {'class':'table_cell'}),
+            nameSpan = u.createElement('span', {'class':'✈table_cell ✈ssh_id_name'}),
+            keytypeSpan = u.createElement('span', {'class':'✈table_cell'}),
+            certSpan = u.createElement('span', {'class':'✈table_cell'}),
+            bitsSpan = u.createElement('span', {'class':'✈table_cell'}),
+            commentSpan = u.createElement('span', {'class':'✈table_cell'}),
             isCertificate = "No";
         defaultCheckbox.checked = IDObj['default'];
         defaultCheckbox.onchange = function(e) {
@@ -546,11 +546,11 @@ go.Base.update(go.SSH, {
         with ({ name: IDObj['name'] }) {
             elem.onclick = function(e) {
                 // Highlight the selected row and show the metadata
-                u.toArray(u.getNodes('.ssh_id')).forEach(function(node) {
+                u.toArray(u.getNodes('.✈ssh_id')).forEach(function(node) {
                     // Reset them all before we apply the 'active' class to just the one
-                    node.className = 'halfsectrans ssh_id';
+                    node.className = '✈halfsectrans ✈ssh_id';
                 });
-                this.className = 'halfsectrans ssh_id active';
+                this.className = '✈halfsectrans ✈ssh_id ✈active';
                 ssh.displayMetadata(name);
             }
         }
@@ -618,7 +618,7 @@ go.Base.update(go.SSH, {
         var ssh = go.SSH,
             goDiv = u.getNode(go.prefs.goDiv),
             sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
-            identityForm = u.createElement('form', {'name': prefix+'ssh_id_form', 'class': 'ssh_id_form'}),
+            identityForm = u.createElement('form', {'name': prefix+'ssh_id_form', 'class': '✈ssh_id_form'}),
             nameInput = u.createElement('input', {'type': 'text', 'id': 'ssh_new_id_name', 'name': prefix+'ssh_new_id_name', 'placeholder': '<letters, numbers, underscore>', 'tabindex': 1, 'required': 'required', 'pattern': '[A-Za-z0-9_]+'}),
             nameLabel = u.createElement('label'),
             keytypeLabel = u.createElement('label'),
@@ -643,8 +643,8 @@ go.Base.update(go.SSH, {
             passphraseLabel = u.createElement('label'),
             commentInput = u.createElement('input', {'type': 'text', 'id': 'ssh_new_id_comment', 'name': prefix+'ssh_new_id_comment', 'placeholder': '<Optional>'}),
             commentLabel = u.createElement('label'),
-            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'}),
+            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'}),
             nameValidate = function(e) {
                 var nameNode = u.getNode('#'+prefix+'ssh_new_id_name'),
                     text = nameNode.value;
@@ -767,7 +767,7 @@ go.Base.update(go.SSH, {
         var ssh = go.SSH,
             goDiv = go.node,
             sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
-            uploadIDForm = u.createElement('form', {'name': prefix+'ssh_upload_id_form', 'class': 'ssh_id_form'}),
+            uploadIDForm = u.createElement('form', {'name': prefix+'ssh_upload_id_form', 'class': '✈ssh_id_form'}),
             privateKeyFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_privatekey', 'name': prefix+'ssh_upload_id_privatekey', 'required': 'required'}),
             privateKeyFileLabel = u.createElement('label'),
             publicKeyFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_publickey', 'name': prefix+'ssh_upload_id_publickey'}),
@@ -775,8 +775,8 @@ go.Base.update(go.SSH, {
             certificateFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_cert', 'name': prefix+'ssh_upload_id_cert'}),
             certificateFileLabel = u.createElement('label'),
             note = u.createElement('p', {'style': {'font-size': '80%', 'margin-top': '1em', 'margin-bottom': '1em'}}),
-            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'});
+            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         submit.innerHTML = "Submit";
         cancel.innerHTML = "Cancel";
         note.innerHTML = "<b>NOTE:</b> If a public key is not provided one will be automatically generated using the private key.  You may be asked for the passphrase to perform this operation.";
@@ -868,11 +868,11 @@ go.Base.update(go.SSH, {
         */
         var goDiv = go.node,
             sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
-            uploadCertForm = u.createElement('form', {'name': prefix+'ssh_upload_cert_form', 'class': 'ssh_id_form'}),
+            uploadCertForm = u.createElement('form', {'name': prefix+'ssh_upload_cert_form', 'class': '✈ssh_id_form'}),
             certificateFile = u.createElement('input', {'type': 'file', 'id': 'ssh_upload_id_cert', 'name': prefix+'ssh_upload_id_cert'}),
             certificateFileLabel = u.createElement('label'),
-            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'});
+            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         submit.innerHTML = "Submit";
         cancel.innerHTML = "Cancel";
         certificateFileLabel.innerHTML = "Optional Certificate";
@@ -910,13 +910,13 @@ go.Base.update(go.SSH, {
         */
         var goDiv = go.node,
             sshIDPanel = u.getNode('#'+prefix+'panel_ssh_ids'),
-            passphraseForm = u.createElement('form', {'name': prefix+'ssh_passphrase_form', 'class': 'ssh_id_form'}),
+            passphraseForm = u.createElement('form', {'name': prefix+'ssh_passphrase_form', 'class': '✈ssh_id_form'}),
             passphrase = u.createElement('input', {'type': 'password', 'id': 'ssh_passphrase', 'name': prefix+'ssh_passphrase'}),
             passphraseLabel = u.createElement('label'),
             explanation = u.createElement('p', {'style': {'margin-top': '0.5em'}}),
             safetyNote = u.createElement('p', {'style': {'font-size': '80%'}}),
-            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
-            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black'});
+            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black'});
         submit.innerHTML = "Submit";
         cancel.innerHTML = "Cancel";
         passphrase.autofocus = "autofocus";
@@ -1059,12 +1059,12 @@ go.Base.update(go.SSH, {
         If the panel already exists its contents will be destroyed and re-created.
         */
         var existingPanel = u.getNode('#'+prefix+'panel_known_hosts'),
-            sshPanel = u.createElement('div', {'id': 'panel_known_hosts', 'class': 'panel sectrans'}),
-            sshHeader = u.createElement('div', {'id': 'ssh_header', 'class': 'sectrans'}),
+            sshPanel = u.createElement('div', {'id': 'panel_known_hosts', 'class': '✈panel ✈sectrans'}),
+            sshHeader = u.createElement('div', {'id': 'ssh_header', 'class': '✈sectrans'}),
             sshHRFix = u.createElement('hr', {'style': {'opacity': 0}}),
             sshKHTextArea = u.createElement('textarea', {'id': 'ssh_kh_textarea', 'rows': 30, 'cols': 100}),
-            save = u.createElement('button', {'id': 'ssh_save', 'class': 'button black', 'type': 'submit'}),
-            cancel = u.createElement('button', {'id': 'ssh_cancel', 'class': 'button black'}),
+            save = u.createElement('button', {'id': 'ssh_save', 'class': '✈button ✈black', 'type': 'submit'}),
+            cancel = u.createElement('button', {'id': 'ssh_cancel', 'class': '✈button ✈black'}),
             form = u.createElement('form', {
                 'method': 'post',
                 'action': go.prefs.url+'ssh?known_hosts=True'

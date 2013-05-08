@@ -185,7 +185,7 @@ def open_sub_channel(self, term):
         ssh_command, "%s (sub)" % term)
     # Using huge numbers here so we don't miss much (if anything) if the user
     # executes something like "ps -ef".
-    fd = m.spawn(rows=100, cols=200) # Hopefully 100/200 lines/cols is enough
+    m.spawn(rows=100, cols=200) # Hopefully 100/200 lines/cols is enough
     # ...if it isn't, well, that's not really what this is for :)
     # Set the term title so it gets a proper name in the logs
     m.writeline(u'echo -e "\\033]0;Term %s sub-channel\\007"' % term)
@@ -474,7 +474,7 @@ def get_key(self, name, public):
             'SSH Plugin Error: Invalid name given, %s' % repr(name))
         message = {'go:save_file': {'result': error_msg}}
         self.write_message(message)
-        return out_dict
+        return
     if public and not name.endswith('.pub'):
         name += '.pub'
     out_dict = {
@@ -513,6 +513,7 @@ def get_host_fingerprint(self, settings):
     Returns a the hash of the given host's public key by making a remote
     connection to the server (not just by looking at known_hosts).
     """
+    out_dict = {}
     if 'port' not in settings:
         port = 22
     else:
@@ -524,11 +525,11 @@ def get_host_fingerprint(self, settings):
     else:
         host = settings['host']
     logging.debug("get_host_fingerprint(%s:%s)" % (host, port))
-    out_dict = {
+    out_dict.update({
         'result': 'Success',
         'host': host,
         'fingerprint': None
-    }
+    })
     ssh = which('ssh')
     command = "%s -p %s -oUserKnownHostsFile=none -F. %s" % (ssh, port, host)
     m = self.new_multiplex(
@@ -566,7 +567,6 @@ def generate_new_keypair(self, settings):
     system.
     """
     logging.debug('generate_new_keypair()')
-    out_dict = {}
     users_ssh_dir = get_ssh_dir(self)
     name = 'id_ecdsa'
     keytype = None
@@ -596,7 +596,13 @@ def generate_new_keypair(self, settings):
             comment=comment
         )
     elif which('dropbearkey'):
-        dropbear_generate_new_keypair(*args, **kwargs)
+        dropbear_generate_new_keypair(self,
+            name, # Name to use when generating the keypair
+            users_ssh_dir, # Path to save it
+            keytype=keytype,
+            passphrase=passphrase,
+            bits=bits,
+            comment=comment)
 
 def errorback(self, m_instance):
     logging.debug("keygen errorback()")
@@ -754,7 +760,7 @@ def openssh_generate_public_key(self, path, passphrase=None, settings=None):
         if exitstatus != 0:
             raise SSHKeygenException(_(
                 "Error generating public key from private key at %s" % path))
-    fd = m.spawn(exitfunc=atexit)
+    m.spawn(exitfunc=atexit)
     #exitstatus, output = shell_command(command)
     #if exitstatus != 0:
         #raise SSHKeygenException(_(
@@ -930,7 +936,6 @@ def get_identities(self, anything):
     users_ssh_dir = get_ssh_dir(self)
     out_dict['identities'] = []
     ssh_keygen_path = which('ssh-keygen')
-    keytype_re = re.compile('.*\(([A-Z]+)\)$', re.MULTILINE)
     # TODO:  Switch this from using ssh-keygen to determine the keytype to using the string inside the public key.
     try:
         if os.path.exists(users_ssh_dir):

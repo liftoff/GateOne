@@ -58,7 +58,7 @@
     transform-origin: top right;
     transition: all 1s ease-in-out;
 }
-#{{container}} .workspace {
+.✈workspace {
     position: static;
     float: left;
     -webkit-transition: -webkit-transform 1s ease-in-out;
@@ -67,15 +67,15 @@
     -o-transition: -o-transform 1s ease-in-out;
     transition: transform 1s ease-in-out;
 }
-#{{container}} .wsshadow{
+.✈wsshadow{
     box-shadow: 0 0 1em #fff;
 }
-#{{container}} .new_workspace_workspace {
+.✈new_workspace_workspace {
     width: 100%;
     height: 100%;
     background-color: #000;
 }
-#{{container}} .new_workspace_workspace_title {
+.✈new_workspace_workspace_title {
     text-align: center;
     width: 80%;
     background-color: #000;
@@ -83,11 +83,11 @@
     border-bottom: 1px solid #222;
     margin: 0 auto;
 }
-#{{container}} .app_grid {
+.✈app_grid {
     width: 80%;
     margin: 0 auto;
 }
-#{{container}} .application {
+.✈application {
     width: 15%;
     background: linear-gradient(to bottom, #333, #191919);
     border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
@@ -101,42 +101,42 @@
     margin-top: 1em;
     border-radius: 1em;
 }
-#{{container}} .application p {
+.✈application p {
     margin: 0 0 1em 0;
 }
-#{{container}} .application:hover {
+.✈application:hover {
     box-shadow: 0 0 0.6em #444;
     background: linear-gradient(to bottom, #333, #686868);
     cursor: pointer;
     text-shadow: .1em .1em .4em #000;
 }
-#{{container}} .pointer {
+.✈pointer {
     cursor: pointer;
 }
-#{{container}} .about_gateone ul {
+.✈about_gateone ul {
     list-style-type: none;
     padding-left: 1.5em;
     padding-top: 0.5em;
     padding-bottom: 0.5em;
 }
-#{{container}} .about_gateone li:before {
+.✈about_gateone li:before {
     content: "⎚ ";
 }
-#{{container}} .centertrans { /* Just sets the transform-origin to "center center" */
+.✈centertrans { /* Just sets the transform-origin to "center center" */
     -webkit-transform-origin: center center;
     -moz-transform-origin: center center;
     -ms-transform-origin: center center;
     -o-transform-origin: center center;
     transform-origin: center center;
 }
-#{{container}} .toprighttrans { /* Just sets the transform-origin to "top right" */
+.✈toprighttrans { /* Just sets the transform-origin to "top right" */
     -webkit-transform-origin: top right;
     -moz-transform-origin: top right;
     -ms-transform-origin: top right;
     -o-transform-origin: top right;
     transform-origin: top right;
 }
-#{{container}} .twosectrans {
+.✈twosectrans {
     -webkit-transition: all 2s ease-in-out;
     -moz-transition: all 2s ease-in-out;
     -o-transition-property: all;
@@ -145,7 +145,7 @@
     -ms-transition: all 2s ease-in-out;
     transition: all 2s ease-in-out;
 }
-#{{container}} .sectrans {
+.✈sectrans {
     -webkit-transition: all 1s ease-in-out;
     -moz-transition: all 1s ease-in-out;
     -o-transition-property: all;
@@ -154,7 +154,7 @@
     -ms-transition: all 1s ease-in-out;
     transition: all 1s ease-in-out;
 }
-#{{container}} .sectransform {
+.✈sectransform {
     /* For only transform effects */
     -webkit-transition: -webkit-transform 1s ease-in-out;
     -moz-transition: -moz-transform 1s ease-in-out;
@@ -164,7 +164,7 @@
     -ms-transition: -ms-transform 1s ease-in-out;
     transition: transform 1s ease-in-out;
 }
-#{{container}} .halfsectrans {
+.✈halfsectrans {
     -webkit-transition: all 0.5s ease-in-out;
     -moz-transition: all 0.5s ease-in-out;
     -o-transition-property: all;
@@ -173,7 +173,7 @@
     -ms-transition: all 0.5s ease-in-out;
     transition: all 0.5s ease-in-out;
 }
-#{{container}} .quartersectrans {
+.✈quartersectrans {
     -webkit-transition: all 0.25s ease-in-out;
     -moz-transition: all 0.25s ease-in-out;
     -o-transition-property: all;
@@ -182,7 +182,7 @@
     -ms-transition: all 0.25s ease-in-out;
     transition: all 0.25s ease-in-out;
 }
-#{{container}} .superfasttrans {
+.✈superfasttrans {
     -webkit-transition: all 0.1s ease-in-out;
     -moz-transition: all 0.1s ease-in-out;
     -o-transition-property: all;
@@ -191,14 +191,14 @@
     -ms-transition: all 0.1s ease-in-out;
     transition: all 0.1s ease-in-out;
 }
-#{{container}} .origintopmiddle {
+.✈origintopmiddle {
     -webkit-transform-origin: 50% 0;
     -moz-transform-origin: 50% 0;
     -ms-transform-origin: 50% 0;
     -o-transform-origin: 50% 0;
     transform-origin: 50% 0;
 }
-#{{container}} .originbottommiddle {
+.✈originbottommiddle {
     -webkit-transform-origin: 50% 100%;
     -moz-transform-origin: 50% 100%;
     -ms-transform-origin: 50% 100%;
@@ -212,14 +212,14 @@
     font-family: 'Ubuntu Mono', monospace; /* For consistency */
     line-height: 1.04;
 }
-#{{container}} .noanimate {
+.✈noanimate {
     -webkit-transition: all 0s ease-in-out !important;
     -moz-transition: all 0s ease-in-out !important;
     -ms-transition: all 0s ease-in-out !important;
     -o-transition: all 0s ease-in-out !important;
     transition: all 0s ease-in-out !important;
 }
-#{{container}} .toolbar_container {
+.✈toolbar_container {
     z-index:600;
     position:absolute;
     top:0;
@@ -227,7 +227,7 @@
     color: #fff;
     text-align: right;
 }
-#{{container}} .toolbar {
+.✈toolbar {
     float: right;
     clear: both;
     opacity: .75;
@@ -239,11 +239,11 @@
     transition: transform 1.0s ease-in-out;
     margin-right: 5px;
 }
-#{{container}} .toolbar:hover {
+.✈toolbar:hover {
     opacity: 1;
     cursor:pointer;
 }
-#{{container}} .toolbar:target {
+.✈toolbar:target {
     -webkit-transform:rotate(180deg);
     -moz-transform:rotate(180deg);
     -ms-transform:rotate(180deg);
@@ -278,7 +278,7 @@ potential conflicts with other classes that may be on the page.
     right: 3em;
     z-index: 9999;
 }
-.✈noticecontainer .close_notice {
+.✈noticecontainer .✈close_notice {
     float: right;
     opacity: .5;
     -webkit-transform: scale(.6);
@@ -292,7 +292,7 @@ potential conflicts with other classes that may be on the page.
     transform: scale(.5);
     transform-origin: right top;
 }
-.✈noticecontainer .close_notice:hover {
+.✈noticecontainer .✈close_notice:hover {
     cursor: pointer;
     opacity: 1;
 }
@@ -302,7 +302,7 @@ potential conflicts with other classes that may be on the page.
 .✈noticecontainer a:visited {
     color: #90A3C5;
 }
-#{{container}} .sideinfo {
+.✈sideinfo {
     -webkit-transform: rotate(90deg);
     -webkit-transform-origin: right top;
     -moz-transform: rotate(90deg);
@@ -341,21 +341,21 @@ potential conflicts with other classes that may be on the page.
     float: right;
     clear: both;
 }
-.✈notice.noanimate {
+.✈notice.✈noanimate {
     -webkit-transition: all .1s ease-in-out;
     -moz-transition: all 0.1s ease-in-out;
     -ms-transition: all 0.1s ease-in-out;
     -o-transition: all 0.1s ease-in-out;
     transition: all 0.1s ease-in-out;
 }
-#{{container}} .sidepanel {
+.✈sidepanel {
     -webkit-transition: -webkit-transform 1.0s ease-in-out;
     -moz-transition: all 1.0s ease-in-out;
     -ms-transition: all 1.0s ease-in-out;
     -o-transition: all 1.0s ease-in-out;
     transition: all 1.0s ease-in-out;
 }
-#{{container}} .panel {
+.✈panel {
     position:absolute;
     top:1em;
     right:3.4em;
@@ -395,7 +395,7 @@ potential conflicts with other classes that may be on the page.
     border: 0.1em #fff outset;
     border-radius: 0.5em;
 }
-#{{container}} .panel h2 {
+.✈panel h2 {
     width: 100%;
     font-size: 1.5em;
     border-bottom: 0.1em #000 solid;
@@ -403,25 +403,25 @@ potential conflicts with other classes that may be on the page.
     margin-bottom: 0.2em;
     padding-right: 1em; /* Make room for the X icon */
 }
-#{{container}} .panel h3 {
+.✈panel h3 {
     font-size: 1.2em;
     border-bottom: 0.1em #000 solid;
     position: relative;
     margin-bottom: 0.2em;
 }
-#{{container}} .panel a {
+.✈panel a {
     color: #1F5470;
     text-decoration: none;
     font-weight: bold;
 }
-#{{container}} .panel a:hover {
+.✈panel a:hover {
     color: maroon;
     cursor: pointer;
 }
-#{{container}} .panel a:visited {
+.✈panel a:visited {
     color: #1F5470;
 }
-#{{container}} .paneltable {
+.✈paneltable {
     position: relative;
     width: 100%;
     background-color: #222;
@@ -436,28 +436,28 @@ potential conflicts with other classes that may be on the page.
     background-image: -o-linear-gradient(#fff, #ccc);
     background-image: linear-gradient(#fff, #ccc);
 }
-#{{container}} .paneltablerow {
+.✈paneltablerow {
     display: table-row;
     padding-bottom: 0.3em;
 }
-#{{container}} .paneltablelabel {
+.✈paneltablelabel {
     display: table-cell;
     width: 75%;
     vertical-align: middle;
     padding-top: 0.2em;
 }
-#{{container}} .paneltablecell {
+.✈paneltablecell {
     display: table-cell;
     padding-left: 1em;
 }
-#{{container}} .panel_close_icon {
+.✈panel_close_icon {
     position: absolute;
     opacity: .75;
     right: 0;
     top: 0;
     padding: 0.2em;
 }
-#{{container}} .panel_close_icon:hover {
+.✈panel_close_icon:hover {
     opacity: 1;
     cursor: pointer;
 }
@@ -526,10 +526,10 @@ potential conflicts with other classes that may be on the page.
     z-index: 1;
     padding-top: 0.2em;
 }
-#{{container}} .medium {
+.✈medium {
     height: 5em;
 }
-#{{container}} .button {
+.✈button {
     display: inline-block;
     outline: none;
     cursor: pointer;
@@ -542,14 +542,14 @@ potential conflicts with other classes that may be on the page.
     font-weight: bold;
     font-size: 0.9em;
 }
-#{{container}} .button:hover {
+.✈button:hover {
     text-decoration: none;
 }
-#{{container}} .button:active {
+.✈button:active {
     position: relative;
 }
 /* black buttons */
-#{{container}} .black {
+.✈black {
     color: #FFF;
     border: solid 1px #333;
     background: #333;
@@ -558,21 +558,21 @@ potential conflicts with other classes that may be on the page.
     background: -o-linear-gradient(top,  #666,  #000);
     background: linear-gradient(top,  #666,  #000);
 }
-#{{container}} .black:hover {
+.✈black:hover {
     background: #000;
     background: -webkit-gradient(linear, left top, left bottom, from(#444), to(#000));
     background: -moz-linear-gradient(top,  #444,  #000);
     background: -o-linear-gradient(top,  #444,  #000);
     background: linear-gradient(top,  #444,  #000);
 }
-#{{container}} .black:active {
+.✈black:active {
     color: #666;
     background: -webkit-gradient(linear, left top, left bottom, from(#000), to(#444));
     background: -moz-linear-gradient(top,  #000,  #444);
     background: -o-linear-gradient(top,  #000,  #444);
     background: linear-gradient(top,  #000,  #444);
 }
-#{{container}} .black:focus {
+.✈black:focus {
     color: #fff;
     box-shadow: 0em 0em 1em #000;
 }
@@ -768,7 +768,7 @@ potential conflicts with other classes that may be on the page.
     text-shadow: 0.1em 0.1em 0.1em #000;
     opacity: 1;
 }
-#{{container}} .table_row {
+.✈table_row {
     display: table-row;
     height: 1.2em;
     overflow: hidden;
@@ -777,14 +777,14 @@ potential conflicts with other classes that may be on the page.
     font-size: 0.9em;
     white-space: nowrap;
 }
-#{{container}} .active.table_row {
+.✈active.✈table_row {
     -webkit-transform: skew(-10deg) translate(0.5%);
     -moz-transform: skew(-10deg) translate(0.5%);
     -ms-transform: skew(-10deg) translate(0.5%);
     -o-transform: skew(-10deg) translate(0.5%);
     transform: skew(-10deg) translate(0.5%);
 }
-#{{container}} .table_cell {
+.✈table_cell {
     display: table-cell;
     max-width: 13em;
     padding-right: 0.5em;
@@ -796,36 +796,36 @@ potential conflicts with other classes that may be on the page.
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-#{{container}} .table_header_row {
+.✈table_header_row {
     display: table-header-group;
     font-weight: bold;
     font-size: 1.1em;
 }
-#{{container}} .table_header_cell {
+.✈table_header_cell {
     color: #1F5470;
     background-image: none;
     background: none;
 }
-#{{container}} .table_header_cell.active {
+.✈table_header_cell.✈active {
     color: maroon;
 }
-#{{container}} .table_header_cell:hover {
+.✈table_header_cell:hover {
     color: maroon;
     cursor: pointer;
     background-color: #fff;
 }
-#{{container}} .metadata_row {
+.✈metadata_row {
     display: table-row;
     height: 1.2em;
     overflow: hidden;
     border: 0.1em #000 solid;
     font-size: 0.9em;
 }
-#{{container}} .metadata_value {
+.✈metadata_value {
     display: table-cell;
     padding-right: 0.5em;
 }
-#{{container}} .metadata_title {
+.✈metadata_title {
     display: table-cell;
     font-weight: bold;
     padding-right: 0.5em;
@@ -845,14 +845,14 @@ div.✈appicon:hover {
     filter: drop-shadow( .1em .1em .4em #000 );
 }
 div.✈appicon svg { fill: #fff; width: 6em; height: 6em; }
-#{{container}} .stop1 { stop-color: #FFF; }
-#{{container}} .stop2 { stop-color: #E1E2E3; }
-#{{container}} .stop3 { stop-color: #D3D4D6; }
-#{{container}} .stop4 { stop-color: #CACBCD; }
-#{{container}} .panelstop1 { stop-color: #2A5BA6; } /* Note: Same by default in both black and white */
-#{{container}} .panelstop2 { stop-color: #2D61B4; }
-#{{container}} .panelstop3 { stop-color: #2E63B9; }
-#{{container}} .panelstop4 { stop-color: #1F5470; }
+.✈stop1 { stop-color: #FFF; }
+.✈stop2 { stop-color: #E1E2E3; }
+.✈stop3 { stop-color: #D3D4D6; }
+.✈stop4 { stop-color: #CACBCD; }
+.✈panelstop1 { stop-color: #2A5BA6; } /* Note: Same by default in both black and white */
+.✈panelstop2 { stop-color: #2D61B4; }
+.✈panelstop3 { stop-color: #2E63B9; }
+.✈panelstop4 { stop-color: #1F5470; }
 /* Change the styling of the SVG close icon so it is white when inside dialogs */
 div.✈dialog_close .✈svgplain { fill: #FFFFFF; }
 /* Ditto for widgets */

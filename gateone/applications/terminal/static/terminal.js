@@ -21,8 +21,8 @@ var go = GateOne,
     mousewheelevt = (/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
 
 // Icons used in this application:
-go.Icons['terminal'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" x1="567.96" gradientUnits="userSpaceOnUse" y1="674.11" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" x2="567.96" y2="756.67"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="17.85666656px" transform="scale(1.0177209,0.98258768)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" class="✈svg"><path d="m4.3602,8.4883,0,0.75202-0.44794,0,0-0.72259c-0.49699,3E-7-0.8948-0.076292-1.1934-0.22888v-0.56238c0.42723,0.20054,0.82504,0.30081,1.1934,0.30081v-1.419c-0.4207-0.1394-0.7161-0.2975-0.8861-0.474-0.1679-0.1788-0.2518-0.4185-0.2518-0.7194,0-0.2855,0.1003-0.522,0.3008-0.7095,0.2006-0.1874,0.4796-0.303,0.8371-0.3466v-0.58854h0.44794v0.57546c0.40761,0.019622,0.77381,0.10463,1.0986,0.25503l-0.2158,0.4741c-0.3052-0.1351-0.5994-0.2136-0.8828-0.2354v1.3798c0.4338,0.1482,0.7379,0.3106,0.9122,0.4872,0.1766,0.1743,0.2649,0.4032,0.2649,0.6866,0,0.6103-0.3924,0.9754-1.1771,1.0953m-0.4479-2.4293v-1.2065c-0.37492,0.063217-0.56238,0.25286-0.56238,0.56892-0.0000012,0.17003,0.043594,0.3019,0.13079,0.39563,0.089369,0.093733,0.23323,0.17438,0.43159,0.24195m0.44794,0.71605,0,1.2196c0.4011-0.061,0.6016-0.2616,0.6016-0.6016,0-0.2768-0.2005-0.4828-0.6016-0.618"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="6.54116535px" transform="scale(0.84851886,1.1785242)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="Droid Sans Mono" class="✈svg"><path style="" d="m12.145,7.6556-4.0212,0,0-0.44715,4.0212,0,0,0.44715"/></g></svg>';
-go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="newTermGradient" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="stop1" offset="0"/><stop class="stop2" offset="0.4944"/><stop class="stop3" offset="0.5"/><stop class="stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#newTermGradient)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/></g></g></svg>';
+go.Icons['terminal'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="15.938" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="linearGradient10820" x1="567.96" gradientUnits="userSpaceOnUse" y1="674.11" gradientTransform="matrix(0.21199852,0,0,0.19338189,198.64165,418.2867)" x2="567.96" y2="756.67"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-310.03125,-548.65625)"><path fill="url(#linearGradient10820)" d="m310.03,548.66,0,13.5,6.4062,0-0.40625,2.4375,5.6562-0.0312-0.46875-2.4062,6.8125,0,0-13.5-18,0zm1.25,1.125,15.531,0,0,11.219-15.531,0,0-11.219z"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="17.85666656px" transform="scale(1.0177209,0.98258768)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="DejaVu Sans" class="✈svg"><path d="m4.3602,8.4883,0,0.75202-0.44794,0,0-0.72259c-0.49699,3E-7-0.8948-0.076292-1.1934-0.22888v-0.56238c0.42723,0.20054,0.82504,0.30081,1.1934,0.30081v-1.419c-0.4207-0.1394-0.7161-0.2975-0.8861-0.474-0.1679-0.1788-0.2518-0.4185-0.2518-0.7194,0-0.2855,0.1003-0.522,0.3008-0.7095,0.2006-0.1874,0.4796-0.303,0.8371-0.3466v-0.58854h0.44794v0.57546c0.40761,0.019622,0.77381,0.10463,1.0986,0.25503l-0.2158,0.4741c-0.3052-0.1351-0.5994-0.2136-0.8828-0.2354v1.3798c0.4338,0.1482,0.7379,0.3106,0.9122,0.4872,0.1766,0.1743,0.2649,0.4032,0.2649,0.6866,0,0.6103-0.3924,0.9754-1.1771,1.0953m-0.4479-2.4293v-1.2065c-0.37492,0.063217-0.56238,0.25286-0.56238,0.56892-0.0000012,0.17003,0.043594,0.3019,0.13079,0.39563,0.089369,0.093733,0.23323,0.17438,0.43159,0.24195m0.44794,0.71605,0,1.2196c0.4011-0.061,0.6016-0.2616,0.6016-0.6016,0-0.2768-0.2005-0.4828-0.6016-0.618"/></g><g style="letter-spacing:0px;text-anchor:middle;word-spacing:0px;text-align:center;" line-height="125%" font-weight="normal" font-size="6.54116535px" transform="scale(0.84851886,1.1785242)" font-stretch="normal" font-variant="normal" font-style="normal" font-family="Droid Sans Mono" class="✈svg"><path style="" d="m12.145,7.6556-4.0212,0,0-0.44715,4.0212,0,0,0.44715"/></g></svg>';
+go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 18 18" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/"><defs><linearGradient id="newTermGradient" y2="234.18" gradientUnits="userSpaceOnUse" x2="561.42" y1="252.18" x1="561.42"><stop class="✈stop1" offset="0"/><stop class="✈stop2" offset="0.4944"/><stop class="✈stop3" offset="0.5"/><stop class="✈stop4" offset="1"/></linearGradient></defs><metadata><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title/></cc:Work></rdf:RDF></metadata><g transform="translate(-261.95455,-486.69334)"><g transform="matrix(0.94996733,0,0,0.94996733,-256.96226,264.67838)"><rect height="3.867" width="7.54" y="241.25" x="557.66" fill="url(#newTermGradient)"/><rect height="3.866" width="7.541" y="241.25" x="546.25" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="245.12" x="553.79" fill="url(#newTermGradient)"/><rect height="7.541" width="3.867" y="233.71" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/><rect height="3.867" width="3.867" y="241.25" x="553.79" fill="url(#newTermGradient)"/></g></g></svg>';
 
 // Setup some defaults for our terminal-specific prefs
 go.prefs['webWorker'] = null; // This is the fallback path to the Terminal's screen processing Web Worker (term_ww.js).  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.  In such situations you'd want to copy term_ww.js to some location on your server and set this variable to that path (e.g. 'https://your-app.company.com/static/term_ww.js').
@@ -83,19 +83,19 @@ go.Base.update(GateOne.Terminal, {
         var t = go.Terminal,
             term = localStorage[prefix+'selectedTerminal'],
             div = u.createElement('div', {'id': 'info_actions', 'style': {'padding-bottom': '0.4em'}}),
-            tableDiv = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            tableDiv2 = u.createElement('div', {'class': 'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            toolbarClose = u.createElement('div', {'id': 'icon_closeterm', 'class': 'toolbar', 'title': "Close This Terminal"}),
-            toolbarNewTerm = u.createElement('div', {'id': 'icon_newterm', 'class': 'toolbar', 'title': "New Terminal"}),
-            toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': 'toolbar', 'title': "Terminal Application Panel"}),
-            infoPanel = u.createElement('div', {'id': 'panel_info', 'class': 'panel'}),
-            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': 'panel_close_icon', 'title': "Close This Panel"}),
-            infoPanelRow1 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow1'}),
-            infoPanelRow2 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow2'}),
-            infoPanelRow3 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow3'}),
-            infoPanelRow4 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow4'}),
-            infoPanelRow5 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow5'}),
-            infoPanelRow6 = u.createElement('div', {'class': 'paneltablerow', 'id': 'panel_inforow5'}),
+            tableDiv = u.createElement('div', {'class': '✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            tableDiv2 = u.createElement('div', {'class': '✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            toolbarClose = u.createElement('div', {'id': 'icon_closeterm', 'class': '✈toolbar', 'title': "Close This Terminal"}),
+            toolbarNewTerm = u.createElement('div', {'id': 'icon_newterm', 'class': '✈toolbar', 'title': "New Terminal"}),
+            toolbarInfo = u.createElement('div', {'id': 'icon_info', 'class': '✈toolbar', 'title': "Terminal Application Panel"}),
+            infoPanel = u.createElement('div', {'id': 'panel_info', 'class': '✈panel'}),
+            panelClose = u.createElement('div', {'id': 'icon_closepanel', 'class': '✈panel_close_icon', 'title': "Close This Panel"}),
+            infoPanelRow1 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow1'}),
+            infoPanelRow2 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow2'}),
+            infoPanelRow3 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow3'}),
+            infoPanelRow4 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow4'}),
+            infoPanelRow5 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow5'}),
+            infoPanelRow6 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow5'}),
             infoPanelH2 = u.createElement('h2', {'id': 'termtitle'}),
             infoPanelTimeLabel = u.createElement('span', {'id': 'term_time_label', 'style': {'display': 'table-cell'}}),
             infoPanelTime = u.createElement('span', {'id': 'term_time', 'style': {'display': 'table-cell'}}),
@@ -109,7 +109,7 @@ go.Base.update(GateOne.Terminal, {
             infoPanelBackspaceCheckQ = u.createElement('input', {'type': 'radio', 'id': 'backspace_q', 'name': 'backspace', 'value': '^?', 'style': {'display': 'table-cell'}}),
             infoPanelEncodingLabel = u.createElement('span', {'id': 'encoding_label', 'style': {'display': 'table-cell'}}),
             infoPanelEncoding = u.createElement('input', {'type': 'text', 'id': 'encoding', 'name': 'encoding', 'value': 'utf-8', 'style': {'display': 'table-cell'}}),
-            infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': 'button black'}),
+            infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             infoPanelMonitorActivity = u.createElement('input', {'id': 'monitor_activity', 'type': 'checkbox', 'name': 'monitor_activity', 'value': 'monitor_activity', 'style': {'margin-right': '0.5em'}}),
             infoPanelMonitorActivityLabel = u.createElement('span'),
             infoPanelMonitorInactivity = u.createElement('input', {'id': 'monitor_inactivity', 'type': 'checkbox', 'name': 'monitor_inactivity', 'value': 'monitor_inactivity', 'style': {'margin-right': '0.5em'}}),
@@ -117,7 +117,7 @@ go.Base.update(GateOne.Terminal, {
             infoPanelInactivityInterval = u.createElement('input', {'id': 'inactivity_interval', 'name': prefix+'inactivity_interval', 'size': 3, 'value': 10, 'style': {'margin-right': '0.5em', 'text-align': 'right', 'width': '4em'}}),
             infoPanelInactivityIntervalLabel = u.createElement('span'),
             goDiv = u.getNode(go.prefs.goDiv),
-            resetTermButton = u.createElement('button', {'id': 'reset_terminal', 'type': 'submit', 'value': 'Submit', 'class': 'button black ✈tooltip'}),
+            resetTermButton = u.createElement('button', {'id': 'reset_terminal', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black ✈tooltip'}),
             toolbarPrefs = u.getNode('#'+prefix+'icon_prefs'),
             toolbar = u.getNode('#'+prefix+'toolbar'),
             cmdQueryString = u.getQueryVariable('terminal_cmd'),
@@ -382,12 +382,12 @@ go.Base.update(GateOne.Terminal, {
         E.on("go:grid_view:open", function() {
             go.Terminal.disableScrollback();
             // Ensure any scaled terminals are un-scaled so there's no overlap:
-            v.applyTransform(u.getNodes(go.prefs.goDiv + ' .terminal pre'), '');
-            u.hideElements(go.prefs.goDiv + ' .pastearea');
+            v.applyTransform(u.getNodes('.✈terminal pre'), '');
+            u.hideElements('.✈pastearea');
         });
         E.on("go:grid_view:close", function() {
             go.Terminal.enableScrollback();
-            u.showElements(go.prefs.goDiv + ' .pastearea');
+            u.showElements('.✈pastearea');
         });
         E.on("go:update_dimensions", go.Terminal.onResizeEvent);
         E.on("go:timeout", go.Terminal.timeoutEvent);
@@ -413,29 +413,29 @@ go.Base.update(GateOne.Terminal, {
         Creates the terminal preferences and adds them to the global preferences panel.
         */
         var contentContainer = u.createElement('div'),
-            prefsPanelStyleRow1 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelStyleRow2 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelStyleRow3 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelStyleRow4 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelStyleRow5 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelStyleRow6 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelRow1 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelRow2 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelRow4 = u.createElement('div', {'class':'paneltablerow'}),
-            prefsPanelRow5 = u.createElement('div', {'class':'paneltablerow'}),
-            tableDiv = u.createElement('div', {'id': 'prefs_tablediv1', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            tableDiv2 = u.createElement('div', {'id': 'prefs_tablediv2', 'class':'paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
-            prefsPanelColorsLabel = u.createElement('span', {'id': 'prefs_colors_label', 'class':'paneltablelabel'}),
+            prefsPanelStyleRow1 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelStyleRow2 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelStyleRow3 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelStyleRow4 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelStyleRow5 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelStyleRow6 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelRow1 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelRow2 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelRow4 = u.createElement('div', {'class':'✈paneltablerow'}),
+            prefsPanelRow5 = u.createElement('div', {'class':'✈paneltablerow'}),
+            tableDiv = u.createElement('div', {'id': 'prefs_tablediv1', 'class':'✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            tableDiv2 = u.createElement('div', {'id': 'prefs_tablediv2', 'class':'✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
+            prefsPanelColorsLabel = u.createElement('span', {'id': 'prefs_colors_label', 'class':'✈paneltablelabel'}),
             prefsPanelColors = u.createElement('select', {'id': 'prefs_colors', 'name':'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelDisableAudibleBellLabel = u.createElement('span', {'id': 'prefs_disableaudiblebell_label', 'class':'paneltablelabel'}),
+            prefsPanelDisableAudibleBellLabel = u.createElement('span', {'id': 'prefs_disableaudiblebell_label', 'class':'✈paneltablelabel'}),
             prefsPanelDisableAudibleBell = u.createElement('input', {'id': 'prefs_disableaudiblebell', 'name': prefix+'prefs_disableaudiblebell', 'value': 'disableaudiblebell', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelBellLabel = u.createElement('span', {'id': 'prefs_bell_label', 'class':'paneltablelabel'}),
-            prefsPanelBell = u.createElement('button', {'id': 'prefs_bell', 'value': 'bell', 'class': 'button black', 'style': {'display': 'table-cell', 'float': 'right'}}),
-            prefsPanelScrollbackLabel = u.createElement('span', {'id': 'prefs_scrollback_label', 'class':'paneltablelabel'}),
+            prefsPanelBellLabel = u.createElement('span', {'id': 'prefs_bell_label', 'class':'✈paneltablelabel'}),
+            prefsPanelBell = u.createElement('button', {'id': 'prefs_bell', 'value': 'bell', 'class': '✈button ✈black', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelScrollbackLabel = u.createElement('span', {'id': 'prefs_scrollback_label', 'class':'✈paneltablelabel'}),
             prefsPanelScrollback = u.createElement('input', {'id': 'prefs_scrollback', 'name': prefix+'prefs_scrollback', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelRowsLabel = u.createElement('span', {'id': 'prefs_rows_label', 'class':'paneltablelabel'}),
+            prefsPanelRowsLabel = u.createElement('span', {'id': 'prefs_rows_label', 'class':'✈paneltablelabel'}),
             prefsPanelRows = u.createElement('input', {'id': 'prefs_rows', 'name': prefix+'prefs_rows', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
-            prefsPanelColsLabel = u.createElement('span', {'id': 'prefs_cols_label', 'class':'paneltablelabel'}),
+            prefsPanelColsLabel = u.createElement('span', {'id': 'prefs_cols_label', 'class':'✈paneltablelabel'}),
             prefsPanelCols = u.createElement('input', {'id': 'prefs_cols', 'name': prefix+'prefs_cols', 'size': 5, 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             colorsList = [],
             savePrefsCallback = function() {
@@ -566,7 +566,7 @@ go.Base.update(GateOne.Terminal, {
 
         Attached to the 'go:timeout' event; closes all open terminals when the user's session has timed out.
         */
-        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+        var terms = u.toArray(u.getNodes('.✈terminal'));
         terms.forEach(function(termObj) {
             // Passing 'true' here to keep the stuff in localStorage for this term.
             go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
@@ -577,7 +577,7 @@ go.Base.update(GateOne.Terminal, {
 
         This function gets attached to the "go:connection_error" event; closes all open terminals.
         */
-        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+        var terms = u.toArray(u.getNodes('.✈terminal'));
         terms.forEach(function(termObj) {
             // Passing 'true' here to keep the stuff in localStorage for this term.
             go.Terminal.closeTerminal(termObj.id.split('term')[1], true);
@@ -648,7 +648,7 @@ go.Base.update(GateOne.Terminal, {
             return;
         }
         var displayText = termObj.id.split('term')[1] + ": " + go.Terminal.terminals[term]['title'],
-            termInfoDiv = u.createElement('div', {'id': 'terminfo', 'class': 'terminfo'}),
+            termInfoDiv = u.createElement('div', {'id': 'terminfo', 'class': '✈terminfo'}),
             marginFix = Math.round(go.Terminal.terminals[term]['title'].length/2),
             infoContainer = u.createElement('div', {'id': 'infocontainer', 'style': {'margin-right': '-' + marginFix + 'em'}});
         termInfoDiv.innerHTML = displayText;
@@ -750,7 +750,7 @@ go.Base.update(GateOne.Terminal, {
         This gets attached to Shift-Insert (KEY_INSERT) as a shortcut in order to support pasting.
         */
         logDebug('paste()');
-        var tempPaste = u.createElement('textarea', {'class': 'temppaste', 'style': {'position': 'fixed', 'top': '-100000px', 'left': '-100000px', 'opacity': 0}});
+        var tempPaste = u.createElement('textarea', {'class': '✈temppaste', 'style': {'position': 'fixed', 'top': '-100000px', 'left': '-100000px', 'opacity': 0}});
         go.Terminal.Input.handlingPaste = true;
         tempPaste.oninput = function(e) {
             var pasted = tempPaste.value,
@@ -803,11 +803,11 @@ go.Base.update(GateOne.Terminal, {
             if (screen[i].length) {
                 // TODO: Get this using pre-cached line nodes
                 if (go.Terminal.terminals[term]['screen'][i] != screen[i]) {
-                    var existingLine = existingScreen.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
+                    var existingLine = existingScreen.querySelector('.' + prefix + 'line_' + i);
                     if (existingLine) {
                         existingLine.innerHTML = screen[i] + '\n';
                     } else { // Size of the terminal increased
-                        var classes = 'termline ' + prefix + 'line_' + i,
+                        var classes = '✈termline ' + prefix + 'line_' + i,
                             lineSpan = u.createElement('span', {'class': classes});
                         lineSpan.innerHTML = screen[i] + '\n';
                         existingScreen.appendChild(lineSpan);
@@ -912,8 +912,8 @@ go.Base.update(GateOne.Terminal, {
                     if (prevLength < screen.length) {
                         // Grow to fit
                         for (var i=0; i < screen.length; i++) {
-                            var classes = 'termline ' + prefix + 'line_' + i,
-                                existingLine = existingPre.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i),
+                            var classes = '✈termline ' + prefix + 'line_' + i,
+                                existingLine = existingPre.querySelector('.' + prefix + 'line_' + i),
                                 lineSpan = u.createElement('span', {'class': classes});
                             if (!existingLine) {
                                 lineSpan.innerHTML = screen[i] + '\n';
@@ -925,8 +925,8 @@ go.Base.update(GateOne.Terminal, {
                     } else {
                         // Shrink to fit
                         for (var i=0; i < prevLength; i++) {
-                            var classes = 'termline ' + prefix + 'line_' + i,
-                                existingLine = existingPre.querySelector(GateOne.prefs.goDiv + ' .' + prefix + 'line_' + i);
+                            var classes = '✈termline ' + prefix + 'line_' + i,
+                                existingLine = existingPre.querySelector('.' + prefix + 'line_' + i);
                             if (existingLine) {
                                 if (i >= screen.length) {
                                    u.removeElement(existingLine);
@@ -1114,7 +1114,7 @@ go.Base.update(GateOne.Terminal, {
 
         Returns a 'pastearea' (textarea) element meant for placement above terminals for the purpose of enabling proper copy & paste.
         */
-        var pastearea = u.createElement('textarea', {'id': 'pastearea'+term, 'class': 'pastearea'}),
+        var pastearea = u.createElement('textarea', {'id': 'pastearea'+term, 'class': '✈pastearea'}),
         // The following functions control the copy & paste capability
             pasteareaOnInput = function(e) {
                 var pasted = pastearea.value,
@@ -1187,7 +1187,7 @@ go.Base.update(GateOne.Terminal, {
                 if (typeof(elem.className) == "undefined") {
                     break;
                 }
-                if (elem.className.indexOf && elem.className.indexOf('termline') != -1) {
+                if (elem.className.indexOf && elem.className.indexOf('✈termline') != -1) {
                     termline = elem; // End it
                 } else if (elem.tagName.toLowerCase && elem.tagName.toLowerCase() == 'a') {
                     // Anchor elements mean we shouldn't make the pastearea reappear so the user can click on them
@@ -1196,7 +1196,7 @@ go.Base.update(GateOne.Terminal, {
                         go.Terminal.pasteAreaTimer = null;
                     }
                     return;
-                } else if (elem.className.indexOf && elem.className.indexOf('clickable') != -1) {
+                } else if (elem.className.indexOf && elem.className.indexOf('✈clickable') != -1) {
                     // Clickable elements mean we shouldn't make the pastearea reappear
                     if (go.Terminal.pasteAreaTimer) {
                         clearTimeout(go.Terminal.pasteAreaTimer);
@@ -1304,7 +1304,7 @@ go.Base.update(GateOne.Terminal, {
             prevScrollback = localStorage.getItem(prefix + "scrollback" + term),
             switchTermFunc = u.partial(go.Terminal.switchTerminal, term),
             termPre = u.createElement('pre', {'id': 'term'+term+'_pre'}),
-            screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': 'screen'}),
+            screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': '✈screen'}),
             wheelFunc = function(e) {
                 var m = go.Input.mouse(e),
                     modifiers = go.Input.modifiers(e);
@@ -1376,14 +1376,14 @@ go.Base.update(GateOne.Terminal, {
             }
             go.Terminal.terminals[term]['scrollback'] = blankLines;
         }
-        terminal = u.createElement('div', {'id': currentTerm, 'class': 'terminal'});
+        terminal = u.createElement('div', {'id': currentTerm, 'class': '✈terminal'});
         if (!go.prefs.embedded) {
             // Switch to the newly created workspace (if warranted)
             if (workspaceNum) {
                 v.switchWorkspace(workspaceNum);
             }
         }
-        if (where.className == 'terminal') {
+        if (where.className == '✈terminal') {
             terminal = where;
             terminal.id = currentTerm;
         } else {
@@ -1432,7 +1432,7 @@ go.Base.update(GateOne.Terminal, {
         terminal.addEventListener(mousewheelevt, wheelFunc, true);
         // Add the scaffold of the screen and scrollback
         for (var i=0; i < rows; i++) {
-            var classes = 'termline ' + prefix + 'line_' + i,
+            var classes = '✈termline ' + prefix + 'line_' + i,
                 lineSpan = u.createElement('span', {'class': classes});
             lineSpan.innerHTML = screen[i] + '\n';
             screenSpan.appendChild(lineSpan);
@@ -1505,7 +1505,7 @@ go.Base.update(GateOne.Terminal, {
         // Also remove it from working memory
         delete go.Terminal.terminals[term];
         // Now find out what the previous terminal was and move to it
-        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+        var terms = u.toArray(u.getNodes('.✈terminal'));
         go.Visual.displayMessage(message);
         terms.forEach(function(termObj) {
             lastTerm = termObj;
@@ -1584,7 +1584,7 @@ go.Base.update(GateOne.Terminal, {
 
         Removes the '✈inactive' class from the given *term*.
         */
-        var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
+        var terms = u.toArray(u.getNodes('.✈terminal')),
             termNode = go.Terminal.terminals[term]['terminal'];
         terms.forEach(function(terminalNode) {
             if (terminalNode == termNode) {
@@ -1601,7 +1601,7 @@ go.Base.update(GateOne.Terminal, {
         */
         logDebug('switchTerminalEvent('+term+')');
         var termNode = null,
-            terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
+            terms = u.toArray(u.getNodes('.✈terminal')),
             termTitleH2 = u.getNode('#'+prefix+'termtitle'),
             displayText = "Gate One",
             sideinfo = u.getNode('#'+prefix+'sideinfo'),
@@ -1722,13 +1722,13 @@ go.Base.update(GateOne.Terminal, {
     },
     uploadBellDialog: function() {
         // Displays a dialog/form where the user can upload a replacement bell sound or use the default
-        var playBell = u.createElement('button', {'id': 'play_bell', 'value': 'play_bell', 'class': 'button black'}),
-            defaultBell = u.createElement('button', {'id': 'default_bell', 'value': 'default_bell', 'class': 'button black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
+        var playBell = u.createElement('button', {'id': 'play_bell', 'value': 'play_bell', 'class': '✈button ✈black'}),
+            defaultBell = u.createElement('button', {'id': 'default_bell', 'value': 'default_bell', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
             uploadBellForm = u.createElement('form', {'name': prefix+'upload_bell_form', 'style': {'width': '25em'}}),
             bellFile = u.createElement('input', {'type': 'file', 'id': 'upload_bell', 'name': prefix+'upload_bell'}),
             bellFileLabel = u.createElement('label'),
-            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': 'button black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
-            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': 'button black', 'style': {'float': 'right'}});
+            submit = u.createElement('button', {'id': 'submit', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black', 'style': {'float': 'right', 'margin-right': '1.5em'}}),
+            cancel = u.createElement('button', {'id': 'cancel', 'type': 'reset', 'value': 'Cancel', 'class': '✈button ✈black', 'style': {'float': 'right'}});
         submit.innerHTML = "Submit";
         cancel.innerHTML = "Cancel";
         defaultBell.innerHTML = "Reset Bell to Default";
@@ -1794,7 +1794,7 @@ go.Base.update(GateOne.Terminal, {
 
         This gets attached to the "go:update_dimensions" event which gets called whenever the window is resized.  It makes sure that all the terminal containers are of the correct dimensions.
         */
-//         var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal')),
+//         var terms = u.toArray(u.getNodes('.✈terminal')),
 //             wrapperDiv = u.getNode('#'+prefix+'gridwrapper');
 //         if (wrapperDiv) {
 //             if (terms.length) {
@@ -1848,7 +1848,7 @@ go.Base.update(GateOne.Terminal, {
                     u.scrollToBottom(termPreNode);
                 } else {
                     // Create the span that holds the scrollback buffer
-                    termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback', 'class': 'scrollback'});
+                    termScrollback = u.createElement('span', {'id': 'term'+termNum+'scrollback', 'class': '✈scrollback'});
                     termScrollback.innerHTML = go.Terminal.terminals[termNum]['scrollback'].join('\n') + '\n';
                     termPreNode.insertBefore(termScrollback, termScreen);
                     go.Terminal.terminals[termNum]['scrollbackNode'] = termScrollback;
@@ -1863,7 +1863,7 @@ go.Base.update(GateOne.Terminal, {
             // If there's already an existing scrollback buffer...
                 enableSB(term); // Have it create/add the scrollback buffer
         } else {
-            var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+            var terms = u.toArray(u.getNodes('.✈terminal'));
             terms.forEach(function(termObj) {
                 var termNum = termObj.id.split(prefix+'term')[1];
                 if (termNum in GateOne.Terminal.terminals) {
@@ -1888,7 +1888,7 @@ go.Base.update(GateOne.Terminal, {
                 }
             go.Terminal.terminals[term]['scrollbackVisible'] = false;
         } else {
-            var terms = u.toArray(u.getNodes(go.prefs.goDiv + ' .terminal'));
+            var terms = u.toArray(u.getNodes('.✈terminal'));
             terms.forEach(function(termObj) {
                 var termID = termObj.id.split(prefix+'term')[1],
                     termScrollback = go.Terminal.terminals[termID]['scrollbackNode'];

@@ -717,12 +717,12 @@ def short_hash(to_shorten):
     Converts *to_shorten* into a really short hash depenendent on the length of
     *to_shorten*.  The result will be safe for use as a file name.
 
-    .. note:: Collisions are possible but *highly* unlikely because of how this method is used by Gate One.
+    .. note:: Collisions are possible but *highly* unlikely because of how this method is used.
     """
     import base64
     hashed = hashlib.sha1(to_shorten.encode('utf-8'))
     # Take the first eight characters to create a shortened version.
-    return base64.urlsafe_b64encode(hashed.digest())[:8].decode('ascii')
+    return base64.urlsafe_b64encode(hashed.digest())[:8].decode('utf-8')
 
 def get_process_tree(parent_pid):
     """
@@ -1406,6 +1406,9 @@ def minify(path_or_fileobj, kind):
         logging.warning(_(
             "cssmin module not found.  CSS will not be minified."))
         logging.info(_("To install cssmin:  sudo pip install cssmin"))
+    # Temporarily disabled:
+    slimit = None
+    cssmin = None
     if isinstance(path_or_fileobj, basestring):
         filename = os.path.split(path_or_fileobj)[1]
         with io.open(path_or_fileobj, mode='r', encoding='utf-8') as f:

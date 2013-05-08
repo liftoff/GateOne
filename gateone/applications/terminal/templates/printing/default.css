@@ -28,7 +28,7 @@ textarea {
     font-family: monospace; /* Just "monospace" let the browser/printer choose what's best for print */
     line-height: 1;
 }
-.terminal {
+.✈terminal {
     line-height: 1;
     background-color: #fff;
     color: black;
@@ -38,13 +38,13 @@ textarea {
     padding: 0;
     float: none;
 }
-.terminal a {
+.✈terminal a {
     color: maroon;
 }
-.terminal a:visited {
+.✈terminal a:visited {
     color: maroon;
 }
-.terminal pre {
+.✈terminal pre {
     font-family: monospace;
     font-size: 1em;
     line-height: 1;
@@ -67,10 +67,7 @@ span.reverse { background-color: #aaa; color: #fff; }
 .✈toolbar {
     display: none;
 }
-.toolbar {
-    display: none;
-}
-.toolbar_container {
+.✈toolbar_container {
     display: none;
 }
 .✈infocontainer {
@@ -84,13 +81,13 @@ span.reverse { background-color: #aaa; color: #fff; }
     font-weight: bold;
     font-size: 1.1em;
 }
-.pastearea {
+.✈pastearea {
     display: none !important;
 }
-.go_none { /* No prefix on this one because of issues with that in the JS code */
+.✈go_none { /* No prefix on this one because of issues with that in the JS code */
     display: none;
 }
-.sideinfo {
+.✈sideinfo {
     -webkit-transform: rotate(90deg);
     -webkit-transform-origin: right top;
     -moz-transform: rotate(90deg);
@@ -116,10 +113,10 @@ span.reverse { background-color: #aaa; color: #fff; }
 .✈notice {
     display: none;
 }
-.panel {
+.✈panel {
     display: none;
 }
-.medium {
+.✈medium {
     height: 5em;
 }
 .✈user_info {
@@ -232,7 +229,7 @@ span.reverse { background-color: #aaa; color: #fff; }
     z-index: 2;
     font-size: 1em;
 }
-.table_row {
+.✈table_row {
     display: table-row;
     height: 1.2em;
     overflow: hidden;
@@ -241,14 +238,14 @@ span.reverse { background-color: #aaa; color: #fff; }
     font-size: 0.9em;
     white-space: nowrap;
 }
-.active.table_row {
+.✈active.✈table_row {
     -webkit-transform: skew(-10deg) translate(0.5%);
     -moz-transform: skew(-10deg) translate(0.5%);
     -ms-transform: skew(-10deg) translate(0.5%);
     -o-transform: skew(-10deg) translate(0.5%);
     transform: skew(-10deg) translate(0.5%);
 }
-.table_cell {
+.✈table_cell {
     display: table-cell;
     max-width: 13em;
     padding-right: 0.5em;
@@ -260,36 +257,36 @@ span.reverse { background-color: #aaa; color: #fff; }
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-.table_header_row {
+.✈table_header_row {
     display: table-header-group;
     font-weight: bold;
     font-size: 1.1em;
 }
-.table_header_cell {
+.✈table_header_cell {
     color: #1F5470;
     background-image: none;
     background: none;
 }
-.table_header_cell.active {
+.✈table_header_cell.✈active {
     color: maroon;
 }
-.table_header_cell:hover {
+.✈table_header_cell:hover {
     color: maroon;
     cursor: pointer;
     background-color: #fff;
 }
-.metadata_row {
+.✈metadata_row {
     display: table-row;
     height: 1.2em;
     overflow: hidden;
     border: 0.1em #000 solid;
     font-size: 0.9em;
 }
-.metadata_value {
+.✈metadata_value {
     display: table-cell;
     padding-right: 0.5em;
 }
-.metadata_title {
+.✈metadata_title {
     display: table-cell;
     font-weight: bold;
     padding-right: 0.5em;
@@ -298,24 +295,24 @@ span.reverse { background-color: #aaa; color: #fff; }
     width: 50%; /* Ensures things are centered */
 }
 /* SVG Styling */
-.stop1 { stop-color: #636466; }
-.stop2 { stop-color: #464648; }
-.stop3 { stop-color: #5D5E60; }
-.stop4 { stop-color: #535355; }
-.panelstop1 { stop-color: #2A5BA6; } /* Note: Same by default in both black and white */
-.panelstop2 { stop-color: #2D61B4; }
-.panelstop3 { stop-color: #2E63B9; }
-.panelstop4 { stop-color: #1F5470; }
+.✈stop1 { stop-color: #636466; }
+.✈stop2 { stop-color: #464648; }
+.✈stop3 { stop-color: #5D5E60; }
+.✈stop4 { stop-color: #535355; }
+.✈panelstop1 { stop-color: #2A5BA6; } /* Note: Same by default in both black and white */
+.✈panelstop2 { stop-color: #2D61B4; }
+.✈panelstop3 { stop-color: #2E63B9; }
+.✈panelstop4 { stop-color: #1F5470; }
 /* Change the styling of the SVG close icon so it is white when inside dialogs */
-.✈dialogtitle .panelstop1 { stop-color: #FFF; }
-.✈dialogtitle .panelstop2 { stop-color: #CCC; }
-.✈dialogtitle .panelstop3 { stop-color: #DDD; }
-.✈dialogtitle .panelstop4 { stop-color: #FFF; }
+.✈dialogtitle .✈panelstop1 { stop-color: #FFF; }
+.✈dialogtitle .✈panelstop2 { stop-color: #CCC; }
+.✈dialogtitle .✈panelstop3 { stop-color: #DDD; }
+.✈dialogtitle .✈panelstop4 { stop-color: #FFF; }
 /* Ditto for widgets */
-.✈widgettitle .panelstop1 { stop-color: #636466; }
-✈widgettitle .panelstop2 { stop-color: #464648; }
-✈widgettitle .panelstop3 { stop-color: #5D5E60; }
-✈widgettitle .panelstop4 { stop-color: #535355; }
+.✈widgettitle .✈panelstop1 { stop-color: #636466; }
+.✈widgettitle .✈panelstop2 { stop-color: #464648; }
+.✈widgettitle .✈panelstop3 { stop-color: #5D5E60; }
+.✈widgettitle .✈panelstop4 { stop-color: #535355; }
 .✈overlay {
     display: none;
 }

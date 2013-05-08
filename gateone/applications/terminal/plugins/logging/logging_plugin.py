@@ -22,6 +22,9 @@ This Python plugin file implements the following hooks::
             'logging_get_log_flat': retrieve_log_flat,
             'logging_get_log_playback': retrieve_log_playback,
             'logging_get_log_file': save_log_playback,
+        },
+        'Events': {
+            'terminal:authenticate': send_logging_css_template
         }
     }
 
@@ -38,7 +41,6 @@ __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 # Python stdlib
 import os
 import logging
-import gzip
 import time
 import re
 from multiprocessing import Process, Queue
@@ -46,7 +48,6 @@ from multiprocessing import Process, Queue
 # Our stuff
 from gateone import GATEONE_DIR
 from logviewer import flatten_log, get_frames
-from termio import retrieve_first_frame
 from termio import get_or_update_metadata
 from utils import get_translation, json_encode
 
@@ -108,7 +109,6 @@ def get_256_colors(self):
     Returns the rendered 256-color CSS.
     """
     colors_256_path = self.render_256_colors()
-    filename = os.path.split(colors_256_path)[1]
     mtime = os.stat(colors_256_path).st_mtime
     cached_filename = "%s:%s" % (colors_256_path.replace('/', '_'), mtime)
     cache_dir = self.ws.settings['cache_dir']
@@ -223,7 +223,6 @@ def _enumerate_logs(queue, user, users_dir, limit=None):
     out_dict = {}
     for log in log_files:
         log_path = os.path.join(logs_dir, log)
-        logfile = gzip.open(log_path)
         logging.debug("Getting metadata from: %s" % log_path)
         metadata = get_or_update_metadata(log_path, user)
         if not metadata:
@@ -306,11 +305,8 @@ def _retrieve_log_flat(queue, settings):
     # Local variables
     out = []
     spanstrip = re.compile(r'\s+\<\/span\>$')
-    gateone_dir = settings['gateone_dir']
     user = settings['user']
     users_dir = settings['users_dir']
-    container = settings['container']
-    prefix = settings['prefix']
     log_filename = settings['log_filename']
     logs_dir = os.path.join(users_dir, "logs")
     log_path = os.path.join(logs_dir, log_filename)
@@ -433,7 +429,6 @@ def _retrieve_log_playback(queue, settings):
         'where': settings['where'] # Just gets passed as-is back to the client
     }
     # Local variables
-    gateone_dir = settings['gateone_dir']
     user = settings['user']
     users_dir = settings['users_dir']
     container = settings['container']
@@ -445,9 +440,6 @@ def _retrieve_log_playback(queue, settings):
     # some day.
     logs_dir = os.path.join(users_dir, "logs")
     log_path = os.path.join(logs_dir, log_filename)
-    templates_path = os.path.join(gateone_dir, 'templates')
-    colors_path = os.path.join(templates_path, 'term_colors')
-    themes_path = os.path.join(templates_path, 'themes')
     template_path = os.path.join(PLUGIN_PATH, 'templates')
     # recording format:
     # {"screen": [log lines], "time":"2011-12-20T18:00:01.033Z"}
@@ -485,6 +477,8 @@ def _retrieve_log_playback(queue, settings):
             recording=json_encode(recording),
             url_prefix=url_prefix
         )
+        if not isinstance(playback_html, str):
+            playback_html = playback_html.decode('utf-8')
         out_dict['html'] = playback_html
     else:
         out_dict['result'] = _("ERROR: Log not found")
@@ -558,7 +552,6 @@ def _save_log_playback(queue, settings):
         'data': "", # Will be replace with the rendered template
     }
     # Local variables
-    gateone_dir = settings['gateone_dir']
     user = settings['user']
     users_dir = settings['users_dir']
     container = settings['container']
@@ -566,10 +559,7 @@ def _save_log_playback(queue, settings):
     url_prefix = settings['url_prefix']
     log_filename = settings['log_filename']
     short_logname = log_filename.split('.golog')[0]
-    colors_256 = settings['256_colors']
     out_dict['filename'] = "%s.html" % short_logname
-    #theme = "%s.css" % settings['theme']
-    #colors = "%s.css" % settings['colors']
     # Important paths
     logs_dir = os.path.join(users_dir, "logs")
     log_path = os.path.join(logs_dir, log_filename)
