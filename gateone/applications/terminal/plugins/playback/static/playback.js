@@ -9,7 +9,12 @@ var go = GateOne,
     E = go.Events,
     t = go.Terminal,
     prefix = go.prefs.prefix,
-    noop = u.noop;
+    noop = u.noop,
+    logFatal = GateOne.Logging.logFatal,
+    logError = GateOne.Logging.logError,
+    logWarning = GateOne.Logging.logWarning,
+    logInfo = GateOne.Logging.logInfo,
+    logDebug = GateOne.Logging.logDebug;
 
 // Tunable playback prefs
 if (!go.prefs.playbackFrames) {

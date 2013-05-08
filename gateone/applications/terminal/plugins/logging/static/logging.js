@@ -13,7 +13,12 @@ var go = GateOne,
     t = go.Terminal,
     v = go.Visual,
     E = go.Events,
-    prefix = go.prefs.prefix;
+    prefix = go.prefs.prefix,
+    logFatal = GateOne.Logging.logFatal,
+    logError = GateOne.Logging.logError,
+    logWarning = GateOne.Logging.logWarning,
+    logInfo = GateOne.Logging.logInfo,
+    logDebug = GateOne.Logging.logDebug;
 
 // GateOne.TermLogging
 go.Base.module(GateOne, "TermLogging", '1.0', ['Base', 'Net', 'Events']);
