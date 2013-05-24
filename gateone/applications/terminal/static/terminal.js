@@ -1565,7 +1565,9 @@ go.Base.update(GateOne.Terminal, {
         if (!go.Terminal.terminals[term]) {
             return true; // This can happen if the user clicks on a terminal in the moments before it has completed initializing.
         }
-        // Always run setActive
+        // Always call capture()
+        go.Terminal.Input.capture();
+        // Always run setActive()
         go.Terminal.setActive(term);
         var selectedTerm = localStorage[prefix+'selectedTerminal'];
         if (term == selectedTerm) {
@@ -1635,7 +1637,6 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.alignTimer = setTimeout(function() {
             go.Terminal.alignTerminal(term);
         }, 1100); // Just a moment after the switch completes
-        go.Terminal.Input.capture();
     },
     switchWorkspaceEvent: function(workspace) {
         /**:GateOne.Terminal.switchWorkspaceEvent(workspace)
@@ -2015,7 +2016,6 @@ go.Base.update(GateOne.Terminal, {
         if (!go.prefs.embedded && !reattachCallbacks) { // Only perform the default action if not in embedded mode and there are no registered reattach callbacks.
             if (terminals.length) {
                 // Reattach the running terminals
-                var selectedTerm = localStorage[prefix+'selectedTerminal'] + '';
                 terminals.forEach(function(termNum) {
                     if (!go.Terminal.terminals[termNum]) {
                         go.Terminal.newTerminal(termNum);
@@ -2028,6 +2028,8 @@ go.Base.update(GateOne.Terminal, {
                 go.Terminal.newTerminal();
             }
             setTimeout(function() {
+                var selectedTerm = localStorage[prefix+'selectedTerminal'] + '';
+                if (!go.Terminal.terminals[selectedTerm]) { return; }
                 v.switchWorkspace(go.Terminal.terminals[selectedTerm]['workspace']);
                 go.Terminal.switchTerminal(go.Terminal.lastTermNumber);
             }, 100);

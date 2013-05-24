@@ -139,6 +139,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                     width = termObj['screenNode'].offsetWidth;
                 Y = parseInt(u.last(className.split('_'))) + 1;
                 X = Math.ceil(e.clientX/(width/(columns)));
+                go.Terminal.Input.startSelection = [X, Y]; // Block selection tracking
                 logDebug("Clicked on row/column: "+Y+"/"+X);
                 X = go.Terminal.xtermEncode(X);
                 Y = go.Terminal.xtermEncode(Y);
@@ -218,6 +219,10 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         // Once the user is done pasting (or clicking), set it back to false for speed
         t.Input.mouseDown = false;
         go.Terminal.setActive(selectedTerm);
+        if (go.Terminal.Input.startSelection) {
+//             console.log("Finished selection at: ", go.Terminal.Input.startSelection);
+            go.Terminal.Input.startSelection = null;
+        }
         if (selectedText) {
             // Don't show the pastearea as it will prevent the user from right-clicking to copy.
             return;
@@ -305,7 +310,6 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (document.activeElement != t.Input.inputNode) {
             t.Input.inputNode.focus();
         }
-        GateOne.Terminal.switchTerminal(localStorage[prefix+'selectedTerminal']);
     },
     disableCapture: function(e) {
         /**GateOne.Terminal.Input.disableCapture(e)
@@ -618,7 +622,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                     q(String.fromCharCode(key.code - 96)); // Ctrl-[a-z]
                 } else if (key.code >= 65 && key.code <= 90) {
                     if (key.code == 76) { // Ctrl-l gets some extra love
-                        go.Net.fullRefresh(localStorage[go.prefs.prefix+'selectedTerminal']);
+                        go.Terminal.fullRefresh(localStorage[go.prefs.prefix+'selectedTerminal']);
                         q(String.fromCharCode(key.code - 64));
                     } else if (key.string == 'KEY_C') {
                         // Check if the user has something highlighted.  If they do, assume they want to copy the text.
