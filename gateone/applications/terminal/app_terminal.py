@@ -702,7 +702,7 @@ class TerminalApplication(GOApplication):
         # This allows plugins to transform the command however they like
         if self.plugin_command_hooks:
             for func in self.plugin_command_hooks:
-                cmd = func(cmd)
+                cmd = func(self, cmd)
         m = termio.Multiplex(
             cmd,
             log_path=log_path,

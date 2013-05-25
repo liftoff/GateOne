@@ -44,6 +44,12 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         t.Input.inputNode.addEventListener('compositionend', t.Input.onCompositionEnd, true);
         E.on("go:new_workspace", go.Terminal.Input.disableCapture);
         E.on("terminal:new_terminal", go.Terminal.Input.capture);
+        E.on("go:visible", function() {
+            if (document.activeElement.className == '✈IME') {
+                // Pick up where the user left off by re-enabling capture right away
+                go.Terminal.Input.capture();
+            }
+        });
     },
     sendChars: function() {
         /**:GateOne.Terminal.Input.sendChars()
@@ -317,6 +323,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         Disables the various input events that capture mouse and keystroke events.  This allows things like input elements and forms to work properly (so keystrokes can pass through without intervention).
         */
         logDebug('go.Terminal.Input.disableCapture()');
+        if (document.activeElement.className == '✈IME') {
+            return; // User is just switching to a different app
+        }
         var terms = u.toArray(u.getNodes('.✈terminal'));
         if (t.Input.mouseDown) {
             logDebug('disableCapture() cancelled due to mouseDown.');
@@ -729,7 +738,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         }
     },
     handleVisibility: function(e) {
-        // Calls GateOne.Input.capture() when the page becomes visible again *if* goDiv had focus before the document went invisible
+        // Calls GateOne.Terminal.Input.capture() when the page becomes visible again *if* goDiv had focus before the document went invisible
         if (!u.isPageHidden()) {
             // Page has become visibile again
             logDebug("Ninja Mode disabled.");

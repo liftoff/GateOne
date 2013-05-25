@@ -25,20 +25,17 @@
     word-wrap: break-word;
     white-space: pre-wrap;
     display: block;
-/*     width: calc(100% - 2em); */
 }
 .✈terminal span.scrollback {
     word-wrap: break-word;
     white-space: pre-wrap;
     display: block;
-/*     width: calc(100% - 3.5em); */
 }
 .✈terminal span.termline {
     width: 100%;
 }
 /* This is to work around a Chrome/Windows bug where pasting gets disabled if you use JS to set display: none */
-.✈go_none { /* No prefix on this one because of issues with that in the JS code */
-/*     display: none; */
+.✈go_none {
     height: 1px;
     width: 1px;
 }

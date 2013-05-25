@@ -550,7 +550,7 @@ go.Base.update(GateOne.Terminal, {
                 setTimeout(function() {
                     var parentHeight = termPre.parentElement.clientHeight;
                     if (parentHeight) {
-                        termPre.style.height = (parentHeight - go.Terminal.terminals[term]['heightAdjust']) + 'px';
+                        termPre.style.height = parentHeight + 'px';
                     } else {
                         termPre.style.height = "100%";
                     }
@@ -828,11 +828,11 @@ go.Base.update(GateOne.Terminal, {
         if (!termPre) {
             return;
         }
+        var emDimensions = u.getEmDimensions(screenSpan, go.node);
         if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
             if (screenSpan.getClientRects()[0]) {
                 v.applyTransform(termPre, ''); // Have to reset in order to perform calculations
-                var emDimensions = u.getEmDimensions(go.Terminal.terminals[term]['screenNode'], go.node),
-                    nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
+                var nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
                     nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
                 if (nodeHeight < go.node.offsetHeight) { // Resize to fit
                     var scaleY = go.node.offsetHeight / nodeHeight,
@@ -846,15 +846,17 @@ go.Base.update(GateOne.Terminal, {
             if (!go.prefs.embedded) {
                 // In embedded mode this kind of adjustment can be unreliable
                 v.applyTransform(termPre, ''); // Need to reset before we do the calculation
-                go.Terminal.terminals[term]['heightAdjust'] = 0; // Have to set this as a default value for new terminals
                 // Feel free to attach something like this to the "term_updated" event if you want.
                 if (u.isVisible(termPre)) {
-                    // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
+                    var originalHeight = termPre.style.height;
                     go.Terminal.disableScrollback(term); // The calculation won't work if the scrollback buffer is visible
+                    termPre.style.height = ''; // Reset it (important for the distance calculation below)
+                    // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
                     setTimeout(function() {
                         var distance = go.node.clientHeight - termPre.offsetHeight,
                             transform = "translateY(-" + distance + "px)";
                         v.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                        termPre.style.height = originalHeight; // Put it back to what it was
                         go.Terminal.enableScrollback(term); // Turn it back on
                     }, 10);
                 }
@@ -1824,7 +1826,6 @@ go.Base.update(GateOne.Terminal, {
                 var termPreNode = go.Terminal.terminals[termNum]['node'],
                     termScreen = go.Terminal.terminals[termNum]['screenNode'],
                     termScrollback = go.Terminal.terminals[termNum]['scrollbackNode'],
-                    heightAdjust = go.Terminal.terminals[termNum]['heightAdjust'] || 0,
                     parentHeight = termPreNode.parentElement.clientHeight;
                 if (!go.Terminal.terminals[termNum]) { // The terminal was just closed
                     return; // We're done here
@@ -1840,7 +1841,7 @@ go.Base.update(GateOne.Terminal, {
                 }
                 // Only set the height of the terminal if we could measure it (depending on the CSS the parent element might have a height of 0)
                 if (parentHeight) {
-                    termPreNode.style.height = (parentHeight - heightAdjust) + 'px';
+                    termPreNode.style.height = parentHeight + 'px';
                 } else {
                     termPreNode.style.height = "100%"; // This ensures there's a scrollbar
                 }
@@ -1886,11 +1887,11 @@ go.Base.update(GateOne.Terminal, {
         var u = go.Utils,
             prefix = go.prefs.prefix;
         if (term) {
-            var termPreNode = GateOne.Terminal.terminals[term]['node'],
+            var termPre = GateOne.Terminal.terminals[term]['node'],
                 termScrollback = go.Terminal.terminals[term]['scrollbackNode'];
-                if (termScrollback) {
-                    termScrollback.style.display = "none";
-                }
+            if (termScrollback) {
+                termScrollback.style.display = "none";
+            }
             go.Terminal.terminals[term]['scrollbackVisible'] = false;
         } else {
             var terms = u.toArray(u.getNodes('.✈terminal'));

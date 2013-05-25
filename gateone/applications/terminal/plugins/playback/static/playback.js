@@ -79,7 +79,7 @@ go.Base.update(GateOne.Playback, {
         }
         if (go.prefs.showPlaybackControls) {
             // Make room for the playback controls by increasing rowAdjust (the number of rows in the terminal will be reduced by this amount)
-            go.prefs.rowAdjust += 1;
+            t.rowAdjust += 1;
         }
         // Add our callback that adds an extra newline to all terminals
         E.on("terminal:new_terminal", p.newTerminalCallback);
@@ -127,7 +127,7 @@ go.Base.update(GateOne.Playback, {
         if (go.prefs.showPlaybackControls) {
             extraSpace.innerHTML = ' \n'; // The playback controls should only have a height of 1em so a single newline should be fine
             if (termPre) {
-                if (!termPre.querySelector('.playback_spacer')) {
+                if (!termPre.querySelector('.✈playback_spacer')) {
                     termPre.appendChild(extraSpace);
                     if (u.isVisible(termPre)) {
                         if (go.prefs.rows) {
