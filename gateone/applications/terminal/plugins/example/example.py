@@ -165,6 +165,7 @@ def example_websocket_action(self, message):
     called by the client (browser) inside of example.js (which is in this
     plugin's 'static' dir).
     """
+    timestamp = "just pretend"
     message = {'terminal:example_pong': timestamp}
     self.write_message(message)
     # WebSockets are asynchronous so you can send as many messages as you want
@@ -192,7 +193,7 @@ def example_opt_esc_handler(self, message):
      "You just executed the Example plugin's optional escape sequence handler!"}
     self.write_message(message)
 
-def example_command_hook(command):
+def example_command_hook(self, command):
     """
     This demonstrates how to modify Gate One's configured 'command' before it is
     executed.  It will replace any occurrance of %EXAMPLE% with 'foo'.  So if
