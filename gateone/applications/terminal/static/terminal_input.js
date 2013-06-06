@@ -297,7 +297,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         Sets focus on the terminal and attaches all the relevant events (mousedown, mouseup, keydown, etc).
         */
         logDebug('go.Terminal.Input.capture()');
-        var terms = u.toArray(u.getNodes('.✈terminal'));
+        var terms = u.toArray(u.getNodes('.✈terminal')),
+            selectedText = u.getSelText();
         if (!t.Input.inputNode) {
             t.Input.inputNode = u.createElement('input', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
             go.node.appendChild(t.Input.inputNode);
@@ -314,7 +315,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             termNode.addEventListener('copy', t.Input.onCopy, false);
         });
         if (document.activeElement != t.Input.inputNode) {
-            t.Input.inputNode.focus();
+            if (!selectedText) {
+                t.Input.inputNode.focus();
+            }
         }
     },
     disableCapture: function(e) {
