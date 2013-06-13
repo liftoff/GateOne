@@ -49,7 +49,7 @@
     margin: 0;
     padding: 0;
     border: none;
-    white-space: pre;
+    white-space: pre-wrap;
     word-break: normal;
     word-wrap: normal; /* If this gets set to 'break-word' it might as well be 'break-everything' :) */
     -webkit-transform-origin: left bottom;

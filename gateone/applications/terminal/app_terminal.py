@@ -845,6 +845,8 @@ class TerminalApplication(GOApplication):
             # Set some environment variables so the programs we execute can use
             # them (very handy).  Allows for "tight integration" and "synergy"!
             env = {
+                'GO_DIR': GATEONE_DIR,
+                'GO_SETTINGS_DIR': self.ws.settings['settings_dir'],
                 'GO_USER_DIR': user_dir,
                 'GO_USER': user,
                 'GO_TERM': str(term),

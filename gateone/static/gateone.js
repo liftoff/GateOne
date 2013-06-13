@@ -1031,6 +1031,7 @@ GateOne.Base.update(GateOne.Utils, {
             sizingPre.style.right = 'auto';
             sizingPre.style.width = 'auto';
             sizingPre.style.height = 'auto';
+            sizingPre.style['white-space'] = 'pre'; // Without this the size calculation will be off
             // Add in our sizingDiv and grab its height
             node.appendChild(sizingPre);
             var nodeHeight = sizingPre.getClientRects()[0].height,
@@ -1221,7 +1222,7 @@ GateOne.Base.update(GateOne.Utils, {
     loadStyleAction: function(message, /*opt*/noCache) {
         /**:GateOne.Utils.loadStyleAction(message)
 
-        Loads various kinds of stylesheets sent via the 'load_style' WebSocket action.  These stylesheets would be a, 'theme', 'colors', 'plugins', 'print', or 'css' (generic).
+        Loads various kinds of stylesheets sent via the 'go:load_style' WebSocket action.  These stylesheets would be a, 'theme', 'colors', 'plugins', 'print', or 'css' (generic).
 
         If *message['cache']* is `false` or *noCache* is true, will not update the fileCache database with this incoming file.
         */
@@ -1234,6 +1235,7 @@ GateOne.Base.update(GateOne.Utils, {
                 if (message['data'].length) {
                     var stylesheet, existing, themeStyle = u.getNode('#'+prefix+'theme'),
                         media = message['media'] || 'screen';
+                    console.log('media: ' + media);
                     if (message['element_id']) {
                         // Use the element ID that was provided
                         existing = u.getNode('#'+prefix+message['element_id']);

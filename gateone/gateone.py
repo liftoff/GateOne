@@ -1610,7 +1610,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             mkdir_p(cache_dir)
         templates_path = os.path.join(GATEONE_DIR, 'templates')
         themes_path = os.path.join(templates_path, 'themes')
-        #printing_path = os.path.join(templates_path, 'printing')
         go_url = settings['go_url'] # Used to prefix the url_prefix
         if not go_url.endswith('/'):
             go_url += '/'

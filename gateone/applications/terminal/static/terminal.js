@@ -358,7 +358,7 @@ go.Base.update(GateOne.Terminal, {
         E.on("go:save_prefs", function() {
             // In case the user changed the rows/cols or the font/size changed:
             setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
-                go.Visual.updateDimensions();
+//                 go.Visual.updateDimensions();
                 for (var termObj in GateOne.Terminal.terminals) {
                     if (termObj % 1 === 0) { // Actual terminal objects are integers
                         go.Terminal.sendDimensions(termObj);
@@ -540,7 +540,7 @@ go.Base.update(GateOne.Terminal, {
             var terminalNode = terminalObj['terminal'],
                 termPre = terminalObj['node'],
                 screenNode = terminalObj['screenNode'],
-                emHeight = u.getEmDimensions(terminalNode, go.node).h;
+                emHeight = u.getEmDimensions(terminalNode, terminalNode.parentNode).h;
             if (u.isVisible(termPre)) {
                 for (var termNum in go.Terminal.terminals) {
                     if (termNum % 1 === 0) { // Actual terminal objects are integers
@@ -685,7 +685,7 @@ go.Base.update(GateOne.Terminal, {
         var termNode = termObj['terminal'],
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
             colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
-            emDimensions = u.getEmDimensions(termNode, go.node),
+            emDimensions = u.getEmDimensions(termNode, termNode.parentNode),
             dimensions = u.getRowsAndColumns(termNode),
             prefs = {
                 'term': term,
@@ -828,7 +828,7 @@ go.Base.update(GateOne.Terminal, {
         if (!termPre) {
             return;
         }
-        var emDimensions = u.getEmDimensions(screenSpan, go.node);
+        var emDimensions = u.getEmDimensions(screenSpan, screenSpan.parentNode);
         if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
             if (screenSpan.getClientRects()[0]) {
                 v.applyTransform(termPre, ''); // Have to reset in order to perform calculations
@@ -1395,7 +1395,7 @@ go.Base.update(GateOne.Terminal, {
         } else {
             u.getNode(where).appendChild(terminal);
         }
-        emDimensions = u.getEmDimensions(terminal, go.node);
+        emDimensions = u.getEmDimensions(terminal, terminal.parentNode);
         dimensions = u.getRowsAndColumns(terminal);
         rows = Math.ceil(dimensions.rows - rowAdjust);
         cols = Math.ceil(dimensions.cols - colAdjust);
