@@ -96,8 +96,8 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms, c
         // Find the first non-empty line and check for ^H and ^? then return the opposite value
         for (var i=0; i < termUpdateObj['screen'].length; i++) {
             if (termUpdateObj['screen'][i].length) {
-                if (termUpdateObj['screen'][i].indexOf('<span class="cursor">') != -1) { // Only care about lines that have the cursor in them
-                    var beforeCursor = termUpdateObj['screen'][i].split('<span class="cursor">')[0];
+                if (termUpdateObj['screen'][i].indexOf('<span class="✈cursor">') != -1) { // Only care about lines that have the cursor in them
+                    var beforeCursor = termUpdateObj['screen'][i].split('<span class="✈cursor">')[0];
                     if (beforeCursor.substr(beforeCursor.length - 2) == '^H') {
                         if (checkBackspace != String.fromCharCode(127)) {
                             backspace = String.fromCharCode(127); // Switch to ^H
@@ -113,8 +113,8 @@ var processScreen = function(scrollback, termUpdateObj, prefs, textTransforms, c
     }
     textTransforms['contenteditable cursor'] = {
         'name': 'contentenditable cursor',
-        'pattern': '/\<span class="cursor"\>/g',
-        'newString': '<span id="term'+term+'cursor" class="cursor">'
+        'pattern': '/\<span class="✈cursor"\>/g',
+        'newString': '<span id="term'+term+'cursor" class="✈cursor">'
     };
     // Assemble the entire screen from what the server sent us (lines that haven't changed get sent as null)
     screen = processLines(termUpdateObj['screen'], textTransforms);

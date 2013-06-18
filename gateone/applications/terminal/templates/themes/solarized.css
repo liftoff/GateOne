@@ -26,7 +26,7 @@
     transition-duration: 1s;
     transition-timing-function: ease-in-out;
 }
-.✈inactive span.cursor {
+.✈inactive span.✈cursor {
     border: 1px #fff solid;
     background-color: transparent;
 }
@@ -66,5 +66,5 @@
     font-size: 1.1em;
 }
 /* The "reverse" default needs to be set in the theme since the background will vary */
-span.reverse { color: #002b36; background-color: #839496; }
-span.cursor { color: #002b36; background-color: #eee8d5; }
+span.✈reverse { color: #002b36; background-color: #839496; }
+span.✈cursor { color: #002b36; background-color: #eee8d5; }

@@ -24,7 +24,7 @@
     transition-duration: 1s;
     transition-timing-function: ease-in-out;
 }
-.✈inactive span.cursor {
+.✈inactive span.✈cursor {
     border: 1px #fff solid;
     background-color: transparent;
 }
@@ -59,13 +59,13 @@
     transform-origin: left bottom;
 }
 /* The "reverse" default needs to be set in the theme since the background will vary */
-span.reverse { color: #222; background-color: #ccc; } /* Black on White */
-span.cursor { color: #000; background-color: #ccc; }
+span.✈reverse { color: #222; background-color: #ccc; } /* Black on White */
+span.✈cursor { color: #000; background-color: #ccc; }
 .✈terminfo {
     color: #fff;
     font-weight: bold;
     font-size: 1.1em;
 }
 /* Override the black text background since our background is already black */
-span.b0 { background-color: transparent; }
-span.f0.b0 { color: #444; background-color: transparent; } /* Black on Black */
+span.✈b0 { background-color: transparent; }
+span.✈f0.✈b0 { color: #444; background-color: transparent; } /* Black on Black */

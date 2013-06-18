@@ -1235,7 +1235,6 @@ GateOne.Base.update(GateOne.Utils, {
                 if (message['data'].length) {
                     var stylesheet, existing, themeStyle = u.getNode('#'+prefix+'theme'),
                         media = message['media'] || 'screen';
-                    console.log('media: ' + media);
                     if (message['element_id']) {
                         // Use the element ID that was provided
                         existing = u.getNode('#'+prefix+message['element_id']);

@@ -1878,15 +1878,15 @@ class TerminalApplication(GOApplication):
         colors_256 = ""
         for i in xrange(256):
             i = str(i)
-            fg = "#%s span.fx%s {color: #%s;}" % (
+            fg = "#%s span.✈fx%s {color: #%s;}" % (
                 self.ws.container, i, color_map[i])
-            bg = "#%s span.bx%s {background-color: #%s;} " % (
+            bg = "#%s span.✈bx%s {background-color: #%s;} " % (
                 self.ws.container, i, color_map[i])
             fg_rev =(
-                "#%s span.reverse.fx%s {background-color: #%s; color: "
+                "#%s span.✈reverse.fx%s {background-color: #%s; color: "
                 "inherit;}" % (self.ws.container, i, color_map[i]))
             bg_rev =(
-                "#%s span.reverse.bx%s {color: #%s; background-color: "
+                "#%s span.✈reverse.bx%s {color: #%s; background-color: "
                 "inherit;} " % (self.ws.container, i, color_map[i]))
             colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
         with open(cached_256_colors, 'w') as f:

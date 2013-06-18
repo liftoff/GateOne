@@ -136,7 +136,7 @@ The next step is to generate a `JSON <http://en.wikipedia.org/wiki/JSON>`_ objec
         The username or userPrincipalName (aka UPN) of the user you wish to preauthenticate.
 
     timestamp
-        A JavaScript-style timestamp:  13 characters representing the amount of seconds since the epoch (January 1, 1970)
+        A JavaScript-style timestamp:  13 digits representing the amount of milliseconds since the epoch (January 1, 1970)
 
     signature
         A valid `HMAC <http://en.wikipedia.org/wiki/Hash-based_message_authentication_code>`_ signature that is generated from the api_key, upn, and timestamp (in that order).

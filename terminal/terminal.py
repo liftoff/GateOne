@@ -1046,6 +1046,9 @@ class Terminal(object):
     ASCII_CSI = 155   # Control Sequence Introducer (that nothing uses)
     ASCII_HTS = 210   # Horizontal Tab Stop (HTS)
 
+    class_prefix = u'✈' # Prefix used with HTML output span class names
+                        # (to avoid namespace conflicts)
+
     charsets = {
         'B': {}, # Default is USA (aka 'B')
         '0': { # Line drawing mode
@@ -2199,7 +2202,10 @@ class Terminal(object):
         CALLBACK_CHANGED and CALLBACK_SCROLL_UP are called after scrolling the
         screen.
 
-        .. note:: This will only scroll up the region within self.top_margin and self.bottom_margin (if set).
+        .. note::
+
+            This will only scroll up the region within `self.top_margin` and
+            `self.bottom_margin` (if set).
         """
         #logging.debug("scroll_up(%s)" % n)
         empty_line = array('u', u' ' * self.cols) # Line full of spaces
@@ -3037,9 +3043,13 @@ class Terminal(object):
         """
         Clears the screen.  Also used to emulate a terminal reset.
 
-        .. note:: The current rendition (self.cur_rendition) will be applied to all characters on the screen when this function is called.
+        .. note::
+
+            The current rendition (self.cur_rendition) will be applied to all
+            characters on the screen when this function is called.
         """
         logging.debug('clear_screen()')
+        self.scroll_up(len(self.screen) - 1)
         self.init_screen()
         self.init_renditions(self.cur_rendition)
         self.cursorX = 0
@@ -3379,14 +3389,16 @@ class Terminal(object):
             line = line_rendition[0]
             rendition = line_rendition[1]
             if linecount != cursorY and self.prev_dump[linecount] == line:
-                if '<span class="cursor">' not in self.html_cache[linecount]:
+                cursor_span = '<span class="%scursor">' % self.class_prefix
+                if cursor_span not in self.html_cache[linecount]:
                     if self.prev_dump_rend[linecount] == rendition:
                         # No change since the last dump.  Use the cache...
                         results.append(self.html_cache[linecount])
                         continue # Nothing changed so move on to the next line
             outline = ""
             if current_classes:
-                outline += '<span class="%s">' % " ".join(current_classes)
+                outline += '<span class="%s%s">' % (
+                    self.class_prefix, " ".join(current_classes))
             charcount = 0
             # TODO: Figure out if there's a faster way to process each character
             for char, rend in izip(line, rendition):
@@ -3453,11 +3465,13 @@ class Terminal(object):
                                     ]
                                 current_classes.add(_class)
                     if current_classes:
-                        outline += '<span class="%s">' % " ".join(current_classes)
+                        outline += '<span class="%s%s">' % (
+                            self.class_prefix, " ".join(current_classes))
                         spancount += 1
                 if linecount == cursorY and charcount == cursorX: # Cursor position
                     if show_cursor:
-                        outline += '<span class="cursor">%s</span>' % char
+                        outline += '<span class="%scursor">%s</span>' % (
+                            self.class_prefix, char)
                     else:
                         outline += char
                 else:
@@ -3503,7 +3517,8 @@ class Terminal(object):
         for line, rendition in izip(screen, renditions):
             outline = ""
             if current_classes:
-                outline += '<span class="%s">' % " ".join(current_classes)
+                outline += '<span class="%s%s">' % (
+                    self.class_prefix, " ".join(current_classes))
             for char, rend in izip(line, rendition):
                 rend = renditions_store[rend] # Get actual rendition
                 if ord(char) >= special: # Special stuff =)
@@ -3559,7 +3574,8 @@ class Terminal(object):
                                     ]
                                 current_classes.add(_class)
                     if current_classes:
-                        outline += '<span class="%s">' % " ".join(current_classes)
+                        outline += '<span class="%s%s">' % (
+                            self.class_prefix, " ".join(current_classes))
                         spancount += 1
                 outline += char
             if outline:
@@ -3581,7 +3597,10 @@ class Terminal(object):
         in a browser.  Otherwise only the cursor <span> will be added to mark
         its location.
 
-        .. note:: This places <span class="cursor">(current character)</span> around the cursor location.
+        .. note::
+
+            This places <span class="cursor">(current character)</span> around
+            the cursor location.
         """
         if renditions: # i.e. Use stylized text (the default)
             screen = self._spanify_screen()
@@ -3597,7 +3616,8 @@ class Terminal(object):
                     cursor_row = ""
                     for x, c in enumerate(row):
                         if x == cursorX:
-                            cursor_row += '<span class="cursor">%s</span>' % c
+                            cursor_row += '<span class="%scursor">%s</span>' % (
+                                self.class_prefix, c)
                         else:
                             cursor_row += char
                     screen.append(cursor_row)
