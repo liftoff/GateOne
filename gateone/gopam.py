@@ -129,13 +129,13 @@ def authenticate(username, password, service='login', tty="console", **kwargs):
         PAM_SET_ITEM(handle, 4, "myhost") # PAM_RHOST (4) taken from the global
     """
     encoding = 'utf-8'
-    if isinstance(password, str):
+    if not isinstance(password, bytes):
         password = password.encode(encoding)
-    if isinstance(username, str):
+    if not isinstance(username, bytes):
         username = username.encode(encoding)
-    if isinstance(service, str):
+    if not isinstance(service, bytes):
         service = service.encode(encoding)
-    if isinstance(tty, str):
+    if not isinstance(tty, bytes):
         tty = tty.encode(encoding)
     @CONV_FUNC
     def my_conv(n_messages, messages, p_response, app_data):

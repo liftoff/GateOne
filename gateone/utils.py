@@ -341,7 +341,7 @@ def options_to_settings(options):
                 settings['*']['gateone']['api_keys'] = {}
                 for pair in value.split(','):
                     api_key, secret = pair.split(':', 1)
-                    if bytes == str: # Python 3
+                    if bytes == str: # Python 2
                         api_key = api_key.decode('UTF-8')
                         secret = secret.decode('UTF-8')
                     settings['*']['gateone']['api_keys'].update(

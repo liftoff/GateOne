@@ -502,7 +502,7 @@ var go = GateOne.Base.update(GateOne, {
                     scale = parseFloat(fontSize.substring(0, fontSize.length-1)) / 100;
                 } else if (fontSize.indexOf('em') != -1) {
                     // The given font size is in em.  Strip the 'em' and set it as our scale
-                    scale = parseFloat(fontSize.substring(0, fontSize.length-2))
+                    scale = parseFloat(fontSize.substring(0, fontSize.length-2));
                 } else {
                     // px, cm, in, etc etc aren't supported (yet)
                     ;;
@@ -555,12 +555,11 @@ var go = GateOne.Base.update(GateOne, {
             var scale = null,
                 translateY = null;
             goDiv.style['fontSize'] = go.prefs.fontSize;
-            goDiv.style['fontSize'] = go.prefs.fontSize;
             // Also adjust the toolbar size to match the font size
             if (go.prefs.fontSize.indexOf('%') != -1) {
                 // The given font size is in a percent, convert to em so we can scale properly
                 scale = parseFloat(go.prefs.fontSize.substring(0, go.prefs.fontSize.length-1)) / 100;
-            } else if (fontSize.indexOf('em') != -1) {
+            } else if (go.prefs.fontSize.indexOf('em') != -1) {
                 // The given font size is in em.  Strip the 'em' and set it as our scale
                 scale = parseFloat(go.prefs.fontSize.substring(0, go.prefs.fontSize.length-2))
             } else {
@@ -976,7 +975,7 @@ GateOne.Base.update(GateOne.Utils, {
     getEmDimensions: function(elem, /*opt*/where) {
         /**:GateOne.Utils.getEmDimensions(elem[, where])
 
-        Returns the height and width of 1em inside the given elem (e.g. 'term1_pre').  The returned object will be in the form of::
+        Returns the pixel height and width of a full character block inside the given elem (e.g. 'term1_pre').  The returned object will be in the form of::
 
              {'w': <width in px>, 'h': <height in px>}
 
@@ -1920,12 +1919,14 @@ GateOne.Base.update(GateOne.Net, {
         */
         go.Logging.logInfo(message);
     },
-    ping: function() {
-        /**:GateOne.Net.ping()
+    ping: function(/*opt*/logLatency) {
+        /**:GateOne.Net.ping([logLatency])
 
         Sends a 'ping' to the server over the WebSocket.  The response from the server is handled by :js:meth:`GateOne.Net.pong`.
 
         If a response is not received within a certain amount of time (milliseconds, controlled via `GateOne.prefs.pingTimeout`) the WebSocket will be closed and a 'go:ping_timeout' event will be triggered.
+
+        If *logLatency* is `true` (the default) the latency will be logged to the JavaScript console via :js:meth:`GateOne.Logging.logInfo`.
 
         .. note:: The default value for `GateOne.prefs.pingTimeout` is 5 seconds.  You can change this setting via the ``js_init`` option like so: ``--js_init='{pingTimeout: "5000"}'`` (command line) or in your 10server.conf ("js_init": "{pingTimeout: '5000'}").
         */
@@ -1933,6 +1934,10 @@ GateOne.Base.update(GateOne.Net, {
             timeout = parseInt(go.prefs.pingTimeout),
             timestamp = now.toISOString();
         logDebug("PING...");
+        if (logLatency === undefined) { // Default to logging the latency
+            logLatency = true;
+        }
+        go.Net.logLatency = logLatency; // So pong() will know what to do
         go.ws.send(JSON.stringify({'go:ping': timestamp}));
         if (go.Utils.pingTimeout) {
             clearTimeout(go.Utils.pingTimeout);
@@ -1952,7 +1957,9 @@ GateOne.Base.update(GateOne.Net, {
         var dateObj = new Date(timestamp), // Convert the string back into a Date() object
             now = new Date(),
             latency = now.getMilliseconds() - dateObj.getMilliseconds();
-        logInfo('PONG: Gate One server round-trip latency: ' + latency + 'ms');
+        if (go.Net.logLatency) {
+            logInfo('PONG: Gate One server round-trip latency: ' + latency + 'ms');
+        }
         if (go.Utils.pingTimeout) {
             clearTimeout(go.Utils.pingTimeout);
             go.Utils.pingTimeout = null;
@@ -2126,9 +2133,11 @@ GateOne.Base.update(GateOne.Net, {
                 if (callback) {
                     callback();
                 }
+                // Log the latency of the Gate One server after everything has settled down
+                setTimeout(function() {go.Net.ping(true);}, 4000);
                 // Start our keepalive process to check for timeouts
                 go.Net.keepalivePing = setInterval(function() {
-                    go.Net.ping();
+                    go.Net.ping(false);
                 }, go.prefs.keepaliveInterval);
             }, 100);
         }
@@ -2705,7 +2714,12 @@ GateOne.Base.update(GateOne.Visual, {
         go.Net.addAction('go:notice', v.serverMessageAction);
         go.Events.on('go:switch_workspace', v.slideToWorkspace);
         go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
-        window.addEventListener('resize', v.updateDimensions, false);
+        window.addEventListener('resize', function() {
+            if (v.updateDimensionsDebounce) { clearTimeout(v.updateDimensionsDebounce); }
+            v.updateDimensionsDebounce = setTimeout(function() {
+                v.updateDimensions();
+            }, 750);
+        }, false);
         // Forthcoming New Workspace Workspace :)
 //         if (!go.prefs.embedded) {
 //             setTimeout(function() {
@@ -2784,7 +2798,10 @@ GateOne.Base.update(GateOne.Visual, {
             }
         }
         // Trigger a dimensions update event and pass in the goDimensions object
-        go.Events.trigger("go:update_dimensions", go.Visual.goDimensions);
+        setTimeout(function() {
+            // Wrapped in a timeout so that the browser can finish making the above adjustments before things like terminals get adjustments of their own.
+            go.Events.trigger("go:update_dimensions", go.Visual.goDimensions);
+        }, 250);
     },
     applyTransform: function (obj, transform) {
         /**:GateOne.Visual.applyTransform(obj, transform)

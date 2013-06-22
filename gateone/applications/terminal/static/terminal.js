@@ -526,40 +526,34 @@ go.Base.update(GateOne.Terminal, {
     onResizeEvent: function(e) {
         logDebug('GateOne.Terminal.onResizeEvent()');
         // Update the Terminal if it is resized
-        if (go.Terminal.resizeEventTimer) {
-            clearTimeout(go.Terminal.resizeEventTimer);
-            go.Terminal.resizeEventTimer = null;
+        // Wrapped in a timeout to de-bounce
+        var term = localStorage[prefix+'selectedTerminal'],
+            terminalObj = go.Terminal.terminals[term];
+        if (!terminalObj) {
+            return; // Nothing to do (terminal not open yet or was already removed)
         }
-        go.Terminal.resizeEventTimer = setTimeout(function() {
-            // Wrapped in a timeout to de-bounce
-            var term = localStorage[prefix+'selectedTerminal'],
-                terminalObj = go.Terminal.terminals[term];
-            if (!terminalObj) {
-                return; // Nothing to do (terminal not open yet or was already removed)
-            }
-            var terminalNode = terminalObj['terminal'],
-                termPre = terminalObj['node'],
-                screenNode = terminalObj['screenNode'],
-                emHeight = u.getEmDimensions(terminalNode, terminalNode.parentNode).h;
-            if (u.isVisible(termPre)) {
-                for (var termNum in go.Terminal.terminals) {
-                    if (termNum % 1 === 0) { // Actual terminal objects are integers
-                        go.Terminal.sendDimensions(termNum);
-                    }
-                };
-                setTimeout(function() {
-                    var parentHeight = termPre.parentElement.clientHeight;
-                    if (parentHeight) {
-                        termPre.style.height = parentHeight + 'px';
-                    } else {
-                        termPre.style.height = "100%";
-                    }
-                }, 100);
-                // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
+        var terminalNode = terminalObj['terminal'],
+            termPre = terminalObj['node'],
+            screenNode = terminalObj['screenNode'],
+            emHeight = u.getEmDimensions(terminalNode, terminalNode.parentNode).h;
+        if (u.isVisible(termPre)) {
+            for (var termNum in go.Terminal.terminals) {
+                if (termNum % 1 === 0) { // Actual terminal objects are integers
+                    go.Terminal.sendDimensions(termNum);
+                }
+            };
+            setTimeout(function() {
+                var parentHeight = termPre.parentElement.clientHeight;
+                if (parentHeight) {
+                    termPre.style.height = parentHeight + 'px';
+                } else {
+                    termPre.style.height = "100%";
+                }
                 go.Terminal.alignTerminal(term);
-                u.scrollToBottom(termPre);
-            }
-        }, 750);
+            }, 100);
+            // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
+            u.scrollToBottom(termPre);
+        }
     },
     timeoutEvent: function() {
         /**:GateOne.Terminal.timeoutEvent()
@@ -843,7 +837,7 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
         } else {
-            if (!go.prefs.embedded) {
+//             if (!go.prefs.embedded) {
                 // In embedded mode this kind of adjustment can be unreliable
                 v.applyTransform(termPre, ''); // Need to reset before we do the calculation
                 // Feel free to attach something like this to the "term_updated" event if you want.
@@ -860,7 +854,7 @@ go.Base.update(GateOne.Terminal, {
                         go.Terminal.enableScrollback(term); // Turn it back on
                     }, 10);
                 }
-            }
+//             }
         }
     },
     termUpdateFromWorker: function(e) {
@@ -1309,8 +1303,8 @@ go.Base.update(GateOne.Terminal, {
             workspaceNum, // Set below (if any)
             prevScrollback = localStorage.getItem(prefix + "scrollback" + term),
             switchTermFunc = u.partial(go.Terminal.switchTerminal, term),
-            termPre = u.createElement('pre', {'id': 'term'+term+'_pre'}),
-            screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': '✈screen'}),
+            termPre, // Created below after we have a terminal number to use
+            screenSpan, // Ditto
             wheelFunc = function(e) {
                 var m = go.Input.mouse(e),
                     modifiers = go.Input.modifiers(e);
@@ -1436,6 +1430,7 @@ go.Base.update(GateOne.Terminal, {
         go.ws.send(JSON.stringify({'terminal:new_terminal': termSettings}));
         // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)
         terminal.addEventListener(mousewheelevt, wheelFunc, true);
+        screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': '✈screen'})
         // Add the scaffold of the screen and scrollback
         for (var i=0; i < rows; i++) {
             var classes = '✈termline ' + prefix + 'line_' + i,
@@ -1446,6 +1441,7 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.terminals[term]['screen'][i] = screen[i];
         }
         go.Terminal.terminals[term]['screenNode'] = screenSpan;
+        termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
         termPre.appendChild(screenSpan);
         terminal.appendChild(termPre);
         u.scrollToBottom(termPre);

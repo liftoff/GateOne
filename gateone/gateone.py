@@ -3452,7 +3452,10 @@ def main():
             logging.info(_(
                 "Listening on {proto}*:{port}/".format(
                     proto=proto, port=go_settings['port'])))
-            https_server.listen(port=go_settings['port'], address="")
+            try: # Listen on all IPv4 and IPv6 addresses
+                https_server.listen(port=go_settings['port'], address="")
+            except socket.error: # Fall back to all IPv4 addresses
+                https_server.listen(port=go_settings['port'], address="0.0.0.0")
         # NOTE:  To have Gate One *not* listen on a TCP/IP address you may set
         #        address=None
         write_pid(go_settings['pid_file'])

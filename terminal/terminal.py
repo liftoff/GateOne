@@ -703,7 +703,10 @@ class FileType(object):
         """
         Closes :attr:`self.file_obj`
         """
-        self.file_obj.close()
+        try:
+            self.file_obj.close()
+        except AttributeError:
+            pass # file object never got created properly (probably missing PIL)
 
 class ImageFile(FileType):
     """
@@ -3398,7 +3401,8 @@ class Terminal(object):
             outline = ""
             if current_classes:
                 outline += '<span class="%s%s">' % (
-                    self.class_prefix, " ".join(current_classes))
+                    self.class_prefix,
+                    (" %s" % self.class_prefix).join(current_classes))
             charcount = 0
             # TODO: Figure out if there's a faster way to process each character
             for char, rend in izip(line, rendition):
@@ -3466,7 +3470,8 @@ class Terminal(object):
                                 current_classes.add(_class)
                     if current_classes:
                         outline += '<span class="%s%s">' % (
-                            self.class_prefix, " ".join(current_classes))
+                            self.class_prefix,
+                            (" %s" % self.class_prefix).join(current_classes))
                         spancount += 1
                 if linecount == cursorY and charcount == cursorX: # Cursor position
                     if show_cursor:
@@ -3518,7 +3523,8 @@ class Terminal(object):
             outline = ""
             if current_classes:
                 outline += '<span class="%s%s">' % (
-                    self.class_prefix, " ".join(current_classes))
+                    self.class_prefix,
+                    (" %s" % self.class_prefix).join(current_classes))
             for char, rend in izip(line, rendition):
                 rend = renditions_store[rend] # Get actual rendition
                 if ord(char) >= special: # Special stuff =)
@@ -3575,7 +3581,8 @@ class Terminal(object):
                                 current_classes.add(_class)
                     if current_classes:
                         outline += '<span class="%s%s">' % (
-                            self.class_prefix, " ".join(current_classes))
+                            self.class_prefix,
+                            (" %s" % self.class_prefix).join(current_classes))
                         spancount += 1
                 outline += char
             if outline:
