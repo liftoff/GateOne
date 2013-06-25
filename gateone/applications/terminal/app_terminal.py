@@ -19,7 +19,7 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 # I like to start my files with imports from Python's standard library...
-import os, sys, logging, time
+import os, sys, logging, time, io
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -1878,18 +1878,18 @@ class TerminalApplication(GOApplication):
         colors_256 = ""
         for i in xrange(256):
             i = str(i)
-            fg = "#%s span.✈fx%s {color: #%s;}" % (
+            fg = u"#%s span.✈fx%s {color: #%s;}" % (
                 self.ws.container, i, color_map[i])
-            bg = "#%s span.✈bx%s {background-color: #%s;} " % (
+            bg = u"#%s span.✈bx%s {background-color: #%s;} " % (
                 self.ws.container, i, color_map[i])
             fg_rev =(
-                "#%s span.✈reverse.fx%s {background-color: #%s; color: "
-                "inherit;}" % (self.ws.container, i, color_map[i]))
+                u"#%s span.✈reverse.fx%s {background-color: #%s; color: "
+                u"inherit;}" % (self.ws.container, i, color_map[i]))
             bg_rev =(
-                "#%s span.✈reverse.bx%s {color: #%s; background-color: "
-                "inherit;} " % (self.ws.container, i, color_map[i]))
+                u"#%s span.✈reverse.bx%s {color: #%s; background-color: "
+                u"inherit;} " % (self.ws.container, i, color_map[i]))
             colors_256 += "%s %s %s %s\n" % (fg, bg, fg_rev, bg_rev)
-        with open(cached_256_colors, 'w') as f:
+        with io.open(cached_256_colors, 'w', encoding="utf-8") as f:
             f.write(colors_256)
         # send_css() will take care of minifiying and caching further
         return cached_256_colors
