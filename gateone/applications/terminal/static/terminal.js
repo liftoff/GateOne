@@ -549,7 +549,9 @@ go.Base.update(GateOne.Terminal, {
                 } else {
                     termPre.style.height = "100%";
                 }
-                go.Terminal.alignTerminal(term);
+                setTimeout(function() {
+                    go.Terminal.alignTerminal(term);
+                }, 100);
             }, 100);
             // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
             u.scrollToBottom(termPre);
