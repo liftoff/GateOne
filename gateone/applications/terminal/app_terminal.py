@@ -674,6 +674,7 @@ class TerminalApplication(GOApplication):
             * *cmd* - The command to execute inside of Multiplex.
             * *term_id* - The terminal to associate with this Multiplex or a descriptive identifier (it's only used for logging purposes).
             * *logging* - If False, logging will be disabled for this instance of Multiplex (even if it would otherwise be enabled).
+            * *encoding* - The default encoding that will be used when reading or writing to the Multiplex instance.
             * *debug* - If True, will enable debugging on the created Multiplex instance.
         """
         policies = applicable_policies(
@@ -711,7 +712,8 @@ class TerminalApplication(GOApplication):
             debug=debug,
             syslog=syslog_logging,
             syslog_facility=facility,
-            syslog_host=self.settings['syslog_host']
+            syslog_host=self.settings['syslog_host'],
+            encoding=encoding
         )
         if self.plugin_new_multiplex_hooks:
             for func in self.plugin_new_multiplex_hooks:
@@ -755,7 +757,8 @@ class TerminalApplication(GOApplication):
             # Fall back to a standard default
             rows = 24
             cols = 80
-        encoding = settings.get('encoding', 'utf-8')
+        default_encoding = self.policy.get('default_encoding', 'utf-8')
+        encoding = settings.get('encoding', default_encoding)
         # NOTE: 'command' here is actually just the short name of the command.
         #       ...which maps to what's configured the 'commands' part of your
         #       terminal settings.
@@ -906,6 +909,7 @@ class TerminalApplication(GOApplication):
             self.ws.send_message(_(
                 "WARNING: Logging is set to DEBUG.  All keystrokes will be "
                 "logged!"))
+        self.send_term_encoding(term, encoding)
         self.trigger("terminal:new_terminal", term)
 
     @require(authenticated())

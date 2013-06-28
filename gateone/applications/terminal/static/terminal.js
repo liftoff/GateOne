@@ -353,6 +353,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminal:load_webworker', go.Terminal.loadWebWorkerAction);
         go.Net.addAction('terminal:bell', go.Terminal.bellAction);
         go.Net.addAction('terminal:load_bell', go.Terminal.loadBell);
+        go.Net.addAction('terminal:encoding', go.Terminal.termEncodingAction);
         go.Terminal.createPrefsPanel();
         go.Events.on("go:panel_toggle:in", updateColorsfunc);
         E.on("go:save_prefs", function() {
@@ -1356,7 +1357,7 @@ go.Base.update(GateOne.Terminal, {
             created: new Date(), // So we can keep track of how long it has been open
             mode: 'default', // e.g. 'appmode', 'xterm', etc
             backspace: String.fromCharCode(127), // ^?
-            encoding: 'utf-8',
+            encoding: 'utf-8',  // Just a default--will get overridden if provided via settings['encoding']
             screen: [],
             prevScreen: [],
             title: 'Gate One',
@@ -2148,9 +2149,12 @@ go.Base.update(GateOne.Terminal, {
 
         .. note:: The encoding value here is only used for informational purposes.  No encoding/decoding happens at the client.
         */
+        console.log('termEncodingAction: ', message);
         var term = message['term'],
-            encoding = message['encoding'];
+            encoding = message['encoding'],
+            infoPanelEncoding = u.getNode('#'+prefix+'encoding');
         go.Terminal.terminals[term]['encoding'] = encoding;
+        infoPanelEncoding.value = encoding;
     },
     xtermEncode: function(number) {
         /**:GateOne.Terminal.xtermEncode(number)

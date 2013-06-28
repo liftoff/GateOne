@@ -131,7 +131,6 @@ def debug_expect(m_instance, match, pattern):
     .. note::  This function only works with post-process patterns.
     """
     print("%s was matched..." % repr(pattern.pattern))
-    out = ""
     for line in m_instance.dump():
         match_obj = pattern.search(line)
         if match_obj:
@@ -375,6 +374,7 @@ class BaseMultiplex(object):
     :syslog: *boolean* - Whether or not the session should be logged using the local syslog daemon.
     :syslog_host: *string* - An optional syslog host to send session log information to (this is independent of the *syslog* option above--it does not require a syslog daemon be present on the host running Gate One).
     :syslog_facility: *integer* - The syslog facility to use when logging messages.  All possible facilities can be found in `utils.FACILITIES` (if you need a reference other than the syslog module).
+    :encoding: *string* - The encoding to use when writing or reading output.
     :debug: *boolean* - Used by the `expect` methods...  If set, extra debugging information will be output whenever a regular expression is matched.
     """
     CALLBACK_UPDATE = 1 # Screen update
