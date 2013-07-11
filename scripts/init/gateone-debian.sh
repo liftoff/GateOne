@@ -21,7 +21,7 @@ GATEONE_OPTS="--pid_file=${GATEONE_PID}"
 unset TMPDIR
 
 # Make sure gateone.py is available and executable
-test -x /opt/gateone/gateone.py || exit 0
+test -x ${GATEONE_DIR}/gateone.py || exit 0
 
 . /lib/lsb/init-functions
 
