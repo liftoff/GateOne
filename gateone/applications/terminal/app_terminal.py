@@ -458,6 +458,9 @@ class TerminalApplication(GOApplication):
             if not self.policy['allow']:
                 # User is not allowed to access the terminal application.  Don't
                 # bother sending them any static files and whatnot.
+                logging.debug(_(
+                    "User is not allowed to use the Terminal application.  "
+                    "Skipping post-authentication functions."))
                 return
         # Render and send the client our terminal.css
         terminal_css = os.path.join(

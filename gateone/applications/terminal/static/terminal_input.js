@@ -206,9 +206,11 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             } else {
                 go.node.focus();
             }
-        } else {
-            go.node.focus();
         }
+        // NOTE: Commented out the code below because it was causing the browser window to jump back and forth between Gate One and wherever the user's original position was in the window.
+        /*else {
+            go.node.focus();
+        }*/
     },
     onMouseUp: function(e) {
         /**GateOne.Terminal.Input.onMouseUp(e)
@@ -607,6 +609,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         */
         var key = i.key(e),
             modifiers = i.modifiers(e),
+            term = localStorage[prefix+'selectedTerminal'],
+            mode = t.terminals[term]['mode'],
             buffer = t.Input.bufferEscSeq,
             q = function(c) {
                 e.preventDefault();
@@ -620,11 +624,15 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (modifiers.ctrl && !modifiers.alt && !modifiers.meta) {
             if (t.Input.keyTable[key.string]) {
                 if (!modifiers.shift) {
-                    if (t.Input.keyTable[key.string]['ctrl']) {
+                    if (t.Input.keyTable[key.string][mode+'-ctrl']) {
+                        q(t.Input.keyTable[key.string][mode+'-ctrl']);
+                    } else if (t.Input.keyTable[key.string]['ctrl']) {
                         q(t.Input.keyTable[key.string]['ctrl']);
                     }
                 } else {
-                    if (t.Input.keyTable[key.string]['ctrl-shift']) {
+                    if (t.Input.keyTable[key.string][mode+'-ctrl-shift']) {
+                        q(t.Input.keyTable[key.string][mode+'-ctrl-shift']);
+                    } else if (t.Input.keyTable[key.string]['ctrl-shift']) {
                         q(t.Input.keyTable[key.string]['ctrl-shift']);
                     }
                 }
@@ -657,11 +665,15 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (modifiers.alt && !modifiers.ctrl && !modifiers.meta) {
             if (t.Input.keyTable[key.string]) {
                 if (!modifiers.shift) {
-                    if (t.Input.keyTable[key.string]['alt']) {
+                    if (t.Input.keyTable[key.string][mode+'-alt']) {
+                        q(t.Input.keyTable[key.string][mode+'-alt']);
+                    } else if (t.Input.keyTable[key.string]['alt']) {
                         q(t.Input.keyTable[key.string]['alt']);
                     }
                 } else {
-                    if (t.Input.keyTable[key.string]['alt-shift']) {
+                    if (t.Input.keyTable[key.string][mode+'-alt-shift']) {
+                        q(t.Input.keyTable[key.string][mode+'-alt-shift']);
+                    } else if (t.Input.keyTable[key.string]['alt-shift']) {
                         q(t.Input.keyTable[key.string]['alt-shift']);
                     }
                 }
@@ -678,16 +690,20 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (!modifiers.alt && !modifiers.ctrl && modifiers.meta) {
             if (t.Input.keyTable[key.string]) {
                 if (!modifiers.shift) {
-                    if (t.Input.keyTable[key.string]['meta']) {
+                    if (t.Input.keyTable[key.string][mode+'-meta']) {
+                        q(t.Input.keyTable[key.string][mode+'-meta']);
+                    } else if (t.Input.keyTable[key.string]['meta']) {
                         q(t.Input.keyTable[key.string]['meta']);
                     }
                 } else {
-                    if (t.Input.keyTable[key.string]['meta-shift']) {
+                    if (t.Input.keyTable[key.string][mode+'-meta-shift']) {
+                        q(t.Input.keyTable[key.string][mode+'-meta-shift']);
+                    } else if (t.Input.keyTable[key.string]['meta-shift']) {
                         q(t.Input.keyTable[key.string]['meta-shift']);
                     } else {
                         // Fall back to just the meta (ignore the shift)
-                        if (t.Input.keyTable[key.string]['shift']) {
-                            q(t.Input.keyTable[key.string]['shift']);
+                        if (t.Input.keyTable[key.string]['meta']) {
+                            q(t.Input.keyTable[key.string]['meta']);
                         }
                     }
                 }
@@ -702,18 +718,21 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (modifiers.alt && modifiers.ctrl && !modifiers.meta) {
             if (t.Input.keyTable[key.string]) {
                 if (!modifiers.shift) {
-                    if (t.Input.keyTable[key.string]['ctrl-alt']) {
+                    if (t.Input.keyTable[key.string][mode+'-ctrl-alt']) {
+                        q(t.Input.keyTable[key.string][mode+'-ctrl-alt']);
+                    } else if (t.Input.keyTable[key.string]['ctrl-alt']) {
                         q(t.Input.keyTable[key.string]['ctrl-alt']);
-                    }
-                    // According to my research, AltGr is the same as sending ctrl-alt (in browsers anyway).  If this is incorrect please post it as an issue on Github!
-                    if (t.Input.keyTable[key.string]['altgr']) {
+                    } else if (t.Input.keyTable[key.string]['altgr']) {
+                        // According to my research, AltGr is the same as sending ctrl-alt (in browsers anyway).  If this is incorrect please post it as an issue on Github!
                         q(t.Input.keyTable[key.string]['altgr']);
                     }
                 } else {
-                    if (t.Input.keyTable[key.string]['ctrl-alt-shift']) {
+                    if (t.Input.keyTable[key.string][mode+'-ctrl-alt-shift']) {
+                        q(t.Input.keyTable[key.string][mode+'-ctrl-alt-shift']);
+                    } else if (t.Input.keyTable[key.string]['ctrl-alt-shift']) {
                         q(t.Input.keyTable[key.string]['ctrl-alt-shift']);
-                    }
-                    if (t.Input.keyTable[key.string]['altgr-shift']) {
+                    } else if (t.Input.keyTable[key.string]['altgr-shift']) {
+                        // According to my research, AltGr is the same as sending ctrl-alt (in browsers anyway).  If this is incorrect please post it as an issue on Github!
                         q(t.Input.keyTable[key.string]['altgr-shift']);
                     }
                 }
@@ -723,17 +742,19 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (modifiers.alt && modifiers.ctrl && modifiers.meta) {
             if (t.Input.keyTable[key.string]) {
                 if (!modifiers.shift) {
-                    if (t.Input.keyTable[key.string]['ctrl-alt-meta']) {
+                    if (t.Input.keyTable[key.string][mode+'-ctrl-alt-meta']) {
+                        q(t.Input.keyTable[key.string][mode+'-ctrl-alt-meta']);
+                    } else if (t.Input.keyTable[key.string]['ctrl-alt-meta']) {
                         q(t.Input.keyTable[key.string]['ctrl-alt-meta']);
-                    }
-                    if (t.Input.keyTable[key.string]['altgr-meta']) {
+                    } else if (t.Input.keyTable[key.string]['altgr-meta']) {
                         q(t.Input.keyTable[key.string]['altgr-meta']);
                     }
                 } else {
-                    if (t.Input.keyTable[key.string]['ctrl-alt-meta-shift']) {
+                    if (t.Input.keyTable[key.string][mode+'-ctrl-alt-meta-shift']) {
+                        q(t.Input.keyTable[key.string][mode+'-ctrl-alt-meta-shift']);
+                    } else if (t.Input.keyTable[key.string]['ctrl-alt-meta-shift']) {
                         q(t.Input.keyTable[key.string]['ctrl-alt-meta-shift']);
-                    }
-                    if (t.Input.keyTable[key.string]['altgr-meta-shift']) {
+                    } else if (t.Input.keyTable[key.string]['altgr-meta-shift']) {
                         q(t.Input.keyTable[key.string]['altgr-meta-shift']);
                     }
                 }

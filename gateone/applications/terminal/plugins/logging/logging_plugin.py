@@ -89,7 +89,7 @@ def retrieve_log_frames(golog_path, rows, cols, limit=None):
         if limit and i == limit:
             break
         if len(frame) > 14:
-            if i == 0 and frame[14] == '{':
+            if i == 0 and frame[14:15] == b'{':
                 # This is just the metadata frame.  Skip it
                 continue
             frame_time = int(float(frame[:13]))

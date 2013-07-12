@@ -2149,7 +2149,7 @@ go.Base.update(GateOne.Terminal, {
 
         .. note:: The encoding value here is only used for informational purposes.  No encoding/decoding happens at the client.
         */
-        console.log('termEncodingAction: ', message);
+        //console.log('termEncodingAction: ', message);
         var term = message['term'],
             encoding = message['encoding'],
             infoPanelEncoding = u.getNode('#'+prefix+'encoding');

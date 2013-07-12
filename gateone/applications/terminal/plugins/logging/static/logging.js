@@ -631,7 +631,7 @@ go.Base.update(GateOne.TermLogging, {
             logLines = message['log'],
             metadata = message['metadata'],
             logViewContent = u.createElement('div', {'id': 'logview_content'}),
-            logContainer = u.createElement('div', {'id': 'logview', 'class': '✈terminal'});
+            logContainer = u.createElement('div', {'id': 'logview', 'class': '✈terminal', 'style': {'width': '100%', 'right': 0}});
         if (result != "Success") {
             v.displayMessage("Could not retrieve log: " + result);
         } else {
@@ -687,7 +687,7 @@ go.Base.update(GateOne.TermLogging, {
     openLogFlat: function(logFile) {
         /**:GateOne.TermLogging.openLogFlat(logFile)
 
-        Tells the server to open *logFile* for playback via the 'logging_get_log_flat' server-side WebSocket action (will end up calling :js:meth:`~GateOne.TermLogging.displayFlatLogAction`.
+        Tells the server to open *logFile* for playback via the 'terminal:logging_get_log_flat' server-side WebSocket action (will end up calling :js:meth:`~GateOne.TermLogging.displayFlatLogAction`.
         */
         var theme_css = u.getNode('#'+prefix+'theme').innerHTML,
             colors_css = u.getNode('#'+prefix+'text_colors').innerHTML,

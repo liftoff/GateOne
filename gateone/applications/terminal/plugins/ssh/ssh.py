@@ -851,7 +851,7 @@ def store_id_file(self, settings):
                 with open(private_key_path, 'w') as f:
                     f.write(private)
                 # Without this you get a warning:
-                os.chmod(private_key_path, 0600)
+                os.chmod(private_key_path, 0o600)
             else:
                 self.write_message({'go:notice': _(
                     "ERROR: Private key is not valid.")})

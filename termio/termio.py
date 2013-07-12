@@ -277,7 +277,7 @@ def get_or_update_metadata(golog_path, user, force_update=False):
         except IOError:
             return # Something wrong with the file
         if count == 0:
-            if chunk[14] == "{": # Old/incomplete metadata
+            if chunk[14:15] == b"{": # Old/incomplete metadata
                 # Need to keep reading until the next frame
                 while True:
                     try:

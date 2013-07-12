@@ -435,7 +435,11 @@ def telnet_connect(user, host, port=23, env=None):
         command = which("telnet", path=env['PATH'])
     else:
         env['PATH'] = os.environ['PATH']
-        command = which("telnet")
+        command = which("telnet", path=env['PATH'])
+    if not command: # telnet command not found
+        print(_('Error: Could not find %r binary in path %r' % (
+            binary, env['PATH'])))
+        sys.exit(1)
     args = [host, str(port)]
     if user:
         args.insert(0, user)
