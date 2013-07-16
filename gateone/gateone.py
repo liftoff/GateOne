@@ -2332,7 +2332,7 @@ class ErrorHandler(tornado.web.RequestHandler):
             filename = os.path.join(
                 self.settings['static_url'], '%d.html' % status_code)
             if os.path.exists(filename):
-                f = io.open(filename, 'r')
+                f = io.open(filename, 'rb')
                 data = f.read()
                 f.close()
                 return data
