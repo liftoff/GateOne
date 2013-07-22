@@ -2718,7 +2718,7 @@ GateOne.Base.update(GateOne.Visual, {
             if (v.updateDimensionsDebounce) { clearTimeout(v.updateDimensionsDebounce); }
             v.updateDimensionsDebounce = setTimeout(function() {
                 v.updateDimensions();
-            }, 750);
+            }, 250); // Just long enough to de-bounce the resize
         }, false);
         // Forthcoming New Workspace Workspace :)
 //         if (!go.prefs.embedded) {
