@@ -179,7 +179,7 @@ go.Base.update(GateOne.Terminal, {
         infoPanelKeyboard.onblur = function(e) {
             // When the user is done editing their encoding make the change immediately
             var term = localStorage[prefix+'selectedTerminal'];
-            go.Terminal.terminals[term]['mode'] = this.value;
+            go.Terminal.terminals[term]['keyboard'] = this.value;
             go.ws.send(JSON.stringify({'terminal:set_keyboard_mode': {'term': term, 'mode': this.value}}));
         }
         infoPanel.appendChild(infoPanelH2);
@@ -1387,7 +1387,8 @@ go.Base.update(GateOne.Terminal, {
         // Create the terminal record scaffold
         go.Terminal.terminals[term] = {
             created: new Date(), // So we can keep track of how long it has been open
-            mode: 'default', // e.g. 'appmode', 'xterm', etc
+            mode: 'default', // e.g. 'appmode', 'default', etc
+            keyboard: 'default', // e.g. 'default', 'xterm', 'sco'
             backspace: String.fromCharCode(127), // ^?
             encoding: 'utf-8',  // Just a default--will get overridden if provided via settings['encoding']
             screen: [],
@@ -1659,7 +1660,7 @@ go.Base.update(GateOne.Terminal, {
             },
             setKeyboardValue = function(term) {
                 var infoPanelKeyboard = u.getNode('#'+prefix+'keyboard');
-                infoPanelKeyboard.value = go.Terminal.terminals[term]['mode'];
+                infoPanelKeyboard.value = go.Terminal.terminals[term]['keyboard'];
             }
         if (!go.Terminal.terminals[term]) {
             return;
@@ -2216,9 +2217,9 @@ go.Base.update(GateOne.Terminal, {
         //console.log('termKeyboardModeAction: ', message);
         var term = message['term'],
             mode = message['mode'],
-            infoPanelMode = u.getNode('#'+prefix+'mode');
-        go.Terminal.terminals[term]['mode'] = mode;
-        infoPanelMode.value = mode;
+            infoPanelKeyboard = u.getNode('#'+prefix+'keyboard');
+        go.Terminal.terminals[term]['keyboard'] = mode;
+        infoPanelKeyboard.value = mode;
     },
     xtermEncode: function(number) {
         /**:GateOne.Terminal.xtermEncode(number)

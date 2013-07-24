@@ -584,7 +584,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         // Try using the keyTable first (so everything can be overridden)
         if (key.string in t.Input.keyTable) {
             if (t.Input.keyTable[key.string]) { // Not null
-                var mode = t.terminals[term]['mode'];
+                var mode = t.terminals[term]['mode'], // Controls Application Cursor Keys (DECCKM)
+                    keyboard = t.terminals[term]['keyboard']; // Controls most everything else (FKeys, Numpad, etc)
                 if (!modifiers.shift) { // Non-modified keypress
                     if (key.string == 'KEY_BACKSPACE') {
                         // So we can switch between ^? and ^H
@@ -592,9 +593,17 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                         if (t.Input.automaticBackspace) {
                             t.Input.sentBackspace = true;
                         }
-                    } else {
+                    } else if (u.startsWith('KEY_ARROW', key.string)) {
+                        // Handle Application Cursor Keys stuff
                         if (t.Input.keyTable[key.string][mode]) {
                             q(t.Input.keyTable[key.string][mode]);
+                        } else if (t.Input.keyTable[key.string]["default"]) {
+                            // Fall back to using default
+                            q(t.Input.keyTable[key.string]["default"]);
+                        }
+                    } else {
+                        if (t.Input.keyTable[key.string][keyboard]) {
+                            q(t.Input.keyTable[key.string][keyboard]);
                         } else if (t.Input.keyTable[key.string]["default"]) {
                             // Fall back to using default
                             q(t.Input.keyTable[key.string]["default"]);
@@ -609,8 +618,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 } else { // Shift was held down
                     if (t.Input.keyTable[key.string]['shift']) {
                         q(t.Input.keyTable[key.string]['shift']);
-                    } else if (t.Input.keyTable[key.string][mode]) { // Fall back to the mode's non-shift value
-                        q(t.Input.keyTable[key.string][mode]);
+                    } else if (t.Input.keyTable[key.string][keyboard]) { // Fall back to the mode's non-shift value
+                        q(t.Input.keyTable[key.string][keyboard]);
                     }
                 }
             } else {
@@ -626,7 +635,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         var key = i.key(e),
             modifiers = i.modifiers(e),
             term = localStorage[prefix+'selectedTerminal'],
-            mode = t.terminals[term]['mode'],
+            keyboard = t.terminals[term]['keyboard'],
             buffer = t.Input.bufferEscSeq,
             q = function(c) {
                 e.preventDefault();
@@ -640,14 +649,14 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (modifiers.ctrl && !modifiers.alt && !modifiers.meta) {
             if (t.Input.keyTable[key.string]) {
                 if (!modifiers.shift) {
-                    if (t.Input.keyTable[key.string][mode+'-ctrl']) {
-                        q(t.Input.keyTable[key.string][mode+'-ctrl']);
+                    if (t.Input.keyTable[key.string][keyboard+'-ctrl']) {
+                        q(t.Input.keyTable[key.string][keyboard+'-ctrl']);
                     } else if (t.Input.keyTable[key.string]['ctrl']) {
                         q(t.Input.keyTable[key.string]['ctrl']);
                     }
                 } else {
-                    if (t.Input.keyTable[key.string][mode+'-ctrl-shift']) {
-                        q(t.Input.keyTable[key.string][mode+'-ctrl-shift']);
+                    if (t.Input.keyTable[key.string][keyboard+'-ctrl-shift']) {
+                        q(t.Input.keyTable[key.string][keyboard+'-ctrl-shift']);
                     } else if (t.Input.keyTable[key.string]['ctrl-shift']) {
                         q(t.Input.keyTable[key.string]['ctrl-shift']);
                     }
@@ -681,14 +690,14 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (modifiers.alt && !modifiers.ctrl && !modifiers.meta) {
             if (t.Input.keyTable[key.string]) {
                 if (!modifiers.shift) {
-                    if (t.Input.keyTable[key.string][mode+'-alt']) {
-                        q(t.Input.keyTable[key.string][mode+'-alt']);
+                    if (t.Input.keyTable[key.string][keyboard+'-alt']) {
+                        q(t.Input.keyTable[key.string][keyboard+'-alt']);
                     } else if (t.Input.keyTable[key.string]['alt']) {
                         q(t.Input.keyTable[key.string]['alt']);
                     }
                 } else {
-                    if (t.Input.keyTable[key.string][mode+'-alt-shift']) {
-                        q(t.Input.keyTable[key.string][mode+'-alt-shift']);
+                    if (t.Input.keyTable[key.string][keyboard+'-alt-shift']) {
+                        q(t.Input.keyTable[key.string][keyboard+'-alt-shift']);
                     } else if (t.Input.keyTable[key.string]['alt-shift']) {
                         q(t.Input.keyTable[key.string]['alt-shift']);
                     }
@@ -706,14 +715,14 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (!modifiers.alt && !modifiers.ctrl && modifiers.meta) {
             if (t.Input.keyTable[key.string]) {
                 if (!modifiers.shift) {
-                    if (t.Input.keyTable[key.string][mode+'-meta']) {
-                        q(t.Input.keyTable[key.string][mode+'-meta']);
+                    if (t.Input.keyTable[key.string][keyboard+'-meta']) {
+                        q(t.Input.keyTable[key.string][keyboard+'-meta']);
                     } else if (t.Input.keyTable[key.string]['meta']) {
                         q(t.Input.keyTable[key.string]['meta']);
                     }
                 } else {
-                    if (t.Input.keyTable[key.string][mode+'-meta-shift']) {
-                        q(t.Input.keyTable[key.string][mode+'-meta-shift']);
+                    if (t.Input.keyTable[key.string][keyboard+'-meta-shift']) {
+                        q(t.Input.keyTable[key.string][keyboard+'-meta-shift']);
                     } else if (t.Input.keyTable[key.string]['meta-shift']) {
                         q(t.Input.keyTable[key.string]['meta-shift']);
                     } else {
@@ -734,8 +743,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (modifiers.alt && modifiers.ctrl && !modifiers.meta) {
             if (t.Input.keyTable[key.string]) {
                 if (!modifiers.shift) {
-                    if (t.Input.keyTable[key.string][mode+'-ctrl-alt']) {
-                        q(t.Input.keyTable[key.string][mode+'-ctrl-alt']);
+                    if (t.Input.keyTable[key.string][keyboard+'-ctrl-alt']) {
+                        q(t.Input.keyTable[key.string][keyboard+'-ctrl-alt']);
                     } else if (t.Input.keyTable[key.string]['ctrl-alt']) {
                         q(t.Input.keyTable[key.string]['ctrl-alt']);
                     } else if (t.Input.keyTable[key.string]['altgr']) {
@@ -743,8 +752,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                         q(t.Input.keyTable[key.string]['altgr']);
                     }
                 } else {
-                    if (t.Input.keyTable[key.string][mode+'-ctrl-alt-shift']) {
-                        q(t.Input.keyTable[key.string][mode+'-ctrl-alt-shift']);
+                    if (t.Input.keyTable[key.string][keyboard+'-ctrl-alt-shift']) {
+                        q(t.Input.keyTable[key.string][keyboard+'-ctrl-alt-shift']);
                     } else if (t.Input.keyTable[key.string]['ctrl-alt-shift']) {
                         q(t.Input.keyTable[key.string]['ctrl-alt-shift']);
                     } else if (t.Input.keyTable[key.string]['altgr-shift']) {
@@ -758,16 +767,16 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (modifiers.alt && modifiers.ctrl && modifiers.meta) {
             if (t.Input.keyTable[key.string]) {
                 if (!modifiers.shift) {
-                    if (t.Input.keyTable[key.string][mode+'-ctrl-alt-meta']) {
-                        q(t.Input.keyTable[key.string][mode+'-ctrl-alt-meta']);
+                    if (t.Input.keyTable[key.string][keyboard+'-ctrl-alt-meta']) {
+                        q(t.Input.keyTable[key.string][keyboard+'-ctrl-alt-meta']);
                     } else if (t.Input.keyTable[key.string]['ctrl-alt-meta']) {
                         q(t.Input.keyTable[key.string]['ctrl-alt-meta']);
                     } else if (t.Input.keyTable[key.string]['altgr-meta']) {
                         q(t.Input.keyTable[key.string]['altgr-meta']);
                     }
                 } else {
-                    if (t.Input.keyTable[key.string][mode+'-ctrl-alt-meta-shift']) {
-                        q(t.Input.keyTable[key.string][mode+'-ctrl-alt-meta-shift']);
+                    if (t.Input.keyTable[key.string][keyboard+'-ctrl-alt-meta-shift']) {
+                        q(t.Input.keyTable[key.string][keyboard+'-ctrl-alt-meta-shift']);
                     } else if (t.Input.keyTable[key.string]['ctrl-alt-meta-shift']) {
                         q(t.Input.keyTable[key.string]['ctrl-alt-meta-shift']);
                     } else if (t.Input.keyTable[key.string]['altgr-meta-shift']) {
