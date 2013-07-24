@@ -30,6 +30,9 @@ t.Input.F11 = false;
 t.Input.F11timer = null;
 t.Input.handlingPaste = false;
 t.Input.automaticBackspace = true; // This controls whether or not we'll try to automatically switch between ^H and ^?
+t.Input.commandBuffer = ""; // Used to keep track of all (regular) keys that are pressed before the enter key so we can do our best to keep track of the last command that was entered.
+t.Input.lastCommand = ""; // A best-guess as to what command was entered last.
+t.Input.commandBufferMax = 8192; // Maximum amount of characters to keep in the command buffer (to keep things reasonable if someone goes a long time without hitting the enter key).
 GateOne.Base.update(GateOne.Terminal.Input, {
     // GateOne.Input is in charge of all keyboard input as well as copy & paste stuff
     init: function() {
@@ -403,6 +406,10 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         Adds 'text' to the `GateOne.Terminal.Input.charBuffer` Array (to be sent to the server when ready via :meth:`GateOne.Terminal.sendChars`).
         */
         t.Input.charBuffer.unshift(text);
+        if (t.Input.commandBuffer.length > t.Input.commandBufferMax) {
+            t.Input.commandBuffer = ""; // Reset it (someone is using the terminal for something other than command entry)
+        }
+        t.Input.commandBuffer += text;
     },
     bufferEscSeq: function(chars) {
         /**GateOne.Terminal.Input.queue(cars)
@@ -433,7 +440,10 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         Called when we encounter the `compositionend` event which indicates the `IME <http://en.wikipedia.org/wiki/Input_method>`_ has completed a composition.  Sends what was composed to the server and ensures that `GateOne.Terminal.Input.inputNode` is emptied & hidden.
         */
         logDebug('go.Terminal.Input.onCompositionEnd('+e.data+')');
-        if (e.data) {t.sendString(t.Input.composition);}
+        if (e.data) {
+            t.sendString(t.Input.composition);
+            t.Input.commandBuffer += t.Input.composition;
+        }
         t.Input.inputNode.style['top'] = "-99999px";
         t.Input.inputNode.style['left'] = "-99999px";
         setTimeout(function() {
@@ -588,6 +598,12 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                         } else if (t.Input.keyTable[key.string]["default"]) {
                             // Fall back to using default
                             q(t.Input.keyTable[key.string]["default"]);
+                        }
+                        if (key.string == 'KEY_ENTER') {
+                            // Make a note of the text leading up to pressing of the Enter key so we can (do our best to) keep track of commands
+                            E.trigger("terminal:enter_key");
+                            t.Input.lastCommand = t.Input.commandBuffer;
+                            t.Input.commandBuffer = "";
                         }
                     }
                 } else { // Shift was held down

@@ -349,6 +349,7 @@ class TerminalApplication(GOApplication):
             'terminal:get_webworker': self.get_webworker,
             'terminal:get_colors': self.get_colors,
             'terminal:set_encoding': self.set_term_encoding,
+            'terminal:set_keyboard_mode': self.set_term_keyboard_mode,
             'terminal:get_terminals': self.terminals,
             'terminal:share_terminal': self.share_terminal,
             'terminal:share_user_list': self.share_user_list,
@@ -944,6 +945,33 @@ class TerminalApplication(GOApplication):
         the event that a terminal is reattached or when sharing a terminal).
         """
         message = {'terminal:encoding': {'term': term, 'encoding': encoding}}
+        self.write_message(message)
+
+    @require(authenticated())
+    def set_term_keyboard_mode(self, settings):
+        """
+        Sets the keyboard mode (e.g. 'sco') for the given *settings['term']* to
+        *settings['mode']*.  This is only so we can inform the client of the
+        mode when a terminal is re-attached (the serer-side stuff doesn't use
+        keyboard modes).
+        """
+        valid_modes = ['default', 'sco', 'xterm', 'linux']
+        term = int(settings['term'])
+        mode = settings['mode']
+        if mode not in valid_modes:
+            self.ws.send_message(_(
+                "Invalid keyboard mode.  Must be one of: %s"
+                % ", ".join(valid_modes)))
+            return
+        term_obj = self.loc_terms[term]
+        term_obj['keyboard_mode'] = mode
+
+    def send_term_keyboard_mode(self, term, mode):
+        """
+        Sends a message to the client indicating the *mode* of *term* (in
+        the event that a terminal is reattached or when sharing a terminal).
+        """
+        message = {'terminal:keyboard_mode': {'term': term, 'mode': mode}}
         self.write_message(message)
 
     @require(authenticated())

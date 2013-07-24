@@ -11,11 +11,15 @@ var go = GateOne,
     u = go.Utils,
     t = go.Terminal,
     v = go.Visual,
+    E = go.Events,
     prefix = go.prefs.prefix;
 
 // Tunable prefs
 if (typeof(go.prefs.disableLSConvenience) == "undefined") {
     go.prefs.disableLSConvenience = false;
+}
+if (typeof(go.prefs.disablePSConvenience) == "undefined") {
+    go.prefs.disablePSConvenience = false;
 }
 if (typeof(go.prefs.disableSyslogConvenience) == "undefined") {
     go.prefs.disableSyslogConvenience = false;
@@ -43,6 +47,9 @@ GateOne.Base.update(GateOne.Convenience, {
         if (!go.prefs.disableIPConvenience) {
             go.Convenience.registerSyslogConvenience();
         }
+        if (!go.prefs.disablePSConvenience) {
+            go.Convenience.registerPSConvenience();
+        }
     },
     addPrefs: function() {
         /**:GateOne.Convenience.addPrefs()
@@ -52,24 +59,28 @@ GateOne.Base.update(GateOne.Convenience, {
         var prefsPanelForm = u.getNode('#'+prefix+'prefs_form'),
             saveButton = u.getNode('#'+prefix+'prefs_save'),
             LSRow = u.createElement('div', {'class':'✈paneltablerow'}),
+            PSRow = u.createElement('div', {'class':'✈paneltablerow'}),
             SyslogRow = u.createElement('div', {'class':'✈paneltablerow'}),
             IPRow = u.createElement('div', {'class':'✈paneltablerow'}),
             tableDiv = u.createElement('div', {'id': 'prefs_convenience', 'class':'✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             LSPrefsLabel = u.createElement('span', {'id': 'prefs_ls_label', 'class':'✈paneltablelabel'}),
             LSPrefs = u.createElement('input', {'id': 'prefs_disableLStt', 'name': prefix+'prefs_disableLStt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
+            PSPrefsLabel = u.createElement('span', {'id': 'prefs_ps_label', 'class':'✈paneltablelabel'}),
+            PSPrefs = u.createElement('input', {'id': 'prefs_disablePStt', 'name': prefix+'prefs_disablePStt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             SyslogPrefsLabel = u.createElement('span', {'id': 'prefs_sylog_label', 'class':'✈paneltablelabel'}),
             SyslogPrefs = u.createElement('input', {'id': 'prefs_disableSyslogtt', 'name': prefix+'prefs_disableSyslogtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             IPPrefsLabel = u.createElement('span', {'id': 'prefs_IP_label', 'class':'✈paneltablelabel'}),
             IPPrefs = u.createElement('input', {'id': 'prefs_disableIPtt', 'name': prefix+'prefs_disableIPtt', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}});
-//         conveniencesTitle = u.createElement('h3', {'style': {'margin-bottom': '0.2em'}});
-//         conveniencesTitle.innerHTML = "<b>Convenience Plugin</b>";
-//         prefsPanelForm.insertBefore(conveniencesTitle, saveButton);
-        tableDiv.appendChild(LSRow);
         LSPrefsLabel.innerHTML = "<b>Disable 'ls -l' Convenience:</b> ";
         LSPrefs.checked = go.prefs.disableLSConvenience;
         LSRow.appendChild(LSPrefsLabel);
         LSRow.appendChild(LSPrefs);
         tableDiv.appendChild(LSRow);
+        PSPrefsLabel.innerHTML = "<b>Disable 'ps' Convenience:</b> ";
+        PSPrefs.checked = go.prefs.disablePSConvenience;
+        PSRow.appendChild(PSPrefsLabel);
+        PSRow.appendChild(PSPrefs);
+        tableDiv.appendChild(PSRow);
         SyslogPrefsLabel.innerHTML = "<b>Disable Syslog Convenience:</b> ";
         SyslogPrefs.checked = go.prefs.disableSyslogConvenience;
         SyslogRow.appendChild(SyslogPrefsLabel);
@@ -81,32 +92,8 @@ GateOne.Base.update(GateOne.Convenience, {
         IPRow.appendChild(IPPrefs);
         tableDiv.appendChild(IPRow);
         go.User.preference("Terminal:Convenience Plugin", tableDiv);
-//         prefsPanelForm.insertBefore(tableDiv, saveButton);
         // This makes sure our prefs get saved along with everything else
-        go.Events.on('go:save_prefs', go.Convenience.savePrefsCallback);
-//         if (prefsPanelForm) { // Only add to the prefs panel if it actually exists (i.e. not in embedded mode)
-//             conveniencesTitle.innerHTML = "<b>Convenience Plugin</b>";
-//             prefsPanelForm.insertBefore(conveniencesTitle, saveButton);
-//             tableDiv.appendChild(LSRow);
-//             LSPrefsLabel.innerHTML = "<b>Disable 'ls -l' Convenience:</b> ";
-//             LSPrefs.checked = go.prefs.disableLSConvenience;
-//             LSRow.appendChild(LSPrefsLabel);
-//             LSRow.appendChild(LSPrefs);
-//             tableDiv.appendChild(LSRow);
-//             SyslogPrefsLabel.innerHTML = "<b>Disable Syslog Convenience:</b> ";
-//             SyslogPrefs.checked = go.prefs.disableSyslogConvenience;
-//             SyslogRow.appendChild(SyslogPrefsLabel);
-//             SyslogRow.appendChild(SyslogPrefs);
-//             tableDiv.appendChild(SyslogRow);
-//             IPPrefsLabel.innerHTML = "<b>Disable IP Address Convenience:</b> ";
-//             IPPrefs.checked = go.prefs.disableIPConvenience;
-//             IPRow.appendChild(IPPrefsLabel);
-//             IPRow.appendChild(IPPrefs);
-//             tableDiv.appendChild(IPRow);
-//             prefsPanelForm.insertBefore(tableDiv, saveButton);
-//             // This makes sure our prefs get saved along with everything else
-//             go.Events.on('go:save_prefs', go.Convenience.savePrefsCallback);
-//         }
+        E.on('go:save_prefs', go.Convenience.savePrefsCallback);
     },
     savePrefsCallback: function() {
         /**:GateOne.Convenience.savePrefsCallback()
@@ -115,16 +102,22 @@ GateOne.Base.update(GateOne.Convenience, {
         */
         var c = go.Convenience,
             disableLS = u.getNode('#'+prefix+'prefs_disableLStt').checked,
+            disablePS = u.getNode('#'+prefix+'prefs_disablePStt').checked,
             disableSyslog = u.getNode('#'+prefix+'prefs_disableSyslogtt').checked,
             disableIP = u.getNode('#'+prefix+'prefs_disableIPtt').checked;
         go.prefs.disableLSConvenience = disableLS;
+        go.prefs.disablePSConvenience = disablePS;
         go.prefs.disableSyslogConvenience = disableSyslog;
         go.prefs.disableIPConvenience = disableIP;
         c.unregisterLSConvenience();
+        c.unregisterPSConvenience();
         c.unregisterSyslogConvenience();
         c.unregisterIPConvenience();
         if (!disableLS) {
             c.registerLSConvenience();
+        }
+        if (!disablePS) {
+            c.registerPSConvenience();
         }
         if (!disableSyslog) {
             c.registerSyslogConvenience();
@@ -412,6 +405,30 @@ GateOne.Base.update(GateOne.Convenience, {
         Removes all the text transforms associated with syslog output.
         */
         t.unregisterTextTransform("sysloglines");
+    },
+    registerPSConvenience: function() {
+        /**:GateOne.Convenience.registerPSConvenience()
+
+        Registers a text transform that adds syntax highlighting to the output of 'ps'.
+        */
+        var headingPattern = /\n(\s*?USER|\s*?UID|\s*?PID)(.*)(CMD|COMMAND)/g,
+            headingReplacementString = "\n<span id='✈ps_heading' class='✈reverse ✈bold'>$1$2$3</span>",
+            psRootPattern = /\n(root)(\s+[0-9]+)/g, // Highlights the word 'root'
+            psRootReplacementString = "\n<span class='✈highlight_root'>$1</span>$2", // Default theme has this as a red color
+            kernelModulePattern = /([0-9] )(\[.+?\]\n)/g, // Kernel/system processes show up in brackets
+            kernelModuleReplacementString = "$1<span title='Kernel or System Process' class='✈dim'>$2</span>";
+        t.registerTextTransform("psroot", psRootPattern, psRootReplacementString);
+        t.registerTextTransform("psheading", headingPattern, headingReplacementString);
+        t.registerTextTransform("pskernelmodule", kernelModulePattern, kernelModuleReplacementString);
+    },
+    unregisterPSConvenience: function() {
+        /**:GateOne.Convenience.unregisterPSConvenience()
+
+        Removes all the text transforms associated with ps output.
+        */
+        t.unregisterTextTransform("psroot");
+        t.unregisterTextTransform("psheading");
+        t.unregisterTextTransform("pskernelmodule");
     },
     toggleBackground: function(elem) {
         /**:GateOne.Convenience.groupInfoError(result)

@@ -261,6 +261,8 @@ MISSING_DEPS = []
 # This is needed before other globals for certain checks:
 GATEONE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+tornado_version = "" # Placeholder in case Tornado import fails below
+
 # Tornado modules (yeah, we use all this stuff)
 try:
     import tornado.httpserver
@@ -276,7 +278,7 @@ try:
     from tornado.options import define, options
     from tornado import locale
     from tornado import version as tornado_version
-except ImportError:
+except (ImportError, NameError):
     MISSING_DEPS.append('tornado >= 3.0')
 
 if not tornado_version.startswith('3'):

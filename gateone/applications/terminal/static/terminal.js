@@ -96,7 +96,8 @@ go.Base.update(GateOne.Terminal, {
             infoPanelRow3 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow3'}),
             infoPanelRow4 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow4'}),
             infoPanelRow5 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow5'}),
-            infoPanelRow6 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow5'}),
+            infoPanelRow6 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow6'}),
+            infoPanelRow7 = u.createElement('div', {'class': '✈paneltablerow', 'id': 'panel_inforow7'}),
             infoPanelH2 = u.createElement('h2', {'id': 'termtitle'}),
             infoPanelTimeLabel = u.createElement('span', {'id': 'term_time_label', 'style': {'display': 'table-cell'}}),
             infoPanelTime = u.createElement('span', {'id': 'term_time', 'style': {'display': 'table-cell'}}),
@@ -110,6 +111,8 @@ go.Base.update(GateOne.Terminal, {
             infoPanelBackspaceCheckQ = u.createElement('input', {'type': 'radio', 'id': 'backspace_q', 'name': 'backspace', 'value': '^?', 'style': {'display': 'table-cell'}}),
             infoPanelEncodingLabel = u.createElement('span', {'id': 'encoding_label', 'style': {'display': 'table-cell'}}),
             infoPanelEncoding = u.createElement('input', {'type': 'text', 'id': 'encoding', 'name': 'encoding', 'value': 'utf-8', 'style': {'display': 'table-cell'}}),
+            infoPanelKeyboardLabel = u.createElement('span', {'id': 'keyboard_label', 'class':'✈paneltablelabel'}),
+            infoPanelKeyboard = u.createElement('select', {'id': 'keyboard', 'name':'keyboard', 'style': {'display': 'table-cell'}}),
             infoPanelSaveRecording = u.createElement('button', {'id': 'saverecording', 'type': 'submit', 'value': 'Submit', 'class': '✈button ✈black'}),
             infoPanelMonitorActivity = u.createElement('input', {'id': 'monitor_activity', 'type': 'checkbox', 'name': 'monitor_activity', 'value': 'monitor_activity', 'style': {'margin-right': '0.5em'}}),
             infoPanelMonitorActivityLabel = u.createElement('span'),
@@ -169,6 +172,16 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.terminals[term]['encoding'] = this.value;
             go.ws.send(JSON.stringify({'terminal:set_encoding': {'term': term, 'encoding': this.value}}));
         }
+        infoPanelKeyboardLabel.innerHTML = "<b>Keyboard Mode</b>";
+        infoPanelKeyboard.add(new Option("default", "default"), null);
+        infoPanelKeyboard.add(new Option("xterm", "xterm"), null);
+        infoPanelKeyboard.add(new Option("sco", "sco"), null);
+        infoPanelKeyboard.onblur = function(e) {
+            // When the user is done editing their encoding make the change immediately
+            var term = localStorage[prefix+'selectedTerminal'];
+            go.Terminal.terminals[term]['mode'] = this.value;
+            go.ws.send(JSON.stringify({'terminal:set_keyboard_mode': {'term': term, 'mode': this.value}}));
+        }
         infoPanel.appendChild(infoPanelH2);
         infoPanel.appendChild(panelClose);
         infoPanel.appendChild(div);
@@ -186,21 +199,24 @@ go.Base.update(GateOne.Terminal, {
         infoPanelRow4.appendChild(infoPanelBackspace);
         infoPanelRow5.appendChild(infoPanelEncodingLabel);
         infoPanelRow5.appendChild(infoPanelEncoding);
+        infoPanelRow6.appendChild(infoPanelKeyboardLabel);
+        infoPanelRow6.appendChild(infoPanelKeyboard);
         tableDiv.appendChild(infoPanelRow1);
         tableDiv.appendChild(infoPanelRow2);
         tableDiv.appendChild(infoPanelRow3);
         tableDiv.appendChild(infoPanelRow4);
         tableDiv.appendChild(infoPanelRow5);
+        tableDiv.appendChild(infoPanelRow6);
         infoPanelMonitorActivityLabel.innerHTML = "Monitor for Activity<br />";
         infoPanelMonitorInactivityLabel.innerHTML = "Monitor for ";
         infoPanelInactivityIntervalLabel.innerHTML = "Seconds of Inactivity";
-        infoPanelRow6.appendChild(infoPanelMonitorActivity);
-        infoPanelRow6.appendChild(infoPanelMonitorActivityLabel);
-        infoPanelRow6.appendChild(infoPanelMonitorInactivity);
-        infoPanelRow6.appendChild(infoPanelMonitorInactivityLabel);
-        infoPanelRow6.appendChild(infoPanelInactivityInterval);
-        infoPanelRow6.appendChild(infoPanelInactivityIntervalLabel);
-        tableDiv2.appendChild(infoPanelRow6);
+        infoPanelRow7.appendChild(infoPanelMonitorActivity);
+        infoPanelRow7.appendChild(infoPanelMonitorActivityLabel);
+        infoPanelRow7.appendChild(infoPanelMonitorInactivity);
+        infoPanelRow7.appendChild(infoPanelMonitorInactivityLabel);
+        infoPanelRow7.appendChild(infoPanelInactivityInterval);
+        infoPanelRow7.appendChild(infoPanelInactivityIntervalLabel);
+        tableDiv2.appendChild(infoPanelRow7);
         u.hideElement(infoPanel); // Start out hidden
         v.applyTransform(infoPanel, 'scale(0)');
         goDiv.appendChild(infoPanel); // Doesn't really matter where it goes
@@ -355,6 +371,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminal:bell', go.Terminal.bellAction);
         go.Net.addAction('terminal:load_bell', go.Terminal.loadBell);
         go.Net.addAction('terminal:encoding', go.Terminal.termEncodingAction);
+        go.Net.addAction('terminal:keyboard_mode', go.Terminal.termKeyboardModeAction);
         go.Terminal.createPrefsPanel();
         go.Events.on("go:panel_toggle:in", updateColorsfunc);
         E.on("go:save_prefs", function() {
@@ -826,37 +843,39 @@ go.Base.update(GateOne.Terminal, {
         if (!termPre) {
             return;
         }
-        var emDimensions = u.getEmDimensions(screenSpan, screenSpan.parentNode);
-        if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
-            if (screenSpan.getClientRects()[0]) {
-                v.applyTransform(termPre, ''); // Have to reset in order to perform calculations
-                var nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
-                    nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
-                if (nodeHeight < go.node.offsetHeight) { // Resize to fit
-                    var scaleY = go.node.offsetHeight / nodeHeight,
-                        scaleX = go.node.offsetWidth / nodeWidth,
-                        scale = Math.min(scaleX, scaleY), // Use the lesser of the two so the terminal doesn't stretch in odd ways
-                        transform = transform = "scale(" + scale + ", " + scale + ")";
-                    v.applyTransform(termPre, transform);
+        setTimeout(function() {
+            var emDimensions = u.getEmDimensions(screenSpan, screenSpan.parentNode);
+            if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
+                if (screenSpan.getClientRects()[0]) {
+                    v.applyTransform(termPre, ''); // Have to reset in order to perform calculations
+                    var nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
+                        nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
+                    if (nodeHeight < go.node.offsetHeight) { // Resize to fit
+                        var scaleY = go.node.offsetHeight / nodeHeight,
+                            scaleX = go.node.offsetWidth / nodeWidth,
+                            scale = Math.min(scaleX, scaleY), // Use the lesser of the two so the terminal doesn't stretch in odd ways
+                            transform = transform = "scale(" + scale + ", " + scale + ")";
+                        v.applyTransform(termPre, transform);
+                    }
+                }
+            } else {
+                v.applyTransform(termPre, ''); // Need to reset before we do the calculation
+                // Feel free to attach something like this to the "term_updated" event if you want.
+                if (u.isVisible(termPre)) {
+                    var originalHeight = termPre.style.height;
+                    go.Terminal.disableScrollback(term); // The calculation won't work if the scrollback buffer is visible
+                    termPre.style.height = ''; // Reset it (important for the distance calculation below)
+                    // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
+                    setTimeout(function() {
+                        var distance = go.node.clientHeight - termPre.offsetHeight,
+                            transform = "translateY(-" + distance + "px)";
+                        v.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                        termPre.style.height = originalHeight; // Put it back to what it was
+                        go.Terminal.enableScrollback(term); // Turn it back on
+                    }, go.Terminal.alignmentDebounce); // Default is 500
                 }
             }
-        } else {
-            v.applyTransform(termPre, ''); // Need to reset before we do the calculation
-            // Feel free to attach something like this to the "term_updated" event if you want.
-            if (u.isVisible(termPre)) {
-                var originalHeight = termPre.style.height;
-                go.Terminal.disableScrollback(term); // The calculation won't work if the scrollback buffer is visible
-                termPre.style.height = ''; // Reset it (important for the distance calculation below)
-                // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
-                setTimeout(function() {
-                    var distance = go.node.clientHeight - termPre.offsetHeight,
-                        transform = "translateY(-" + distance + "px)";
-                    v.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
-                    termPre.style.height = originalHeight; // Put it back to what it was
-                    go.Terminal.enableScrollback(term); // Turn it back on
-                }, go.Terminal.alignmentDebounce); // Default is 500
-            }
-        }
+        }, 100);
     },
     termUpdateFromWorker: function(e) {
         /**:GateOne.Terminal.termUpdateFromWorker(e)
@@ -992,7 +1011,7 @@ go.Base.update(GateOne.Terminal, {
             // Take care of the activity/inactivity notifications
             if (go.Terminal.terminals[term]['inactivityTimer']) {
                 clearTimeout(go.Terminal.terminals[term]['inactivityTimer']);
-                var inactivity = u.partial(GateOne.Terminal.notifyInactivity, term + ': ' + termTitle);
+                var inactivity = u.partial(go.Terminal.notifyInactivity, term + ': ' + termTitle);
                 try {
                     go.Terminal.terminals[term]['inactivityTimer'] = setTimeout(inactivity, go.Terminal.terminals[term]['inactivityTimeout']);
                 } finally {
@@ -1003,7 +1022,7 @@ go.Base.update(GateOne.Terminal, {
                 if (!go.Terminal.terminals[term]['lastNotifyTime']) {
                     // Setup a minimum delay between activity notifications so we're not spamming the user
                     go.Terminal.terminals[term]['lastNotifyTime'] = new Date();
-                    GateOne.Terminal.notifyActivity(term + ': ' + termTitle);
+                    go.Terminal.notifyActivity(term + ': ' + termTitle);
                 } else {
                     var then = new Date(go.Terminal.terminals[term]['lastNotifyTime']),
                         now = new Date();
@@ -1011,7 +1030,7 @@ go.Base.update(GateOne.Terminal, {
                         then.setSeconds(then.getSeconds() + 5); // 5 seconds between notifications
                         if (now > then) {
                             go.Terminal.terminals[term]['lastNotifyTime'] = new Date(); // Reset
-                            GateOne.Terminal.notifyActivity(term + ': ' + termTitle);
+                            go.Terminal.notifyActivity(term + ': ' + termTitle);
                         }
                     } finally {
                         then = null;
@@ -1020,17 +1039,20 @@ go.Base.update(GateOne.Terminal, {
                 }
             }
             // Excute any registered callbacks
-            GateOne.Events.trigger("terminal:term_updated", term);
-            if (GateOne.Terminal.updateTermCallbacks.length) {
-                GateOne.Logging.deprecated("updateTermCallbacks", "Use GateOne.Events.on('terminal:term_updated', func) instead.");
-                for (var i=0; i<GateOne.Terminal.updateTermCallbacks.length; i++) {
-                    GateOne.Terminal.updateTermCallbacks[i](term);
+            E.trigger("terminal:term_updated", term);
+            if (go.Terminal.updateTermCallbacks.length) {
+                go.Logging.deprecated("updateTermCallbacks", "Use GateOne.Events.on('terminal:term_updated', func) instead.");
+                for (var i=0; i<go.Terminal.updateTermCallbacks.length; i++) {
+                    go.Terminal.updateTermCallbacks[i](term);
                 }
             }
         }
     },
     loadWebWorkerAction: function(source) {
-        // Loads our Web Worker given it's *source* (which is sent to us over the WebSocket which is a clever workaround to the origin limitations of Web Workers =).
+        /**:GateOne.Terminal.loadWebWorkerAction(source)
+
+            Loads our Web Worker given it's *source* (which is sent to us over the WebSocket which is a clever workaround to the origin limitations of Web Workers =).
+        */
         var u = go.Utils,
             t = go.Terminal,
             prefix = go.prefs.prefix,
@@ -1062,8 +1084,12 @@ go.Base.update(GateOne.Terminal, {
         t.termUpdatesWorker.onmessage = t.termUpdateFromWorker;
     },
     updateTerminalAction: function(termUpdateObj) {
-        // Takes the updated screen information from *termUpdateObj* and posts it to the term_ww.js Web Worker to be processed.
-        // The Web Worker is important because it allows offloading of CPU-intensive tasks like linkification and text transforms so they don't block screen updates
+        /**:GateOne.Terminal.updateTerminalAction(termUpdateObj)
+
+            Takes the updated screen information from *termUpdateObj* and posts it to the term_ww.js Web Worker to be processed.
+
+            .. note:: The Web Worker is important because it allows offloading of CPU-intensive tasks like linkification and text transforms so they don't block screen updates
+        */
         var t = go.Terminal,
             term = termUpdateObj['term'],
             ratelimiter = termUpdateObj['ratelimiter'],
@@ -1094,18 +1120,26 @@ go.Base.update(GateOne.Terminal, {
                 'textTransforms': textTransforms,
                 'checkBackspace': checkBackspace
             };
+            // This event allows plugins to take actions based on the incoming message and to transform it before it is sent to the Web Worker for processing:
+            E.trigger("terminal:incoming_term_update", message);
             // Offload processing of the incoming screen to the Web Worker
             t.termUpdatesWorker.postMessage(message);
         }
     },
     notifyInactivity: function(term) {
-        // Notifies the user of inactivity in *term*
+        /**GateOne.Terminal.notifyInactivity(term)
+
+            Notifies the user of inactivity in *term*.
+        */
         var message = "Inactivity in terminal " + term;
         go.Terminal.playBell();
         v.displayMessage(message);
     },
     notifyActivity: function(term) {
-        // Notifies the user of activity in *term*
+        /**GateOne.Terminal.notifyActivity(term)
+
+            Notifies the user of activity in *term*.
+        */
         var message = "Activity in terminal " + term;
         go.Terminal.playBell();
         v.displayMessage(message);
@@ -1482,6 +1516,9 @@ go.Base.update(GateOne.Terminal, {
         if (go.Terminal.terminals[term]) {
             E.trigger("terminal:new_terminal", term, termUndefined);
         }
+        setTimeout(function() {
+            go.Terminal.alignTerminal(term);
+        }, 500);
         return term; // So you can call it from your own code and know what terminal number you wound up with
     },
     closeTerminal: function(term, /*opt*/noCleanup, /*opt*/message) {
@@ -1615,7 +1652,15 @@ go.Base.update(GateOne.Terminal, {
                     monitorActivity = u.getNode('#'+prefix+'monitor_activity');
                 monitorInactivity.checked = go.Terminal.terminals[term]['inactivityTimer']
                 monitorActivity.checked = go.Terminal.terminals[term]['activityNotify'];
-            };
+            },
+            setEncodingValue = function(term) {
+                var infoPanelEncoding = u.getNode('#'+prefix+'encoding');
+                infoPanelEncoding.value = go.Terminal.terminals[term]['encoding'];
+            },
+            setKeyboardValue = function(term) {
+                var infoPanelKeyboard = u.getNode('#'+prefix+'keyboard');
+                infoPanelKeyboard.value = go.Terminal.terminals[term]['mode'];
+            }
         if (!go.Terminal.terminals[term]) {
             return;
         }
@@ -1624,6 +1669,8 @@ go.Base.update(GateOne.Terminal, {
             displayText = term + ": " + go.Terminal.terminals[term]['title'];
             termTitleH2.innerHTML = displayText;
             setActivityCheckboxes(term);
+            setEncodingValue(term);
+            setKeyboardValue(term);
         } else {
             return; // This can happen if the terminal closed before a timeout completed.  Not a big deal, ignore
         }
@@ -2109,7 +2156,9 @@ go.Base.update(GateOne.Terminal, {
 
              line = pattern(line);
 
-        .. note: *name* is only used for reference purposes in the textTransforms object.
+        .. note:: *name* is only used for reference purposes in the textTransforms object (so it can be removed or replaced later).
+
+        .. tip:: To match the beginning of a line use '\\n' instead of '\^'.  This is necessary because the entire screen is matched at once as opposed to line-by-line.
         */
         var go = GateOne,
             t = go.Terminal;
@@ -2153,6 +2202,23 @@ go.Base.update(GateOne.Terminal, {
             infoPanelEncoding = u.getNode('#'+prefix+'encoding');
         go.Terminal.terminals[term]['encoding'] = encoding;
         infoPanelEncoding.value = encoding;
+    },
+    termKeyboardModeAction: function(message) {
+        /**:GateOne.Terminal.termKeyboardModeAction(message)
+
+        Handles the 'terminal:keyboard_mode' WebSocket action that tells us the keyboard mode that is set for a given terminal.  The expected message format:
+
+        :param string message['term']: The terminal in question.
+        :param string message['mode']: The keyboard mode to set on the given terminal.  E.g. 'default', 'sco', 'xterm', 'linux', etc
+
+        .. note:: The keyboard mode value is only used by the client.  There's no server-side functionality related to keyboard modes other than the fact that it remembers the setting.
+        */
+        //console.log('termKeyboardModeAction: ', message);
+        var term = message['term'],
+            mode = message['mode'],
+            infoPanelMode = u.getNode('#'+prefix+'mode');
+        go.Terminal.terminals[term]['mode'] = mode;
+        infoPanelMode.value = mode;
     },
     xtermEncode: function(number) {
         /**:GateOne.Terminal.xtermEncode(number)
