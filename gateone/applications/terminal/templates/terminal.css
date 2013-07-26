@@ -39,3 +39,16 @@
     height: 1px;
     width: 1px;
 }
+.✈IME {
+    height: 0;
+    width: 0;
+    position: fixed;
+    z-index: 99999;
+    top: -9999px;
+    left: -9999px;
+}
+/* Only give the IME input element a height/width if it has focus */
+.✈IME:focus {
+    height: 1.2em;
+    width: auto;
+}

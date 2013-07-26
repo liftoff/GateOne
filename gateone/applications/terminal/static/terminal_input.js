@@ -40,7 +40,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
 
         Creates GateOne.Terminal.Input.inputNode to capture keys/IME composition and attaches appropriate events.
         */
-        t.Input.inputNode = u.createElement('input', {'class': '✈IME', 'style': {'position': 'fixed', 'z-index': 99999, 'top': '-9999px', 'left': '-9999px'}});
+        t.Input.inputNode = u.createElement('input', {'class': '✈IME'});
         go.node.appendChild(t.Input.inputNode);
         t.Input.inputNode.addEventListener('compositionstart', t.Input.onCompositionStart, true);
         t.Input.inputNode.addEventListener('compositionupdate', t.Input.onCompositionUpdate, true);
