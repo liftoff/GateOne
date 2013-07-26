@@ -72,7 +72,6 @@ go.Terminal.textTransforms = {}; // Can be used to transform text (e.g. into cli
 go.Terminal.lastTermNumber = 0; // Starts at 0 since newTerminal() increments it by 1
 go.Terminal.manualTitle = false; // If a user overrides the title this variable will be used to keep track of that so setTitleAction won't overwrite it
 go.Terminal.scrollbarWidth = null; // Used to keep track of the scrollbar width so we can adjust the toolbar appropriately.  It is saved here since we have to measure the inside of a terminal to get this value reliably.
-go.Terminal.alignmentDebounce = 500; // How long to wait after a resize event before calling alignTerminal()
 go.Base.update(GateOne.Terminal, {
     __appinfo__: {
         'name': 'Terminal',
@@ -173,6 +172,7 @@ go.Base.update(GateOne.Terminal, {
             go.ws.send(JSON.stringify({'terminal:set_encoding': {'term': term, 'encoding': this.value}}));
         }
         infoPanelKeyboardLabel.innerHTML = "<b>Keyboard Mode</b>";
+        // TODO: Move these keyboard modes to a global somewhere so we can stay better organized.
         infoPanelKeyboard.add(new Option("default", "default"), null);
         infoPanelKeyboard.add(new Option("xterm", "xterm"), null);
         infoPanelKeyboard.add(new Option("sco", "sco"), null);
@@ -561,19 +561,15 @@ go.Base.update(GateOne.Terminal, {
                     go.Terminal.sendDimensions(termNum);
                 }
             };
-            setTimeout(function() {
-                var parentHeight = termPre.parentElement.clientHeight;
-                if (parentHeight) {
-                    termPre.style.height = parentHeight + 'px';
-                } else {
-                    termPre.style.height = "100%";
-                }
-                // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
-                u.scrollToBottom(termPre);
-                setTimeout(function() {
-                    go.Terminal.alignTerminal(term);
-                }, 10);
-            }, 10);
+            var parentHeight = termPre.parentElement.clientHeight;
+            if (parentHeight) {
+                termPre.style.height = parentHeight + 'px';
+            } else {
+                termPre.style.height = "100%";
+            }
+            // Adjust the view so the scrollback buffer stays hidden unless the user scrolls
+            u.scrollToBottom(termPre);
+            E.once("terminal:term_updated", go.Terminal.alignTerminal);
         }
     },
     timeoutEvent: function() {
@@ -843,39 +839,34 @@ go.Base.update(GateOne.Terminal, {
         if (!termPre) {
             return;
         }
-        setTimeout(function() {
-            var emDimensions = u.getEmDimensions(screenSpan, screenSpan.parentNode);
-            if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
-                if (screenSpan.getClientRects()[0]) {
-                    v.applyTransform(termPre, ''); // Have to reset in order to perform calculations
-                    var nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
-                        nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
-                    if (nodeHeight < go.node.offsetHeight) { // Resize to fit
-                        var scaleY = go.node.offsetHeight / nodeHeight,
-                            scaleX = go.node.offsetWidth / nodeWidth,
-                            scale = Math.min(scaleX, scaleY), // Use the lesser of the two so the terminal doesn't stretch in odd ways
-                            transform = transform = "scale(" + scale + ", " + scale + ")";
-                        v.applyTransform(termPre, transform);
-                    }
-                }
-            } else {
-                v.applyTransform(termPre, ''); // Need to reset before we do the calculation
-                // Feel free to attach something like this to the "term_updated" event if you want.
-                if (u.isVisible(termPre)) {
-                    var originalHeight = termPre.style.height;
-                    go.Terminal.disableScrollback(term); // The calculation won't work if the scrollback buffer is visible
-                    termPre.style.height = ''; // Reset it (important for the distance calculation below)
-                    // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
-                    setTimeout(function() {
-                        var distance = go.node.clientHeight - termPre.offsetHeight,
-                            transform = "translateY(-" + distance + "px)";
-                        v.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
-                        termPre.style.height = originalHeight; // Put it back to what it was
-                        go.Terminal.enableScrollback(term); // Turn it back on
-                    }, go.Terminal.alignmentDebounce); // Default is 500
+        v.applyTransform(termPre, ''); // Need to reset before we do the calculation
+        var emDimensions = u.getEmDimensions(screenSpan, screenSpan.parentNode);
+        if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
+            if (screenSpan.getClientRects()[0]) {
+                var nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
+                    nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
+                if (nodeHeight < go.node.offsetHeight) { // Resize to fit
+                    var scaleY = go.node.offsetHeight / nodeHeight,
+                        scaleX = go.node.offsetWidth / nodeWidth,
+                        scale = Math.min(scaleX, scaleY), // Use the lesser of the two so the terminal doesn't stretch in odd ways
+                        transform = transform = "scale(" + scale + ", " + scale + ")";
+                    v.applyTransform(termPre, transform);
                 }
             }
-        }, 100);
+        } else {
+            // Feel free to attach something like this to the "term_updated" event if you want.
+            if (u.isVisible(termPre)) {
+                var originalHeight = termPre.style.height;
+                go.Terminal.disableScrollback(term); // The calculation won't work if the scrollback buffer is visible
+                termPre.style.height = ''; // Reset it (important for the distance calculation below)
+                // The timeout is here to ensure everything has settled down (completed animations and whatnot) before we do the distance calculation.
+                var distance = go.node.clientHeight - termPre.offsetHeight,
+                    transform = "translateY(-" + distance + "px)";
+                v.applyTransform(termPre, transform); // Move it to the top so the scrollback isn't visible unless you actually scroll
+                termPre.style.height = originalHeight; // Put it back to what it was
+                go.Terminal.enableScrollback(term); // Turn it back on
+            }
+        }
     },
     termUpdateFromWorker: function(e) {
         /**:GateOne.Terminal.termUpdateFromWorker(e)
