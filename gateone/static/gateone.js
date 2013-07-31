@@ -1670,7 +1670,27 @@ GateOne.Base.update(GateOne.Utils, {
         } else {
             parent.insertBefore(newElement, targetElement.nextSibling);
         }
-}
+    },
+    debounce: function(func, wait, immediate) {
+        /**:GateOne.Utils.debounce(func, wait, immediate)
+
+        A copy of `the debounce function <http://underscorejs.org/#debounce>`_ from the excellent underscore.js.
+        */
+        var timeout, result;
+        return function() {
+            var context = this,
+                args = arguments,
+                later = function() {
+                    timeout = null;
+                    if (!immediate) result = func.apply(context, args);
+                },
+                callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (callNow) result = func.apply(context, args);
+            return result;
+        };
+    }
 });
 
 // GateOne.Logging

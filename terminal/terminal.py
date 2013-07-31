@@ -551,23 +551,23 @@ def unicode_counter():
         >>> counter = unicode_counter()
         >>> mapping_dict = {}
         >>> some_array = array('u')
-        >>> # Pretend 'marked ...' below is a reference to something impotant :)
+        >>> # Pretend 'marker ...' below is a reference to something important
         >>> for i, c in enumerate(u'some string'):
-                if c == u' ': # Mark the location of spaces
-                    # Perform some operation where we need to save a value
-                    result = some_evaluation(i, c)
-                    # Save some memory by storing a reference to result instead
-                    # of the same result over and over again
-                    if result not in mapping_dict.values():
-                        marker = counter.next()
-                        some_array.append(marker)
-                        mapping_dict[marker] = result
-                    else: # Find the existing reference so we can use it again
-                        for k, v in mapping_dict.items():
-                            if v == result: # Use the existing value
-                                some_array.append(k)
-                else:
-                    some_array.append('\x00') # \x00 == "not interesting" placeholder
+        ...     if c == u' ': # Mark the location of spaces
+        ...         # Perform some operation where we need to save a value
+        ...         result = some_evaluation(i, c)
+        ...         # Save some memory by storing a reference to result instead
+        ...         # of the same result over and over again
+        ...         if result not in mapping_dict.values():
+        ...             marker = counter.next()
+        ...             some_array.append(marker)
+        ...             mapping_dict[marker] = result
+        ...         else: # Find the existing reference so we can use it again
+        ...             for k, v in mapping_dict.items():
+        ...                 if v == result: # Use the existing value
+        ...                     some_array.append(k)
+        ...     else:
+        ...         some_array.append('\x00') # \x00 == "not interesting" placeholder
         >>>
 
     Now we could iterate over 'some string' and some_array simultaneously using

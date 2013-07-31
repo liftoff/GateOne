@@ -814,17 +814,17 @@ go.Base.update(GateOne.Terminal, {
             if (screen[i].length) {
                 // TODO: Get this using pre-cached line nodes
                 if (go.Terminal.terminals[term]['screen'][i] != screen[i]) {
+                    // Update the existing screen array in-place to cut down on GC
+                    go.Terminal.terminals[term]['screen'][i] = screen[i];
                     var existingLine = existingScreen.querySelector('.' + prefix + 'line_' + i);
                     if (existingLine) {
-                        existingLine.innerHTML = screen[i] + '\n';
+                        existingLine.innerHTML = screen[i];
                     } else { // Size of the terminal increased
                         var classes = '✈termline ' + prefix + 'line_' + i,
                             lineSpan = u.createElement('span', {'class': classes});
-                        lineSpan.innerHTML = screen[i] + '\n';
+                        lineSpan.innerHTML = screen[i];
                         existingScreen.appendChild(lineSpan);
                     }
-                    // Update the existing screen array in-place to cut down on GC
-                    go.Terminal.terminals[term]['screen'][i] = screen[i];
                 }
             }
         }
@@ -927,7 +927,7 @@ go.Base.update(GateOne.Terminal, {
                                 existingLine = existingPre.querySelector('.' + prefix + 'line_' + i),
                                 lineSpan = u.createElement('span', {'class': classes});
                             if (!existingLine) {
-                                lineSpan.innerHTML = screen[i] + '\n';
+                                lineSpan.innerHTML = screen[i];
                                 existingScreen.appendChild(lineSpan);
                                 // Update the existing screen array in-place to cut down on GC
                                 go.Terminal.terminals[term]['screen'][i] = screen[i];
@@ -945,22 +945,10 @@ go.Base.update(GateOne.Terminal, {
                             }
                         }
                     }
-                    u.scrollToBottom(existingPre);
                 }
                 if (existingScreen) { // Update the terminal display
-                    // Get the current scrollbar position so we can make a determination as to whether or not we should scroll to the bottom.
-                    var scroll = false;
-                    if ((existingPre.scrollHeight - existingPre.scrollTop) == existingPre.clientHeight) {
-                        scroll = true;
-                    }
                     go.Terminal.applyScreen(screen, term);
-                    // NOTE: Why would we need to scroll to the bottom if it is *already* scrolled to the bottom?  Because, when the entire screen is updated and there's really long lines or images it can result in the page being scrolled up a bit.  If the screen was scrolled all the way to the bottom before we applied an update we know that we should scroll to the bottom again.
-                    if (scroll) {
-                        setTimeout(function() {
-                            // It can take a second for the browser to draw everything so we wait just a moment before scrolling
-                            u.scrollToBottom(existingPre);
-                        }, 100);
-                    }
+                    u.scrollToBottom(existingPre);
                 }
                 screenUpdate = true;
                 go.Terminal.terminals[term]['scrollbackVisible'] = false;
@@ -1458,14 +1446,14 @@ go.Base.update(GateOne.Terminal, {
         // This re-enables the scrollback buffer immediately if the user starts scrolling (even if the timeout hasn't expired yet)
         terminal.addEventListener(mousewheelevt, wheelFunc, true);
         screenSpan = u.createElement('span', {'id': 'term'+term+'screen', 'class': '✈screen'})
-        // Add the scaffold of the screen and scrollback
+        // Add the scaffold of the screen
         for (var i=0; i < rows; i++) {
             var classes = '✈termline ' + prefix + 'line_' + i,
                 lineSpan = u.createElement('span', {'class': classes});
-            lineSpan.innerHTML = screen[i] + '\n';
+            lineSpan.innerHTML = ' ';
             screenSpan.appendChild(lineSpan);
             // Update the existing screen array in-place to cut down on GC
-            go.Terminal.terminals[term]['screen'][i] = screen[i];
+            go.Terminal.terminals[term]['screen'][i] = ' ';
         }
         go.Terminal.terminals[term]['screenNode'] = screenSpan;
         termPre = u.createElement('pre', {'id': 'term'+term+'_pre'});
