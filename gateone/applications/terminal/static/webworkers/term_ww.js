@@ -167,3 +167,5 @@ self.addEventListener('message', function(e) {
         consoleLog = []; // Reset
     }
 }, false);
+
+//# sourceURL=/terminal/static/webworkers/term_ww.js

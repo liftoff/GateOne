@@ -70,6 +70,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             for (var i=0; i<=cb.length; i++) { charString += cb.pop() }
             if (charString != "undefined") {
                 var message = {'c': charString};
+                E.trigger("terminal:send_chars", message); // Called before the message is sent so it can be manipulated.
                 go.ws.send(JSON.stringify(message));
                 t.doingUpdate = false;
             } else {
@@ -479,6 +480,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
                 t.Input.inputNode.value = ""; // Keep it empty until needed
             }
         }
+        E.trigger("terminal:onkeyup", e);
     },
     onInput: function(e) {
         /**:GateOne.Terminal.Input.onInput(e)
@@ -509,10 +511,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             // Global shortcuts take precedence
             return;
         }
-//             if (document.activeElement != t.Input.inputNode) {
-//                 console.log('activeElement did not equal inputNode');
-//                 return; // Let the browser handle it if the user is editing something
-//             }
+        E.trigger("terminal:onkeydown", e); // Placed before the execKeystroke() call below so the event can be manipulated beforehand.
         t.Input.execKeystroke(e);
     },
     execKeystroke: function(e) {

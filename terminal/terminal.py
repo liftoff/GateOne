@@ -727,7 +727,7 @@ class ImageFile(FileType):
             i = BytesIO(data)
             try:
                 im = Image.open(i)
-            except IOError as e:
+            except (AttributeError, IOError) as e:
                 # i.e. PIL couldn't identify the file
                 message = _("PIL couldn't process the image (%s)" % e)
                 logging.error(message)

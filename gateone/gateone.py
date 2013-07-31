@@ -254,6 +254,7 @@ import hashlib
 import tempfile
 from functools import wraps
 from datetime import datetime, timedelta
+from hashlib import md5
 
 # This is used as a way to ensure users get a friendly message about missing
 # dependencies:
@@ -313,7 +314,7 @@ from utils import generate_session_id, mkdir_p, SettingsError
 from utils import gen_self_signed_ssl, killall, get_plugins, load_modules
 from utils import merge_handlers, none_fix, convert_to_timedelta, short_hash
 from utils import FACILITIES, json_encode, recursive_chown, ChownError
-from utils import write_pid, read_pid, remove_pid, drop_privileges
+from utils import write_pid, read_pid, remove_pid, drop_privileges, get_or_cache
 from utils import check_write_permissions, get_applications, get_settings
 from onoff import OnOffMixin
 
@@ -846,7 +847,10 @@ class GOApplication(OnOffMixin):
         If given, *kwargs* will be added to the `tornado.web.URLSpec` when the
         complete handler is assembled.
 
-        .. note:: If the *pattern* does not start with the configured `url_prefix` it will be automatically prepended.
+        .. note::
+
+            If the *pattern* does not start with the configured `url_prefix` it
+            will be automatically prepended.
         """
         logging.debug("Adding handler: (%s, %s)" % (pattern, handler))
         url_prefix = self.ws.settings['url_prefix']
@@ -1765,7 +1769,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         that no longer exist in `self.file_cache` (so it can clean them up).
         """
         logging.debug("cache_cleanup(%s)" % message)
-        from hashlib import md5
         filenames = message['filenames']
         kind = message['kind']
         expired = []
@@ -1827,8 +1830,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         If the `cssmin` module is installed CSS files will be minified before
         being sent to the client.
         """
-        from utils import get_or_cache
-        from hashlib import md5
         if isinstance(files_or_hash, (list, tuple)):
             for filename_hash in files_or_hash:
                 self.file_request(
@@ -1848,6 +1849,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         mtime = self.file_cache[filename_hash]['mtime']
         requires = self.file_cache[filename_hash].get('requires', None)
         media = self.file_cache[filename_hash].get('media', 'screen')
+        url_prefix = self.settings['url_prefix']
         out_dict = {
             'result': 'Success',
             'cache': use_client_cache,
@@ -1869,6 +1871,25 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         else:
             out_dict['data'] = get_or_cache(cache_dir, path, minify=True)
         if kind == 'js':
+            source_url = None
+            if 'gateone/applications/' in path:
+                application = path.split('applications/')[1].split('/')[0]
+                if 'plugins' in path:
+                    static_path = path.split("%s/plugins/" % application)[1]
+                    source_url = "%s%s/plugins/%s" % (
+                        url_prefix, application, static_path)
+                else:
+                    static_path = path.split("%s/static/" % application)[1]
+                    source_url = "%s%s/static/%s" % (
+                        url_prefix, application, static_path)
+            elif 'gateone/plugins/' in path:
+                plugin_name = path.split('gateone/plugins/')[1].split('/')[0]
+                static_path = path.split("%s/static/" % plugin_name)[1]
+                source_url = "%splugins/%s/static/%s" % (
+                    url_prefix, plugin_name, static_path)
+            if source_url:
+                out_dict['data'] += "\n//# sourceURL={source_url}\n".format(
+                    source_url=source_url)
             message = {'go:load_js': out_dict}
         elif kind == 'css':
             out_dict['css'] = True # So loadStyleAction() knows what to do
@@ -1919,7 +1940,6 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             'use_client_cache', True)
         if requires and not isinstance(requires, (tuple, list)):
             requires = [requires] # This makes the logic simpler at the client
-        from hashlib import md5
         if isinstance(paths_or_fileobj, (tuple, list)):
             out_dict = {'files': []}
             for file_obj in paths_or_fileobj:
@@ -2093,7 +2113,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
         If *requires* is given it will be passed along to `self.send_js()`.
 
-        .. note:: If you want to serve Gate One's JavaScript via a different mechanism (e.g. nginx) this functionality can be completely disabled by adding `'send_js': false` to gateone/settings/10server.conf
+        .. note::
+
+            If you want to serve Gate One's JavaScript via a different mechanism
+            (e.g. nginx) this functionality can be completely disabled by adding
+            `'send_js': false` to gateone/settings/10server.conf
         """
         logging.debug('send_plugin_static_files(%s)' % plugins_dir)
         send_js = self.prefs['*']['gateone'].get('send_js', True)
@@ -2260,10 +2284,23 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         """
         Returns a list of users currently connected to the Gate One server to
         the client via the 'go:user_list' WebSocket action.  Only users with the
-        'list_users' policy are allowed to execute this action.
+        'list_users' policy are allowed to execute this action.  Example:
+
+        .. code-block:: javascript
+
+            GateOne.ws.send(JSON.stringify({"go:list_users": null}));
+
+        That would send a JSON message to the client like so::
+
+            {
+                "go:user_list": [
+                    {"upn": "user@enterprise", "ip_address": "10.0.1.11"},
+                    {"upn": "bsmith@enterprise", "ip_address": "10.0.2.15"}
+                ]
+            }
         """
         users = ApplicationWebSocket._list_connected_users()
-        logging.debug('list_server_users(): %s' % users)
+        logging.debug('list_server_users(): %s' % repr(users))
         # Remove things that users should not see such as their session ID
         filtered_users = []
         policy = applicable_policies('gateone', self.current_user, self.prefs)
@@ -2493,11 +2530,20 @@ class GateOneApp(tornado.web.Application):
             if 'Init' in hooks:
                 # Call the plugin's initialization functions
                 hooks['Init'](tornado_settings)
+        # Include JS-only and CSS-only plugins (for logging purposes)
+        js_plugins = [a.split('/')[2] for a in PLUGINS['js']]
+        # Add static handlers for all the JS plugins (primarily for source URLs)
+        for js_plugin in js_plugins:
+            js_plugin_path = os.path.join(
+                GATEONE_DIR, 'plugins', js_plugin, 'static')
+            handlers.append((
+                r"%splugins/%s/static/(.*)" % (url_prefix, js_plugin),
+                StaticHandler,
+                {"path": js_plugin_path}
+            ))
         # This removes duplicate handlers for the same regex, allowing plugins
         # to override defaults:
         handlers = merge_handlers(handlers)
-        # Include JS-only and CSS-only plugins (for logging purposes)
-        js_plugins = [a.split('/')[2] for a in PLUGINS['js']]
         css_plugins = []
         for i in css_plugins:
             if '?' in i: # CSS Template

@@ -5105,3 +5105,4 @@ GateOne.exportShortcuts = function() {
     window.t = GateOne.Terminal;
 }
 
+//# sourceURL=/static/gateone.js

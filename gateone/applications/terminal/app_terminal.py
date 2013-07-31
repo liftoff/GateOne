@@ -25,7 +25,7 @@ from functools import partial
 
 # Gate One imports
 import termio
-from gateone import GATEONE_DIR, BaseHandler, GOApplication
+from gateone import GATEONE_DIR, BaseHandler, GOApplication, StaticHandler
 from auth import require, authenticated, applicable_policies, policies
 from utils import cmd_var_swap, json_encode, get_settings, short_hash
 from utils import mkdir_p, string_to_syslog_facility, get_plugins, load_modules
@@ -1620,7 +1620,11 @@ class TerminalApplication(GOApplication):
             }
             GateOne.ws.send(JSON.stringify({"terminal:share_terminal": settings}));
 
-        .. note:: If the server is configured with 'auth="none"' and *settings['read']* is "AUTHENTICATED" all users will be able to view the shared terminal without having to enter a password.
+        .. note::
+
+            If the server is configured with `auth="none"` and
+            *settings['read']* is "AUTHENTICATED" all users will be able to view
+            the shared terminal without having to enter a password.
         """
         logging.debug("share_terminal(%s)" % settings)
         from utils import generate_session_id
@@ -1750,7 +1754,12 @@ class TerminalApplication(GOApplication):
         Sends the client a dict of users that are currently viewing the terminal
         associated with *share_id* using the 'terminal:share_user_list'
         WebSocket action.  The output will indicate which users have write
-        access.
+        access.  Example JavaScript:
+
+        .. code-block:: javascript
+
+            var shareID = "YzUxNzNkNjliMDQ4NDU21DliM3EwZTAwODVhNGY5MjNhM";
+            GateOne.ws.send(JSON.stringify({"terminal:share_user_list": shareID}));
         """
         out_dict = {'viewers': [], 'write': []}
         message = {'terminal:share_user_list': out_dict}
@@ -1787,7 +1796,7 @@ class TerminalApplication(GOApplication):
             GateOne.ws.send(JSON.stringify({"terminal:list_shared_terminals": null}));
         """
         out_dict = {'terminals': {}, 'result': 'Success'}
-        shared_terms = self.ws.persist['terminal']['shared']
+        shared_terms = self.ws.persist['terminal'].get('shared', {})
         for share_id, share_dict in shared_terms.items():
             if share_dict['read'] in ['AUTHENTICATED', 'ANONYMOUS']:
                 password = share_dict.get('password', False)
@@ -1853,7 +1862,7 @@ class TerminalApplication(GOApplication):
             self.write_message(json_encode(message))
             # This resets the screen diff
             multiplex.prev_output[self.ws.client_id] = [
-                None for a in xrange(multiplex.rows-1)]
+                None for a in range(multiplex.rows-1)]
             # Remind the client about this terminal's title
             self.set_title(term, force=True)
         # Setup callbacks so that everything gets called when it should
@@ -2076,8 +2085,8 @@ def init(settings):
             term_settings['commands'][name] = command.replace('/ssh/', '/.ssh/')
     # Initialize plugins so we can add their 'Web' handlers
     enabled_plugins = settings['*']['terminal'].get('enabled_plugins', [])
-    plugins = get_plugins(
-        os.path.join(APPLICATION_PATH, 'plugins'), enabled_plugins)
+    plugins_path = os.path.join(APPLICATION_PATH, 'plugins')
+    plugins = get_plugins(plugins_path, enabled_plugins)
     # Attach plugin hooks
     plugin_hooks = {}
     imported = load_modules(plugins['py'])
@@ -2086,6 +2095,27 @@ def init(settings):
             plugin_hooks.update({plugin.__name__: plugin.hooks})
         except AttributeError:
             pass # No hooks, no problem
+    # Add static handlers for all the JS plugins (primarily for source maps)
+    url_prefix = settings['*']['gateone']['url_prefix']
+    plugin_dirs = os.listdir(plugins_path)
+    # Remove anything that isn't a directory (just in case)
+    plugin_dirs = [
+        a for a in plugin_dirs
+            if os.path.isdir(os.path.join(plugins_path, a))
+    ]
+    if not enabled_plugins: # Use all of them
+        enabled_plugins = plugin_dirs
+    for plugin_name in enabled_plugins:
+        plugin_static_url = r"{prefix}terminal/{name}/static/(.*)".format(
+            prefix=url_prefix, name=plugin_name)
+        static_path = os.path.join(
+            APPLICATION_PATH, 'plugins', plugin_name, 'static')
+        if os.path.exists(static_path):
+            handler = (
+                plugin_static_url, StaticHandler, {"path": static_path})
+            if handler not in REGISTERED_HANDLERS:
+                REGISTERED_HANDLERS.append(handler)
+                web_handlers.append(handler)
     # Hook up the 'Web' handlers so those URLs are immediately available
     for hooks in plugin_hooks.values():
         if 'Web' in hooks:
