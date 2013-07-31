@@ -112,7 +112,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             * Middle-click: Makes sure the pastearea is visible and has focus so that middle-click-to-paste events (X11) will work properly.  Alternatively, if there is highlighted text in the terminal a paste event will be emulated (regardless of platform).
         */
         // TODO: Add a shift-click context menu for special operations.  Why shift and not ctrl-click or alt-click?  Some platforms use ctrl-click to emulate right-click and some platforms use alt-click to move windows around.
-        logDebug("goDiv.onmousedown() button: " + e.button + ", which: " + e.which);
+        logDebug("GateOne.Terminal.Input.onMouseDown() button: " + e.button + ", which: " + e.which);
         var m = go.Input.mouse(e),
             X, Y, button, className, // Used by mouse coordinates/tracking stuff
             selectedTerm = localStorage[prefix+'selectedTerminal'],

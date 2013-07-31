@@ -1309,14 +1309,13 @@ go.Base.update(GateOne.Terminal, {
         // TODO: Get this calculating/sizing the terminal based on where it is being put instead of go.node
         logDebug("newTerminal(" + term + ")");
         var t = go.Terminal,
-            currentTerm, terminal, emDimensions, dimensions, rows, cols, pastearea,
+            currentTerm, terminal, emDimensions, dimensions, rows, cols, pastearea, switchTermFunc,
             termUndefined = false,
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
             colAdjust = go.prefs.colAdjust + go.Terminal.colAdjust,
             workspaceNum, // Set below (if any)
             prevScrollback = localStorage.getItem(prefix + "scrollback" + term),
-            switchTermFunc = u.partial(go.Terminal.switchTerminal, term),
             termPre, // Created below after we have a terminal number to use
             screenSpan, // Ditto
             wheelFunc = function(e) {
@@ -1354,6 +1353,7 @@ go.Base.update(GateOne.Terminal, {
             term = t.lastTermNumber;
             currentTerm = 'term' + t.lastTermNumber;
         }
+        switchTermFunc = u.partial(go.Terminal.switchTerminal, term);
         if (!where) {
             if (gridwrapper) {
                 where = v.newWorkspace(); // Use the gridwrapper (grid) by default
