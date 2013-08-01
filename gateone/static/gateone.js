@@ -1046,7 +1046,7 @@ GateOne.Base.update(GateOne.Utils, {
             }
             u.prevEmDimensions = {'w': nodeWidth, 'h': nodeHeight};
         } catch(e) {
-            logError("Error getting em dimensions: " + e);
+            logDebug("Error getting em dimensions (probably just a hidden terminal): " + e);
             // Cleanup
             if (where) {
                 where.removeChild(node);
