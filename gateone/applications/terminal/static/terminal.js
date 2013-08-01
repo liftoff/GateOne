@@ -1,6 +1,32 @@
 
 // TODO: Add a feature that lets you highlight certain words in the terminal.
 
+// NOTE:  This transitionEnd stuff needs to go outside the "use strict" below
+var transitionEndSupported = false,
+    transitionEndName = null;
+
+// This detects the proper transitionend event name (used by alignTerminal()):
+(function() {
+    var div = document.createElement('div'),
+    handler = function(e) {
+        transitionEndName = e.type;
+        transitionEndSupported = true;
+        this.removeEventListener('webkitTransitionEnd', arguments.callee);
+        this.removeEventListener('transitionend', arguments.callee);
+    };
+    div.setAttribute('style', 'position:absolute;top:0px;transition:top 1ms ease;-webkit-transition:top 1ms ease;-moz-transition:top 1ms ease');
+    div.addEventListener('webkitTransitionEnd', handler, false);
+    div.addEventListener('transitionend', handler, false);
+    document.documentElement.appendChild(div);
+    setTimeout(function() {
+        div.style.top = '100px';
+        setTimeout(function() {
+            div.parentNode.removeChild(div);
+            div = handler = null;
+        }, 100);
+    }, 0);
+})();
+
 // GateOne.Terminal gets its own sandbox to avoid a constant barrage of circular references on the garbage collector
 (function(window, undefined) {
 "use strict";
@@ -409,6 +435,7 @@ go.Base.update(GateOne.Terminal, {
             u.showElements('.✈pastearea');
         });
         E.on("go:update_dimensions", go.Terminal.onResizeEvent);
+        E.on("terminal:send_dimensions", go.Terminal.alignTerminal);
         E.on("go:timeout", go.Terminal.timeoutEvent);
         go.Terminal.loadTextColors();
         E.on("go:js_loaded", function() {
@@ -1623,7 +1650,6 @@ go.Base.update(GateOne.Terminal, {
         */
         logDebug('switchTerminalEvent('+term+')');
         var termNode = null,
-            terms = u.toArray(u.getNodes('.✈terminal')),
             termTitleH2 = u.getNode('#'+prefix+'termtitle'),
             displayText = "Gate One",
             sideinfo = u.getNode('#'+prefix+'sideinfo'),
@@ -1662,7 +1688,7 @@ go.Base.update(GateOne.Terminal, {
         }
         go.Terminal.alignTimer = setTimeout(function() {
             go.Terminal.alignTerminal(term);
-        }, 1100); // Just a moment after the switch completes
+        }, 100); // Just enough to debounce
     },
     switchWorkspaceEvent: function(workspace) {
         /**:GateOne.Terminal.switchWorkspaceEvent(workspace)

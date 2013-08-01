@@ -25,6 +25,31 @@ this file.
 // TODO: Make it so that variables like GateOne.Terminal.terminals use GateOne.prefs.prefix so you can have more than one instance of Gate One embedded on the same page without conflicts.
 // TODO: This is a big one:  Re-write most of this to use Underscore.js (as a more well-constructed way to support multiple simultaneous Gate One server connections/instances).  Will require overriding some aspects of Backbone.js but this is easier than re-inventing the wheel with Models.
 
+// This detects the proper transitionend event name (used by alignTerminal()):
+var transitionEndSupported = false,
+    transitionEndName = null;
+(function() {
+    // NOTE:  This must be called outside of the "use strict" below for it to work
+    var div = document.createElement('div'),
+    handler = function(e) {
+        transitionEndName = e.type;
+        transitionEndSupported = true;
+        this.removeEventListener('webkitTransitionEnd', arguments.callee);
+        this.removeEventListener('transitionend', arguments.callee);
+    };
+    div.setAttribute('style', 'position:absolute;top:0px;transition:top 1ms ease;-webkit-transition:top 1ms ease;-moz-transition:top 1ms ease');
+    div.addEventListener('webkitTransitionEnd', handler, false);
+    div.addEventListener('transitionend', handler, false);
+    document.documentElement.appendChild(div);
+    setTimeout(function() {
+        div.style.top = '100px';
+        setTimeout(function() {
+            div.parentNode.removeChild(div);
+            div = handler = null;
+        }, 100);
+    }, 0);
+})();
+
 // Everything goes in GateOne
 (function(window, undefined) {
 "use strict";
@@ -1227,7 +1252,15 @@ GateOne.Base.update(GateOne.Utils, {
         */
         logDebug("loadStyleAction()");
         var u = go.Utils,
-            prefix = go.prefs.prefix;
+            prefix = go.prefs.prefix,
+            transitionEndFunc = function(e) {
+                if (go.Utils.loadStyleTimer) {
+                    clearTimeout(go.Utils.loadStyleTimer);
+                    go.Utils.loadStyleTimer = null;
+                }
+                go.Visual.updateDimensions(); // In case the styles changed the size of text
+                go.node.removeEventListener(transitionEndName, transitionEndFunc, false);
+            };
         if (message['result'] == 'Success') {
             // This is for handling any given CSS file
             if (message['css']) {
@@ -1259,7 +1292,11 @@ GateOne.Base.update(GateOne.Utils, {
             go.Storage.uncacheStyle(message, message['kind']);
         }
         go.Storage.loadedFiles[message['filename']] = true;
-        go.Visual.updateDimensions(); // In case the styles changed the size of text
+        go.node.addEventListener(transitionEndName, transitionEndFunc, false);
+        go.Utils.loadStyleTimer = setTimeout(function() {
+            // This should only get called if the transitionend event never fires
+            transitionEndFunc();
+        }, 1500);
     },
     loadCSS: function(url, id){
         // Imports the given CSS *URL* and applies the stylesheet to the current document.
@@ -2792,36 +2829,44 @@ GateOne.Base.update(GateOne.Visual, {
     updateDimensions: function() {
         /**:GateOne.Visual.updateDimensions()
 
-        Sets `GateOne.Visual.goDimensions` to the current width/height of prefs.goDiv
+        Sets `GateOne.Visual.goDimensions` to the current width/height of `GateOne.node` and triggers the "go:update_dimensions" event.
         */
         var u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = go.node,
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             wrapperDiv = u.getNode('#'+prefix+'gridwrapper'),
-            style = window.getComputedStyle(goDiv, null),
             rightAdjust = 0,
-            paddingRight = (style['padding-right'] || style['paddingRight']);
-        if (style['padding-right']) {
-            var rightAdjust = parseInt(paddingRight.split('px')[0]);
-        }
-        go.Visual.goDimensions.w = parseInt(style.width.split('px')[0]);
-        go.Visual.goDimensions.h = parseInt(style.height.split('px')[0]);
-        if (wrapperDiv) { // Explicit check here in case we're embedded into something that isn't using the grid (aka the wrapperDiv here).
-            // Update the width of gridwrapper in case #gateone has padding
-            wrapperDiv.style.width = ((go.Visual.goDimensions.w+rightAdjust)*2) + 'px';
-            if (workspaces.length) {
-                workspaces.forEach(function(wsNode) {
-                    wsNode.style.height = go.Visual.goDimensions.h + 'px';
-                    wsNode.style.width = go.Visual.goDimensions.w + 'px';
-                });
-            }
-        }
-        // Trigger a dimensions update event and pass in the goDimensions object
-        setTimeout(function() {
-            // Wrapped in a timeout so that the browser can finish making the above adjustments before things like terminals get adjustments of their own.
-            go.Events.trigger("go:update_dimensions", go.Visual.goDimensions);
-        }, 250);
+            transitionEndFunc = function(e) {
+                if (go.Visual.updateDimensionsTimer) {
+                    clearTimeout(go.Visual.updateDimensionsTimer);
+                    go.Visual.updateDimensionsTimer = null;
+                }
+                var style = window.getComputedStyle(goDiv, null),
+                    paddingRight = (style['padding-right'] || style['paddingRight']);
+                if (style['padding-right']) {
+                    var rightAdjust = parseInt(paddingRight.split('px')[0]);
+                }
+                go.Visual.goDimensions.w = parseInt(style.width.split('px')[0]);
+                go.Visual.goDimensions.h = parseInt(style.height.split('px')[0]);
+                if (wrapperDiv) { // Explicit check here in case we're embedded into something that isn't using the grid (aka the wrapperDiv here).
+                    // Update the width of gridwrapper in case #gateone has padding
+                    wrapperDiv.style.width = ((go.Visual.goDimensions.w+rightAdjust)*2) + 'px';
+                    if (workspaces.length) {
+                        workspaces.forEach(function(wsNode) {
+                            wsNode.style.height = go.Visual.goDimensions.h + 'px';
+                            wsNode.style.width = go.Visual.goDimensions.w + 'px';
+                        });
+                    }
+                }
+                go.Events.trigger("go:update_dimensions", go.Visual.goDimensions);
+                go.node.removeEventListener(transitionEndName, transitionEndFunc, false);
+            };
+        go.node.addEventListener(transitionEndName, transitionEndFunc, false);
+        go.Visual.updateDimensionsTimer = setTimeout(function() {
+            // This should only get called if the transitionend event never fires
+            transitionEndFunc();
+        }, 1100);
     },
     applyTransform: function (obj, transform) {
         /**:GateOne.Visual.applyTransform(obj, transform)

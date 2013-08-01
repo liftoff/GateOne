@@ -122,7 +122,9 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (t.terminals[selectedTerm] && t.terminals[selectedTerm]['pasteNode']) {
             selectedPastearea = t.terminals[selectedTerm]['pasteNode'];
         }
-        className = elementUnder.className + ''; // Ensure it's a string for Firefox
+        if (elementUnder.className) {
+            className = elementUnder.className + ''; // Ensure it's a string for Firefox
+        }
         if (className && className.indexOf('✈termline') == -1) {
             while (elementUnder.parentNode) {
                 elementUnder = elementUnder.parentNode;

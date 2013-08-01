@@ -42,10 +42,10 @@ GateOne.Base.update(GateOne.Convenience, {
             go.Convenience.registerLSConvenience();
         }
         if (!go.prefs.disableSyslogConvenience) {
-            go.Convenience.registerIPConvenience();
+            go.Convenience.registerSyslogConvenience();
         }
         if (!go.prefs.disableIPConvenience) {
-            go.Convenience.registerSyslogConvenience();
+            go.Convenience.registerIPConvenience();
         }
         if (!go.prefs.disablePSConvenience) {
             go.Convenience.registerPSConvenience();
@@ -431,7 +431,7 @@ GateOne.Base.update(GateOne.Convenience, {
         t.unregisterTextTransform("pskernelmodule");
     },
     toggleBackground: function(elem) {
-        /**:GateOne.Convenience.groupInfoError(result)
+        /**:GateOne.Convenience.toggleBackground(result)
 
         Toggles a background color on and off for the given *elem* by adding or removing the 'selectedrow' class.
         */
