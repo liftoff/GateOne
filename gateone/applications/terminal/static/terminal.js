@@ -861,10 +861,13 @@ go.Base.update(GateOne.Terminal, {
 
         Uses a CSS3 transform to move the terminal <pre> element upwards just a bit so that the scrollback buffer isn't visislbe unless you actually scroll.  This improves the terminal's overall appearance considerably because the bottoms of characters in the scollback buffer tend to look like graphical glitches.
         */
+        if (!go.Terminal.terminals[term]) {
+            return; // Can happen if the terminal is closed immediately after being opened
+        }
         var termPre = go.Terminal.terminals[term]['node'],
             screenSpan = go.Terminal.terminals[term]['screenNode'];
         if (!termPre) {
-            return;
+            return; // Can happen for the same reason as above
         }
         v.applyTransform(termPre, ''); // Need to reset before we do the calculation
         var emDimensions = u.getEmDimensions(screenSpan, screenSpan.parentNode);

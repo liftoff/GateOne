@@ -1051,7 +1051,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         origin = origin.split('://', 1)[1]
         self.origin = origin
         logging.debug("open() origin: %s" % origin)
-        if '*' not in valid_origins:
+        if '*' not in valid_origins: # NOTE: valid_origins is a list
             if origin not in valid_origins:
                 self.origin_denied = True
                 denied_msg = _("Access denied for origin: %s" % origin)
@@ -3215,17 +3215,6 @@ def main():
     logging.getLogger().setLevel(getattr(logging, options.logging.upper()))
     APPLICATIONS = [] # Replace it with a list of actual class instances
     web_handlers = []
-    for module in app_modules:
-        module.SESSIONS = SESSIONS
-        try:
-            APPLICATIONS.extend(module.apps)
-            if hasattr(module, 'init'):
-                module.init(all_settings)
-            if hasattr(module, 'web_handlers'):
-                web_handlers.extend(module.web_handlers)
-        except AttributeError:
-            pass # No apps--probably just a supporting .py file.
-    logging.debug(_("Imported applications: {0}".format(str(APPLICATIONS))))
     # Convert the old server.conf to the new settings file format and save it
     # as a number of distinct .conf files to keep things better organized.
     # NOTE: This logic will go away some day as it only applies when moving from
@@ -3244,6 +3233,17 @@ def main():
         # Make sure these values get updated
         all_settings = get_settings(options.settings_dir)
         go_settings = all_settings['*']['gateone']
+    for module in app_modules:
+        module.SESSIONS = SESSIONS
+        try:
+            APPLICATIONS.extend(module.apps)
+            if hasattr(module, 'init'):
+                module.init(all_settings)
+            if hasattr(module, 'web_handlers'):
+                web_handlers.extend(module.web_handlers)
+        except AttributeError:
+            pass # No apps--probably just a supporting .py file.
+    logging.debug(_("Imported applications: {0}".format(str(APPLICATIONS))))
     # Change the uid/gid strings into integers
     try:
         uid = int(go_settings['uid'])
