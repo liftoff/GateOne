@@ -710,6 +710,8 @@ go.Base.update(GateOne.Terminal, {
         Sends the current terminal's dimensions to the server.
         */
         logDebug('sendDimensions(' + term + ', ' + ctrl_l + ')');
+        var prevRows = go.prefs.rows,
+            prevCols = go.prefs.cols;
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
@@ -732,6 +734,12 @@ go.Base.update(GateOne.Terminal, {
                 'em_dimensions': emDimensions
             }
         if (!emDimensions || !dimensions) {
+            return; // Nothing to do
+        }
+        if (prefs.rows < 2 || prefs.cols < 2) {
+            return; // Something went wrong; ignore
+        }
+        if (prevRows == prefs.rows && prevCols == prefs.cols) {
             return; // Nothing to do
         }
 //         if (go.prefs.showToolbar || go.prefs.showTitle) {
@@ -1496,7 +1504,7 @@ go.Base.update(GateOne.Terminal, {
             if (navigator.userAgent.indexOf('Firefox') != -1) {
                 return true; // Firefox doesn't appear to copy formatting anyway so fortunately this function isn't necessary
             }
-            var text = u.rtrim(u.getSelText()),
+            var text = u.getSelText().replace(/\s+$/mg, '\n'),
                 selection = window.getSelection(),
                 tempTextArea = u.createElement('textarea', {'style': {'left': '-999999px', 'top': '-999999px'}});
             tempTextArea.value = text;
@@ -1604,7 +1612,6 @@ go.Base.update(GateOne.Terminal, {
 
         Calls `GateOne.Terminal.setTerminal(*term*)` then triggers the 'terminal:switch_terminal' event passing *term* as the only argument.
         */
-        logDebug('switchTerminal('+ term + ')');
         if (!term) {
             return true; // Sometimes this can happen if certain things get called a bit too early or out-of-order.  Not a big deal since everything will catch up eventually.
         }
@@ -1619,17 +1626,9 @@ go.Base.update(GateOne.Terminal, {
         if (term == selectedTerm) {
             return true; // Nothing to do
         }
-        // Many situations can cause a whole ton of switchTerminal() calls to happen all at once (resize the window while opening or closing a new terminal:  6 calls!).
-        // To prevent the 'terminal:switch_terminal' WebSocket action from firing half a dozen times all at once we wrap this function in a very short de-bounce timeout
-        if (go.Terminal.switchTermDebounce) {
-            clearTimeout(go.Terminal.switchTermDebounce);
-            go.Terminal.switchTermDebounce = null;
-        }
-        go.Terminal.switchTermDebounce = setTimeout(function() {
-            logDebug('switchTerminal('+term+')');
-            go.Terminal.setTerminal(term);
-            E.trigger('terminal:switch_terminal', term);
-        }, 100);
+        logDebug('switchTerminal('+term+')');
+        go.Terminal.setTerminal(term);
+        E.trigger('terminal:switch_terminal', term);
     },
     setActive: function(term) {
         /**:GateOne.Terminal.setActive(term)
@@ -2079,14 +2078,15 @@ go.Base.update(GateOne.Terminal, {
             } else {
                 // Create a new terminal
                 go.Terminal.lastTermNumber = 0; // Reset to 0
-                go.Terminal.newTerminal();
+                E.on("terminal:new_terminal", function(term) {
+                    if (!go.Terminal.terminals[term]) { return; }
+                    v.switchWorkspace(go.Terminal.terminals[term]['workspace']);
+                    go.Terminal.switchTerminal(go.Terminal.lastTermNumber);
+                });
+                setTimeout(function() {
+                    go.Terminal.newTerminal();
+                }, 1100);
             }
-            setTimeout(function() {
-                var selectedTerm = localStorage[prefix+'selectedTerminal'] + '';
-                if (!go.Terminal.terminals[selectedTerm]) { return; }
-                v.switchWorkspace(go.Terminal.terminals[selectedTerm]['workspace']);
-                go.Terminal.switchTerminal(go.Terminal.lastTermNumber);
-            }, 100);
         }
         E.trigger("terminal:term_reattach", terminals);
         if (go.Terminal.reattachTerminalsCallbacks.length) {
@@ -2239,6 +2239,66 @@ go.Base.update(GateOne.Terminal, {
         .. note:: This encoding mechansim has the unfortunate limitation of only being able to encode up to the number 233.
         */
         return String.fromCharCode(number+32);
+    },
+    highlight: function(text, term) {
+        /**:GateOne.Terminal.highlight(text[, term])
+
+        Highlights all occurrences the given *text* inside the given *term* by wrapping it in a span like so:
+
+        .. code-block:: html
+
+            <span class="✈highlight">text</span>
+
+        If *term* is not provided the currently-selected terminal will be used.
+        */
+        if (!term) {
+            term = localStorage[prefix+'selectedTerminal'];
+        }
+        var termNode = go.Terminal.terminals[term]['node'],
+            pattern = new RegExp(text, 'g'),
+            repl = '<span class="✈highlight">' + text + '</span>',
+            isOrContains = function(node, container) {
+                while (node) {
+                    if (node === container) {
+                        return true;
+                    }
+                    node = node.parentNode;
+                }
+                return false;
+            },
+            elementContainsSelection = function(el) {
+                var sel;
+                if (window.getSelection) {
+                    sel = window.getSelection();
+                    if (sel.rangeCount > 0) {
+                        for (var i = 0; i < sel.rangeCount; ++i) {
+                            if (!isOrContains(sel.getRangeAt(i).commonAncestorContainer, el)) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+                } else if ( (sel = document.selection) && sel.type != "Control") {
+                    return isOrContains(sel.createRange().parentElement(), el);
+                }
+                return false;
+            },
+            recurReplacement = function(node) {
+                if (node.nodeType === 3 && node.parentNode) {
+                    if (!elementContainsSelection(node)) {
+                        var replaced = node.parentNode.innerHTML.replace(pattern, repl);
+                        if (node.parentNode.innerHTML != replaced) {
+                            // Only update the innerHTML of elements that actually contain the text
+                            node.parentNode.innerHTML = replaced;
+                        }
+                    }
+                } else {
+                    u.toArray(node.childNodes).forEach(function(elem) {
+                        recurReplacement(elem);
+                    });
+                }
+            };
+        recurReplacement(termNode);
     }
 });
 

@@ -3398,6 +3398,10 @@ class Terminal(object):
                         # No change since the last dump.  Use the cache...
                         results.append(self.html_cache[linecount])
                         continue # Nothing changed so move on to the next line
+            if not len(line.tounicode().rstrip()):
+                results.append(line.tounicode())
+                self.html_cache[linecount] = u''
+                continue # Line is empty so we don't need to process renditions
             outline = ""
             if current_classes:
                 outline += '<span class="%s%s">' % (
@@ -3491,7 +3495,7 @@ class Terminal(object):
                 results.append(outline)
                 self.html_cache[linecount] = outline
             else:
-                results.append(None) # 'null' is shorter than 4 spaces
+                results.append(None) # null is shorter than 4 spaces
                 self.html_cache[linecount] = u''
             # NOTE: The client has been programmed to treat None (aka null in
             #       JavaScript) as blank lines.
@@ -3520,6 +3524,9 @@ class Terminal(object):
         backgrounds = ('b0','b1','b2','b3','b4','b5','b6','b7')
         html_entities = {"&": "&amp;", '<': '&lt;', '>': '&gt;'}
         for line, rendition in izip(screen, renditions):
+            if not len(line.tounicode().rstrip()):
+                results.append(line.tounicode())
+                continue # Line is empty so we don't need to process renditions
             outline = ""
             if current_classes:
                 outline += '<span class="%s%s">' % (

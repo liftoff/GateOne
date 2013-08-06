@@ -67,3 +67,7 @@
 span.✈reverse { color: #000; background-color: #fff; }
 span.✈cursor { color: #fff; background-color: #000; }
 span.✈reverse { background-color: #aaa; color: #fff; }
+.✈highlight {
+    background-color: #45BAE7;
+    color: black;
+}

@@ -238,6 +238,11 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             go.Terminal.Input.startSelection = null;
         }
         if (selectedText) {
+            // Temporarily disabled while I troubleshoot some bugs with the highlight() function
+            // Highlight the selected text elsewhere in the terminal (if > 3 characters)
+//             if (selectedText.length > 3) {
+//                 t.highlight(selectedText, selectedTerm);
+//             }
             // Don't show the pastearea as it will prevent the user from right-clicking to copy.
             return;
         }

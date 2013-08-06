@@ -117,7 +117,6 @@ go.Base.update(go.SSH, {
         go.Net.addAction('terminal:sshjs_delete_identity_complete', go.SSH.deleteCompleteAction);
         go.Net.addAction('terminal:sshjs_cmd_output', go.SSH.commandCompleted);
         go.Net.addAction('terminal:sshjs_ask_passphrase', go.SSH.enterPassphraseAction);
-        E.on("terminal:new_terminal", go.SSH.getConnectString);
         E.on("terminal:new_terminal", go.SSH.autoConnect);
         if (!go.prefs.embedded) {
             go.Input.registerShortcut('KEY_D', {'modifiers': {'ctrl': true, 'alt': true, 'meta': false, 'shift': false}, 'action': 'GateOne.SSH.duplicateSession(localStorage[GateOne.prefs.prefix+"selectedTerminal"])'});
@@ -951,6 +950,7 @@ go.Base.update(go.SSH, {
 
         Asks the SSH plugin on the Gate One server what the SSH connection string is for the given *term*.
         */
+        logDebug('getConnectString: ' + term);
         go.ws.send(JSON.stringify({'terminal:ssh_get_connect_string': term}));
     },
     deleteCompleteAction: function(message) {

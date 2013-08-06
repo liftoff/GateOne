@@ -461,6 +461,7 @@ def get_connect_string(self, term):
                     'terminal:sshjs_reconnect': json_encode(
                     {term: connect_string})
                 }
+                print("get_connect_string() writing: %s" % message)
                 self.write_message(message)
                 return # All done
 
@@ -1024,7 +1025,10 @@ def set_default_identities(self, identities):
     SSH connections by writing them to `<user's ssh dir>/.default_ids`.  If
     *identities* is empty, no identities will be used in outbound connections.
 
-    .. note:: Whenever this function is called it will overwrite whatever is in `.default_ids`.
+    .. note::
+
+        Whenever this function is called it will overwrite whatever is in
+        `.default_ids`.
     """
     if isinstance(identities, list): # Ignore anything else
         users_ssh_dir = get_ssh_dir(self)
@@ -1042,9 +1046,13 @@ def opt_esc_handler(self, text):
 
         \\x1b]_;ssh|<whatever>\x07
 
-    .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`
+    .. seealso::
+
+        :class:`gateone.TerminalWebSocket.esc_opt_handler` and
+        :func:`terminal.Terminal._opt_handler`
     """
     message = {'terminal:sshjs_connect': text}
+    print("opt_esc_handler message: %s" % message)
     self.write_message(message)
 
 def create_user_ssh_dir(self):

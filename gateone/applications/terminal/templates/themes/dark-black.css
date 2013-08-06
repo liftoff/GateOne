@@ -66,3 +66,7 @@
 /* The "reverse" default needs to be set in the theme since the background will vary */
 span.✈reverse { color: #000; background-color: #ccc; } /* Black on White */
 span.✈cursor { color: #000; background-color: #ccc; }
+.✈highlight {
+    background-color: #45BAE7;
+    color: black;
+}

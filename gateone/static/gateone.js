@@ -1946,6 +1946,7 @@ GateOne.Base.module(GateOne, 'Net', '1.1', ['Base', 'Utils']);
 GateOne.Net.sslErrorTimeout = null; // A timer gets assigned to this that opens a dialog when we have an SSL problem (user needs to accept the certificate)
 GateOne.Net.connectionSuccess = false; // Gets set after we connect successfully at least once
 GateOne.Net.sendDimensionsCallbacks = []; // DEPRECATED: A hook plugins can use if they want to call something whenever the terminal dimensions change
+GateOne.Net.reauthForceReload = true;
 GateOne.Net.binaryBuffer = {}; // Incoming binary data messages get stored here like so:
 // GateOne.Net.binaryBuffer[<ident>] = <binary message>
 // ...where <ident> is the data inside the binary message leading up to a semicolon
@@ -2024,8 +2025,13 @@ GateOne.Base.update(GateOne.Net, {
         return latency;
     },
     reauthenticate: function() {
-        // This is a courtesy from the Gate One server telling us to re-auth since it is about to close the WebSocket.
-        // Deletes the 'gateone_user' cookie and the equivalent in localStorage
+        /**:GateOne.Net.reauthenticate()
+
+        This is a courtesy from the Gate One server telling us to re-auth since it is about to close the WebSocket.
+        Deletes the 'gateone_user' cookie and the equivalent in `localStorage` then asks informs the user that the page is about to be reloaded (and reloads).
+
+        To disable the automatic reload set `GateOne.Net.reauthForceReload = false`.
+        */
         var go = GateOne,
             prefix = go.prefs.prefix,
             u = go.Utils,
@@ -2037,7 +2043,14 @@ GateOne.Base.update(GateOne.Net, {
                 } else {
                     window.location.reload(); // A simple reload *should* force a re-auth if all we're dealing with is a cookie/localStorage secret problem
                 }
-            }
+            },
+            takeAction = function() {
+                if (go.prefs.auth) {
+                    v.alert(gettext('API Authentication Failure'), gettext("The API authentication object was denied by the server.  Click OK to reload the page."), redirect);
+                } else {
+                    v.alert(gettext('Authentication Failure'), gettext('You must re-authenticate with the Gate One server.  The page will now be reloaded.'), redirect);
+                }
+            };
         u.deleteCookie('gateone_user', '/', '');
         delete localStorage[prefix+'gateone_user']; // Also clear this if it is set
         // This is wrapped in a timeout because the 'reauthenticate' message comes just before the WebSocket is closed
@@ -2046,10 +2059,9 @@ GateOne.Base.update(GateOne.Net, {
                 clearTimeout(go.Net.reconnectTimeout);
             }
         }, 500);
-        if (go.prefs.auth) {
-            v.alert(gettext('API Authentication Failure'), gettext("The API authentication object was denied by the server.  Click OK to reload the page."), redirect);
-        } else {
-            v.alert(gettext('Authentication Failure'), gettext('You must re-authenticate with the Gate One server.  The page will now be reloaded.'), redirect);
+        go.Events.trigger("go:reauthenticate");
+        if (go.Net.reauthForceReload) {
+            takeAction();
         }
     },
     sendDimensions: function(term, /*opt*/ctrl_l) {
@@ -2771,12 +2783,8 @@ GateOne.Base.update(GateOne.Visual, {
         go.Net.addAction('go:notice', v.serverMessageAction);
         go.Events.on('go:switch_workspace', v.slideToWorkspace);
         go.Events.on('go:cleanup_workspaces', v.cleanupWorkspaces);
-        window.addEventListener('resize', function() {
-            if (v.updateDimensionsDebounce) { clearTimeout(v.updateDimensionsDebounce); }
-            v.updateDimensionsDebounce = setTimeout(function() {
-                v.updateDimensions();
-            }, 250); // Just long enough to de-bounce the resize
-        }, false);
+        go.Visual.updateDimensions = u.debounce(go.Visual.updateDimensions, 500);
+        window.addEventListener('resize', go.Visual.updateDimensions, false);
         // Forthcoming New Workspace Workspace :)
 //         if (!go.prefs.embedded) {
 //             setTimeout(function() {
@@ -2831,42 +2839,31 @@ GateOne.Base.update(GateOne.Visual, {
 
         Sets `GateOne.Visual.goDimensions` to the current width/height of `GateOne.node` and triggers the "go:update_dimensions" event.
         */
+        logDebug('updateDimensions()');
         var u = go.Utils,
             prefix = go.prefs.prefix,
             goDiv = go.node,
             workspaces = u.toArray(u.getNodes('.✈workspace')),
             wrapperDiv = u.getNode('#'+prefix+'gridwrapper'),
             rightAdjust = 0,
-            transitionEndFunc = function(e) {
-                if (go.Visual.updateDimensionsTimer) {
-                    clearTimeout(go.Visual.updateDimensionsTimer);
-                    go.Visual.updateDimensionsTimer = null;
+            style = window.getComputedStyle(goDiv, null),
+            paddingRight = (style['padding-right'] || style['paddingRight']);
+            if (style['padding-right']) {
+                var rightAdjust = parseInt(paddingRight.split('px')[0]);
+            }
+            go.Visual.goDimensions.w = parseInt(style.width.split('px')[0]);
+            go.Visual.goDimensions.h = parseInt(style.height.split('px')[0]);
+            if (wrapperDiv) { // Explicit check here in case we're embedded into something that isn't using the grid (aka the wrapperDiv here).
+                // Update the width of gridwrapper in case #gateone has padding
+                wrapperDiv.style.width = ((go.Visual.goDimensions.w+rightAdjust)*2) + 'px';
+                if (workspaces.length) {
+                    workspaces.forEach(function(wsNode) {
+                        wsNode.style.height = go.Visual.goDimensions.h + 'px';
+                        wsNode.style.width = go.Visual.goDimensions.w + 'px';
+                    });
                 }
-                var style = window.getComputedStyle(goDiv, null),
-                    paddingRight = (style['padding-right'] || style['paddingRight']);
-                if (style['padding-right']) {
-                    var rightAdjust = parseInt(paddingRight.split('px')[0]);
-                }
-                go.Visual.goDimensions.w = parseInt(style.width.split('px')[0]);
-                go.Visual.goDimensions.h = parseInt(style.height.split('px')[0]);
-                if (wrapperDiv) { // Explicit check here in case we're embedded into something that isn't using the grid (aka the wrapperDiv here).
-                    // Update the width of gridwrapper in case #gateone has padding
-                    wrapperDiv.style.width = ((go.Visual.goDimensions.w+rightAdjust)*2) + 'px';
-                    if (workspaces.length) {
-                        workspaces.forEach(function(wsNode) {
-                            wsNode.style.height = go.Visual.goDimensions.h + 'px';
-                            wsNode.style.width = go.Visual.goDimensions.w + 'px';
-                        });
-                    }
-                }
-                go.Events.trigger("go:update_dimensions", go.Visual.goDimensions);
-                go.node.removeEventListener(transitionEndName, transitionEndFunc, false);
-            };
-        go.node.addEventListener(transitionEndName, transitionEndFunc, false);
-        go.Visual.updateDimensionsTimer = setTimeout(function() {
-            // This should only get called if the transitionend event never fires
-            transitionEndFunc();
-        }, 1100);
+            }
+            go.Events.trigger("go:update_dimensions", go.Visual.goDimensions);
     },
     applyTransform: function (obj, transform) {
         /**:GateOne.Visual.applyTransform(obj, transform)
@@ -5077,20 +5074,24 @@ GateOne.Base.update(GateOne.Events, {
             E.callbacks = {}; // Clear all events/callbacks
         } else {
             eventList = events ? events.split(/\s+/) : keys(E.callbacks);
-            for (i in eventList) {
+            for (var i in eventList) {
                 var event = eventList[i],
                     callList = E.callbacks[event];
                 if (callList) { // There's a matching event
                     var newList = [];
-                    for (n in callList) {
-                        if (callback && callList[n].callback.toString() == callback.toString()) {
-                            if (context && callList[n].context != context) {
-                                newList.push(callList[n]);
-                            } else if (context == null && callList[n].context) {
+                    for (var n in callList) {
+                        if (callback) {
+                             if (callList[n].callback.toString() == callback.toString()) {
+                                if (context && callList[n].context != context) {
+                                    newList.push(callList[n]);
+                                } else if (context === null && callList[n].context) {
 // If the context is undefined assume the dev wants to remove all matching callbacks for this event
 // However, if the context was set to null assume they only want to match callbacks that have no context.
+                                    newList.push(callList[n]);
+                                }
+                             } else {
                                 newList.push(callList[n]);
-                            }
+                             }
                         } else if (context && callList[n].context != context) {
                             newList.push(callList[n]);
                         }
@@ -5139,11 +5140,12 @@ GateOne.Base.update(GateOne.Events, {
             }
             if (callList) {
                 callList.forEach(function(callObj) {
-                    callObj.callback.apply(callObj.context || this, args);
+                    var context = callObj.context || this
+                    callObj.callback.apply(context, args);
                     if (callObj.times) {
                         callObj.times -= 1;
                         if (callObj.times == 0) {
-                            E.off(events, callObj.callback, callObj.context);
+                            E.off(event, callObj.callback, callObj.context);
                         }
                     }
                 });

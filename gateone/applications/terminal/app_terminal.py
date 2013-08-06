@@ -350,6 +350,7 @@ class TerminalApplication(GOApplication):
             'terminal:get_colors': self.get_colors,
             'terminal:set_encoding': self.set_term_encoding,
             'terminal:set_keyboard_mode': self.set_term_keyboard_mode,
+            'terminal:get_locations': self.get_locations,
             'terminal:get_terminals': self.terminals,
             'terminal:share_terminal': self.share_terminal,
             'terminal:share_user_list': self.share_user_list,
@@ -1550,6 +1551,26 @@ class TerminalApplication(GOApplication):
         }
         message = {'go:file_sync': out_dict}
         self.write_message(message)
+
+    @require(authenticated(), policies('terminal'))
+    def get_locations(self):
+        """
+        Attached to the "terminal:get_locations" WebSocket action.  Sends a
+        message to the client listing all 'locations' where terminals reside.
+
+        .. note::
+
+            Typically the location mechanism is used to open terminals in
+            different windows/tabs.
+        """
+        term_locations = {}
+        session = self.ws.session
+        for location, obj in SESSIONS[session]['locations'].items:
+            terms = location.get('terminal', [])
+            term_locations[location] = terms
+        message = {'terminal:term_locations': term_locations}
+        self.write_message(json_encode(message))
+        self.trigger("terminal:term_locations", term_locations)
 
 # Terminal sharing TODO (not in any particular order or priority):
 #   * GUI elements that allow a user to share a terminal:

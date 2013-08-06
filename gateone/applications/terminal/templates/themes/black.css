@@ -1,7 +1,7 @@
 /* Terminal black theme */
 .✈terminal {
     line-height: 1;
-    height: 100%; /* NOTE: This is important for the getRowsAndColumns() calculation */
+    height: 100%; /* This is important for the getRowsAndColumns() calculation */
 {% if embedded %}
     width: 100%;
     right: 0;
@@ -69,3 +69,7 @@ span.✈cursor { color: #000; background-color: #ccc; }
 /* Override the black text background since our background is already black */
 span.✈b0 { background-color: transparent; }
 span.✈f0.✈b0 { color: #444; background-color: transparent; } /* Black on Black */
+.✈highlight {
+    background-color: #45BAE7;
+    color: black;
+}

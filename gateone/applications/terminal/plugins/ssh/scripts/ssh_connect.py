@@ -37,6 +37,7 @@ wrapper_script = """\
 #!/bin/sh
 # This variable is for easy retrieval later
 SSH_SOCKET='{socket}'
+trap "rm -f {temp}" EXIT
 {cmd}
 echo '[Press Enter to close this terminal]'
 read waitforuser
@@ -402,7 +403,7 @@ def openssh_connect(
         os.setsid() # This is the key
     # Execute then immediately quit so we don't use up any more memory than we
     # need.
-    os.execvpe('/bin/sh', ['-c', script_path], env)
+    os.execvpe('/bin/sh', ['-c', script_path, '&&', 'rm', '-f', script_path], env)
     os._exit(0)
 
 def telnet_connect(user, host, port=23, env=None):

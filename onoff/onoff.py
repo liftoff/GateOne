@@ -6,13 +6,16 @@
 # For license information see LICENSE.txt
 
 # Meta
-__version__ = '1.0.0'
-__version_info__ = (1, 0, 0)
+__version__ = '1.0.1'
+__version_info__ = (1, 0, 1)
 __license__ = "Apache 2.0 (see LICENSE.txt)"
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 
 import logging
+
+if bytes != str: # Python 3
+    unicode = str # Necessary for a type check below
 
 class OnOffMixin(object):
     """
@@ -86,7 +89,7 @@ class OnOffMixin(object):
         # Make sure our _on_off_events dict is present (if first invokation)
         if not hasattr(self, '_on_off_events'):
             self._on_off_events = {}
-        if isinstance(events, str):
+        if isinstance(events, (str, unicode)):
             events = [events]
         callback_obj = {
             'callback': callback,
@@ -104,7 +107,7 @@ class OnOffMixin(object):
         Removes the given *callback* from the given *events* (string or list of
         strings).
         """
-        if isinstance(events, str):
+        if isinstance(events, (str, unicode)):
             events = [events]
         for event in events:
             for callback_obj in self._on_off_events[event]:
@@ -133,8 +136,10 @@ class OnOffMixin(object):
         # Make sure our _on_off_events dict is present (if first invokation)
         if not hasattr(self, '_on_off_events'):
             self._on_off_events = {}
-        logging.debug("OnOffMixin.triggering event(s): %s" % events)
-        if isinstance(events, str):
+        logging.debug(
+            "OnOffMixin.triggering event(s): %s (args: %s, kwargs: %s)"
+            % (events, args, kwargs))
+        if isinstance(events, (str, unicode)):
             events = [events]
         for event in events:
             if event in self._on_off_events:

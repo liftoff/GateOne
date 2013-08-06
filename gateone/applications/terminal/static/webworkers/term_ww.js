@@ -26,10 +26,13 @@ var processLines = function(lines, textTransforms) {
             output[i] = ""; // An empty string will do (emulates unchanged)
         } else if (line.length) {
             // Trim trailing whitespace only if the line isn't just full of whitespace
-            var trimmedLine = line.replace(/\s*$/g, "");
-            if (trimmedLine) {
-                line = trimmedLine;
+            var trimmedLine = line.replace(/\s+$/g, "");
+            if (!trimmedLine.length) {
+                // Need a space here so the browser gives the block some height
+                trimmedLine = " ";
+                // NOTE:  There's logic in terminal.js to ensure trailing whitespace gets removed when copying text from a terminal
             }
+            line = trimmedLine;
             output[i] = line;
         } else {
             // Line is unchanged
