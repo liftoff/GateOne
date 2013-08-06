@@ -2286,10 +2286,12 @@ go.Base.update(GateOne.Terminal, {
             recurReplacement = function(node) {
                 if (node.nodeType === 3 && node.parentNode) {
                     if (!elementContainsSelection(node)) {
-                        var replaced = node.parentNode.innerHTML.replace(pattern, repl);
-                        if (node.parentNode.innerHTML != replaced) {
+                        var replaced = node.nodeValue.replace(pattern, repl);
+                        if (node.nodeValue != replaced) {
                             // Only update the innerHTML of elements that actually contain the text
-                            node.parentNode.innerHTML = replaced;
+                            var newNode = u.createElement('span');
+                            newNode.innerHTML = replaced;
+                            node.parentNode.replaceChild(newNode, node);
                         }
                     }
                 } else {
@@ -2299,6 +2301,15 @@ go.Base.update(GateOne.Terminal, {
                 }
             };
         recurReplacement(termNode);
+    },
+    unHighlight: function() {
+        /**:GateOne.Terminal.unHighlight()
+
+        Undoes the results of :js:meth:`GateOne.Terminal.highlight`.
+        */
+        u.toArray(u.getNodes('.✈highlight')).forEach(function(elem) {
+            elem.className = "";
+        });
     }
 });
 
