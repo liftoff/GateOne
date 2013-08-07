@@ -2286,7 +2286,7 @@ go.Base.update(GateOne.Terminal, {
             recurReplacement = function(node) {
                 if (node.nodeType === 3 && node.parentNode) {
                     if (!elementContainsSelection(node)) {
-                        var replaced = node.nodeValue.replace(pattern, repl);
+                        var replaced = node.nodeValue.replace('<', '&lt;').replace('>', '&gt;').replace(pattern, repl);
                         if (node.nodeValue != replaced) {
                             // Only update the innerHTML of elements that actually contain the text
                             var newNode = u.createElement('span');

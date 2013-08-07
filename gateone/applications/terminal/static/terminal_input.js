@@ -247,6 +247,8 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             }
             // Don't show the pastearea as it will prevent the user from right-clicking to copy.
             return;
+        } else {
+            go.Terminal.unHighlight();
         }
         if (document.activeElement.tagName == "INPUT" || document.activeElement.tagName == "TEXTAREA" || document.activeElement.tagName == "SELECT" || document.activeElement.tagName == "BUTTON") {
             return; // Don't do anything if the user is editing text in an input/textarea or is using a select element (so the up/down arrows work)
