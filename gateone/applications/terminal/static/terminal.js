@@ -2255,7 +2255,8 @@ go.Base.update(GateOne.Terminal, {
             term = localStorage[prefix+'selectedTerminal'];
         }
         var termNode = go.Terminal.terminals[term]['node'],
-            pattern = new RegExp(text, 'g'),
+            regexText = text.replace(/([.?*+^$[\]\\(){}|\-])/g, "\\$1"),
+            pattern = new RegExp(regexText, 'g'),
             repl = '<span class="✈highlight">' + text + '</span>',
             isOrContains = function(node, container) {
                 while (node) {
