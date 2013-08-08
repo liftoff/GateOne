@@ -146,7 +146,7 @@ Class Docstrings
 """
 
 # Import stdlib stuff
-import os, sys, re, logging, base64, codecs, unicodedata, tempfile
+import os, sys, re, logging, base64, codecs, unicodedata, tempfile, struct
 from io import BytesIO
 from array import array
 from datetime import datetime, timedelta
@@ -633,6 +633,9 @@ class FileType(object):
     thumbnail = None
     html_template = "" # Must be overridden
     html_icon_template = "" # Must be overridden
+    # This is for things like PDFs which can contain other FileTypes:
+    is_container = False # Must be overridden
+    helper = None # Optional function to be called when a capture is started
     def __init__(self,
         name, mimetype, re_header, re_capture, suffix="", path="", linkpath="", icondir=None):
         """
@@ -655,6 +658,7 @@ class FileType(object):
         self.linkpath = linkpath
         self.icondir = icondir
         self.file_obj = None
+        self.original_file = None # Can be used when the file is modified
 
     def __repr__(self):
         return "<%s>" % self.name
@@ -667,8 +671,11 @@ class FileType(object):
         """
         Make sure that self.file_obj gets closed/deleted.
         """
-        logging.debug("FileType __del__(): Closing/deleting temp file")
-        self.file_obj.close() # Ensures it gets deleted
+        logging.debug("FileType __del__(): Closing/deleting temp file(s)")
+        if self.file_obj:
+            self.file_obj.close() # Ensures it gets deleted
+        if self.original_file:
+            self.original_file.close()
 
     def raw(self):
         self.file_obj.seek(0)
@@ -735,6 +742,13 @@ class ImageFile(FileType):
                 return # Don't do anything--bad image
         else: # No PIL means no images.  Don't bother wasting memory.
             return
+        # Save a copy of the data so the user can have access to the original
+        if self.path:
+            if os.path.exists(self.path):
+                if os.path.isdir(self.path):
+                    self.original_file = tempfile.NamedTemporaryFile(
+                        suffix=self.suffix, dir=self.path)
+                    self.original_file.write(data)
         # Resize the image to be small enough to fit within a typical terminal
         if im.size[0] > 640 or im.size[1] > 480:
             im.thumbnail((640, 480), Image.ANTIALIAS)
@@ -792,10 +806,10 @@ class ImageFile(FileType):
                 else:
                     self.file_obj = open(self.path, 'rb+')
         else:
-            self.file_obj = tempfile.TemporaryFile()
+            self.file_obj = tempfile.TemporaryFile(suffix=self.suffix)
         try:
             im.save(self.file_obj, im.format)
-        except IOError:
+        except (AttributeError, IOError):
             # PIL was compiled without (complete) support for this format
             logging.error(_(
                 "PIL is missing support for this image type (%s).  You probably"
@@ -826,11 +840,18 @@ class ImageFile(FileType):
         encoded = base64.b64encode(self.file_obj.read())
         data_uri = "data:image/{type};base64,{encoded}".format(
             type=im.format.lower(), encoded=encoded.decode('utf-8'))
+        link = "%s/%s" % (self.linkpath, os.path.split(self.path)[1])
+        if self.original_file:
+            link = "%s/%s" % (
+                self.linkpath, os.path.split(self.original_file.name)[1])
         if self.thumbnail:
             return self.html_icon_template.format(
-                src=data_uri, width=im.size[0], height=im.size[1])
+                link=link,
+                src=data_uri,
+                width=im.size[0],
+                height=im.size[1])
         return self.html_template.format(
-            src=data_uri, width=im.size[0], height=im.size[1])
+            link=link, src=data_uri, width=im.size[0], height=im.size[1])
 
 class PNGFile(ImageFile):
     """
@@ -841,14 +862,22 @@ class PNGFile(ImageFile):
     mimetype = "image/png"
     suffix = ".png"
     re_header = re.compile(b'.*\x89PNG\r', re.DOTALL)
-    re_capture = re.compile(b'(\x89PNG\r.+IEND\xaeB`\x82)', re.DOTALL)
-    html_template = '<img src="{src}" width="{width}" height="{height}">'
+    re_capture = re.compile(b'(\x89PNG\r.+?IEND\xaeB`\x82)', re.DOTALL)
+    html_template = (
+        '<a target="_blank" href="{link}" '
+        'title="Click to open the original file in a new window (full size)">'
+        '<img src="{src}" width="{width}" height="{height}">'
+        '</a>'
+    )
 
-    def __init__(self, path="", **kwargs):
+    def __init__(self, path="", linkpath="", **kwargs):
         """
-        **path:** (optional) The path to a file or directory where the file should be stored.  If *path* is a directory a random filename will be chosen.
+        **path:** (optional) The path to a file or directory where the file
+        should be stored.  If *path* is a directory a random filename will be
+        chosen.
         """
         self.path = path
+        self.linkpath = linkpath
         self.file_obj = None
         # Images will be displayed inline so no icons unless overridden:
         self.html_icon_template = self.html_template
@@ -863,16 +892,201 @@ class JPEGFile(ImageFile):
     suffix = ".jpeg"
     re_header = re.compile(
         b'.*\xff\xd8\xff.+JFIF\x00|.*\xff\xd8\xff.+Exif\x00', re.DOTALL)
-    re_capture = re.compile(b'(\xff\xd8\xff.+\xff\xd9)', re.DOTALL)
-    html_template = '<img src="{src}" width="{width}" height="{height}">'
-    def __init__(self, path="", **kwargs):
+    re_capture = re.compile(b'(\xff\xd8\xff.+?\xff\xd9)', re.DOTALL)
+    html_template = (
+        '<a target="_blank" href="{link}" '
+        'title="Click to open the original file in a new window (full size)">'
+        '<img src="{src}" width="{width}" height="{height}">'
+        '</a>'
+    )
+    def __init__(self, path="", linkpath="", **kwargs):
         """
-        **path:** (optional) The path to a file or directory where the file should be stored.  If *path* is a directory a random filename will be chosen.
+        **path:** (optional) The path to a file or directory where the file
+        should be stored.  If *path* is a directory a random filename will be
+        chosen.
         """
         self.path = path
+        self.linkpath = linkpath
         self.file_obj = None
         # Images will be displayed inline so no icons unless overridden:
         self.html_icon_template = self.html_template
+
+class SoundFile(FileType):
+    """
+    A subclass of :class:`FileType` for sound files (e.g. .wav).  Overrides
+    :meth:`self.html` and :meth:`self.capture`.
+    """
+    # NOTE: I disabled autoplay on these sounds because it causes the browser to
+    # play back the sound with every screen update!  Press return a few times
+    # and the sound will play a few times; annoying!
+    html_template = (
+        '<a target="_blank" href="{link}" '
+        'title="Click to open the original file in a new window">'
+        '<audio controls>'
+        '<source src="{src}" type="{mimetype}">'
+        'Your browser does not support this audio format.'
+        '</audio>'
+        '</a>'
+    )
+    def capture(self, data, term_instance):
+        """
+        Captures the sound contained within *data*.  Will use *term_instance*
+        to make room for the embedded sound control in the terminal screen.
+
+        .. note::  Unlike :class:`FileType`, *term_instance* is mandatory.
+        """
+        logging.debug('SoundFile.capture()')
+        # Fix any carriage returns (generated by the shell):
+        #data = data.replace(b'\r\n', b'\n')
+        # Save a copy of the data so the user can have access to the original
+        if self.path:
+            if os.path.exists(self.path):
+                if os.path.isdir(self.path):
+                    self.original_file = tempfile.NamedTemporaryFile(
+                        suffix=self.suffix, dir=self.path)
+                    self.original_file.write(data)
+        # Make some room for the audio controls:
+        term_instance.newline()
+        # Write the captured image to disk
+        if self.path:
+            if os.path.exists(self.path):
+                if os.path.isdir(self.path):
+                    # Assume that a path was given for a reason and use a
+                    # NamedTemporaryFile instead of TemporaryFile.
+                    self.file_obj = tempfile.NamedTemporaryFile(
+                        suffix=self.suffix, dir=self.path)
+                    # Update self.path to use the new, actual file path
+                    self.path = self.file_obj.name
+                else:
+                    self.file_obj = open(self.path, 'rb+')
+        else:
+            self.file_obj = tempfile.TemporaryFile(suffix=self.suffix)
+        self.file_obj.write(data)
+        self.file_obj.flush()
+        self.file_obj.seek(0) # Go back to the start
+        return self.file_obj
+
+    def html(self):
+        """
+        Returns :attr:`self.file_obj` as an <img> tag with the src set to a
+        data::URI.
+        """
+        if not self.file_obj:
+            return u""
+        self.file_obj.seek(0)
+        # Need to encode base64 to create a data URI
+        encoded = base64.b64encode(self.file_obj.read())
+        data_uri = "data:{mimetype};base64,{encoded}".format(
+            mimetype=self.mimetype, encoded=encoded.decode('utf-8'))
+        link = "%s/%s" % (self.linkpath, os.path.split(self.path)[1])
+        if self.original_file:
+            link = "%s/%s" % (
+                self.linkpath, os.path.split(self.original_file.name)[1])
+        if self.thumbnail:
+            return self.html_icon_template.format(
+                link=link,
+                src=data_uri,
+                icon=self.thumbnail,
+                mimetype=self.mimetype)
+        return self.html_template.format(
+            link=link, src=data_uri, mimetype=self.mimetype)
+
+class WAVFile(SoundFile):
+    """
+    An override of :class:`SoundFile` for WAVs to hard-code the name, regular
+    expressions, mimetype, and suffix.  Also, a :func:`helper` function is
+    provided that adjusts the `self.re_capture` regex so that it precisely
+    matches the WAV file being captured.
+    """
+    name = _("WAV Sound")
+    mimetype = "audio/x-wav"
+    suffix = ".wav"
+    re_header = re.compile(b'RIFF....WAVEfmt', re.DOTALL)
+    re_capture = re.compile(b'(RIFF....WAVEfmt.+?\r\n)', re.DOTALL)
+    re_wav_header = re.compile(b'(RIFF.{40})', re.DOTALL)
+    def __init__(self, path="", linkpath="", **kwargs):
+        """
+        **path:** (optional) The path to a file or directory where the file
+        should be stored.  If *path* is a directory a random filename will be
+        chosen.
+        """
+        self.path = path
+        self.linkpath = linkpath
+        self.file_obj = None
+        self.sent_message = False
+        # Sounds will be displayed inline so no icons unless overridden:
+        self.html_icon_template = self.html_template
+
+    def helper(self, term_instance):
+        """
+        Called at the start of a WAV file capture.  Calculates the length of the
+        file and modifies `self.re_capture` with laser precision.
+        """
+        data = term_instance.capture
+        self.wav_header = struct.unpack(
+            '4si4s4sihhiihh4si', self.re_wav_header.match(data).group())
+        if not self.sent_message:
+            channels = "mono"
+            if self.wav_header[6] == 2:
+                channels = "stereo"
+            message = _("WAV File: %skHz (%s)" % (self.wav_header[7], channels))
+            term_instance.send_message(message)
+            self.sent_message = True
+        # TODO: Figure out why this doesn't work for all WAV files:
+        wav_length = self.wav_header[12] + 44
+        # Update the capture regex with laser precision:
+        self.re_capture = re.compile(
+            b'(RIFF....WAVE.{%s})' % (wav_length-12), re.DOTALL)
+
+# NOTE:  This is a work in progress...  OGGs are complicated beasts
+class OGGFile(SoundFile):
+    """
+    An override of :class:`SoundFile` for OGGs to hard-code the name, regular
+    expressions, mimetype, and suffix.
+    """
+    name = _("OGG Sound")
+    mimetype = "audio/x-ogg"
+    suffix = ".ogg"
+    # NOTE: \x02 below marks "start of stream" and \x04 is "end of stream"
+    re_header = re.compile(b'OggS\x00\x02\x00', re.DOTALL)
+    # NOTE: This should never actually match since it will be replaced by the
+    # helper() function:
+    re_capture = re.compile(b'(OggS\x00\x02\x00.+?OggS\x00\x04\r\n)', re.DOTALL)
+    re_ogg_header = re.compile(b'(OggS\x00\x02\x00.{20})', re.DOTALL)
+    re_last_segment = re.compile(b'(OggS\x00\x04\x00.{20})', re.DOTALL)
+    def __init__(self, path="", linkpath="", **kwargs):
+        """
+        **path:** (optional) The path to a file or directory where the file
+        should be stored.  If *path* is a directory a random filename will be
+        chosen.
+        """
+        self.path = path
+        self.linkpath = linkpath
+        self.file_obj = None
+        self.sent_message = False
+        # Sounds will be displayed inline so no icons unless overridden:
+        self.html_icon_template = self.html_template
+
+    def helper(self, term_instance):
+        """
+        Called at the start of a OGG file capture.  Calculates the length of the
+        file and modifies `self.re_capture` with laser precision.
+        """
+        data = term_instance.capture
+        last_segment_header = re_last_segment.match(data).group()
+        ogg_segment_length = ord(last_segment_header[26]) * 255
+        if not self.sent_message:
+            channels = "mono"
+            if self.wav_header[6] == 2:
+                channels = "stereo"
+            message = _("OGG File: %skHz (%s)" % (self.wav_header[7], channels))
+            term_instance.send_message(message)
+            self.sent_message = True
+        # TODO: Figure out why this doesn't work for all WAV files:
+        wav_length = self.wav_header[12] + 44
+        # Update the capture regex with laser precision:
+        self.re_capture = re.compile(
+            b'(RIFF....WAVE.{%s})' % (wav_length-12), re.DOTALL)
 
 class PDFFile(FileType):
     """
@@ -897,6 +1111,7 @@ class PDFFile(FileType):
     html_template = (
         '<span class="pdfcontainer"><a target="_blank" href="{link}">{name}</a>'
         '</span>')
+    is_container = True
 
     def __init__(self, path="", linkpath="", icondir=None):
         """
@@ -1400,6 +1615,7 @@ class Terminal(object):
         self.add_magic(PDFFile)
         self.add_magic(PNGFile)
         self.add_magic(JPEGFile)
+        self.add_magic(WAVFile)
         # NOTE:  The order matters!  Some file formats are containers that can
         # hold other file formats.  For example, PDFs can contain JPEGs.  So if
         # we match JPEGs before PDFs we might make a match when we really wanted
@@ -1973,9 +2189,10 @@ class Terminal(object):
                     try:
                         if magic_header.match(chars):
                             self.matched_header = magic_header
-                            self.capture_regex = magic[magic_header]
                             self.timeout_capture = datetime.now()
                             self.progress_timer = datetime.now()
+                            # Create an instance of the filetype
+                            self._filetype_instance()
                             break
                     except UnicodeEncodeError:
                         # Gibberish; drop it and pretend it never happened
@@ -1986,6 +2203,10 @@ class Terminal(object):
                         chars = chars.encode(self.encoding, 'ignore')
             if self.capture or self.matched_header:
                 self.capture += chars
+                ref = self.screen[self.cursorY][self.cursorX]
+                ft_instance = self.captured_files[ref]
+                if ft_instance.helper:
+                    ft_instance.helper(self)
                 if self.cancel_capture:
                     # Try to split the garbage from the post-ctrl-c output
                     split_capture = self.RE_SIGINT.split(self.capture)
@@ -2015,19 +2236,20 @@ class Terminal(object):
                     self.notified = True
                     self.send_message(message)
                     self.progress_timer = datetime.now()
-                match = self.capture_regex.search(self.capture)
+                match = ft_instance.re_capture.search(self.capture)
                 if match:
                     logging.debug(
                         "Matched %s format (%s, %s).  Capturing..." % (
                         self.magic_map[self.matched_header].name,
                         self.cursorY, self.cursorX))
-                    split_capture = self.capture_regex.split(self.capture, 1)
+                    split_capture = ft_instance.re_capture.split(self.capture,1)
                     before_chars = split_capture[0]
                     capture_length = len(split_capture[1])
                     self.capture = split_capture[1]
                     after_chars = b"".join(split_capture[2:])
                 if after_chars:
-                    if len(after_chars) > 500:
+                    is_container = magic_map[self.matched_header].is_container
+                    if is_container and len(after_chars) > 500:
                         # Could be more to this file.  Let's wait until output
                         # slows down before attempting to perform a match
                         logging.debug(
@@ -2465,6 +2687,23 @@ class Terminal(object):
         """
         self.esc_buffer = '\x1b['
 
+    def _filetype_instance(self):
+        """
+        Instantiates a new instance of the given :class:`FileType` (using
+        `self.matched_header`) and stores the result in `self.captured_files`
+        and creates a reference to that location at the current cursor location.
+        """
+        ref = self.file_counter.next()
+        # Before doing anything else we need to mark the current cursor
+        # location as belonging to our file
+        self.screen[self.cursorY][self.cursorX] = ref
+        # Create an instance of the filetype we can reference
+        filetype_instance = self.magic_map[self.matched_header](
+            path=self.temppath,
+            linkpath=self.linkpath,
+            icondir=self.icondir)
+        self.captured_files[ref] = filetype_instance
+
     def _capture_file(self):
         """
         This function gets called by :meth:`Terminal.write` when the incoming
@@ -2473,29 +2712,18 @@ class Terminal(object):
         :attr:`self.magic_map`.
         """
         logging.debug("_capture_file()")
-        for magic_header in self.magic.keys():
-            if magic_header.match(self.capture):
-                # Create a reference point we can use to retrieve the file later
-                ref = self.file_counter.next()
-                # Before doing anything else we need to mark the current cursor
-                # location as belonging to our file
-                self.screen[self.cursorY][self.cursorX] = ref
-                # Create an instance of the filetype we can reference
-                filetype_instance = self.magic_map[magic_header](
-                    path=self.temppath,
-                    linkpath=self.linkpath,
-                    icondir=self.icondir)
-                self.captured_files[ref] = filetype_instance
-                filetype_instance.capture(self.capture, self)
-                # Start up an open file watcher so leftover file objects get
-                # closed when they're no longer being used
-                if not self.watcher or not self.watcher.isAlive():
-                    import threading
-                    self.watcher = threading.Thread(
-                        name='watcher', target=self._captured_fd_watcher)
-                    self.watcher.setDaemon(True)
-                    self.watcher.start()
-                return
+        ref = self.screen[self.cursorY][self.cursorX]
+        filetype_instance = self.captured_files[ref]
+        filetype_instance.capture(self.capture, self)
+        # Start up an open file watcher so leftover file objects get
+        # closed when they're no longer being used
+        if not self.watcher or not self.watcher.isAlive():
+            import threading
+            self.watcher = threading.Thread(
+                name='watcher', target=self._captured_fd_watcher)
+            self.watcher.setDaemon(True)
+            self.watcher.start()
+        return
 
     def _captured_fd_watcher(self):
         """

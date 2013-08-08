@@ -240,7 +240,7 @@ GateOne.Base.update(GateOne.Terminal.Input, {
         if (selectedText) {
             // Temporarily disabled while I troubleshoot some bugs with the highlight() function
             // Highlight the selected text elsewhere in the terminal (if > 3 characters)
-            if (selectedText.length > 3) {
+            if (go.prefs.highlightSelection && selectedText.length > 3) {
                 t.unHighlight(); // Clear any existing highlighted text
                 t.highlight(selectedText, selectedTerm);
                 E.once("terminal:term_update", t.unHighlight); // Make sure the highlight gets cleared at the next update

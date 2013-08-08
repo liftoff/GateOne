@@ -55,6 +55,7 @@ go.prefs['webWorker'] = null; // This is the fallback path to the Terminal's scr
 go.prefs['scrollback'] = go.prefs['scrollback'] || 500, // Amount of lines to keep in the scrollback buffer
 go.prefs['rows'] = go.prefs['rows'] || null; // Override the automatically calculated value (null means fill the window)
 go.prefs['cols'] = go.prefs['cols'] || null; // Ditto
+go.prefs['highlightSelection'] = go.prefs['highlightSelection'] || true; // If false selecting text will not result in other occurences of that text being highlighted
 go.prefs['audibleBell'] = go.prefs['audibleBell'] || true; // If false, the bell sound will not be played (visual notification will still occur),
 go.prefs['bellSound'] = go.prefs['bellSound'] || ''; // Stores the bell sound data::URI (cached).
 go.prefs['bellSoundType'] = go.prefs['bellSoundType'] || ''; // Stores the mimetype of the bell sound.
@@ -417,6 +418,7 @@ go.Base.update(GateOne.Terminal, {
             go.prefs['scrollback'] = 500;
             go.prefs['rows'] = null;
             go.prefs['cols'] = null;
+            go.prefs['highlightSelection'] = true;
             go.prefs['audibleBell'] = true;
             go.prefs['bellSound'] = '';
             go.prefs['bellSoundType'] = '';
@@ -473,6 +475,8 @@ go.Base.update(GateOne.Terminal, {
             tableDiv2 = u.createElement('div', {'id': 'prefs_tablediv2', 'class':'✈paneltable', 'style': {'display': 'table', 'padding': '0.5em'}}),
             prefsPanelColorsLabel = u.createElement('span', {'id': 'prefs_colors_label', 'class':'✈paneltablelabel'}),
             prefsPanelColors = u.createElement('select', {'id': 'prefs_colors', 'name':'prefs_colors', 'style': {'display': 'table-cell', 'float': 'right'}}),
+            prefsPanelDisableHighlightLabel = u.createElement('span', {'id': 'prefs_disablehighlight_label', 'class':'✈paneltablelabel'}),
+            prefsPanelDisableHighlight = u.createElement('input', {'id': 'prefs_disablehighlight', 'name': prefix+'prefs_disablehighlight', 'value': 'disablehighlight', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelDisableAudibleBellLabel = u.createElement('span', {'id': 'prefs_disableaudiblebell_label', 'class':'✈paneltablelabel'}),
             prefsPanelDisableAudibleBell = u.createElement('input', {'id': 'prefs_disableaudiblebell', 'name': prefix+'prefs_disableaudiblebell', 'value': 'disableaudiblebell', 'type': 'checkbox', 'style': {'display': 'table-cell', 'text-align': 'right', 'float': 'right'}}),
             prefsPanelBellLabel = u.createElement('span', {'id': 'prefs_bell_label', 'class':'✈paneltablelabel'}),
@@ -490,6 +494,7 @@ go.Base.update(GateOne.Terminal, {
                     scrollbackValue = u.getNode('#'+prefix+'prefs_scrollback').value,
                     rowsValue = u.getNode('#'+prefix+'prefs_rows').value,
                     colsValue = u.getNode('#'+prefix+'prefs_cols').value,
+                    disableHighlight = u.getNode('#'+prefix+'prefs_disablehighlight').checked,
                     disableAudibleBell = u.getNode('#'+prefix+'prefs_disableaudiblebell').checked;
                 // Grab the form values and set them in prefs
                 if (colors != go.prefs.colors) {
@@ -509,6 +514,12 @@ go.Base.update(GateOne.Terminal, {
                 } else {
                     go.prefs.cols = null;
                 }
+                if (disableHighlight) {
+                    go.prefs.highlightSelection = false;
+                    go.Terminal.unHighlight(); // In case there's something currently highlighted
+                } else {
+                    go.prefs.highlightSelection = true;
+                }
                 if (disableAudibleBell) {
                     go.prefs.audibleBell = false;
                 } else {
@@ -520,16 +531,20 @@ go.Base.update(GateOne.Terminal, {
             go.Terminal.uploadBellDialog();
         }
         prefsPanelColorsLabel.innerHTML = "<b>Color Scheme:</b> ";
+        prefsPanelDisableHighlightLabel.innerHTML = "<b>Disable Selected Text Highlighting:</b> ";
         prefsPanelDisableAudibleBellLabel.innerHTML = "<b>Disable Bell Sound:</b> ";
         prefsPanelBell.innerHTML = "Configure";
         prefsPanelBellLabel.innerHTML = "<b>Bell Sound:</b> ";
         prefsPanelStyleRow2.appendChild(prefsPanelColorsLabel);
         prefsPanelStyleRow2.appendChild(prefsPanelColors);
+        prefsPanelStyleRow4.appendChild(prefsPanelDisableHighlightLabel);
+        prefsPanelStyleRow4.appendChild(prefsPanelDisableHighlight);
         prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBellLabel);
         prefsPanelStyleRow5.appendChild(prefsPanelDisableAudibleBell);
         prefsPanelStyleRow6.appendChild(prefsPanelBellLabel);
         prefsPanelStyleRow6.appendChild(prefsPanelBell);
         tableDiv.appendChild(prefsPanelStyleRow2);
+        tableDiv.appendChild(prefsPanelStyleRow4);
         tableDiv.appendChild(prefsPanelStyleRow5);
         tableDiv.appendChild(prefsPanelStyleRow6);
         prefsPanelScrollbackLabel.innerHTML = "<b>Scrollback Buffer Lines:</b> ";
