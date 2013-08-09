@@ -3666,7 +3666,7 @@ class Terminal(object):
                         # No change since the last dump.  Use the cache...
                         results.append(self.html_cache[linecount])
                         continue # Nothing changed so move on to the next line
-            if not len(line.tounicode().rstrip()):
+            if not len(line.tounicode().rstrip()) and linecount != cursorY:
                 results.append(line.tounicode())
                 self.html_cache[linecount] = u''
                 continue # Line is empty so we don't need to process renditions
