@@ -1256,13 +1256,15 @@ go.Base.update(GateOne.Terminal, {
                 }
                 if (elem.className.indexOf && elem.className.indexOf('✈termline') != -1) {
                     termline = elem; // End it
-                } else if (elem.tagName.toLowerCase && elem.tagName.toLowerCase() == 'a') {
-                    // Anchor elements mean we shouldn't make the pastearea reappear so the user can click on them
-                    if (go.Terminal.pasteAreaTimer) {
-                        clearTimeout(go.Terminal.pasteAreaTimer);
-                        go.Terminal.pasteAreaTimer = null;
+                } else if (elem.tagName.toLowerCase) {
+                    if (elem.tagName.toLowerCase() == 'a' || elem.tagName.toLowerCase() == 'audio') {
+                        // Anchor elements mean we shouldn't make the pastearea reappear so the user can click on them
+                        if (go.Terminal.pasteAreaTimer) {
+                            clearTimeout(go.Terminal.pasteAreaTimer);
+                            go.Terminal.pasteAreaTimer = null;
+                        }
+                        return;
                     }
-                    return;
                 } else if (elem.className.indexOf && elem.className.indexOf('✈clickable') != -1) {
                     // Clickable elements mean we shouldn't make the pastearea reappear
                     if (go.Terminal.pasteAreaTimer) {

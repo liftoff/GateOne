@@ -207,8 +207,14 @@ GateOne.Base.update(GateOne.Terminal.Input, {
             if (!selectedText.length) {
                 // Redisplay the pastearea so we can get a proper context menu in case the user wants to paste
                 // NOTE: On Firefox this behavior is broken.  See: https://bugzilla.mozilla.org/show_bug.cgi?id=785773
-                u.showElement(selectedPastearea);
-                selectedPastearea.focus();
+                if (elementUnder) {
+                    var tagName = elementUnder.tagName.toLowerCase();
+                    // Allow users to right-click on anchors, audio, video, and images to get properties and whatnot
+                    if (tagName != "audio" && tagName != "video" && tagName != "img" && tagName != "a") {
+                        u.showElement(selectedPastearea);
+                        selectedPastearea.focus();
+                    }
+                }
             } else {
                 go.node.focus();
             }
