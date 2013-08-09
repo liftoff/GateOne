@@ -2100,9 +2100,7 @@ go.Base.update(GateOne.Terminal, {
                     v.switchWorkspace(go.Terminal.terminals[term]['workspace']);
                     go.Terminal.switchTerminal(go.Terminal.lastTermNumber);
                 });
-                setTimeout(function() {
-                    go.Terminal.newTerminal();
-                }, 1100);
+                go.Terminal.newTerminal();
             }
         }
         E.trigger("terminal:term_reattach", terminals);

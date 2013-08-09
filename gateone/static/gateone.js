@@ -2147,7 +2147,7 @@ GateOne.Base.update(GateOne.Net, {
         }
         go.ws.onerror = function(evt) {
             // Something went wrong with the WebSocket (who knows?)
-            logError("ERROR on WebSocket: " + evt.data);
+            logError("ERROR on WebSocket");
         }
         go.ws.onmessage = go.Net.onMessage;
         // Assume SSL connect failure if readyState doesn't change from 3 within 5 seconds
