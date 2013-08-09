@@ -1027,20 +1027,23 @@ class WAVFile(SoundFile):
         data = term_instance.capture
         self.wav_header = struct.unpack(
             '4si4s4sihhiihh4si', self.re_wav_header.match(data).group())
+        self.wav_length = self.wav_header[1] + 8
         if not self.sent_message:
             channels = "mono"
             if self.wav_header[6] == 2:
                 channels = "stereo"
+            if self.wav_length != self.wav_header[12] + 44:
+                # Corrupt WAV file
+                message = _("WAV File is corrupted: Header data mismatch.")
+                term_instance.send_message(message)
+                term_instance.cancel_capture = True
             message = _("WAV File: %skHz (%s)" % (self.wav_header[7], channels))
             term_instance.send_message(message)
             self.sent_message = True
-        # TODO: Figure out why this doesn't work for all WAV files:
-        wav_length = self.wav_header[12] + 44
         # Update the capture regex with laser precision:
         self.re_capture = re.compile(
-            b'(RIFF....WAVE.{%s})' % (wav_length-12), re.DOTALL)
+            b'(RIFF....WAVE.{%s})' % (self.wav_length-12), re.DOTALL)
 
-# NOTE:  This is a work in progress...  OGGs are complicated beasts
 class OGGFile(SoundFile):
     """
     An override of :class:`SoundFile` for OGGs to hard-code the name, regular
