@@ -758,6 +758,8 @@ class ImageFile(FileType):
                     self.original_file = tempfile.NamedTemporaryFile(
                         suffix=self.suffix, dir=self.path)
                     self.original_file.write(data)
+                    self.original_file.flush()
+                    self.original_file.seek(0) # Just in case
         # Resize the image to be small enough to fit within a typical terminal
         if im.size[0] > 640 or im.size[1] > 480:
             im.thumbnail((640, 480), Image.ANTIALIAS)
@@ -781,12 +783,20 @@ class ImageFile(FileType):
                 term_instance.cursorX = 0
                 term_instance.newline() # Start with a newline
                 if newlines > term_instance.cursorY:
-                    for line in xrange(newlines):
-                        term_instance.newline()
+                    # Shift empty lines at the bottom to the top to kinda sorta
+                    # make room for the images so the user doesn't have to
+                    # scroll (hey, it works!)
+                    for i in xrange(newlines):
+                        line = term_instance.screen.pop()
+                        rendition = term_instance.renditions.pop()
+                        term_instance.screen.insert(0, line)
+                        term_instance.renditions.insert(0, rendition)
+                        term_instance.cursorY += 1
+                        #term_instance.newline()
                 # Save the new image location
                 term_instance.screen[
                     term_instance.cursorY][term_instance.cursorX] = ref
-                term_instance.newline()
+                term_instance.newline() # Follow-up newline
         elif term_instance.em_dimensions == None:
             # No way to calculate the number of lines the image will take
             term_instance.screen[img_Y][img_X] = u' ' # Empty old location
@@ -2304,11 +2314,12 @@ class Terminal(object):
                             # get handled properly
                             cap_temp = self.capture
                             self.capture = b""
+                            # This will overwrite our ref:
                             self.write(before_chars, special_checks=False)
                             # Put it back for the rest of the processing
                             self.capture = cap_temp
                         # Perform the capture and start anew
-                        self._capture_file()
+                        self._capture_file(ref)
                         if self.notified:
                             # Send a final notice of how big the file was (just
                             # to keep things consistent).
@@ -2734,6 +2745,7 @@ class Terminal(object):
         and creates a reference to that location at the current cursor location.
         """
         ref = self.file_counter.next()
+        logging.debug("_filetype_instance(%s)" % repr(ref))
         # Before doing anything else we need to mark the current cursor
         # location as belonging to our file
         self.screen[self.cursorY][self.cursorX] = ref
@@ -2744,15 +2756,16 @@ class Terminal(object):
             icondir=self.icondir)
         self.captured_files[ref] = filetype_instance
 
-    def _capture_file(self):
+    def _capture_file(self, ref):
         """
         This function gets called by :meth:`Terminal.write` when the incoming
         character stream matches a value in :attr:`self.magic`.  It will call
         whatever function is associated with the matching regex in
-        :attr:`self.magic_map`.
+        :attr:`self.magic_map`.  It also stores the current file capture
+        reference (*ref*) at the current cursor location.
         """
-        logging.debug("_capture_file()")
-        ref = self.screen[self.cursorY][self.cursorX]
+        logging.debug("_capture_file(%s)" % repr(ref))
+        self.screen[self.cursorY][self.cursorX] = ref
         filetype_instance = self.captured_files[ref]
         filetype_instance.capture(self.capture, self)
         # Start up an open file watcher so leftover file objects get
