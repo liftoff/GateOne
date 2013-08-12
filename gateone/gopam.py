@@ -113,8 +113,14 @@ def authenticate(username, password, service='login', tty="console", **kwargs):
 
     :param string username: The username to authenticate.
     :param string password: The password in plain text.
-    :param string service: The PAM service to authenticate against.  Defaults to 'login'.
-    :param string tty: Name of the TTY device to use when authenticating.  Defaults to 'console' (to allow root).
+    :param string service:
+
+        The PAM service to authenticate against.  Defaults to 'login'.
+
+    :param string tty:
+
+        Name of the TTY device to use when authenticating.  Defaults to
+        'console' (to allow root).
 
     If additional keyword arguments are provided they will be passed to
     PAM_SET_ITEM() like so::
