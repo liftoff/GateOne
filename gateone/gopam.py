@@ -13,6 +13,8 @@ __version_info__ = (1.0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
+.. _gopam.py:
+
 PAM Authentication Module for Python
 ====================================
 Provides an authenticate function that will allow the caller to authenticate

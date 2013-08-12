@@ -9,8 +9,13 @@ __version__ = '1.0'
 __version_info__ = (1, 0)
 __license__ = "AGPLv3 or Proprietary (see LICENSE.txt)"
 __doc__ = """
-This authentication module is built on top of gopam.py which is included with
-Gate One.
+.. _authpam.py:
+
+PAM Authentication Module for Gate One
+======================================
+
+This authentication module is built on top of :ref:`gopam.py` which is included
+with Gate One.
 
 It was originally written by Alan Schmitz.
 
@@ -39,7 +44,8 @@ import tornado.web
 
 class PAMAuthMixin(tornado.web.RequestHandler):
     """
-    This is used by PAMAuthHandler in auth.py to authenticate users via PAM.
+    This is used by `PAMAuthHandler` in :ref:`auth.py` to authenticate users via
+    PAM.
     """
     def initialize(self):
         """
@@ -51,7 +57,7 @@ class PAMAuthMixin(tornado.web.RequestHandler):
 
     def get_authenticated_user(self, callback):
         """
-        Processes the client's Authorization header and call self.auth_basic()
+        Processes the client's Authorization header and call `self.auth_basic()`
         """
         auth_header = self.request.headers.get('Authorization')
         if auth_header and auth_header.startswith('Basic '):
@@ -59,7 +65,7 @@ class PAMAuthMixin(tornado.web.RequestHandler):
 
     def auth_basic(self, auth_header, callback):
         """
-        Perform Basic authentication using self.settings['pam_realm'].
+        Perform Basic authentication using `self.settings['pam_realm']`.
         """
         auth_decoded = base64.decodestring(auth_header[6:].encode('ascii'))
         username, password = auth_decoded.decode('utf-8').split(':', 1)
