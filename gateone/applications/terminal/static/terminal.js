@@ -54,7 +54,7 @@ go.Icons['newTerm'] = '<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-n
 go.prefs['webWorker'] = null; // This is the fallback path to the Terminal's screen processing Web Worker (term_ww.js).  You should only ever have to change this when embedding and your Gate One server is listening on a different port than your app's web server.  In such situations you'd want to copy term_ww.js to some location on your server and set this variable to that path (e.g. 'https://your-app.company.com/static/term_ww.js').
 go.prefs['scrollback'] = go.prefs['scrollback'] || 500, // Amount of lines to keep in the scrollback buffer
 go.prefs['rows'] = go.prefs['rows'] || null; // Override the automatically calculated value (null means fill the window)
-go.prefs['cols'] = go.prefs['cols'] || null; // Ditto
+go.prefs['columns'] = go.prefs['columns'] || null; // Ditto
 go.prefs['highlightSelection'] = go.prefs['highlightSelection'] || true; // If false selecting text will not result in other occurences of that text being highlighted
 go.prefs['audibleBell'] = go.prefs['audibleBell'] || true; // If false, the bell sound will not be played (visual notification will still occur),
 go.prefs['bellSound'] = go.prefs['bellSound'] || ''; // Stores the bell sound data::URI (cached).
@@ -84,7 +84,7 @@ GateOne.Terminal.terminals = { // For keeping track of running terminals
 }
 // These two variables are semi-constants that are used in determining the size of terminals.  They make room for...
 go.Terminal.colAdjust = 4; // The scrollbar (3 chars of width is usually enough)
-go.Terminal.rowAdjust = 1; // The row that gets cut off at the top of the terminal by the browser (when doing our row/cols calculation)
+go.Terminal.rowAdjust = 1; // The row that gets cut off at the top of the terminal by the browser (when doing our row/columns calculation)
 // All updateTermCallbacks are executed whenever a terminal is updated like so: callback(<term number>)
 // Plugins can register updateTermCallbacks by simply doing a push():  GateOne.Terminal.updateTermCallbacks.push(myFunc);
 go.Terminal.updateTermCallbacks = []; // DEPRECATED
@@ -130,7 +130,7 @@ go.Base.update(GateOne.Terminal, {
             infoPanelRowsLabel = u.createElement('span', {'id': 'rows_label', 'style': {'display': 'table-cell'}}),
             infoPanelRows = u.createElement('span', {'id': 'rows', 'style': {'display': 'table-cell'}}),
             infoPanelColsLabel = u.createElement('span', {'id': 'cols_label', 'style': {'display': 'table-cell'}}),
-            infoPanelCols = u.createElement('span', {'id': 'cols', 'style': {'display': 'table-cell'}}),
+            infoPanelCols = u.createElement('span', {'id': 'columns', 'style': {'display': 'table-cell'}}),
             infoPanelBackspaceLabel = u.createElement('span', {'id': 'backspace_label', 'style': {'display': 'table-cell'}}),
             infoPanelBackspace = u.createElement('span', {'id': 'backspace', 'style': {'display': 'table-cell'}}),
             infoPanelBackspaceCheckH = u.createElement('input', {'type': 'radio', 'id': 'backspace_h', 'name': 'backspace', 'value': '^H', 'style': {'display': 'table-cell'}}),
@@ -178,7 +178,7 @@ go.Base.update(GateOne.Terminal, {
         infoPanelRowsLabel.innerHTML = "<b>Rows:</b> ";
         infoPanelRows.innerHTML = go.prefs.rows; // Will be replaced
         infoPanelColsLabel.innerHTML = "<b>Columns:</b> ";
-        infoPanelCols.innerHTML = go.prefs.cols; // Will be replaced
+        infoPanelCols.innerHTML = go.prefs.columns; // Will be replaced
         infoPanelBackspaceLabel.innerHTML = "<b>Backspace Key:</b> ";
         infoPanelBackspaceCheckQ.checked = true;
         infoPanelBackspaceCheckQ.onclick = function(e) {
@@ -340,7 +340,7 @@ go.Base.update(GateOne.Terminal, {
                 termObj = go.Terminal.terminals[term];
             u.getNode('#'+prefix+'term_time').innerHTML = termObj['created'].toLocaleString() + "<br />";
             u.getNode('#'+prefix+'rows').innerHTML = termObj['rows'] + "<br />";
-            u.getNode('#'+prefix+'cols').innerHTML = termObj['columns'] + "<br />";
+            u.getNode('#'+prefix+'columns').innerHTML = termObj['columns'] + "<br />";
             go.Visual.togglePanel('#'+prefix+'panel_info');
         }
         toolbarInfo.onclick = showInfo;
@@ -389,6 +389,7 @@ go.Base.update(GateOne.Terminal, {
         go.Net.addAction('terminal:terminals', go.Terminal.reattachTerminalsAction);
         go.Net.addAction('terminal:termupdate', go.Terminal.updateTerminalAction);
         go.Net.addAction('terminal:set_title', go.Terminal.setTitleAction);
+        go.Net.addAction('terminal:resize', go.Terminal.resizeAction);
         go.Net.addAction('terminal:term_ended', go.Terminal.closeTerminal);
         go.Net.addAction('terminal:term_exists', go.Terminal.reconnectTerminalAction);
         go.Net.addAction('terminal:term_moved', go.Terminal.moveTerminalAction);
@@ -402,7 +403,7 @@ go.Base.update(GateOne.Terminal, {
         go.Terminal.createPrefsPanel();
         go.Events.on("go:panel_toggle:in", updateColorsfunc);
         E.on("go:save_prefs", function() {
-            // In case the user changed the rows/cols or the font/size changed:
+            // In case the user changed the rows/columns or the font/size changed:
             setTimeout(function() { // Wrapped in a timeout since it takes a moment for everything to change in the browser
 //                 go.Visual.updateDimensions();
                 for (var termObj in GateOne.Terminal.terminals) {
@@ -417,7 +418,7 @@ go.Base.update(GateOne.Terminal, {
             go.prefs['disableTermTransitions'] = false;
             go.prefs['scrollback'] = 500;
             go.prefs['rows'] = null;
-            go.prefs['cols'] = null;
+            go.prefs['columns'] = null;
             go.prefs['highlightSelection'] = true;
             go.prefs['audibleBell'] = true;
             go.prefs['bellSound'] = '';
@@ -453,7 +454,7 @@ go.Base.update(GateOne.Terminal, {
         */
         var command = settings['command'];
         go.Terminal.newTerminal(); // Just create a new terminal in a new workspace for now.
-        // TODO: Make this take settings like "command", rows/cols, and *where*.
+        // TODO: Make this take settings like "command", rows/columns, and *where*.
     },
     createPrefsPanel: function() {
         /**:GateOne.Terminal.createPrefsPanel()
@@ -510,9 +511,9 @@ go.Base.update(GateOne.Terminal, {
                     go.prefs.rows = null;
                 }
                 if (colsValue) {
-                    go.prefs.cols = parseInt(colsValue);
+                    go.prefs.columns = parseInt(colsValue);
                 } else {
-                    go.prefs.cols = null;
+                    go.prefs.columns = null;
                 }
                 if (disableHighlight) {
                     go.prefs.highlightSelection = false;
@@ -552,7 +553,7 @@ go.Base.update(GateOne.Terminal, {
         prefsPanelRowsLabel.innerHTML = "<b>Terminal Rows:</b> ";
         prefsPanelRows.value = go.prefs.rows || "";
         prefsPanelColsLabel.innerHTML = "<b>Terminal Columns:</b> ";
-        prefsPanelCols.value = go.prefs.cols || "";
+        prefsPanelCols.value = go.prefs.columns || "";
         prefsPanelRow1.appendChild(prefsPanelScrollbackLabel);
         prefsPanelRow1.appendChild(prefsPanelScrollback);
         prefsPanelRow4.appendChild(prefsPanelRowsLabel);
@@ -722,11 +723,11 @@ go.Base.update(GateOne.Terminal, {
     sendDimensions: function(term, /*opt*/ctrl_l) {
         /**:GateOne.Terminal.sendDimensions(term[, ctrl_l])
 
-        Sends the current terminal's dimensions to the server.
+        Detects and sends the current terminal's dimensions (rows/columns) to the server.
         */
         logDebug('sendDimensions(' + term + ', ' + ctrl_l + ')');
         var prevRows = go.prefs.rows,
-            prevCols = go.prefs.cols;
+            prevCols = go.prefs.columns;
         if (!term) {
             var term = localStorage[GateOne.prefs.prefix+'selectedTerminal'];
         }
@@ -745,23 +746,23 @@ go.Base.update(GateOne.Terminal, {
             prefs = {
                 'term': term,
                 'rows': Math.ceil(dimensions.rows - rowAdjust),
-                'cols': Math.ceil(dimensions.cols - colAdjust),
+                'columns': Math.ceil(dimensions.columns - colAdjust),
                 'em_dimensions': emDimensions
             }
         if (!emDimensions || !dimensions) {
             return; // Nothing to do
         }
-        if (prefs.rows < 2 || prefs.cols < 2) {
+        if (prefs.rows < 2 || prefs.columns < 2) {
             return; // Something went wrong; ignore
         }
-        if (prevRows == prefs.rows && prevCols == prefs.cols) {
+        if (prevRows == prefs.rows && prevCols == prefs.columns) {
             return; // Nothing to do
         }
 //         if (go.prefs.showToolbar || go.prefs.showTitle) {
-//             prefs['cols'] = prefs['cols'] - 4; // If there's no toolbar and no title there's no reason to have empty space on the right.
+//             prefs['columns'] = prefs['columns'] - 4; // If there's no toolbar and no title there's no reason to have empty space on the right.
 //         }
-        // Apply user-defined rows and cols (if set)
-        if (go.prefs.cols) { prefs.cols = go.prefs.cols };
+        // Apply user-defined rows and columns (if set)
+        if (go.prefs.columns) { prefs.columns = go.prefs.columns };
         if (go.prefs.rows) { prefs.rows = go.prefs.rows };
         // Execute any sendDimensionsCallbacks
         E.trigger("terminal:send_dimensions", term);
@@ -804,6 +805,21 @@ go.Base.update(GateOne.Terminal, {
             go.Visual.applyTransform(sideinfo, "rotate(90deg) scale(" + scaleDown + ")" + "translateY(" + scrollbarAdjust + "px)");
         }
         E.trigger('terminal:set_title_action', term, title);
+    },
+    resizeAction: function(message) {
+        /**:GateOne.Terminal.resizeAction(message)
+
+        Called when the server sends the "terminal:resize" WebSocket action.  Sets the 'rows' and 'columns' values inside `GateOne.Terminal.terminals[message['term']]` and sets the same values inside the Info & Tools panel.
+        */
+        var term = message['term'],
+            rows = message['rows'],
+            columns = message['columns'],
+            infoPanelRows = u.getNode('#'+prefix+'rows'),
+            infoPanelCols = u.getNode('#'+prefix+'columns');
+        go.Terminal.terminals[term]['rows'] = rows;
+        go.Terminal.terminals[term]['columns'] = columns;
+        infoPanelRows.innerHTML = rows + "<br />";
+        infoPanelCols.innerHTML = columns + "<br />";
     },
     paste: function(e) {
         /**:GateOne.Terminal.paste(e)
@@ -894,7 +910,7 @@ go.Base.update(GateOne.Terminal, {
         }
         v.applyTransform(termPre, ''); // Need to reset before we do the calculation
         var emDimensions = u.getEmDimensions(screenSpan, screenSpan.parentNode);
-        if (go.prefs.rows) { // If someone explicitly set rows/cols, scale the term to fit the screen
+        if (go.prefs.rows) { // If someone explicitly set rows/columns, scale the term to fit the screen
             if (screenSpan.getClientRects()[0]) {
                 var nodeHeight = screenSpan.offsetHeight + emDimensions.h, // The +1 em height compensates for the presence of the playback controls
                     nodeWidth = screenSpan.offsetWidth + (emDimensions.w * 2); // Making room for the toolbar
@@ -1365,7 +1381,7 @@ go.Base.update(GateOne.Terminal, {
         // TODO: Get this calculating/sizing the terminal based on where it is being put instead of go.node
         logDebug("newTerminal(" + term + ")");
         var t = go.Terminal,
-            currentTerm, terminal, emDimensions, dimensions, rows, cols, pastearea, switchTermFunc,
+            currentTerm, terminal, emDimensions, dimensions, rows, columns, pastearea, switchTermFunc,
             termUndefined = false,
             gridwrapper = u.getNode('#'+prefix+'gridwrapper'),
             rowAdjust = go.prefs.rowAdjust + go.Terminal.rowAdjust,
@@ -1463,9 +1479,9 @@ go.Base.update(GateOne.Terminal, {
         emDimensions = u.getEmDimensions(terminal, terminal.parentNode);
         dimensions = u.getRowsAndColumns(terminal);
         rows = Math.ceil(dimensions.rows - rowAdjust);
-        cols = Math.ceil(dimensions.cols - colAdjust);
+        columns = Math.ceil(dimensions.columns - colAdjust);
         go.Terminal.terminals[term]['rows'] = rows;
-        go.Terminal.terminals[term]['columns'] = cols;
+        go.Terminal.terminals[term]['columns'] = columns;
         go.Terminal.terminals[term]['terminal'] = terminal; // Cache it for quicker access later
         for (var i=0; i<dimensions.rows; i++) {
             // Fill out prevScreen with spaces
@@ -1477,7 +1493,7 @@ go.Base.update(GateOne.Terminal, {
         var termSettings = {
                 'term': term,
                 'rows': rows,
-                'cols': cols,
+                'columns': columns,
                 'em_dimensions': emDimensions
             },
             slide = u.partial(go.Terminal.switchTerminal, term);
@@ -1494,8 +1510,8 @@ go.Base.update(GateOne.Terminal, {
         pastearea = go.Terminal.newPastearea(term);
         terminal.appendChild(pastearea);
         go.Terminal.terminals[term]['pasteNode'] = pastearea;
-        // Apply user-defined rows and cols (if set)
-        if (go.prefs.cols) { termSettings.cols = go.prefs.cols };
+        // Apply user-defined rows and columns (if set)
+        if (go.prefs.columns) { termSettings.columns = go.prefs.columns };
         if (go.prefs.rows) { termSettings.rows = go.prefs.rows };
         // Tell the server to create a new terminal process
         go.ws.send(JSON.stringify({'terminal:new_terminal': termSettings}));

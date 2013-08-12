@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>example &mdash; Gate One 1.1.0 documentation</title>
+    <title>example &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
   <body>
@@ -164,17 +162,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># If data is POSTed to this handler via an XMLHTTPRequest send() it</span>
         <span class="c"># will show up like this:</span>
-        <span class="n">posted_as_a_whole</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span> <span class="c"># xhr.send()</span>
+        <span class="c">#posted_as_a_whole = self.request.body # xhr.send()</span>
         <span class="c"># If data was POSTed as arguments (i.e. traditional form) it will show</span>
         <span class="c"># up as individual arguments like this:</span>
-        <span class="n">posted_as_argument</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;arg&quot;</span><span class="p">)</span> <span class="c"># Form elem &#39;name=&quot;arg&quot;&#39;</span>
+        <span class="c">#posted_as_argument = self.get_argument(&quot;arg&quot;) # Form elem &#39;name=&quot;arg&quot;&#39;</span>
         <span class="c"># This is how you can parse JSON:</span>
-        <span class="n">parsed</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">json_decode</span><span class="p">(</span><span class="n">posted_as_an_argument</span><span class="p">)</span>
-        <span class="c"># For writing JSON it is recommended to use the json_encode() function</span>
-        <span class="c"># from Gate One&#39;s utils.py (since it takes care of Python 3 support):</span>
-        <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">json_encode</span>
+        <span class="c">#parsed = tornado.escape.json_decode(posted_as_an_argument)</span>
         <span class="n">json_output</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&#39;Success!&#39;</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">json_output</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_output</span><span class="p">)</span>
         <span class="c"># You&#39;d put self.finish() here if post() was wrapped with tornado&#39;s</span>
         <span class="c"># asynchronous decorator.</span>
 
@@ -221,17 +216,18 @@
 <span class="sd">    called by the client (browser) inside of example.js (which is in this</span>
 <span class="sd">    plugin&#39;s &#39;static&#39; dir).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;example_pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="s">&quot;just pretend&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:example_pong&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="c"># WebSockets are asynchronous so you can send as many messages as you want</span>
-    <span class="n">message2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notice&#39;</span><span class="p">:</span> <span class="s">&#39;You just executed the &quot;example_action&quot; action.&#39;</span><span class="p">}</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">message2</span><span class="p">))</span>
+    <span class="n">message2</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="s">&#39;You just executed the &quot;example_action&quot; action.&#39;</span><span class="p">}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message2</span><span class="p">)</span>
     <span class="c"># Alternatively, you can combine multiple messages/actions into one message:</span>
     <span class="n">combined</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;notice&#39;</span><span class="p">:</span> <span class="s">&#39;Hurray!&#39;</span><span class="p">,</span>
-        <span class="s">&#39;bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span><span class="p">}</span>
+        <span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="s">&#39;Hurray!&#39;</span><span class="p">,</span>
+        <span class="s">&#39;terminal:bell&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_term</span><span class="p">}</span>
     <span class="p">}</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">json_encode</span><span class="p">(</span><span class="n">combined</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span>
 
 <span class="c"># Now for some special sauce...  The Special Optional Escape Sequence Handler!</span></div>
 <div class="viewcode-block" id="example_opt_esc_handler"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_opt_esc_handler">[docs]</a><span class="k">def</span> <span class="nf">example_opt_esc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
@@ -244,11 +240,11 @@
 <span class="sd">    execute whatever callback is registered for SOESH.  Inside of Gate One this</span>
 <span class="sd">    callback will always be :func:`gateone.TerminalWebSocket.esc_opt_handler`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;notice&#39;</span><span class="p">:</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span>
      <span class="s">&quot;You just executed the Example plugin&#39;s optional escape sequence handler!&quot;</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="example_command_hook"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_command_hook">[docs]</a><span class="k">def</span> <span class="nf">example_command_hook</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+<div class="viewcode-block" id="example_command_hook"><a class="viewcode-back" href="../Developer/plugin_example.html#example.example_command_hook">[docs]</a><span class="k">def</span> <span class="nf">example_command_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This demonstrates how to modify Gate One&#39;s configured &#39;command&#39; before it is</span>
 <span class="sd">    executed.  It will replace any occurrance of %EXAMPLE% with &#39;foo&#39;.  So if</span>
@@ -266,7 +262,7 @@
 <span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;Web&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s">r&quot;/example&quot;</span><span class="p">,</span> <span class="n">ExampleHandler</span><span class="p">)],</span>
     <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;example_action&#39;</span><span class="p">:</span> <span class="n">example_websocket_action</span>
+        <span class="s">&#39;terminal:example_action&#39;</span><span class="p">:</span> <span class="n">example_websocket_action</span>
     <span class="p">},</span>
     <span class="s">&#39;Command&#39;</span><span class="p">:</span> <span class="n">example_command_hook</span><span class="p">,</span>
     <span class="s">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">example_opt_esc_handler</span><span class="p">,</span>
@@ -317,7 +313,7 @@
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ssh &mdash; Gate One 1.1.0 documentation</title>
+    <title>ssh &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
   <body>
@@ -79,7 +77,10 @@
 <span class="s">            &#39;ssh_set_default_identities&#39;: set_default_identities</span>
 <span class="s">        },</span>
 <span class="s">        &#39;Escape&#39;: opt_esc_handler,</span>
-<span class="s">        &#39;Auth&#39;: create_user_ssh_dir</span>
+<span class="s">        &#39;Events&#39;: {</span>
+<span class="s">            &#39;terminal:authenticate&#39;: send_css_template,</span>
+<span class="s">            &#39;terminal:authenticate&#39;: create_user_ssh_dir</span>
+<span class="s">        }</span>
 <span class="s">    }</span>
 
 <span class="s">Docstrings</span>
@@ -87,9 +88,9 @@
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Meta</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.1&#39;</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;GNU AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
-<span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Dan McDougall &lt;daniel.mcdougall@liftoffsoftware.com&gt;&#39;</span>
 
 <span class="c"># Python stdlib</span>
@@ -100,7 +101,7 @@
 <span class="c"># Our stuff</span>
 <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">BaseHandler</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span><span class="p">,</span> <span class="n">mkdir_p</span><span class="p">,</span> <span class="n">shell_command</span><span class="p">,</span> <span class="n">which</span><span class="p">,</span> <span class="n">json_encode</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">noop</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">noop</span><span class="p">,</span> <span class="n">bind</span>
 
 <span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 
@@ -167,7 +168,7 @@
 
 <span class="sd">    .. note:: If the user&#39;s ssh directory doesn&#39;t start with a . (dot) it will be renamed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
     <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
     <span class="n">old_ssh_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&#39;ssh&#39;</span><span class="p">)</span>
     <span class="n">users_ssh_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&#39;.ssh&#39;</span><span class="p">)</span>
@@ -229,13 +230,13 @@
     <span class="c"># Hopefully &#39;go_ssh_remote_cmd&#39; will be a clear enough indication of</span>
     <span class="c"># what is going on by anyone that has to review the logs...</span>
     <span class="n">ssh</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s">&#39;ssh&#39;</span><span class="p">)</span>
-    <span class="n">ssh_command</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> -x -S</span><span class="si">%s</span><span class="s"> -F</span><span class="si">%s</span><span class="s"> go_ssh_remote_cmd&#39;</span> <span class="o">%</span> <span class="p">(</span>
+    <span class="n">ssh_command</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> -x -S&#39;</span><span class="si">%s</span><span class="s">&#39; -F&#39;</span><span class="si">%s</span><span class="s">&#39; go_ssh_remote_cmd&quot;</span> <span class="o">%</span> <span class="p">(</span>
         <span class="n">ssh</span><span class="p">,</span> <span class="n">socket_path</span><span class="p">,</span> <span class="n">ssh_config_path</span><span class="p">)</span>
     <span class="n">OPEN_SUBCHANNELS</span><span class="p">[</span><span class="n">term</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_multiplex</span><span class="p">(</span>
         <span class="n">ssh_command</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> (sub)&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
     <span class="c"># Using huge numbers here so we don&#39;t miss much (if anything) if the user</span>
     <span class="c"># executes something like &quot;ps -ef&quot;.</span>
-    <span class="n">fd</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span> <span class="c"># Hopefully 100/200 lines/cols is enough</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span> <span class="c"># Hopefully 100/200 lines/cols is enough</span>
     <span class="c"># ...if it isn&#39;t, well, that&#39;s not really what this is for :)</span>
     <span class="c"># Set the term title so it gets a proper name in the logs</span>
     <span class="n">m</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">u&#39;echo -e &quot;</span><span class="se">\\</span><span class="s">033]0;Term </span><span class="si">%s</span><span class="s"> sub-channel</span><span class="se">\\</span><span class="s">007&quot;&#39;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
@@ -251,7 +252,8 @@
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;wait_for_prompt()&#39;</span><span class="p">)</span>
     <span class="n">m_instance</span><span class="o">.</span><span class="n">term</span><span class="o">.</span><span class="n">clear_screen</span><span class="p">()</span> <span class="c"># Makes capturing just what we need easier</span>
     <span class="n">getoutput</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_cmd_output</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
-    <span class="n">m_instance</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="n">OUTPUT_MATCH</span><span class="p">,</span> <span class="n">getoutput</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">errorback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">m_instance</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="n">OUTPUT_MATCH</span><span class="p">,</span>
+        <span class="n">getoutput</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">errorback</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
     <span class="c"># Run our command immediately followed by our separation/ready string</span>
     <span class="n">m_instance</span><span class="o">.</span><span class="n">writeline</span><span class="p">((</span>
         <span class="s">u&#39;echo -e &quot;{rs}&quot;; &#39;</span> <span class="c"># Echo the first READY_STRING</span>
@@ -285,6 +287,7 @@
         <span class="s">&quot;^SUB-CHANNEL INACTIVITY TIMEOUT$&quot;</span><span class="p">,</span> <span class="c"># ^ and $ to prevent accidents ;)</span>
         <span class="n">noop</span><span class="p">,</span> <span class="c"># Don&#39;t need to do anything since this should never match</span>
         <span class="n">errorback</span><span class="o">=</span><span class="n">timeout_sub_channel</span><span class="p">,</span>
+        <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
         <span class="n">timeout</span><span class="o">=</span><span class="n">SUBCHANNEL_TIMEOUT</span><span class="p">)</span>
     <span class="n">m_instance</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="c"># To ensure the timeout occurs</span>
     <span class="n">cmd_out</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
@@ -315,7 +318,7 @@
         <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">m_instance</span><span class="o">.</span><span class="n">term_id</span><span class="p">)))</span>
     <span class="n">terminate_sub_channel</span><span class="p">(</span><span class="n">m_instance</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="got_error"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.got_error">[docs]</a><span class="k">def</span> <span class="nf">got_error</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="got_error"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.got_error">[docs]</a><span class="k">def</span> <span class="nf">got_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called if :func:`execute_command` encounters a problem/timeout.</span>
 
@@ -326,9 +329,9 @@
         <span class="s">&quot;execute_command() running: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">m_instance</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">m_instance</span><span class="o">.</span><span class="n">cmd</span><span class="p">)))</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;output before error: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">m_instance</span><span class="o">.</span><span class="n">dump</span><span class="p">())</span>
     <span class="n">terminate_sub_channel</span><span class="p">(</span><span class="n">m_instance</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">tws</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="p">:</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;sshjs_cmd_output&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;terminal:sshjs_cmd_output&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s">&#39;cmd&#39;</span><span class="p">:</span> <span class="n">cmd</span><span class="p">,</span>
                 <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
                 <span class="s">&#39;output&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
@@ -336,9 +339,9 @@
                     <span class="s">&#39;Error: Timeout exceeded or command failed to execute.&#39;</span><span class="p">)</span>
             <span class="p">}</span>
         <span class="p">}</span>
-        <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="execute_command"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.execute_command">[docs]</a><span class="k">def</span> <span class="nf">execute_command</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="execute_command"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.execute_command">[docs]</a><span class="k">def</span> <span class="nf">execute_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Execute the given command (*cmd*) on the given *term* using the existing</span>
 <span class="sd">    SSH tunnel (taking advantage of `Master mode &lt;http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing&gt;`_)</span>
@@ -355,14 +358,14 @@
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
         <span class="s">&quot;execute_command(): term: </span><span class="si">%s</span><span class="s">, cmd: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="n">open_sub_channel</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">tws</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">open_sub_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">SSHMultiplexingException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
             <span class="s">&quot;</span><span class="si">%s</span><span class="s">: Got an error trying to open sub-channel on term </span><span class="si">%s</span><span class="s">...&quot;</span> <span class="o">%</span>
-            <span class="p">(</span><span class="n">tws</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">term</span><span class="p">)))</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">],</span> <span class="n">term</span><span class="p">)))</span>
         <span class="c"># Try to send an error response to the client</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;sshjs_cmd_output&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;terminal:sshjs_cmd_output&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
                 <span class="s">&#39;cmd&#39;</span><span class="p">:</span> <span class="n">cmd</span><span class="p">,</span>
                 <span class="s">&#39;output&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
@@ -370,7 +373,7 @@
             <span class="p">}</span>
         <span class="p">}</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span> <span class="c"># This is really just a last-ditch thing</span>
             <span class="k">pass</span>
         <span class="k">return</span>
@@ -382,9 +385,10 @@
     <span class="c"># using a regular expression to match a shell prompt (which could be set</span>
     <span class="c"># to anything).  It also gives us a clear indication as to where the command</span>
     <span class="c"># output begins and ends.</span>
-    <span class="n">errorback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">got_error</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="n">cmd</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="n">tws</span><span class="p">)</span>
+    <span class="n">errorback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">got_error</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="o">=</span><span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="n">cmd</span><span class="p">)</span>
     <span class="n">wait</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">wait_for_prompt</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">errorback</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
-    <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="n">READY_MATCH</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">wait</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">errorback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="n">READY_MATCH</span><span class="p">,</span>
+        <span class="n">callback</span><span class="o">=</span><span class="n">wait</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">errorback</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Waiting for READY_MATCH inside execute_command()&quot;</span><span class="p">)</span>
     <span class="n">m</span><span class="o">.</span><span class="n">writeline</span><span class="p">(</span><span class="s">u&#39;echo -e &quot;</span><span class="se">\\</span><span class="s">n</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">READY_STRING</span><span class="p">)</span>
 </div>
@@ -395,7 +399,7 @@
 <span class="sd">    command&#39;s output and some relevant metadata.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;sshjs_cmd_output&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;terminal:sshjs_cmd_output&#39;</span><span class="p">:</span> <span class="p">{</span>
             <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
             <span class="s">&#39;cmd&#39;</span><span class="p">:</span> <span class="n">cmd</span><span class="p">,</span>
             <span class="s">&#39;output&#39;</span><span class="p">:</span> <span class="n">output</span><span class="p">,</span>
@@ -416,10 +420,10 @@
     <span class="n">cmd</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;cmd&#39;</span><span class="p">]</span>
     <span class="n">send</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">send_result</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">execute_command</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">send</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">execute_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">send</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">SSHExecutionException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;sshjs_cmd_output&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;terminal:sshjs_cmd_output&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s">&#39;term&#39;</span><span class="p">:</span> <span class="n">term</span><span class="p">,</span>
                 <span class="s">&#39;cmd&#39;</span><span class="p">:</span> <span class="n">cmd</span><span class="p">,</span>
                 <span class="s">&#39;output&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
@@ -456,7 +460,7 @@
 </div>
 <div class="viewcode-block" id="KnownHostsHandler._return_known_hosts"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.KnownHostsHandler._return_known_hosts">[docs]</a>    <span class="k">def</span> <span class="nf">_return_known_hosts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the user&#39;s known_hosts file in text/plain format.&quot;&quot;&quot;</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;known_hosts requested by </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
         <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
         <span class="n">users_ssh_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&#39;.ssh&#39;</span><span class="p">)</span>
@@ -469,7 +473,7 @@
 </div>
 <div class="viewcode-block" id="KnownHostsHandler._save_known_hosts"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.KnownHostsHandler._save_known_hosts">[docs]</a>    <span class="k">def</span> <span class="nf">_save_known_hosts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">known_hosts</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Save the given *known_hosts* file.&quot;&quot;&quot;</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
         <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
         <span class="n">users_ssh_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&#39;.ssh&#39;</span><span class="p">)</span>
         <span class="n">kh_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_ssh_dir</span><span class="p">,</span> <span class="s">&#39;known_hosts&#39;</span><span class="p">)</span>
@@ -484,33 +488,6 @@
 <span class="sd">------------------</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c"># WebSocket commands (not the same as handlers)</span>
-<span class="c">#def get_connect_string(term, tws):</span>
-    <span class="c">#&quot;&quot;&quot;</span>
-    <span class="c">#Writes the connection string associated with *term* to the `WebSocket &lt;https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket&gt;`_</span>
-    <span class="c">#like so::</span>
-
-        <span class="c">#{&#39;sshjs_reconnect&#39;: {*term*: &lt;connection string&gt;}}</span>
-
-    <span class="c">#In ssh.js we attach an action (aka handler) to :js:attr:`GateOne.Net.actions`</span>
-    <span class="c">#for &#39;sshjs_reconnect&#39; messages that attaches the connection string to</span>
-    <span class="c">#`GateOne.terminals[*term*][&#39;sshConnectString&#39;]`</span>
-    <span class="c">#&quot;&quot;&quot;</span>
-    <span class="c">#logging.debug(&quot;get_connect_string() term: %s&quot; % term)</span>
-    <span class="c">#session = tws.session</span>
-    <span class="c">#session_dir = tws.settings[&#39;session_dir&#39;]</span>
-    <span class="c">#for f in os.listdir(os.path.join(session_dir, session)):</span>
-        <span class="c">#if f.startswith(&#39;ssh:&#39;):</span>
-            <span class="c">#terminal, a_colon, connect_string = f[4:].partition(&#39;:&#39;)</span>
-            <span class="c">#terminal = int(terminal)</span>
-            <span class="c">#if terminal == term:</span>
-                <span class="c">## TODO: Make it so we don&#39;t have to use json_encode below...</span>
-                <span class="c">#message = {</span>
-                    <span class="c">#&#39;sshjs_reconnect&#39;: json_encode({term: connect_string})</span>
-                <span class="c">#}</span>
-                <span class="c">#tws.write_message(message)</span>
-                <span class="c">#return # All done</span>
-
-<span class="c"># New version</span>
 <div class="viewcode-block" id="get_connect_string"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.get_connect_string">[docs]</a><span class="k">def</span> <span class="nf">get_connect_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Writes the connection string associated with *term* to the `WebSocket &lt;https://developer.mozilla.org/en/WebSockets/WebSockets_reference/WebSocket&gt;`_</span>
@@ -520,7 +497,7 @@
 
 <span class="sd">    In ssh.js we attach an action (aka handler) to :js:attr:`GateOne.Net.actions`</span>
 <span class="sd">    for &#39;sshjs_reconnect&#39; messages that attaches the connection string to</span>
-<span class="sd">    `GateOne.terminals[*term*][&#39;sshConnectString&#39;]`</span>
+<span class="sd">    `GateOne.Terminal.terminals[*term*][&#39;sshConnectString&#39;]`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;get_connect_string() term: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">term</span><span class="p">)</span>
     <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">session</span>
@@ -532,8 +509,10 @@
             <span class="k">if</span> <span class="n">terminal</span> <span class="o">==</span> <span class="n">term</span><span class="p">:</span>
                 <span class="c"># TODO: Make it so we don&#39;t have to use json_encode below...</span>
                 <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s">&#39;sshjs_reconnect&#39;</span><span class="p">:</span> <span class="n">json_encode</span><span class="p">({</span><span class="n">term</span><span class="p">:</span> <span class="n">connect_string</span><span class="p">})</span>
+                    <span class="s">&#39;terminal:sshjs_reconnect&#39;</span><span class="p">:</span> <span class="n">json_encode</span><span class="p">(</span>
+                    <span class="p">{</span><span class="n">term</span><span class="p">:</span> <span class="n">connect_string</span><span class="p">})</span>
                 <span class="p">}</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;get_connect_string() writing: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
                 <span class="k">return</span> <span class="c"># All done</span>
 </div>
@@ -545,9 +524,9 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">)):</span>
         <span class="n">error_msg</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span>
             <span class="s">&#39;SSH Plugin Error: Invalid name given, </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;save_file&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="n">error_msg</span><span class="p">}}</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:save_file&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="n">error_msg</span><span class="p">}}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">out_dict</span>
+        <span class="k">return</span>
     <span class="k">if</span> <span class="n">public</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.pub&#39;</span><span class="p">):</span>
         <span class="n">name</span> <span class="o">+=</span> <span class="s">&#39;.pub&#39;</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -565,7 +544,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span>
             <span class="s">&#39;SSH Plugin Error: Public key not found at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">key_path</span><span class="p">)</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;save_file&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:save_file&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out_dict</span>
 </div>
@@ -586,31 +565,33 @@
 <span class="sd">    Returns a the hash of the given host&#39;s public key by making a remote</span>
 <span class="sd">    connection to the server (not just by looking at known_hosts).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="s">&#39;port&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
         <span class="n">port</span> <span class="o">=</span> <span class="mi">22</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">port</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="s">&#39;host&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Error:  You must supply a &#39;host&#39;.&quot;</span><span class="p">)</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;sshjs_display_fingerprint&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:sshjs_display_fingerprint&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">host</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;host&#39;</span><span class="p">]</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;get_host_fingerprint(</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
-    <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">out_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
         <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&#39;Success&#39;</span><span class="p">,</span>
         <span class="s">&#39;host&#39;</span><span class="p">:</span> <span class="n">host</span><span class="p">,</span>
         <span class="s">&#39;fingerprint&#39;</span><span class="p">:</span> <span class="bp">None</span>
-    <span class="p">}</span>
+    <span class="p">})</span>
     <span class="n">ssh</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s">&#39;ssh&#39;</span><span class="p">)</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> -p </span><span class="si">%s</span><span class="s"> -oUserKnownHostsFile=none -F. </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ssh</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">host</span><span class="p">)</span>
     <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_multiplex</span><span class="p">(</span>
-        <span class="s">&#39;</span><span class="si">%s</span><span class="s"> -p </span><span class="si">%s</span><span class="s"> -oUserKnownHostsFile=none -F. </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ssh</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">host</span><span class="p">),</span>
+        <span class="n">command</span><span class="p">,</span>
         <span class="s">&#39;get_host_key&#39;</span><span class="p">,</span>
         <span class="n">logging</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="c"># Logging is false so we don&#39;t make tons of silly logs</span>
     <span class="k">def</span> <span class="nf">grab_fingerprint</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
-        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;fingerprint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;fingerprint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">m_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;sshjs_display_fingerprint&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:sshjs_display_fingerprint&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="k">del</span> <span class="n">m_instance</span>
     <span class="k">def</span> <span class="nf">errorback</span><span class="p">(</span><span class="n">m_instance</span><span class="p">):</span>
@@ -619,10 +600,12 @@
             <span class="s">&quot;Error: Could not determine the fingerprint of </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">... &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span>
             <span class="o">%</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">leftovers</span><span class="p">)))</span>
         <span class="n">m_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="c"># Don&#39;t leave stuff hanging around!</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;sshjs_display_fingerprint&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:sshjs_display_fingerprint&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
         <span class="k">del</span> <span class="n">m_instance</span>
-    <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;.+fingerprint .+$&#39;</span><span class="p">,</span> <span class="n">grab_fingerprint</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">errorback</span><span class="p">)</span>
+    <span class="c"># &quot;The authenticity of host &#39;localhost (127.0.0.1)&#39; can&#39;t be established.\r\nECDSA key fingerprint is 83:f5:b1:f1:d3:8c:b8:fe:d3:be:e5:dd:95:a5:ba:73.\r\nAre you sure you want to continue connecting (yes/no)? &quot;</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">.+fingerprint .+</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span>
+        <span class="n">grab_fingerprint</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">errorback</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">()</span>
     <span class="c"># OpenSSH output example:</span>
     <span class="c"># ECDSA key fingerprint is 28:46:86:3a:c6:f9:63:b8:90:e1:09:69:f2:1d:c8:ce.</span>
@@ -636,7 +619,6 @@
 <span class="sd">    system.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;generate_new_keypair()&#39;</span><span class="p">)</span>
-    <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">users_ssh_dir</span> <span class="o">=</span> <span class="n">get_ssh_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;id_ecdsa&#39;</span>
     <span class="n">keytype</span> <span class="o">=</span> <span class="bp">None</span>
@@ -657,23 +639,29 @@
         <span class="c">#DROPBEAR_VERSION = shell_command(&#39;dropbear -V&#39;)[1].splitlines()[1]</span>
     <span class="k">if</span> <span class="n">which</span><span class="p">(</span><span class="s">&#39;ssh-keygen&#39;</span><span class="p">):</span> <span class="c"># Prefer OpenSSH</span>
         <span class="n">openssh_generate_new_keypair</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
             <span class="n">name</span><span class="p">,</span> <span class="c"># Name to use when generating the keypair</span>
             <span class="n">users_ssh_dir</span><span class="p">,</span> <span class="c"># Path to save it</span>
             <span class="n">keytype</span><span class="o">=</span><span class="n">keytype</span><span class="p">,</span>
             <span class="n">passphrase</span><span class="o">=</span><span class="n">passphrase</span><span class="p">,</span>
             <span class="n">bits</span><span class="o">=</span><span class="n">bits</span><span class="p">,</span>
-            <span class="n">comment</span><span class="o">=</span><span class="n">comment</span><span class="p">,</span>
-            <span class="n">tws</span><span class="o">=</span><span class="bp">self</span>
+            <span class="n">comment</span><span class="o">=</span><span class="n">comment</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">which</span><span class="p">(</span><span class="s">&#39;dropbearkey&#39;</span><span class="p">):</span>
-        <span class="n">dropbear_generate_new_keypair</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">dropbear_generate_new_keypair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span> <span class="c"># Name to use when generating the keypair</span>
+            <span class="n">users_ssh_dir</span><span class="p">,</span> <span class="c"># Path to save it</span>
+            <span class="n">keytype</span><span class="o">=</span><span class="n">keytype</span><span class="p">,</span>
+            <span class="n">passphrase</span><span class="o">=</span><span class="n">passphrase</span><span class="p">,</span>
+            <span class="n">bits</span><span class="o">=</span><span class="n">bits</span><span class="p">,</span>
+            <span class="n">comment</span><span class="o">=</span><span class="n">comment</span><span class="p">)</span>
 </div>
 <span class="k">def</span> <span class="nf">errorback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">):</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;keygen errorback()&quot;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">m_instance</span><span class="o">.</span><span class="n">dump</span><span class="p">())</span>
     <span class="n">m_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;sshjs_keygen_complete&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;terminal:sshjs_keygen_complete&#39;</span><span class="p">:</span> <span class="p">{</span>
             <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;There was a problem generating SSH keys: </span><span class="si">%s</span><span class="s">&quot;</span>
                         <span class="o">%</span> <span class="n">m_instance</span><span class="o">.</span><span class="n">dump</span><span class="p">()),</span>
         <span class="p">}</span>
@@ -694,7 +682,7 @@
 <span class="k">def</span> <span class="nf">finished</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">,</span> <span class="n">fingerprint</span><span class="p">):</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;keygen finished.  fingerprint: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">fingerprint</span><span class="p">)</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;sshjs_keygen_complete&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;terminal:sshjs_keygen_complete&#39;</span><span class="p">:</span> <span class="p">{</span>
             <span class="s">&#39;result&#39;</span><span class="p">:</span> <span class="s">&#39;Success&#39;</span><span class="p">,</span>
             <span class="s">&#39;fingerprint&#39;</span><span class="p">:</span> <span class="n">fingerprint</span>
         <span class="p">}</span>
@@ -702,8 +690,8 @@
     <span class="n">m_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
-<div class="viewcode-block" id="openssh_generate_new_keypair"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.openssh_generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">openssh_generate_new_keypair</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
-        <span class="n">keytype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="openssh_generate_new_keypair"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.openssh_generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">openssh_generate_new_keypair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
+        <span class="n">keytype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates a new private and public key pair--stored in the user&#39;s directory</span>
 <span class="sd">    using the given *name* and other optional parameters (using OpenSSH).</span>
@@ -746,36 +734,45 @@
         <span class="s">&quot;-b </span><span class="si">%s</span><span class="s"> &quot;</span>    <span class="c"># bits</span>
         <span class="s">&quot;-t </span><span class="si">%s</span><span class="s"> &quot;</span>    <span class="c"># keytype</span>
         <span class="s">&quot;-C &#39;</span><span class="si">%s</span><span class="s">&#39; &quot;</span>  <span class="c"># comment</span>
-        <span class="s">&quot;-f </span><span class="si">%s</span><span class="s">&quot;</span>     <span class="c"># Key path</span>
+        <span class="s">&quot;-f &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span>   <span class="c"># Key path</span>
         <span class="o">%</span> <span class="p">(</span><span class="n">ssh_keygen_path</span><span class="p">,</span> <span class="n">bits</span><span class="p">,</span> <span class="n">keytype</span><span class="p">,</span> <span class="n">comment</span><span class="p">,</span> <span class="n">key_path</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="n">tws</span><span class="o">.</span><span class="n">new_multiplex</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="s">&quot;gen_ssh_keypair&quot;</span><span class="p">)</span>
-    <span class="n">call_errorback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">errorback</span><span class="p">,</span> <span class="n">tws</span><span class="p">)</span>
-    <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;^Overwrite.*&#39;</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Keygen command: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">command</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_multiplex</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="s">&quot;gen_ssh_keypair&quot;</span><span class="p">)</span>
+    <span class="n">call_errorback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">errorback</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;^Overwrite.*&#39;</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
     <span class="n">passphrase_handler</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">enter_passphrase</span><span class="p">,</span> <span class="n">passphrase</span><span class="p">)</span>
     <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;^Enter passphrase&#39;</span><span class="p">,</span>
-        <span class="n">passphrase_handler</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">call_errorback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">passphrase_handler</span><span class="p">,</span>
+        <span class="n">errorback</span><span class="o">=</span><span class="n">call_errorback</span><span class="p">,</span>
+        <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
     <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;^Enter same passphrase again&#39;</span><span class="p">,</span>
-        <span class="n">passphrase_handler</span><span class="p">,</span> <span class="n">errorback</span><span class="o">=</span><span class="n">call_errorback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-    <span class="n">finalize</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="n">tws</span><span class="p">)</span>
+        <span class="n">passphrase_handler</span><span class="p">,</span>
+        <span class="n">errorback</span><span class="o">=</span><span class="n">call_errorback</span><span class="p">,</span>
+        <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">finalize</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
     <span class="c"># The regex below captures the md5 fingerprint which tells us the</span>
     <span class="c"># operation was successful.</span>
     <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span>
         <span class="s">&#39;(([0-9a-f][0-9a-f]\:){15}[0-9a-f][0-9a-f])&#39;</span><span class="p">,</span>
         <span class="n">finalize</span><span class="p">,</span>
         <span class="n">errorback</span><span class="o">=</span><span class="n">call_errorback</span><span class="p">,</span>
+        <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
         <span class="n">timeout</span><span class="o">=</span><span class="mi">15</span> <span class="c"># Key generation can take a little while</span>
     <span class="p">)</span>
     <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="dropbear_generate_new_keypair"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.dropbear_generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">dropbear_generate_new_keypair</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
-        <span class="n">keytype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="dropbear_generate_new_keypair"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.dropbear_generate_new_keypair">[docs]</a><span class="k">def</span> <span class="nf">dropbear_generate_new_keypair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span>
+        <span class="n">keytype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    .. note:: Not implemented yet</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
-<div class="viewcode-block" id="openssh_generate_public_key"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.openssh_generate_public_key">[docs]</a><span class="k">def</span> <span class="nf">openssh_generate_public_key</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="openssh_generate_public_key"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.openssh_generate_public_key">[docs]</a><span class="k">def</span> <span class="nf">openssh_generate_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates a public key from the given private key at *path*.  If a</span>
 <span class="sd">    *passphrase* is provided, it will be used to generate the public key (if</span>
@@ -796,26 +793,26 @@
     <span class="n">m</span> <span class="o">=</span> <span class="n">termio</span><span class="o">.</span><span class="n">Multiplex</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">request_passphrase</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="s">&quot;Called if this key requires a passphrase.  Ask the client to provide&quot;</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;sshjs_ask_passphrase&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="p">}</span>
-        <span class="n">tws</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:sshjs_ask_passphrase&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">bad_passphrase</span><span class="p">(</span><span class="n">m_instance</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
         <span class="s">&quot;Called if the user entered a bad passphrase&quot;</span>
         <span class="n">settings</span><span class="p">[</span><span class="s">&#39;bad&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">request_passphrase</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">passphrase</span><span class="p">:</span>
         <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;^Enter passphrase&#39;</span><span class="p">,</span>
-            <span class="s">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">passphrase</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+            <span class="s">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">passphrase</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
         <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;^load failed&#39;</span><span class="p">,</span>
-            <span class="n">bad_passphrase</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">bad_passphrase</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">settings</span><span class="p">:</span>
         <span class="n">m</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s">&#39;^Enter passphrase&#39;</span><span class="p">,</span>
-            <span class="n">request_passphrase</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">request_passphrase</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">atexit</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">exitstatus</span><span class="p">):</span>
         <span class="s">&quot;Raises an SSHKeygenException if the *exitstatus* isn&#39;t 0&quot;</span>
         <span class="k">if</span> <span class="n">exitstatus</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SSHKeygenException</span><span class="p">(</span><span class="n">_</span><span class="p">(</span>
                 <span class="s">&quot;Error generating public key from private key at </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">))</span>
-    <span class="n">fd</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">exitfunc</span><span class="o">=</span><span class="n">atexit</span><span class="p">)</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">exitfunc</span><span class="o">=</span><span class="n">atexit</span><span class="p">)</span>
     <span class="c">#exitstatus, output = shell_command(command)</span>
     <span class="c">#if exitstatus != 0:</span>
         <span class="c">#raise SSHKeygenException(_(</span>
@@ -906,9 +903,9 @@
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">private_key_path</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                     <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">private</span><span class="p">)</span>
                 <span class="c"># Without this you get a warning:</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">private_key_path</span><span class="p">,</span> <span class="mo">0600</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">private_key_path</span><span class="p">,</span> <span class="mi">0</span><span class="n">o600</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">({</span><span class="s">&#39;notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">({</span><span class="s">&#39;go:notice&#39;</span><span class="p">:</span> <span class="n">_</span><span class="p">(</span>
                     <span class="s">&quot;ERROR: Private key is not valid.&quot;</span><span class="p">)})</span>
                 <span class="k">return</span>
         <span class="k">if</span> <span class="n">public</span><span class="p">:</span>
@@ -934,8 +931,8 @@
             <span class="n">io_loop</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
             <span class="n">deadline</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">generate_public_key</span><span class="p">():</span> <span class="c"># I love closures</span>
-                <span class="n">openssh_generate_public_key</span><span class="p">(</span>
-                    <span class="n">private_key_path</span><span class="p">,</span> <span class="n">passphrase</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span> <span class="n">tws</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+                <span class="n">openssh_generate_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">private_key_path</span><span class="p">,</span> <span class="n">passphrase</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
                 <span class="n">get_ids</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_identities</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
                 <span class="n">io_loop</span><span class="o">.</span><span class="n">add_timeout</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">get_ids</span><span class="p">)</span>
             <span class="c"># This gets removed if the public key is uploaded</span>
@@ -948,7 +945,7 @@
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Error saving keys: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;sshjs_save_id_complete&#39;</span><span class="p">:</span> <span class="n">out_dict</span>
+        <span class="s">&#39;terminal:sshjs_save_id_complete&#39;</span><span class="p">:</span> <span class="n">out_dict</span>
     <span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
@@ -974,7 +971,7 @@
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">&quot;Error deleting keypair: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;sshjs_delete_identity_complete&#39;</span><span class="p">:</span> <span class="n">out_dict</span>
+        <span class="s">&#39;terminal:sshjs_delete_identity_complete&#39;</span><span class="p">:</span> <span class="n">out_dict</span>
     <span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
@@ -991,7 +988,6 @@
     <span class="n">users_ssh_dir</span> <span class="o">=</span> <span class="n">get_ssh_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;identities&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">ssh_keygen_path</span> <span class="o">=</span> <span class="n">which</span><span class="p">(</span><span class="s">&#39;ssh-keygen&#39;</span><span class="p">)</span>
-    <span class="n">keytype_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;.*\(([A-Z]+)\)$&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
     <span class="c"># TODO:  Switch this from using ssh-keygen to determine the keytype to using the string inside the public key.</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">users_ssh_dir</span><span class="p">):</span>
@@ -1013,7 +1009,8 @@
                             <span class="n">keytype</span> <span class="o">=</span> <span class="s">&#39;RSA&#39;</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">keytype</span> <span class="o">=</span> <span class="s">&#39;Unknown&#39;</span>
-                        <span class="n">keygen_cmd</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> -vlf </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ssh_keygen_path</span><span class="p">,</span> <span class="n">id_path</span><span class="p">)</span>
+                        <span class="n">keygen_cmd</span> <span class="o">=</span> <span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">&#39; -vlf &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">ssh_keygen_path</span><span class="p">,</span> <span class="n">id_path</span><span class="p">)</span>
                         <span class="n">retcode</span><span class="p">,</span> <span class="n">key_info</span> <span class="o">=</span> <span class="n">shell_command</span><span class="p">(</span><span class="n">keygen_cmd</span><span class="p">)</span>
                         <span class="c"># This will just wind up as an empty string if the</span>
                         <span class="c"># version of ssh doesn&#39;t support randomart:</span>
@@ -1021,13 +1018,13 @@
                         <span class="n">bits</span> <span class="o">=</span> <span class="n">key_info</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
                         <span class="n">fingerprint</span> <span class="o">=</span> <span class="n">key_info</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
                         <span class="n">retcode</span><span class="p">,</span> <span class="n">bubblebabble</span> <span class="o">=</span> <span class="n">shell_command</span><span class="p">(</span>
-                            <span class="s">&quot;</span><span class="si">%s</span><span class="s"> -Bf </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ssh_keygen_path</span><span class="p">,</span> <span class="n">id_path</span><span class="p">))</span>
+                            <span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">&#39; -Bf &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ssh_keygen_path</span><span class="p">,</span> <span class="n">id_path</span><span class="p">))</span>
                         <span class="n">bubblebabble</span> <span class="o">=</span> <span class="n">bubblebabble</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
                         <span class="n">certinfo</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-                        <span class="n">cert_path</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">-cert.pub&quot;</span> <span class="o">%</span> <span class="n">id_path</span>
+                        <span class="n">cert_path</span> <span class="o">=</span> <span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">-cert.pub&#39;&quot;</span> <span class="o">%</span> <span class="n">id_path</span>
                         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cert_path</span><span class="p">):</span>
                             <span class="n">retcode</span><span class="p">,</span> <span class="n">certinfo</span> <span class="o">=</span> <span class="n">shell_command</span><span class="p">(</span>
-                            <span class="s">&quot;</span><span class="si">%s</span><span class="s"> -Lf </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ssh_keygen_path</span><span class="p">,</span> <span class="n">cert_path</span><span class="p">))</span>
+                            <span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">&#39; -Lf &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ssh_keygen_path</span><span class="p">,</span> <span class="n">cert_path</span><span class="p">))</span>
                         <span class="n">certinfo</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">certinfo</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
                         <span class="n">fixed_certinfo</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
                         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">certinfo</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()):</span>
@@ -1069,7 +1066,7 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
         <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">error_msg</span>
     <span class="n">message</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;sshjs_identities_list&#39;</span><span class="p">:</span> <span class="n">out_dict</span>
+        <span class="s">&#39;terminal:sshjs_identities_list&#39;</span><span class="p">:</span> <span class="n">out_dict</span>
     <span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
@@ -1079,7 +1076,10 @@
 <span class="sd">    SSH connections by writing them to `&lt;user&#39;s ssh dir&gt;/.default_ids`.  If</span>
 <span class="sd">    *identities* is empty, no identities will be used in outbound connections.</span>
 
-<span class="sd">    .. note:: Whenever this function is called it will overwrite whatever is in `.default_ids`.</span>
+<span class="sd">    .. note::</span>
+
+<span class="sd">        Whenever this function is called it will overwrite whatever is in</span>
+<span class="sd">        `.default_ids`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">identities</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span> <span class="c"># Ignore anything else</span>
         <span class="n">users_ssh_dir</span> <span class="o">=</span> <span class="n">get_ssh_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -1097,74 +1097,67 @@
 
 <span class="sd">        \\x1b]_;ssh|&lt;whatever&gt;\x07</span>
 
-<span class="sd">    .. seealso:: :class:`gateone.TerminalWebSocket.esc_opt_handler` and :func:`terminal.Terminal._opt_handler`</span>
+<span class="sd">    .. seealso::</span>
+
+<span class="sd">        :class:`gateone.TerminalWebSocket.esc_opt_handler` and</span>
+<span class="sd">        :func:`terminal.Terminal._opt_handler`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;sshjs_connect&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;terminal:sshjs_connect&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;opt_esc_handler message: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="create_user_ssh_dir"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.create_user_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">create_user_ssh_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_user</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="create_user_ssh_dir"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.create_user_ssh_dir">[docs]</a><span class="k">def</span> <span class="nf">create_user_ssh_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    To be called by the &#39;Auth&#39; hook that gets called after the user is done</span>
 <span class="sd">    authenticating, ensures that the `&lt;user&#39;s dir&gt;/ssh` directory exists.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
-    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;create_user_ssh_dir()&quot;</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_user</span><span class="p">[</span><span class="s">&#39;upn&#39;</span><span class="p">]</span>
+    <span class="n">users_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user_dir&#39;</span><span class="p">],</span> <span class="n">user</span><span class="p">)</span> <span class="c"># &quot;User&#39;s dir&quot;</span>
     <span class="n">ssh_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">users_dir</span><span class="p">,</span> <span class="s">&#39;.ssh&#39;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">mkdir_p</span><span class="p">(</span><span class="n">ssh_dir</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Error creating user&#39;s ssh directory: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">))</span>
 </div>
-<div class="viewcode-block" id="send_css_template"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.send_css_template">[docs]</a><span class="k">def</span> <span class="nf">send_css_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="send_ssh_css_template"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.send_ssh_css_template">[docs]</a><span class="k">def</span> <span class="nf">send_ssh_css_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Sends our ssh.css template to the client using the &#39;load_style&#39; WebSocket</span>
-<span class="sd">    action.  Uses :attr:`ApplicationWebSocket.persist` to store a reference to</span>
-<span class="sd">    the rendered CSS template to ensure we only ever have to render it once.</span>
+<span class="sd">    Sends our ssh.css template to the client using the &#39;load_style&#39;</span>
+<span class="sd">    WebSocket action.  The rendered template will be saved in Gate One&#39;s</span>
+<span class="sd">    &#39;cache_dir&#39;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Here we use the &#39;persist&#39; dict to keep track of our rendered CSS template</span>
-    <span class="k">if</span> <span class="s">&#39;ssh_css&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">tempfile</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s">&#39;go_ssh_css&#39;</span><span class="p">)</span>
-        <span class="n">css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;ssh.css&#39;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">css_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">css_template</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-        <span class="n">rendered</span> <span class="o">=</span> <span class="n">css_template</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
-            <span class="n">container</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">container</span><span class="p">,</span>
-            <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">prefix</span>
-        <span class="p">)</span>
-        <span class="n">temp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rendered</span><span class="p">)</span>
-        <span class="n">temp</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="c"># Save the rendered template to our persistent store so we don&#39;t have to</span>
-        <span class="c"># process it with every page load.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;ssh_css&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send_css</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">persist</span><span class="p">[</span><span class="s">&#39;ssh_css&#39;</span><span class="p">])</span>
+    <span class="n">css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">,</span> <span class="s">&#39;ssh.css&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">render_and_send_css</span><span class="p">(</span><span class="n">css_path</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="initialize"><a class="viewcode-back" href="../Developer/plugin_ssh.html#ssh.initialize">[docs]</a><span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Called inside of :meth:`TerminalApplication.initialize` shortly after the</span>
 <span class="sd">    WebSocket is instantiated.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span>
+    <span class="c"># NOTE:  Why not use the &#39;Events&#39; hook for these?  You can&#39;t attach two</span>
+    <span class="c"># functions to the same event via that mechanism because it&#39;s a dict</span>
+    <span class="c"># (one would override the other).</span>
+    <span class="c"># An alternative would be to write a single function say, on_auth() that</span>
+    <span class="c"># calls both of these functions then assign it to &#39;terminal:authenticate&#39; in</span>
+    <span class="c"># the &#39;Events&#39; hook.  I think this way is better since it is more explicit.</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&#39;terminal:authenticate&#39;</span><span class="p">,</span> <span class="n">bind</span><span class="p">(</span><span class="n">send_ssh_css_template</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s">&#39;terminal:authenticate&#39;</span><span class="p">,</span> <span class="n">bind</span><span class="p">(</span><span class="n">create_user_ssh_dir</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
 </div>
 <span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;Web&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s">r&quot;/ssh&quot;</span><span class="p">,</span> <span class="n">KnownHostsHandler</span><span class="p">)],</span>
     <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;ssh_get_connect_string&#39;</span><span class="p">:</span> <span class="n">get_connect_string</span><span class="p">,</span>
-        <span class="s">&#39;ssh_execute_command&#39;</span><span class="p">:</span> <span class="n">ws_exec_command</span><span class="p">,</span>
-        <span class="s">&#39;ssh_get_identities&#39;</span><span class="p">:</span> <span class="n">get_identities</span><span class="p">,</span>
-        <span class="s">&#39;ssh_get_public_key&#39;</span><span class="p">:</span> <span class="n">get_public_key</span><span class="p">,</span>
-        <span class="s">&#39;ssh_get_private_key&#39;</span><span class="p">:</span> <span class="n">get_private_key</span><span class="p">,</span>
-        <span class="s">&#39;ssh_get_host_fingerprint&#39;</span><span class="p">:</span> <span class="n">get_host_fingerprint</span><span class="p">,</span>
-        <span class="s">&#39;ssh_gen_new_keypair&#39;</span><span class="p">:</span> <span class="n">generate_new_keypair</span><span class="p">,</span>
-        <span class="s">&#39;ssh_store_id_file&#39;</span><span class="p">:</span> <span class="n">store_id_file</span><span class="p">,</span>
-        <span class="s">&#39;ssh_delete_identity&#39;</span><span class="p">:</span> <span class="n">delete_identity</span><span class="p">,</span>
-        <span class="s">&#39;ssh_set_default_identities&#39;</span><span class="p">:</span> <span class="n">set_default_identities</span>
+        <span class="s">&#39;terminal:ssh_get_connect_string&#39;</span><span class="p">:</span> <span class="n">get_connect_string</span><span class="p">,</span>
+        <span class="s">&#39;terminal:ssh_execute_command&#39;</span><span class="p">:</span> <span class="n">ws_exec_command</span><span class="p">,</span>
+        <span class="s">&#39;terminal:ssh_get_identities&#39;</span><span class="p">:</span> <span class="n">get_identities</span><span class="p">,</span>
+        <span class="s">&#39;terminal:ssh_get_public_key&#39;</span><span class="p">:</span> <span class="n">get_public_key</span><span class="p">,</span>
+        <span class="s">&#39;terminal:ssh_get_private_key&#39;</span><span class="p">:</span> <span class="n">get_private_key</span><span class="p">,</span>
+        <span class="s">&#39;terminal:ssh_get_host_fingerprint&#39;</span><span class="p">:</span> <span class="n">get_host_fingerprint</span><span class="p">,</span>
+        <span class="s">&#39;terminal:ssh_gen_new_keypair&#39;</span><span class="p">:</span> <span class="n">generate_new_keypair</span><span class="p">,</span>
+        <span class="s">&#39;terminal:ssh_store_id_file&#39;</span><span class="p">:</span> <span class="n">store_id_file</span><span class="p">,</span>
+        <span class="s">&#39;terminal:ssh_delete_identity&#39;</span><span class="p">:</span> <span class="n">delete_identity</span><span class="p">,</span>
+        <span class="s">&#39;terminal:ssh_set_default_identities&#39;</span><span class="p">:</span> <span class="n">set_default_identities</span>
     <span class="p">},</span>
     <span class="s">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">opt_esc_handler</span><span class="p">,</span>
-    <span class="s">&#39;Auth&#39;</span><span class="p">:</span> <span class="n">create_user_ssh_dir</span><span class="p">,</span>
-    <span class="s">&#39;Events&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;terminal:authenticate&#39;</span><span class="p">:</span> <span class="n">send_css_template</span>
-    <span class="p">}</span>
 <span class="p">}</span>
 
 <span class="c"># Certificate information (as output by ssh-keygen) for reference:</span>
@@ -1244,7 +1237,7 @@
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

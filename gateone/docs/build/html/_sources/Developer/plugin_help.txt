@@ -6,5 +6,5 @@ The Help Plugin
 JavaScript
 ----------
 
-.. autojs:: ../applications/terminal/plugins/help/static/help.js
+.. autojs:: ../plugins/help/static/help.js
     :members:

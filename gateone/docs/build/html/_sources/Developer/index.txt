@@ -39,7 +39,6 @@ Gate One comes bundled with a number of plugins which can include any number of 
     plugin_example.rst
     plugin_help.rst
     plugin_logging.rst
-    plugin_mobile.rst
     plugin_notice.rst
     plugin_playback.rst
     plugin_ssh.rst

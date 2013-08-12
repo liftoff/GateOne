@@ -450,7 +450,7 @@ def _retrieve_log_playback(queue, settings):
         out_dict['metadata']['filename'] = log_filename
         try:
             rows = out_dict['metadata']['rows']
-            cols = out_dict['metadata']['cols']
+            cols = out_dict['metadata']['columns']
         except KeyError:
         # Log was created before rows/cols metadata was included via termio.py
         # Use some large values to ensure nothing wraps and hope for the best:
@@ -576,7 +576,7 @@ def _save_log_playback(queue, settings):
         out_dict['metadata'] = get_or_update_metadata(log_path, user)
         try:
             rows = out_dict['metadata']['rows']
-            cols = out_dict['metadata']['cols']
+            cols = out_dict['metadata']['columns']
         except KeyError:
         # Log was created before rows/cols metadata was included via termio.py
         # Use some large values to ensure nothing wraps and hope for the best:

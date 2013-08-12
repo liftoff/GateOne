@@ -135,7 +135,7 @@ def policy_new_terminal(cls, policy):
     max_cols = 0
     max_rows = 0
     if 'max_dimensions' in policy:
-        max_cols = policy['max_dimensions']['cols']
+        max_cols = policy['max_dimensions']['columns']
         max_rows = policy['max_dimensions']['rows']
     if max_terms:
         if open_terminals >= max_terms:
@@ -154,8 +154,8 @@ def policy_new_terminal(cls, policy):
                 % max_terms)
             return False
     if max_cols:
-        if int(cls.f_args['cols']) > max_cols:
-            cls.f_args['cols'] = max_cols # Reduce to max size
+        if int(cls.f_args['columns']) > max_cols:
+            cls.f_args['columns'] = max_cols # Reduce to max size
     if max_rows:
         if int(cls.f_args['rows']) > max_rows:
             cls.f_args['rows'] = max_rows # Reduce to max size
@@ -757,7 +757,7 @@ class TerminalApplication(GOApplication):
         term = int(settings['term'])
         # TODO: Make these specific to each terminal:
         rows = settings['rows']
-        cols = settings['cols']
+        cols = settings['columns']
         if rows < 2 or cols < 2: # Something went wrong calculating term size
             # Fall back to a standard default
             rows = 24
@@ -1028,7 +1028,7 @@ class TerminalApplication(GOApplication):
             new_location_instance.new_terminal({
                 'term': term,
                 'rows': multiplex.rows,
-                'cols': multiplex.cols,
+                'columns': multiplex.cols,
                 'em_dimensions': em_dimensions
             })
         #else:
@@ -1326,11 +1326,11 @@ class TerminalApplication(GOApplication):
     @require(authenticated(), policies('terminal'))
     def resize(self, resize_obj):
         """
-        Resize the terminal window to the rows/cols specified in *resize_obj*
+        Resize the terminal window to the rows/columns specified in *resize_obj*
 
         Example *resize_obj*::
 
-            {'rows': 24, 'cols': 80}
+            {'rows': 24, 'columns': 80}
         """
         logging.debug("resize(%s)" % repr(resize_obj))
         term = None
@@ -1340,7 +1340,7 @@ class TerminalApplication(GOApplication):
             except ValueError:
                 return # Got bad value, skip this resize
         rows = resize_obj['rows']
-        cols = resize_obj['cols']
+        cols = resize_obj['columns']
         self.em_dimensions = {
             'height': resize_obj['em_dimensions']['h'],
             'width': resize_obj['em_dimensions']['w']
@@ -1372,6 +1372,8 @@ class TerminalApplication(GOApplication):
                         )
         except KeyError: # Session doesn't exist yet, no biggie
             pass
+        self.write_message(
+            {"terminal:resize": {"term": term, "rows": rows, "columns": cols}})
         self.trigger("terminal:resize", term)
 
     @require(authenticated(), policies('terminal'))

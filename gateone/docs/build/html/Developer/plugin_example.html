@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The Example Plugin &mdash; Gate One 1.1.0 documentation</title>
+    <title>The Example Plugin &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="The Help Plugin" href="plugin_help.html" />
     <link rel="prev" title="The Convenience Plugin" href="plugin_convenience.html" /> 
@@ -137,18 +135,18 @@ advantage of all the available hooks and built-in functions.</p>
 <dd><p>This is how you add a URL handler to Gate One...  This example attaches
 itslef to <a class="reference external" href="https:/">https:/</a>/&lt;your Gate One server&gt;/example in the 'Web' hook at the
 bottom of this file.  It works just like any Tornado
-<a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">RequestHandler</span></tt></a>.  See:</p>
+<a class="reference external" href="http://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler" title="(in Tornado v3.1)"><tt class="xref py py-class docutils literal"><span class="pre">RequestHandler</span></tt></a>.  See:</p>
 <p><a class="reference external" href="http://www.tornadoweb.org/documentation/web.html">http://www.tornadoweb.org/documentation/web.html</a></p>
-<p>...for documentation on how to write a <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a> for
+<p>...for documentation on how to write a <a class="reference external" href="http://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler" title="(in Tornado v3.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a> for
 the Tornado framework.  Fairly boilerplate stuff.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The only reason we use <a class="reference internal" href="gateone.html#gateone.BaseHandler" title="gateone.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">gateone.BaseHandler</span></tt></a> instead of a vanilla <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a> is so we have access to Gate One's <a class="reference internal" href="gateone.html#gateone.BaseHandler.get_current_user" title="gateone.BaseHandler.get_current_user"><tt class="xref py py-func docutils literal"><span class="pre">gateone.BaseHandler.get_current_user()</span></tt></a> function.</p>
+<p class="last">The only reason we use <a class="reference internal" href="gateone.html#gateone.BaseHandler" title="gateone.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">gateone.BaseHandler</span></tt></a> instead of a vanilla <a class="reference external" href="http://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler" title="(in Tornado v3.1)"><tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a> is so we have access to Gate One's <a class="reference internal" href="gateone.html#gateone.BaseHandler.get_current_user" title="gateone.BaseHandler.get_current_user"><tt class="xref py py-func docutils literal"><span class="pre">gateone.BaseHandler.get_current_user()</span></tt></a> function.</p>
 </div>
 <dl class="method">
 <dt id="example.ExampleHandler.get">
 <tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/example.html#ExampleHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.ExampleHandler.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handle an HTTP GET request to this <a class="reference external" href="http://www.tornadoweb.org/documentation/web.html#tornado.web.RequestHandler" title="(in Tornado v2.4.1)"><tt class="xref py py-class docutils literal"><span class="pre">RequestHandler</span></tt></a>.
+<dd><p>Handle an HTTP GET request to this <a class="reference external" href="http://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler" title="(in Tornado v3.1)"><tt class="xref py py-class docutils literal"><span class="pre">RequestHandler</span></tt></a>.
 Connect to:</p>
 <p><a class="reference external" href="https:/">https:/</a>/&lt;your Gate One server&gt;/example</p>
 <p>...to try it out.</p>
@@ -216,7 +214,7 @@ callback will always be <tt class="xref py py-func docutils literal"><span class
 
 <dl class="function">
 <dt id="example.example_command_hook">
-<tt class="descclassname">example.</tt><tt class="descname">example_command_hook</tt><big>(</big><em>command</em><big>)</big><a class="reference internal" href="../_modules/example.html#example_command_hook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.example_command_hook" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">example.</tt><tt class="descname">example_command_hook</tt><big>(</big><em>self</em>, <em>command</em><big>)</big><a class="reference internal" href="../_modules/example.html#example_command_hook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example.example_command_hook" title="Permalink to this definition">¶</a></dt>
 <dd><p>This demonstrates how to modify Gate One's configured 'command' before it is
 executed.  It will replace any occurrance of %EXAMPLE% with 'foo'.  So if
 'command = &quot;some_script.sh %EXAMPLE%&quot;' in your server.conf it would be
@@ -300,7 +298,7 @@ a new terminal.</p>
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

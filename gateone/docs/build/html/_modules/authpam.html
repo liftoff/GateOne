@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>authpam &mdash; Gate One 1.1.0 documentation</title>
+    <title>authpam &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
   <body>
@@ -59,8 +57,8 @@
 
 <span class="c"># Meta</span>
 <span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
-<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
 <span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s">&quot;AGPLv3 or Proprietary (see LICENSE.txt)&quot;</span>
 <span class="n">__doc__</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
 <span class="s">This authentication module is built on top of gopam.py which is included with</span>
 <span class="s">Gate One.</span>
@@ -74,10 +72,15 @@
 <span class="s">&quot;&quot;&quot;</span>
 
 <span class="c"># Standard library modules</span>
-<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">base64</span><span class="o">,</span> <span class="nn">logging</span>
 
 <span class="c"># Our modules</span>
-<span class="kn">import</span> <span class="nn">gopam</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">gopam</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+        <span class="s">&quot;Failed to import gopam module. PAM auth support will be disabled.  &quot;</span>
+        <span class="s">&quot;Exception: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
 
 <span class="c"># 3rd party modules</span>
 <span class="kn">import</span> <span class="nn">tornado.httpserver</span>
@@ -109,14 +112,14 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Perform Basic authentication using self.settings[&#39;pam_realm&#39;].</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">auth_decoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodestring</span><span class="p">(</span><span class="n">auth_header</span><span class="p">[</span><span class="mi">6</span><span class="p">:])</span>
-        <span class="n">username</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="n">auth_decoded</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">auth_decoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodestring</span><span class="p">(</span><span class="n">auth_header</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">))</span>
+        <span class="n">username</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="n">auth_decoded</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">gopam</span><span class="o">.</span><span class="n">authenticate</span><span class="p">(</span>
                 <span class="n">username</span><span class="p">,</span>
                 <span class="n">password</span><span class="p">,</span>
                 <span class="n">service</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;pam_service&#39;</span><span class="p">],</span>
-                <span class="n">tty</span><span class="o">=</span><span class="s">&quot;console&quot;</span><span class="p">,</span>
+                <span class="n">tty</span><span class="o">=</span><span class="n">b</span><span class="s">&quot;console&quot;</span><span class="p">,</span>
                 <span class="n">PAM_RHOST</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span><span class="p">)</span> <span class="c"># RHOST so it shows up in logs</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">authenticate_redirect</span><span class="p">()</span>
@@ -188,7 +191,7 @@
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

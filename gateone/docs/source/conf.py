@@ -29,9 +29,10 @@ for app in os.listdir(os.path.abspath('../../applications')):
     #sys.path.append(app_dir)
     # ...and each of the application's plugins (if it has any):
     plugins_dir = os.path.join(app_dir, 'plugins')
-    for plugin_dir in os.listdir(plugins_dir):
-        plugin_path = os.path.join(plugins_dir, plugin_dir)
-        sys.path.append(plugin_path)
+    if os.path.exists(plugins_dir):
+        for plugin_dir in os.listdir(plugins_dir):
+            plugin_path = os.path.join(plugins_dir, plugin_dir)
+            sys.path.append(plugin_path)
 
 import gateone # So we can grab the version
 # -- General configuration -----------------------------------------------------
@@ -292,7 +293,7 @@ epub_copyright = u'2011, Liftoff Software Corporation'
 # -- Intersphinx stuff ---------------------------------------------------------
 intersphinx_mapping = {
     'python': ('http://docs.python.org/2.7', None),
-    'tornado': ('http://www.tornadoweb.org/documentation/', None)
+    'tornado': ('http://www.tornadoweb.org/en/stable/', None)
 }
 
 # Make PHP syntax highlighting work

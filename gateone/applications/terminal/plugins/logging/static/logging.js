@@ -340,7 +340,7 @@ go.Base.update(GateOne.TermLogging, {
             var l = go.TermLogging,
                 node = u.getNode(elem),
                 tempLog = {
-                    'cols': 203,
+                    'columns': 203,
                     'connect_string': "user@host",
                     'end_date': "1324495629180",
                     'filename': "20111221142606981294.golog",
@@ -487,7 +487,7 @@ go.Base.update(GateOne.TermLogging, {
                 'Frames': logObj['frames'],
                 'Size': logObj['size'],
                 'Rows': logObj['rows'],
-                'Columns': logObj['cols']
+                'Columns': logObj['columns']
             };
         l.openLogPlayback(logFile, 'preview');
         // Remove existing content first

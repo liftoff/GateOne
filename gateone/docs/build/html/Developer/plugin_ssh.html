@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The SSH Plugin &mdash; Gate One 1.1.0 documentation</title>
+    <title>The SSH Plugin &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="Embedding Gate One Into Other Applications" href="embedding.html" />
     <link rel="prev" title="The Playback Plugin" href="plugin_playback.html" /> 
@@ -63,6 +61,12 @@
 <div class="section" id="javascript">
 <h2>JavaScript<a class="headerlink" href="#javascript" title="Permalink to this headline">¶</a></h2>
 <p>ssh.js - The client-side portion of Gate One's SSH plugin.</p>
+<dl class="function">
+<dt id="GateOne.SSH.autoConnect">
+<tt class="descclassname">GateOne.SSH.</tt><tt class="descname">autoConnect</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.SSH.autoConnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically connects to <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.prefs.autoConnectURL</span></tt> if it set.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="GateOne.SSH.commandCompleted">
 <tt class="descclassname">GateOne.SSH.</tt><tt class="descname">commandCompleted</tt><big>(</big><em>message</em><big>)</big><a class="headerlink" href="#GateOne.SSH.commandCompleted" title="Permalink to this definition">¶</a></dt>
@@ -158,8 +162,8 @@
 <dl class="function">
 <dt id="GateOne.SSH.handleConnect">
 <tt class="descclassname">GateOne.SSH.</tt><tt class="descname">handleConnect</tt><big>(</big><em>connectString</em><big>)</big><a class="headerlink" href="#GateOne.SSH.handleConnect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles the 'sshjs_connect' WebSocket action which should provide an SSH <em>connectString</em> in the form of <a class="reference external" href="mailto:'user&#37;&#52;&#48;host">'user<span>&#64;</span>host</a>:port'.</p>
-<p>The <em>connectString</em> will be stored in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.terminals[term]['sshConnectString']</span></tt> which is meant to be used in duplicating terminals (because you can't rely on the title).</p>
+<dd><p>Handles the 'terminal:sshjs_connect' WebSocket action which should provide an SSH <em>connectString</em> in the form of <a class="reference external" href="mailto:'user&#37;&#52;&#48;host">'user<span>&#64;</span>host</a>:port'.</p>
+<p>The <em>connectString</em> will be stored in <tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[term]['sshConnectString']</span></tt> which is meant to be used in duplicating terminals (because you can't rely on the title).</p>
 <p>Also requests the host's public SSH key so it can be displayed to the user.</p>
 </dd></dl>
 
@@ -182,16 +186,16 @@
 <dt id="GateOne.SSH.init">
 <tt class="descclassname">GateOne.SSH.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.SSH.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the SSH Identity Manager panel, adds some buttons to the Info &amp; Tools panel, and registers the following WebSocket actions &amp; events:</p>
-<div class="highlight-js"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_connect&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">handleConnect</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_reconnect&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">handleReconnect</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_keygen_complete&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">keygenComplete</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_save_id_complete&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">saveComplete</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_display_fingerprint&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">displayHostFingerprint</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_identities_list&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">incomingIDsAction</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_delete_identity_complete&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">deleteCompleteAction</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_cmd_output&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">commandCompleted</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;sshjs_ask_passphrase&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">enterPassphraseAction</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;new_terminal&quot;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">getConnectString</span><span class="p">);</span>
+<div class="highlight-js"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:sshjs_connect&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">handleConnect</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:sshjs_reconnect&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">handleReconnect</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:sshjs_keygen_complete&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">keygenComplete</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:sshjs_save_id_complete&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">saveComplete</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:sshjs_display_fingerprint&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">displayHostFingerprint</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:sshjs_identities_list&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">incomingIDsAction</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:sshjs_delete_identity_complete&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">deleteCompleteAction</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:sshjs_cmd_output&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">commandCompleted</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:sshjs_ask_passphrase&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">enterPassphraseAction</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Events</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;terminal:new_terminal&quot;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">SSH</span><span class="p">.</span><span class="nx">getConnectString</span><span class="p">);</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -265,7 +269,10 @@
         <span class="s">&#39;ssh_set_default_identities&#39;</span><span class="p">:</span> <span class="n">set_default_identities</span>
     <span class="p">},</span>
     <span class="s">&#39;Escape&#39;</span><span class="p">:</span> <span class="n">opt_esc_handler</span><span class="p">,</span>
-    <span class="s">&#39;Auth&#39;</span><span class="p">:</span> <span class="n">create_user_ssh_dir</span>
+    <span class="s">&#39;Events&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;terminal:authenticate&#39;</span><span class="p">:</span> <span class="n">send_css_template</span><span class="p">,</span>
+        <span class="s">&#39;terminal:authenticate&#39;</span><span class="p">:</span> <span class="n">create_user_ssh_dir</span>
+    <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -323,7 +330,7 @@ current user's ssh directory</p>
 <dd><p>Opens a sub-channel of communication by executing a new shell on the SSH
 server using OpenSSH's <a class="reference external" href="http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing">Master mode</a>
 capability (it spawns a new slave) and returns the resulting
-<a class="reference internal" href="termio.html#termio.Multiplex" title="termio.Multiplex"><tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt></a> instance.  If a slave has already been opened for
+<tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt> instance.  If a slave has already been opened for
 this purpose it will re-use the existing channel.</p>
 </dd></dl>
 
@@ -358,18 +365,18 @@ end of the command output is detected.</p>
 
 <dl class="function">
 <dt id="ssh.got_error">
-<tt class="descclassname">ssh.</tt><tt class="descname">got_error</tt><big>(</big><em>m_instance</em>, <em>match=None</em>, <em>term=None</em>, <em>cmd=None</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#got_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.got_error" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ssh.</tt><tt class="descname">got_error</tt><big>(</big><em>self</em>, <em>m_instance</em>, <em>match=None</em>, <em>term=None</em>, <em>cmd=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#got_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.got_error" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called if <a class="reference internal" href="#ssh.execute_command" title="ssh.execute_command"><tt class="xref py py-func docutils literal"><span class="pre">execute_command()</span></tt></a> encounters a problem/timeout.</p>
 <p><em>match</em> is here in case we want to use it for a positive match of an error.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ssh.execute_command">
-<tt class="descclassname">ssh.</tt><tt class="descname">execute_command</tt><big>(</big><em>term</em>, <em>cmd</em>, <em>callback=None</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#execute_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.execute_command" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ssh.</tt><tt class="descname">execute_command</tt><big>(</big><em>self</em>, <em>term</em>, <em>cmd</em>, <em>callback=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#execute_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.execute_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the given command (<em>cmd</em>) on the given <em>term</em> using the existing
 SSH tunnel (taking advantage of <a class="reference external" href="http://en.wikibooks.org/wiki/OpenSSH/Cookbook/Multiplexing">Master mode</a>)
 and call <em>callback</em> with the output of said command and the current
-<a class="reference internal" href="termio.html#termio.Multiplex" title="termio.Multiplex"><tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt></a> instance as arguments like so:</p>
+<tt class="xref py py-class docutils literal"><span class="pre">termio.Multiplex</span></tt> instance as arguments like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">callback</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">m_instance</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -441,7 +448,7 @@ like so:</p>
 </div>
 <p>In ssh.js we attach an action (aka handler) to <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt>
 for 'sshjs_reconnect' messages that attaches the connection string to
-<tt class="xref py py-obj docutils literal"><span class="pre">GateOne.terminals[*term*]['sshConnectString']</span></tt></p>
+<tt class="xref py py-obj docutils literal"><span class="pre">GateOne.Terminal.terminals[*term*]['sshConnectString']</span></tt></p>
 </dd></dl>
 
 <dl class="function">
@@ -486,7 +493,7 @@ system.</p>
 
 <dl class="function">
 <dt id="ssh.openssh_generate_new_keypair">
-<tt class="descclassname">ssh.</tt><tt class="descname">openssh_generate_new_keypair</tt><big>(</big><em>name</em>, <em>path</em>, <em>keytype=None</em>, <em>passphrase=''</em>, <em>bits=None</em>, <em>comment=''</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#openssh_generate_new_keypair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.openssh_generate_new_keypair" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ssh.</tt><tt class="descname">openssh_generate_new_keypair</tt><big>(</big><em>self</em>, <em>name</em>, <em>path</em>, <em>keytype=None</em>, <em>passphrase=''</em>, <em>bits=None</em>, <em>comment=''</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#openssh_generate_new_keypair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.openssh_generate_new_keypair" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a new private and public key pair--stored in the user's directory
 using the given <em>name</em> and other optional parameters (using OpenSSH).</p>
 <p>If <em>keytype</em> is given, it must be one of &quot;ecdsa&quot;, &quot;rsa&quot; or &quot;dsa&quot; (case
@@ -500,7 +507,7 @@ specify the size of the key.</p>
 
 <dl class="function">
 <dt id="ssh.dropbear_generate_new_keypair">
-<tt class="descclassname">ssh.</tt><tt class="descname">dropbear_generate_new_keypair</tt><big>(</big><em>name</em>, <em>path</em>, <em>keytype=None</em>, <em>passphrase=''</em>, <em>bits=None</em>, <em>comment=''</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#dropbear_generate_new_keypair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.dropbear_generate_new_keypair" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ssh.</tt><tt class="descname">dropbear_generate_new_keypair</tt><big>(</big><em>self</em>, <em>name</em>, <em>path</em>, <em>keytype=None</em>, <em>passphrase=''</em>, <em>bits=None</em>, <em>comment=''</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#dropbear_generate_new_keypair"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.dropbear_generate_new_keypair" title="Permalink to this definition">¶</a></dt>
 <dd><div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Not implemented yet</p>
@@ -509,7 +516,7 @@ specify the size of the key.</p>
 
 <dl class="function">
 <dt id="ssh.openssh_generate_public_key">
-<tt class="descclassname">ssh.</tt><tt class="descname">openssh_generate_public_key</tt><big>(</big><em>path</em>, <em>passphrase=None</em>, <em>settings=None</em>, <em>tws=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#openssh_generate_public_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.openssh_generate_public_key" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ssh.</tt><tt class="descname">openssh_generate_public_key</tt><big>(</big><em>self</em>, <em>path</em>, <em>passphrase=None</em>, <em>settings=None</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#openssh_generate_public_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.openssh_generate_public_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a public key from the given private key at <em>path</em>.  If a
 <em>passphrase</em> is provided, it will be used to generate the public key (if
 necessary).</p>
@@ -561,7 +568,8 @@ SSH connections by writing them to <tt class="xref py py-obj docutils literal"><
 <em>identities</em> is empty, no identities will be used in outbound connections.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Whenever this function is called it will overwrite whatever is in <tt class="xref py py-obj docutils literal"><span class="pre">default_ids</span></tt>.</p>
+<p class="last">Whenever this function is called it will overwrite whatever is in
+<tt class="xref py py-obj docutils literal"><span class="pre">default_ids</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -574,25 +582,26 @@ information to duplicate sessions (if the user so desires).  For reference,
 the specific string which will call this function from a terminal app is:</p>
 <div class="highlight-python"><pre>\x1b]_;ssh|&lt;whatever&gt;</pre>
 </div>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><tt class="xref py py-class docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler</span></tt> and <a class="reference internal" href="terminal.html#terminal.Terminal._opt_handler" title="terminal.Terminal._opt_handler"><tt class="xref py py-func docutils literal"><span class="pre">terminal.Terminal._opt_handler()</span></tt></a></p>
+<p class="last"><tt class="xref py py-class docutils literal"><span class="pre">gateone.TerminalWebSocket.esc_opt_handler</span></tt> and
+<a class="reference internal" href="terminal.html#terminal.Terminal._opt_handler" title="terminal.Terminal._opt_handler"><tt class="xref py py-func docutils literal"><span class="pre">terminal.Terminal._opt_handler()</span></tt></a></p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="ssh.create_user_ssh_dir">
-<tt class="descclassname">ssh.</tt><tt class="descname">create_user_ssh_dir</tt><big>(</big><em>self</em>, <em>current_user</em>, <em>settings</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#create_user_ssh_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.create_user_ssh_dir" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ssh.</tt><tt class="descname">create_user_ssh_dir</tt><big>(</big><em>self</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#create_user_ssh_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.create_user_ssh_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>To be called by the 'Auth' hook that gets called after the user is done
 authenticating, ensures that the <tt class="xref py py-obj docutils literal"><span class="pre">&lt;user's</span> <span class="pre">dir&gt;/ssh</span></tt> directory exists.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ssh.send_css_template">
-<tt class="descclassname">ssh.</tt><tt class="descname">send_css_template</tt><big>(</big><em>self</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#send_css_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.send_css_template" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sends our ssh.css template to the client using the 'load_style' WebSocket
-action.  Uses <tt class="xref py py-attr docutils literal"><span class="pre">ApplicationWebSocket.persist</span></tt> to store a reference to
-the rendered CSS template to ensure we only ever have to render it once.</p>
+<dt id="ssh.send_ssh_css_template">
+<tt class="descclassname">ssh.</tt><tt class="descname">send_ssh_css_template</tt><big>(</big><em>self</em><big>)</big><a class="reference internal" href="../_modules/ssh.html#send_ssh_css_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ssh.send_ssh_css_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends our ssh.css template to the client using the 'load_style'
+WebSocket action.  The rendered template will be saved in Gate One's
+'cache_dir'.</p>
 </dd></dl>
 
 <dl class="function">
@@ -678,7 +687,7 @@ WebSocket is instantiated.</p>
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

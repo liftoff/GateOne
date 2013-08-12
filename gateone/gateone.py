@@ -29,7 +29,7 @@ Dependencies
 Gate One requires Python 2.6+ but runs best with Python 2.7+.  It also depends
 on the following 3rd party Python modules:
 
- * `Tornado <http://www.tornadoweb.org/>`_ 2.2+ - A non-blocking web server framework that powers FriendFeed.
+ * `Tornado <http://www.tornadoweb.org/>`_ 3.0+ - A non-blocking web server framework that powers FriendFeed.
 
 The following modules are optional and can provide Gate One with additional
 functionality:
@@ -37,18 +37,20 @@ functionality:
  * `pyOpenSSL <https://launchpad.net/pyopenssl>`_ 0.10+ - An OpenSSL module/wrapper for Python.  Only used to generate self-signed SSL keys and certificates.  If pyOpenSSL isn't available Gate One will fall back to using the 'openssl' command to generate self-signed certificates.
  * `kerberos <http://pypi.python.org/pypi/kerberos>`_ 1.0+ - A high-level Kerberos interface for Python.  Only necessary if you plan to use the Kerberos authentication module.
  * `python-pam <http://packages.debian.org/lenny/python-pam>`_ 0.4.2+ - A Python module for interacting with PAM (the Pluggable Authentication Module present on nearly every Unix).  Only necessary if you plan to use PAM authentication.
+ * `PIL (Python Imaging Library) <http://www.pythonware.com/products/pil/>`_ 1.1.7+ - A Python module for manipulating images.  **Alternative:** `Pillow <https://github.com/python-imaging/Pillow>`_ 2.0+ - A "friendly fork" of PIL that works with Python 3.
+ * `mutagen <https://code.google.com/p/mutagen/>`_ 1.21+ - A Python module to handle audio metadata.  Makes it so that if you `cat music_file.ogg` in a terminal you'll get useful track/tag information.
 
-With the exception of python-pam, both the required and optional modules can usually be installed via one of these commands:
+With the exception of python-pam, all required and optional modules can usually be installed via one of these commands:
 
     .. ansi-block::
 
-        \x1b[1;34muser\x1b[0m@modern-host\x1b[1;34m:~ $\x1b[0m sudo pip install tornado pyopenssl kerberos
+        \x1b[1;34muser\x1b[0m@modern-host\x1b[1;34m:~ $\x1b[0m sudo pip install --upgrade tornado pyopenssl kerberos pillow mutagen
 
 ...or:
 
     .. ansi-block::
 
-        \x1b[1;34muser\x1b[0m@legacy-host\x1b[1;34m:~ $\x1b[0m sudo easy_install tornado pyopenssl kerberos
+        \x1b[1;34muser\x1b[0m@legacy-host\x1b[1;34m:~ $\x1b[0m sudo easy_install tornado pyopenssl kerberos pillow mutagen
 
 .. note:: The use of pip is recommended.  See http://www.pip-installer.org/en/latest/installing.html if you don't have it.
 
@@ -72,28 +74,118 @@ The python-pam module is available in most Linux distribution repositories.  Sim
 
 Settings
 --------
-All of Gate One's configurable options can be controlled either via command line
-switches or by settings in the server.conf file (they match up 1-to-1).  If no
-server.conf exists one will be created using defaults (i.e. when Gate One is run
-for the first time).  Settings in the server.conf file use the following format::
+Most of Gate One's options can be controlled by command line switches or via
+.conf files in the settings directory.  If you haven't configured Gate One
+before a number of .conf files will be automatically generated using defaults
+and/or the command line switches provided the first time you run `gateone.py`.
 
-    <setting> = <value>
+Settings in the various `settings/*.conf` files are JSON-formatted:
 
-Here's an example::
+.. note::
 
-    address = "127.0.0.1;::1;10.1.1.4" # Strings are surrounded by quotes
-    port = 443 # Numbers don't need quotes
+    Technically, JSON doesn't allow comments but Gate One's .conf files do.
+
+.. code-block:: javascript
+
+    { // You can use single-line comments like this
+    /*
+    Or multi-line comments like this.
+    */
+        "*": { // The * here designates this as "default" values
+            "gateone": { // Settings in this dict are specific to the "gateone" app
+                "address": "10.0.0.100", // A string value
+                "log_file_num_backups": 10, // An integer value
+                // Here's an example list:
+                "origins": ["localhost", "127.0.0.1", "10.0.0.100"],
+                "https_redirect": false, // Booleans are all lower case
+                "log_to_stderr": null // Same as `None` in Python (also lower case)
+                // NOTE: No comma after last item
+            },
+            "terminal": { // Example of a different application's settings
+                "default_command": "SSH", // <-- don't leave traling commas like this!
+                ... // So on and so forth
+            }
+        }
+    }
+
+.. note::
+
+    You *must* use double quotes ("") to define strings.  Single quotes *can* be
+    used inside double quotes, however.  `"example": "of 'single' quotes"`  To
+    escape a double-quote inside a double quote use three slashes:
+    `"\\\\\\\\\\\\"foo\\\\\\\\\\\\""`
+
+.. All those slashes above are so Sphinx won't mangle it in HTML.
+
+You can have as many .conf files in your settings directory as you like.  When
+Gate One runs it reads all files in alphanumeric order and combines all settings
+into a single Python dictionary.  Files loaded last will override settings from
+earlier files.  Example:
+
+.. topic:: 20example.conf
+
+    .. code-block:: javascript
+
+        {
+            "*": {
+                "terminal": {
+                    "session_logging": true,
+                    "default_command": "SSH"
+                }
+            }
+        }
+
+.. topic:: 99override.conf
+
+    .. code-block:: javascript
+
+        {
+            "*": {
+                "terminal": {
+                    "default_command": "my_override"
+                }
+            }
+        }
+
+If Gate One loaded the above example .conf files the resulting dict would be:
+
+.. topic:: Merged settings
+
+    .. code-block:: javascript
+
+        {
+            "*": {
+                "terminal": {
+                    "session_logging": true,
+                    "default_command": "my_override"
+                }
+            }
+        }
+
+.. note::
+
+    These settings are loaded using the `~utils.RUDict` (Recusive Update Dict)
+    class.
 
 There are a few important differences between the configuration file and
 command line switches in regards to boolean values (True/False).  A switch such
-as --debug evaluates to "debug = True" and this is exactly how it would be
-configured in server.conf::
+as `--debug` is equivalent to '"debug" = true' in the 10.server.conf:
 
-    debug = True # Booleans don't need quotes either
+.. code-block:: javascript
 
-.. note:: The following values in server.conf are case sensitive: True, False and None (and should not be placed in quotes).
+    "debug" = true // Booleans are all lower case (not in quotes)
 
-Running gateone.py with the --help switch will print the usage information as
+.. tip::
+
+    Use `--setting=True`, `--setting=False`, or `--setting=None` to avoid
+    confusion.
+
+.. note::
+
+    The following values in 10server.conf are case sensitive: `true`, `false`
+    and `null` (and should not be placed in quotes).
+
+Running gateone.py with the `--help` switch will print the usage information as
 well as descriptions of what each configurable option does:
 
 .. ansi-block::
@@ -102,78 +194,223 @@ well as descriptions of what each configurable option does:
     Usage: ./gateone.py [OPTIONS]
 
     Options:
-      --help                           show this help information
-      --log_file_max_size              max size of log files before rollover
-      --log_file_num_backups           number of log files to keep
-      --log_file_prefix=PATH           Path prefix for log files. Note that if you are running multiple tornado processes, log_file_prefix must be different for each of them (e.g. include the port number)
-      --log_to_stderr                  Send log output to stderr (colorized if possible). By default use stderr if --log_file_prefix is not set and no other logging is configured.
-      --logging=debug|info|warning|error|none Set the Python log level. If 'none', tornado won't touch the logging configuration.
-      --address                        Run on the given address.  Default is all addresses (IPv6 included).  Multiple address can be specified using a semicolon as a separator (e.g. '127.0.0.1;::1;10.1.1.100').
-      --auth                           Authentication method to use.  Valid options are: none, api, google, kerberos, pam
-      --certificate                    Path to the SSL certificate.  Will be auto-generated if none is provided.
-      --command                        Run the given command when a user connects (e.g. '/bin/login').
-      --config                         Path to the config file.  Default: /opt/gateone/server.conf
-      --cookie_secret                  Use the given 45-character string for cookie encryption.
-      --debug                          Enable debugging features such as auto-restarting when files are modified.
-      --disable_ssl                    If enabled, Gate One will run without SSL (generally not a good idea).
-      --dtach                          Wrap terminals with dtach. Allows sessions to be resumed even if Gate One is stopped and started (which is a sweet feature).
-      --embedded                       Doesn't do anything (yet).
-      --enable_unix_socket             Enable Unix socket support use_unix_sockets (if --enable_unix_socket=True).
-      --https_redirect                 If enabled, a separate listener will be started on port 80 that redirects users to the configured port using HTTPS.
-      --js_init                        A JavaScript object (string) that will be used when running GateOne.init() inside index.html.  Example: --js_init="{scheme: 'white'}" would result in GateOne.init({scheme: 'white'})
-      --keyfile                        Path to the SSL keyfile.  Will be auto-generated if none is provided.
-      --kill                           Kill any running Gate One terminal processes including dtach'd processes.
-      --locale                         The locale (e.g. pt_PT) Gate One should use for translations.  If not provided, will default to $LANG (which is 'en_US' in your current shell), or en_US if not set.
-      --new_api_key                    Generate a new API key that an external application can use to embed Gate One.
-      --origins                        A semicolon-separated list of origins you wish to allow access to your Gate One server over the WebSocket.  This value must contain the hostnames and FQDNs (e.g. https://foo;https://foo.bar;) users will use to connect to your Gate One server as well as the hostnames/FQDNs of any sites that will be embedding Gate One. Here's the default on your system: 'https://localhost;https://yourhostname'. Alternatively, '*' may be  specified to allow access from anywhere.
-      --pam_realm                      Basic auth REALM to display when authenticating clients.  Default: hostname.  Only relevant if PAM authentication is enabled.
-      --pam_service                    PAM service to use.  Defaults to 'login'. Only relevant if PAM authentication is enabled.
-      --pid_file                       Path of the pid file.   Default: /tmp/gateone.pid
-      --port                           Run on the given port.
-      --session_dir                    Path to the location where session information will be stored.
-      --session_logging                If enabled, logs of user sessions will be saved in <user_dir>/<user>/logs.  Default: Enabled
-      --session_timeout                Amount of time that a session should be kept alive after the client has logged out.  Accepts <num>X where X could be one of s, m, h, or d for seconds, minutes, hours, and days.  Default is '5d' (5 days).
-      --sso_realm                      Kerberos REALM (aka DOMAIN) to use when authenticating clients. Only relevant if Kerberos authentication is enabled.
-      --sso_service                    Kerberos service (aka application) to use. Defaults to HTTP. Only relevant if Kerberos authentication is enabled.
-      --syslog_facility                Syslog facility to use when logging to syslog (if syslog_session_logging is enabled).  Must be one of: auth, cron, daemon, kern, local0, local1, local2, local3, local4, local5, local6, local7, lpr, mail, news, syslog, user, uucp.  Default: daemon
-      --syslog_host                    Remote host to send syslog messages to if syslog_logging is enabled.  Default: None (log to the local syslog daemon directly).  NOTE:  This setting is required on platforms that don't include Python's syslog module.
-      --syslog_session_logging         If enabled, logs of user sessions will be written to syslog.
-      --unix_socket_path               Run on the given socket file.  Default: /tmp/gateone.sock
-      --url_prefix                     An optional prefix to place before all Gate One URLs. e.g. '/gateone/'.  Use this if Gate One will be running behind a reverse proxy where you want it to be located at some sub-URL path.
-      --user_dir                       Path to the location where user files will be stored.
 
-.. note:: Some of these options (e.g. log_file_prefix) are inherent to the Tornado framework.  You won't find them anywhere in gateone.py.
+    --address                       Run on the given address.  Default is all
+                                    addresses (IPv6 included).  Multiple address
+                                    can be specified using a semicolon as a
+                                    separator (e.g. '127.0.0.1;::1;10.1.1.100').
+    --api_keys                      The 'key:secret,...' API key pairs you wish
+                                    to use (only applies if using API
+                                    authentication)
+    --api_timestamp_window          How long before an API authentication object
+                                    becomes invalid.  Default is '30s' (30
+                                    seconds). (default 30s)
+    --auth                          Authentication method to use.  Valid options
+                                    are: none, api, google, ssl, kerberos, pam
+                                    (default none)
+    --ca_certs                      Path to a file containing any number of
+                                    concatenated CA certificates in PEM format.
+                                    They will be used to authenticate clients if
+                                    the 'ssl_auth' option is set to 'optional'
+                                    or 'required'.
+    --cache_dir                     Path where Gate One should store temporary
+                                    global files (e.g. rendered templates, CSS,
+                                    JS, etc). (default /tmp/gateone_cache)
+    --certificate                   Path to the SSL certificate.  Will be auto-
+                                    generated if none is provided. (default
+                                    certificate.pem)
+    --combine_css                   Combines all of Gate One's CSS Template
+                                    files into one big file and saves it at the
+                                    given path (e.g. ./gateone.py
+                                    --combine_css=/tmp/gateone.css).
+    --combine_css_container         Use this setting in conjunction with
+                                    --combine_css if the <div> where Gate One
+                                    lives is named something other than #gateone
+                                    (default #gateone)
+    --combine_js                    Combines all of Gate One's JavaScript files
+                                    into one big file and saves it at the given
+                                    path (e.g. ./gateone.py
+                                    --combine_js=/tmp/gateone.js)
+    --command                       DEPRECATED: Use the 'commands' option in the
+                                    terminal settings.
+    --config                        DEPRECATED.  Use --settings_dir. (default
+                                    /opt/gateone/server.conf)
+    --cookie_secret                 Use the given 45-character string for cookie
+                                    encryption.
+    --debug                         Enable debugging features such as auto-
+                                    restarting when files are modified. (default
+                                    False)
+    --disable_ssl                   If enabled, Gate One will run without SSL
+                                    (generally not a good idea). (default False)
+    --dtach                         Wrap terminals with dtach. Allows sessions
+                                    to be resumed even if Gate One is stopped
+                                    and started (which is a sweet feature).
+                                    (default True)
+    --embedded                      When embedding Gate One, this option is
+                                    available to templates. (default False)
+    --enable_unix_socket            Enable Unix socket support. (default False)
+    --gid                           Drop privileges and run Gate One as this
+                                    group/gid. (default 0)
+    --help                          show this help information
+    --https_redirect                If enabled, a separate listener will be
+                                    started on port 80 that redirects users to
+                                    the configured port using HTTPS. (default
+                                    False)
+    --js_init                       A JavaScript object (string) that will be
+                                    used when running GateOne.init() inside
+                                    index.html.  Example: --js_init="{scheme:
+                                    'white'}" would result in
+                                    GateOne.init({scheme: 'white'})
+    --keyfile                       Path to the SSL keyfile.  Will be auto-
+                                    generated if none is provided. (default
+                                    keyfile.pem)
+    --kill                          Kill any running Gate One terminal processes
+                                    including dtach'd processes. (default False)
+    --locale                        The locale (e.g. pt_PT) Gate One should use
+                                    for translations.  If not provided, will
+                                    default to $LANG (which is 'en_US' in your
+                                    current shell), or en_US if not set.
+                                    (default en_US)
+    --new_api_key                   Generate a new API key that an external
+                                    application can use to embed Gate One.
+                                    (default False)
+    --origins                       A semicolon-separated list of origins you
+                                    wish to allow access to your Gate One server
+                                    over the WebSocket.  This value must contain
+                                    the hostnames and FQDNs (e.g. foo;foo.bar;)
+                                    users will use to connect to your Gate One
+                                    server as well as the hostnames/FQDNs of any
+                                    sites that will be embedding Gate One.
+                                    Here's the default on your system: 'localhos
+                                    t;127.0.0.1;enterprise.lan;enterprise;localh
+                                    ost;enterprise.lan;enterprise;enterprise.exa
+                                    mple.com;127.0.0.1;10.1.1.100'.
+                                    Alternatively, '*' may be  specified to
+                                    allow access from anywhere. (default localho
+                                    st;127.0.0.1;enterprise.lan;enterprise;local
+                                    host;enterprise.lan;enterprise;enterprise.ex
+                                    ample.com;127.0.0.1;10.1.1.100)
+    --pam_realm                     Basic auth REALM to display when
+                                    authenticating clients.  Default: hostname.
+                                    Only relevant if PAM authentication is
+                                    enabled. (default enterprise)
+    --pam_service                   PAM service to use.  Defaults to 'login'.
+                                    Only relevant if PAM authentication is
+                                    enabled. (default login)
+    --pid_file                      Define the path to the pid file.  Default:
+                                    /tmp/gateone.pid (default /tmp/gateone.pid)
+    --port                          Run on the given port. (default 443)
+    --session_dir                   Path to the location where session
+                                    information will be stored. (default
+                                    /tmp/gateone)
+    --session_logging               If enabled, logs of user sessions will be
+                                    saved in <user_dir>/<user>/logs.  Default:
+                                    Enabled (default True)
+    --session_timeout               Amount of time that a session is allowed to
+                                    idle before it is killed.  Accepts <num>X
+                                    where X could be one of s, m, h, or d for
+                                    seconds, minutes, hours, and days.  Default
+                                    is '5d' (5 days). (default 5d)
+    --settings_dir                  Path to the settings directory.  Default:
+                                    /opt/gateone/settings (default
+                                    /opt/gateone/settings)
+    --ssl_auth                      Enable the use of client SSL (X.509)
+                                    certificates as a secondary authentication
+                                    factor (the configured 'auth' type will come
+                                    after SSL auth).  May be one of 'none',
+                                    'optional', or 'required'.  NOTE: Only works
+                                    if the 'ca_certs' option is configured.
+                                    (default none)
+    --sso_realm                     Kerberos REALM (aka DOMAIN) to use when
+                                    authenticating clients. Only relevant if
+                                    Kerberos authentication is enabled.
+    --sso_service                   Kerberos service (aka application) to use.
+                                    Defaults to HTTP. Only relevant if Kerberos
+                                    authentication is enabled. (default HTTP)
+    --syslog_facility               Syslog facility to use when logging to
+                                    syslog (if syslog_session_logging is
+                                    enabled).  Must be one of: auth, cron,
+                                    daemon, kern, local0, local1, local2,
+                                    local3, local4, local5, local6, local7, lpr,
+                                    mail, news, syslog, user, uucp.  Default:
+                                    daemon (default daemon)
+    --syslog_host                   Remote host to send syslog messages to if
+                                    syslog_logging is enabled.  Default: None
+                                    (log to the local syslog daemon directly).
+                                    NOTE:  This setting is required on platforms
+                                    that don't include Python's syslog module.
+    --syslog_session_logging        If enabled, logs of user sessions will be
+                                    written to syslog. (default False)
+    --uid                           Drop privileges and run Gate One as this
+                                    user/uid. (default 0)
+    --unix_socket_path              Path to the Unix socket (if
+                                    --enable_unix_socket=True). (default
+                                    /tmp/gateone.sock)
+    --url_prefix                    An optional prefix to place before all Gate
+                                    One URLs. e.g. '/gateone/'.  Use this if
+                                    Gate One will be running behind a reverse
+                                    proxy where you want it to be located at
+                                    some sub-URL path. (default /)
+    --user_dir                      Path to the location where user files will
+                                    be stored. (default /opt/gateone/users)
+    --user_logs_max_age             Maximum amount of length of time to keep any
+                                    given user log before it is removed.
+                                    (default 30d)
+
+    /usr/local/lib/python2.7/dist-packages/tornado/log.py options:
+
+    --log_file_max_size             max size of log files before rollover
+                                    (default 100000000)
+    --log_file_num_backups          number of log files to keep (default 10)
+    --log_file_prefix=PATH          Path prefix for log files. Note that if you
+                                    are running multiple tornado processes,
+                                    log_file_prefix must be different for each
+                                    of them (e.g. include the port number)
+    --log_to_stderr                 Send log output to stderr (colorized if
+                                    possible). By default use stderr if
+                                    --log_file_prefix is not set and no other
+                                    logging is configured.
+    --logging=debug|info|warning|error|none
+                                    Set the Python log level. If 'none', tornado
+                                    won't touch the logging configuration.
+                                    (default info)
+
+.. note::
+
+    Some of these options (e.g. log_file_prefix) are inherent to the
+    Tornado framework.  You won't find them anywhere in gateone.py.
 
 File Paths
 ----------
 Gate One stores its files, temporary session information, and persistent user
 data in the following locations (Note: Many of these are configurable):
 
-================= ==================================================================================
+==================  ==========================================================================================
 File/Directory      Description
-================= ==================================================================================
-authpam.py        Contains the PAM authentication Mixin used by auth.py.
-auth.py           Authentication classes.
-certificate.pem   The default certificate Gate One will use in SSL communications.
-docs/             Gate One's documentation.
-gateone.py        Gate One's primary executable/script. Also, the file containing this documentation
-i18n/             Gate One's internationalization (i18n) support and locale/translation files.
-keyfile.pem       The default private key used with SSL communications.
-logviewer.py      A utility to view Gate One session logs.
-plugins/          Plugins go here in the form of ./plugins/<plugin name>/<plugin files|directories>
-remote_syslog.py  A module that supports sending syslog messages over UDP to a remote syslog host.
-server.conf       Gate One's configuration file.
-sso.py            A Kerberos Single Sign-on module for Tornado (used by auth.py)
-static/           Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc).
-templates/        Tornado template files such as index.html.
-terminal.py       A Pure Python terminal emulator module.
-termio.py         Terminal input/output control module.
-tests/            Various scripts and tools to test Gate One's functionality.
-utils.py          Various supporting functions.
-users/            Persistent user data in the form of ./users/<username>/<user-specific files>
-users/<user>/logs This is where session logs get stored if session_logging is set.
-/tmp/gateone      Temporary session data in the form of /tmp/gateone/<session ID>/<files>
-================= ==================================================================================
+==================  ==========================================================================================
+authpam.py          Contains the PAM authentication Mixin used by auth.py.
+auth.py             Authentication classes.
+babel_gateone.cfg   Pybabel configuration for generating localized translations of Gate One's strings.
+certificate.pem     The default certificate Gate One will use in SSL communications.
+docs/               Gate One's documentation.
+gateone.py          Gate One's primary executable/script. Also, the file containing this documentation.
+gopam.py            PAM (Authentication) Python module (used by authpam.py).
+i18n/               Gate One's internationalization (i18n) support and locale/translation files.
+keyfile.pem         The default private key used with SSL communications.
+logviewer.py        A utility to view Gate One session logs.
+plugins/            (Global) Plugins go here in the form of ./plugins/<plugin name>/<plugin files|directories>
+remote_syslog.py    A module that supports sending syslog messages over UDP to a remote syslog host.
+settings/           All Gate One settings files live here (.conf files).
+sso.py              A Kerberos Single Sign-on module for Tornado (used by auth.py)
+static/             Non-dynamic files that get served to clients (e.g. gateone.js, gateone.css, etc).
+templates/          Tornado template files such as index.html.
+tests/              Various scripts and tools to test Gate One's functionality.
+utils.py            Various supporting functions.
+users/              Persistent user data in the form of ./users/<username>/<user-specific files>
+users/<user>/logs   This is where session logs get stored if session_logging is set.
+/tmp/gateone        Temporary session data in the form of /tmp/gateone/<session ID>/<files>
+/tmp/gateone_cache  Used to store cached files such as minified JavaScript and CSS.
+==================  ==========================================================================================
 
 Running
 -------
@@ -188,53 +425,42 @@ Executing Gate One is as simple as:
     By default Gate One will run on port 443 which requires root on most
     systems.  Use `--port=(something higher than 1024)` for non-root users.
 
-Plugins
--------
-Gate One includes support for any combination of the following types of plugins:
+Applications and Plugins
+------------------------
+Gate One supports both *applications* and *plugins*.  The difference is mostly
+architectural.  Applications go in the `gateone/applications` directory while
+(global) plugins reside in `gateone/plugins`.  The scope of application code
+applies only to the application wheras global Gate One plugin code will apply
+to Gate One itself and all applications.
+
+.. note:: Applications may have plugins of their own (e.g. terminal/plugins).
+
+Gate One applications and plugins can be written using any combination of the
+following:
 
  * Python
  * JavaScript
  * CSS
 
-Python plugins can integrate with Gate One in three ways:
+Applications and Python plugins can integrate with Gate One in a number ways:
 
- * Adding or overriding tornado.web.RequestHandlers (with a given regex).
- * Adding or overriding methods (aka "commands") in ApplicationWebSocket.
- * Adding special plugin-specific escape sequence handlers (see the plugin development documentation for details on what/how these are/work).
+ * Adding or overriding request handlers to provide custom URLs (with a given regex).
+ * Adding or overriding methods in `GOApplication` to handle asynchronous WebSocket "actions".
+ * Adding or overriding events via the :meth:`on`, :meth:`off`, :meth:`once`, and :meth:`trigger` functions.
+ * Delivering custom content to clients (e.g. JavaScript and CSS templates).
 
-JavaScript plugins will be added to the <body> tag of Gate One's base index.html
-template by way of a single file (`{{gateone_js}}` below) that is the
-concatenation of all plugins' JS templates:
+JavaScript and CSS plugins will be delivered over the WebSocket and cached at
+the client by way of a novel synchronization mechanism.  Once JavaScript and CSS
+assets have been delivered they will only ever have to be re-delivered to
+clients if they have been modified (on the server).  This mechanism is extremely
+bandwidth efficient and should allow clients to load Gate One content much more
+quickly than traditional HTTP GET requests.
 
-.. code-block:: html
+.. tip::
 
-    <script type="text/javascript" src="{{gateone_js}}"></script>
-
-CSS plugins are similar to JavaScript but instead of being appended to the
-<body> they are added to the <head> by way of a WebSocket download and some
-fancy JavaScript inside of gateone.js:
-
-.. code-block:: javascript
-
-    CSSPluginAction: function(url) {
-        // Loads the CSS for a given plugin by adding a <link> tag to the <head>
-        var queries = url.split('?')[1].split('&'), // So we can parse out the plugin name and the template
-            plugin = queries[0].split('=')[1],
-            file = queries[1].split('=')[1].split('.')[0];
-        // The /cssrender method needs the prefix and the container
-        url = url + '&container=' + GateOne.prefs.goDiv.substring(1);
-        url = url + '&prefix=' + GateOne.prefs.prefix;
-        url = GateOne.prefs.url + url.substring(1);
-        GateOne.Utils.loadCSS(url, plugin+'_'+file);
-    }
-
-There are also hooks throughout Gate One's code for plugins to add or override
-Gate One's functionality.  Documentation on how to write plugins can be found in
-the Plugin Development docs.  From the perspective of gateone.py, it performs
-the following tasks in relation to plugins:
-
- * Imports Python plugins and connects their hooks.
- * Serves the index.html that includes plugins' respective .js and .css files.
+    If you install the `cssmin` and/or `slimit` Python modules all JavaScript
+    and CSS assets will be automatically minified before being delivered to
+    clients.
 
 Class Docstrings
 ================
@@ -252,7 +478,7 @@ import atexit
 import ssl
 import hashlib
 import tempfile
-from functools import wraps
+from functools import wraps, partial
 from datetime import datetime, timedelta
 from hashlib import md5
 
@@ -494,12 +720,10 @@ def gateone_policies(cls):
     returns True or False depending on what is defined in the settings dir and
     what function is being called.
 
-    This function will keep track of and place limmits on the following:
+    This function will keep track of and place limits on the following:
 
         * Who can send messages to other users (including broadcasts).
         * Who can retrieve a list of connected users.
-
-    If no 'terminal' policies are defined this function will always return True.
     """
     instance = cls.instance # ApplicationWebSocket instance
     function = cls.function # Wrapped function
@@ -534,10 +758,13 @@ def timeout_sessions():
     """
     Loops over the SESSIONS dict killing any sessions that haven't been used
     for the length of time specified in *TIMEOUT* (global).  The value of
-    *TIMEOUT* can be set in server.conf or specified on the command line via the
-    *session_timeout* value.  Arguments:
+    *TIMEOUT* can be set in 10server.conf or specified on the command line via
+    the *session_timeout* value.
 
-    .. note:: This function is meant to be called via Tornado's :meth:`~tornado.ioloop.PeriodicCallback`.
+    .. note::
+
+        This function is meant to be called via Tornado's
+        :meth:`~tornado.ioloop.PeriodicCallback`.
     """
     # Commented because it is a bit noisy.  Uncomment to debug this mechanism.
     #logging.debug("timeout_sessions() TIMEOUT: %s" % TIMEOUT)
@@ -589,7 +816,8 @@ def timeout_sessions():
 # Classes
 class HTTPSRedirectHandler(tornado.web.RequestHandler):
     """
-    A handler to redirect clients from HTTP to HTTPS.
+    A handler to redirect clients from HTTP to HTTPS.  Only used if
+    `https_redirect` is True in Gate One's settings.
     """
     def get(self):
         """Just redirects the client from HTTP to HTTPS"""
@@ -602,7 +830,13 @@ class HTTPSRedirectHandler(tornado.web.RequestHandler):
 class StaticHandler(tornado.web.StaticFileHandler):
     """
     An override of :class:`tornado.web.StaticFileHandler` to ensure that the
-    Access-Control-Allow-Origin header gets set correctly.
+    Access-Control-Allow-Origin header gets set correctly.  This is necessary in
+    order to support embedding Gate One into other web-based applications.
+
+    .. note::
+
+        Gate One performs its own origin checking so header-based access
+        controls at the client are unnecessary.
     """
     # This is the only function we need to override thanks to the thoughtfulness
     # of the Tornado devs.
@@ -618,6 +852,8 @@ class StaticHandler(tornado.web.StaticFileHandler):
 class BaseHandler(tornado.web.RequestHandler):
     """
     A base handler that all Gate One RequestHandlers will inherit methods from.
+
+    Provides the :meth:`get_current_user` method.
     """
     # Right now it's just the one function...
     def get_current_user(self):
@@ -638,8 +874,8 @@ class DownloadHandler(BaseHandler):
     A :class:`tornado.web.RequestHandler` to serve up files that wind up in a
     given user's `session_dir` in the 'downloads' directory.  Generally speaking
     these files are generated by the terminal emulator (e.g. cat somefile.pdf)
-    but it could be used by plugins as a way to serve up temporary files as
-    well.
+    but it can be used by applications and plugins as a way to serve up
+    all sorts of (temporary/transient) files to users.
     """
     # NOTE:  This is a modified version of torando.web.StaticFileHandler
     @tornado.web.authenticated
@@ -713,11 +949,6 @@ class MainHandler(BaseHandler):
 
     Will include the minified version of gateone.js if available as
     gateone.min.js.
-
-    Will encode GATEONE_DIR/static/bell.ogg as a data:URI and put it as the
-    <source> of the <audio> tag inside the index.html template.  Gate One
-    administrators can replace bell.ogg with whatever they like but the file
-    size should be less than 32k when encoded to Base64.
     """
     @tornado.web.authenticated
     @tornado.web.addslash
@@ -796,9 +1027,19 @@ class GOApplication(OnOffMixin):
         * The application and its module(s) should live inside its own directory inside the 'applications' directory.  For example, `/opt/gateone/applications/some_app/some_app.py`
         * Subclasses of `GOApplication` must be added to an `apps` global (list) inside of the application's module(s) like so: `apps = [SomeApplication]` (usually a good idea to put that at the very bottom of the module).
 
-    .. note:: All .py modules inside of the application's main directory will be imported even if they do not contain or register a `GOApplication`.
+    .. note::
 
-    .. tip:: You can add command line arguments to Gate One by calling :func:`tornado.options.define` anywhere in your application's global namespace.  This works because the :func:`~tornado.options.define` function registers options in Gate One's global namespace (as `tornado.options.options`) and Gate One imports application modules before it evaluates command line arguments.
+        All .py modules inside of the application's main directory will be
+        imported even if they do not contain or register a `GOApplication`.
+
+    .. tip::
+
+        You can add command line arguments to Gate One by calling
+        :func:`tornado.options.define` anywhere in your application's global
+        namespace.  This works because the :func:`~tornado.options.define`
+        function registers options in Gate One's global namespace (as
+        `tornado.options.options`) and Gate One imports application modules
+        before it evaluates command line arguments.
     """
     def __init__(self, ws):
         self.ws = ws # WebSocket instance
@@ -820,7 +1061,8 @@ class GOApplication(OnOffMixin):
         """
         Called by :meth:`ApplicationWebSocket.open` after __init__().
         GOApplications can override this function to perform their own actions
-        when the WebSocket is initialized.
+        when the Application is initialized (happens just before the WebSocket
+        is opened).
         """
         pass
 
@@ -866,9 +1108,9 @@ class GOApplication(OnOffMixin):
 class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     """
     The main WebSocket interface for Gate One, this class is setup to call
-    'commands' (aka WebSocket Actions) which are methods registered in
-    `self.actions`.  Methods that are registered this way will be exposed and
-    directly callable over the WebSocket.
+    WebSocket 'actions' which are methods registered in `self.actions`.
+    Methods that are registered this way will be exposed and directly callable
+    over the WebSocket.
     """
     instances = set()
     # These three attributes handle watching files for changes:
@@ -905,6 +1147,13 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
     @classmethod
     def file_checker(cls):
+        """
+        A `Tornado.IOLoop.PeriodicCallback` that regularly checks all files
+        registered in the `ApplicationWebSocket.watched_files` dict for changes.
+
+        If changes are detected the corresponding function(s) in
+        `ApplicationWebSocket.file_update_funcs` will be called.
+        """
         #logging.debug("file_checker()") # Kinda noisy so I've commented it out
         if not SESSIONS:
             # No connected sessions; no point in watching files
@@ -945,9 +1194,11 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     @classmethod
     def watch_file(cls, path, func):
         """
-        Registers the given file *path* and *func* in
-        `ApplicationWebSocket.watched_files`.  The *func* will be called if the
-        file at *path* is modified.
+        A classmethod that registers the given file *path* and *func* in
+        `ApplicationWebSocket.watched_files` and
+        `ApplicationWebSocket.file_update_funcs`, respectively.  The given
+        *func* will be called (by `ApplicationWebSocket.file_checker`) whenever
+        the file at *path* is modified.
         """
         logging.debug("watch_file('{path}', {func}())".format(
             path=path, func=func.__name__))
@@ -957,8 +1208,32 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     @classmethod
     def broadcast_file_update(cls):
         """
-        Called when there's an update to the 'broadcast_file', broadcasts its
-        contents to all connected users.
+        Called when there's an update to the `broadcast_file` (e.g.
+        `<session_dir>/broadcast`); broadcasts its contents to all connected
+        users.  The message will be displayed via the
+        :js:meth:`GateOne.Visual.displayMessage` function at the client and can
+        be formatted with HTML.  For this reason it is important to strictly
+        control write access to the broadcast file.
+
+        .. note::
+
+            Under normal circumstances only root (or the owner of the
+            gateone.py process) can enter and/or write to files inside
+            Gate One's `session_dir` directory.
+
+        The path to the broadcast file can be configured via the
+        `broadcast_file` setting which can be placed anywhere under the
+        'gateone' application/scope (e.g. inside 10server.conf).  The setting
+        isn't there by default but you can simply add it if you wish:
+
+        .. code-block:: javascript
+
+            "broadcast_file": "/whatever/path/you/want/broadcast"
+
+        .. tip::
+
+            Want to broadcast a message to all the users currently connected to
+            Gate One?  Just `sudo echo "your message" > /tmp/gateone/broadcast`.
         """
         session_dir = options.session_dir
         broadcast_file = os.path.join(session_dir, 'broadcast')
@@ -975,9 +1250,12 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
     def initialize(self, apps=None, **kwargs):
         """
-        This gets called by the Tornado framework when ApplicationWebSocket is
+        This gets called by the Tornado framework when `ApplicationWebSocket` is
         instantiated.  It will be passed the list of *apps* (Gate One
-        applications) that are assigned inside the :class:`Application` object.
+        applications) that are assigned inside the :class:`GOApplication`
+        object.  These :class:`GOApplication`s will be instantiated and stored
+        in `self.apps`.
+
         These *apps* will be mutated in-place so that `self` will refer to the
         current instance of :class:`ApplicationWebSocket`.  Kind of like a
         dynamic mixin.
@@ -990,6 +1268,21 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             if 'Events' in hooks:
                 for event, callback in hooks['Events'].items():
                     self.on(event, callback)
+        # Setup some actions to take place after the user authenticates
+        # Send our plugin .js and .css files to the client
+        send_plugin_static_files = partial(
+            self.send_plugin_static_files, os.path.join(GATEONE_DIR, 'plugins'))
+        self.on("go:authenticate", send_plugin_static_files)
+        # This is so the client knows what applications it can use:
+        self.on("go:authenticate", self.list_applications)
+        # This starts up the PeriodicCallback that watches sessions for timeouts
+        # and cleans them up (if not already started):
+        self.on("go:authenticate", self._start_session_watcher)
+        # This starts up the PeriodicCallback that watches and cleans up old
+        # user logs (anything in gateone/users/<user>/logs):
+        self.on("go:authenticate", self._start_log_cleaner)
+        # This starts up the file watcher PeriodicCallback:
+        self.on("go:authenticate", self._start_file_watcher)
         if not apps:
             return
         for app in apps:
@@ -1030,16 +1323,30 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
     def write_binary(self, message):
         """
         Writes the given *message* to the WebSocket in binary mode (opcode
-        0x02).
+        0x02).  Binary WebSocket messages are handled differently from regular
+        messages at the client (they use a completely different 'action'
+        mechanism).  For more information see the JavaScript developer
+        documentation.
         """
         self.write_message(message, binary=True)
 
     def open(self):
         """
         Called when a new WebSocket is opened.  Will deny access to any
-        origin that is not defined in self.settings['origin'].
-        """
+        origin that is not defined in `self.settings['origin']`.  Also sends
+        any relevant localization data (JavaScript) to the client and calls the
+        :meth:`open` method of any and all enabled Applications.
 
+        Triggers the `go:open` event.
+
+        .. note::
+
+            `self.settings` comes from the Tornado framework and includes most
+            command line arguments and the settings from the `settings_dir` that
+            fall under the "gateone" scope.  It is not the same thing as
+            `self.prefs` which includes *all* of Gate One's settings (including
+            settings for other applications and scopes).
+        """
         cls = ApplicationWebSocket
         cls.instances.add(self)
         valid_origins = self.settings['origins']
@@ -1107,9 +1414,15 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for app in self.apps: # Call applications' open() functions (if any)
             if hasattr(app, 'open'):
                 app.open()
+        self.trigger("go:open")
 
     def on_message(self, message):
-        """Called when we receive a message from the client."""
+        """
+        Called when we receive a message from the client.  Performs some basic
+        validation of the message, decodes it (JSON), and finally calls an
+        appropriate WebSocket action (registered method) with the message
+        contents.
+        """
         # This is super useful when debugging:
         logging.debug("message: %s" % repr(message))
         if self.origin_denied:
@@ -1152,7 +1465,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
     def on_close(self):
         """
-        Called when the client terminates the connection.
+        Called when the client terminates the connection.  Also calls the
+        :meth:`on_close` method of any and all enabled Applications.
+
+        Triggers the `go:close` event.
         """
         logging.debug("on_close()")
         ApplicationWebSocket.instances.discard(self)
@@ -1170,6 +1486,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         for app in self.apps:
             if hasattr(app, 'on_close'):
                 app.on_close()
+        self.trigger("go:close")
 
     def pong(self, timestamp):
         """
@@ -1185,12 +1502,22 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         cookie or if Gate One is configured to use API authentication it will
         use *settings['auth']*.  Additionally, it will accept
         *settings['container']* and *settings['prefix']* to apply those to the
-        equivalent properties (self.container and self.prefix).
+        equivalent properties (`self.container` and `self.prefix`).
+
+        .. note::
+
+            'container' refers to the element on which Gate One was initialized
+            at the client (e.g. `#gateone`).  'prefix' refers to the string that
+            will be prepended to all Gate One element IDs when added to the web
+            page (to avoid namespace conflicts).  Both these values are only
+            used when generating CSS templates.
 
         If *settings['location']* is something other than 'default' all new
         application instances will be associated with the given (string) value.
         These applications will be treated separately so they can exist in a
         different browser tab/window.
+
+        Triggers the `go:authenticate` event.
         """
         logging.debug("authenticate(): %s" % settings)
         # Make sure the client is authenticated if authentication is enabled
@@ -1473,7 +1800,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # A shortcut for SESSIONS[self.session]['locations']:
         self.locations = SESSIONS[self.session]['locations']
         # Send our plugin .js and .css files to the client
-        self.send_plugin_static_files(os.path.join(GATEONE_DIR, 'plugins'))
+        #self.send_plugin_static_files(os.path.join(GATEONE_DIR, 'plugins'))
         # Call applications' authenticate() functions (if any)
         for app in self.apps:
             # Set the current user for convenient access
@@ -1483,17 +1810,78 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         # This is just so the client has a human-readable point of reference:
         message = {'go:set_username': self.current_user['upn']}
         self.write_message(json_encode(message))
-        # Tell the client which applications are available
-        self.list_applications()
-        # Startup the session watcher if it isn't already running
+        ## Startup the file watcher if it isn't already running and get it
+        ## watching the broadcast file.
+        #cls = ApplicationWebSocket
+        #broadcast_file = os.path.join(self.settings['session_dir'], 'broadcast')
+        #broadcast_file = self.prefs['*']['gateone'].get(
+            #'broadcast_file', broadcast_file)
+        #if broadcast_file not in cls.watched_files:
+            ## No broadcast file means the file watcher isn't running
+            #io.open(broadcast_file, 'w').write(u'') # Touch file
+            #check_time = self.prefs['*']['gateone'].get(
+                #'file_check_interval', 5000)
+            #cls.watch_file(broadcast_file, cls.broadcast_file_update)
+            #io_loop = tornado.ioloop.IOLoop.instance()
+            #cls.file_watcher = tornado.ioloop.PeriodicCallback(
+                #cls.file_checker, check_time, io_loop=io_loop)
+            #cls.file_watcher.start()
+        self.trigger('go:authenticate')
+
+    def _start_session_watcher(self):
+        """
+        Starts up the `SESSION_WATCHER` (assigned to that global)
+        :class:`~tornado.ioloop.PeriodicCallback` that regularly checks for user
+        sessions that have timed out via the :func:`timeout_sessions` function
+        and cleans them up (shuts down associated processes).
+
+        The interval in which it performs this check is controlled via the
+        `session_timeout_check_interval` setting. This setting is not included
+        in Gate One's 10server.conf by default but can be added if needed to
+        override the default value of 30 seconds.  Example:
+
+        .. code-block:: javascript
+
+            {
+                "*": {
+                    "gateone": {
+                        "session_timeout_check_interval": "30s"
+                    }
+                }
+            }
+        """
         global SESSION_WATCHER
         if not SESSION_WATCHER:
             interval = self.prefs['*']['gateone'].get(
-                'session_timeout_check_interval', 30*1000) # 30s default
+                'session_timeout_check_interval', "30s") # 30s default
+            interval = convert_to_timedelta(interval).total_seconds() * 1000
             SESSION_WATCHER = tornado.ioloop.PeriodicCallback(
                 timeout_sessions, interval)
             SESSION_WATCHER.start()
-        # Startup the log cleaner so that old user logs get cleaned up
+
+    def _start_log_cleaner(self):
+        """
+        Starts up the `CLEANER` (assigned to that global)
+        `~tornado.ioloop.PeriodicCallback` that regularly checks for and
+        deletes expired user logs (e.g. terminal session logs or anything in the
+        `GATEONE_DIR/users/<user>/logs` dir) via the
+        :func:`cleanup_user_logs` function.
+
+        The interval in which it performs this check is controlled via the
+        `user_logs_cleanup_interval` setting. This setting is not included in
+        Gate One's 10server.conf by default but can be added if needed to
+        override the default value of 5 minutes.  Example:
+
+        .. code-block:: javascript
+
+            {
+                "*": {
+                    "gateone": {
+                        "user_logs_cleanup_interval": "5m"
+                    }
+                }
+            }
+        """
         global CLEANER
         if not CLEANER:
             default_interval = 5*60*1000 # 5 minutes
@@ -1501,11 +1889,56 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
             # kind of obscure.  No reason to clutter things up.
             interval = self.prefs['*']['gateone'].get(
                 'user_logs_cleanup_interval', default_interval)
+            interval = convert_to_timedelta(interval).total_seconds() * 1000
             CLEANER = tornado.ioloop.PeriodicCallback(
                 cleanup_user_logs, interval)
             CLEANER.start()
-        # Startup the file watcher if it isn't already running and get it
-        # watching the broadcast file.
+
+    def _start_file_watcher(self):
+        """
+        Starts up the :attr:`ApplicationWebSocket.file_watcher`
+        `~tornado.ioloop.PeriodicCallback` (which regularly calls
+        :meth:`ApplicationWebSocket.file_checker` and immediately starts it
+        watching the broadcast file for changes (if not already watching it).
+
+        The path to the broadcast file defaults to '*settings_dir*/broadcast'
+        but can be changed via the 'broadcast_file' setting.  This setting is
+        not included in Gate One's 10server.conf by default but can be added if
+        needed to overrided the default value.  Example:
+
+        .. code-block:: javascript
+
+            {
+                "*": {
+                    "gateone": {
+                        "broadcast_file": "/some/path/to/broadcast"
+                    }
+                }
+            }
+
+        .. tip::
+
+            You can send messages to all users currently connected to the Gate
+            One server by writing text to the broadcast file.  Example:
+            `sudo echo "Server will be rebooted as part of regularly scheduled
+            maintenance in 5 minutes.  Pleas save your work." >
+            /tmp/gateone/broadcast`
+
+        The interval in which it performs this check is controlled via the
+        `file_check_interval` setting. This setting is not included in
+        Gate One's 10server.conf by default but can be added if needed to
+        override the default value of 5 seconds.  Example:
+
+        .. code-block:: javascript
+
+            {
+                "*": {
+                    "gateone": {
+                        "file_check_interval": "5s"
+                    }
+                }
+            }
+        """
         cls = ApplicationWebSocket
         broadcast_file = os.path.join(self.settings['session_dir'], 'broadcast')
         broadcast_file = self.prefs['*']['gateone'].get(
@@ -1513,14 +1946,14 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         if broadcast_file not in cls.watched_files:
             # No broadcast file means the file watcher isn't running
             io.open(broadcast_file, 'w').write(u'') # Touch file
-            check_time = self.prefs['*']['gateone'].get(
-                'file_check_interval', 5000)
+            interval = self.prefs['*']['gateone'].get(
+                'file_check_interval', "5s")
+            interval = convert_to_timedelta(interval).total_seconds() * 1000
             cls.watch_file(broadcast_file, cls.broadcast_file_update)
             io_loop = tornado.ioloop.IOLoop.instance()
             cls.file_watcher = tornado.ioloop.PeriodicCallback(
-                cls.file_checker, check_time, io_loop=io_loop)
+                cls.file_checker, interval, io_loop=io_loop)
             cls.file_watcher.start()
-        self.trigger('go:authenticate')
 
     def list_applications(self):
         """
@@ -1763,9 +2196,9 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
     def cache_cleanup(self, message):
         """
-        Attached to the 'go:cache_cleanup' WebSocket action; rifles through the
+        Attached to the `go:cache_cleanup` WebSocket action; rifles through the
         given list of *message['filenames']* from the client and sends a
-        'go:cache_expired' WebSocket action to the client with a list of files
+        `go:cache_expired` WebSocket action to the client with a list of files
         that no longer exist in `self.file_cache` (so it can clean them up).
         """
         logging.debug("cache_cleanup(%s)" % message)
@@ -1806,7 +2239,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
     def file_request(self, files_or_hash, use_client_cache=True):
         """
-        Attached to the 'go:file_request' WebSocket action; minifies, caches,
+        Attached to the `go:file_request` WebSocket action; minifies, caches,
         and finally sends the requested file to the client.  If
         *use_client_cache* is `False` the client will be instructed not to cache
         the file.  Example message from the client requesting a file:
@@ -1918,7 +2351,10 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
         Optionally, a *media* string may be provided to specify the 'media='
         value when creating a <style> tag to hold the given CSS.
 
-        .. note: If the slimit module is installed it will be used to minify the JS before being sent to the client.
+        .. note:
+
+            If the slimit module is installed it will be used to minify the JS
+            before being sent to the client.
         """
         if kind == 'js':
             send_js = self.prefs['*']['gateone'].get('send_js', True)
@@ -2062,7 +2498,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
             If you want to serve Gate One's CSS via a different mechanism
             (e.g. nginx) this functionality can be completely disabled by adding
-            `'send_css': false` to gateone/settings/10server.conf
+            `"send_css": false` to gateone/settings/10server.conf
         """
         send_css = self.prefs['*']['gateone'].get('send_css', True)
         if not send_css:
@@ -2117,7 +2553,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
             If you want to serve Gate One's JavaScript via a different mechanism
             (e.g. nginx) this functionality can be completely disabled by adding
-            `'send_js': false` to gateone/settings/10server.conf
+            `"send_js": false` to gateone/settings/10server.conf
         """
         logging.debug('send_plugin_static_files(%s)' % plugins_dir)
         send_js = self.prefs['*']['gateone'].get('send_js', True)
@@ -2246,7 +2682,7 @@ class ApplicationWebSocket(WebSocketHandler, OnOffMixin):
 
     def send_message(self, message, upn=None, session=None):
         """
-        Sends the given *message* to the client using the 'notice' WebSocket
+        Sends the given *message* to the client using the `go:notice` WebSocket
         action at the currently-connected client.
 
         If *upn* is provided the *message* will be sent to all users with a

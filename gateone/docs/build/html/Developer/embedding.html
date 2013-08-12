@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Embedding Gate One Into Other Applications &mdash; Gate One 1.1.0 documentation</title>
+    <title>Embedding Gate One Into Other Applications &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="Release Notes / Changelog" href="../ReleaseNotes/index.html" />
     <link rel="prev" title="The SSH Plugin" href="plugin_ssh.html" /> 
@@ -189,7 +187,7 @@ auth = &quot;api&quot;
 <dt>upn</dt>
 <dd>The username or userPrincipalName (aka UPN) of the user you wish to preauthenticate.</dd>
 <dt>timestamp</dt>
-<dd>A JavaScript-style timestamp:  13 characters representing the amount of seconds since the epoch (January 1, 1970)</dd>
+<dd>A JavaScript-style timestamp:  13 digits representing the amount of milliseconds since the epoch (January 1, 1970)</dd>
 <dt>signature</dt>
 <dd>A valid <a class="reference external" href="http://en.wikipedia.org/wiki/Hash-based_message_authentication_code">HMAC</a> signature that is generated from the api_key, upn, and timestamp (in that order).</dd>
 <dt>signature_method</dt>
@@ -216,7 +214,7 @@ auth = &quot;api&quot;
 <p>Assuming the signature is valid Gate One would then inherently trust that the user connecting over the WebSocket is <a class="reference external" href="mailto:joe&#37;&#52;&#48;company&#46;com">joe<span>&#64;</span>company<span>&#46;</span>com</a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Authentication objects (aka &quot;authentication tokens&quot;) are only valid within the time frame specified in the <a class="reference internal" href="../About/index.html#cmdoption--api_timestamp_window"><em class="xref std std-option">--api_timestamp_window</em></a> setting.  They also can't be used more than once (to negate replay attacks).</p>
+<p class="last">Authentication objects (aka &quot;authentication tokens&quot;) are only valid within the time frame specified in the <a class="reference internal" href="../About/configuration.html#cmdoption--api_timestamp_window"><em class="xref std std-option">--api_timestamp_window</em></a> setting.  They also can't be used more than once (to negate replay attacks).</p>
 </div>
 </div>
 </div>
@@ -257,16 +255,16 @@ auth = &quot;api&quot;
 </div>
 <div class="section" id="php">
 <h3>PHP<a class="headerlink" href="#php" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-php"><div class="highlight"><pre><span class="nv">$secret</span> <span class="o">=</span> <span class="s1">&#39;secret&#39;</span>
+<div class="highlight-php"><div class="highlight"><pre><span class="nv">$secret</span> <span class="o">=</span> <span class="s1">&#39;secret&#39;</span><span class="p">;</span>
 <span class="nv">$authobj</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
     <span class="s1">&#39;api_key&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;MjkwYzc3MDI2MjhhNGZkNDg1MjJkODgyYjBmN2MyMTM4M&#39;</span><span class="p">,</span>
     <span class="s1">&#39;upn&#39;</span> <span class="o">=&gt;</span> <span class="nv">$_SERVER</span><span class="p">[</span><span class="s1">&#39;REMOTE_USER&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;timestamp&#39;</span> <span class="o">=&gt;</span> <span class="nb">time</span><span class="p">()</span> <span class="o">.</span> <span class="s1">&#39;0000&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;timestamp&#39;</span> <span class="o">=&gt;</span> <span class="nb">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">,</span>
     <span class="s1">&#39;signature_method&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;HMAC-SHA1&#39;</span><span class="p">,</span>
     <span class="s1">&#39;api_version&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;1.0&#39;</span>
 <span class="p">);</span>
 <span class="nv">$authobj</span><span class="p">[</span><span class="s1">&#39;signature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">hash_hmac</span><span class="p">(</span><span class="s1">&#39;sha1&#39;</span><span class="p">,</span> <span class="nv">$authobj</span><span class="p">[</span><span class="s1">&#39;api_key&#39;</span><span class="p">]</span> <span class="o">.</span> <span class="nv">$authobj</span><span class="p">[</span><span class="s1">&#39;upn&#39;</span><span class="p">]</span> <span class="o">.</span> <span class="nv">$authobj</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">],</span> <span class="nv">$secret</span><span class="p">);</span>
-<span class="nv">$valid_json_auth_object</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">(</span><span class="nv">$authobj</span><span class="p">)</span>
+<span class="nv">$valid_json_auth_object</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">(</span><span class="nv">$authobj</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -283,7 +281,7 @@ auth = &quot;api&quot;
     <span class="s1">&#39;signature_method&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;HMAC-SHA1&#39;</span><span class="p">,</span>
     <span class="s1">&#39;api_version&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;1.0&#39;</span>
 <span class="p">}</span>
-<span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;signature&#39;</span> <span class="o">=</span> <span class="no">OpenSSL</span><span class="o">::</span><span class="no">HMAC</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(</span><span class="s1">&#39;sha1&#39;</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;api_key&#39;</span><span class="o">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;upn&#39;</span><span class="o">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;timestamp&#39;</span><span class="o">]</span><span class="p">)</span>
+<span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;signature&#39;</span> <span class="o">=</span> <span class="ss">OpenSSL</span><span class="p">:</span><span class="ss">:HMAC</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(</span><span class="s1">&#39;sha1&#39;</span><span class="p">,</span> <span class="n">secret</span><span class="p">,</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;api_key&#39;</span><span class="o">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;upn&#39;</span><span class="o">]</span> <span class="o">+</span> <span class="n">authobj</span><span class="o">[</span><span class="s1">&#39;timestamp&#39;</span><span class="o">]</span><span class="p">)</span>
 <span class="n">valid_json_auth_object</span> <span class="o">=</span> <span class="no">JSON</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">authobj</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -372,7 +370,7 @@ auth = &quot;api&quot;
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

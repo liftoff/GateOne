@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>gateone.js &mdash; Gate One 1.1.0 documentation</title>
+    <title>gateone.js &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,9 +25,9 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
-    <link rel="next" title="go_process.js" href="js_go_process.html" />
+    <link rel="next" title="term_ww.js" href="js_go_process.html" />
     <link rel="prev" title="utils.py - Supporting Functions" href="utils.html" /> 
   </head>
   <body>
@@ -43,7 +41,7 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="js_go_process.html" title="go_process.js"
+          <a href="js_go_process.html" title="term_ww.js"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="utils.html" title="utils.py - Supporting Functions"
@@ -3460,14 +3458,15 @@ See: <a class="reference external" href="http://www.alistapart.com/articles/alte
 </pre></div>
 </div>
 <p>...would result in <tt class="docutils literal"><span class="pre">#somediv</span></tt> getting styles applied to it like this:</p>
-<div class="highlight-css"><pre>#somediv {
-    -webkit-transform: translateX(500%); /* Chrome/Safari/Webkit-based stuff */
-    -moz-transform: translateX(500%);    /* Mozilla/Firefox/Gecko-based stuff */
-    -o-transform: translateX(500%);      /* Opera */
-    -ms-transform: translateX(500%);     /* IE9+ */
-    -khtml-transform: translateX(500%);  /* Konqueror */
-    transform: translateX(500%);         /* Some day this will be all that is necessary */
-}</pre>
+<div class="highlight-css"><div class="highlight"><pre><span class="nf">#somediv</span> <span class="p">{</span>
+    <span class="o">-</span><span class="n">webkit</span><span class="o">-</span><span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span> <span class="c">/* Chrome/Safari/Webkit-based stuff */</span>
+    <span class="o">-</span><span class="n">moz</span><span class="o">-</span><span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span>    <span class="c">/* Mozilla/Firefox/Gecko-based stuff */</span>
+    <span class="o">-</span><span class="n">o</span><span class="o">-</span><span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span>      <span class="c">/* Opera */</span>
+    <span class="o">-</span><span class="n">ms</span><span class="o">-</span><span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span>     <span class="c">/* IE9+ */</span>
+    <span class="o">-</span><span class="n">khtml</span><span class="o">-</span><span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span>  <span class="c">/* Konqueror */</span>
+    <span class="n">transform</span><span class="o">:</span> <span class="n">translateX</span><span class="p">(</span><span class="m">500</span><span class="o">%</span><span class="p">);</span>         <span class="c">/* Some day this will be all that is necessary */</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 </dd></dl>
 
@@ -4575,7 +4574,7 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 </tbody>
 </table>
 <p>This function gets attached to the 'set_mode' action in <tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Net.actions</span></tt> and gets called when the server encounters either a &quot;set expanded mode&quot; or &quot;reset expanded mode&quot; escape sequence.  Essentially, it uses the values provided by <em>modeObj</em> to call <tt class="docutils literal"><span class="pre">GateOne.Net.actions[modeObj['mode']](modeObj['term'],</span> <span class="pre">modeObj['boolean'])</span></tt>.</p>
-<div class="admonition-see-also admonition seealso">
+<div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <p class="last"><tt class="xref js js-attr docutils literal"><span class="pre">GateOne.Terminal.modes</span></tt>.</p>
 </div>
@@ -4884,7 +4883,7 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
                         title="previous chapter"><tt class="docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="js_go_process.html"
-                        title="next chapter">go_process.js</a></p>
+                        title="next chapter">term_ww.js</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/Developer/js_gateone.txt"
@@ -4917,7 +4916,7 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="js_go_process.html" title="go_process.js"
+          <a href="js_go_process.html" title="term_ww.js"
              >next</a> |</li>
         <li class="right" >
           <a href="utils.html" title="utils.py - Supporting Functions"
@@ -4929,7 +4928,7 @@ If <em>panel</em> is null or false, all open panels will be toggled out of view.
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

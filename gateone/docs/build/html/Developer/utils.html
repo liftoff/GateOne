@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>utils.py - Supporting Functions &mdash; Gate One 1.1.0 documentation</title>
+    <title>utils.py - Supporting Functions &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="gateone.js" href="js_gateone.html" />
     <link rel="prev" title="termio.py - Terminal Input/Output Module" href="termio.html" /> 
@@ -88,6 +86,12 @@ self-signed SSL certificate.</p>
 recursively chown a directory.</p>
 </dd></dl>
 
+<dl class="exception">
+<dt id="utils.SettingsError">
+<em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">SettingsError</tt><a class="reference internal" href="../_modules/utils.html#SettingsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.SettingsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised when we encounter an error parsing .conf files in the settings dir.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="utils.RUDict">
 <em class="property">class </em><tt class="descclassname">utils.</tt><tt class="descname">RUDict</tt><big>(</big><em>*args</em>, <em>**kw</em><big>)</big><a class="reference internal" href="../_modules/utils.html#RUDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.RUDict" title="Permalink to this definition">¶</a></dt>
@@ -106,11 +110,20 @@ sub-dicts will be merged without one clobbering the other.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="utils.remove_comments">
+<tt class="descclassname">utils.</tt><tt class="descname">remove_comments</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="../_modules/utils.html#remove_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.remove_comments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes C-style comments from <em>text</em> and returns the result.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="utils.get_settings">
-<tt class="descclassname">utils.</tt><tt class="descname">get_settings</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_settings" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">get_settings</tt><big>(</big><em>path</em>, <em>add_default=True</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads any and all <em>.conf files containing JSON (JS-style comments are OK)
 inside *path</em> and returns them as an <a class="reference internal" href="#utils.RUDict" title="utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a>.  Optionally, <em>path</em>
 may be a specific file (as opposed to just a directory).</p>
+<p>By default, all returned <a class="reference internal" href="#utils.RUDict" title="utils.RUDict"><tt class="xref py py-class docutils literal"><span class="pre">RUDict</span></tt></a> objects will include a '*' dict
+which indicates &quot;all users&quot;.  This behavior can be skipped by setting the
+<em>add_default</em> keyword argument to <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#False" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">False</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -158,17 +171,19 @@ auto-killed and the following will be returned:</p>
 <dl class="function">
 <dt id="utils.json_encode">
 <tt class="descclassname">utils.</tt><tt class="descname">json_encode</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/utils.html#json_encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.json_encode" title="Permalink to this definition">¶</a></dt>
-<dd><p>On some platforms (CentOS 6.2, specifically) <a class="reference external" href="http://www.tornadoweb.org/documentation/escape.html#tornado.escape.json_decode" title="(in Tornado v2.4.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.escape.json_decode</span></tt></a>
+<dd><p>On some platforms (CentOS 6.2, specifically) <a class="reference external" href="http://www.tornadoweb.org/en/stable/escape.html#tornado.escape.json_decode" title="(in Tornado v3.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.escape.json_decode</span></tt></a>
 doesn't seem to work just right when it comes to returning unicode strings.
 This is just a wrapper that ensures that the returned string is unicode.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="utils.get_translation">
-<tt class="descclassname">utils.</tt><tt class="descname">get_translation</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/utils.html#get_translation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_translation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Looks inside GATEONE_DIR/server.conf to determine the configured locale and
-returns a matching locale.get_translation function.  Meant to be used like
-this:</p>
+<tt class="descclassname">utils.</tt><tt class="descname">get_translation</tt><big>(</big><em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_translation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_translation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks inside Gate One's settings to determine the configured locale and
+returns a matching locale.get_translation function.  If no locale is set
+(e.g. first time running Gate One) the local <tt class="xref py py-obj docutils literal"><span class="pre">$LANG</span></tt> environment variable
+will be used.</p>
+<p>This function is meant to be used like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">get_translation</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">get_translation</span><span class="p">()</span>
 </pre></div>
@@ -233,7 +248,7 @@ equivalents.  If no logical match is found, return False.  Examples:</p>
 <span class="go">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">str2bool</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">)</span>
 <span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">st2bool</span><span class="p">(</span><span class="s">&#39;whatever&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">str2bool</span><span class="p">(</span><span class="s">&#39;whatever&#39;</span><span class="p">)</span>
 <span class="go">False</span>
 </pre></div>
 </div>
@@ -254,9 +269,9 @@ equivalents.  If no logical match is found, return False.  Examples:</p>
 <dt id="utils.mkdir_p">
 <tt class="descclassname">utils.</tt><tt class="descname">mkdir_p</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#mkdir_p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.mkdir_p" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pythonic version of &quot;mkdir -p&quot;.  Example equivalents:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">commands</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mkdir_p</span><span class="p">(</span><span class="s">&#39;/tmp/test/testing&#39;</span><span class="p">)</span> <span class="c"># Does the same thing as below:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">commands</span><span class="o">.</span><span class="n">getstatusoutput</span><span class="p">(</span><span class="s">&#39;mkdir -p /tmp/test/testing&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mkdir_p</span><span class="p">(</span><span class="s">&#39;/tmp/test/testing&#39;</span><span class="p">)</span> <span class="c"># Does the same thing as...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">call</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">call</span><span class="p">(</span><span class="s">&#39;mkdir -p /tmp/test/testing&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -267,9 +282,10 @@ equivalents.  If no logical match is found, return False.  Examples:</p>
 
 <dl class="function">
 <dt id="utils.cmd_var_swap">
-<tt class="descclassname">utils.</tt><tt class="descname">cmd_var_swap</tt><big>(</big><em>cmd</em>, <em>session=None</em>, <em>session_hash=None</em>, <em>user_dir=None</em>, <em>user=None</em>, <em>time=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#cmd_var_swap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.cmd_var_swap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <em>cmd</em> with special inline variables swapped out for their respective
-argument values.  The special variables are as follows:</p>
+<tt class="descclassname">utils.</tt><tt class="descname">cmd_var_swap</tt><big>(</big><em>cmd</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/utils.html#cmd_var_swap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.cmd_var_swap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>cmd</em> with %variable% replaced with the keys/values passed in via
+<em>kwargs</em>.  This function is used by Gate One's Terminal application to
+swap the following Gate One variables in defined terminal 'commands':</p>
 <blockquote>
 <div><table border="1" class="docutils">
 <colgroup>
@@ -280,16 +296,19 @@ argument values.  The special variables are as follows:</p>
 <tr class="row-odd"><td>%SESSION%</td>
 <td><em>session</em></td>
 </tr>
-<tr class="row-even"><td>%SESSION_HASH%</td>
+<tr class="row-even"><td>%SESSION_DIR%</td>
+<td><em>session_dir</em></td>
+</tr>
+<tr class="row-odd"><td>%SESSION_HASH%</td>
 <td><em>session_hash</em></td>
 </tr>
-<tr class="row-odd"><td>%USERDIR%</td>
+<tr class="row-even"><td>%USERDIR%</td>
 <td><em>user_dir</em></td>
 </tr>
-<tr class="row-even"><td>%USER%</td>
+<tr class="row-odd"><td>%USER%</td>
 <td><em>user</em></td>
 </tr>
-<tr class="row-odd"><td>%TIME%</td>
+<tr class="row-even"><td>%TIME%</td>
 <td><em>time</em></td>
 </tr>
 </tbody>
@@ -297,10 +316,21 @@ argument values.  The special variables are as follows:</p>
 </div></blockquote>
 <p>This allows for unique or user-specific values to be swapped into command
 line arguments like so:</p>
-<div class="highlight-python"><pre>ssh_connect.py -M -S '/tmp/gateone/%SESSION%/%r@%L:%p'</pre>
+<div class="highlight-python"><pre>ssh_connect.py -M -S '%SESSION%/%SESSION%/%r@%L:%p'</pre>
 </div>
-<p>The values passed into this function can be whatever you like.  They don't
-necessarily have to match their intended values.</p>
+<p>Could become:</p>
+<div class="highlight-python"><pre>ssh_connect.py -M -S '/tmp/gateone/NWI0YzYxNzAwMTA3NGYyZmI0OWJmODczYmQyMjQwMDYwM/%r@%L:%p'</pre>
+</div>
+<p>Here's an example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cmd</span> <span class="o">=</span> <span class="s">&quot;echo &#39;</span><span class="si">%F</span><span class="s">OO</span><span class="si">% %</span><span class="s">BAR%&#39;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cmd_var_swap</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">foo</span><span class="o">=</span><span class="s">&quot;FOOYEAH,&quot;</span><span class="p">,</span> <span class="n">bar</span><span class="o">=</span><span class="s">&quot;BAR NONE!&quot;</span><span class="p">)</span>
+<span class="go">&quot;echo &#39;FOOYEAH, BAR NONE!&#39;&quot;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The variables passed into this function via <em>kwargs</em> are case insensitive.  <tt class="xref py py-obj docutils literal"><span class="pre">cmd_var_swap(cmd,</span> <span class="pre">session=var)</span></tt> would produce the same output as <tt class="xref py py-obj docutils literal"><span class="pre">cmd_var_swap(cmd,</span> <span class="pre">SESSION=var)</span></tt>.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -308,6 +338,10 @@ necessarily have to match their intended values.</p>
 <tt class="descclassname">utils.</tt><tt class="descname">short_hash</tt><big>(</big><em>to_shorten</em><big>)</big><a class="reference internal" href="../_modules/utils.html#short_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.short_hash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts <em>to_shorten</em> into a really short hash depenendent on the length of
 <em>to_shorten</em>.  The result will be safe for use as a file name.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Collisions are possible but <em>highly</em> unlikely because of how this method is used.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -321,32 +355,35 @@ necessarily have to match their intended values.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.kill_dtached_proc_macos">
-<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc_macos</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc_macos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc_macos" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Mac OS-specific implementation of <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-obj docutils literal"><span class="pre">kill_dtached_proc</span></tt></a> since Macs don't
-have /proc.  Seems simpler than <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-func docutils literal"><span class="pre">kill_dtached_proc()</span></tt></a> but actually
-having to call a subprocess is less efficient (due to the sophisticated
-signal handling required by <a class="reference internal" href="#utils.shell_command" title="utils.shell_command"><tt class="xref py py-func docutils literal"><span class="pre">shell_command()</span></tt></a>).</p>
+<dt id="utils.kill_dtached_proc_bsd">
+<tt class="descclassname">utils.</tt><tt class="descname">kill_dtached_proc_bsd</tt><big>(</big><em>session</em>, <em>term</em><big>)</big><a class="reference internal" href="../_modules/utils.html#kill_dtached_proc_bsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.kill_dtached_proc_bsd" title="Permalink to this definition">¶</a></dt>
+<dd><p>A BSD-specific implementation of <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-obj docutils literal"><span class="pre">kill_dtached_proc</span></tt></a> since Macs don't have
+/proc.  Seems simpler than <a class="reference internal" href="#utils.kill_dtached_proc" title="utils.kill_dtached_proc"><tt class="xref py py-func docutils literal"><span class="pre">kill_dtached_proc()</span></tt></a> but actually having to
+call a subprocess is less efficient (due to the sophisticated signal
+handling required by <a class="reference internal" href="#utils.shell_command" title="utils.shell_command"><tt class="xref py py-func docutils literal"><span class="pre">shell_command()</span></tt></a>).</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="utils.killall_macos">
-<tt class="descclassname">utils.</tt><tt class="descname">killall_macos</tt><big>(</big><em>session_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#killall_macos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.killall_macos" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Mac OS X-specific version of <a class="reference internal" href="#utils.killall" title="utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a> since Macs don't have /proc.</p>
+<dt id="utils.killall_bsd">
+<tt class="descclassname">utils.</tt><tt class="descname">killall_bsd</tt><big>(</big><em>session_dir</em>, <em>pid_file=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#killall_bsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.killall_bsd" title="Permalink to this definition">¶</a></dt>
+<dd><p>A BSD-specific version of <a class="reference internal" href="#utils.killall" title="utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a> since Macs don't have /proc.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><em>pid_file</em> is not used by this function.  It is simply here to provide compatibility with <a class="reference internal" href="#utils.killall" title="utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="utils.get_applications">
-<tt class="descclassname">utils.</tt><tt class="descname">get_applications</tt><big>(</big><em>application_dir</em>, <em>settings_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_applications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_applications" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">get_applications</tt><big>(</big><em>application_dir</em>, <em>enabled=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_applications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_applications" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds applications' Python files to <a class="reference external" href="http://docs.python.org/2.7/library/sys.html#sys.path" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt></a> and returns a list containing
-the name of each application.  In order to ensure that only enabled apps
-are listed the <em>settings_dir</em> argument must be given so only enabled
-apps are returned.</p>
+the name of each application.  If given, only applications in the <em>enabled</em>
+list will be returned.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="utils.get_plugins">
-<tt class="descclassname">utils.</tt><tt class="descname">get_plugins</tt><big>(</big><em>plugin_dir</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_plugins" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">utils.</tt><tt class="descname">get_plugins</tt><big>(</big><em>plugin_dir</em>, <em>enabled=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_plugins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_plugins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds plugins' Python files to <a class="reference external" href="http://docs.python.org/2.7/library/sys.html#sys.path" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">sys.path</span></tt></a> and returns a dictionary of
 JavaScript, CSS, and Python files contained in <em>plugin_dir</em> like so:</p>
 <div class="highlight-python"><pre>{
@@ -370,6 +407,8 @@ added to Gate One's index.html like so:</p>
 </pre></div>
 </div>
 <p>*.css files will get imported automatically by GateOne.init()</p>
+<p>Optionally, a list of <em>enabled</em> (Python) plugins may be provided and only
+those plugins will be added to the 'py' portion of the returned dict.</p>
 </dd></dl>
 
 <dl class="function">
@@ -420,8 +459,8 @@ representing the given value (e.g. timedelta(days=5)).  Accepts the
 following '&lt;num&gt;&lt;char&gt;' formats:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="26%" />
 <col width="20%" />
+<col width="26%" />
 <col width="54%" />
 </colgroup>
 <thead valign="bottom">
@@ -431,19 +470,23 @@ following '&lt;num&gt;&lt;char&gt;' formats:</p>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>s</td>
+<tr class="row-even"><td>(none)</td>
+<td>Milliseconds</td>
+<td>'500' -&gt; 500 Milliseconds</td>
+</tr>
+<tr class="row-odd"><td>s</td>
 <td>Seconds</td>
 <td>'60s' -&gt; 60 Seconds</td>
 </tr>
-<tr class="row-odd"><td>m</td>
+<tr class="row-even"><td>m</td>
 <td>Minutes</td>
 <td>'5m'  -&gt; 5 Minutes</td>
 </tr>
-<tr class="row-even"><td>h</td>
+<tr class="row-odd"><td>h</td>
 <td>Hours</td>
 <td>'24h' -&gt; 24 Hours</td>
 </tr>
-<tr class="row-odd"><td>d</td>
+<tr class="row-even"><td>d</td>
 <td>Days</td>
 <td>'7d'  -&gt; 7 Days</td>
 </tr>
@@ -666,6 +709,23 @@ to write functions like this:</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="utils._minify">
+<tt class="descclassname">utils.</tt><tt class="descname">_minify</tt><big>(</big><em>path_or_fileobj</em>, <em>kind</em><big>)</big><a class="headerlink" href="#utils._minify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>path_or_fileobj</em> as a minified string.  <em>kind</em> should be one of
+'js' or 'css'.  Works with JavaScript and CSS files using <tt class="xref py py-obj docutils literal"><span class="pre">slimit</span></tt> and
+<tt class="xref py py-obj docutils literal"><span class="pre">cssmin</span></tt>, respectively.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.get_or_cache">
+<tt class="descclassname">utils.</tt><tt class="descname">get_or_cache</tt><big>(</big><em>cache_dir</em>, <em>path</em>, <em>minify=True</em><big>)</big><a class="reference internal" href="../_modules/utils.html#get_or_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.get_or_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <em>path</em>, returns the cached version of that file.  If the file has
+yet to be cached, cache it and return the result.  If <em>minify</em> is <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#True" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt></a>
+(the default), the file will be minified as part of the caching process (if
+possible).</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="utils.drop_privileges">
 <tt class="descclassname">utils.</tt><tt class="descname">drop_privileges</tt><big>(</big><em>uid='nobody'</em>, <em>gid='nogroup'</em>, <em>supl_groups=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#drop_privileges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.drop_privileges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Drop privileges by changing the current process owner/group to
@@ -680,11 +740,15 @@ supplemental groups.  If <em>supl_groups</em> is None it will default to using
 its only supplemental group.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">On most Unix systems users must belong to the 'tty' group to create new controlling TTYs which is necessary for 'pty.fork()' to work.</p>
+<p class="last">On most Unix systems users must belong to the 'tty' group to create new
+controlling TTYs which is necessary for 'pty.fork()' to work.</p>
 </div>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p class="last">If you get errors like, &quot;OSError: out of pty devices&quot; it likely means that your OS uses something other than 'tty' as the group owner of the devpts filesystem.  'mount | grep pts' will tell you the owner (look for gid=&lt;owner&gt;).</p>
+<p class="last">If you get errors like, &quot;OSError: out of pty devices&quot; it likely means
+that your OS uses something other than 'tty' as the group owner of the
+devpts filesystem.  'mount | grep pts' will tell you the owner (look for
+gid=&lt;owner&gt;).</p>
 </div>
 </dd></dl>
 
@@ -696,6 +760,98 @@ its only supplemental group.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">Any blank lines in the rendered template will be removed.</p>
 </div>
+</dd></dl>
+
+<dl class="class">
+<dt id="utils.memoize">
+<em class="property">class </em><tt class="descclassname">utils.</tt><tt class="descname">memoize</tt><big>(</big><em>fn</em><big>)</big><a class="reference internal" href="../_modules/utils.html#memoize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.memoize" title="Permalink to this definition">¶</a></dt>
+<dd><p>A memoization decorator that works with multiple arguments as well as
+unhashable arguments (e.g. dicts).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.strip_xss">
+<tt class="descclassname">utils.</tt><tt class="descname">strip_xss</tt><big>(</big><em>html</em>, <em>whitelist=None</em>, <em>replacement=u'\u2421'</em><big>)</big><a class="reference internal" href="../_modules/utils.html#strip_xss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.strip_xss" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a tuple containing:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>html</em> with all non-whitelisted HTML tags replaced with <em>replacement</em>.  Any tags that contain JavaScript, VBScript, or other known XSS/executable functions will also be removed.</li>
+<li>A list containing the tags that were removed.</li>
+</ul>
+</div></blockquote>
+<p>If <em>whitelist</em> is not given the following will be used:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">whitelist</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
+    <span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;abbr&#39;</span><span class="p">,</span> <span class="s">&#39;aside&#39;</span><span class="p">,</span> <span class="s">&#39;audio&#39;</span><span class="p">,</span> <span class="s">&#39;bdi&#39;</span><span class="p">,</span> <span class="s">&#39;bdo&#39;</span><span class="p">,</span> <span class="s">&#39;blockquote&#39;</span><span class="p">,</span> <span class="s">&#39;canvas&#39;</span><span class="p">,</span>
+    <span class="s">&#39;caption&#39;</span><span class="p">,</span> <span class="s">&#39;code&#39;</span><span class="p">,</span> <span class="s">&#39;col&#39;</span><span class="p">,</span> <span class="s">&#39;colgroup&#39;</span><span class="p">,</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="s">&#39;dd&#39;</span><span class="p">,</span> <span class="s">&#39;del&#39;</span><span class="p">,</span>
+    <span class="s">&#39;details&#39;</span><span class="p">,</span> <span class="s">&#39;div&#39;</span><span class="p">,</span> <span class="s">&#39;dl&#39;</span><span class="p">,</span> <span class="s">&#39;dt&#39;</span><span class="p">,</span> <span class="s">&#39;em&#39;</span><span class="p">,</span> <span class="s">&#39;figcaption&#39;</span><span class="p">,</span> <span class="s">&#39;figure&#39;</span><span class="p">,</span> <span class="s">&#39;h1&#39;</span><span class="p">,</span>
+    <span class="s">&#39;h2&#39;</span><span class="p">,</span> <span class="s">&#39;h3&#39;</span><span class="p">,</span> <span class="s">&#39;h4&#39;</span><span class="p">,</span> <span class="s">&#39;h5&#39;</span><span class="p">,</span> <span class="s">&#39;h6&#39;</span><span class="p">,</span> <span class="s">&#39;hr&#39;</span><span class="p">,</span> <span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="s">&#39;ins&#39;</span><span class="p">,</span> <span class="s">&#39;kbd&#39;</span><span class="p">,</span> <span class="s">&#39;li&#39;</span><span class="p">,</span>
+    <span class="s">&#39;mark&#39;</span><span class="p">,</span> <span class="s">&#39;ol&#39;</span><span class="p">,</span> <span class="s">&#39;p&#39;</span><span class="p">,</span> <span class="s">&#39;pre&#39;</span><span class="p">,</span> <span class="s">&#39;q&#39;</span><span class="p">,</span> <span class="s">&#39;rp&#39;</span><span class="p">,</span> <span class="s">&#39;rt&#39;</span><span class="p">,</span> <span class="s">&#39;ruby&#39;</span><span class="p">,</span> <span class="s">&#39;s&#39;</span><span class="p">,</span> <span class="s">&#39;samp&#39;</span><span class="p">,</span>
+    <span class="s">&#39;small&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">,</span> <span class="s">&#39;span&#39;</span><span class="p">,</span> <span class="s">&#39;strong&#39;</span><span class="p">,</span> <span class="s">&#39;sub&#39;</span><span class="p">,</span> <span class="s">&#39;summary&#39;</span><span class="p">,</span> <span class="s">&#39;sup&#39;</span><span class="p">,</span>
+    <span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="s">&#39;track&#39;</span><span class="p">,</span> <span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="s">&#39;ul&#39;</span><span class="p">,</span> <span class="s">&#39;var&#39;</span><span class="p">,</span> <span class="s">&#39;video&#39;</span><span class="p">,</span> <span class="s">&#39;wbr&#39;</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">html</span> <span class="o">=</span> <span class="s">&#39;&lt;span&gt;Hello, exploit: &lt;img src=&quot;javascript:alert(&quot;pwned!&quot;)&quot;&gt;&lt;/span&gt;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">strip_xss</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+<span class="go">(u&#39;&lt;span&gt;Hello, exploit: \u2421&lt;/span&gt;&#39;, [&#39;&lt;img src=&quot;javascript:alert(&quot;pwned!&quot;)&quot;&gt;&#39;])</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The default <em>replacement</em> is the unicode ␡ character (u&quot;u2421&quot;).</p>
+</div>
+<p>If <em>replacement</em> is &quot;entities&quot; bad HTML tags will be encoded into HTML
+entities.  This allows things like &lt;script&gt;'whatever'&lt;/script&gt; to be
+displayed without execution (which would be much less annoying to users that
+were merely trying to share a code example).  Here's an example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">html</span> <span class="o">=</span> <span class="s">&#39;&lt;span&gt;Hello, exploit: &lt;img src=&quot;javascript:alert(&quot;pwned!&quot;)&quot;&gt;&lt;/span&gt;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">strip_xss</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="s">&quot;entities&quot;</span><span class="p">)</span>
+<span class="go">(&#39;&lt;span&gt;Hello, exploit: &amp;lt;span&amp;gt;Hello, exploit: &amp;lt;img src=&quot;javascript:alert(&quot;pwned!&quot;)&quot;&amp;gt;&amp;lt;/span&amp;gt;&lt;/span&gt;&#39;,</span>
+<span class="go"> [&#39;&lt;img src=&quot;javascript:alert(&quot;pwned!&quot;)&quot;&gt;&#39;])</span>
+<span class="go">(u&#39;&lt;span&gt;Hello, exploit: \u2421&lt;/span&gt;&#39;, [&#39;&lt;img src=&quot;javascript:alert(&quot;pwned!&quot;)&quot;&gt;&#39;])</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function should work to protect against all <a class="reference external" href="https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet">the XSS examples at OWASP</a>.  Please <a class="reference external" href="https://github.com/liftoff/GateOne/issues">let us know</a> if you find something we missed.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.create_signature">
+<tt class="descclassname">utils.</tt><tt class="descname">create_signature</tt><big>(</big><em>*parts</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/utils.html#create_signature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.create_signature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an HMAC signature using the given <em>parts</em> and <em>kwargs</em>.  The first
+argument <strong>must</strong> be the 'secret' followed by any arguments that are to be
+part of the hash.  The only <em>kwargs</em> that is used is 'hmac_algo'.
+'hmac_algo' may be any HMAC algorithm present in the hashlib module.  If not
+provided, <tt class="xref py py-obj docutils literal"><span class="pre">hashlib.sha1</span></tt> will be used.  Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">create_signature</span><span class="p">(</span><span class="s">&#39;secret&#39;</span><span class="p">,</span> <span class="s">&#39;some-api-key&#39;</span><span class="p">,</span> <span class="s">&#39;1234567890123&#39;</span><span class="p">,</span> <span class="s">&#39;user@somehost&#39;</span><span class="p">,</span> <span class="n">hmac_algo</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The API 'secret' <strong>must</strong> be the first argument.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.combine_javascript">
+<tt class="descclassname">utils.</tt><tt class="descname">combine_javascript</tt><big>(</big><em>path</em>, <em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#combine_javascript"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.combine_javascript" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines all application and plugin .js files into one big one; saved to the
+given <em>path</em>.  If given, <em>settings_dir</em> will be used to determine which
+applications and plugins should be included in the dump based on what is
+enabled.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.combine_css">
+<tt class="descclassname">utils.</tt><tt class="descname">combine_css</tt><big>(</big><em>path</em>, <em>container</em>, <em>settings_dir=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#combine_css"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.combine_css" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines all application and plugin .css template files into one big one;
+saved to the given <em>path</em>.  Templates will be rendered using the given
+<em>container</em> as the replacement for templates use of '#{{container}}'.</p>
+<p>If given, <em>settings_dir</em> will be used to determine which applications and
+plugins should be included in the dump based on what is enabled.</p>
 </dd></dl>
 
 <dl class="function">
@@ -736,7 +892,7 @@ sessions.</p>
             </a></p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="termio.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="js_gateone.html"
                         title="next chapter">gateone.js</a></p>
@@ -784,7 +940,7 @@ sessions.</p>
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The Bookmarks Plugin &mdash; Gate One 1.1.0 documentation</title>
+    <title>The Bookmarks Plugin &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,10 +25,10 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Developer Documentation" href="index.html" />
     <link rel="next" title="The Convenience Plugin" href="plugin_convenience.html" />
-    <link rel="prev" title="go_process.js" href="js_go_process.html" /> 
+    <link rel="prev" title="term_ww.js" href="js_go_process.html" /> 
   </head>
   <body>
     <div class="related">
@@ -46,7 +44,7 @@
           <a href="plugin_convenience.html" title="The Convenience Plugin"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="js_go_process.html" title="go_process.js"
+          <a href="js_go_process.html" title="term_ww.js"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Developer Documentation</a> &raquo;</li> 
@@ -258,10 +256,10 @@
 <dt id="GateOne.Bookmarks.init">
 <tt class="descclassname">GateOne.Bookmarks.</tt><tt class="descname">init</tt><big>(</big><big>)</big><a class="headerlink" href="#GateOne.Bookmarks.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates the bookmarks panel, initializes some important variables, registers the <tt class="kbd docutils literal"><span class="pre">Control-Alt-b</span></tt> keyboard shortcut, and registers the following WebSocket actions:</p>
-<div class="highlight-js"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;bookmarks_updated&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">syncBookmarks</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;bookmarks_save_result&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">syncComplete</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;bookmarks_delete_result&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">deletedBookmarksSyncComplete</span><span class="p">);</span>
-<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;bookmarks_renamed_tags&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">tagRenameComplete</span><span class="p">);</span>
+<div class="highlight-js"><div class="highlight"><pre><span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:bookmarks_updated&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">syncBookmarks</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:bookmarks_save_result&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">syncComplete</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:bookmarks_delete_result&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">deletedBookmarksSyncComplete</span><span class="p">);</span>
+<span class="nx">GateOne</span><span class="p">.</span><span class="nx">Net</span><span class="p">.</span><span class="nx">addAction</span><span class="p">(</span><span class="s1">&#39;terminal:bookmarks_renamed_tags&#39;</span><span class="p">,</span> <span class="nx">GateOne</span><span class="p">.</span><span class="nx">Bookmarks</span><span class="p">.</span><span class="nx">tagRenameComplete</span><span class="p">);</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -494,10 +492,13 @@
         <span class="p">(</span><span class="s">r&quot;/bookmarks/import&quot;</span><span class="p">,</span> <span class="n">ImportHandler</span><span class="p">),</span>
     <span class="p">],</span>
     <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;bookmarks_sync&#39;</span><span class="p">:</span> <span class="n">save_bookmarks</span><span class="p">,</span>
-        <span class="s">&#39;bookmarks_get&#39;</span><span class="p">:</span> <span class="n">get_bookmarks</span><span class="p">,</span>
-        <span class="s">&#39;bookmarks_deleted&#39;</span><span class="p">:</span> <span class="n">delete_bookmarks</span><span class="p">,</span>
-        <span class="s">&#39;bookmarks_rename_tags&#39;</span><span class="p">:</span> <span class="n">rename_tags</span><span class="p">,</span>
+        <span class="s">&#39;terminal:bookmarks_sync&#39;</span><span class="p">:</span> <span class="n">save_bookmarks</span><span class="p">,</span>
+        <span class="s">&#39;terminal:bookmarks_get&#39;</span><span class="p">:</span> <span class="n">get_bookmarks</span><span class="p">,</span>
+        <span class="s">&#39;terminal:bookmarks_deleted&#39;</span><span class="p">:</span> <span class="n">delete_bookmarks</span><span class="p">,</span>
+        <span class="s">&#39;terminal:bookmarks_rename_tags&#39;</span><span class="p">:</span> <span class="n">rename_tags</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s">&#39;Events&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;terminal:authenticate&#39;</span><span class="p">:</span> <span class="n">send_bookmarks_css_template</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -520,15 +521,15 @@ list of Bookmark objects.</p>
 
 <dl class="function">
 <dt id="bookmarks.get_json_tags">
-<tt class="descclassname">bookmarks.</tt><tt class="descname">get_json_tags</tt><big>(</big><em>json_dict</em>, <em>url</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#get_json_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.get_json_tags" title="Permalink to this definition">¶</a></dt>
-<dd><p>Recursively looks inside <em>json_dict</em> trying to find tags associated with the
+<tt class="descclassname">bookmarks.</tt><tt class="descname">get_json_tags</tt><big>(</big><em>bookmarks</em>, <em>url</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#get_json_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.get_json_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates over <em>bookmarks</em> (dict) trying to find tags associated with the
 given <em>url</em>.  Returns the tags found as a list.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="bookmarks.get_ns_json_bookmarks">
 <tt class="descclassname">bookmarks.</tt><tt class="descname">get_ns_json_bookmarks</tt><big>(</big><em>json_dict</em>, <em>bookmarks</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#get_ns_json_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.get_ns_json_bookmarks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a <em>json_dict</em>, updates <em>urls_list</em> with each URL as it is found
+<dd><p>Given a <em>json_dict</em>, updates <em>bookmarks</em> with each URL as it is found
 within.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -613,7 +614,7 @@ to grabbing the favicon.</p>
 <dt id="bookmarks.FaviconHandler.get_favicon_url">
 <tt class="descname">get_favicon_url</tt><big>(</big><em>html</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#FaviconHandler.get_favicon_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.FaviconHandler.get_favicon_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parses <em>html</em> looking for a favicon URL.  Returns a tuple of:</p>
-<div class="highlight-python"><pre>(&lt;url&gt;, &lt;mimetime&gt;)</pre>
+<div class="highlight-python"><pre>(&lt;url&gt;, &lt;mimetype&gt;)</pre>
 </div>
 <p>If no favicon can be found, returns:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
@@ -669,7 +670,7 @@ the client.</p>
 <dl class="function">
 <dt id="bookmarks.delete_bookmarks">
 <tt class="descclassname">bookmarks.</tt><tt class="descname">delete_bookmarks</tt><big>(</big><em>self</em>, <em>deleted_bookmarks</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#delete_bookmarks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.delete_bookmarks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Handles deleting bookmars given a <em>deleted_bookmarks</em> list.</p>
+<dd><p>Handles deleting bookmarks given a <em>deleted_bookmarks</em> list.</p>
 </dd></dl>
 
 <dl class="function">
@@ -679,12 +680,11 @@ the client.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="bookmarks.send_css_template">
-<tt class="descclassname">bookmarks.</tt><tt class="descname">send_css_template</tt><big>(</big><em>self</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#send_css_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.send_css_template" title="Permalink to this definition">¶</a></dt>
+<dt id="bookmarks.send_bookmarks_css_template">
+<tt class="descclassname">bookmarks.</tt><tt class="descname">send_bookmarks_css_template</tt><big>(</big><em>self</em><big>)</big><a class="reference internal" href="../_modules/bookmarks.html#send_bookmarks_css_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bookmarks.send_bookmarks_css_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends our bookmarks.css template to the client using the 'load_style'
-WebSocket action.  Uses <tt class="xref py py-attr docutils literal"><span class="pre">ApplicationWebSocket.persist</span></tt> to store a
-reference to the rendered CSS template to ensure we only ever have to render
-it once.</p>
+WebSocket action.  The rendered template will be saved in Gate One's
+'cache_dir'.</p>
 </dd></dl>
 
 </div>
@@ -715,7 +715,7 @@ it once.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="js_go_process.html"
-                        title="previous chapter">go_process.js</a></p>
+                        title="previous chapter">term_ww.js</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="plugin_convenience.html"
                         title="next chapter">The Convenience Plugin</a></p>
@@ -754,7 +754,7 @@ it once.</p>
           <a href="plugin_convenience.html" title="The Convenience Plugin"
              >next</a> |</li>
         <li class="right" >
-          <a href="js_go_process.html" title="go_process.js"
+          <a href="js_go_process.html" title="term_ww.js"
              >previous</a> |</li>
         <li><a href="../index.html">Gate One Documentation</a> &raquo;</li>
           <li><a href="index.html" >Developer Documentation</a> &raquo;</li> 
@@ -763,7 +763,7 @@ it once.</p>
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

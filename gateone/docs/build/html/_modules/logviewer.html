@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>logviewer &mdash; Gate One 1.1.0 documentation</title>
+    <title>logviewer &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
   <body>
@@ -164,7 +162,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">encoded_separator</span> <span class="o">=</span> <span class="n">SEPARATOR</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
     <span class="n">golog</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">golog_path</span><span class="p">)</span>
-    <span class="n">frame</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;&quot;</span>
     <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
         <span class="n">chunk</span> <span class="o">=</span> <span class="n">golog</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
         <span class="n">frame</span> <span class="o">+=</span> <span class="n">chunk</span>
@@ -293,43 +291,78 @@
 <span class="sd">    can be used with grep and similar search/filter tools.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">gzip</span>
+    <span class="kn">from</span> <span class="nn">terminal</span> <span class="kn">import</span> <span class="n">Terminal</span><span class="p">,</span> <span class="n">SPECIAL</span>
+    <span class="n">term</span> <span class="o">=</span> <span class="n">Terminal</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">em_dimensions</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">encoded_separator</span> <span class="o">=</span> <span class="n">SEPARATOR</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
-    <span class="n">out_line</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
     <span class="n">cr</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="c"># We skip the first frame, [1:] because it holds the recording metadata</span>
     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">get_frames</span><span class="p">(</span><span class="n">log_path</span><span class="p">)):</span>
         <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c"># Skip the first frame (it&#39;s just JSON-encoded metadata)</span>
             <span class="k">continue</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&#39;ignore&#39;</span><span class="p">)</span>
-        <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="p">[:</span><span class="mi">13</span><span class="p">])</span> <span class="c"># First 13 chars is the timestamp</span>
+        <span class="c"># First 13 chars is the timestamp:</span>
+        <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&#39;ignore&#39;</span><span class="p">)[:</span><span class="mi">13</span><span class="p">])</span>
         <span class="c"># Convert to datetime object</span>
         <span class="n">frame_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">frame_time</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">show_esc</span><span class="p">:</span>
             <span class="n">frame_time</span> <span class="o">=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[0m%b %m %H:%M:%S&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span> <span class="c"># Renditions preserved == I want pretty.  Make the date bold:</span>
-            <span class="n">frame_time</span> <span class="o">=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
-                <span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[0;1m%b %m %H:%M:%S</span><span class="se">\x1b</span><span class="s">[m&#39;</span><span class="p">)</span>
+            <span class="n">frame_time</span> <span class="o">=</span> <span class="n">frame_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\x1b</span><span class="s">[0;1m%b %m %H:%M:%S</span><span class="se">\x1b</span><span class="s">[m&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">show_esc</span><span class="p">:</span>
+            <span class="n">term</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:])</span>
+        <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">capture</span><span class="p">:</span>
+            <span class="c"># Capturing a file...  Keep feeding it frames until complete</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">term</span><span class="o">.</span><span class="n">captured_files</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">term</span><span class="o">.</span><span class="n">screen</span><span class="p">:</span>
+                <span class="c"># Find all the characters that come before/after the capture</span>
+                <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">ord</span><span class="p">(</span><span class="n">char</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">SPECIAL</span><span class="p">:</span>
+                        <span class="n">adjusted</span> <span class="o">=</span> <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">out_line</span><span class="p">,</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                        <span class="n">adjusted</span> <span class="o">=</span> <span class="n">frame_time</span> <span class="o">+</span> <span class="s">u&#39; </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">adjusted</span>
+                        <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">adjusted</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+                        <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
+                        <span class="k">if</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">term</span><span class="o">.</span><span class="n">captured_files</span><span class="p">:</span>
+                            <span class="n">captured_file</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">captured_files</span><span class="p">[</span><span class="n">char</span><span class="p">]</span><span class="o">.</span><span class="n">file_obj</span>
+                            <span class="n">captured_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                            <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">captured_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                            <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+                            <span class="k">del</span> <span class="n">captured_file</span>
+                            <span class="n">term</span><span class="o">.</span><span class="n">clear_screen</span><span class="p">()</span>
+                            <span class="n">term</span><span class="o">.</span><span class="n">close_captured_fds</span><span class="p">()</span> <span class="c"># Instant cleanup</span>
+                            <span class="c">#term = Terminal(rows=100, cols=300, em_dimensions=0)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">out_line</span> <span class="o">+=</span> <span class="n">char</span>
+            <span class="n">adjusted</span> <span class="o">=</span> <span class="n">frame_time</span> <span class="o">+</span> <span class="s">u&#39; </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">out_line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">adjusted</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+            <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">term</span><span class="o">.</span><span class="n">clear_screen</span><span class="p">()</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">,</span> <span class="s">&#39;ignore&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">frame</span><span class="p">[</span><span class="mi">14</span><span class="p">:]:</span>
             <span class="k">if</span> <span class="s">&#39;</span><span class="se">\x1b</span><span class="s">[H</span><span class="se">\x1b</span><span class="s">[2J&#39;</span> <span class="ow">in</span> <span class="n">out_line</span><span class="p">:</span> <span class="c"># Clear screen sequence</span>
                 <span class="c"># Handle the clear screen (usually ctrl-l) by outputting</span>
                 <span class="c"># a new log entry line to avoid confusion regarding what</span>
                 <span class="c"># happened at this time.</span>
-                <span class="n">out_line</span> <span class="o">+=</span> <span class="s">&quot;^L&quot;</span> <span class="c"># Clear screen is a ctrl-l or equivalent</span>
+                <span class="n">out_line</span> <span class="o">+=</span> <span class="s">u&quot;^L&quot;</span> <span class="c"># Clear screen is a ctrl-l or equivalent</span>
                 <span class="k">if</span> <span class="n">show_esc</span><span class="p">:</span>
                     <span class="n">adjusted</span> <span class="o">=</span> <span class="n">raw</span><span class="p">(</span><span class="n">out_line</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">adjusted</span> <span class="o">=</span> <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">out_line</span><span class="p">,</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-                <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame_time</span> <span class="o">+</span> <span class="s">&#39; </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">adjusted</span><span class="p">)</span>
-                <span class="n">out_line</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+                <span class="n">adjusted</span> <span class="o">=</span> <span class="n">frame_time</span> <span class="o">+</span> <span class="s">u&#39; </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">adjusted</span>
+                <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">adjusted</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+                <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s">u&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">show_esc</span><span class="p">:</span>
                     <span class="n">adjusted</span> <span class="o">=</span> <span class="n">raw</span><span class="p">(</span><span class="n">out_line</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">adjusted</span> <span class="o">=</span> <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">out_line</span><span class="p">,</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-                <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame_time</span> <span class="o">+</span> <span class="s">&#39; </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">adjusted</span><span class="p">)</span>
-                <span class="n">out_line</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+                <span class="n">adjusted</span> <span class="o">=</span> <span class="n">frame_time</span> <span class="o">+</span> <span class="s">u&#39; </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">adjusted</span>
+                <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">adjusted</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+                <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
                 <span class="n">cr</span> <span class="o">=</span> <span class="bp">False</span>
             <span class="k">elif</span> <span class="n">char</span> <span class="o">==</span> <span class="s">u&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">:</span>
                 <span class="c"># Carriage returns need special handling.  Make a note of it</span>
@@ -345,16 +378,17 @@
                 <span class="c"># confusion over these events.</span>
                 <span class="k">if</span> <span class="n">cr</span><span class="p">:</span>
                     <span class="n">out_line</span> <span class="o">+=</span> <span class="s">&quot;^M&quot;</span>
-                    <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame_time</span> <span class="o">+</span> <span class="s">&#39; &#39;</span><span class="p">)</span>
+                    <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">((</span><span class="n">frame_time</span> <span class="o">+</span> <span class="s">u&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
                     <span class="k">if</span> <span class="n">show_esc</span><span class="p">:</span>
                         <span class="n">adjusted</span> <span class="o">=</span> <span class="n">raw</span><span class="p">(</span><span class="n">out_line</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">adjusted</span> <span class="o">=</span> <span class="n">escape_escape_seq</span><span class="p">(</span><span class="n">out_line</span><span class="p">,</span> <span class="n">rstrip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-                    <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">adjusted</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-                    <span class="n">out_line</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+                    <span class="n">file_like</span><span class="o">.</span><span class="n">write</span><span class="p">((</span><span class="n">adjusted</span> <span class="o">+</span> <span class="s">u&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+                    <span class="n">out_line</span> <span class="o">=</span> <span class="s">u&quot;&quot;</span>
                 <span class="n">out_line</span> <span class="o">+=</span> <span class="n">char</span>
                 <span class="n">cr</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="n">file_like</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">del</span> <span class="n">term</span>
 </div>
 <div class="viewcode-block" id="get_terminal_size"><a class="viewcode-back" href="../Developer/logviewer.html#logviewer.get_terminal_size">[docs]</a><span class="k">def</span> <span class="nf">get_terminal_size</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -480,7 +514,7 @@
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

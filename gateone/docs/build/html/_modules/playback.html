@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>playback &mdash; Gate One 1.1.0 documentation</title>
+    <title>playback &mdash; Gate One 1.2.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -17,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.0',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +25,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.png"/>
-    <link rel="top" title="Gate One 1.1.0 documentation" href="../index.html" />
+    <link rel="top" title="Gate One 1.2.0 documentation" href="../index.html" />
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
   <body>
@@ -91,6 +89,24 @@
 <span class="c"># Globals</span>
 <span class="n">PLUGIN_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
+<div class="viewcode-block" id="get_256_colors"><a class="viewcode-back" href="../Developer/plugin_playback.html#playback.get_256_colors">[docs]</a><span class="k">def</span> <span class="nf">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the rendered 256-color CSS.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colors_256_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_256_colors</span><span class="p">()</span>
+    <span class="n">mtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">colors_256_path</span><span class="p">)</span><span class="o">.</span><span class="n">st_mtime</span>
+    <span class="n">cached_filename</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">colors_256_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">),</span> <span class="n">mtime</span><span class="p">)</span>
+    <span class="n">cache_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache_dir&#39;</span><span class="p">]</span>
+    <span class="n">cached_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">cached_filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cached_file_path</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cached_file_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">colors_256</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Debug mode is enabled</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="s">&#39;256_colors.css&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">colors_256</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">colors_256</span>
+</div>
 <div class="viewcode-block" id="save_recording"><a class="viewcode-back" href="../Developer/plugin_playback.html#playback.save_recording">[docs]</a><span class="k">def</span> <span class="nf">save_recording</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handles uploads of session recordings and returns them to the client in a</span>
@@ -99,7 +115,6 @@
 <span class="sd">    NOTE: The real crux of the code that handles this is in the template.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">tornado.template</span>
-    <span class="kn">from</span> <span class="nn">gateone</span> <span class="kn">import</span> <span class="n">COLORS_256</span>
     <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
     <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y%m</span><span class="si">%d</span><span class="s">%H%m%S&#39;</span><span class="p">)</span> <span class="c"># e.g. &#39;20120208200222&#39;</span>
     <span class="n">out_dict</span> <span class="o">=</span> <span class="p">{</span>
@@ -111,36 +126,10 @@
     <span class="n">recording</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;recording&quot;</span><span class="p">]</span>
     <span class="n">container</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;container&quot;</span><span class="p">]</span>
     <span class="n">prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;prefix&quot;</span><span class="p">]</span>
-    <span class="n">theme</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;theme&quot;</span><span class="p">]</span>
-    <span class="n">colors</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&quot;colors&quot;</span><span class="p">]</span>
-    <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">)</span>
-    <span class="n">colors_templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_path</span><span class="p">,</span> <span class="s">&#39;term_colors&#39;</span><span class="p">)</span>
-    <span class="n">colors_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">colors_templates_path</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.css&#39;</span> <span class="o">%</span> <span class="n">colors</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">colors_css_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">colors_file</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="n">themes_templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_path</span><span class="p">,</span> <span class="s">&#39;themes&#39;</span><span class="p">)</span>
-    <span class="n">theme_css_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">themes_templates_path</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.css&#39;</span> <span class="o">%</span> <span class="n">theme</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">theme_css_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">theme_file</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="n">colors</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="n">colors_file</span><span class="p">)</span>
-    <span class="n">rendered_colors</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
-    <span class="n">theme</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="n">theme_file</span><span class="p">)</span>
-    <span class="c"># Setup our 256-color support CSS:</span>
-    <span class="n">colors_256</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">256</span><span class="p">):</span>
-        <span class="n">fg</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.fx</span><span class="si">%s</span><span class="s"> {color: #</span><span class="si">%s</span><span class="s">;}&quot;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">COLORS_256</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-        <span class="n">bg</span> <span class="o">=</span> <span class="s">&quot;#</span><span class="si">%s</span><span class="s"> span.bx</span><span class="si">%s</span><span class="s"> {background-color: #</span><span class="si">%s</span><span class="s">;} &quot;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">container</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">COLORS_256</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-        <span class="n">colors_256</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fg</span><span class="p">,</span> <span class="n">bg</span><span class="p">)</span>
-    <span class="n">colors_256</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
-    <span class="n">rendered_theme</span> <span class="o">=</span> <span class="n">theme</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
-        <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
-        <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
-        <span class="n">colors_256</span><span class="o">=</span><span class="n">colors_256</span><span class="p">,</span>
-        <span class="n">url_prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;url_prefix&#39;</span><span class="p">]</span>
-    <span class="p">)</span>
-    <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plugin_path</span><span class="p">,</span> <span class="s">&quot;templates&quot;</span><span class="p">)</span>
+    <span class="n">theme_css</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;theme_css&#39;</span><span class="p">]</span>
+    <span class="n">colors_css</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;colors_css&#39;</span><span class="p">]</span>
+    <span class="n">colors_256</span> <span class="o">=</span> <span class="n">get_256_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="n">templates_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PLUGIN_PATH</span><span class="p">,</span> <span class="s">&quot;templates&quot;</span><span class="p">)</span>
     <span class="n">recording_template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
         <span class="n">templates_path</span><span class="p">,</span> <span class="s">&quot;self_contained_recording.html&quot;</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">recording_template_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -150,16 +139,17 @@
         <span class="n">recording</span><span class="o">=</span><span class="n">recording</span><span class="p">,</span>
         <span class="n">container</span><span class="o">=</span><span class="n">container</span><span class="p">,</span>
         <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
-        <span class="n">theme</span><span class="o">=</span><span class="n">rendered_theme</span><span class="p">,</span>
-        <span class="n">colors</span><span class="o">=</span><span class="n">rendered_colors</span>
+        <span class="n">theme</span><span class="o">=</span><span class="n">theme_css</span><span class="p">,</span>
+        <span class="n">colors</span><span class="o">=</span><span class="n">colors_css</span><span class="p">,</span>
+        <span class="n">colors_256</span><span class="o">=</span><span class="n">colors_256</span>
     <span class="p">)</span>
     <span class="n">out_dict</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rendered_recording</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;save_file&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;go:save_file&#39;</span><span class="p">:</span> <span class="n">out_dict</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">write_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </div>
 <span class="n">hooks</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;WebSocket&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;playback_save_recording&#39;</span><span class="p">:</span> <span class="n">save_recording</span><span class="p">,</span>
+        <span class="s">&#39;terminal:playback_save_recording&#39;</span><span class="p">:</span> <span class="n">save_recording</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -205,7 +195,7 @@
 
     <div class="footer">
         &copy; Copyright 2011, Liftoff Software Corporation.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
 <script type="text/javascript">
 window.onload = function(e) {

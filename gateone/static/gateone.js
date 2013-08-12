@@ -124,22 +124,18 @@ GateOne.Base = GateOne.Base || {}; // "Base" contains the basic functions used t
 GateOne.loadedModules = [];
 GateOne.loadedApplications = {};
 GateOne.initializedModules = []; // So we don't accidentally call a plugin's init() or postInit() functions twice
-/**
- * Creates a new module in a parent namespace. This function will
- * create a new empty module object with "__name__", "__version__",
- * "toString" and "__repr__" properties. This object will be inserted into the parent object
- * using the specified name (i.e. parent[name] = module). It will
- * also verify that all the dependency modules are defined in the
- * parent, or an error will be thrown.
- *
- * @param {Object} parent the parent module (use "this" or "window" for
- *            a global module)
- * @param {String} name the module name, e.g. "Base"
- * @param {String} version the module version, e.g. "1.0"
- * @param {Array} [deps] the array of module dependencies (as strings)
- */
+
 
 GateOne.Base.module = function(parent, name, version, deps) {
+    /**:GateOne.Base.module(parent, name, version, deps)
+
+    Creates a new module in a parent namespace. This function will create a new empty module object with "__name__", "__version__", "toString" and "__repr__" properties. This object will be inserted into the parent object using the specified name (i.e. parent[name] = module). It will also verify that all the dependency modules are defined in the parent, or an error will be thrown.
+
+    @param {Object} parent the parent module (use "this" or "window" for a global module)
+    @param {String} name the module name, e.g. "Base"
+    @param {String} version the module version, e.g. "1.0"
+    @param {Array} [deps] the array of module dependencies (as strings)
+    */
     var module = parent[name] = parent[name] || {},
         prefix = (parent.__name__ ? parent.__name__ + "." : "");
     module.__name__ = prefix + name;
@@ -161,6 +157,14 @@ GateOne.Base.module = function(parent, name, version, deps) {
 };
 GateOne.Base.module(GateOne, "Base", "1.2", []);
 GateOne.Base.update = function(self, obj/*, ... */) {
+    /**:GateOne.Base.update(self, obj[, obj2[, ...]])
+
+    Mutate self by replacing its key:value pairs with those from other object(s). Key:value pairs from later objects will overwrite those from earlier objects.
+
+    If self is `null`, a new Object instance will be created and returned.
+
+    .. warning:: This mutates and returns *self*.
+    */
     if (self === null || self === undefined) {
         self = {};
     }
@@ -239,8 +243,11 @@ GateOne.prefs = {
     pingTimeout: 5000, // How long to wait before we declare that the connection with the Gate One server has timed out (via a ping/pong response)
     url: null // URL of the GateOne server.  Will default to whatever is in window.location
 }
-// Properties in this object will get ignored when GateOne.prefs is saved to localStorage
 GateOne.noSavePrefs = {
+    /**GateOne.noSavePrefs
+
+     Properties in this object will get ignored when GateOne.prefs is saved to localStorage
+    */
     // Plugin authors:  If you want to have your own property in GateOne.prefs but it isn't a per-user setting, add your property here
     auth: null,
     embedded: null,
@@ -297,7 +304,7 @@ var go = GateOne.Base.update(GateOne, {
 
         Initializes Gate One using the provided *prefs*.
 
-        If *callback* is provided it will be called after GateOne.Net.connect() completes
+        If *callback* is provided it will be called after :js:meth:`GateOne.Net.connect` completes
         */
         var go = GateOne,
             u = go.Utils,
@@ -1117,7 +1124,7 @@ GateOne.Base.update(GateOne.Utils, {
         // Calculate the rows and columns:
         var rows = (elementDimensions.h / textDimensions.h),
             cols = (elementDimensions.w / textDimensions.w);
-        var dimensionsObj = {'rows': rows, 'cols': cols};
+        var dimensionsObj = {'rows': rows, 'columns': cols};
         return dimensionsObj;
     },
     // Thanks to Paul Sowden (http://www.alistapart.com/authors/s/paulsowden) at A List Apart for this function.
