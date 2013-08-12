@@ -613,8 +613,8 @@ locale.load_gettext_translations(locale_dir, 'gateone')
 # Helper functions
 def require_auth(method):
     """
-    An equivalent to tornado.web.authenticated for WebSockets
-    (ApplicationWebSocket, specifically).
+    An equivalent to `tornado.web.authenticated` for WebSockets
+    (`ApplicationWebSocket`, specifically).
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):

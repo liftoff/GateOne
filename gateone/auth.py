@@ -44,7 +44,10 @@ Active Directory.
 It is great for both transparent authentication and being able to tie sessions
 and logs to specific users within your organization (compliance).
 
-.. note:: The sso.py module itself has extensive documentation on this authentication type.
+.. note::
+
+    The sso.py module itself has extensive documentation on this authentication
+    type.
 
 Google Authentication
 ---------------------
@@ -53,7 +56,10 @@ authentication infrastructure this authentication type is for you.  Assuming,
 of course, that your Gate One server and clients will have access to the
 Internet.
 
-.. note:: This authentication type is perfect if you're using Chromebooks (Chrome OS devices).
+.. note::
+
+    This authentication type is perfect if you're using Chromebooks (Chrome OS
+    devices).
 
 API Authentication
 ------------------
@@ -65,11 +71,6 @@ themselves by visiting that URL manually.
 Docstrings
 ==========
 """
-
-# TODO: Need authorization stuff for the following:
-#   * Access (you are/are not allowed to do this, etc)
-#   * Limits (max terms, you may only do this X times, etc)
-#   *
 
 # Import stdlib stuff
 import os, logging, re
@@ -185,7 +186,10 @@ class authenticated(object):
     A condition class to be used with the @require decorator that returns True
     if the user is authenticated.
 
-    .. note:: Only meant to be used with WebSockets.  tornado.web.RequestHandler instances can use @tornado.web.authenticated
+    .. note::
+
+        Only meant to be used with WebSockets.  `tornado.web.RequestHandler`
+        instances can use `@tornado.web.authenticated`
     """
     error = _("Only valid users may access this function")
     def __str__(self):
@@ -228,7 +232,6 @@ class is_user(object):
         else:
             return False
 
-# Still experimenting on how various security limits will be handled...  Many aspects of this function may change:
 class policies(object):
     """
     A condition class to be used with the @require decorator that returns True
@@ -238,18 +241,34 @@ class policies(object):
         @require(authenticated(), policies('terminal'))
         def new_terminal(self, settings):
             # Actual function would be here
+            pass
 
     That would apply all policies that are configured for the 'terminal'
     application.  It works like this:
 
-        # The :class:`~app_terminal.TerminalApplication` application registers its name and policy-checking function inside of :meth:`~app_terminal.TerminalApplication.initialize` like so::
+    The :class:`~app_terminal.TerminalApplication` application registers its
+    name and policy-checking function inside of
+    :meth:`~app_terminal.TerminalApplication.initialize` like so::
 
-            self.ws.security.update({'terminal': terminal_policies})
+        self.ws.security.update({'terminal': terminal_policies})
 
-        # Whenever a function decorated with `@require(policies('terminal'))` is called the registered policy-checking function (e.g. :func:`app_terminal.terminal_policies`) will be called, passing the current instance of :class:`policies` as the only argument.
-        # It is then up to the policy-checking function to make a determination as to whether or not the user is allowed to execute the decorated function and must return `True` if allowed.  Also note that the policy-checking function will be able to make modifications to the function and its arguments if the security policies warrant it.
+    Whenever a function decorated with `@require(policies('terminal'))` is
+    called the registered policy-checking function (e.g.
+    :func:`app_terminal.terminal_policies`) will be called, passing the current
+    instance of :class:`policies` as the only argument.
 
-    .. note:: If you write your own policy-checking function (like :func:`terminal_policies`) it is often a good idea to send a notification to the user indicating why they've been denied.  You can do this with the :meth:`instance.send_message` method.
+    It is then up to the policy-checking function to make a determination as to
+    whether or not the user is allowed to execute the decorated function and
+    must return `True` if allowed.  Also note that the policy-checking function
+    will be able to make modifications to the function and its arguments if the
+    security policies warrant it.
+
+    .. note::
+
+        If you write your own policy-checking function (like
+        :func:`terminal_policies`) it is often a good idea to send a
+        notification to the user indicating why they've been denied.  You can
+        do this with the :meth:`instance.send_message` method.
     """
     # NOTE:  In the future if we wish to use this function with Gate One itself
     # (as opposed to just a GOApplication) the 'app' will need to be 'gateone'.

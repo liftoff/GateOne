@@ -107,7 +107,8 @@ Active Directory.</p>
 and logs to specific users within your organization (compliance).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The sso.py module itself has extensive documentation on this authentication type.</p>
+<p class="last">The sso.py module itself has extensive documentation on this authentication
+type.</p>
 </div>
 </div>
 <div class="section" id="google-authentication">
@@ -118,7 +119,8 @@ of course, that your Gate One server and clients will have access to the
 Internet.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This authentication type is perfect if you're using Chromebooks (Chrome OS devices).</p>
+<p class="last">This authentication type is perfect if you're using Chromebooks (Chrome OS
+devices).</p>
 </div>
 </div>
 <div class="section" id="api-authentication">
@@ -155,7 +157,8 @@ the logged-in user's username (aka UPN) is 'administrator'.</p>
 if the user is authenticated.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Only meant to be used with WebSockets.  tornado.web.RequestHandler instances can use &#64;tornado.web.authenticated</p>
+<p class="last">Only meant to be used with WebSockets.  <a class="reference external" href="http://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler" title="(in Tornado v3.1)"><tt class="xref py py-obj docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></a>
+instances can use <tt class="xref py py-obj docutils literal"><span class="pre">&#64;tornado.web.authenticated</span></tt></p>
 </div>
 </dd></dl>
 
@@ -172,23 +175,35 @@ if the given username/UPN matches what's in <tt class="xref py py-obj docutils l
 <dd><p>A condition class to be used with the &#64;require decorator that returns True
 if all the given conditions are within the limits specified in Gate One's
 settings (e.g. 50limits.conf).  Here's an example:</p>
-<div class="highlight-python"><pre>@require(authenticated(), policies('terminal'))
-def new_terminal(self, settings):
-    # Actual function would be here</pre>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@require</span><span class="p">(</span><span class="n">authenticated</span><span class="p">(),</span> <span class="n">policies</span><span class="p">(</span><span class="s">&#39;terminal&#39;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">new_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+    <span class="c"># Actual function would be here</span>
+    <span class="k">pass</span>
+</pre></div>
 </div>
 <p>That would apply all policies that are configured for the 'terminal'
 application.  It works like this:</p>
-<blockquote>
-<div><p># The <tt class="xref py py-class docutils literal"><span class="pre">TerminalApplication</span></tt> application registers its name and policy-checking function inside of <tt class="xref py py-meth docutils literal"><span class="pre">initialize()</span></tt> like so:</p>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">TerminalApplication</span></tt> application registers its
+name and policy-checking function inside of
+<tt class="xref py py-meth docutils literal"><span class="pre">initialize()</span></tt> like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">security</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;terminal&#39;</span><span class="p">:</span> <span class="n">terminal_policies</span><span class="p">})</span>
 </pre></div>
 </div>
-<p># Whenever a function decorated with <tt class="xref py py-obj docutils literal"><span class="pre">&#64;require(policies('terminal'))</span></tt> is called the registered policy-checking function (e.g. <tt class="xref py py-func docutils literal"><span class="pre">app_terminal.terminal_policies()</span></tt>) will be called, passing the current instance of <a class="reference internal" href="#auth.policies" title="auth.policies"><tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt></a> as the only argument.
-# It is then up to the policy-checking function to make a determination as to whether or not the user is allowed to execute the decorated function and must return <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#True" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt></a> if allowed.  Also note that the policy-checking function will be able to make modifications to the function and its arguments if the security policies warrant it.</p>
-</div></blockquote>
+<p>Whenever a function decorated with <tt class="xref py py-obj docutils literal"><span class="pre">&#64;require(policies('terminal'))</span></tt> is
+called the registered policy-checking function (e.g.
+<tt class="xref py py-func docutils literal"><span class="pre">app_terminal.terminal_policies()</span></tt>) will be called, passing the current
+instance of <a class="reference internal" href="#auth.policies" title="auth.policies"><tt class="xref py py-class docutils literal"><span class="pre">policies</span></tt></a> as the only argument.</p>
+<p>It is then up to the policy-checking function to make a determination as to
+whether or not the user is allowed to execute the decorated function and
+must return <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#True" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt></a> if allowed.  Also note that the policy-checking function
+will be able to make modifications to the function and its arguments if the
+security policies warrant it.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you write your own policy-checking function (like <tt class="xref py py-func docutils literal"><span class="pre">terminal_policies()</span></tt>) it is often a good idea to send a notification to the user indicating why they've been denied.  You can do this with the <tt class="xref py py-meth docutils literal"><span class="pre">instance.send_message()</span></tt> method.</p>
+<p class="last">If you write your own policy-checking function (like
+<tt class="xref py py-func docutils literal"><span class="pre">terminal_policies()</span></tt>) it is often a good idea to send a
+notification to the user indicating why they've been denied.  You can
+do this with the <tt class="xref py py-meth docutils literal"><span class="pre">instance.send_message()</span></tt> method.</p>
 </div>
 </dd></dl>
 
