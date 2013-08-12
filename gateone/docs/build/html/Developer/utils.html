@@ -58,7 +58,8 @@
             
   <div class="section" id="module-utils">
 <span id="utils-py-supporting-functions"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h1>
-<p>Gate One utility functions and classes.</p>
+<div class="section" id="gate-one-utility-functions-and-classes">
+<span id="utils-py"></span><h2>Gate One Utility Functions and Classes<a class="headerlink" href="#gate-one-utility-functions-and-classes" title="Permalink to this headline">¶</a></h2>
 <dl class="exception">
 <dt id="utils.UnknownFacility">
 <em class="property">exception </em><tt class="descclassname">utils.</tt><tt class="descname">UnknownFacility</tt><a class="reference internal" href="../_modules/utils.html#UnknownFacility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.UnknownFacility" title="Permalink to this definition">¶</a></dt>
@@ -155,9 +156,9 @@ an <a class="reference internal" href="#utils.RUDict" title="utils.RUDict"><tt c
 <dt id="utils.shell_command">
 <tt class="descclassname">utils.</tt><tt class="descname">shell_command</tt><big>(</big><em>cmd</em>, <em>timeout_duration=5</em><big>)</big><a class="reference internal" href="../_modules/utils.html#shell_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.shell_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resets the SIGCHLD signal handler (if necessary), executes <em>cmd</em> via
-<a class="reference external" href="http://docs.python.org/2.7/library/commands.html#commands.getstatusoutput" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">commands.getstatusoutput()</span></tt></a>, then re-enables the SIGCHLD handler (if it
-was set to something other than SIG_DFL).  Returns the result of
-<tt class="xref py py-obj docutils literal"><span class="pre">getstatusoutput</span></tt> which is a tuple in the form of:</p>
+<a class="reference external" href="http://docs.python.org/2.7/library/commands.html#commands.getstatusoutput" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">getstatusoutput()</span></tt></a>, then re-enables the SIGCHLD handler (if
+it was set to something other than SIG_DFL).  Returns the result of
+<a class="reference external" href="http://docs.python.org/2.7/library/commands.html#commands.getstatusoutput" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">getstatusoutput()</span></tt></a> which is a tuple in the form of:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">exitstatus</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -243,7 +244,8 @@ return <em>val</em> as-is.  Examples:</p>
 <dt id="utils.str2bool">
 <tt class="descclassname">utils.</tt><tt class="descname">str2bool</tt><big>(</big><em>val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#str2bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.str2bool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts strings like, 'false', 'true', '0', and '1' into their boolean
-equivalents.  If no logical match is found, return False.  Examples:</p>
+equivalents (in Python).  If no logical match is found, return False.
+Examples:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">str2bool</span><span class="p">(</span><span class="s">&#39;false&#39;</span><span class="p">)</span>
 <span class="go">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">str2bool</span><span class="p">(</span><span class="s">&#39;1&#39;</span><span class="p">)</span>
@@ -329,7 +331,9 @@ line arguments like so:</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The variables passed into this function via <em>kwargs</em> are case insensitive.  <tt class="xref py py-obj docutils literal"><span class="pre">cmd_var_swap(cmd,</span> <span class="pre">session=var)</span></tt> would produce the same output as <tt class="xref py py-obj docutils literal"><span class="pre">cmd_var_swap(cmd,</span> <span class="pre">SESSION=var)</span></tt>.</p>
+<p class="last">The variables passed into this function via <em>kwargs</em> are case
+insensitive.  <tt class="xref py py-obj docutils literal"><span class="pre">cmd_var_swap(cmd,</span> <span class="pre">session=var)</span></tt> would produce the same
+output as <tt class="xref py py-obj docutils literal"><span class="pre">cmd_var_swap(cmd,</span> <span class="pre">SESSION=var)</span></tt>.</p>
 </div>
 </dd></dl>
 
@@ -340,7 +344,8 @@ line arguments like so:</p>
 <em>to_shorten</em>.  The result will be safe for use as a file name.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Collisions are possible but <em>highly</em> unlikely because of how this method is used.</p>
+<p class="last">Collisions are possible but <em>highly</em> unlikely because of how this method
+is used.</p>
 </div>
 </dd></dl>
 
@@ -369,7 +374,8 @@ handling required by <a class="reference internal" href="#utils.shell_command" t
 <dd><p>A BSD-specific version of <a class="reference internal" href="#utils.killall" title="utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a> since Macs don't have /proc.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last"><em>pid_file</em> is not used by this function.  It is simply here to provide compatibility with <a class="reference internal" href="#utils.killall" title="utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a>.</p>
+<p class="last"><em>pid_file</em> is not used by this function.  It is simply here to provide
+compatibility with <a class="reference internal" href="#utils.killall" title="utils.killall"><tt class="xref py py-obj docutils literal"><span class="pre">killall</span></tt></a>.</p>
 </div>
 </dd></dl>
 
@@ -454,8 +460,8 @@ SomePluginHandler; overriding Gate One's default StyleHandler.</p>
 <dl class="function">
 <dt id="utils.convert_to_timedelta">
 <tt class="descclassname">utils.</tt><tt class="descname">convert_to_timedelta</tt><big>(</big><em>time_val</em><big>)</big><a class="reference internal" href="../_modules/utils.html#convert_to_timedelta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.convert_to_timedelta" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a <em>time_val</em> (string) such as '5d', returns a <a class="reference external" href="http://docs.python.org/2.7/library/datetime.html#datetime.timedelta" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt></a> object
-representing the given value (e.g. timedelta(days=5)).  Accepts the
+<dd><p>Given a <em>time_val</em> (string) such as '5d', returns a <a class="reference external" href="http://docs.python.org/2.7/library/datetime.html#datetime.timedelta" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">datetime.timedelta</span></tt></a>
+object representing the given value (e.g. <tt class="xref py py-obj docutils literal"><span class="pre">timedelta(days=5)</span></tt>).  Accepts the
 following '&lt;num&gt;&lt;char&gt;' formats:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -567,7 +573,8 @@ an equivalent amount of bytes.  Accepts the following '&lt;num&gt;&lt;char&gt;' 
 </div>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p class="last">All characters will be converted to upper case before conversion (case-insensitive).</p>
+<p class="last">All characters will be converted to upper case before conversion
+(case-insensitive).</p>
 </div>
 <p>Examples:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">convert_to_bytes</span><span class="p">(</span><span class="s">&#39;2M&#39;</span><span class="p">)</span>
@@ -581,9 +588,9 @@ an equivalent amount of bytes.  Accepts the following '&lt;num&gt;&lt;char&gt;' 
 <dl class="function">
 <dt id="utils.process_opt_esc_sequence">
 <tt class="descclassname">utils.</tt><tt class="descname">process_opt_esc_sequence</tt><big>(</big><em>chars</em><big>)</big><a class="reference internal" href="../_modules/utils.html#process_opt_esc_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.process_opt_esc_sequence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parse the <em>chars</em> passed from <a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-class docutils literal"><span class="pre">terminal.Terminal</span></tt></a> by way of the special,
-optional escape sequence handler (e.g. '&lt;plugin&gt;|&lt;text&gt;') into a tuple of
-(&lt;plugin name&gt;, &lt;text&gt;).  Here's an example:</p>
+<dd><p>Parse the <em>chars</em> passed from <a class="reference internal" href="terminal.html#terminal.Terminal" title="terminal.Terminal"><tt class="xref py py-class docutils literal"><span class="pre">terminal.Terminal</span></tt></a> by way of the
+special, optional escape sequence handler (e.g. '&lt;plugin&gt;|&lt;text&gt;') into a
+tuple of (&lt;plugin name&gt;, &lt;text&gt;).  Here's an example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">process_opt_esc_sequence</span><span class="p">(</span><span class="s">&#39;ssh|user@host:22&#39;</span><span class="p">)</span>
 <span class="go">(&#39;ssh&#39;, &#39;user@host:22&#39;)</span>
 </pre></div>
@@ -621,7 +628,7 @@ syslog.LOG_* equivalent.</p>
 <dt id="utils.human_readable_bytes">
 <tt class="descclassname">utils.</tt><tt class="descname">human_readable_bytes</tt><big>(</big><em>nbytes</em><big>)</big><a class="reference internal" href="../_modules/utils.html#human_readable_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.human_readable_bytes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns <em>nbytes</em> as a human-readable string in a similar fashion to how it
-would be displayed by 'ls -lh' or 'df -h'.</p>
+would be displayed by <tt class="xref py py-obj docutils literal"><span class="pre">ls</span> <span class="pre">-lh</span></tt> or <tt class="xref py py-obj docutils literal"><span class="pre">df</span> <span class="pre">-h</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -629,7 +636,7 @@ would be displayed by 'ls -lh' or 'df -h'.</p>
 <tt class="descclassname">utils.</tt><tt class="descname">which</tt><big>(</big><em>binary</em>, <em>path=None</em><big>)</big><a class="reference internal" href="../_modules/utils.html#which"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.which" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the full path of <em>binary</em> (string) just like the 'which' command.
 Optionally, a <em>path</em> (colon-delimited string) may be given to use instead of
-<a class="reference external" href="http://docs.python.org/2.7/library/os.html#os.environ" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">os.environ</span></tt></a> ['PATH'].</p>
+<tt class="xref py py-obj docutils literal"><span class="pre">os.environ['PATH']</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -684,7 +691,7 @@ underscore (if <em>allow_underscore</em> is True).</p>
 <dl class="function">
 <dt id="utils.check_write_permissions">
 <tt class="descclassname">utils.</tt><tt class="descname">check_write_permissions</tt><big>(</big><em>user</em>, <em>path</em><big>)</big><a class="reference internal" href="../_modules/utils.html#check_write_permissions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.check_write_permissions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns True if the given <em>user</em> has write permissions to <em>path</em>.  <em>user</em>
+<dd><p>Returns <a class="reference external" href="http://docs.python.org/2.7/library/constants.html#True" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">True</span></tt></a> if the given <em>user</em> has write permissions to <em>path</em>.  <em>user</em>
 can be a UID (int) or a username (string).</p>
 </dd></dl>
 
@@ -814,7 +821,10 @@ were merely trying to share a code example).  Here's an example:</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This function should work to protect against all <a class="reference external" href="https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet">the XSS examples at OWASP</a>.  Please <a class="reference external" href="https://github.com/liftoff/GateOne/issues">let us know</a> if you find something we missed.</p>
+<p class="last">This function should work to protect against all <a class="reference external" href="https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet">the XSS examples at
+OWASP</a>.
+Please <a class="reference external" href="https://github.com/liftoff/GateOne/issues">let us know</a> if
+you find something we missed.</p>
 </div>
 </dd></dl>
 
@@ -826,12 +836,18 @@ argument <strong>must</strong> be the 'secret' followed by any arguments that ar
 part of the hash.  The only <em>kwargs</em> that is used is 'hmac_algo'.
 'hmac_algo' may be any HMAC algorithm present in the hashlib module.  If not
 provided, <tt class="xref py py-obj docutils literal"><span class="pre">hashlib.sha1</span></tt> will be used.  Example usage:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">create_signature</span><span class="p">(</span><span class="s">&#39;secret&#39;</span><span class="p">,</span> <span class="s">&#39;some-api-key&#39;</span><span class="p">,</span> <span class="s">&#39;1234567890123&#39;</span><span class="p">,</span> <span class="s">&#39;user@somehost&#39;</span><span class="p">,</span> <span class="n">hmac_algo</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">create_signature</span><span class="p">(</span>
+    <span class="s">&#39;secret&#39;</span><span class="p">,</span>
+    <span class="s">&#39;some-api-key&#39;</span><span class="p">,</span>
+    <span class="s">&#39;1234567890123&#39;</span><span class="p">,</span>
+    <span class="s">&#39;user@somehost&#39;</span><span class="p">,</span>
+    <span class="n">hmac_algo</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The API 'secret' <strong>must</strong> be the first argument.</p>
+<p class="last">The API 'secret' <strong>must</strong> be the first argument.  Also, the order
+<em>does</em> matter.</p>
 </div>
 </dd></dl>
 
@@ -880,6 +896,7 @@ sessions.</p>
 </dd></dl>
 
 </div>
+</div>
 
 
           </div>
@@ -890,6 +907,14 @@ sessions.</p>
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/ls_logo_1inch_300dpi.png" alt="Logo"/>
             </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">utils.py</span></tt> - Supporting Functions</a><ul>
+<li><a class="reference internal" href="#gate-one-utility-functions-and-classes">Gate One Utility Functions and Classes</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="termio.html"
                         title="previous chapter"><tt class="docutils literal"><span class="pre">termio.py</span></tt> - Terminal Input/Output Module</a></p>

@@ -10,6 +10,8 @@ __version_info__ = (1, 0)
 __author__ = 'Dan McDougall <daniel.mcdougall@liftoffsoftware.com>'
 
 __doc__ = """\
+.. _sso.py:
+
 About The SSO Module
 ====================
 sso.py is a Tornado Single Sign-On (SSO) authentication module that implements
@@ -173,7 +175,7 @@ class KerberosAuthMixin(tornado.web.RequestHandler):
     def auth_basic(self, auth_header, callback):
         """
         Perform Basic authentication using Kerberos against
-        self.settings['sso_realm'].
+        `self.settings['sso_realm']`.
         """
         auth_decoded = base64.decodestring(auth_header[6:])
         username, password = auth_decoded.split(':', 2)

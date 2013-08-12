@@ -5,7 +5,10 @@
 # For license information see LICENSE.txt
 
 __doc__ = """\
-Gate One utility functions and classes.
+.. _utils.py:
+
+Gate One Utility Functions and Classes
+======================================
 """
 
 # Meta
@@ -47,14 +50,6 @@ MACOS = os.uname()[0] == 'Darwin'
 OPENBSD = os.uname()[0] == 'OpenBSD'
 CSS_END = re.compile('\.css.*?$')
 JS_END = re.compile('\.js.*?$')
-# This matches JUST the PIDs from the output of the pstree command
-#RE_PSTREE = re.compile(r'\(([0-9]*)\)')
-# Matches Gate One's special optional escape sequence (ssh plugin only)
-#RE_OPT_SSH_SEQ = re.compile(
-    #r'.*\x1b\]_\;(ssh\|.+?)(\x07|\x1b\\)', re.MULTILINE|re.DOTALL)
-## Matches an xterm title sequence
-#RE_TITLE_SEQ = re.compile(
-    #r'.*\x1b\][0-2]\;(.+?)(\x07|\x1b\\)', re.DOTALL|re.MULTILINE)
 # This is used by the raw() function to show control characters
 REPLACEMENT_DICT = {
     0: u'^@',
@@ -161,7 +156,10 @@ class RUDict(dict):
     A dict that will recursively update keys and values in a safe manner so that
     sub-dicts will be merged without one clobbering the other.
 
-    .. note:: This class (mostly) taken from `here <http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python>`_
+    .. note::
+
+        This class (mostly) taken from `here
+        <http://stackoverflow.com/questions/6256183/combine-two-dictionaries-of-dictionaries-python>`_
     """
     def __init__(self, *args, **kw):
         super(RUDict,self).__init__(*args, **kw)
@@ -382,9 +380,9 @@ def remove_pid(path):
 def shell_command(cmd, timeout_duration=5):
     """
     Resets the SIGCHLD signal handler (if necessary), executes *cmd* via
-    :func:`commands.getstatusoutput`, then re-enables the SIGCHLD handler (if it
-    was set to something other than SIG_DFL).  Returns the result of
-    `getstatusoutput` which is a tuple in the form of::
+    :func:`~commands.getstatusoutput`, then re-enables the SIGCHLD handler (if
+    it was set to something other than SIG_DFL).  Returns the result of
+    :func:`~commands.getstatusoutput` which is a tuple in the form of::
 
         (exitstatus, output)
 
@@ -626,7 +624,8 @@ def none_fix(val):
 def str2bool(val):
     """
     Converts strings like, 'false', 'true', '0', and '1' into their boolean
-    equivalents.  If no logical match is found, return False.  Examples::
+    equivalents (in Python).  If no logical match is found, return False.
+    Examples::
 
         >>> str2bool('false')
         False
@@ -704,7 +703,11 @@ def cmd_var_swap(cmd, **kwargs):
         >>> cmd_var_swap(cmd, foo="FOOYEAH,", bar="BAR NONE!")
         "echo 'FOOYEAH, BAR NONE!'"
 
-    .. note:: The variables passed into this function via *kwargs* are case insensitive.  `cmd_var_swap(cmd, session=var)` would produce the same output as `cmd_var_swap(cmd, SESSION=var)`.
+    .. note::
+
+        The variables passed into this function via *kwargs* are case
+        insensitive.  `cmd_var_swap(cmd, session=var)` would produce the same
+        output as `cmd_var_swap(cmd, SESSION=var)`.
     """
     for key, value in kwargs.items():
         key = str(key) # Force to string in case of things like integers
@@ -717,7 +720,10 @@ def short_hash(to_shorten):
     Converts *to_shorten* into a really short hash depenendent on the length of
     *to_shorten*.  The result will be safe for use as a file name.
 
-    .. note:: Collisions are possible but *highly* unlikely because of how this method is used.
+    .. note::
+
+        Collisions are possible but *highly* unlikely because of how this method
+        is used.
     """
     import base64
     hashed = hashlib.sha1(to_shorten.encode('utf-8'))
@@ -863,7 +869,10 @@ def killall_bsd(session_dir, pid_file=None):
     """
     A BSD-specific version of `killall` since Macs don't have /proc.
 
-    .. note:: *pid_file* is not used by this function.  It is simply here to provide compatibility with `killall`.
+    .. note::
+
+        *pid_file* is not used by this function.  It is simply here to provide
+        compatibility with `killall`.
     """
     # TODO: See if there's a better way to keep track of subprocesses so we
     # don't have to enumerate the process table at all.
@@ -1048,8 +1057,8 @@ def merge_handlers(handlers):
 # See: http://code.activestate.com/recipes/577894-convert-strings-like-5d-and-60s-to-timedelta-objec/
 def convert_to_timedelta(time_val):
     """
-    Given a *time_val* (string) such as '5d', returns a `datetime.timedelta` object
-    representing the given value (e.g. timedelta(days=5)).  Accepts the
+    Given a *time_val* (string) such as '5d', returns a `datetime.timedelta`
+    object representing the given value (e.g. `timedelta(days=5)`).  Accepts the
     following '<num><char>' formats:
 
     =========   ============ =========================
@@ -1093,9 +1102,9 @@ def convert_to_bytes(size_val):
     Given a *size_val* (string) such as '100M', returns an integer representing
     an equivalent amount of bytes.  Accepts the following '<num><char>' formats:
 
-    =========== ==========  ===================
+    =========== ==========  ==================================
     Character   Meaning     Example
-    =========== ==========  ===================
+    =========== ==========  ==================================
     B (or none) Bytes       '100' or '100b' -> 100
     K           Kilobytes   '1k' -> 1024
     M           Megabytes   '1m' -> 1048576
@@ -1105,11 +1114,16 @@ def convert_to_bytes(size_val):
     E           Exabytes    '1e' -> 1152921504606846976
     Z           Zettabytes  '1z' -> 1180591620717411303424L
     Y           Yottabytes  '7y' -> 1208925819614629174706176L
-    =========== ==========  ===================
+    =========== ==========  ==================================
 
-    .. note:: If no character is given the *size_val* will be assumed to be in bytes.
+    .. note::
 
-    .. tip:: All characters will be converted to upper case before conversion (case-insensitive).
+        If no character is given the *size_val* will be assumed to be in bytes.
+
+    .. tip::
+
+        All characters will be converted to upper case before conversion
+        (case-insensitive).
 
     Examples::
 
@@ -1134,9 +1148,9 @@ def convert_to_bytes(size_val):
 
 def process_opt_esc_sequence(chars):
     """
-    Parse the *chars* passed from :class:`terminal.Terminal` by way of the special,
-    optional escape sequence handler (e.g. '<plugin>|<text>') into a tuple of
-    (<plugin name>, <text>).  Here's an example::
+    Parse the *chars* passed from :class:`terminal.Terminal` by way of the
+    special, optional escape sequence handler (e.g. '<plugin>|<text>') into a
+    tuple of (<plugin name>, <text>).  Here's an example::
 
         >>> process_opt_esc_sequence('ssh|user@host:22')
         ('ssh', 'user@host:22')
@@ -1203,7 +1217,7 @@ def create_data_uri(filepath):
 def human_readable_bytes(nbytes):
     """
     Returns *nbytes* as a human-readable string in a similar fashion to how it
-    would be displayed by 'ls -lh' or 'df -h'.
+    would be displayed by `ls -lh` or `df -h`.
     """
     K, M, G, T = 1 << 10, 1 << 20, 1 << 30, 1 << 40
     if nbytes >= T:
@@ -1221,7 +1235,7 @@ def which(binary, path=None):
     """
     Returns the full path of *binary* (string) just like the 'which' command.
     Optionally, a *path* (colon-delimited string) may be given to use instead of
-    `os.environ` ['PATH'].
+    `os.environ['PATH']`.
     """
     if path:
         paths = path.split(':')
@@ -1351,7 +1365,7 @@ def recursive_chown(path, uid, gid):
 
 def check_write_permissions(user, path):
     """
-    Returns True if the given *user* has write permissions to *path*.  *user*
+    Returns `True` if the given *user* has write permissions to *path*.  *user*
     can be a UID (int) or a username (string).
     """
     import pwd, grp, stat
@@ -1638,7 +1652,12 @@ def strip_xss(html, whitelist=None, replacement=u"\u2421"):
          ['<img src="javascript:alert("pwned!")">'])
         (u'<span>Hello, exploit: \u2421</span>', ['<img src="javascript:alert("pwned!")">'])
 
-    .. note:: This function should work to protect against all `the XSS examples at OWASP <https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet>`_.  Please `let us know <https://github.com/liftoff/GateOne/issues>`_ if you find something we missed.
+    .. note::
+
+        This function should work to protect against all `the XSS examples at
+        OWASP <https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet>`_.
+        Please `let us know <https://github.com/liftoff/GateOne/issues>`_ if
+        you find something we missed.
     """
     re_html_tag = re.compile( # This matches HTML tags (if used correctly)
       "(?i)<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>")
@@ -1702,9 +1721,17 @@ def create_signature(*parts, **kwargs):
     'hmac_algo' may be any HMAC algorithm present in the hashlib module.  If not
     provided, `hashlib.sha1` will be used.  Example usage::
 
-        create_signature('secret', 'some-api-key', '1234567890123', 'user@somehost', hmac_algo=hashlib.sha1)
+        create_signature(
+            'secret',
+            'some-api-key',
+            '1234567890123',
+            'user@somehost',
+            hmac_algo=hashlib.sha1)
 
-    .. note:: The API 'secret' **must** be the first argument.
+    .. note::
+
+        The API 'secret' **must** be the first argument.  Also, the order
+        *does* matter.
     """
     secret = parts[0]
     secret = str(secret).encode('utf-8') # encode() because hmac takes bytes

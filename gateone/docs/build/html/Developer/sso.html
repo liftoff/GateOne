@@ -59,7 +59,7 @@
   <div class="section" id="module-sso">
 <span id="sso-py-a-tornado-kerberos-single-sign-on-module"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">sso.py</span></tt> - A Tornado Kerberos Single Sign-On Module<a class="headerlink" href="#module-sso" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="about-the-sso-module">
-<h2>About The SSO Module<a class="headerlink" href="#about-the-sso-module" title="Permalink to this headline">¶</a></h2>
+<span id="sso-py"></span><h2>About The SSO Module<a class="headerlink" href="#about-the-sso-module" title="Permalink to this headline">¶</a></h2>
 <p>sso.py is a Tornado Single Sign-On (SSO) authentication module that implements
 GSSAPI authentication via python-kerberos (import kerberos).  If &quot;Negotiate&quot;
 authentication (GSSAPI SSO) fails it will gracefully fall back to &quot;Basic&quot; auth
@@ -170,7 +170,7 @@ were provided by the client.</p>
 <dt id="sso.KerberosAuthMixin.auth_basic">
 <tt class="descname">auth_basic</tt><big>(</big><em>auth_header</em>, <em>callback</em><big>)</big><a class="reference internal" href="../_modules/sso.html#KerberosAuthMixin.auth_basic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sso.KerberosAuthMixin.auth_basic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform Basic authentication using Kerberos against
-self.settings['sso_realm'].</p>
+<tt class="xref py py-obj docutils literal"><span class="pre">self.settings['sso_realm']</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -210,7 +210,7 @@ and Basic auth.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="remote_syslog.html"
-                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal docutils literal"><span class="pre">remote_syslog.py</span></tt> - A module to send syslog messaged directly over UDP</a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">remote_syslog.py</span></tt> - A module to send syslog messaged directly over UDP</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="terminal.html"
                         title="next chapter"><tt class="docutils literal"><span class="pre">terminal.py</span></tt> - A Pure Python Terminal Emulator</a></p>
